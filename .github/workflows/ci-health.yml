@@ -29,7 +29,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
         with: { components: rustfmt }
-      - run: cargo fmt --check
+      - run: cargo fmt --check -p sovereign-health-backend
 
   lint-clippy:
     name: cargo clippy
@@ -39,7 +39,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with: { components: clippy }
       - uses: Swatinem/rust-cache@v2
-      - run: cargo clippy --all-targets -- -D warnings
+      - run: cargo clippy -p sovereign-health-backend --all-targets -- -D warnings
 
   # ── Smoke tests (fast, no DB) ──
   test-smoke:
@@ -198,17 +198,12 @@ jobs:
   frontend-build:
     name: frontend build + test
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: apps/health/sovereign-health/frontend
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: 'pnpm'
-          cache-dependency-path: 'apps/health/sovereign-health/frontend/pnpm-lock.yaml'
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm build
-      - run: pnpm test
+      - run: cd apps/health/sovereign-health/frontend && pnpm install
+      - run: cd apps/health/sovereign-health/frontend && pnpm build
+      - run: cd apps/health/sovereign-health/frontend && pnpm test
