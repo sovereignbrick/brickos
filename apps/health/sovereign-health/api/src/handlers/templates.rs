@@ -150,7 +150,11 @@ pub async fn update(
     let new_slugs = body.marker_slugs.as_ref().unwrap_or(&existing.marker_slugs);
     let new_is_default = body.is_default.unwrap_or(existing.is_default);
     let new_display_order = body.display_order.unwrap_or(existing.display_order);
-    let new_defaults = if body.defaults.is_some() { &body.defaults } else { &existing.defaults };
+    let new_defaults = if body.defaults.is_some() {
+        &body.defaults
+    } else {
+        &existing.defaults
+    };
 
     let template = sqlx::query_as::<_, MeasurementTemplate>(
         r#"UPDATE measurement_templates

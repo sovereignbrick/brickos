@@ -346,7 +346,11 @@ pub async fn chat(
     // Check new keys first, fall back to legacy dr_alex_* keys for backward compat
     let web_enabled = {
         let v = get_setting_bool(pool.get_ref(), "health_coach_web_enabled", true).await;
-        if v { v } else { get_setting_bool(pool.get_ref(), "dr_alex_web_enabled", true).await }
+        if v {
+            v
+        } else {
+            get_setting_bool(pool.get_ref(), "dr_alex_web_enabled", true).await
+        }
     };
     if !web_enabled {
         return HttpResponse::ServiceUnavailable().json(json!({
@@ -365,8 +369,12 @@ pub async fn chat(
         config.public_chat_max_messages as i64,
     )
     .await as usize;
-    let model_override =
-        get_setting_string(pool.get_ref(), "health_coach_model", &config.public_chat_model).await;
+    let model_override = get_setting_string(
+        pool.get_ref(),
+        "health_coach_model",
+        &config.public_chat_model,
+    )
+    .await;
     let max_tokens_override = get_setting_i64(
         pool.get_ref(),
         "health_coach_max_tokens",
