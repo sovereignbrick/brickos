@@ -66,17 +66,20 @@ STAGING_AUTH_USER="${STAGING_AUTH_USER:-admin}"
 STAGING_AUTH_PASS="${STAGING_AUTH_PASS:-}"
 
 # Git branches: Which branch deploys where.
+# Monorepo uses main for both staging and production.
 BRANCH_PROD="main"
-BRANCH_STAGING="develop"
+BRANCH_STAGING="main"
 
 # Cloudflare: Loaded from .env below. Set CF_ZONE_ID and CF_API_TOKEN there.
 
 # Load secrets from .env (Cloudflare tokens, etc.)
 # This file is gitignored and contains CF_ZONE_ID, CF_API_TOKEN, etc.
 if [ -f "$APP_ROOT/api/.env" ]; then
-    set -a
-    source "$APP_ROOT/api/.env"
-    set +a
+    # Only load safe key=value lines (skip lines with special chars like <>)
+    while IFS='=' read -r key value; do
+        [[ "$key" =~ ^#.*$ || -z "$key" ]] && continue
+        case "$key" in CF_ZONE_ID|CF_API_TOKEN|STAGING_AUTH_PASS) export "$key=$value" ;; esac
+    done < "$APP_ROOT/api/.env"
 fi
 
 # ══════════════════════════════════════════════════════════════════════════════
