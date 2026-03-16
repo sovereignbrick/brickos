@@ -65,5 +65,5 @@ Open source core with proprietary premium tiers.
 
 ---
 
-*Sovereign Brick OU -- Estonia*
+*BrickOS
 *Bitcoin introduced Proof of Work. Health needs Proof of Blood.*
