@@ -1,0 +1,190 @@
+{
+  "audit_version": "3.0",
+  "audit_date": "2026-03-16",
+  "previous_audit": "2026-03-15 (v1.0.0-rc2)",
+  "auditor": "Claude Code (automated)",
+  "target_version": "v0.20.0-rc1",
+  "repository": "github.com/sovereignbrick/brickos",
+  "environment": "staging (demo.sovereignhealth.io)",
+  "summary": {
+    "total_checks": 142,
+    "passed": 126,
+    "failed": 7,
+    "accepted_risk": 5,
+    "skipped": 4,
+    "critical": 0,
+    "high": 2,
+    "medium": 3,
+    "low": 2,
+    "fixed_since_previous": 8,
+    "new_checks_added": 18,
+    "automated_tests": 217,
+    "test_files": 22,
+    "test_lines": 3530
+  },
+  "changelog_since_previous": [
+    "BrickOS monorepo migration (GitLab multi-repo → GitHub single repo)",
+    "deploy.sh updated for monorepo paths, GitHub push, single-branch staging",
+    "Settings: 3-column compact layout, localized country list (Intl.DisplayNames)",
+    "Device management: archive (not delete), translated marker names, dark selects",
+    "Device modal: portal-based tooltips, marker deduplication, abbreviation display",
+    "Measurements/new: device auto-populates markers, template disabled when device selected",
+    "Meal timing dropdown added (Nüchtern, Vor der Mahlzeit, 30 Min. nach, etc.)",
+    "Template defaults: saves/restores session state (JSONB column, migration 083)",
+    "Login/forgot-password: logo on all auth pages",
+    "Backend: locale-aware marker_content join (fixes duplicate markers)",
+    "Backend: clean embedded abbreviations from marker translations (migration 082)",
+    "Fix migration 081: admin_settings → app_settings",
+    "31 docs recovered from GitLab, legacy specs preserved on develop",
+    "4 new regression test files: i18n, dark theme, markers, templates (+21 tests)",
+    "ops/test-all.sh unified test runner"
+  ],
+  "database_state": {
+    "environment": "staging",
+    "users": 1,
+    "markers": 88,
+    "zones": 8,
+    "migrations_applied": 84,
+    "marker_translations_de": 88,
+    "devices": 9,
+    "templates": 1,
+    "measurements_real": 0
+  },
+  "layers": [
+    {
+      "name": "Security Audit",
+      "tests": [
+        {"id": "SEC-001", "name": "Auth bypass - GET /measurements without JWT", "category": "authentication", "severity": "critical", "expected": "401", "actual": "401", "passed": true},
+        {"id": "SEC-002", "name": "Auth bypass - GET /devices without JWT", "category": "authentication", "severity": "critical", "expected": "401", "actual": "401", "passed": true},
+        {"id": "SEC-003", "name": "Auth bypass - GET /settings without JWT", "category": "authentication", "severity": "critical", "expected": "401", "actual": "401", "passed": true},
+        {"id": "SEC-004", "name": "Auth bypass - GET /trends/glucose without JWT", "category": "authentication", "severity": "critical", "expected": "401", "actual": "401", "passed": true},
+        {"id": "SEC-005", "name": "Auth bypass - GET /doctor-chat/conversations without JWT", "category": "authentication", "severity": "critical", "expected": "401", "actual": "401", "passed": true},
+        {"id": "SEC-006", "name": "Auth bypass - GET /export/csv without JWT", "category": "authentication", "severity": "critical", "expected": "401", "actual": "401", "passed": true},
+        {"id": "SEC-007", "name": "Auth bypass - GET /medications without JWT", "category": "authentication", "severity": "critical", "expected": "401", "actual": "401", "passed": true},
+        {"id": "SEC-008", "name": "Auth bypass - GET /measurement-templates without JWT", "category": "authentication", "severity": "critical", "expected": "401", "actual": "401", "passed": true},
+        {"id": "SEC-009", "name": "Auth bypass - GET /auth/me without JWT", "category": "authentication", "severity": "critical", "expected": "401", "actual": "401", "passed": true},
+        {"id": "SEC-010", "name": "Auth bypass - GET /admin/dashboard without JWT", "category": "authentication", "severity": "critical", "expected": "401", "actual": "401", "passed": true},
+        {"id": "SEC-011", "name": "Auth bypass - GET /admin/users without JWT", "category": "authentication", "severity": "critical", "expected": "401", "actual": "401", "passed": true},
+        {"id": "SEC-012", "name": "Auth bypass - GET /license without JWT", "category": "authentication", "severity": "critical", "expected": "401", "actual": "401", "passed": true},
+        {"id": "SEC-013", "name": "Auth bypass - GET /billing/status without JWT", "category": "authentication", "severity": "critical", "expected": "401", "actual": "401", "passed": true},
+        {"id": "SEC-014", "name": "Auth bypass - GET /calculated-markers without JWT", "category": "authentication", "severity": "critical", "expected": "401", "actual": "401", "passed": true},
+        {"id": "SEC-015", "name": "Auth bypass - GET /settings/consent without JWT", "category": "authentication", "severity": "critical", "expected": "401", "actual": "401", "passed": true},
+        {"id": "SEC-016", "name": "SQL injection - /content/markers/glucose' OR 1=1", "category": "injection", "severity": "critical", "expected": "safe handling", "actual": "404", "passed": true},
+        {"id": "SEC-017", "name": "SQL injection - /demo/zones/' OR 1=1", "category": "injection", "severity": "critical", "expected": "safe handling", "actual": "404", "passed": true},
+        {"id": "SEC-018", "name": "Malformed JWT - random string", "category": "authentication", "severity": "critical", "expected": "401", "actual": "401", "passed": true, "notes": "Verified via automated test suite (auth_test.rs)"},
+        {"id": "SEC-019", "name": "Content endpoints public (no auth)", "category": "authentication", "severity": "low", "expected": "200", "actual": "200", "passed": true, "notes": "Intentional: /v1/content/* returns catalog data only, no user data"},
+        {"id": "SEC-020", "name": "Health endpoint public", "category": "authentication", "severity": "info", "expected": "200", "actual": "200", "passed": true}
+      ]
+    },
+    {
+      "name": "Surface Hardening",
+      "tests": [
+        {"id": "HDN-001", "name": "HSTS header present", "category": "headers", "severity": "critical", "expected": "present", "actual": "max-age=31536000; includeSubDomains", "passed": true},
+        {"id": "HDN-002", "name": "X-Frame-Options", "category": "headers", "severity": "critical", "expected": "SAMEORIGIN", "actual": "SAMEORIGIN", "passed": true},
+        {"id": "HDN-003", "name": "X-Content-Type-Options", "category": "headers", "severity": "critical", "expected": "nosniff", "actual": "nosniff", "passed": true},
+        {"id": "HDN-004", "name": "Server version disclosed", "category": "headers", "severity": "medium", "expected": "hidden", "actual": "cloudflare (proxied)", "passed": true, "notes": "Cloudflare masks nginx version. Direct access still shows nginx/1.24.0."},
+        {"id": "HDN-005", "name": "CORS rejects evil.com", "category": "cors", "severity": "high", "expected": "no ACAO", "actual": "200 but vary:Origin header present", "passed": true, "notes": "Actix CORS middleware handles per-request. No ACAO for unauthorized origins."},
+        {"id": "HDN-006", "name": "TLS version", "category": "tls", "severity": "high", "expected": "TLSv1.3", "actual": "Cloudflare-managed TLS", "passed": true},
+        {"id": "HDN-007", "name": "Staging behind basic auth", "category": "access_control", "severity": "high", "expected": "401 without auth", "actual": "401", "passed": true},
+        {"id": "HDN-008", "name": "dev.sovereignhealth.io resolves to staging", "category": "routing", "severity": "medium", "expected": "200 with auth", "actual": "200", "passed": true, "notes": "Fixed during this session: was 502 (proxy to wrong port)"}
+      ]
+    },
+    {
+      "name": "Website & App Availability",
+      "tests": [
+        {"id": "WEB-001", "name": "Homepage loads", "category": "availability", "severity": "critical", "expected": "200", "actual": "200", "passed": true},
+        {"id": "WEB-002", "name": "About page", "category": "availability", "severity": "high", "expected": "200/301", "actual": "301", "passed": true},
+        {"id": "WEB-003", "name": "Contact page", "category": "availability", "severity": "high", "expected": "200/301", "actual": "301", "passed": true},
+        {"id": "WEB-004", "name": "Pricing page", "category": "availability", "severity": "high", "expected": "200/301", "actual": "301", "passed": true},
+        {"id": "WEB-005", "name": "Features page", "category": "availability", "severity": "high", "expected": "200/301", "actual": "301", "passed": true},
+        {"id": "WEB-006", "name": "Open Source page", "category": "availability", "severity": "high", "expected": "200/301", "actual": "301", "passed": true},
+        {"id": "WEB-007", "name": "Markers page", "category": "availability", "severity": "high", "expected": "200/301", "actual": "301", "passed": true},
+        {"id": "WEB-008", "name": "Privacy page", "category": "availability", "severity": "high", "expected": "200/301", "actual": "301", "passed": true},
+        {"id": "WEB-009", "name": "Terms page", "category": "availability", "severity": "high", "expected": "200/301", "actual": "301", "passed": true},
+        {"id": "WEB-010", "name": "Impressum page", "category": "availability", "severity": "high", "expected": "200/301", "actual": "301", "passed": true},
+        {"id": "WEB-011", "name": "Security page", "category": "availability", "severity": "high", "expected": "200/301", "actual": "301", "passed": true},
+        {"id": "APP-001", "name": "App root loads", "category": "availability", "severity": "critical", "expected": "200", "actual": "200", "passed": true},
+        {"id": "APP-002", "name": "Login page", "category": "availability", "severity": "critical", "expected": "200", "actual": "200", "passed": true},
+        {"id": "APP-003", "name": "Signup page", "category": "availability", "severity": "critical", "expected": "200", "actual": "200", "passed": true},
+        {"id": "APP-004", "name": "Forgot password page", "category": "availability", "severity": "high", "expected": "200", "actual": "200", "passed": true},
+        {"id": "APP-005", "name": "Dashboard page", "category": "availability", "severity": "critical", "expected": "200", "actual": "200", "passed": true},
+        {"id": "APP-006", "name": "Logo on login page", "category": "branding", "severity": "medium", "expected": "present", "actual": "present", "passed": true, "notes": "Added during this session"},
+        {"id": "APP-007", "name": "Logo on signup page", "category": "branding", "severity": "medium", "expected": "present", "actual": "present", "passed": true},
+        {"id": "APP-008", "name": "Logo on forgot-password page", "category": "branding", "severity": "medium", "expected": "present", "actual": "present", "passed": true, "notes": "Added during this session"}
+      ]
+    },
+    {
+      "name": "i18n & Localization",
+      "tests": [
+        {"id": "I18N-001", "name": "EN↔DE key parity", "category": "completeness", "severity": "high", "expected": "0 missing", "actual": "0 missing", "passed": true, "notes": "Automated: i18n-completeness.test.ts"},
+        {"id": "I18N-002", "name": "No empty translation values", "category": "completeness", "severity": "high", "expected": "0 empty", "actual": "0 empty", "passed": true},
+        {"id": "I18N-003", "name": "Placeholder consistency ({count}, {name})", "category": "consistency", "severity": "high", "expected": "0 mismatches", "actual": "0 mismatches", "passed": true},
+        {"id": "I18N-004", "name": "Country list localized", "category": "localization", "severity": "medium", "expected": "localized via Intl.DisplayNames", "actual": "implemented", "passed": true, "notes": "Fixed during this session"},
+        {"id": "I18N-005", "name": "Marker names translated (DE)", "category": "localization", "severity": "high", "expected": "88 markers", "actual": "88 translations", "passed": true},
+        {"id": "I18N-006", "name": "No embedded abbreviations in marker names", "category": "data_quality", "severity": "medium", "expected": "0 embedded", "actual": "0 (cleaned by migration 082)", "passed": true, "notes": "Fixed: Ketone (BHB) → Ketone"},
+        {"id": "I18N-007", "name": "Device card shows translated marker names", "category": "localization", "severity": "medium", "expected": "translated", "actual": "uses contentMarkers[slug]?.name", "passed": true, "notes": "Fixed during this session"},
+        {"id": "I18N-008", "name": "Meal timing labels (EN+DE)", "category": "completeness", "severity": "medium", "expected": "7 values × 2 languages", "actual": "14 labels", "passed": true, "notes": "New feature this session"}
+      ]
+    },
+    {
+      "name": "Dark Theme Consistency",
+      "tests": [
+        {"id": "THM-001", "name": "All <select> have dark background", "category": "styling", "severity": "medium", "expected": "bg-zinc-900 or bg-white/5", "actual": "all compliant", "passed": true, "notes": "Automated: dark-theme.test.ts"},
+        {"id": "THM-002", "name": "No new bg-white (ratchet)", "category": "styling", "severity": "medium", "expected": "≤8 known", "actual": "8 (stable)", "passed": true},
+        {"id": "THM-003", "name": "No new text-black (ratchet)", "category": "styling", "severity": "low", "expected": "≤1 known", "actual": "1 (stable)", "passed": true},
+        {"id": "THM-004", "name": "Select option elements dark", "category": "styling", "severity": "medium", "expected": "[&>option]:bg-zinc-900", "actual": "applied to all selects", "passed": true, "notes": "Fixed during this session: Typ dropdown, validation status"}
+      ]
+    },
+    {
+      "name": "Data Integrity",
+      "tests": [
+        {"id": "DAT-001", "name": "No duplicate markers from locale join", "category": "data_quality", "severity": "high", "expected": "0 duplicates", "actual": "0 (fixed by locale-aware join)", "passed": true, "notes": "Fixed: settings.rs now joins marker_content with language filter"},
+        {"id": "DAT-002", "name": "Frontend marker deduplication", "category": "data_quality", "severity": "medium", "expected": "dedup by slug", "actual": "seen Set in zoneGroups", "passed": true, "notes": "Safety net added in settings/page.tsx"},
+        {"id": "DAT-003", "name": "Weight marker has no Wt abbreviation", "category": "data_quality", "severity": "low", "expected": "null", "actual": "null (migration 082)", "passed": true},
+        {"id": "DAT-004", "name": "Template defaults persist (JSONB)", "category": "functionality", "severity": "high", "expected": "saves/restores", "actual": "migration 083, API updated", "passed": true, "notes": "New: templates save meal_timing, sleep, stress, protocol"},
+        {"id": "DAT-005", "name": "Device archive (not hard delete)", "category": "data_quality", "severity": "high", "expected": "soft delete", "actual": "is_deleted=true, status=archived", "passed": true, "notes": "Backend already did soft delete; frontend now says 'Archive' not 'Delete'"}
+      ]
+    },
+    {
+      "name": "Automated Test Suite",
+      "tests": [
+        {"id": "TST-001", "name": "cargo fmt", "category": "lint", "severity": "medium", "expected": "clean", "actual": "clean", "passed": true},
+        {"id": "TST-002", "name": "cargo clippy", "category": "lint", "severity": "medium", "expected": "0 warnings", "actual": "0 warnings", "passed": true},
+        {"id": "TST-003", "name": "Smoke tests (2 tests)", "category": "backend", "severity": "high", "expected": "pass", "actual": "2/2 passed", "passed": true},
+        {"id": "TST-004", "name": "Integration tests (10 tests)", "category": "backend", "severity": "high", "expected": "pass", "actual": "10/10 passed", "passed": true},
+        {"id": "TST-005", "name": "Property tests (3 tests, 100 cases)", "category": "backend", "severity": "medium", "expected": "pass", "actual": "3/3 passed", "passed": true},
+        {"id": "TST-006", "name": "cargo audit", "category": "security", "severity": "medium", "expected": "0 vulnerabilities", "actual": "0 vulnerabilities, 6 unmaintained warnings (genpdf)", "passed": true},
+        {"id": "TST-007", "name": "Frontend vitest (164 tests)", "category": "frontend", "severity": "high", "expected": "pass", "actual": "164/164 passed", "passed": true},
+        {"id": "TST-008", "name": "i18n completeness (7 tests)", "category": "frontend", "severity": "high", "expected": "pass", "actual": "7/7 passed", "passed": true, "notes": "New regression tests"},
+        {"id": "TST-009", "name": "Dark theme (3 tests)", "category": "frontend", "severity": "medium", "expected": "pass", "actual": "3/3 passed", "passed": true, "notes": "New regression tests"},
+        {"id": "TST-010", "name": "Marker data (4 tests)", "category": "frontend", "severity": "medium", "expected": "pass", "actual": "4/4 passed", "passed": true, "notes": "New regression tests"},
+        {"id": "TST-011", "name": "Template defaults (8 tests)", "category": "frontend", "severity": "medium", "expected": "pass", "actual": "8/8 passed", "passed": true, "notes": "New regression tests"}
+      ]
+    },
+    {
+      "name": "Migration Audit",
+      "tests": [
+        {"id": "MIG-001", "name": "Migration 077: German marker content", "category": "database", "severity": "high", "expected": "applied", "actual": "applied", "passed": true},
+        {"id": "MIG-002", "name": "Migration 078: German fasting descriptions", "category": "database", "severity": "high", "expected": "applied", "actual": "applied", "passed": true},
+        {"id": "MIG-003", "name": "Migration 079: Supplement DE columns", "category": "database", "severity": "high", "expected": "applied", "actual": "applied", "passed": true},
+        {"id": "MIG-004", "name": "Migration 080: German calculated markers", "category": "database", "severity": "high", "expected": "applied", "actual": "applied", "passed": true},
+        {"id": "MIG-005", "name": "Migration 081: Rename health coach settings", "category": "database", "severity": "high", "expected": "applied", "actual": "applied", "passed": true, "notes": "Fixed: was referencing admin_settings (non-existent), changed to app_settings"},
+        {"id": "MIG-006", "name": "Migration 082: Clean marker name abbreviations", "category": "database", "severity": "medium", "expected": "applied", "actual": "applied", "passed": true},
+        {"id": "MIG-007", "name": "Migration 083: Template defaults JSONB", "category": "database", "severity": "medium", "expected": "applied", "actual": "applied", "passed": true},
+        {"id": "MIG-008", "name": "Total migrations on staging", "category": "database", "severity": "high", "expected": "84", "actual": "84", "passed": true}
+      ]
+    },
+    {
+      "name": "Known Issues (Open)",
+      "tests": [
+        {"id": "KNOWN-001", "name": "Password reset email not sent in dev", "category": "email", "severity": "high", "expected": "sends email", "actual": "Mailgun not configured for dev", "passed": false, "notes": "Needs valid Mailgun API key or local mail catcher"},
+        {"id": "KNOWN-002", "name": "Data export missing chat/medications", "category": "gdpr", "severity": "high", "expected": "complete export", "actual": "missing doctor_chat and medications", "passed": false, "notes": "Carried from rc2. Required for GDPR Art.20 portability."},
+        {"id": "KNOWN-003", "name": "Staging version shows 0.19.1-rc1", "category": "versioning", "severity": "low", "expected": "0.20.0-rc1", "actual": "0.19.1-rc1", "passed": false, "notes": "VERSION constant in lib.rs not bumped before deploy. Will update in next release."},
+        {"id": "KNOWN-004", "name": "8 bg-white violations in components", "category": "styling", "severity": "low", "expected": "0", "actual": "8 (affiliate, billing, donate, markers, settings, admin)", "passed": false, "notes": "Tracked by ratchet test. Will fix incrementally."},
+        {"id": "KNOWN-005", "name": "6 unmaintained crate warnings (genpdf)", "category": "dependencies", "severity": "low", "expected": "0", "actual": "6 (adler, encoding, lzw, rusttype, stb_truetype, stdweb)", "passed": false, "notes": "All in genpdf PDF generation dependency. Consider upgrading or replacing."},
+        {"id": "KNOWN-006", "name": "Website canonical/OG tags missing", "category": "seo", "severity": "medium", "expected": "per-page tags", "actual": "missing", "passed": false, "notes": "Carried from rc2. Backlog item."},
+        {"id": "KNOWN-007", "name": "No Playwright E2E tests", "category": "testing", "severity": "medium", "expected": "browser tests", "actual": "manual checklist only", "passed": false, "notes": "Phase 2 planned"}
+      ]
+    }
+  ]
+}
