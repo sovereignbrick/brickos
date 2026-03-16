@@ -14,6 +14,6 @@ export const SITE_CONFIG = {
   appUrl: process.env.NEXT_PUBLIC_APP_URL || 'https://app.sovereignhealth.io',
   demoUrl: process.env.NEXT_PUBLIC_DEMO_URL || 'https://demo.sovereignhealth.io',
   apiUrl: process.env.NEXT_PUBLIC_API_URL || 'https://api.sovereignhealth.io',
-  gitlabUrl: process.env.NEXT_PUBLIC_GITLAB_URL || 'https://gitlab.com/sovereign-health',
-  gitlabRepoUrl: process.env.NEXT_PUBLIC_GITLAB_REPO_URL || 'https://gitlab.com/sovereign-health/core-backend',
+  githubUrl: process.env.NEXT_PUBLIC_GITHUB_URL || 'https://github.com/sovereignbrick/brickos',
+  githubRepoUrl: process.env.NEXT_PUBLIC_GITHUB_REPO_URL || 'https://github.com/sovereignbrick/brickos',
 } as const;

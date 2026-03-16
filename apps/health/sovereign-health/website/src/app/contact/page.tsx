@@ -170,20 +170,14 @@ export default function ContactPage() {
           <h2 className="text-lg font-semibold">{t("contact.directContact.title")}</h2>
           <div className="mt-4 space-y-3">
             <p className="text-sm text-[var(--muted)]">
-              {t("contact.directContact.emailLabel")}{" "}
-              <span className="text-[var(--accent)]">
-                sovereignhealthintelligence@proton.me
-              </span>
-            </p>
-            <p className="text-sm text-[var(--muted)]">
-              {t("contact.directContact.gitlabLabel")}{" "}
+              {t("contact.directContact.githubLabel")}{" "}
               <a
-                href={SITE_CONFIG.gitlabUrl}
+                href={SITE_CONFIG.githubUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-[var(--accent)] underline transition-colors hover:text-[var(--accent-hover)]"
               >
-                GitLab
+                GitHub
               </a>
             </p>
             <p className="mt-2 text-xs text-[var(--muted)]">

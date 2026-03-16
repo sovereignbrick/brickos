@@ -3,7 +3,7 @@
 import { useI18n } from "@/lib/i18n";
 import { SITE_CONFIG } from "@/lib/config";
 
-const GITLAB_REPO = SITE_CONFIG.gitlabRepoUrl;
+const GITHUB_REPO = SITE_CONFIG.githubRepoUrl;
 
 const principleKeys = [
   { key: "dataSovereignty", icon: "\u{1F3E0}", color: "#3b82f6" },
@@ -109,7 +109,7 @@ export default function OpenSourcePage() {
           </p>
           <div className="overflow-x-auto rounded-lg bg-zinc-900 p-6">
             <pre className="text-sm leading-relaxed text-[var(--foreground)]">
-              <code>{`git clone ${GITLAB_REPO}.git
+              <code>{`git clone ${GITHUB_REPO}.git
 cd core-backend
 cp .env.example .env
 docker compose up -d`}</code>
@@ -212,7 +212,7 @@ docker compose up -d`}</code>
           </p>
           <div className="mt-6 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <a
-              href={GITLAB_REPO}
+              href={GITHUB_REPO}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-blue-700"
@@ -220,7 +220,7 @@ docker compose up -d`}</code>
               {t('openSource.contribute.viewOnGitlab')}
             </a>
             <a
-              href={`${GITLAB_REPO}/-/blob/main/CONTRIBUTING.md`}
+              href={`${GITHUB_REPO}/-/blob/main/CONTRIBUTING.md`}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center justify-center rounded-lg border border-[var(--border)] px-6 py-3 font-semibold text-[var(--foreground)] transition-colors hover:bg-[var(--card)]"

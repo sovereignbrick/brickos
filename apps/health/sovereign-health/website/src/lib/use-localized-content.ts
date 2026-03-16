@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import { useI18n, type Locale } from "./i18n";
 import contentEn from "@/data/content-en.json";
 import contentDe from "@/data/content-de.json";
+import markersStatic from "../../data/markers.json";
 
 const contentByLocale: Record<Locale, typeof contentEn> = {
   en: contentEn,
@@ -40,6 +41,11 @@ export function useLocalizedMarkers(): LocalizedMarker[] {
       enContent.markers.map((m) => [m.marker_slug, m])
     );
 
+    // Build source_type map from static markers data
+    const sourceMap = new Map(
+      markersStatic.map((m: { slug: string; source_type?: string }) => [m.slug, m.source_type || "home"])
+    );
+
     return content.markers.map((m) => {
       const en = enMap.get(m.marker_slug);
       return {
@@ -49,7 +55,7 @@ export function useLocalizedMarkers(): LocalizedMarker[] {
         description: m.description || en?.description || "",
         tooltip: m.tooltip || en?.tooltip || "",
         unit: m.unit_canonical || en?.unit_canonical || "",
-        source_type: m.is_calculated ? "calculated" : "home",
+        source_type: m.is_calculated ? "calculated" : (sourceMap.get(m.marker_slug) || "home"),
         is_calculated: m.is_calculated || false,
         zone_slug: m.zone_slug || en?.zone_slug || "",
         why_it_matters: m.why_it_matters || en?.why_it_matters || "",

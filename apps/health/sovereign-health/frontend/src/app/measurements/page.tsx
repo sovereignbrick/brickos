@@ -236,7 +236,7 @@ function MeasurementsContent() {
               <select
                 value={selectedDevice}
                 onChange={e => { setSelectedDevice(e.target.value); resetPage() }}
-                className="w-full bg-white/5 border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-blue-500 [&>option]:bg-zinc-900 [&>option]:text-white"
               >
                 <option value="">{t('allDevices')}</option>
                 {filters?.devices.map(d => (
@@ -256,6 +256,8 @@ function MeasurementsContent() {
                 options={filters?.markers || []}
                 selected={selectedMarkers}
                 onToggle={toggleMarker}
+                allLabel={t('allMarkers')}
+                countLabel={(count: number) => t('markersCount', { count })}
               />
             </div>
             <div>
@@ -263,7 +265,7 @@ function MeasurementsContent() {
               <select
                 value={selectedProtocol}
                 onChange={e => { setSelectedProtocol(e.target.value); resetPage() }}
-                className="w-full bg-white/5 border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-blue-500 [&>option]:bg-zinc-900 [&>option]:text-white"
               >
                 <option value="">{t('allProtocols')}</option>
                 {filters?.protocols.map(p => (
@@ -397,10 +399,14 @@ function MarkerMultiSelect({
   options,
   selected,
   onToggle,
+  allLabel,
+  countLabel,
 }: {
   options: { slug: string; name: string; count: number }[]
   selected: string[]
   onToggle: (slug: string) => void
+  allLabel: string
+  countLabel: (count: number) => string
 }) {
   const t = useTranslations('measurements')
   const tCommon = useTranslations('common')
@@ -424,10 +430,10 @@ function MarkerMultiSelect({
   )
 
   const label = selected.length === 0
-    ? 'All Markers'
+    ? allLabel
     : selected.length === 1
       ? options.find(o => o.slug === selected[0])?.name || selected[0]
-      : `${selected.length} markers`
+      : countLabel(selected.length)
 
   return (
     <div ref={ref} className="relative">

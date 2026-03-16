@@ -16,7 +16,7 @@ pub async fn list(
     auth: AuthenticatedUser,
 ) -> Result<HttpResponse, AppError> {
     let templates = sqlx::query_as::<_, MeasurementTemplate>(
-        r#"SELECT id, user_id, name, marker_slugs, is_default, display_order, last_used_at, created_at, updated_at
+        r#"SELECT id, user_id, name, marker_slugs, is_default, display_order, last_used_at, created_at, updated_at, defaults
         FROM measurement_templates
         WHERE user_id = $1
         ORDER BY display_order ASC, created_at ASC"#,
@@ -77,15 +77,16 @@ pub async fn create(
     }
 
     let template = sqlx::query_as::<_, MeasurementTemplate>(
-        r#"INSERT INTO measurement_templates (user_id, name, marker_slugs, is_default, display_order, last_used_at)
-        VALUES ($1, $2, $3, $4, $5, now())
-        RETURNING id, user_id, name, marker_slugs, is_default, display_order, last_used_at, created_at, updated_at"#,
+        r#"INSERT INTO measurement_templates (user_id, name, marker_slugs, is_default, display_order, defaults, last_used_at)
+        VALUES ($1, $2, $3, $4, $5, $6, now())
+        RETURNING id, user_id, name, marker_slugs, is_default, display_order, last_used_at, created_at, updated_at, defaults"#,
     )
     .bind(auth.user_id)
     .bind(name)
     .bind(&body.marker_slugs)
     .bind(body.is_default)
     .bind(body.display_order)
+    .bind(&body.defaults)
     .fetch_one(pool.get_ref())
     .await?;
 
@@ -105,7 +106,7 @@ pub async fn update(
 
     // Verify ownership
     let existing = sqlx::query_as::<_, MeasurementTemplate>(
-        r#"SELECT id, user_id, name, marker_slugs, is_default, display_order, last_used_at, created_at, updated_at
+        r#"SELECT id, user_id, name, marker_slugs, is_default, display_order, last_used_at, created_at, updated_at, defaults
         FROM measurement_templates
         WHERE id = $1 AND user_id = $2"#,
     )
@@ -149,12 +150,13 @@ pub async fn update(
     let new_slugs = body.marker_slugs.as_ref().unwrap_or(&existing.marker_slugs);
     let new_is_default = body.is_default.unwrap_or(existing.is_default);
     let new_display_order = body.display_order.unwrap_or(existing.display_order);
+    let new_defaults = if body.defaults.is_some() { &body.defaults } else { &existing.defaults };
 
     let template = sqlx::query_as::<_, MeasurementTemplate>(
         r#"UPDATE measurement_templates
-        SET name = $3, marker_slugs = $4, is_default = $5, display_order = $6, updated_at = now()
+        SET name = $3, marker_slugs = $4, is_default = $5, display_order = $6, defaults = $7, updated_at = now()
         WHERE id = $1 AND user_id = $2
-        RETURNING id, user_id, name, marker_slugs, is_default, display_order, last_used_at, created_at, updated_at"#,
+        RETURNING id, user_id, name, marker_slugs, is_default, display_order, last_used_at, created_at, updated_at, defaults"#,
     )
     .bind(template_id)
     .bind(auth.user_id)
@@ -162,6 +164,7 @@ pub async fn update(
     .bind(new_slugs)
     .bind(new_is_default)
     .bind(new_display_order)
+    .bind(new_defaults)
     .fetch_one(pool.get_ref())
     .await?;
 

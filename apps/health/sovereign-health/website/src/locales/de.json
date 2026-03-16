@@ -32,7 +32,7 @@
         "title": "Ressourcen",
         "learn": "Lernen",
         "security": "Sicherheit",
-        "gitlab": "GitLab",
+        "github": "GitHub",
         "referralProgram": "Empfehlungsprogramm"
       },
       "legal": {
@@ -76,7 +76,7 @@
         "title": "Über 85 Biomarker",
         "description": "Erfassen Sie Marker in 8 Gesundheitszonen - von Blutzucker bis Hormone. Nutzen Sie Geräte wie Fora 6, Qardio oder jedes Labor."
       },
-      "drAlex": {
+      "healthCoach": {
         "title": "Dr. Alex AI-Assistent",
         "description": "Sechs spezialisierte Analysemodi einschließlich Trendanalyse, Laborerklärung, Ernährungsberatung und Nahrungsergänzungsmittel-Überprüfung."
       },
@@ -1176,7 +1176,7 @@
     "directContact": {
       "title": "Weitere Kontaktmöglichkeiten",
       "emailLabel": "Schreiben Sie uns direkt an",
-      "gitlabLabel": "Melden Sie Probleme oder tragen Sie bei auf",
+      "githubLabel": "Melden Sie Probleme oder tragen Sie bei auf",
       "responseTime": "Wir antworten in der Regel innerhalb von 48 Stunden."
     }
   },
@@ -1314,6 +1314,9 @@
       "topFoods": "Top-Lebensmittel für {name}",
       "supplements": "Nahrungsergänzungsmittel für {name}",
       "relatedMarkers": "Verwandte Marker",
+      "relationCorrelated": "korreliert",
+      "relationInverse": "invers",
+      "relationContextual": "kontextuell",
       "showAll": "Alle {count} Einträge anzeigen",
       "showLess": "Weniger anzeigen",
       "personalizedCallout": "Diese Empfehlungen werden in der {appLink} basierend auf Ihrem Ernährungs- und Fastenprotokoll personalisiert.",
@@ -1384,11 +1387,11 @@
       "errorDefault": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut."
     }
   },
-  "drAlexChat": {
-    "bubbleLabel": "Dr. Alex fragen",
-    "openChat": "Dr. Alex Chat öffnen",
+  "healthCoach": {
+    "bubbleLabel": "Gesundheits-Coach",
+    "openChat": "Gesundheits-Coach öffnen",
     "closeChat": "Chat schließen",
-    "headerTitle": "Dr. Alex fragen",
+    "headerTitle": "Gesundheits-Coach",
     "betaBadge": "Beta",
     "lockedFeatures": {
       "uploadLabResults": "Meine Laborergebnisse hochladen",
@@ -1397,7 +1400,7 @@
       "tooltip": "Registrieren Sie sich, um diese Funktion freizuschalten.",
       "viewPricing": "Preise ansehen →"
     },
-    "availableWithPro": "Verfügbar mit Dr. Alex Pro",
+    "availableWithPro": "Verfügbar mit voller Health Intelligence",
     "quickQuestionsPrompt": "Fragen Sie mich über Biomarker, Ernährungsprotokolle oder unser Produkt:",
     "quickQuestions": [
       "Was ist ApoB und warum ist es wichtig?",
@@ -1408,7 +1411,7 @@
       "Was ist der GKI und warum sollte man ihn erfassen?"
     ],
     "upsellMessage": "Möchten Sie personalisierte Gesundheitserkenntnisse?",
-    "upsellLink": "Für Dr. Alex Pro registrieren →",
+    "upsellLink": "Für volle Health Intelligence registrieren →",
     "startNewConversation": "Neues Gespräch starten",
     "inputPlaceholder": "Geben Sie Ihre Frage ein...",
     "inputPlaceholderLimitReached": "Starten Sie oben ein neues Gespräch",
@@ -1416,7 +1419,7 @@
     "disclaimer": "Allgemeine Gesundheitsinformation, keine medizinische Beratung",
     "errors": {
       "default": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut.",
-      "connectionError": "Verbindung zu Dr. Alex konnte nicht hergestellt werden. Bitte überprüfen Sie Ihre Verbindung."
+      "connectionError": "Verbindung zum Gesundheits-Coach konnte nicht hergestellt werden. Bitte überprüfen Sie Ihre Verbindung."
     }
   },
   "common": {

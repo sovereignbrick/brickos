@@ -33,6 +33,7 @@ export default function ZoneDetailPage() {
   const demoHref = useDemoHref()
   const tZones = useTranslations('zones')
   const tCommon = useTranslations('common')
+  const tNav = useTranslations('nav')
 
   const [zone, setZone] = useState<ZoneDetail | null>(null)
   const [fetching, setFetching] = useState(true)
@@ -56,9 +57,9 @@ export default function ZoneDetailPage() {
     <div className="min-h-screen">
       <Navbar />
       <main className="max-w-2xl mx-auto px-4 py-8">
-        <p className="text-muted-foreground">Zone not found.</p>
+        <p className="text-muted-foreground">{tZones('zoneNotFound')}</p>
         <Link href="/dashboard" className="text-blue-400 hover:text-blue-300 text-sm mt-2 inline-block">
-          ← Overview
+          ← {tNav('overview')}
         </Link>
       </main>
     </div>
@@ -83,7 +84,7 @@ export default function ZoneDetailPage() {
       <main className="max-w-3xl mx-auto px-4 py-6 pb-8">
         <div className="mb-6">
           <Breadcrumb items={[
-            { label: 'Overview', href: '/dashboard' },
+            { label: tNav('overview'), href: '/dashboard' },
             { label: zone.zone_name },
           ]} />
         </div>
@@ -103,8 +104,8 @@ export default function ZoneDetailPage() {
               </h1>
               <p className="text-sm text-muted-foreground">
                 {zone.markers_with_data > 0
-                  ? `${zone.markers_with_data} of ${zone.markers_total} markers have data`
-                  : `${zone.markers_total} marker${zone.markers_total !== 1 ? 's' : ''}`
+                  ? tZones('markersHaveData', { n: zone.markers_with_data, m: zone.markers_total })
+                  : tZones('markerCount', { n: zone.markers_total })
                 }
               </p>
             </div>
@@ -115,16 +116,16 @@ export default function ZoneDetailPage() {
           {/* Status summary dots */}
           <div className="flex flex-wrap gap-3 text-xs">
             {statusCounts.green > 0 && (
-              <span className="text-[#4ade80]">🟢 {statusCounts.green} optimal</span>
+              <span className="text-[#4ade80]">🟢 {statusCounts.green} {tZones('optimal')}</span>
             )}
             {statusCounts.orange > 0 && (
-              <span className="text-[#fb923c]">🟡 {statusCounts.orange} borderline</span>
+              <span className="text-[#fb923c]">🟡 {statusCounts.orange} {tZones('borderline')}</span>
             )}
             {statusCounts.red > 0 && (
-              <span className="text-[#ef4444]">🔴 {statusCounts.red} out of range</span>
+              <span className="text-[#ef4444]">🔴 {statusCounts.red} {tZones('outOfRange')}</span>
             )}
             {noDataCount > 0 && (
-              <span className="text-muted-foreground">⚪ {noDataCount} no data</span>
+              <span className="text-muted-foreground">⚪ {noDataCount} {tZones('noDataStatus')}</span>
             )}
           </div>
         </div>
@@ -138,7 +139,7 @@ export default function ZoneDetailPage() {
                 href="/measurements/new"
                 className="bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors inline-block mt-4"
               >
-                Add a measurement
+                {tZones('addMeasurement')}
               </Link>
             )}
           </div>
@@ -154,7 +155,7 @@ export default function ZoneDetailPage() {
               const isCalc = marker.marker_type === 'calculated'
               const sourceLabel = isCalc
                 ? null
-                : (marker.device_name ?? (marker.source_type === 'lab' ? 'Lab Test' : 'Home Device'))
+                : (marker.device_name ?? (marker.source_type === 'lab' ? tZones('labTest') : tZones('homeDevice')))
               return (
                 <Link
                   key={`${marker.marker_slug}-${index}`}
@@ -166,7 +167,7 @@ export default function ZoneDetailPage() {
                       <p className="text-sm font-semibold">{marker.marker_name}</p>
                       {isCalc ? (
                         <span className="text-[10px] px-1.5 py-0.5 rounded border border-indigo-700 bg-indigo-900/40 text-indigo-300 font-medium">
-                          📐 Calculated
+                          📐 {tZones('calculated')}
                         </span>
                       ) : sourceLabel ? (
                         <span
@@ -181,7 +182,7 @@ export default function ZoneDetailPage() {
                         {formatShortDate(marker.measured_at, user?.country_code)}
                       </p>
                     ) : (
-                      <p className="text-xs text-muted-foreground/60">No data yet</p>
+                      <p className="text-xs text-muted-foreground/60">{tZones('noDataYet')}</p>
                     )}
                   </div>
                   <div className="flex items-center gap-3">
@@ -209,7 +210,7 @@ export default function ZoneDetailPage() {
               href="/measurements/new"
               className="bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium px-5 py-2.5 rounded-lg transition-colors inline-block"
             >
-              + Add measurement
+              {tZones('addMeasurementButton')}
             </Link>
           </div>
         )}

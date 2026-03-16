@@ -23,10 +23,13 @@ set -e
 # ══════════════════════════════════════════════════════════════════════════════
 
 # Version: Update this before each release. Used in Docker image tags.
-VERSION="0.19.1-rc1"
+VERSION="0.20.0-rc1"
 
-# Local project root: Where your code lives on your laptop.
-PROJECT_ROOT="/home/dev-comp/projects/sovereign-health"
+# Local project root: BrickOS monorepo.
+PROJECT_ROOT="/home/dev-comp/projects/brickos"
+
+# App root: Where the Sovereign Health app lives within the monorepo.
+APP_ROOT="${PROJECT_ROOT}/apps/health/sovereign-health"
 
 # VPS connection: SSH user@host for the deployment target.
 VPS="root@72.61.154.115"
@@ -70,9 +73,9 @@ BRANCH_STAGING="develop"
 
 # Load secrets from .env (Cloudflare tokens, etc.)
 # This file is gitignored and contains CF_ZONE_ID, CF_API_TOKEN, etc.
-if [ -f "$PROJECT_ROOT/core-backend/.env" ]; then
+if [ -f "$APP_ROOT/api/.env" ]; then
     set -a
-    source "$PROJECT_ROOT/core-backend/.env"
+    source "$APP_ROOT/api/.env"
     set +a
 fi
 
@@ -219,20 +222,17 @@ ensure_branch() {
 # (you should commit first).
 
 git_push() {
-    log "Pushing to GitLab..."
+    log "Pushing to GitHub..."
 
-    local repos=("core-backend" "core-frontend" "saas")
-    for repo in "${repos[@]}"; do
-        cd "$PROJECT_ROOT/$repo"
-        if [ -n "$(git status --porcelain)" ]; then
-            warn "$repo has uncommitted changes -- skipping push"
-            report_add "SKIP" "Git push $repo -- uncommitted changes"
-        else
-            git push origin --all --tags 2>&1 | tail -3
-            log "$repo pushed"
-            report_add "OK" "Git push $repo to GitLab"
-        fi
-    done
+    cd "$PROJECT_ROOT"
+    if [ -n "$(git status --porcelain)" ]; then
+        warn "Repository has uncommitted changes -- skipping push"
+        report_add "SKIP" "Git push -- uncommitted changes"
+    else
+        git push origin --all --tags 2>&1 | tail -3
+        log "brickos pushed to GitHub"
+        report_add "OK" "Git push brickos to GitHub"
+    fi
 }
 
 # ── Git: Promote develop -> main ─────────────────────────────────────────────
@@ -241,12 +241,10 @@ git_push() {
 # This is a safety measure: merge and deploy are two distinct steps.
 
 git_promote() {
-    log "Promoting develop -> main in all repos..."
+    log "Promoting develop -> main..."
 
-    local repos=("core-backend" "core-frontend" "saas")
-    for repo in "${repos[@]}"; do
-        cd "$PROJECT_ROOT/$repo"
-
+    cd "$PROJECT_ROOT"
+    {
         # Safety: don't merge if there are uncommitted changes.
         if [ -n "$(git status --porcelain)" ]; then
             fail "$repo has uncommitted changes. Commit or stash first."
@@ -255,13 +253,13 @@ git_promote() {
         git checkout main
         git merge develop -m "Merge develop into main for release $VERSION"
         git checkout develop
-        log "$repo: develop merged into main"
-        report_add "OK" "Merged develop -> main in $repo"
-    done
+        log "develop merged into main"
+        report_add "OK" "Merged develop -> main"
+    }
 
     echo ""
-    info "All repos merged. Next steps:"
-    info "  1. Review: git log --oneline -5  (in each repo)"
+    info "Merge complete. Next steps:"
+    info "  1. Review: git log --oneline -5"
     info "  2. Deploy: bash ops/deploy.sh production --confirm"
     info "  3. Push:   bash ops/deploy.sh git"
 }
@@ -291,10 +289,10 @@ deploy_backend() {
     fi
 
     # Verify we're on the correct branch.
-    ensure_branch "$branch" "$PROJECT_ROOT/core-backend" "core-backend"
+    ensure_branch "$branch" "$PROJECT_ROOT" "brickos"
 
     log "Building backend ($env)..."
-    cd "$PROJECT_ROOT/core-backend"
+    cd "$APP_ROOT/api"
     docker build -t "${BACKEND_IMAGE}:${image_tag}" .
 
     log "Transferring backend to VPS..."
@@ -331,10 +329,10 @@ deploy_frontend() {
         branch="$BRANCH_PROD"
     fi
 
-    ensure_branch "$branch" "$PROJECT_ROOT/core-frontend" "core-frontend"
+    ensure_branch "$branch" "$PROJECT_ROOT" "brickos"
 
     log "Building frontend ($env) with API_URL=$api_url..."
-    cd "$PROJECT_ROOT/core-frontend"
+    cd "$APP_ROOT/frontend"
 
     # NEXT_PUBLIC_API_URL is baked at build time. This is why we need
     # separate Docker images for staging vs production.
@@ -373,10 +371,10 @@ deploy_website() {
     fi
 
     # Website lives inside the saas repo.
-    ensure_branch "$branch" "$PROJECT_ROOT/saas" "saas"
+    ensure_branch "$branch" "$PROJECT_ROOT" "brickos"
 
     log "Building website ($env)..."
-    cd "$PROJECT_ROOT/saas/website"
+    cd "$APP_ROOT/website"
     rm -rf .next out
     pnpm install --frozen-lockfile 2>/dev/null || pnpm install
     pnpm build

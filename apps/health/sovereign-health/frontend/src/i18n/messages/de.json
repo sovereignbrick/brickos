@@ -303,9 +303,12 @@
     "from": "Von",
     "to": "Bis",
     "device": "Gerät",
+    "default": "Standard",
     "allDevices": "Alle Geräte",
     "marker": "Marker",
     "allProtocols": "Alle Protokolle",
+    "allMarkers": "Alle Marker",
+    "markersCount": "{count} Marker",
     "exportCsv": "CSV exportieren ({count})",
     "exportAll": "Alle exportieren",
     "noMatch": "Keine Messungen entsprechen deinen Filtern",
@@ -314,18 +317,32 @@
     "exportRegistered": "Export ist für registrierte Benutzer verfügbar. Registriere dich, um deine Daten herunterzuladen.",
     "downloading": "Wird heruntergeladen...",
     "exportComplete": "Export abgeschlossen",
-    "exportFailed": "Datenexport fehlgeschlagen"
+    "exportFailed": "Datenexport fehlgeschlagen",
+    "popover": {
+      "date": "Datum",
+      "device": "Gerät",
+      "protocol": "Protokoll",
+      "fastingType": "Fastentyp",
+      "fastingHours": "Fastenstunden",
+      "diet": "Ernährung",
+      "exercise": "Bewegung",
+      "sleep": "Schlaf",
+      "stressLevel": "Stresslevel",
+      "note": "Notiz"
+    }
   },
   "newMeasurement": {
     "title": "Neue Messungssitzung",
     "dateTime": "Datum & Uhrzeit",
     "template": "Vorlage",
     "noTemplate": "Keine Vorlage",
+    "noDevice": "Kein Gerät",
     "saveTemplate": "Speichern",
     "saveAs": "Speichern als",
     "lifestyle": {
       "profileDefaults": "Meine Standardwerte",
       "editInSettings": "In Einstellungen bearbeiten",
+      "mealTiming": "Messzeitpunkt",
       "exercise": "Bewegung",
       "sleepHours": "Schlafstunden",
       "sleepQuality": "Schlafqualität",
@@ -335,6 +352,15 @@
       "note": "Notiz",
       "notePlaceholder": "Mahlzeiten, Schlaf, Kaffee, Alkohol, Training, Reisen, Nahrungsergänzung, Fastenfenster, etwas Ungewöhnliches...",
       "charCount": "{chars}/300"
+    },
+    "mealTiming": {
+      "noTag": "Nicht angegeben",
+      "fasting": "Nüchtern (vor dem Essen)",
+      "before": "Vor der Mahlzeit",
+      "30mAfter": "30 Min. nach der Mahlzeit",
+      "1hAfter": "1 Stunde nach der Mahlzeit",
+      "2hAfter": "2 Stunden nach der Mahlzeit",
+      "3hAfter": "3 Stunden nach der Mahlzeit"
     },
     "myMarkers": "Meine Marker",
     "noMarkersHint": "Wähle eine Vorlage oder füge Marker manuell hinzu.",
@@ -562,7 +588,20 @@
     "detoxification": "Kann dein Körper Abfallstoffe effizient verarbeiten und eliminieren? Leber und Nieren sind das Filtrationssystem.",
     "markersWithData": "{n} von {m} Biomarkern haben Daten",
     "markers": "{n} Biomarker",
-    "noBiomarkersYet": "Noch keine Biomarker erfasst"
+    "noBiomarkersYet": "Noch keine Biomarker erfasst",
+    "zoneNotFound": "Zone nicht gefunden.",
+    "addMeasurement": "Messung hinzufügen",
+    "addMeasurementButton": "+ Messung hinzufügen",
+    "calculated": "Berechnet",
+    "optimal": "optimal",
+    "borderline": "grenzwertig",
+    "outOfRange": "außerhalb",
+    "noDataStatus": "keine Daten",
+    "noDataYet": "Noch keine Daten",
+    "labTest": "Labortest",
+    "homeDevice": "Heimgerät",
+    "markersHaveData": "{n} von {m} Markern haben Daten",
+    "markerCount": "{n} Marker"
   },
   "status": {
     "green": "Normal",
@@ -608,6 +647,9 @@
     "noDevicesDesc": "Füge deine Messgeräte hinzu, um die Dateneingabe zu beschleunigen.",
     "labProviders": "Laboranbieter",
     "tipText": "Tipp: Weise deinen Geräten Marker zu, um die Messeingabe zu beschleunigen. Wenn du ein Gerät auswählst, werden standardmäßig nur seine Marker angezeigt.",
+    "archive": "Archivieren",
+    "archiveTitle": "Gerät archivieren",
+    "archiveWarning": "{name} archivieren? Das Gerät wird ausgeblendet, aber deine bestehenden Messungen behalten ihre Gerätereferenz.",
     "deleteTitle": "Gerät löschen",
     "deleteWarning": "{name} löschen? Deine bestehenden Messungen behalten ihre Gerätereferenz. Dies kann nicht rückgängig gemacht werden.",
     "default": "Standard",
@@ -624,6 +666,7 @@
     "typeLabel": "Typ",
     "markersSelected": "Marker ({count} ausgewählt)",
     "setAsDefault": "Als Standardgerät festlegen",
+    "setAsDefaultTooltip": "Bei einer neuen Messung wird dieses Gerät automatisch vorausgewählt. Es kann nur ein Gerät als Standard festgelegt werden.",
     "validation": "Validierung",
     "statusLabel": "Status",
     "notValidated": "Nicht validiert",
@@ -639,7 +682,11 @@
       "scale": "Smarte Waage"
     },
     "placeholders": {
-      "notes": "z.B. Linker Mittelfinger, Linker Arm"
+      "notes": "z.B. Linker Mittelfinger, Linker Arm",
+      "deviceName": "z.B. Fora 6",
+      "manufacturer": "z.B. ForaCare",
+      "model": "z.B. Fora 6 Connect",
+      "validationNotes": "z.B. HA-Übereinstimmung innerhalb +/-2%"
     }
   },
   "settings": {
@@ -662,6 +709,7 @@
       "country": "Land",
       "dateFormat": "Datumsformat",
       "timeFormat": "Zeitformat",
+      "language": "Sprache",
       "resetDefaults": "Auf Länderstandards zurücksetzen",
       "age": "Alter (Jahre)",
       "height": "Größe",
@@ -868,6 +916,8 @@
       "changing": "Wird geändert..."
     },
     "toast": {
+      "deviceArchived": "Gerät archiviert",
+      "deviceArchiveFailed": "Gerät konnte nicht archiviert werden",
       "deviceDeleted": "Gerät gelöscht",
       "deviceDeleteFailed": "Gerät konnte nicht gelöscht werden",
       "defaultDeviceUpdated": "Standardgerät aktualisiert",
@@ -1030,9 +1080,24 @@
     "fastingNote": "Diese Bereiche gelten bei Messungen nach mehr als 12 Stunden Fasten.",
     "howToKeepInRange": "{name} im Bereich halten",
     "biomarkerNotFound": "Biomarker nicht gefunden",
+    "noDataRecorded": "Noch keine Daten erfasst",
+    "noUniversalRange": "Kein universeller Referenzbereich (kontextabhängig)",
+    "viewAllHistory": "Alle im Verlauf anzeigen →",
+    "scientificReferences": "Wissenschaftliche Referenzen",
+    "calculated": "Berechnet",
     "recentMeasurementsFor": "Letzte Messungen für {name}",
     "noMeasurementsYet": "Noch keine Messungen erfasst",
     "backToOverview": "Zurück zur Übersicht",
+    "min": "Min",
+    "max": "Max",
+    "avg": "Mittel",
+    "readings": "{count} Messungen",
+    "homeDevice": "Heimgerät",
+    "labTest": "Labortest",
+    "labAndHome": "Labor + Heim",
+    "formula": "Formel",
+    "basedOn": "Basierend auf",
+    "and": "und",
     "foodCategories": {
       "animalProteins": "Tierische Proteine",
       "vegetables": "Gemüse",

@@ -9,6 +9,7 @@ import { toast } from '@/lib/toast'
 import Link from 'next/link'
 import { useState, useEffect, useRef, Suspense } from 'react'
 import { useTranslations } from 'next-intl'
+import Image from 'next/image'
 
 function MfaVerifyForm({
   mfaToken,
@@ -243,9 +244,10 @@ function LoginContent() {
     return (
       <main className="min-h-screen flex items-center justify-center p-4">
         <div className="w-full max-w-sm">
-          <div className="text-center mb-8">
+          <div className="text-center mb-8 flex flex-col items-center gap-3">
+            <Image src="/logo.png" alt="Sovereign Health Intelligence" width={64} height={64} className="rounded-lg" />
             <h1 className="text-2xl font-bold">{t('mfa.title')}</h1>
-            <p className="text-muted-foreground text-sm mt-1">
+            <p className="text-muted-foreground text-sm">
               {t('mfa.subtitle')}
             </p>
           </div>
@@ -262,9 +264,10 @@ function LoginContent() {
   return (
     <main className="min-h-screen flex items-center justify-center p-4">
       <div className="w-full max-w-sm">
-        <div className="text-center mb-8">
+        <div className="text-center mb-8 flex flex-col items-center gap-3">
+          <Image src="/logo.png" alt="Sovereign Health Intelligence" width={64} height={64} className="rounded-lg" />
           <h1 className="text-2xl font-bold">{t('brandName')}</h1>
-          <p className="text-muted-foreground text-sm mt-1">{t('signIn')}</p>
+          <p className="text-muted-foreground text-sm">{t('signIn')}</p>
         </div>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div>

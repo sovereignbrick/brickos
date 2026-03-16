@@ -19,14 +19,14 @@
 //  Own your data. Understand your biology. Build health sovereignty.
 //
 //  https://sovereignhealth.io/
-//  AGPL-3.0 -- https://gitlab.com/sovereign-health
+//  AGPL-3.0 -- https://github.com/sovereignbrick/brickos
 // ============================================================================
 
 import type { Metadata } from "next";
 import "./globals.css";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
-import { DrAlexChat } from "@/components/dr-alex-chat";
+import { HealthCoachChat } from "@/components/health-coach-chat";
 import { ReferralRedirect } from "@/components/referral-redirect";
 import { I18nProvider } from "@/lib/i18n";
 
@@ -113,7 +113,7 @@ export default function RootLayout({
           <Header />
           <main className="min-h-[calc(100vh-8rem)]">{children}</main>
           <Footer />
-          <DrAlexChat />
+          <HealthCoachChat />
         </I18nProvider>
       </body>
     </html>

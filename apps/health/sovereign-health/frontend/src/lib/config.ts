@@ -13,7 +13,7 @@ export const APP_CONFIG = {
   appUrl: process.env.NEXT_PUBLIC_APP_URL || 'https://app.sovereignhealth.io',
   websiteUrl: process.env.NEXT_PUBLIC_WEBSITE_URL || 'https://sovereignhealth.io',
   demoHostname: process.env.NEXT_PUBLIC_DEMO_HOSTNAME || 'demo.sovereignhealth.io',
-  gitlabUrl: process.env.NEXT_PUBLIC_GITLAB_URL || 'https://gitlab.com/sovereign-health',
+  githubUrl: process.env.NEXT_PUBLIC_GITHUB_URL || 'https://github.com/sovereignbrick/brickos',
 
   // Session
   sessionTimeoutHours: Number(process.env.NEXT_PUBLIC_SESSION_TIMEOUT_HOURS || '2'),

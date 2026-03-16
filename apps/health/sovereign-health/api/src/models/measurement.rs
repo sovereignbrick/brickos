@@ -135,6 +135,7 @@ pub struct MeasurementTemplate {
     pub last_used_at: Option<DateTime<Utc>>,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
+    pub defaults: Option<serde_json::Value>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -145,6 +146,7 @@ pub struct CreateTemplateRequest {
     pub is_default: bool,
     #[serde(default)]
     pub display_order: i32,
+    pub defaults: Option<serde_json::Value>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -153,4 +155,5 @@ pub struct UpdateTemplateRequest {
     pub marker_slugs: Option<Vec<String>>,
     pub is_default: Option<bool>,
     pub display_order: Option<i32>,
+    pub defaults: Option<serde_json::Value>,
 }

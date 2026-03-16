@@ -399,10 +399,9 @@ export function Navbar() {
     return (
       <nav className="border-b bg-background/80 backdrop-blur">
         <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 font-bold text-sm tracking-tight">
+          <Link href="/" className="flex items-center gap-2 font-bold tracking-tight">
             <Image src="/logo.png" alt="SHI" width={28} height={28} className="rounded-sm" />
-            <span className="hidden lg:inline">{APP_NAME}</span>
-            <span className="lg:hidden">Sovereign Health</span>
+            <span className="text-xs sm:text-sm whitespace-nowrap">{APP_NAME}</span>
           </Link>
           <div className="flex items-center gap-2">
             {languageSelector}
@@ -435,8 +434,7 @@ export function Navbar() {
         <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
         <Link href={isDemo ? demoHref('/dashboard') : '/dashboard'} className="flex items-center gap-2 font-bold text-sm tracking-tight">
           <Image src="/logo.png" alt="SHI" width={28} height={28} className="rounded-sm" />
-          <span className="hidden lg:inline">{APP_NAME}</span>
-          <span className="lg:hidden">Sovereign Health</span>
+          <span className="text-xs sm:text-sm whitespace-nowrap">{APP_NAME}</span>
         </Link>
         <div className="hidden sm:flex items-center gap-1">
           {navItems.map(({ href, labelKey }) => (

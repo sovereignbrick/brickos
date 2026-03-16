@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react'
 import { User } from './types'
 import { api, clearToken } from './api'
+import Cookies from 'js-cookie'
 import { APP_CONFIG } from './config'
 
 function checkDemoOnly(): boolean {
@@ -36,8 +37,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isDemoOnly] = useState(checkDemoOnly)
 
   useEffect(() => {
-    // On demo.sovereignhealth.io, skip auth entirely
-    if (isDemoOnly) {
+    // On demo.sovereignhealth.io or when no token exists, skip auth
+    if (isDemoOnly || !Cookies.get('auth_token')) {
       setLoading(false)
       return
     }

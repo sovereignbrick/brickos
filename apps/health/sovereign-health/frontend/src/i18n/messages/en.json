@@ -303,9 +303,12 @@
     "from": "From",
     "to": "To",
     "device": "Device",
+    "default": "Default",
     "allDevices": "All Devices",
     "marker": "Marker",
     "allProtocols": "All Protocols",
+    "allMarkers": "All Markers",
+    "markersCount": "{count} markers",
     "exportCsv": "Export CSV ({count})",
     "exportAll": "Export All",
     "noMatch": "No measurements match your filters",
@@ -314,18 +317,32 @@
     "exportRegistered": "Export is available for registered users. Sign up to download your data.",
     "downloading": "Downloading...",
     "exportComplete": "Export complete",
-    "exportFailed": "Failed to export data"
+    "exportFailed": "Failed to export data",
+    "popover": {
+      "date": "Date",
+      "device": "Device",
+      "protocol": "Protocol",
+      "fastingType": "Fasting Type",
+      "fastingHours": "Fasting Hours",
+      "diet": "Diet",
+      "exercise": "Exercise",
+      "sleep": "Sleep",
+      "stressLevel": "Stress Level",
+      "note": "Note"
+    }
   },
   "newMeasurement": {
     "title": "New Measurement Session",
     "dateTime": "Date & Time",
     "template": "Template",
     "noTemplate": "No Template",
+    "noDevice": "No Device",
     "saveTemplate": "Save",
     "saveAs": "Save As",
     "lifestyle": {
       "profileDefaults": "My Default Values",
       "editInSettings": "Edit in Settings",
+      "mealTiming": "Meal Timing",
       "exercise": "Exercise",
       "sleepHours": "Sleep Hours",
       "sleepQuality": "Sleep Quality",
@@ -335,6 +352,15 @@
       "note": "Note",
       "notePlaceholder": "Meals, sleep, coffee, alcohol, training, travel, supplements, fasting window, anything unusual...",
       "charCount": "{chars}/300"
+    },
+    "mealTiming": {
+      "noTag": "Not specified",
+      "fasting": "Fasting (before eating)",
+      "before": "Before meal",
+      "30mAfter": "30 min after meal",
+      "1hAfter": "1 hour after meal",
+      "2hAfter": "2 hours after meal",
+      "3hAfter": "3 hours after meal"
     },
     "myMarkers": "My Markers",
     "noMarkersHint": "Select a template or add markers manually below.",
@@ -562,7 +588,20 @@
     "detoxification": "Can your body efficiently process and eliminate waste? Your liver and kidneys are the filtration system.",
     "markersWithData": "{n} of {m} biomarkers have data",
     "markers": "{n} biomarker(s)",
-    "noBiomarkersYet": "No biomarkers tracked yet"
+    "noBiomarkersYet": "No biomarkers tracked yet",
+    "zoneNotFound": "Zone not found.",
+    "addMeasurement": "Add a measurement",
+    "addMeasurementButton": "+ Add measurement",
+    "calculated": "Calculated",
+    "optimal": "optimal",
+    "borderline": "borderline",
+    "outOfRange": "out of range",
+    "noDataStatus": "no data",
+    "noDataYet": "No data yet",
+    "labTest": "Lab Test",
+    "homeDevice": "Home Device",
+    "markersHaveData": "{n} of {m} markers have data",
+    "markerCount": "{n} marker(s)"
   },
   "status": {
     "green": "Normal",
@@ -608,6 +647,9 @@
     "noDevicesDesc": "Add your measurement devices to speed up data entry.",
     "labProviders": "Lab Providers",
     "tipText": "Tip: Assign markers to your devices to speed up measurement entry. When you select a device, only its markers are shown by default.",
+    "archive": "Archive",
+    "archiveTitle": "Archive Device",
+    "archiveWarning": "Archive {name}? The device will be hidden but your existing measurements will keep their device reference.",
     "deleteTitle": "Delete Device",
     "deleteWarning": "Delete {name}? Your existing measurements will keep their device reference. This cannot be undone.",
     "default": "Default",
@@ -624,6 +666,7 @@
     "typeLabel": "Type",
     "markersSelected": "Markers ({count} selected)",
     "setAsDefault": "Set as default device",
+    "setAsDefaultTooltip": "When adding a new measurement, this device will be pre-selected automatically. Only one device can be the default at a time.",
     "validation": "Validation",
     "statusLabel": "Status",
     "notValidated": "Not validated",
@@ -639,7 +682,11 @@
       "scale": "Smart Scale"
     },
     "placeholders": {
-      "notes": "e.g. Left middle finger, Left arm"
+      "notes": "e.g. Left middle finger, Left arm",
+      "deviceName": "e.g. Fora 6",
+      "manufacturer": "e.g. ForaCare",
+      "model": "e.g. Fora 6 Connect",
+      "validationNotes": "e.g. UA agreement within +/-2%"
     }
   },
   "settings": {
@@ -662,6 +709,7 @@
       "country": "Country",
       "dateFormat": "Date Format",
       "timeFormat": "Time Format",
+      "language": "Language",
       "resetDefaults": "Reset to country defaults",
       "age": "Age (years)",
       "height": "Height",
@@ -868,6 +916,8 @@
       "changing": "Changing..."
     },
     "toast": {
+      "deviceArchived": "Device archived",
+      "deviceArchiveFailed": "Failed to archive device",
       "deviceDeleted": "Device deleted",
       "deviceDeleteFailed": "Failed to delete device",
       "defaultDeviceUpdated": "Default device updated",
@@ -1030,9 +1080,24 @@
     "fastingNote": "These ranges apply when measuring after 12+ hours of fasting.",
     "howToKeepInRange": "How to Keep {name} in Range",
     "biomarkerNotFound": "Biomarker not found",
+    "noDataRecorded": "No data recorded yet",
+    "noUniversalRange": "No universal reference range (context-dependent)",
+    "viewAllHistory": "View all in History →",
+    "scientificReferences": "Scientific References",
+    "calculated": "Calculated",
     "recentMeasurementsFor": "Recent Measurements for {name}",
     "noMeasurementsYet": "No measurements recorded yet",
     "backToOverview": "Back to overview",
+    "min": "Min",
+    "max": "Max",
+    "avg": "Avg",
+    "readings": "{count} readings",
+    "homeDevice": "Home Device",
+    "labTest": "Lab Test",
+    "labAndHome": "Lab + Home",
+    "formula": "Formula",
+    "basedOn": "Based on",
+    "and": "and",
     "foodCategories": {
       "animalProteins": "Animal Proteins",
       "vegetables": "Vegetables",

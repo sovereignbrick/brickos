@@ -19,7 +19,7 @@
 #  Own your data. Understand your biology. Build health sovereignty.
 #
 #  https://sovereignhealth.io/
-#  AGPL-3.0 -- https://gitlab.com/sovereign-health
+#  AGPL-3.0 -- https://github.com/sovereignbrick/brickos
 # ============================================================================
 
 # Dev convenience wrapper. Canonical version lives in ops/
@@ -45,13 +45,13 @@ services:
 
   backend:
     build:
-      context: ./core-backend
+      context: ../api
       dockerfile: Dockerfile
     container_name: sh-backend
     ports:
       - "8080:8080"
     env_file:
-      - ./core-backend/.env
+      - ../api/.env
     environment:
       - DATABASE_URL=postgres://sovereign_health:dev_password_only@postgres:5432/sovereign_health
     depends_on:
@@ -60,8 +60,10 @@ services:
 
   frontend:
     build:
-      context: ./core-frontend
+      context: ../frontend
       dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: http://localhost:8080
     container_name: sh-frontend
     ports:
       - "3000:3000"
@@ -74,8 +76,8 @@ services:
     ports:
       - "3100:80"
     volumes:
-      - ./saas/website/out:/usr/share/nginx/html:ro
-      - ./ops/nginx-website-dev.conf:/etc/nginx/conf.d/default.conf:ro
+      - ../website/out:/usr/share/nginx/html:ro
+      - ./nginx-website-dev.conf:/etc/nginx/conf.d/default.conf:ro
 
 volumes:
   postgres_data:

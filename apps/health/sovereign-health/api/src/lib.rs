@@ -21,7 +21,7 @@
 //  Own your data. Understand your biology. Build health sovereignty.
 //
 //  https://sovereignhealth.io/
-//  AGPL-3.0 -- https://gitlab.com/sovereign-health
+//  AGPL-3.0 -- https://github.com/sovereignbrick/brickos
 // ============================================================================
 
 use serde::{Deserialize, Serialize};

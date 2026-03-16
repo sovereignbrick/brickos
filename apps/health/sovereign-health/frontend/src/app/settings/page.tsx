@@ -19,6 +19,7 @@ import { COUNTRIES } from './countries'
 import { Breadcrumb } from '@/components/breadcrumb'
 import { IS_OSS } from '@/lib/mode'
 import { MedicationsTab } from '@/components/settings/medications-tab'
+import { InfoTooltip, MarkerInfoTooltip } from '@/components/info-tooltip'
 
 const TABS = ['Profile', 'Devices', 'Thresholds', 'Medications', 'License', 'Security', 'Data & Privacy'] as const
 type Tab = (typeof TABS)[number]
@@ -499,14 +500,14 @@ function DevicesTab({ markers }: { markers: MarkerWithZone[] }) {
 
   useEffect(() => { load() }, [load])
 
-  const handleDelete = async (id: string) => {
+  const handleArchive = async (id: string) => {
     try {
       await api.devices.delete(id)
       setDevices(prev => prev.filter(d => d.id !== id))
       setDeleteConfirm(null)
-      toast.success(tToast('deviceDeleted'))
+      toast.success(tToast('deviceArchived'))
     } catch {
-      toast.error(tToast('deviceDeleteFailed'))
+      toast.error(tToast('deviceArchiveFailed'))
     }
   }
 
@@ -594,16 +595,16 @@ function DevicesTab({ markers }: { markers: MarkerWithZone[] }) {
       {deleteConfirm && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
           <div className="bg-zinc-900 border border-zinc-700 rounded-xl p-6 max-w-sm w-full">
-            <h3 className="font-semibold mb-2">{tDev('deleteTitle')}</h3>
+            <h3 className="font-semibold mb-2">{tDev('archiveTitle')}</h3>
             <p className="text-sm text-muted-foreground mb-4">
-              {tDev('deleteWarning', { name: devices.find(d => d.id === deleteConfirm)?.device_name ?? '' })}
+              {tDev('archiveWarning', { name: devices.find(d => d.id === deleteConfirm)?.device_name ?? '' })}
             </p>
             <div className="flex gap-2 justify-end">
               <button onClick={() => setDeleteConfirm(null)} className="text-sm px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 transition-colors">
                 {tCommon('cancel')}
               </button>
-              <button onClick={() => handleDelete(deleteConfirm)} className="text-sm px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-500 text-white transition-colors">
-                {tCommon('delete')}
+              <button onClick={() => handleArchive(deleteConfirm)} className="text-sm px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-500 text-white transition-colors">
+                {tDev('archive')}
               </button>
             </div>
           </div>
@@ -632,8 +633,11 @@ function DeviceCard({ device, markers, onEdit, onDelete, onSetDefault }: {
 }) {
   const tDev = useTranslations('devices')
   const tCommon = useTranslations('common')
+  const { markers: contentMarkers } = useContent()
   const markerNames = device.markers_measured
     .map(slug => {
+      const cm = contentMarkers[slug]
+      if (cm?.name) return cm.name
       const m = markers.find(mk => mk.marker_slug === slug)
       return m?.display_name ?? m?.marker_name ?? slug
     })
@@ -659,8 +663,8 @@ function DeviceCard({ device, markers, onEdit, onDelete, onSetDefault }: {
           <button onClick={onEdit} className="text-xs text-blue-400 hover:text-blue-300 transition-colors px-2 py-1">
             {tCommon('edit')}
           </button>
-          <button onClick={onDelete} className="text-xs text-red-400 hover:text-red-300 transition-colors px-2 py-1">
-            {tCommon('delete')}
+          <button onClick={onDelete} className="text-xs text-amber-400 hover:text-amber-300 transition-colors px-2 py-1">
+            {tDev('archive')}
           </button>
         </div>
       </div>
@@ -715,10 +719,13 @@ function DeviceModal({ device, markers, onClose, onSaved }: {
   const [validationNotes, setValidationNotes] = useState(device?.validation_notes ?? '')
   const [validationStatus, setValidationStatus] = useState(device?.validation_status ?? '')
 
-  // Group markers by zone
+  // Group markers by zone (deduplicate by marker_slug)
   const zoneGroups = useMemo(() => {
+    const seen = new Set<string>()
     const groups: Record<string, { name: string; icon: string; color: string; markers: MarkerWithZone[] }> = {}
     for (const m of markers) {
+      if (seen.has(m.marker_slug)) continue
+      seen.add(m.marker_slug)
       const zs = m.zone_slug ?? 'other'
       if (!groups[zs]) {
         const translatedZoneName = contentZones[zs]?.name ?? m.zone_name ?? 'Other'
@@ -739,15 +746,18 @@ function DeviceModal({ device, markers, onClose, onSaved }: {
     const q = markerSearch.toLowerCase()
     return zoneGroups
       .map(([slug, group]) => {
-        const filtered = group.markers.filter(m =>
-          (contentMarkers[m.marker_slug]?.name ?? m.display_name ?? m.marker_name).toLowerCase().includes(q) ||
-          m.marker_slug.toLowerCase().includes(q) ||
-          (m.abbreviation ?? '').toLowerCase().includes(q)
-        )
+        const filtered = group.markers.filter(m => {
+          const cm = contentMarkers[m.marker_slug]
+          return (cm?.name ?? m.display_name ?? m.marker_name).toLowerCase().includes(q) ||
+            m.marker_slug.toLowerCase().includes(q) ||
+            (m.abbreviation ?? '').toLowerCase().includes(q) ||
+            (cm?.description ?? '').toLowerCase().includes(q) ||
+            (m.what_is ?? '').toLowerCase().includes(q)
+        })
         return [slug, { ...group, markers: filtered }] as const
       })
       .filter(([, g]) => g.markers.length > 0)
-  }, [zoneGroups, markerSearch])
+  }, [zoneGroups, markerSearch, contentMarkers])
 
   const toggleMarker = (slug: string) => {
     setSelectedMarkers(prev => {
@@ -815,8 +825,8 @@ function DeviceModal({ device, markers, onClose, onSaved }: {
               type="text"
               value={name}
               onChange={e => setName(e.target.value)}
-              placeholder="e.g. Fora 6"
-              className="w-full bg-white/5 border rounded-lg px-3 py-2 text-sm"
+              placeholder={tDev('placeholders.deviceName')}
+              className="w-full bg-white/5 border border-zinc-700 rounded-lg px-3 py-2 text-sm"
             />
           </div>
 
@@ -827,9 +837,9 @@ function DeviceModal({ device, markers, onClose, onSaved }: {
               type="text"
               value={manufacturer}
               onChange={e => setManufacturer(e.target.value)}
-              placeholder="e.g. ForaCare"
+              placeholder={tDev('placeholders.manufacturer')}
               list="mfr-suggestions"
-              className="w-full bg-white/5 border rounded-lg px-3 py-2 text-sm"
+              className="w-full bg-white/5 border border-zinc-700 rounded-lg px-3 py-2 text-sm"
             />
             <datalist id="mfr-suggestions">
               {MANUFACTURER_SUGGESTIONS.map(s => <option key={s} value={s} />)}
@@ -843,8 +853,8 @@ function DeviceModal({ device, markers, onClose, onSaved }: {
               type="text"
               value={model}
               onChange={e => setModel(e.target.value)}
-              placeholder="e.g. Fora 6 Connect"
-              className="w-full bg-white/5 border rounded-lg px-3 py-2 text-sm"
+              placeholder={tDev('placeholders.model')}
+              className="w-full bg-white/5 border border-zinc-700 rounded-lg px-3 py-2 text-sm"
             />
           </div>
 
@@ -854,7 +864,7 @@ function DeviceModal({ device, markers, onClose, onSaved }: {
             <select
               value={deviceType}
               onChange={e => setDeviceType(e.target.value)}
-              className="w-full bg-white/5 border rounded-lg px-3 py-2 text-sm"
+              className="w-full bg-zinc-900 text-zinc-100 border border-zinc-700 rounded-lg px-3 py-2 text-sm [&>option]:bg-zinc-900 [&>option]:text-zinc-100"
             >
               {DEVICE_TYPE_VALUES.map(v => <option key={v} value={v}>{v === 'other' ? tCommon('other') : tDev(`deviceTypes.${v}` as 'deviceTypes.home')}</option>)}
             </select>
@@ -884,7 +894,7 @@ function DeviceModal({ device, markers, onClose, onSaved }: {
                   {group.markers.map((m, idx) => (
                     <label
                       key={`${m.marker_slug}-${idx}`}
-                      className="flex items-center gap-2 px-3 py-1 hover:bg-white/5 cursor-pointer text-sm"
+                      className="flex items-center gap-2 px-3 py-1.5 hover:bg-white/5 cursor-pointer text-sm"
                     >
                       <input
                         type="checkbox"
@@ -892,8 +902,14 @@ function DeviceModal({ device, markers, onClose, onSaved }: {
                         onChange={() => toggleMarker(m.marker_slug)}
                         className="rounded"
                       />
-                      <span className="flex-1 truncate">{contentMarkers[m.marker_slug]?.name ?? m.display_name ?? m.marker_name}</span>
-                      <span className="text-xs text-muted-foreground">{m.unit_canonical}</span>
+                      <span className="flex-1 min-w-0 truncate">
+                        {contentMarkers[m.marker_slug]?.name ?? m.display_name ?? m.marker_name}
+                        {m.abbreviation && (
+                          <span className="text-muted-foreground ml-1">({m.abbreviation})</span>
+                        )}
+                      </span>
+                      <MarkerInfoTooltip slug={m.marker_slug} markers={contentMarkers} allMarkers={markers} />
+                      <span className="text-xs text-muted-foreground shrink-0">{m.unit_canonical}</span>
                     </label>
                   ))}
                 </div>
@@ -910,6 +926,7 @@ function DeviceModal({ device, markers, onClose, onSaved }: {
               className="rounded"
             />
             <span className="text-sm">{tDev('setAsDefault')}</span>
+            <InfoTooltip>{tDev('setAsDefaultTooltip')}</InfoTooltip>
           </label>
 
           {/* Notes */}
@@ -920,7 +937,7 @@ function DeviceModal({ device, markers, onClose, onSaved }: {
               onChange={e => setNotes(e.target.value)}
               placeholder={tDev('placeholders.notes')}
               rows={2}
-              className="w-full bg-white/5 border rounded-lg px-3 py-2 text-sm resize-none"
+              className="w-full bg-white/5 border border-zinc-700 rounded-lg px-3 py-2 text-sm resize-none"
             />
           </div>
 
@@ -933,7 +950,7 @@ function DeviceModal({ device, markers, onClose, onSaved }: {
                 <select
                   value={validationStatus}
                   onChange={e => setValidationStatus(e.target.value)}
-                  className="w-full bg-white/5 border rounded-lg px-3 py-2 text-sm"
+                  className="w-full bg-zinc-900 text-zinc-100 border border-zinc-700 rounded-lg px-3 py-2 text-sm [&>option]:bg-zinc-900 [&>option]:text-zinc-100"
                 >
                   <option value="">{tDev('notValidated')}</option>
                   <option value="validated">{tDev('validated')}</option>
@@ -947,8 +964,8 @@ function DeviceModal({ device, markers, onClose, onSaved }: {
                   type="text"
                   value={validationNotes}
                   onChange={e => setValidationNotes(e.target.value)}
-                  placeholder="e.g. UA agreement within +/-2%"
-                  className="w-full bg-white/5 border rounded-lg px-3 py-2 text-sm"
+                  placeholder={tDev('placeholders.validationNotes')}
+                  className="w-full bg-white/5 border border-zinc-700 rounded-lg px-3 py-2 text-sm"
                 />
               </div>
             </div>
@@ -1004,6 +1021,16 @@ function ProfileTab({
   const [weightUnit, setWeightUnit] = useState<'kg' | 'lbs'>('kg')
   const { locale: contentLocale, setLocale: setContentLocale } = useContent()
   const [locale, setLocale] = useState(contentLocale)
+
+  const localizedCountries = useMemo(() => {
+    try {
+      const dn = new Intl.DisplayNames([locale], { type: 'region' })
+      return COUNTRIES.map(c => ({ code: c.code, name: dn.of(c.code) ?? c.name }))
+        .sort((a, b) => a.name.localeCompare(b.name, locale))
+    } catch {
+      return COUNTRIES
+    }
+  }, [locale])
 
   const handleLocaleChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newLocale = e.target.value
@@ -1085,16 +1112,15 @@ function ProfileTab({
     }
   }
 
-  const inp = "w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-blue-500"
-  const ro = "w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-muted-foreground cursor-not-allowed"
+  const inp = "w-full rounded-lg border border-zinc-700 bg-zinc-900 px-2.5 py-1.5 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-blue-500"
+  const ro = "w-full rounded-lg border border-zinc-700 bg-zinc-800 px-2.5 py-1.5 text-sm text-muted-foreground cursor-not-allowed"
 
   return (
-    <div className="space-y-6">
-      <Field label={tCommon('email')}>
-        <input type="email" value={profile.email} readOnly className={ro} />
-      </Field>
-
-      <div className="grid grid-cols-2 gap-4">
+    <div className="space-y-4">
+      <div className="grid grid-cols-3 gap-3">
+        <Field label={tCommon('email')}>
+          <input type="email" value={profile.email} readOnly className={ro} />
+        </Field>
         <Field label={t('displayName')}>
           <input type="text" value={form.display_name ?? ''} onChange={e => setForm({ ...form, display_name: e.target.value || null })} className={inp} placeholder={t('displayNamePlaceholder')} />
         </Field>
@@ -1108,20 +1134,25 @@ function ProfileTab({
         </Field>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-3 gap-3">
         <Field label={t('country')}>
           <select value={form.country_code ?? ''} onChange={e => setForm({ ...form, country_code: e.target.value || null })} className={inp}>
-            <option value="">Not set</option>
-            {COUNTRIES.map(c => <option key={c.code} value={c.code}>{c.name}</option>)}
+            <option value="">{tCommon('notSet')}</option>
+            {localizedCountries.map(c => <option key={c.code} value={c.code}>{c.name}</option>)}
           </select>
         </Field>
         <Field label={tCommon('license')}>
           <input type="text" value={tierLabel(profile.tier)} readOnly className={ro} />
         </Field>
+        <Field label={t('language')}>
+          <select value={locale} onChange={handleLocaleChange} className={inp}>
+            <option value="en">English</option>
+            <option value="de">Deutsch</option>
+          </select>
+        </Field>
       </div>
 
-      {/* Date/Time Format (moved from old Units tab) */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-3 gap-3">
         <Field label={t('dateFormat')}>
           <select value={uForm.date_format} onChange={e => setUForm({ ...uForm, date_format: e.target.value })} className={inp}>
             <option value="DD/MM/YYYY">DD/MM/YYYY</option>
@@ -1135,64 +1166,62 @@ function ProfileTab({
             <option value="12h">{t('timeFormats.12h')}</option>
           </select>
         </Field>
+        <div className="flex items-end">
+          <button onClick={resetToCountryDefaults} className="text-xs text-muted-foreground hover:text-foreground border border-zinc-700 px-2.5 py-1.5 rounded-lg transition-colors">
+            {t('resetDefaults')}
+          </button>
+        </div>
       </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <Field label="Language">
-          <select value={locale} onChange={handleLocaleChange} className={inp}>
-            <option value="en">English</option>
-            <option value="de">Deutsch</option>
-          </select>
-        </Field>
-      </div>
-
-      <button onClick={resetToCountryDefaults} className="text-sm text-muted-foreground hover:text-foreground border border-zinc-700 px-3 py-1.5 rounded-lg transition-colors">
-        {t('resetDefaults')}
-      </button>
 
       {/* Body Measurements */}
       <div className="border border-zinc-800 rounded-lg p-4 space-y-3">
         <h3 className="text-sm font-medium">{t('bodyMeasurements')}</h3>
         <p className="text-xs text-muted-foreground">{t('bodyMeasurementsDesc')}</p>
-        <div className="grid grid-cols-2 gap-4">
-          <Field label={t('age')}>
-            <input type="number" value={form.age ?? ''} onChange={e => setForm({ ...form, age: e.target.value ? Number(e.target.value) : null })} className={inp} min={1} max={150} />
-          </Field>
-          <Field label={t('height')}>
-            <div className="flex gap-2">
-              <input type="number" value={displayHeight ?? ''} onChange={e => {
-                const v = e.target.value ? Number(e.target.value) : null
-                setForm({ ...form, height_cm: heightUnit === 'ft-in' && v ? Math.round(v * 2.54 * 10) / 10 : v })
-              }} className={"flex-1 " + inp} step={0.1} />
-              <select value={heightUnit} onChange={e => setHeightUnit(e.target.value as 'cm' | 'ft-in')} className="w-20 rounded-lg border border-zinc-700 bg-zinc-900 px-2 py-2 text-sm text-foreground">
-                <option value="cm">cm</option><option value="ft-in">in</option>
-              </select>
-            </div>
-          </Field>
-        </div>
-        <div className="grid grid-cols-2 gap-4">
-          <Field label={t('waist')}>
-            <div className="flex gap-2">
-              <input type="number" value={displayWaist ?? ''} onChange={e => {
-                const v = e.target.value ? Number(e.target.value) : null
-                setForm({ ...form, default_waist_cm: waistUnit === 'inches' && v ? Math.round(v * 2.54 * 10) / 10 : v })
-              }} className={"flex-1 " + inp} step={0.1} />
-              <select value={waistUnit} onChange={e => setWaistUnit(e.target.value as 'cm' | 'inches')} className="w-20 rounded-lg border border-zinc-700 bg-zinc-900 px-2 py-2 text-sm text-foreground">
-                <option value="cm">cm</option><option value="inches">in</option>
-              </select>
-            </div>
-          </Field>
-          <Field label={t('weight')}>
-            <div className="flex gap-2">
-              <input type="number" value={displayWeight ?? ''} onChange={e => {
-                const v = e.target.value ? Number(e.target.value) : null
-                setForm({ ...form, default_weight_kg: weightUnit === 'lbs' && v ? Math.round(v / 2.205 * 10) / 10 : v })
-              }} className={"flex-1 " + inp} step={0.1} />
-              <select value={weightUnit} onChange={e => setWeightUnit(e.target.value as 'kg' | 'lbs')} className="w-20 rounded-lg border border-zinc-700 bg-zinc-900 px-2 py-2 text-sm text-foreground">
-                <option value="kg">kg</option><option value="lbs">lbs</option>
-              </select>
-            </div>
-          </Field>
+        <div className="flex gap-3">
+          <div className="w-16 shrink-0">
+            <Field label={t('age')}>
+              <input type="number" value={form.age ?? ''} onChange={e => setForm({ ...form, age: e.target.value ? Number(e.target.value) : null })} className={inp} min={1} max={99} />
+            </Field>
+          </div>
+          <div className="flex-1">
+            <Field label={t('height')}>
+              <div className="flex gap-1">
+                <input type="number" value={displayHeight ?? ''} onChange={e => {
+                  const v = e.target.value ? Number(e.target.value) : null
+                  setForm({ ...form, height_cm: heightUnit === 'ft-in' && v ? Math.round(v * 2.54 * 10) / 10 : v })
+                }} className={"flex-1 min-w-0 " + inp} step={0.1} />
+                <select value={heightUnit} onChange={e => setHeightUnit(e.target.value as 'cm' | 'ft-in')} className="w-14 rounded-lg border border-zinc-700 bg-zinc-900 px-1 py-1.5 text-xs text-foreground">
+                  <option value="cm">cm</option><option value="ft-in">in</option>
+                </select>
+              </div>
+            </Field>
+          </div>
+          <div className="flex-1">
+            <Field label={t('waist')}>
+              <div className="flex gap-1">
+                <input type="number" value={displayWaist ?? ''} onChange={e => {
+                  const v = e.target.value ? Number(e.target.value) : null
+                  setForm({ ...form, default_waist_cm: waistUnit === 'inches' && v ? Math.round(v * 2.54 * 10) / 10 : v })
+                }} className={"flex-1 min-w-0 " + inp} step={0.1} />
+                <select value={waistUnit} onChange={e => setWaistUnit(e.target.value as 'cm' | 'inches')} className="w-14 rounded-lg border border-zinc-700 bg-zinc-900 px-1 py-1.5 text-xs text-foreground">
+                  <option value="cm">cm</option><option value="inches">in</option>
+                </select>
+              </div>
+            </Field>
+          </div>
+          <div className="flex-1">
+            <Field label={t('weight')}>
+              <div className="flex gap-1">
+                <input type="number" value={displayWeight ?? ''} onChange={e => {
+                  const v = e.target.value ? Number(e.target.value) : null
+                  setForm({ ...form, default_weight_kg: weightUnit === 'lbs' && v ? Math.round(v / 2.205 * 10) / 10 : v })
+                }} className={"flex-1 min-w-0 " + inp} step={0.1} />
+                <select value={weightUnit} onChange={e => setWeightUnit(e.target.value as 'kg' | 'lbs')} className="w-14 rounded-lg border border-zinc-700 bg-zinc-900 px-1 py-1.5 text-xs text-foreground">
+                  <option value="kg">kg</option><option value="lbs">lbs</option>
+                </select>
+              </div>
+            </Field>
+          </div>
         </div>
       </div>
 
@@ -1202,7 +1231,7 @@ function ProfileTab({
           <h3 className="text-sm font-medium">{t('lifestyleDefaults')}</h3>
           <p className="text-xs text-muted-foreground mt-1">{t('lifestyleDefaultsDesc')}</p>
         </div>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-3 gap-3">
               <FieldWithInfo label={tCommon('dietProtocol')} items={['carnivore','keto','omnivore','vegetarian','vegan','paleo','mediterranean','other'].map(k => ({ name: tCommon(k as 'carnivore'), desc: t(`dietDescs.${k}` as 'dietDescs.carnivore') }))}>
                 <select value={lForm.default_diet_protocol ?? ''} onChange={e => setLForm({ ...lForm, default_diet_protocol: e.target.value || null })} className={inp}>
                   <option value="">{tCommon('notSet')}</option>
@@ -3060,7 +3089,7 @@ function SecurityTab() {
             <input type="password" value={newPw} onChange={e => setNewPw(e.target.value)}
               className="w-full bg-white/5 border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500" />
             {newPw.length > 0 && newPw.length < 8 && (
-              <p className="text-xs text-yellow-400 mt-1">At least 8 characters required</p>
+              <p className="text-xs text-yellow-400 mt-1">{t('security.passwordTooShort')}</p>
             )}
           </div>
           <div>
@@ -3068,7 +3097,7 @@ function SecurityTab() {
             <input type="password" value={confirmPw} onChange={e => setConfirmPw(e.target.value)}
               className="w-full bg-white/5 border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500" />
             {confirmPw.length > 0 && newPw !== confirmPw && (
-              <p className="text-xs text-red-400 mt-1">Passwords do not match</p>
+              <p className="text-xs text-red-400 mt-1">{t('security.passwordMismatch')}</p>
             )}
           </div>
           {mfaEnabled && (

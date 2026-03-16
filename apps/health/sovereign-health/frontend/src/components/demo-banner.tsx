@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useAuth } from '@/lib/auth-context'
-import { useDemoProfile, DEMO_PROFILES } from '@/lib/demo-profile-context'
+import { useDemoProfile, DEMO_PROFILES, getProfileLabel } from '@/lib/demo-profile-context'
 import { api } from '@/lib/api'
 import { toast } from '@/lib/toast'
 import { useTranslations } from 'next-intl'
@@ -21,7 +21,8 @@ export function DemoBanner() {
   if (!isDemo || dismissed) return null
 
   const profileDef = DEMO_PROFILES.find(p => p.slug === profile)
-  const profileName = profileDef?.name ?? 'Optimized'
+  const profileLabel = getProfileLabel(profile, t)
+  const profileName = profileLabel.name
   const profileColor = profileDef?.color ?? '#fb923c'
 
   const handleSubmit = async (e: React.FormEvent) => {

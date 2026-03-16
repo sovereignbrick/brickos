@@ -1,10 +1,18 @@
 // Sovereign Health Intelligence -- AGPL-3.0 -- https://sovereignhealth.io/
 
-use actix_web::{web, HttpResponse};
+use actix_web::{web, HttpRequest, HttpResponse};
 use serde_json::json;
 use sqlx::PgPool;
 
 use crate::{error::AppError, middleware::auth::AuthenticatedUser};
+
+fn resolve_locale_from_req(req: &HttpRequest) -> String {
+    let al = req
+        .headers()
+        .get("Accept-Language")
+        .and_then(|v| v.to_str().ok());
+    crate::services::content::resolve_locale(None, al)
+}
 
 // ── query param structs ──────────────────────────────────────────────────────
 
@@ -555,17 +563,11 @@ pub async fn demo_detail(
     path: web::Path<String>,
     query: web::Query<DemoDetailQuery>,
     enc: web::Data<crate::services::encryption::Encryptor>,
-    req: actix_web::HttpRequest,
+    req: HttpRequest,
 ) -> Result<HttpResponse, AppError> {
     let marker_slug = path.into_inner();
     let profile = demo_profile(&query.profile);
-    let locale = {
-        let al = req
-            .headers()
-            .get("Accept-Language")
-            .and_then(|v| v.to_str().ok());
-        crate::services::content::resolve_locale(None, al)
-    };
+    let locale = resolve_locale_from_req(&req);
     use sqlx::Row;
 
     let maybe_row = sqlx::query(
@@ -694,35 +696,75 @@ pub async fn demo_marker_measurements(
     let profile = demo_profile(&query.profile);
     use sqlx::Row;
 
-    sqlx::query("SELECT id FROM markers WHERE marker_slug = $1")
+    // Check both standard and calculated markers
+    let marker_exists = sqlx::query(
+        "SELECT 1 FROM markers WHERE marker_slug = $1 UNION ALL SELECT 1 FROM calculated_markers WHERE marker_slug = $1 LIMIT 1",
+    )
+    .bind(&marker_slug)
+    .fetch_optional(pool.get_ref())
+    .await?;
+    if marker_exists.is_none() {
+        return Err(AppError::NotFound);
+    }
+
+    // Check if it's a calculated marker
+    let is_calculated = sqlx::query("SELECT 1 FROM calculated_markers WHERE marker_slug = $1")
         .bind(&marker_slug)
         .fetch_optional(pool.get_ref())
         .await?
-        .ok_or(AppError::NotFound)?;
+        .is_some();
 
-    let rows = sqlx::query(
-        r#"SELECT m.id, m.value_canonical as value, m.unit_canonical,
-                  m.timestamp, m.status, m.protocol_tag,
-                  m.fasting_protocol, m.fasting_hours, m.diet_protocol,
-                  m.exercise_activity, m.sleep_hours, m.sleep_quality,
-                  m.stress_level, m.lifestyle_note,
-                  d.device_name
-           FROM measurements m
-           JOIN markers mk ON mk.id = m.marker_id
-           LEFT JOIN devices d ON d.id = m.device_id
-           WHERE m.is_demo = true AND m.demo_profile = $3 AND mk.marker_slug = $1 AND m.is_deleted = false
-           ORDER BY m.timestamp DESC
-           LIMIT $2"#,
-    )
-    .bind(&marker_slug)
-    .bind(limit)
-    .bind(profile)
-    .fetch_all(pool.get_ref())
-    .await?;
+    let items: Vec<serde_json::Value> = if is_calculated {
+        let rows = sqlx::query(
+            r#"SELECT cmv.id, cmv.value::text as value, cmv.status,
+                      cmv.measured_at as timestamp, 'standard' as protocol_tag
+               FROM calculated_marker_values cmv
+               JOIN calculated_markers cm ON cm.id = cmv.calculated_marker_id
+               WHERE cmv.is_demo = true AND cmv.demo_profile = $3 AND cm.marker_slug = $1 AND cmv.is_deleted = false
+               ORDER BY cmv.measured_at DESC
+               LIMIT $2"#,
+        )
+        .bind(&marker_slug)
+        .bind(limit)
+        .bind(profile)
+        .fetch_all(pool.get_ref())
+        .await?;
 
-    let items: Vec<serde_json::Value> = rows
-        .iter()
-        .map(|r| {
+        let unit = calc_unit(&marker_slug).to_string();
+        rows.iter().map(|r| {
+            json!({
+                "id":                r.try_get::<uuid::Uuid, _>("id").map(|u| u.to_string()).unwrap_or_default(),
+                "value":             r.try_get::<String, _>("value").ok().and_then(|s| s.parse::<f64>().ok()),
+                "unit":              unit,
+                "timestamp":         r.try_get::<chrono::DateTime<chrono::Utc>, _>("timestamp")
+                                      .map(|t| t.to_rfc3339()).unwrap_or_default(),
+                "status":            r.try_get::<Option<String>, _>("status").unwrap_or(None),
+                "protocol_tag":      r.try_get::<String, _>("protocol_tag").unwrap_or_default(),
+                "device_name":       Option::<String>::None,
+            })
+        }).collect()
+    } else {
+        let rows = sqlx::query(
+            r#"SELECT m.id, m.value_canonical as value, m.unit_canonical,
+                      m.timestamp, m.status, m.protocol_tag,
+                      m.fasting_protocol, m.fasting_hours, m.diet_protocol,
+                      m.exercise_activity, m.sleep_hours, m.sleep_quality,
+                      m.stress_level, m.lifestyle_note,
+                      d.device_name
+               FROM measurements m
+               JOIN markers mk ON mk.id = m.marker_id
+               LEFT JOIN devices d ON d.id = m.device_id
+               WHERE m.is_demo = true AND m.demo_profile = $3 AND mk.marker_slug = $1 AND m.is_deleted = false
+               ORDER BY m.timestamp DESC
+               LIMIT $2"#,
+        )
+        .bind(&marker_slug)
+        .bind(limit)
+        .bind(profile)
+        .fetch_all(pool.get_ref())
+        .await?;
+
+        rows.iter().map(|r| {
             json!({
                 "id":                r.try_get::<uuid::Uuid, _>("id").map(|u| u.to_string()).unwrap_or_default(),
                 "value":             enc.decrypt_f64(&r.try_get::<String, _>("value").unwrap_or_default()),
@@ -741,8 +783,8 @@ pub async fn demo_marker_measurements(
                 "lifestyle_note":    enc.decrypt_opt(r.try_get::<Option<String>, _>("lifestyle_note").unwrap_or(None)),
                 "device_name":       r.try_get::<Option<String>, _>("device_name").unwrap_or(None),
             })
-        })
-        .collect();
+        }).collect()
+    };
 
     Ok(HttpResponse::Ok().json(json!({ "data": items, "error": null })))
 }
@@ -762,31 +804,69 @@ pub async fn demo_marker_trend(
         AppError::Validation("Invalid period. Use: 7d, 30d, 3m, 6m, 1y, all".to_string())
     })?;
 
+    // Try standard markers first, then calculated markers
     let marker_row =
-        sqlx::query("SELECT id, marker_name, unit_canonical FROM markers WHERE marker_slug = $1")
+        sqlx::query("SELECT marker_name, unit_canonical FROM markers WHERE marker_slug = $1")
             .bind(&marker_slug)
             .fetch_optional(pool.get_ref())
-            .await?
-            .ok_or(AppError::NotFound)?;
+            .await?;
 
-    let marker_name: String = marker_row.try_get("marker_name").unwrap_or_default();
-    let unit: String = marker_row.try_get("unit_canonical").unwrap_or_default();
+    let (marker_name, unit, is_calculated) = if let Some(row) = marker_row {
+        (
+            row.try_get::<String, _>("marker_name").unwrap_or_default(),
+            row.try_get::<String, _>("unit_canonical")
+                .unwrap_or_default(),
+            false,
+        )
+    } else {
+        let calc_row =
+            sqlx::query("SELECT marker_name FROM calculated_markers WHERE marker_slug = $1")
+                .bind(&marker_slug)
+                .fetch_optional(pool.get_ref())
+                .await?
+                .ok_or(AppError::NotFound)?;
+        (
+            calc_row
+                .try_get::<String, _>("marker_name")
+                .unwrap_or_default(),
+            calc_unit(&marker_slug).to_string(),
+            true,
+        )
+    };
 
     let days_str = format!("{} days", days);
-    let rows = sqlx::query(
-        r#"SELECT m.timestamp as measured_at, m.value_canonical as value,
-                  m.status, m.protocol_tag
-           FROM measurements m
-           JOIN markers mk ON mk.id = m.marker_id
-           WHERE m.is_demo = true AND m.demo_profile = $3 AND mk.marker_slug = $1 AND m.is_deleted = false
-             AND m.timestamp >= now() - $2::interval
-           ORDER BY m.timestamp ASC"#,
-    )
-    .bind(&marker_slug)
-    .bind(&days_str)
-    .bind(profile)
-    .fetch_all(pool.get_ref())
-    .await?;
+
+    let rows = if is_calculated {
+        sqlx::query(
+            r#"SELECT cmv.measured_at, cmv.value::text as value,
+                      cmv.status, 'standard' as protocol_tag
+               FROM calculated_marker_values cmv
+               JOIN calculated_markers cm ON cm.id = cmv.calculated_marker_id
+               WHERE cmv.is_demo = true AND cmv.demo_profile = $3 AND cm.marker_slug = $1 AND cmv.is_deleted = false
+                 AND cmv.measured_at >= now() - $2::interval
+               ORDER BY cmv.measured_at ASC"#,
+        )
+        .bind(&marker_slug)
+        .bind(&days_str)
+        .bind(profile)
+        .fetch_all(pool.get_ref())
+        .await?
+    } else {
+        sqlx::query(
+            r#"SELECT m.timestamp as measured_at, m.value_canonical as value,
+                      m.status, m.protocol_tag
+               FROM measurements m
+               JOIN markers mk ON mk.id = m.marker_id
+               WHERE m.is_demo = true AND m.demo_profile = $3 AND mk.marker_slug = $1 AND m.is_deleted = false
+                 AND m.timestamp >= now() - $2::interval
+               ORDER BY m.timestamp ASC"#,
+        )
+        .bind(&marker_slug)
+        .bind(&days_str)
+        .bind(profile)
+        .fetch_all(pool.get_ref())
+        .await?
+    };
 
     let points: Vec<serde_json::Value> = rows
         .iter()
@@ -794,7 +874,11 @@ pub async fn demo_marker_trend(
             json!({
                 "measured_at":  r.try_get::<chrono::DateTime<chrono::Utc>, _>("measured_at")
                                  .map(|t| t.to_rfc3339()).unwrap_or_default(),
-                "value":        enc.decrypt_f64(&r.try_get::<String, _>("value").unwrap_or_default()),
+                "value":        if is_calculated {
+                                    r.try_get::<String, _>("value").ok().and_then(|s| s.parse::<f64>().ok()).map(|v| json!(v)).unwrap_or(json!(null))
+                                } else {
+                                    json!(enc.decrypt_f64(&r.try_get::<String, _>("value").unwrap_or_default()))
+                                },
                 "status":       r.try_get::<Option<String>, _>("status").unwrap_or(None),
                 "protocol_tag": r.try_get::<String, _>("protocol_tag").unwrap_or_default(),
             })
@@ -818,18 +902,22 @@ pub async fn marker_content(
     pool: web::Data<PgPool>,
     _auth: AuthenticatedUser,
     path: web::Path<String>,
+    req: HttpRequest,
     _enc: web::Data<crate::services::encryption::Encryptor>,
 ) -> Result<HttpResponse, AppError> {
-    let items = fetch_content_items(pool.get_ref(), &path.into_inner()).await?;
+    let locale = resolve_locale_from_req(&req);
+    let items = fetch_content_items(pool.get_ref(), &path.into_inner(), &locale).await?;
     Ok(HttpResponse::Ok().json(json!({ "data": items, "error": null })))
 }
 
 pub async fn demo_marker_content(
     pool: web::Data<PgPool>,
     path: web::Path<String>,
+    req: HttpRequest,
     _enc: web::Data<crate::services::encryption::Encryptor>,
 ) -> Result<HttpResponse, AppError> {
-    let items = fetch_content_items(pool.get_ref(), &path.into_inner()).await?;
+    let locale = resolve_locale_from_req(&req);
+    let items = fetch_content_items(pool.get_ref(), &path.into_inner(), &locale).await?;
     Ok(HttpResponse::Ok().json(json!({ "data": items, "error": null })))
 }
 
@@ -860,18 +948,22 @@ pub async fn marker_supplements(
     pool: web::Data<PgPool>,
     _auth: AuthenticatedUser,
     path: web::Path<String>,
+    req: HttpRequest,
     _enc: web::Data<crate::services::encryption::Encryptor>,
 ) -> Result<HttpResponse, AppError> {
-    let items = fetch_supplement_items(pool.get_ref(), &path.into_inner()).await?;
+    let locale = resolve_locale_from_req(&req);
+    let items = fetch_supplement_items(pool.get_ref(), &path.into_inner(), &locale).await?;
     Ok(HttpResponse::Ok().json(json!({ "data": items, "error": null })))
 }
 
 pub async fn demo_marker_supplements(
     pool: web::Data<PgPool>,
     path: web::Path<String>,
+    req: HttpRequest,
     _enc: web::Data<crate::services::encryption::Encryptor>,
 ) -> Result<HttpResponse, AppError> {
-    let items = fetch_supplement_items(pool.get_ref(), &path.into_inner()).await?;
+    let locale = resolve_locale_from_req(&req);
+    let items = fetch_supplement_items(pool.get_ref(), &path.into_inner(), &locale).await?;
     Ok(HttpResponse::Ok().json(json!({ "data": items, "error": null })))
 }
 
@@ -990,12 +1082,20 @@ async fn fetch_fasting_explanation(
 async fn fetch_content_items(
     pool: &PgPool,
     marker_slug: &str,
+    locale: &str,
 ) -> Result<Vec<serde_json::Value>, AppError> {
     use sqlx::Row;
+    // Try requested locale first, fall back to English
     let rows = sqlx::query(
-        "SELECT id, content_type, title, body_text, display_order FROM marker_content WHERE marker_id = $1 ORDER BY display_order",
+        r#"SELECT DISTINCT ON (content_type)
+                  id, content_type, title, body_text, display_order, language
+           FROM marker_content
+           WHERE marker_id = $1 AND language IN ($2, 'en')
+             AND content_type NOT IN ('description', 'fasting_explanation')
+           ORDER BY content_type, CASE WHEN language = $2 THEN 0 ELSE 1 END, display_order"#,
     )
     .bind(marker_slug)
+    .bind(locale)
     .fetch_all(pool)
     .await?;
 
@@ -1032,22 +1132,32 @@ async fn fetch_food_items(
 async fn fetch_supplement_items(
     pool: &PgPool,
     marker_slug: &str,
+    locale: &str,
 ) -> Result<Vec<serde_json::Value>, AppError> {
     use sqlx::Row;
     let rows = sqlx::query(
-        "SELECT id, supplement_name, typical_dose, notes, display_order FROM marker_supplements WHERE marker_id = $1 ORDER BY display_order",
+        "SELECT id, supplement_name, supplement_name_de, typical_dose, typical_dose_de, notes, notes_de, display_order FROM marker_supplements WHERE marker_id = $1 ORDER BY display_order",
     )
     .bind(marker_slug)
     .fetch_all(pool)
     .await?;
 
-    Ok(rows.iter().map(|r| json!({
-        "id":              r.try_get::<uuid::Uuid, _>("id").map(|u| u.to_string()).unwrap_or_default(),
-        "supplement_name": r.try_get::<String, _>("supplement_name").unwrap_or_default(),
-        "typical_dose":    r.try_get::<Option<String>, _>("typical_dose").unwrap_or(None),
-        "notes":           r.try_get::<Option<String>, _>("notes").unwrap_or(None),
-        "display_order":   r.try_get::<i32, _>("display_order").unwrap_or_default(),
-    })).collect())
+    Ok(rows.iter().map(|r| {
+        let is_de = locale == "de";
+        let name_en: String = r.try_get("supplement_name").unwrap_or_default();
+        let name_de: Option<String> = r.try_get("supplement_name_de").unwrap_or(None);
+        let dose_en: Option<String> = r.try_get("typical_dose").unwrap_or(None);
+        let dose_de: Option<String> = r.try_get("typical_dose_de").unwrap_or(None);
+        let notes_en: Option<String> = r.try_get("notes").unwrap_or(None);
+        let notes_de: Option<String> = r.try_get("notes_de").unwrap_or(None);
+        json!({
+            "id":              r.try_get::<uuid::Uuid, _>("id").map(|u| u.to_string()).unwrap_or_default(),
+            "supplement_name": if is_de { name_de.unwrap_or(name_en) } else { name_en },
+            "typical_dose":    if is_de { dose_de.or(dose_en) } else { dose_en },
+            "notes":           if is_de { notes_de.or(notes_en) } else { notes_en },
+            "display_order":   r.try_get::<i32, _>("display_order").unwrap_or_default(),
+        })
+    }).collect())
 }
 
 async fn fetch_reference_items(

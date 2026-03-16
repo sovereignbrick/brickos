@@ -8,7 +8,7 @@ import markersData from "../../data/markers.json";
 
 const featureKeys = [
   { key: "healthMarkers", color: "#f59e0b" },
-  { key: "drAlex", color: "#8b5cf6" },
+  { key: "healthCoach", color: "#8b5cf6" },
   { key: "encrypted", color: "#ef4444" },
   { key: "dataExport", color: "#3b82f6" },
   { key: "medication", color: "#10b981" },

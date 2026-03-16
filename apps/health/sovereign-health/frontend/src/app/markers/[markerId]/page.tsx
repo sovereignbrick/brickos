@@ -113,15 +113,15 @@ function RangeBar({ range, value }: { range: MarkerReferenceRange; value: number
 
 // ── Source type badge ─────────────────────────────────────────────────────────
 
-function SourceBadge({ sourceType, deviceName }: { sourceType: string; deviceName?: string | null }) {
-  const map: Record<string, { cls: string; fallback: string }> = {
-    home:       { cls: 'bg-blue-900/50 text-blue-300 border-blue-700', fallback: 'Home Device' },
-    lab:        { cls: 'bg-purple-900/50 text-purple-300 border-purple-700', fallback: 'Lab Test' },
-    calculated: { cls: 'bg-amber-900/50 text-amber-300 border-amber-700', fallback: 'Calculated' },
-    hybrid:     { cls: 'bg-teal-900/50 text-teal-300 border-teal-700', fallback: 'Lab + Home' },
+function SourceBadge({ sourceType, deviceName, t }: { sourceType: string; deviceName?: string | null; t: (key: string) => string }) {
+  const map: Record<string, { cls: string; fallbackKey: string }> = {
+    home:       { cls: 'bg-blue-900/50 text-blue-300 border-blue-700', fallbackKey: 'homeDevice' },
+    lab:        { cls: 'bg-purple-900/50 text-purple-300 border-purple-700', fallbackKey: 'labTest' },
+    calculated: { cls: 'bg-amber-900/50 text-amber-300 border-amber-700', fallbackKey: 'calculated' },
+    hybrid:     { cls: 'bg-teal-900/50 text-teal-300 border-teal-700', fallbackKey: 'labAndHome' },
   }
-  const entry = map[sourceType] ?? { cls: 'bg-zinc-800 text-zinc-400 border-zinc-600', fallback: sourceType }
-  const label = deviceName ?? entry.fallback
+  const entry = map[sourceType] ?? { cls: 'bg-zinc-800 text-zinc-400 border-zinc-600', fallbackKey: '' }
+  const label = deviceName ?? (entry.fallbackKey ? t(entry.fallbackKey) : sourceType)
   const isClickable = sourceType === 'home' || sourceType === 'lab' || sourceType === 'hybrid'
   if (isClickable) {
     return (
@@ -143,11 +143,12 @@ function SourceBadge({ sourceType, deviceName }: { sourceType: string; deviceNam
 
 // ── Statistics ────────────────────────────────────────────────────────────────
 
-function Statistics({ trend }: { trend: TrendData | null }) {
+function Statistics({ trend, t }: { trend: TrendData | null; t: (key: string, values?: Record<string, string | number | Date>) => string }) {
+  const labels = [t('min'), t('avg'), t('max')]
   if (!trend || trend.points.length === 0) {
     return (
       <div className="grid grid-cols-3 gap-3">
-        {['Min', 'Avg', 'Max'].map(label => (
+        {labels.map(label => (
           <div key={label} className="rounded-xl border p-4 text-center">
             <p className="text-xs text-muted-foreground mb-1">{label}</p>
             <p className="text-lg font-bold text-muted-foreground">-</p>
@@ -169,9 +170,9 @@ function Statistics({ trend }: { trend: TrendData | null }) {
   const fmtDate = (ts: string) => formatShortDate(ts)
 
   const stats = [
-    { label: 'Min', value: fmt(min), date: fmtDate(minPt.measured_at), status: minPt.status },
-    { label: 'Avg', value: fmt(avg), date: `${pts.length} readings`, status: null },
-    { label: 'Max', value: fmt(max), date: fmtDate(maxPt.measured_at), status: maxPt.status },
+    { label: t('min'), value: fmt(min), date: fmtDate(minPt.measured_at), status: minPt.status },
+    { label: t('avg'), value: fmt(avg), date: t('readings', { count: pts.length }), status: null },
+    { label: t('max'), value: fmt(max), date: fmtDate(maxPt.measured_at), status: maxPt.status },
   ]
 
   return (
@@ -277,6 +278,7 @@ export default function MarkerDetailPage() {
   const demoHref = useDemoHref()
   const t = useTranslations('markers')
   const tCommon = useTranslations('common')
+  const tNav = useTranslations('nav')
 
   const [marker, setMarker] = useState<MarkerDetail | null>(null)
   const [measurements, setMeasurements] = useState<MarkerMeasurement[]>([])
@@ -410,7 +412,7 @@ export default function MarkerDetailPage() {
 
   // ── Loading / error states ─────────────────────────────────────────────────
   if (loading || fetching) {
-    return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Loading…</div>
+    return <div className="min-h-screen flex items-center justify-center text-muted-foreground">{tCommon('loading')}</div>
   }
 
   if (error || !marker) {
@@ -439,7 +441,7 @@ export default function MarkerDetailPage() {
 
         {/* Breadcrumb */}
         <Breadcrumb items={[
-          { label: 'Overview', href: '/dashboard' },
+          { label: tNav('overview'), href: '/dashboard' },
           ...(marker.zones[0] ? [{ label: `${marker.zones[0].icon} ${marker.zones[0].name}`, href: `/zones/${marker.zones[0].slug}` }] : []),
           { label: marker.name },
         ]} />
@@ -462,13 +464,13 @@ export default function MarkerDetailPage() {
                   </span>
                 </div>
               ) : (
-                <p className="text-muted-foreground text-sm mt-1">No data recorded yet</p>
+                <p className="text-muted-foreground text-sm mt-1">{t('noDataRecorded')}</p>
               )}
             </div>
 
             {/* Badges */}
             <div className="flex flex-wrap gap-2 shrink-0">
-              <SourceBadge sourceType={marker.source_type} deviceName={marker.latest?.device_name} />
+              <SourceBadge sourceType={marker.source_type} deviceName={marker.latest?.device_name} t={t} />
               {marker.zones.map(z => (
                 <Link
                   key={z.slug}
@@ -499,12 +501,12 @@ export default function MarkerDetailPage() {
                     {formulaLine && (
                       <div className="border border-dashed border-zinc-700 rounded-lg px-3 py-2 space-y-1">
                         <p className="text-xs">
-                          <span className="text-amber-400 font-medium">Formula:</span>{' '}
+                          <span className="text-amber-400 font-medium">{t('formula')}:</span>{' '}
                           <span className="text-foreground font-mono text-xs">{formulaLine.replace('Formula: ', '')}</span>
                         </p>
                         {basedOnLine && (
                           <p className="text-xs text-muted-foreground">
-                            Based on:{' '}
+                            {t('basedOn')}:{' '}
                             {basedOnLine.replace('Based on: ', '').split(', ').map((part, i, arr) => {
                               const match = part.match(/^(.+?)\s*\((\w+)\)$/)
                               if (match) {
@@ -513,7 +515,7 @@ export default function MarkerDetailPage() {
                                     <Link href={demoHref(`/markers/${match[2]}`)} className="text-blue-400 hover:text-blue-300 transition-colors">
                                       {match[1]}
                                     </Link>
-                                    {i < arr.length - 1 ? ' and ' : ''}
+                                    {i < arr.length - 1 ? ` ${t('and')} ` : ''}
                                   </span>
                                 )
                               }
@@ -532,7 +534,7 @@ export default function MarkerDetailPage() {
           {/* Formula fallback for calculated markers without description */}
           {!marker.description && marker.is_calculated && marker.formula && (
             <p className="text-xs text-muted-foreground border border-dashed border-zinc-700 rounded-lg px-3 py-2">
-              <span className="text-amber-400 font-medium">Formula:</span> {marker.formula}
+              <span className="text-amber-400 font-medium">{t('formula')}:</span> {marker.formula}
             </p>
           )}
 
@@ -566,7 +568,7 @@ export default function MarkerDetailPage() {
             </div>
           ) : (
             <div className="rounded-xl border border-dashed border-zinc-700 px-4 py-3 text-center">
-              <p className="text-sm text-muted-foreground">No universal reference range (context-dependent)</p>
+              <p className="text-sm text-muted-foreground">{t('noUniversalRange')}</p>
             </div>
           )}
         </div>
@@ -593,7 +595,7 @@ export default function MarkerDetailPage() {
           </div>
 
           {trendLoading ? (
-            <div className="h-[240px] flex items-center justify-center text-muted-foreground text-sm">Loading…</div>
+            <div className="h-[240px] flex items-center justify-center text-muted-foreground text-sm">{tCommon('loading')}</div>
           ) : (
             <TrendChart
               points={trendPoints}
@@ -609,7 +611,7 @@ export default function MarkerDetailPage() {
         </div>
 
         {/* ── SECTION 3: Statistics ────────────────────────────────────────── */}
-        <Statistics trend={trend} />
+        <Statistics trend={trend} t={t} />
 
         {/* ── SECTION 4: Recent Measurements ──────────────────────────────── */}
         <div className="rounded-2xl border p-5 space-y-3">
@@ -689,7 +691,7 @@ export default function MarkerDetailPage() {
               href={`/measurements?marker=${markerId}`}
               className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
             >
-              View all in History →
+              {t('viewAllHistory')}
             </Link>
           </div>
         </div>
@@ -802,7 +804,7 @@ export default function MarkerDetailPage() {
         {/* ── SECTION 9: Scientific References ─────────────────────────── */}
         {references.length > 0 && (
           <div className="rounded-2xl border p-5 space-y-3">
-            <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Scientific References</h2>
+            <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">{t('scientificReferences')}</h2>
             <ol className="space-y-2">
               {references.map((ref, i) => (
                 <li key={ref.id} className="flex gap-3 text-sm">

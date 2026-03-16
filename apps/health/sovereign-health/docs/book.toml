@@ -1,0 +1,13 @@
+[book]
+title = "Sovereign Health Documentation"
+authors = ["Sovereign Health Intelligence"]
+language = "en"
+src = "src"
+
+[build]
+build-dir = "public"
+
+[output.html]
+default-theme = "coal"
+preferred-dark-theme = "coal"
+git-repository-url = "https://gitlab.com/sovereign-health/core-backend"

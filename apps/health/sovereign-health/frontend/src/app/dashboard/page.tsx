@@ -7,7 +7,7 @@ import { Navbar } from '@/components/layout/navbar'
 import { Footer } from '@/components/layout/footer'
 import Link from 'next/link'
 import { useAuth } from '@/lib/auth-context'
-import { useDemoProfile, DEMO_PROFILES } from '@/lib/demo-profile-context'
+import { useDemoProfile, DEMO_PROFILES, getProfileLabel } from '@/lib/demo-profile-context'
 import { InfoCarousel, CarouselCard } from '@/components/info-carousel'
 import { UsageWidget } from '@/components/usage-widget'
 import { useTranslations } from 'next-intl'
@@ -44,6 +44,7 @@ export default function DashboardPage() {
   const { profile, setProfile } = useDemoProfile()
   const t = useTranslations('dashboard')
   const tCommon = useTranslations('common')
+  const tDemo = useTranslations('demo')
   const carouselCards = useCarouselCards()
   const [zones, setZones] = useState<Zone[]>(MOCK_ZONES)
   useEffect(() => {
@@ -70,7 +71,7 @@ export default function DashboardPage() {
             <h1 className="text-xl font-bold">{t('title')}</h1>
             {isDemo && (
               <p className="text-sm text-orange-400/80">
-                {t('demoData', { profile: DEMO_PROFILES.find(p => p.slug === profile)?.name ?? 'Optimized' })}
+                {t('demoData', { profile: getProfileLabel(profile, tDemo).name })}
               </p>
             )}
           </div>
@@ -92,24 +93,27 @@ export default function DashboardPage() {
             </p>
 
             <div className="grid grid-cols-3 gap-2 max-w-lg mx-auto">
-              {DEMO_PROFILES.map(p => (
-                <button
-                  key={p.slug}
-                  onClick={() => setProfile(p.slug)}
-                  className={`rounded-xl border-2 p-3 text-left transition-all ${
-                    profile === p.slug
-                      ? 'border-current bg-white/5'
-                      : 'border-zinc-800 hover:border-zinc-600'
-                  }`}
-                  style={{ borderColor: profile === p.slug ? p.color : undefined }}
-                >
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: p.color }} />
-                    <span className="text-sm font-semibold">{p.name}</span>
-                  </div>
-                  <p className="text-xs text-muted-foreground leading-snug">{p.desc}</p>
-                </button>
-              ))}
+              {DEMO_PROFILES.map(p => {
+                const label = getProfileLabel(p.slug, tDemo)
+                return (
+                  <button
+                    key={p.slug}
+                    onClick={() => setProfile(p.slug)}
+                    className={`rounded-xl border-2 p-3 text-left transition-all ${
+                      profile === p.slug
+                        ? 'border-current bg-white/5'
+                        : 'border-zinc-800 hover:border-zinc-600'
+                    }`}
+                    style={{ borderColor: profile === p.slug ? p.color : undefined }}
+                  >
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: p.color }} />
+                      <span className="text-sm font-semibold" style={{ color: p.color }}>{label.name}</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground leading-snug">{label.desc}</p>
+                  </button>
+                )
+              })}
             </div>
           </div>
         )}

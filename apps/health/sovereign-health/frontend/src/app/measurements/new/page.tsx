@@ -66,6 +66,8 @@ function MarkerInfoTooltip({ slug }: { slug: string }) {
     setShow(true)
   }
 
+  const cm = contentMarkers[slug]
+
   return (
     <>
       <span
@@ -81,7 +83,10 @@ function MarkerInfoTooltip({ slug }: { slug: string }) {
           style={{ position: 'fixed', left: pos.x, top: pos.y, transform: 'translateY(-50%)', zIndex: 9999 }}
           className="max-w-xs bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-xs text-zinc-200 shadow-xl pointer-events-none"
         >
-          {desc}
+          <div className="space-y-1">
+            <div className="font-medium">{cm?.name ?? slug}</div>
+            <div>{desc}</div>
+          </div>
         </div>,
         document.body,
       )}
@@ -145,7 +150,15 @@ function MarkerRow({ marker, value, displayUnit, badge, onChange, onRemove, zone
         <span className="text-sm truncate" title={name}>
           {name}
         </span>
+        {marker.abbreviation && (
+          <span className="text-xs text-muted-foreground shrink-0">({marker.abbreviation})</span>
+        )}
         <MarkerInfoTooltip slug={marker.marker_slug} />
+        {badge && (
+          <span className="text-[10px] text-blue-400/80 bg-blue-500/10 border border-blue-500/20 px-1.5 py-0.5 rounded shrink-0 hidden sm:inline-block">
+            {badge}
+          </span>
+        )}
         {zoneBadge && (
           <ZoneIconTooltip name={zoneBadge.name} icon={zoneBadge.icon} color={zoneBadge.color} />
         )}
@@ -172,11 +185,6 @@ function MarkerRow({ marker, value, displayUnit, badge, onChange, onRemove, zone
           displayUnit={displayUnit}
         />
       </div>
-      {badge && (
-        <span className="text-[10px] text-muted-foreground/60 bg-white/5 px-1.5 py-0.5 rounded shrink-0 hidden sm:inline-block">
-          {badge}
-        </span>
-      )}
       <button
         type="button"
         onClick={() => onRemove(marker.marker_slug)}
@@ -252,6 +260,7 @@ export default function NewMeasurementPage() {
   const [dietProtocol, setDietProtocol] = useState('')
   const [fastingProtocol, setFastingProtocol] = useState('16_8')
   const [fastStart, setFastStart]       = useState('')
+  const [mealTiming, setMealTiming]     = useState('no_tag')
   const [exercise, setExercise]         = useState('')
   const [sleepHours, setSleepHours]     = useState('')
   const [sleepQuality, setSleepQuality] = useState('')
@@ -302,11 +311,32 @@ export default function NewMeasurementPage() {
     return false
   }, [activeSlugs, templateOriginalSlugs])
 
+  // Collect current form defaults for template saving
+  const collectDefaults = useCallback(() => ({
+    meal_timing: mealTiming !== 'no_tag' ? mealTiming : undefined,
+    sleep_hours: sleepHours || undefined,
+    sleep_quality: sleepQuality || undefined,
+    stress_level: stressLevel || undefined,
+    protocol: protocol !== 'standard' ? protocol : undefined,
+    fasting_protocol: protocol === 'fasting' ? fastingProtocol : undefined,
+    note: note || undefined,
+  }), [mealTiming, sleepHours, sleepQuality, stressLevel, protocol, fastingProtocol, note])
+
   // Apply template
   const applyTemplate = useCallback((template: MeasurementTemplate) => {
     const slugs = new Set(template.marker_slugs)
     setActiveSlugs(slugs)
     setTemplateOriginalSlugs(new Set(slugs))
+    // Restore saved defaults
+    const d = template.defaults
+    if (d) {
+      if (d.meal_timing) setMealTiming(d.meal_timing)
+      if (d.sleep_hours) setSleepHours(d.sleep_hours)
+      if (d.sleep_quality) setSleepQuality(d.sleep_quality)
+      if (d.stress_level) setStressLevel(d.stress_level)
+      if (d.protocol === 'fasting') { setProtocol('fasting'); if (d.fasting_protocol) setFastingProtocol(d.fasting_protocol) }
+      if (d.note) setNote(d.note)
+    }
   }, [])
 
   // Add a marker to the form
@@ -365,35 +395,39 @@ export default function NewMeasurementPage() {
         const deviceList = devicesRes.data ?? []
         setDevices(deviceList)
         const defaultDev = deviceList.find(d => d.is_default)
-        if (defaultDev) setSelectedDeviceId(defaultDev.id)
         const tpls = templatesRes.data ?? []
         setTemplates(tpls)
 
-        // Auto-apply: prefer default template, then last-used template, else empty
-        const def = tpls.find(tp => tp.is_default)
-        if (def) {
-          setActiveTemplate(def.id)
-          const slugs = new Set(def.marker_slugs)
-          setActiveSlugs(slugs)
-          setTemplateOriginalSlugs(new Set(slugs))
-        } else if (tpls.length > 0) {
-          // Pick most recently used template
-          const sorted = [...tpls].sort((a, b) => {
-            if (a.last_used_at && b.last_used_at) return b.last_used_at.localeCompare(a.last_used_at)
-            if (a.last_used_at) return -1
-            if (b.last_used_at) return 1
-            return 0
-          })
-          const lastUsed = sorted[0]
-          if (lastUsed.last_used_at) {
-            setActiveTemplate(lastUsed.id)
-            const slugs = new Set(lastUsed.marker_slugs)
+        // Priority: default device → default template → last-used template → empty
+        if (defaultDev) {
+          // Auto-populate markers from the default device
+          setSelectedDeviceId(defaultDev.id)
+          setActiveSlugs(new Set(defaultDev.markers_measured))
+        } else {
+          // No default device — fall back to template logic
+          const def = tpls.find(tp => tp.is_default)
+          if (def) {
+            setActiveTemplate(def.id)
+            const slugs = new Set(def.marker_slugs)
             setActiveSlugs(slugs)
             setTemplateOriginalSlugs(new Set(slugs))
+          } else if (tpls.length > 0) {
+            // Pick most recently used template
+            const sorted = [...tpls].sort((a, b) => {
+              if (a.last_used_at && b.last_used_at) return b.last_used_at.localeCompare(a.last_used_at)
+              if (a.last_used_at) return -1
+              if (b.last_used_at) return 1
+              return 0
+            })
+            const lastUsed = sorted[0]
+            if (lastUsed.last_used_at) {
+              setActiveTemplate(lastUsed.id)
+              const slugs = new Set(lastUsed.marker_slugs)
+              setActiveSlugs(slugs)
+              setTemplateOriginalSlugs(new Set(slugs))
+            }
           }
-          // If no template has ever been used, start empty
         }
-        // No template at all: start empty (activeSlugs stays empty)
 
         setDataLoaded(true)
       }).catch(() => {
@@ -560,7 +594,7 @@ export default function NewMeasurementPage() {
         diet_protocol: dietProtocol || undefined,
         fasting_protocol: protocol === 'fasting' ? fastingProtocol : undefined,
         fast_start_datetime: protocol === 'fasting' && fastStart ? new Date(fastStart).toISOString() : undefined,
-        meal_timing_tag: 'no_tag',
+        meal_timing_tag: mealTiming,
         exercise_activity: exercise || undefined,
         sleep_hours: sleepHours ? parseFloat(sleepHours) : undefined,
         sleep_quality: sleepQuality || undefined,
@@ -595,6 +629,7 @@ export default function NewMeasurementPage() {
         name: name.trim(),
         marker_slugs: currentSlugs,
         is_default: setDefault,
+        defaults: collectDefaults(),
       })
       if (res.data) {
         if (setDefault) {
@@ -622,6 +657,7 @@ export default function NewMeasurementPage() {
         name: tpl.name,
         marker_slugs: currentSlugs,
         is_default: tpl.is_default,
+        defaults: collectDefaults(),
       })
       setTemplates(prev => prev.map(tp => tp.id === activeTemplate ? { ...tp, marker_slugs: currentSlugs } : tp))
       setTemplateOriginalSlugs(new Set(currentSlugs))
@@ -684,175 +720,178 @@ export default function NewMeasurementPage() {
         </div>
 
         {/* ── Row 1: Date/Time + Device + Template controls ─────────── */}
-        <div className="rounded-xl border p-4 mb-4">
-          <div className="flex flex-wrap gap-3 items-end">
-            <div className="flex-1 min-w-48">
-              <label className="text-xs text-muted-foreground block mb-1">{t('dateTime')}</label>
+        <div className="rounded-xl border px-4 py-3 mb-3">
+          <div className="grid grid-cols-3 gap-3 items-end">
+            <div>
+              <label className="text-[10px] text-muted-foreground block mb-0.5">{t('dateTime')}</label>
               <DateTimePicker
                 value={measuredAt}
                 onChange={setMeasuredAt}
                 countryCode={user?.country_code}
               />
             </div>
-            {devices.length > 0 && (
-              <div className="min-w-40">
-                <label className="text-xs text-muted-foreground block mb-1">{tMeasurements('device')}</label>
-                <select
-                  value={selectedDeviceId}
-                  onChange={e => setSelectedDeviceId(e.target.value)}
-                  className="bg-zinc-900 border border-zinc-700 rounded-lg px-2.5 py-1.5 text-sm w-full text-white [&>option]:bg-zinc-900 [&>option]:text-white"
-                >
-                  <option value="">{t('noTemplate')}</option>
-                  {devices.map(d => (
-                    <option key={d.id} value={d.id}>
-                      {d.device_name}{d.is_default ? ' (default)' : ''}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
-            <div className="flex-1 min-w-48">
-              <label className="text-xs text-muted-foreground block mb-1">{t('template')}</label>
-              <div className="flex items-center gap-2">
-                <select
-                  value={activeTemplate}
-                  onChange={e => {
-                    const id = e.target.value
-                    setActiveTemplate(id)
-                    if (id === '') {
-                      // No template = empty markers
-                      setActiveSlugs(new Set())
+            <div>
+              <label className="text-[10px] text-muted-foreground block mb-0.5">{tMeasurements('device')}</label>
+              <select
+                value={selectedDeviceId}
+                onChange={e => {
+                  const id = e.target.value
+                  setSelectedDeviceId(id)
+                  if (id) {
+                    const dev = devices.find(d => d.id === id)
+                    if (dev) {
+                      setActiveSlugs(new Set(dev.markers_measured))
+                      setActiveTemplate('')
                       setTemplateOriginalSlugs(null)
-                    } else {
-                      const tpl = templates.find(tp => tp.id === id)
-                      if (tpl) applyTemplate(tpl)
                     }
-                  }}
-                  className="bg-zinc-900 border border-zinc-700 rounded-lg px-2.5 py-1.5 text-sm flex-1 text-white [&>option]:bg-zinc-900 [&>option]:text-white"
-                >
-                  <option value="">{t('noTemplate')}</option>
-                  {templates.map(tp => (
-                    <option key={tp.id} value={tp.id}>
-                      {tp.is_default ? `${tp.name} (default)` : tp.name}{activeTemplate === tp.id && isTemplateModified ? ' *' : ''}
-                    </option>
-                  ))}
-                </select>
-                {activeTemplate && isTemplateModified && (
-                  <button
-                    type="button"
-                    onClick={saveTemplate}
-                    className="text-xs text-blue-400 hover:text-blue-300 transition-colors whitespace-nowrap"
-                  >
-                    {t('saveTemplate')}
-                  </button>
-                )}
-                <button
-                  type="button"
-                  onClick={saveAsTemplate}
-                  className="text-xs text-blue-400 hover:text-blue-300 transition-colors whitespace-nowrap"
-                >
-                  {t('saveAs')}
-                </button>
-                {activeTemplate && (
-                  <button
-                    type="button"
-                    onClick={deleteTemplate}
-                    className="text-xs text-red-400 hover:text-red-300 transition-colors whitespace-nowrap"
-                  >
-                    {tCommon('delete')}
-                  </button>
-                )}
-              </div>
+                  } else {
+                    setActiveSlugs(new Set())
+                    setActiveTemplate('')
+                    setTemplateOriginalSlugs(null)
+                  }
+                }}
+                className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-2 py-1 text-xs text-white [&>option]:bg-zinc-900 [&>option]:text-white"
+              >
+                <option value="">{t('noDevice')}</option>
+                {devices.map(d => (
+                  <option key={d.id} value={d.id}>
+                    {d.device_name}{d.is_default ? ` (${tMeasurements('default')})` : ''}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="text-[10px] text-muted-foreground block mb-0.5">{t('template')}</label>
+              <select
+                value={activeTemplate}
+                disabled={!!selectedDeviceId}
+                onChange={e => {
+                  const id = e.target.value
+                  setActiveTemplate(id)
+                  if (id === '') {
+                    setActiveSlugs(new Set())
+                    setTemplateOriginalSlugs(null)
+                  } else {
+                    const tpl = templates.find(tp => tp.id === id)
+                    if (tpl) applyTemplate(tpl)
+                  }
+                }}
+                className={`w-full bg-zinc-900 border border-zinc-700 rounded-lg px-2 py-1 text-xs text-white [&>option]:bg-zinc-900 [&>option]:text-white ${selectedDeviceId ? 'opacity-40 cursor-not-allowed' : ''}`}
+              >
+                <option value="">{t('noTemplate')}</option>
+                {templates.map(tp => (
+                  <option key={tp.id} value={tp.id}>
+                    {tp.is_default ? `${tp.name} (default)` : tp.name}{activeTemplate === tp.id && isTemplateModified ? ' *' : ''}
+                  </option>
+                ))}
+              </select>
+              {!selectedDeviceId && (
+                <div className="flex items-center gap-3 mt-1">
+                  {activeTemplate && isTemplateModified && (
+                    <button type="button" onClick={saveTemplate} className="text-[10px] text-blue-400 hover:text-blue-300 transition-colors whitespace-nowrap">{t('saveTemplate')}</button>
+                  )}
+                  <button type="button" onClick={saveAsTemplate} className="text-[10px] text-blue-400 hover:text-blue-300 transition-colors whitespace-nowrap">{t('saveAs')}</button>
+                  {activeTemplate && (
+                    <button type="button" onClick={deleteTemplate} className="text-[10px] text-red-400 hover:text-red-300 transition-colors whitespace-nowrap">{tCommon('delete')}</button>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>
 
-        {/* ── Row 2: Lifestyle context (always visible) ─────────────── */}
-        <div className="rounded-xl border p-4 mb-4 space-y-4">
-          {/* Profile defaults (read-only) */}
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">{t('lifestyle.profileDefaults')}</span>
-              <Link href="/settings" className="text-xs text-blue-400 hover:text-blue-300">{t('lifestyle.editInSettings')}</Link>
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-              <div className="bg-white/[0.03] rounded-lg px-3 py-2">
-                <span className="text-[10px] text-muted-foreground block">{tCommon('dietProtocol')}</span>
-                <span className="text-sm">{dietProtocol ? (dietProtocol === 'only_fish' ? tProtocols('onlyFish') : dietProtocol === 'standard' ? tProtocols('standard') : tCommon(dietProtocol)) : tCommon('notSet')}</span>
-              </div>
-              <div className="bg-white/[0.03] rounded-lg px-3 py-2">
-                <span className="text-[10px] text-muted-foreground block">{tCommon('fastingProtocol')}</span>
-                <span className="text-sm">
-                  {protocol === 'fasting' && fastingProtocol
-                    ? (['none', '18_6', '20_4'].includes(fastingProtocol) ? tCommon(fastingProtocol) : tFasting(fastingProtocol))
-                    : tCommon('none')}
-                </span>
-              </div>
-              <div className="bg-white/[0.03] rounded-lg px-3 py-2">
-                <span className="text-[10px] text-muted-foreground block">{t('lifestyle.exercise')}</span>
-                <span className="text-sm">{exercise ? (['cardio', 'hiit', 'none', 'rest', 'strength', 'walking'].includes(exercise) ? tCommon(exercise) : tExercise(exercise)) : tCommon('notSet')}</span>
-              </div>
-            </div>
+        {/* ── Row 2: Lifestyle context (compact) ─────────────── */}
+        <div className="rounded-xl border px-4 py-3 mb-3 space-y-3">
+          {/* Profile defaults — collapsed into a single text line */}
+          <div className="flex items-center gap-2 text-xs text-muted-foreground bg-white/[0.02] rounded-lg px-3 py-2">
+            <span className="shrink-0">
+              {tCommon('dietProtocol')}: <span className="text-foreground">{dietProtocol ? (dietProtocol === 'only_fish' ? tProtocols('onlyFish') : dietProtocol === 'standard' ? tProtocols('standard') : tCommon(dietProtocol)) : '–'}</span>
+            </span>
+            <span className="text-zinc-700">·</span>
+            <span className="shrink-0">
+              {tCommon('fastingProtocol')}: <span className="text-foreground">{protocol === 'fasting' && fastingProtocol
+                ? (['none', '18_6', '20_4'].includes(fastingProtocol) ? tCommon(fastingProtocol) : tFasting(fastingProtocol))
+                : tCommon('none')}</span>
+            </span>
+            <span className="text-zinc-700">·</span>
+            <span className="shrink-0">
+              {t('lifestyle.exercise')}: <span className="text-foreground">{exercise ? (['cardio', 'hiit', 'none', 'rest', 'strength', 'walking'].includes(exercise) ? tCommon(exercise) : tExercise(exercise)) : '–'}</span>
+            </span>
+            <span className="flex-1" />
+            <Link href="/settings?tab=profile" className="text-blue-400 hover:text-blue-300 shrink-0">{t('lifestyle.editInSettings')}</Link>
           </div>
 
-          {/* Session overrides (editable) */}
-          <div>
-            <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground block mb-2">{t('lifestyle.sessionOverrides')}</span>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          {/* Session overrides — single compact row */}
+          <div className="grid grid-cols-5 gap-2">
+            <div>
+              <label className="text-[10px] text-muted-foreground block mb-0.5">{t('lifestyle.mealTiming')}</label>
+              <select
+                value={mealTiming}
+                onChange={e => setMealTiming(e.target.value)}
+                className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-2 py-1 text-xs text-white [&>option]:bg-zinc-900 [&>option]:text-white"
+              >
+                <option value="no_tag">{t('mealTiming.noTag')}</option>
+                <option value="fasting">{t('mealTiming.fasting')}</option>
+                <option value="before">{t('mealTiming.before')}</option>
+                <option value="30m_after">{t('mealTiming.30mAfter')}</option>
+                <option value="1h_after">{t('mealTiming.1hAfter')}</option>
+                <option value="2h_after">{t('mealTiming.2hAfter')}</option>
+                <option value="3h_after">{t('mealTiming.3hAfter')}</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-[10px] text-muted-foreground block mb-0.5">{t('lifestyle.sleepHours')}</label>
+              <input
+                type="text"
+                inputMode="decimal"
+                value={sleepHours}
+                onInput={e => {
+                  const el = e.currentTarget
+                  const fixed = el.value.replace(',', '.')
+                  if (fixed !== el.value) el.value = fixed
+                }}
+                onChange={e => setSleepHours(e.target.value.replace(',', '.'))}
+                placeholder="-"
+                className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-2 py-1 text-xs text-white text-center"
+              />
+            </div>
+            <div>
+              <label className="text-[10px] text-muted-foreground block mb-0.5">{t('lifestyle.sleepQuality')}</label>
+              <select
+                value={sleepQuality}
+                onChange={e => setSleepQuality(e.target.value)}
+                className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-2 py-1 text-xs text-white [&>option]:bg-zinc-900 [&>option]:text-white"
+              >
+                <option value="">-</option>
+                <option value="poor">{tSleepQuality('poor')}</option>
+                <option value="fair">{tCommon('fair')}</option>
+                <option value="good">{tCommon('good')}</option>
+                <option value="excellent">{tSleepQuality('excellent')}</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-[10px] text-muted-foreground block mb-0.5">{t('lifestyle.stressLevel')}</label>
+              <select
+                value={stressLevel}
+                onChange={e => setStressLevel(e.target.value)}
+                className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-2 py-1 text-xs text-white [&>option]:bg-zinc-900 [&>option]:text-white"
+              >
+                {STRESS_OPTIONS.map(o => (
+                  <option key={o.value} value={o.value}>{tStressLevel(o.key)}</option>
+                ))}
+              </select>
+            </div>
+            {protocol === 'fasting' && (
               <div>
-                <label className="text-xs text-muted-foreground block mb-1">{t('lifestyle.sleepHours')}</label>
-                <input
-                  type="text"
-                  inputMode="decimal"
-                  value={sleepHours}
-                  onInput={e => {
-                    const el = e.currentTarget
-                    const fixed = el.value.replace(',', '.')
-                    if (fixed !== el.value) el.value = fixed
-                  }}
-                  onChange={e => setSleepHours(e.target.value.replace(',', '.'))}
-                  placeholder="-"
-                  className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-2.5 py-1.5 text-sm text-white [&>option]:bg-zinc-900 [&>option]:text-white"
+                <label className="text-[10px] text-muted-foreground block mb-0.5">{t('lifestyle.fastStarted')}</label>
+                <DateTimePicker
+                  value={fastStart}
+                  onChange={setFastStart}
+                  countryCode={user?.country_code}
+                  className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-2 py-1 text-xs text-white"
                 />
               </div>
-              <div>
-                <label className="text-xs text-muted-foreground block mb-1">{t('lifestyle.sleepQuality')}</label>
-                <select
-                  value={sleepQuality}
-                  onChange={e => setSleepQuality(e.target.value)}
-                  className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-2.5 py-1.5 text-sm text-white [&>option]:bg-zinc-900 [&>option]:text-white"
-                >
-                  <option value="">-</option>
-                  <option value="poor">{tSleepQuality('poor')}</option>
-                  <option value="fair">{tCommon('fair')}</option>
-                  <option value="good">{tCommon('good')}</option>
-                  <option value="excellent">{tSleepQuality('excellent')}</option>
-                </select>
-              </div>
-              <div>
-                <label className="text-xs text-muted-foreground block mb-1">{t('lifestyle.stressLevel')}</label>
-                <select
-                  value={stressLevel}
-                  onChange={e => setStressLevel(e.target.value)}
-                  className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-2.5 py-1.5 text-sm text-white [&>option]:bg-zinc-900 [&>option]:text-white"
-                >
-                  {STRESS_OPTIONS.map(o => (
-                    <option key={o.value} value={o.value}>{tStressLevel(o.key)}</option>
-                  ))}
-                </select>
-              </div>
-              {protocol === 'fasting' && (
-                <div>
-                  <label className="text-xs text-muted-foreground block mb-1">{t('lifestyle.fastStarted')}</label>
-                  <DateTimePicker
-                    value={fastStart}
-                    onChange={setFastStart}
-                    countryCode={user?.country_code}
-                    className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-2.5 py-1.5 text-sm text-white [&>option]:bg-zinc-900 [&>option]:text-white"
-                  />
-                </div>
-              )}
-            </div>
+            )}
           </div>
 
           {/* Note */}
@@ -950,8 +989,8 @@ export default function NewMeasurementPage() {
           {submitting ? tCommon('saving') : t('saveButton')}
         </button>
 
-        {/* ── "Add Markers" browser section ────────────────────────── */}
-        <div className="rounded-xl border mb-4">
+        {/* ── "Add Markers" browser section (hidden when a device is selected) */}
+        {!selectedDeviceId && <div className="rounded-xl border mb-4">
           <div className="px-4 py-3 border-b border-zinc-800">
             <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">{t('addMarkerSection')}</span>
           </div>
@@ -1056,7 +1095,7 @@ export default function NewMeasurementPage() {
               </div>
             </div>
           )}
-        </div>
+        </div>}
       </main>
       <Footer />
     </div>

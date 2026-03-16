@@ -142,8 +142,14 @@ function MarkersContent() {
       result = result.filter(
         (m) =>
           m.name.toLowerCase().includes(q) ||
+          m.display_name?.toLowerCase().includes(q) ||
           m.description?.toLowerCase().includes(q) ||
-          m.zone_slug?.toLowerCase().includes(q)
+          m.tooltip?.toLowerCase().includes(q) ||
+          m.why_it_matters?.toLowerCase().includes(q) ||
+          m.when_to_worry?.toLowerCase().includes(q) ||
+          m.unit?.toLowerCase().includes(q) ||
+          m.zone_slug?.toLowerCase().includes(q) ||
+          m.slug?.toLowerCase().includes(q)
       );
     }
     return result;

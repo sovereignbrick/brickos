@@ -362,7 +362,10 @@ export default function MarkerPage() {
                 >
                   <span className="font-medium text-blue-100">{rel.related_marker_name}</span>
                   <span className="text-xs text-blue-300/60 ml-2 capitalize">
-                    {rel.relationship_type?.replace(/_/g, " ")}
+                    {rel.relationship_type === 'correlated' ? t('markers.detail.relationCorrelated')
+                      : rel.relationship_type === 'inverse' ? t('markers.detail.relationInverse')
+                      : rel.relationship_type === 'contextual' ? t('markers.detail.relationContextual')
+                      : rel.relationship_type?.replace(/_/g, " ")}
                   </span>
                 </Link>
               ))}

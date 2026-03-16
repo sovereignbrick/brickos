@@ -32,7 +32,7 @@
         "title": "Resources",
         "learn": "Learn",
         "security": "Security",
-        "gitlab": "GitLab",
+        "github": "GitHub",
         "referralProgram": "Referral Program"
       },
       "legal": {
@@ -76,7 +76,7 @@
         "title": "85+ Biomarkers",
         "description": "Track markers across 8 health zones from blood sugar to hormones. Use devices like Fora 6, Qardio, or any lab."
       },
-      "drAlex": {
+      "healthCoach": {
         "title": "Dr. Alex AI Assistant",
         "description": "Six specialized analysis modes including trend analysis, lab explanation, nutrition advice, and supplement review."
       },
@@ -1176,7 +1176,7 @@
     "directContact": {
       "title": "Other Ways to Reach Us",
       "emailLabel": "Email us directly at",
-      "gitlabLabel": "Report issues or contribute on",
+      "githubLabel": "Report issues or contribute on",
       "responseTime": "We typically respond within 48 hours."
     }
   },
@@ -1314,6 +1314,9 @@
       "topFoods": "Top Foods for {name}",
       "supplements": "Supplements for {name}",
       "relatedMarkers": "Related Markers",
+      "relationCorrelated": "correlated",
+      "relationInverse": "inverse",
+      "relationContextual": "contextual",
       "showAll": "Show all {count} items",
       "showLess": "Show less",
       "personalizedCallout": "These recommendations are personalized in the {appLink} based on your Diet Protocol and Fasting Protocol.",
@@ -1384,11 +1387,11 @@
       "errorDefault": "Something went wrong. Please try again."
     }
   },
-  "drAlexChat": {
-    "bubbleLabel": "Ask Dr. Alex",
-    "openChat": "Open Dr. Alex chat",
+  "healthCoach": {
+    "bubbleLabel": "Health Coach",
+    "openChat": "Open Health Coach",
     "closeChat": "Close chat",
-    "headerTitle": "Ask Dr. Alex",
+    "headerTitle": "Health Coach",
     "betaBadge": "Beta",
     "lockedFeatures": {
       "uploadLabResults": "Upload my lab results",
@@ -1397,7 +1400,7 @@
       "tooltip": "Sign up to unlock this feature.",
       "viewPricing": "View pricing →"
     },
-    "availableWithPro": "Available with Dr. Alex Pro",
+    "availableWithPro": "Available with full Health Intelligence",
     "quickQuestionsPrompt": "Ask me about biomarkers, diet protocols, or our product:",
     "quickQuestions": [
       "What is ApoB and why does it matter?",
@@ -1408,7 +1411,7 @@
       "What's the GKI and why track it?"
     ],
     "upsellMessage": "Want personalized health insights?",
-    "upsellLink": "Sign up for Dr. Alex Pro →",
+    "upsellLink": "Sign up for full Health Intelligence →",
     "startNewConversation": "Start new conversation",
     "inputPlaceholder": "Type your question...",
     "inputPlaceholderLimitReached": "Start a new conversation above",
@@ -1416,7 +1419,7 @@
     "disclaimer": "General health education, not medical advice",
     "errors": {
       "default": "Something went wrong. Please try again.",
-      "connectionError": "Could not connect to Dr. Alex. Please check your connection."
+      "connectionError": "Could not connect to Health Coach. Please check your connection."
     }
   },
   "common": {

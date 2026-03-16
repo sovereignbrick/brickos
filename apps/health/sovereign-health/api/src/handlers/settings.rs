@@ -224,17 +224,20 @@ pub async fn get_settings(
         .collect();
 
     // Fetch all markers with zone info, display names, and what_is snippets
+    // Filter marker_content by user locale (with 'en' fallback) to avoid duplicates
     let marker_rows = sqlx::query(
         r#"SELECT m.marker_slug, m.marker_name, m.unit_canonical, m.display_order,
             m.display_name, m.abbreviation,
             z.zone_slug, z.zone_name, z.zone_icon, z.zone_color, z.display_order as zone_order,
-            mc.body_text as what_is
+            COALESCE(mc_loc.body_text, mc_en.body_text) as what_is
         FROM markers m
         LEFT JOIN zone_markers zm ON zm.marker_slug = m.marker_slug
         LEFT JOIN zones z ON z.zone_slug = zm.zone_slug
-        LEFT JOIN marker_content mc ON mc.marker_id = m.marker_slug AND mc.content_type = 'what_is'
+        LEFT JOIN marker_content mc_loc ON mc_loc.marker_id = m.marker_slug AND mc_loc.content_type = 'what_is' AND mc_loc.language = $1
+        LEFT JOIN marker_content mc_en  ON mc_en.marker_id  = m.marker_slug AND mc_en.content_type  = 'what_is' AND mc_en.language  = 'en'
         ORDER BY z.display_order NULLS LAST, m.display_order, m.marker_name"#,
     )
+    .bind(&locale)
     .fetch_all(pool.get_ref())
     .await?;
 

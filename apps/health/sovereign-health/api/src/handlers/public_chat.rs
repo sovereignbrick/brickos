@@ -343,29 +343,33 @@ pub async fn chat(
     let ip = client_ip(&req);
 
     // ── App settings overrides (DB-driven, with env/config fallbacks) ────
-    let web_enabled = get_setting_bool(pool.get_ref(), "dr_alex_web_enabled", true).await;
+    // Check new keys first, fall back to legacy dr_alex_* keys for backward compat
+    let web_enabled = {
+        let v = get_setting_bool(pool.get_ref(), "health_coach_web_enabled", true).await;
+        if v { v } else { get_setting_bool(pool.get_ref(), "dr_alex_web_enabled", true).await }
+    };
     if !web_enabled {
         return HttpResponse::ServiceUnavailable().json(json!({
             "data": null,
             "error": {
                 "code": "service_unavailable",
-                "message": "Dr. Alex is currently unavailable. Please try again later."
+                "message": "Health Coach is currently unavailable. Please try again later."
             }
         }));
     }
 
-    let daily_limit = get_setting_i64(pool.get_ref(), "dr_alex_daily_limit", 10).await as u32;
+    let daily_limit = get_setting_i64(pool.get_ref(), "health_coach_daily_limit", 10).await as u32;
     let session_limit = get_setting_i64(
         pool.get_ref(),
-        "dr_alex_session_limit",
+        "health_coach_session_limit",
         config.public_chat_max_messages as i64,
     )
     .await as usize;
     let model_override =
-        get_setting_string(pool.get_ref(), "dr_alex_model", &config.public_chat_model).await;
+        get_setting_string(pool.get_ref(), "health_coach_model", &config.public_chat_model).await;
     let max_tokens_override = get_setting_i64(
         pool.get_ref(),
-        "dr_alex_max_tokens",
+        "health_coach_max_tokens",
         config.public_chat_max_tokens as i64,
     )
     .await as usize;

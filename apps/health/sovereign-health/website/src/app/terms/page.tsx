@@ -101,11 +101,13 @@ export default function TermsPage() {
           backups will be purged within 90 days.
         </p>
 
-        {/* 6. AI Usage (Dr. Alex) */}
-        <h2 className="mt-6 mb-3 text-xl font-bold">6. AI Usage (Dr. Alex)</h2>
+        {/* 6. AI Usage (Dr. Alex & Health Coach) */}
+        <h2 className="mt-6 mb-3 text-xl font-bold">6. AI Usage (Dr. Alex & Health Coach)</h2>
         <p className="mb-3 leading-relaxed text-[var(--muted)]">
-          Dr. Alex is an AI assistant that provides health insights based on your data. The
-          following applies to AI-generated content:
+          Dr. Alex is a context-sensitive AI health expert available within the application
+          that provides personalized health insights based on your data. Health Coach is a
+          general-purpose AI assistant available on the homepage for product questions and
+          general health education. The following applies to all AI-generated content:
         </p>
         <ul className="mb-3 list-disc space-y-2 pl-6 text-[var(--muted)]">
           <li className="leading-relaxed">

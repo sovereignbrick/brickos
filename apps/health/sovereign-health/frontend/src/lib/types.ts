@@ -357,6 +357,17 @@ export interface CalculatedMarkerDef {
   zone_order: number
 }
 
+export interface TemplateDefaults {
+  meal_timing?: string
+  sleep_hours?: string
+  sleep_quality?: string
+  stress_level?: string
+  protocol?: string
+  fasting_protocol?: string
+  fast_start?: string
+  note?: string
+}
+
 export interface MeasurementTemplate {
   id: string
   name: string
@@ -364,6 +375,7 @@ export interface MeasurementTemplate {
   is_default: boolean
   display_order: number
   last_used_at: string | null
+  defaults: TemplateDefaults | null
 }
 
 export interface UserSettings {

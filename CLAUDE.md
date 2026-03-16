@@ -1,7 +1,7 @@
 # CLAUDE.md -- BrickOS Platform
 
 ## Organization
-- **Legal entity:** Sovereign Brick OU (Estonia)
+- **Organization:** Sovereign Brick
 - **Platform brand:** BrickOS
 - **GitHub org:** github.com/sovereignbrick
 - **Primary domain:** brickos.io

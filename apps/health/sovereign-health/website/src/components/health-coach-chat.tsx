@@ -18,7 +18,6 @@ const URL_LABELS: Record<string, string> = {
   '/contact': 'Contact Us',
   '/terms': 'Terms of Service',
   '/privacy': 'Privacy Policy',
-  '/learn': 'Health Academy',
   '/referral-program': 'Referral Program',
   '/partners': 'Partners',
   '/impressum': 'Impressum',
@@ -36,17 +35,14 @@ function linkifyUrls(text: string): string {
         if (URL_LABELS[path] !== undefined) {
           return `[${URL_LABELS[path]}](${url})`
         }
-        // Handle marker detail pages: /markers/glucose -> "Glucose Biomarker"
         const markerMatch = path.match(/^\/markers\/(.+)$/)
         if (markerMatch) {
           const name = markerMatch[1].replace(/[-_]/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
           return `[${name} Biomarker](${url})`
         }
-        // Handle app URLs
         if (parsed.hostname.includes('app.')) {
           return `[Open App](${url})`
         }
-        // Fallback: use page name from path
         const lastSegment = path.split('/').filter(Boolean).pop()
         if (lastSegment) {
           const label = lastSegment.replace(/[-_]/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
@@ -66,16 +62,16 @@ interface Message {
 }
 
 const QUICK_QUESTION_KEYS = [
-  "drAlexChat.quickQuestions.0",
-  "drAlexChat.quickQuestions.1",
-  "drAlexChat.quickQuestions.2",
-  "drAlexChat.quickQuestions.3",
-  "drAlexChat.quickQuestions.4",
-  "drAlexChat.quickQuestions.5",
+  "healthCoach.quickQuestions.0",
+  "healthCoach.quickQuestions.1",
+  "healthCoach.quickQuestions.2",
+  "healthCoach.quickQuestions.3",
+  "healthCoach.quickQuestions.4",
+  "healthCoach.quickQuestions.5",
 ];
 
-const SESSION_KEY = "dr_alex_session_id";
-const SESSION_TS_KEY = "dr_alex_session_ts";
+const SESSION_KEY = "health_coach_session_id";
+const SESSION_TS_KEY = "health_coach_session_ts";
 const SESSION_TTL = 30 * 60 * 1000; // 30 min
 
 function getSessionId(): string | null {
@@ -101,7 +97,7 @@ function clearSession() {
   localStorage.removeItem(SESSION_TS_KEY);
 }
 
-export function DrAlexChat() {
+export function HealthCoachChat() {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -160,13 +156,13 @@ export function DrAlexChat() {
           setIsLimitReached(true);
           setRateLimitMessage(
             json?.error?.message ||
-              "Daily message limit reached. Create a free account for unlimited conversations."
+              t("healthCoach.errors.default")
           );
           setIsLoading(false);
           return;
         }
         const errMsg =
-          json?.error?.message || t("drAlexChat.errors.default");
+          json?.error?.message || t("healthCoach.errors.default");
         setError(errMsg);
         setIsLoading(false);
         return;
@@ -182,10 +178,8 @@ export function DrAlexChat() {
         content: data.content,
       };
       setMessages((prev) => [...prev, assistantMessage]);
-
-      // Note: limit detection is now handled via 429 status code above
     } catch {
-      setError(t("drAlexChat.errors.connectionError"));
+      setError(t("healthCoach.errors.connectionError"));
     } finally {
       setIsLoading(false);
     }
@@ -215,11 +209,11 @@ export function DrAlexChat() {
         <button
           onClick={() => setIsOpen(true)}
           className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--card)] px-4 py-3 shadow-lg transition-all duration-300 hover:bg-[var(--card-hover)] hover:shadow-xl"
-          aria-label={t("drAlexChat.openChat")}
+          aria-label={t("healthCoach.openChat")}
         >
-          <span className="text-xl">🩺</span>
+          <span className="text-xl">💬</span>
           <span className="text-sm font-medium text-foreground">
-            {t("drAlexChat.bubbleLabel")}
+            {t("healthCoach.bubbleLabel")}
           </span>
         </button>
       )}
@@ -233,12 +227,11 @@ export function DrAlexChat() {
             width: "100vw",
           }}
           role="dialog"
-          aria-label="Dr. Alex Chat"
+          aria-label="Health Coach Chat"
         >
-          {/* Use CSS classes for responsive sizing */}
           <style>{`
             @media (min-width: 640px) {
-              [role="dialog"][aria-label="Dr. Alex Chat"] {
+              [role="dialog"][aria-label="Health Coach Chat"] {
                 height: 600px !important;
                 width: 400px !important;
               }
@@ -248,15 +241,15 @@ export function DrAlexChat() {
           {/* Header */}
           <div className="flex items-center justify-between border-b border-[var(--border)] px-4 py-3">
             <div className="flex items-center gap-2">
-              <span className="text-lg">🩺</span>
+              <span className="text-lg">💬</span>
               <span className="font-semibold text-foreground">
-                {t("drAlexChat.headerTitle")}
+                {t("healthCoach.headerTitle")}
               </span>
             </div>
             <button
               onClick={() => setIsOpen(false)}
               className="rounded-lg p-1 text-[var(--muted)] transition-colors hover:bg-white/5 hover:text-foreground"
-              aria-label={t("drAlexChat.closeChat")}
+              aria-label={t("healthCoach.closeChat")}
             >
               <svg
                 width="20"
@@ -277,7 +270,7 @@ export function DrAlexChat() {
             {showQuickQuestions && messages.length === 0 && (
               <div className="mb-4">
                 <p className="mb-2 text-xs text-[var(--muted)]">
-                  {t("drAlexChat.quickQuestionsPrompt")}
+                  {t("healthCoach.quickQuestionsPrompt")}
                 </p>
                 <div className="flex flex-wrap gap-2">
                   {QUICK_QUESTION_KEYS.map((key, i) => (
@@ -373,9 +366,9 @@ export function DrAlexChat() {
             {/* Upsell banner after 5 messages */}
             {messageCount >= 5 && !isLimitReached && (
               <div className="mb-3 rounded-lg border border-[var(--accent)]/20 bg-[var(--accent)]/5 px-3 py-2 text-xs text-[var(--accent)]">
-                {t("drAlexChat.upsellMessage")}{" "}
+                {t("healthCoach.upsellMessage")}{" "}
                 <a href="/pricing/" className="underline hover:text-foreground">
-                  {t("drAlexChat.upsellLink")}
+                  {t("healthCoach.upsellLink")}
                 </a>
               </div>
             )}
@@ -384,8 +377,7 @@ export function DrAlexChat() {
             {isLimitReached && (
               <div className="mb-3 rounded-lg border border-[var(--accent)]/30 bg-[var(--accent)]/5 px-4 py-3 text-center">
                 <p className="mb-2 text-sm text-foreground">
-                  {rateLimitMessage ||
-                    "Daily message limit reached. Create a free account for unlimited conversations."}
+                  {rateLimitMessage}
                 </p>
                 <a
                   href={`${SITE_CONFIG.appUrl}/register`}
@@ -393,7 +385,7 @@ export function DrAlexChat() {
                   rel="noopener noreferrer"
                   className="inline-block rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
                 >
-                  Create Free Account
+                  {t("healthCoach.upsellLink")}
                 </a>
               </div>
             )}
@@ -403,6 +395,15 @@ export function DrAlexChat() {
 
           {/* Input area */}
           <div className="border-t border-[var(--border)] px-4 py-3">
+            {/* New conversation button */}
+            {messages.length > 0 && (
+              <button
+                onClick={handleNewConversation}
+                className="mb-2 w-full rounded-lg border border-[var(--border)] bg-[var(--card)] px-3 py-1.5 text-xs text-[var(--muted)] transition-colors hover:bg-[var(--card-hover)] hover:text-foreground"
+              >
+                {t("healthCoach.startNewConversation")}
+              </button>
+            )}
             <div className="flex gap-2">
               <input
                 ref={inputRef}
@@ -412,18 +413,18 @@ export function DrAlexChat() {
                 onKeyDown={handleKeyDown}
                 placeholder={
                   isLimitReached
-                    ? t("drAlexChat.inputPlaceholderLimitReached")
-                    : t("drAlexChat.inputPlaceholder")
+                    ? t("healthCoach.inputPlaceholderLimitReached")
+                    : t("healthCoach.inputPlaceholder")
                 }
                 disabled={isLoading || isLimitReached}
                 className="flex-1 rounded-lg border border-[var(--border)] bg-[var(--card)] px-3 py-2 text-sm text-foreground placeholder:text-[var(--muted)] focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)] disabled:opacity-50"
-                aria-label={t("drAlexChat.sendMessage")}
+                aria-label={t("healthCoach.sendMessage")}
               />
               <button
                 onClick={() => sendMessage(input)}
                 disabled={isLoading || !input.trim() || isLimitReached}
                 className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
-                aria-label={t("drAlexChat.sendMessage")}
+                aria-label={t("healthCoach.sendMessage")}
               >
                 <svg
                   width="16"
@@ -436,7 +437,7 @@ export function DrAlexChat() {
               </button>
             </div>
             <p className="mt-1.5 text-center text-[10px] text-[var(--muted)]">
-              {t("drAlexChat.disclaimer")}
+              {t("healthCoach.disclaimer")}
             </p>
           </div>
         </div>

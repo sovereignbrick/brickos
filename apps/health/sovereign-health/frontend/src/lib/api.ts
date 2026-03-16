@@ -357,11 +357,11 @@ export const api = {
   templates: {
     list: () =>
       request<{ data: import('./types').MeasurementTemplate[] }>('/measurement-templates'),
-    create: (body: { name: string; marker_slugs: string[]; is_default?: boolean; display_order?: number }) =>
+    create: (body: { name: string; marker_slugs: string[]; is_default?: boolean; display_order?: number; defaults?: Record<string, unknown> }) =>
       request<{ data: import('./types').MeasurementTemplate }>(
         '/measurement-templates', { method: 'POST', body: JSON.stringify(body) }
       ),
-    update: (id: string, body: { name?: string; marker_slugs?: string[]; is_default?: boolean; display_order?: number }) =>
+    update: (id: string, body: { name?: string; marker_slugs?: string[]; is_default?: boolean; display_order?: number; defaults?: Record<string, unknown> }) =>
       request<{ data: import('./types').MeasurementTemplate }>(
         `/measurement-templates/${id}`, { method: 'PUT', body: JSON.stringify(body) }
       ),

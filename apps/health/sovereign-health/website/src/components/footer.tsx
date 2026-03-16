@@ -29,10 +29,9 @@ const footerSections: FooterSection[] = [
   {
     titleKey: "footer.sections.resources.title",
     links: [
-      { href: "/learn/", labelKey: "footer.sections.resources.learn" },
       { href: "/security/", labelKey: "footer.sections.resources.security" },
       { href: "/referral-program/", labelKey: "footer.sections.resources.referralProgram" },
-      { href: SITE_CONFIG.gitlabUrl, labelKey: "footer.sections.resources.gitlab", external: true },
+      { href: SITE_CONFIG.githubUrl, labelKey: "footer.sections.resources.github", external: true },
     ],
   },
   {
@@ -104,12 +103,12 @@ export function Footer() {
             </Link>
             <span>|</span>
             <a
-              href={SITE_CONFIG.gitlabUrl}
+              href={SITE_CONFIG.githubUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="hover:text-foreground transition-colors"
             >
-              GitLab
+              GitHub
             </a>
             <span>|</span>
             <a
