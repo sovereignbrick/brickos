@@ -1,32 +1,82 @@
+# CI for Sovereign Health Intelligence
+# Mirrors the GitLab CI pipeline: lint -> smoke -> test -> security
+# Only runs when health app or shared code changes
+
 name: CI - Sovereign Health
 on:
   push:
-    paths: ['apps/health/sovereign-health/**', 'crates/**', 'packages/**']
+    paths:
+      - 'apps/health/sovereign-health/**'
+      - 'crates/**'
+      - 'packages/**'
     branches: [main, develop]
   pull_request:
-    paths: ['apps/health/sovereign-health/**', 'crates/**', 'packages/**']
+    paths:
+      - 'apps/health/sovereign-health/**'
+      - 'crates/**'
+      - 'packages/**'
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
 
 jobs:
-  backend-lint:
+  # ── Lint (parallel, no dependencies) ──
+  lint-fmt:
+    name: cargo fmt
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
-        with: { components: 'rustfmt, clippy' }
-      - uses: Swatinem/rust-cache@v2
+        with: { components: rustfmt }
       - run: cargo fmt --check
+
+  lint-clippy:
+    name: cargo clippy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with: { components: clippy }
+      - uses: Swatinem/rust-cache@v2
       - run: cargo clippy --all-targets -- -D warnings
 
-  backend-test:
+  # ── Smoke tests (fast, no DB) ──
+  test-smoke:
+    name: smoke tests
     runs-on: ubuntu-latest
-    needs: backend-lint
+    needs: [lint-fmt, lint-clippy]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo test -p sovereign-health-backend --test smoke -- --nocapture
+
+  # ── Integration tests (no DB) ──
+  test-integration:
+    name: integration tests
+    runs-on: ubuntu-latest
+    needs: test-smoke
+    env:
+      INSTA_UPDATE: 'no'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo test -p sovereign-health-backend --test integration -- --nocapture
+
+  # ── DB tests (auth, measurements, tiers, doctor-chat) ──
+  test-auth:
+    name: auth tests
+    runs-on: ubuntu-latest
+    needs: test-smoke
     services:
       postgres:
         image: postgres:16-alpine
         env:
           POSTGRES_DB: sovereign_health
           POSTGRES_USER: sovereign_health
-          POSTGRES_PASSWORD: test
+          POSTGRES_PASSWORD: dev_password_only
         ports: ['5432:5432']
         options: >-
           --health-cmd "pg_isready -U sovereign_health"
@@ -34,15 +84,108 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     env:
-      DATABASE_URL: postgres://sovereign_health:test@localhost:5432/sovereign_health
+      DATABASE_URL: postgres://sovereign_health:dev_password_only@localhost:5432/sovereign_health
       JWT_SECRET: ci_test_jwt_secret_32chars_long_x
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
-      - run: cargo test -p sovereign-health-api
+      - run: cargo test -p sovereign-health-backend --test auth_test -- --nocapture
 
-  backend-audit:
+  test-measurements:
+    name: measurement tests
+    runs-on: ubuntu-latest
+    needs: test-smoke
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: sovereign_health
+          POSTGRES_USER: sovereign_health
+          POSTGRES_PASSWORD: dev_password_only
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U sovereign_health"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgres://sovereign_health:dev_password_only@localhost:5432/sovereign_health
+      JWT_SECRET: ci_test_jwt_secret_32chars_long_x
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo test -p sovereign-health-backend --test measurement_test -- --nocapture
+
+  test-tiers:
+    name: tier tests
+    runs-on: ubuntu-latest
+    needs: test-smoke
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: sovereign_health
+          POSTGRES_USER: sovereign_health
+          POSTGRES_PASSWORD: dev_password_only
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U sovereign_health"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgres://sovereign_health:dev_password_only@localhost:5432/sovereign_health
+      JWT_SECRET: ci_test_jwt_secret_32chars_long_x
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo test -p sovereign-health-backend --test tier_test -- --nocapture
+
+  test-doctor-chat:
+    name: doctor chat tests
+    runs-on: ubuntu-latest
+    needs: test-smoke
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: sovereign_health
+          POSTGRES_USER: sovereign_health
+          POSTGRES_PASSWORD: dev_password_only
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U sovereign_health"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgres://sovereign_health:dev_password_only@localhost:5432/sovereign_health
+      JWT_SECRET: ci_test_jwt_secret_32chars_long_x
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo test -p sovereign-health-backend --test doctor_chat_test -- --nocapture
+
+  # ── Property tests ──
+  test-property:
+    name: property tests
+    runs-on: ubuntu-latest
+    needs: test-smoke
+    env:
+      PROPTEST_CASES: '1000'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo test -p sovereign-health-backend --test property -- --nocapture
+
+  # ── Security audit ──
+  security-audit:
+    name: cargo audit
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -51,7 +194,9 @@ jobs:
       - run: cargo audit
     continue-on-error: true
 
-  frontend:
+  # ── Frontend ──
+  frontend-build:
+    name: frontend build + test
     runs-on: ubuntu-latest
     defaults:
       run:

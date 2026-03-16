@@ -1,0 +1,1564 @@
+{
+  "glucose": [
+    {
+      "display_order": 0,
+      "food_category": "vegetable",
+      "food_name": "Broccoli",
+      "id": "6a0eacee-bb55-495b-9f89-9fee55d54819"
+    },
+    {
+      "display_order": 1,
+      "food_category": "vegetable",
+      "food_name": "Spinach",
+      "id": "1f49e422-8960-40eb-9c0e-c49da5547247"
+    },
+    {
+      "display_order": 2,
+      "food_category": "legume",
+      "food_name": "Lentils",
+      "id": "1a6e4a26-9a4e-4edb-b9e5-25952e938bc3"
+    },
+    {
+      "display_order": 3,
+      "food_category": "fruit",
+      "food_name": "Blueberries",
+      "id": "f9b2e1a4-2019-417d-b166-06a42be71adc"
+    },
+    {
+      "display_order": 4,
+      "food_category": "fish",
+      "food_name": "Salmon",
+      "id": "c4bbf575-fdaa-4c86-bed3-d570ea8a1d8e"
+    },
+    {
+      "display_order": 5,
+      "food_category": "nut_seed",
+      "food_name": "Almonds",
+      "id": "4f562356-3011-4677-b9b4-af1141a03ab4"
+    },
+    {
+      "display_order": 6,
+      "food_category": "herb_spice",
+      "food_name": "Cinnamon",
+      "id": "78cca0a8-9821-4680-9b99-f43f16156296"
+    },
+    {
+      "display_order": 7,
+      "food_category": "grain",
+      "food_name": "Oats (rolled)",
+      "id": "8f28ac4d-be72-4a80-b8b3-90b857fc1ca3"
+    },
+    {
+      "display_order": 8,
+      "food_category": "beverage",
+      "food_name": "Apple Cider Vinegar",
+      "id": "6de43d0c-5682-46eb-b7cb-967bafa174ed"
+    },
+    {
+      "display_order": 9,
+      "food_category": "oil_fat",
+      "food_name": "Olive Oil (extra virgin)",
+      "id": "db3d38d6-f2f6-4da5-b2f3-889ccdb7c0d1"
+    },
+    {
+      "display_order": 10,
+      "food_category": "egg",
+      "food_name": "Eggs",
+      "id": "aba35add-1f98-42c9-b114-97886f1e9f1c"
+    },
+    {
+      "display_order": 50,
+      "food_category": "meat",
+      "food_name": "Grass-Fed Beef",
+      "id": "e7bfbb07-1f09-40b3-a2c4-420f544be703"
+    },
+    {
+      "display_order": 51,
+      "food_category": "poultry",
+      "food_name": "Chicken Breast",
+      "id": "585d5cf9-ed50-448e-8e96-c4c9df37d8a3"
+    },
+    {
+      "display_order": 52,
+      "food_category": "poultry",
+      "food_name": "Turkey",
+      "id": "5cebf257-b515-44e9-8764-49a20d2baf62"
+    },
+    {
+      "display_order": 53,
+      "food_category": "fish",
+      "food_name": "Sardines",
+      "id": "c0448da7-2ce2-44dc-89bc-0e624856ab34"
+    },
+    {
+      "display_order": 54,
+      "food_category": "seafood",
+      "food_name": "Shrimp",
+      "id": "c2dcde21-560c-458d-a04e-6a3060300148"
+    },
+    {
+      "display_order": 55,
+      "food_category": "organ_meat",
+      "food_name": "Liver",
+      "id": "edf19f35-884e-4e6b-aa59-1c3e89c09b38"
+    },
+    {
+      "display_order": 56,
+      "food_category": "fermented",
+      "food_name": "Sauerkraut",
+      "id": "32bda0ad-f486-4891-ab67-b823a3f168bb"
+    },
+    {
+      "display_order": 57,
+      "food_category": "dairy",
+      "food_name": "Cheese",
+      "id": "0367a9d7-f6a2-40b4-a4ab-e8ef15d4270e"
+    }
+  ],
+  "insulin": [
+    {
+      "display_order": 0,
+      "food_category": "vegetable",
+      "food_name": "Leafy greens (kale, spinach)",
+      "id": "bdf58deb-2261-49e5-93ae-2e68a1d2aa0c"
+    },
+    {
+      "display_order": 1,
+      "food_category": "fish",
+      "food_name": "Sardines",
+      "id": "53d38e84-8f69-4e73-9c13-2cfba7eb1da7"
+    },
+    {
+      "display_order": 2,
+      "food_category": "egg",
+      "food_name": "Eggs",
+      "id": "7a050be5-f08c-4422-a2a7-e3fdd6405487"
+    },
+    {
+      "display_order": 3,
+      "food_category": "nut_seed",
+      "food_name": "Walnuts",
+      "id": "8af89e6f-7cfb-4053-9498-ab3fa904269d"
+    },
+    {
+      "display_order": 4,
+      "food_category": "fruit",
+      "food_name": "Avocado",
+      "id": "70ecca49-5869-4bfd-a932-3faa8ed4c84c"
+    },
+    {
+      "display_order": 5,
+      "food_category": "beverage",
+      "food_name": "Apple cider vinegar",
+      "id": "1b72705f-d4e7-4cb9-9fff-f4a94fe7c710"
+    },
+    {
+      "display_order": 6,
+      "food_category": "legume",
+      "food_name": "Chickpeas",
+      "id": "1fdf5f85-a172-4ede-abea-a55420041657"
+    },
+    {
+      "display_order": 7,
+      "food_category": "herb_spice",
+      "food_name": "Cinnamon",
+      "id": "30780906-d398-4085-925e-1354215ec8ab"
+    },
+    {
+      "display_order": 8,
+      "food_category": "oil_fat",
+      "food_name": "Coconut Oil",
+      "id": "efdce32e-fec8-4bd3-b796-e42ed4482dcb"
+    },
+    {
+      "display_order": 50,
+      "food_category": "meat",
+      "food_name": "Grass-Fed Beef",
+      "id": "74d57c48-1494-45b9-9a1e-667a21a6412e"
+    },
+    {
+      "display_order": 51,
+      "food_category": "fish",
+      "food_name": "Salmon",
+      "id": "292ccdb8-a898-42c9-9ad8-d46f49f843e7"
+    },
+    {
+      "display_order": 53,
+      "food_category": "organ_meat",
+      "food_name": "Liver",
+      "id": "24ddbdc4-ee13-4cec-aa01-2bfbdda93803"
+    },
+    {
+      "display_order": 54,
+      "food_category": "beverage",
+      "food_name": "Bone Broth",
+      "id": "e60ddd2e-7cc6-4876-bab4-68f4e322b254"
+    }
+  ],
+  "hba1c": [
+    {
+      "display_order": 0,
+      "food_category": "grain",
+      "food_name": "Barley",
+      "id": "211054be-2e3c-451c-9ba8-f07ecfaa2370"
+    },
+    {
+      "display_order": 1,
+      "food_category": "legume",
+      "food_name": "Kidney beans",
+      "id": "5fcbe664-e1d0-4c31-89f6-53e12c39c5b3"
+    },
+    {
+      "display_order": 2,
+      "food_category": "vegetable",
+      "food_name": "Broccoli",
+      "id": "82c73fd6-e426-48df-a569-fefd46eebda2"
+    },
+    {
+      "display_order": 3,
+      "food_category": "fruit",
+      "food_name": "Blueberries",
+      "id": "f338894e-877e-4ac7-a994-168ff03dc6d4"
+    },
+    {
+      "display_order": 4,
+      "food_category": "fish",
+      "food_name": "Salmon",
+      "id": "53063fcf-0aca-4f40-86f2-1703eb2064a6"
+    },
+    {
+      "display_order": 5,
+      "food_category": "dairy",
+      "food_name": "Greek yoghurt (plain)",
+      "id": "53aec70b-db44-4df1-b39d-fc5ec9460db9"
+    },
+    {
+      "display_order": 6,
+      "food_category": "nut_seed",
+      "food_name": "Chia seeds",
+      "id": "51bf12ab-d089-45b0-a016-b68871bd3e8f"
+    },
+    {
+      "display_order": 7,
+      "food_category": "herb_spice",
+      "food_name": "Cinnamon",
+      "id": "c514a559-c846-454b-89c2-28be843a75b2"
+    },
+    {
+      "display_order": 8,
+      "food_category": "beverage",
+      "food_name": "Apple Cider Vinegar",
+      "id": "4e9183fc-e9de-484f-8dcb-6cff61c9c815"
+    },
+    {
+      "display_order": 9,
+      "food_category": "egg",
+      "food_name": "Eggs",
+      "id": "37209a3c-0d34-4ba8-9b9d-61d905881009"
+    },
+    {
+      "display_order": 10,
+      "food_category": "oil_fat",
+      "food_name": "Olive Oil (extra virgin)",
+      "id": "c85b9ba6-0309-4121-b177-6bfe4f7b079b"
+    },
+    {
+      "display_order": 50,
+      "food_category": "meat",
+      "food_name": "Grass-Fed Beef",
+      "id": "15a9a09f-87b3-488a-9365-cbcd261fa3d3"
+    },
+    {
+      "display_order": 52,
+      "food_category": "fish",
+      "food_name": "Sardines",
+      "id": "5277b805-8f57-4ecd-9e2d-c1e41076426a"
+    },
+    {
+      "display_order": 54,
+      "food_category": "organ_meat",
+      "food_name": "Liver",
+      "id": "bb6520d0-f469-490f-9beb-f1498b5545e8"
+    }
+  ],
+  "ketones": [
+    {
+      "display_order": 0,
+      "food_category": "oil_fat",
+      "food_name": "Coconut oil",
+      "id": "58fe9c1a-f82d-4ba0-bbe8-27c81aacdb69"
+    },
+    {
+      "display_order": 1,
+      "food_category": "fruit",
+      "food_name": "Avocado",
+      "id": "6040838d-eca4-4adb-974a-4210d94cca55"
+    },
+    {
+      "display_order": 2,
+      "food_category": "meat",
+      "food_name": "Beef (grass-fed)",
+      "id": "2684989b-e5a4-4004-941b-8127a1708bb2"
+    },
+    {
+      "display_order": 3,
+      "food_category": "fish",
+      "food_name": "Mackerel",
+      "id": "dea7e87d-5f65-45b8-bf5a-0e06f6e4230a"
+    },
+    {
+      "display_order": 4,
+      "food_category": "egg",
+      "food_name": "Eggs",
+      "id": "88c7949f-ad71-45f8-9438-0913ac27d535"
+    },
+    {
+      "display_order": 5,
+      "food_category": "oil_fat",
+      "food_name": "Butter",
+      "id": "7ac485bb-cec4-4d51-94ac-9123685ce0ba"
+    },
+    {
+      "display_order": 6,
+      "food_category": "nut_seed",
+      "food_name": "Pecans",
+      "id": "8007e973-e5b7-4717-b3ad-7a091df5cd1e"
+    },
+    {
+      "display_order": 7,
+      "food_category": "oil_fat",
+      "food_name": "Ghee",
+      "id": "a5267ff9-c34e-4f1b-9c60-8ba64872d975"
+    },
+    {
+      "display_order": 8,
+      "food_category": "beverage",
+      "food_name": "Bone Broth",
+      "id": "2fe94fb3-0ec2-4444-add9-5c1335dfe95f"
+    },
+    {
+      "display_order": 50,
+      "food_category": "meat",
+      "food_name": "Grass-Fed Beef",
+      "id": "e5ce375b-284f-4dc5-bd43-633fa0b164dd"
+    },
+    {
+      "display_order": 51,
+      "food_category": "meat",
+      "food_name": "Ribeye Steak",
+      "id": "21766922-3b5a-4c47-95d0-6fa6ce552831"
+    },
+    {
+      "display_order": 52,
+      "food_category": "meat",
+      "food_name": "Bacon",
+      "id": "99eeb3bf-4f12-415c-a279-776a1ecca7ce"
+    },
+    {
+      "display_order": 53,
+      "food_category": "poultry",
+      "food_name": "Chicken Thighs",
+      "id": "efa9425e-2d8f-475f-965b-5f06738fdc2f"
+    },
+    {
+      "display_order": 54,
+      "food_category": "fish",
+      "food_name": "Sardines",
+      "id": "bbe9c708-005c-44f2-b633-4c251585974a"
+    },
+    {
+      "display_order": 55,
+      "food_category": "organ_meat",
+      "food_name": "Liver",
+      "id": "d015f24a-54ab-44e2-a11a-6f585cb4da3f"
+    },
+    {
+      "display_order": 56,
+      "food_category": "dairy",
+      "food_name": "Cream Cheese",
+      "id": "ea33f026-b9a2-4db3-81d6-fc1607996797"
+    },
+    {
+      "display_order": 57,
+      "food_category": "dairy",
+      "food_name": "Heavy Cream",
+      "id": "9b7edee8-59cb-432d-8993-169740fc484f"
+    }
+  ],
+  "creatinine": [
+    {
+      "display_order": 0,
+      "food_category": "vegetable",
+      "food_name": "Cauliflower",
+      "id": "90784122-4747-4db1-a930-c57f07c88c2a"
+    },
+    {
+      "display_order": 1,
+      "food_category": "vegetable",
+      "food_name": "Cabbage",
+      "id": "6d468ea4-104c-4b1e-907b-f0e3178d1f26"
+    },
+    {
+      "display_order": 2,
+      "food_category": "fruit",
+      "food_name": "Blueberries",
+      "id": "de4b9196-6613-4fe8-b15f-512b59950c80"
+    },
+    {
+      "display_order": 3,
+      "food_category": "egg",
+      "food_name": "Egg whites",
+      "id": "dae7d5c5-46e9-4690-98be-76c485de56be"
+    },
+    {
+      "display_order": 4,
+      "food_category": "poultry",
+      "food_name": "Skinless chicken",
+      "id": "d94cbef4-df7d-4508-9e94-6afa50a38e13"
+    },
+    {
+      "display_order": 5,
+      "food_category": "fish",
+      "food_name": "Salmon",
+      "id": "9b287dda-7cb0-4add-8049-b90aec7a2aa4"
+    },
+    {
+      "display_order": 6,
+      "food_category": "oil_fat",
+      "food_name": "Olive oil (extra virgin)",
+      "id": "45e5b1a0-a0b1-432d-9df5-efdcbf8832bd"
+    },
+    {
+      "display_order": 7,
+      "food_category": "herb_spice",
+      "food_name": "Parsley",
+      "id": "40087d67-8fed-4aab-be46-38ff6e01b6d8"
+    },
+    {
+      "display_order": 8,
+      "food_category": "fruit",
+      "food_name": "Cranberries",
+      "id": "88a330ce-c801-4a32-93f5-57014dea716e"
+    },
+    {
+      "display_order": 9,
+      "food_category": "beverage",
+      "food_name": "Lemon Water",
+      "id": "18c19b95-9052-45e2-a296-0e3d6cc18271"
+    },
+    {
+      "display_order": 51,
+      "food_category": "poultry",
+      "food_name": "Chicken Breast",
+      "id": "6cae5912-6ff3-4472-8fda-569e65e85aa0"
+    },
+    {
+      "display_order": 52,
+      "food_category": "egg",
+      "food_name": "Eggs",
+      "id": "df5c32c9-7677-45f4-bb2a-57a96bfe3c38"
+    },
+    {
+      "display_order": 54,
+      "food_category": "vegetable",
+      "food_name": "Cucumber",
+      "id": "3eefc7a4-02fd-4b48-89a2-573dbf018206"
+    }
+  ],
+  "vitamin_d": [
+    {
+      "display_order": 0,
+      "food_category": "fish",
+      "food_name": "Salmon",
+      "id": "96362abc-ad48-47bf-90d6-49914c661940"
+    },
+    {
+      "display_order": 1,
+      "food_category": "fish",
+      "food_name": "Mackerel",
+      "id": "2ec40c1a-d575-4db0-a3e3-f476ca89f0fd"
+    },
+    {
+      "display_order": 2,
+      "food_category": "fish",
+      "food_name": "Herring",
+      "id": "3e1f570a-262c-4ec6-97ff-ea31b84aa24b"
+    },
+    {
+      "display_order": 3,
+      "food_category": "fish",
+      "food_name": "Sardines",
+      "id": "125c3fbf-1538-4457-b506-23011a7ea237"
+    },
+    {
+      "display_order": 4,
+      "food_category": "egg",
+      "food_name": "Egg yolks",
+      "id": "36bac8c0-7878-46ac-b260-138fe643c99e"
+    },
+    {
+      "display_order": 5,
+      "food_category": "organ_meat",
+      "food_name": "Beef liver",
+      "id": "d37522ae-38d7-40d8-90f8-aeb08afffa5b"
+    },
+    {
+      "display_order": 6,
+      "food_category": "vegetable",
+      "food_name": "Mushrooms (UV-exposed)",
+      "id": "b34b5ef0-66e9-4279-b7f2-a486aa55880a"
+    },
+    {
+      "display_order": 7,
+      "food_category": "oil_fat",
+      "food_name": "Cod Liver Oil",
+      "id": "fef7a224-27e1-41b6-b701-de4743efa9cb"
+    },
+    {
+      "display_order": 52,
+      "food_category": "egg",
+      "food_name": "Eggs",
+      "id": "6eb75b5c-7f41-41ff-8b36-638a0268b997"
+    },
+    {
+      "display_order": 53,
+      "food_category": "organ_meat",
+      "food_name": "Liver",
+      "id": "315778c4-864b-4199-8f83-0cc78f2b30fc"
+    }
+  ],
+  "iron": [
+    {
+      "display_order": 0,
+      "food_category": "organ_meat",
+      "food_name": "Beef liver",
+      "id": "e8eba4d8-0cee-4372-9f97-a56ebc7fd455"
+    },
+    {
+      "display_order": 1,
+      "food_category": "seafood",
+      "food_name": "Oysters",
+      "id": "57f97848-b7fc-4566-a150-1125e6e4d48f"
+    },
+    {
+      "display_order": 2,
+      "food_category": "meat",
+      "food_name": "Beef (grass-fed)",
+      "id": "c7da22d4-4c29-4e16-8cff-394f455dc84b"
+    },
+    {
+      "display_order": 3,
+      "food_category": "vegetable",
+      "food_name": "Spinach",
+      "id": "0f417bc0-f33e-47e5-b960-d17b439a56eb"
+    },
+    {
+      "display_order": 4,
+      "food_category": "legume",
+      "food_name": "Lentils",
+      "id": "35418d9d-c2b9-4064-8d3d-3c24bfbe5e8f"
+    },
+    {
+      "display_order": 5,
+      "food_category": "nut_seed",
+      "food_name": "Pumpkin seeds",
+      "id": "7c2d9866-00b0-403c-8b3f-a875362e59ba"
+    },
+    {
+      "display_order": 6,
+      "food_category": "legume",
+      "food_name": "Tofu",
+      "id": "31bdd121-397e-433f-9e9a-cb8623efc843"
+    },
+    {
+      "display_order": 7,
+      "food_category": "other",
+      "food_name": "Dark chocolate (70%+)",
+      "id": "5baa1946-a717-40b4-a1d9-38a678e7ff77"
+    },
+    {
+      "display_order": 8,
+      "food_category": "poultry",
+      "food_name": "Chicken Thighs",
+      "id": "ff754811-4870-4452-984d-c51e2452aac2"
+    },
+    {
+      "display_order": 9,
+      "food_category": "seafood",
+      "food_name": "Mussels",
+      "id": "e365c386-89b6-4b82-ba5c-351625e67766"
+    },
+    {
+      "display_order": 10,
+      "food_category": "beverage",
+      "food_name": "Bone Broth",
+      "id": "0a1a0e6c-e6c5-48ce-8890-f0fbdcdc1ea7"
+    },
+    {
+      "display_order": 50,
+      "food_category": "organ_meat",
+      "food_name": "Liver",
+      "id": "51365694-6022-42b8-a4f1-be856baefd45"
+    },
+    {
+      "display_order": 51,
+      "food_category": "meat",
+      "food_name": "Grass-Fed Beef",
+      "id": "b7daba3e-3fc1-454d-be9d-0f2b86830c91"
+    },
+    {
+      "display_order": 53,
+      "food_category": "fish",
+      "food_name": "Sardines",
+      "id": "a5df4854-7a63-445b-a0bb-99ca3d92c10b"
+    },
+    {
+      "display_order": 54,
+      "food_category": "egg",
+      "food_name": "Eggs",
+      "id": "2a630761-ddbe-4a91-957b-51432cd5bad3"
+    }
+  ],
+  "total_cholesterol": [
+    {
+      "display_order": 0,
+      "food_category": "grain",
+      "food_name": "Oats",
+      "id": "a1f3992e-199d-40b6-950a-b51f3153d9c9"
+    },
+    {
+      "display_order": 1,
+      "food_category": "legume",
+      "food_name": "Lentils",
+      "id": "12eaae27-5812-439f-9031-8dfe799053f7"
+    },
+    {
+      "display_order": 2,
+      "food_category": "nut_seed",
+      "food_name": "Almonds",
+      "id": "ea00d5a8-61c3-4ce1-8432-6eea2675783d"
+    },
+    {
+      "display_order": 3,
+      "food_category": "oil_fat",
+      "food_name": "Olive oil (extra virgin)",
+      "id": "d7921ef0-247e-45be-9bf6-55a68782b03d"
+    },
+    {
+      "display_order": 4,
+      "food_category": "fruit",
+      "food_name": "Avocado",
+      "id": "1eb2d5a0-9430-4344-a732-2c4c4d319288"
+    },
+    {
+      "display_order": 5,
+      "food_category": "vegetable",
+      "food_name": "Eggplant",
+      "id": "16095f96-67f4-4299-8d24-ce8c11817565"
+    },
+    {
+      "display_order": 6,
+      "food_category": "fish",
+      "food_name": "Mackerel",
+      "id": "20939a95-0efc-47f4-8a71-c3a0bbc9992b"
+    },
+    {
+      "display_order": 7,
+      "food_category": "egg",
+      "food_name": "Eggs",
+      "id": "c001331c-4799-4a5d-889e-333d7779b1f7"
+    },
+    {
+      "display_order": 8,
+      "food_category": "oil_fat",
+      "food_name": "Ghee",
+      "id": "9aefb214-7aac-463d-8ae1-c92f55528a58"
+    },
+    {
+      "display_order": 50,
+      "food_category": "fish",
+      "food_name": "Salmon",
+      "id": "db7b4dd8-d1c9-4bcd-8f65-3cc212ed1e67"
+    },
+    {
+      "display_order": 51,
+      "food_category": "fish",
+      "food_name": "Sardines",
+      "id": "6916472e-0be4-4e4e-96ff-5fe0164083b6"
+    },
+    {
+      "display_order": 53,
+      "food_category": "oil_fat",
+      "food_name": "Olive Oil",
+      "id": "8beed1a3-ea98-4651-96c9-71d143792a95"
+    },
+    {
+      "display_order": 56,
+      "food_category": "meat",
+      "food_name": "Grass-Fed Beef",
+      "id": "9cceb170-b9b5-4154-8935-d8fcd2306bc6"
+    },
+    {
+      "display_order": 57,
+      "food_category": "other",
+      "food_name": "Dark Chocolate",
+      "id": "79a540b6-a873-43a4-927f-eda86a0b09e9"
+    },
+    {
+      "display_order": 58,
+      "food_category": "herb_spice",
+      "food_name": "Garlic",
+      "id": "900e2358-eae3-4901-9691-c9a4b8972650"
+    }
+  ],
+  "ldl_c": [
+    {
+      "display_order": 0,
+      "food_category": "grain",
+      "food_name": "Oats",
+      "id": "580923bb-4b08-4e6f-bbdd-fab6db0370ff"
+    },
+    {
+      "display_order": 1,
+      "food_category": "legume",
+      "food_name": "Black beans",
+      "id": "3f35f69f-9f4f-470e-a7dd-4cac60e6e72a"
+    },
+    {
+      "display_order": 2,
+      "food_category": "nut_seed",
+      "food_name": "Walnuts",
+      "id": "300a3cbe-5758-46a7-beba-f889a20d6279"
+    },
+    {
+      "display_order": 3,
+      "food_category": "fish",
+      "food_name": "Salmon",
+      "id": "73de051d-b63c-4b8a-9461-7f74bccde353"
+    },
+    {
+      "display_order": 4,
+      "food_category": "nut_seed",
+      "food_name": "Flaxseed",
+      "id": "0bd106b7-24fb-4e46-8761-4fe7f23ec8f7"
+    },
+    {
+      "display_order": 5,
+      "food_category": "oil_fat",
+      "food_name": "Olive oil (extra virgin)",
+      "id": "ba08bb23-5bbc-40c7-9ac6-82d6701a937a"
+    },
+    {
+      "display_order": 6,
+      "food_category": "fruit",
+      "food_name": "Apples",
+      "id": "8027d1e0-0663-496a-aa52-b41d9a2c2d21"
+    },
+    {
+      "display_order": 7,
+      "food_category": "vegetable",
+      "food_name": "Aubergine",
+      "id": "ff1c1c79-e10d-4cb3-9730-d6dabe5bf6e3"
+    },
+    {
+      "display_order": 51,
+      "food_category": "fish",
+      "food_name": "Sardines",
+      "id": "690673dd-5acc-4252-afb6-a6d28b7bdb15"
+    },
+    {
+      "display_order": 52,
+      "food_category": "egg",
+      "food_name": "Eggs",
+      "id": "2b3b6b03-e632-4840-968f-5916bfb73e2b"
+    },
+    {
+      "display_order": 53,
+      "food_category": "meat",
+      "food_name": "Grass-Fed Beef",
+      "id": "67553db1-22a9-4650-b594-e2115b14cfab"
+    },
+    {
+      "display_order": 54,
+      "food_category": "oil_fat",
+      "food_name": "Olive Oil",
+      "id": "a2acc939-1612-4683-b94e-2ec39d2f3641"
+    }
+  ],
+  "hdl_c": [
+    {
+      "display_order": 0,
+      "food_category": "oil_fat",
+      "food_name": "Olive oil (extra virgin)",
+      "id": "da5445be-fc02-49b9-a089-608231984920"
+    },
+    {
+      "display_order": 1,
+      "food_category": "fish",
+      "food_name": "Mackerel",
+      "id": "b84ca6c1-53b3-4fb9-bcf0-b04b3426097c"
+    },
+    {
+      "display_order": 2,
+      "food_category": "fruit",
+      "food_name": "Avocado",
+      "id": "ffbb220c-aad0-482f-b170-99b6ec9ddb92"
+    },
+    {
+      "display_order": 3,
+      "food_category": "nut_seed",
+      "food_name": "Macadamia nuts",
+      "id": "cee96761-d26b-4ece-b53a-2969c6f033ba"
+    },
+    {
+      "display_order": 4,
+      "food_category": "fish",
+      "food_name": "Sardines",
+      "id": "99e5e2c8-6444-45f3-9b54-978e7121eb28"
+    },
+    {
+      "display_order": 5,
+      "food_category": "oil_fat",
+      "food_name": "Coconut oil",
+      "id": "5d414499-949a-4617-9e08-9bffe1e7d6d8"
+    },
+    {
+      "display_order": 6,
+      "food_category": "egg",
+      "food_name": "Eggs",
+      "id": "58d162dd-1fdd-4d0b-b75f-bcfd578c5ea1"
+    },
+    {
+      "display_order": 50,
+      "food_category": "fish",
+      "food_name": "Salmon",
+      "id": "6b8f2cb1-711d-4adb-83df-b818595b7d2a"
+    },
+    {
+      "display_order": 52,
+      "food_category": "meat",
+      "food_name": "Grass-Fed Beef",
+      "id": "7a446845-a08f-44d9-ae85-89104bf45f3b"
+    },
+    {
+      "display_order": 53,
+      "food_category": "oil_fat",
+      "food_name": "Olive Oil",
+      "id": "e49bdcdc-d876-4182-a309-e1893de07caf"
+    }
+  ],
+  "triglycerides": [
+    {
+      "display_order": 0,
+      "food_category": "fish",
+      "food_name": "Salmon",
+      "id": "3493822e-3589-4e82-b954-7440702a9e2c"
+    },
+    {
+      "display_order": 1,
+      "food_category": "fish",
+      "food_name": "Mackerel",
+      "id": "1be87578-668a-4e18-b643-9aaa4950ee13"
+    },
+    {
+      "display_order": 2,
+      "food_category": "fish",
+      "food_name": "Sardines",
+      "id": "5b542734-2844-478e-b7be-9086b8573552"
+    },
+    {
+      "display_order": 3,
+      "food_category": "nut_seed",
+      "food_name": "Walnuts",
+      "id": "72116cbb-0378-4476-acdb-48f8810d7405"
+    },
+    {
+      "display_order": 4,
+      "food_category": "nut_seed",
+      "food_name": "Flaxseed",
+      "id": "6a4ffb7e-f3c5-48ed-95e5-19549ffe8f60"
+    },
+    {
+      "display_order": 5,
+      "food_category": "vegetable",
+      "food_name": "Leafy greens",
+      "id": "ea838e3a-6423-4888-b309-7c21dfb93105"
+    },
+    {
+      "display_order": 6,
+      "food_category": "herb_spice",
+      "food_name": "Garlic",
+      "id": "6544011a-f734-4a01-ae1e-4dea77b115f4"
+    },
+    {
+      "display_order": 7,
+      "food_category": "oil_fat",
+      "food_name": "Olive Oil (extra virgin)",
+      "id": "39bbd3ea-7ad9-4523-8bf8-456c3c01035f"
+    },
+    {
+      "display_order": 8,
+      "food_category": "beverage",
+      "food_name": "Green Tea",
+      "id": "936691c4-88df-4c07-99a3-32b43d94847a"
+    },
+    {
+      "display_order": 54,
+      "food_category": "fruit",
+      "food_name": "Avocado",
+      "id": "3eff64fd-f7d3-4601-a583-452e3a4891c4"
+    },
+    {
+      "display_order": 55,
+      "food_category": "oil_fat",
+      "food_name": "Olive Oil",
+      "id": "78d04236-8cb2-4c19-9f38-0ace01455ad5"
+    },
+    {
+      "display_order": 56,
+      "food_category": "meat",
+      "food_name": "Grass-Fed Beef",
+      "id": "b34aef5b-2e11-4643-b8c3-1f652dc7f9bb"
+    },
+    {
+      "display_order": 57,
+      "food_category": "egg",
+      "food_name": "Eggs",
+      "id": "333d75f5-2e71-451f-af71-45f0f2c65a95"
+    },
+    {
+      "display_order": 60,
+      "food_category": "oil_fat",
+      "food_name": "Coconut Oil",
+      "id": "aa26ded6-62d4-4a8d-b5b4-4d830a7d3901"
+    }
+  ],
+  "apob": [
+    {
+      "display_order": 0,
+      "food_category": "grain",
+      "food_name": "Oats",
+      "id": "00cb002b-6ac7-4014-95c0-0ac55b02ee1e"
+    },
+    {
+      "display_order": 1,
+      "food_category": "legume",
+      "food_name": "Lentils",
+      "id": "a814c353-b26c-4d4c-aca6-6f78b764be21"
+    },
+    {
+      "display_order": 2,
+      "food_category": "oil_fat",
+      "food_name": "Olive oil (extra virgin)",
+      "id": "2be680af-68e2-4913-a57f-002cf8d9b357"
+    },
+    {
+      "display_order": 3,
+      "food_category": "fish",
+      "food_name": "Salmon",
+      "id": "c7adc6a0-91f7-4cd7-bb39-e1c49f2c0dcb"
+    },
+    {
+      "display_order": 4,
+      "food_category": "nut_seed",
+      "food_name": "Almonds",
+      "id": "07a8aa10-bf0a-4f24-80d2-3f749a813002"
+    },
+    {
+      "display_order": 5,
+      "food_category": "fruit",
+      "food_name": "Avocado",
+      "id": "dee8fa69-b6f0-4740-9512-7f434b33078a"
+    },
+    {
+      "display_order": 6,
+      "food_category": "vegetable",
+      "food_name": "Brussels sprouts",
+      "id": "2d09697a-4be2-4a94-b1fb-e4ba085545fa"
+    },
+    {
+      "display_order": 7,
+      "food_category": "beverage",
+      "food_name": "Green Tea",
+      "id": "84c3952b-2bc4-4b1a-a099-41c88354a026"
+    },
+    {
+      "display_order": 51,
+      "food_category": "fish",
+      "food_name": "Sardines",
+      "id": "9387e040-1e54-44c7-a28c-7026b0db1286"
+    },
+    {
+      "display_order": 52,
+      "food_category": "oil_fat",
+      "food_name": "Olive Oil",
+      "id": "fbfd21ff-d5ce-4fe0-87fa-3031685efc49"
+    },
+    {
+      "display_order": 53,
+      "food_category": "nut_seed",
+      "food_name": "Walnuts",
+      "id": "b7f2420c-2e40-4388-b6b7-3e3f5494602c"
+    }
+  ],
+  "hs_crp": [
+    {
+      "display_order": 0,
+      "food_category": "fish",
+      "food_name": "Salmon",
+      "id": "1254c4b1-b28a-4fc9-9ddd-abcf25b65208"
+    },
+    {
+      "display_order": 1,
+      "food_category": "herb_spice",
+      "food_name": "Turmeric",
+      "id": "9dbd5532-ca6f-41ee-8a49-d78b6ca48ca7"
+    },
+    {
+      "display_order": 2,
+      "food_category": "fruit",
+      "food_name": "Blueberries",
+      "id": "b98625c7-c5bb-4a90-b731-3e9ee2e68468"
+    },
+    {
+      "display_order": 3,
+      "food_category": "oil_fat",
+      "food_name": "Olive oil (extra virgin)",
+      "id": "556120e2-e73a-4833-bb00-f84458e2b816"
+    },
+    {
+      "display_order": 4,
+      "food_category": "nut_seed",
+      "food_name": "Walnuts",
+      "id": "a54d587e-47de-4f81-bba1-4ced25d43a2e"
+    },
+    {
+      "display_order": 5,
+      "food_category": "vegetable",
+      "food_name": "Broccoli",
+      "id": "05b1f8d9-59c4-430d-840b-95ef67c253e8"
+    },
+    {
+      "display_order": 6,
+      "food_category": "herb_spice",
+      "food_name": "Ginger",
+      "id": "9003e49d-242c-4b77-8dea-bcd4c63313cd"
+    },
+    {
+      "display_order": 7,
+      "food_category": "fruit",
+      "food_name": "Tart cherries",
+      "id": "abe324ef-efa3-475c-a2d1-0d2fc63d8f9e"
+    },
+    {
+      "display_order": 8,
+      "food_category": "beverage",
+      "food_name": "Green Tea",
+      "id": "b970f7c8-9829-4652-930c-393306127a30"
+    },
+    {
+      "display_order": 9,
+      "food_category": "beverage",
+      "food_name": "Bone Broth",
+      "id": "b0937d99-3ae5-4f04-acb6-444f0fdfbcdc"
+    },
+    {
+      "display_order": 10,
+      "food_category": "fermented",
+      "food_name": "Sauerkraut",
+      "id": "73bdb771-2c51-49f3-b71b-4c75db5c11c3"
+    },
+    {
+      "display_order": 11,
+      "food_category": "fermented",
+      "food_name": "Kimchi",
+      "id": "8a548e1c-bdc4-418c-af04-50385f3e1110"
+    },
+    {
+      "display_order": 51,
+      "food_category": "fish",
+      "food_name": "Sardines",
+      "id": "71e0700c-9925-4e41-97ff-baf0e8bc6956"
+    },
+    {
+      "display_order": 53,
+      "food_category": "oil_fat",
+      "food_name": "Olive Oil",
+      "id": "28e96306-e173-4397-ade8-09f1b7ee65c4"
+    }
+  ],
+  "hemoglobin": [
+    {
+      "display_order": 0,
+      "food_category": "organ_meat",
+      "food_name": "Beef liver",
+      "id": "b36dddfb-76ff-4147-ba05-9adfa23cc580"
+    },
+    {
+      "display_order": 1,
+      "food_category": "seafood",
+      "food_name": "Oysters",
+      "id": "eb73fa0f-6cae-40f1-aeec-e09c08014a95"
+    },
+    {
+      "display_order": 2,
+      "food_category": "vegetable",
+      "food_name": "Spinach",
+      "id": "76a310f1-29d3-42e4-b19c-b5ec3aa2d70d"
+    },
+    {
+      "display_order": 3,
+      "food_category": "legume",
+      "food_name": "Lentils",
+      "id": "3040cf12-063d-4236-92be-1413303624e7"
+    },
+    {
+      "display_order": 4,
+      "food_category": "meat",
+      "food_name": "Beef (grass-fed)",
+      "id": "2da61682-efb5-4414-adfc-9989dd199772"
+    },
+    {
+      "display_order": 5,
+      "food_category": "nut_seed",
+      "food_name": "Pumpkin seeds",
+      "id": "7bcd0952-c229-4192-a766-f6a17ba60b3e"
+    },
+    {
+      "display_order": 6,
+      "food_category": "vegetable",
+      "food_name": "Bell pepper (red)",
+      "id": "a6be0dd0-2e88-4324-a794-80a31c1fcd1a"
+    },
+    {
+      "display_order": 7,
+      "food_category": "poultry",
+      "food_name": "Turkey",
+      "id": "00837e36-2a84-447e-b544-93faa836f8b4"
+    },
+    {
+      "display_order": 8,
+      "food_category": "seafood",
+      "food_name": "Clams",
+      "id": "94996123-0489-4832-a68e-5cbfbba9eeb1"
+    },
+    {
+      "display_order": 9,
+      "food_category": "beverage",
+      "food_name": "Bone Broth",
+      "id": "2cc97e0e-b3d6-4886-9e02-11567352f92e"
+    },
+    {
+      "display_order": 50,
+      "food_category": "meat",
+      "food_name": "Grass-Fed Beef",
+      "id": "bd578bda-f24e-4476-bfd3-f9a354cd6260"
+    },
+    {
+      "display_order": 51,
+      "food_category": "organ_meat",
+      "food_name": "Liver",
+      "id": "88608537-6355-495c-a764-0e05190c62fd"
+    },
+    {
+      "display_order": 52,
+      "food_category": "meat",
+      "food_name": "Lamb",
+      "id": "8bc385b9-21dc-4641-9bb7-d2c7e220037e"
+    },
+    {
+      "display_order": 54,
+      "food_category": "egg",
+      "food_name": "Eggs",
+      "id": "9aa257e3-45a4-4b95-8f82-d34003db7fd4"
+    }
+  ],
+  "hematocrit": [
+    {
+      "display_order": 0,
+      "food_category": "organ_meat",
+      "food_name": "Beef liver",
+      "id": "27854c69-fca9-40be-b9b3-cb52850a9dd0"
+    },
+    {
+      "display_order": 1,
+      "food_category": "vegetable",
+      "food_name": "Spinach",
+      "id": "66e059a4-6544-405d-b0ab-12f272bfc4cb"
+    },
+    {
+      "display_order": 2,
+      "food_category": "fish",
+      "food_name": "Sardines",
+      "id": "aba2a48d-556c-4368-a8ae-241c6aadcb49"
+    },
+    {
+      "display_order": 3,
+      "food_category": "egg",
+      "food_name": "Eggs",
+      "id": "71e6eeee-2de0-48e4-96e6-c92dc5fe4143"
+    },
+    {
+      "display_order": 4,
+      "food_category": "legume",
+      "food_name": "Lentils",
+      "id": "987eb2f7-12c4-4059-9416-ba9db857374b"
+    },
+    {
+      "display_order": 5,
+      "food_category": "nut_seed",
+      "food_name": "Pumpkin seeds",
+      "id": "8b7c19a3-5773-4cb4-ab47-e66583769772"
+    },
+    {
+      "display_order": 6,
+      "food_category": "vegetable",
+      "food_name": "Beetroot",
+      "id": "12c17084-0096-40b6-ba30-63be97a819c9"
+    },
+    {
+      "display_order": 7,
+      "food_category": "beverage",
+      "food_name": "Bone Broth",
+      "id": "f8607519-ebe7-48e2-8ca8-330c4b39c943"
+    },
+    {
+      "display_order": 8,
+      "food_category": "organ_meat",
+      "food_name": "Kidney",
+      "id": "2e433f76-af73-47c1-a623-931abff74651"
+    },
+    {
+      "display_order": 50,
+      "food_category": "meat",
+      "food_name": "Grass-Fed Beef",
+      "id": "6892b6e0-96f2-4956-9f60-2a4ed1b7e223"
+    },
+    {
+      "display_order": 51,
+      "food_category": "organ_meat",
+      "food_name": "Liver",
+      "id": "c3cf890f-9819-487b-aca4-0afc02512c6d"
+    }
+  ],
+  "alt": [
+    {
+      "display_order": 0,
+      "food_category": "beverage",
+      "food_name": "Coffee (unsweetened)",
+      "id": "df5014d9-7bd2-4de8-b622-5d08fdcd9602"
+    },
+    {
+      "display_order": 1,
+      "food_category": "vegetable",
+      "food_name": "Broccoli",
+      "id": "1cf4790d-048c-4fef-a9a6-b73c377dc403"
+    },
+    {
+      "display_order": 2,
+      "food_category": "oil_fat",
+      "food_name": "Olive oil (extra virgin)",
+      "id": "580cbf7c-6edf-4d71-be24-8073f590b431"
+    },
+    {
+      "display_order": 3,
+      "food_category": "nut_seed",
+      "food_name": "Walnuts",
+      "id": "cd5742bd-c499-4891-a973-f8a22cf0fde9"
+    },
+    {
+      "display_order": 4,
+      "food_category": "beverage",
+      "food_name": "Green tea",
+      "id": "2a162e0d-f78f-4ebd-badd-7c622d8642ca"
+    },
+    {
+      "display_order": 5,
+      "food_category": "herb_spice",
+      "food_name": "Garlic",
+      "id": "f7521c21-a58d-4da2-8360-91f21e90bb43"
+    },
+    {
+      "display_order": 6,
+      "food_category": "fruit",
+      "food_name": "Blueberries",
+      "id": "59488ade-cdcc-4879-a657-6e6b299b4b0e"
+    },
+    {
+      "display_order": 7,
+      "food_category": "herb_spice",
+      "food_name": "Turmeric",
+      "id": "366aaeab-22cd-4d15-9e10-9a17999c5d3a"
+    },
+    {
+      "display_order": 8,
+      "food_category": "fermented",
+      "food_name": "Sauerkraut",
+      "id": "dfae2245-878f-488b-abfb-9d734be7077b"
+    },
+    {
+      "display_order": 50,
+      "food_category": "fish",
+      "food_name": "Salmon",
+      "id": "10c7b0e3-04eb-490a-9477-ec3409dcb370"
+    },
+    {
+      "display_order": 51,
+      "food_category": "egg",
+      "food_name": "Eggs",
+      "id": "121459b6-d9b1-4ec6-9de5-28391ac7a147"
+    },
+    {
+      "display_order": 52,
+      "food_category": "fruit",
+      "food_name": "Avocado",
+      "id": "98485b83-acf1-4897-abf4-5306d3a60054"
+    }
+  ],
+  "ggt": [
+    {
+      "display_order": 0,
+      "food_category": "beverage",
+      "food_name": "Coffee (unsweetened)",
+      "id": "274f5ac4-d588-41c0-90f4-320f1b338e4c"
+    },
+    {
+      "display_order": 1,
+      "food_category": "vegetable",
+      "food_name": "Cruciferous vegetables (broccoli, kale)",
+      "id": "aa8df1d8-2904-43b0-bb72-7e49890fa5b7"
+    },
+    {
+      "display_order": 2,
+      "food_category": "herb_spice",
+      "food_name": "Garlic",
+      "id": "c0037d07-7a75-4643-9048-08712f0e173d"
+    },
+    {
+      "display_order": 3,
+      "food_category": "fruit",
+      "food_name": "Avocado",
+      "id": "0e263ad5-dcc7-4476-9bb9-56e9294a3704"
+    },
+    {
+      "display_order": 4,
+      "food_category": "nut_seed",
+      "food_name": "Walnuts",
+      "id": "fd96ffff-0651-40c5-9d48-59bb8008904a"
+    },
+    {
+      "display_order": 5,
+      "food_category": "oil_fat",
+      "food_name": "Olive oil (extra virgin)",
+      "id": "574cc747-8262-4220-adc2-76690e025e7c"
+    },
+    {
+      "display_order": 6,
+      "food_category": "herb_spice",
+      "food_name": "Turmeric",
+      "id": "7d7b0892-b8ae-4ebf-8aed-787ee8ba9594"
+    },
+    {
+      "display_order": 7,
+      "food_category": "vegetable",
+      "food_name": "Artichoke",
+      "id": "a02ee6b9-c34b-4aca-bf87-d3aca6d32e1f"
+    },
+    {
+      "display_order": 8,
+      "food_category": "beverage",
+      "food_name": "Lemon Water",
+      "id": "cf83108f-7298-425a-8ae2-6a622143d570"
+    },
+    {
+      "display_order": 50,
+      "food_category": "fish",
+      "food_name": "Salmon",
+      "id": "52856408-98d5-4911-8017-ed47b8ffb941"
+    },
+    {
+      "display_order": 51,
+      "food_category": "egg",
+      "food_name": "Eggs",
+      "id": "6efca9bc-01e3-4753-b0f2-5ba3bcd333e1"
+    },
+    {
+      "display_order": 53,
+      "food_category": "vegetable",
+      "food_name": "Beets",
+      "id": "13115ed3-c1f6-4b29-bd5c-fdfa93778f87"
+    },
+    {
+      "display_order": 54,
+      "food_category": "vegetable",
+      "food_name": "Cruciferous Vegetables",
+      "id": "6b4db74d-951f-43e6-aaa4-dc04c57687dd"
+    }
+  ],
+  "egfr": [
+    {
+      "display_order": 0,
+      "food_category": "vegetable",
+      "food_name": "Cauliflower",
+      "id": "1fbf39b8-645d-4dda-abf9-ee6bcc5f6fd3"
+    },
+    {
+      "display_order": 1,
+      "food_category": "vegetable",
+      "food_name": "Cabbage",
+      "id": "d823550c-2c31-4774-82b5-41e14e0c37de"
+    },
+    {
+      "display_order": 2,
+      "food_category": "fruit",
+      "food_name": "Cranberries",
+      "id": "0252a454-1230-48b0-827a-8e3d50e8b3c6"
+    },
+    {
+      "display_order": 3,
+      "food_category": "egg",
+      "food_name": "Egg whites",
+      "id": "be78c116-8a7a-4e56-9fca-02facd7ff429"
+    },
+    {
+      "display_order": 4,
+      "food_category": "herb_spice",
+      "food_name": "Garlic",
+      "id": "9860901f-3038-4424-a846-e08187720f6d"
+    },
+    {
+      "display_order": 5,
+      "food_category": "oil_fat",
+      "food_name": "Olive oil (extra virgin)",
+      "id": "3184c231-fcab-44d5-ab75-b852be6ad6df"
+    },
+    {
+      "display_order": 6,
+      "food_category": "fruit",
+      "food_name": "Blueberries",
+      "id": "42bffd0e-08e0-4edd-a285-4a69b4997fbe"
+    },
+    {
+      "display_order": 7,
+      "food_category": "herb_spice",
+      "food_name": "Parsley",
+      "id": "53352942-e3c3-4c98-89fb-8cfc712ccdc8"
+    },
+    {
+      "display_order": 8,
+      "food_category": "beverage",
+      "food_name": "Lemon Water",
+      "id": "16300dc6-9599-49b9-8e34-1e2c3c69107c"
+    },
+    {
+      "display_order": 50,
+      "food_category": "fish",
+      "food_name": "Salmon",
+      "id": "7d0f4d1e-3e74-44f7-9420-6c3e4d89b03a"
+    },
+    {
+      "display_order": 52,
+      "food_category": "vegetable",
+      "food_name": "Red Bell Pepper",
+      "id": "85095939-af17-4a2e-97c9-e8e5c064147a"
+    },
+    {
+      "display_order": 53,
+      "food_category": "egg",
+      "food_name": "Eggs",
+      "id": "28d00ce4-02db-4a8a-a92e-e3b67d18d5a5"
+    },
+    {
+      "display_order": 54,
+      "food_category": "oil_fat",
+      "food_name": "Olive Oil",
+      "id": "7b55c9ee-c028-4712-98fb-2d22603ea5a9"
+    }
+  ],
+  "uric_acid": [
+    {
+      "display_order": 0,
+      "food_category": "fruit",
+      "food_name": "Tart cherries",
+      "id": "0ef02464-2867-4e7a-9c82-2f8cbf8b0450"
+    },
+    {
+      "display_order": 1,
+      "food_category": "vegetable",
+      "food_name": "Celery",
+      "id": "acf71a3c-877e-4707-aa9e-01b0ceb5635e"
+    },
+    {
+      "display_order": 2,
+      "food_category": "vegetable",
+      "food_name": "Cucumber",
+      "id": "4e4d984f-10fb-42c2-a772-c1429872eb82"
+    },
+    {
+      "display_order": 3,
+      "food_category": "dairy",
+      "food_name": "Low-fat dairy (milk, yoghurt)",
+      "id": "56b6bd22-eec3-4699-b7ba-fff9090c4563"
+    },
+    {
+      "display_order": 4,
+      "food_category": "egg",
+      "food_name": "Eggs",
+      "id": "7adbc8c9-2ccb-4b93-bb54-0ef1c9940310"
+    },
+    {
+      "display_order": 5,
+      "food_category": "beverage",
+      "food_name": "Coffee",
+      "id": "15d846bc-c204-453b-bb07-0b95fb8aa89c"
+    },
+    {
+      "display_order": 6,
+      "food_category": "legume",
+      "food_name": "Tofu",
+      "id": "eadd418b-57b3-4e91-bbb9-d6188baf0a31"
+    },
+    {
+      "display_order": 7,
+      "food_category": "beverage",
+      "food_name": "Lemon Water",
+      "id": "16c5b1b3-6443-43fa-a44a-1b5b950d11b6"
+    },
+    {
+      "display_order": 8,
+      "food_category": "herb_spice",
+      "food_name": "Parsley",
+      "id": "b9585ddf-42fb-4fda-abab-d82a7236a6ca"
+    },
+    {
+      "display_order": 9,
+      "food_category": "beverage",
+      "food_name": "Bone Broth",
+      "id": "abaef603-4b68-493c-aad7-cb9b6144d124"
+    },
+    {
+      "display_order": 50,
+      "food_category": "poultry",
+      "food_name": "Chicken Breast",
+      "id": "114ec5b9-9f16-4a76-9178-252b674f2da2"
+    },
+    {
+      "display_order": 52,
+      "food_category": "fish",
+      "food_name": "Salmon",
+      "id": "73c14564-beef-4cf6-b088-5abc8fc9e76b"
+    },
+    {
+      "display_order": 53,
+      "food_category": "fruit",
+      "food_name": "Cherries",
+      "id": "52a3ffdc-c1a1-4ab3-933b-27672677242d"
+    },
+    {
+      "display_order": 54,
+      "food_category": "fruit",
+      "food_name": "Lemon",
+      "id": "2ece3e4c-870e-4a8e-873e-75a34100d6df"
+    }
+  ]
+}

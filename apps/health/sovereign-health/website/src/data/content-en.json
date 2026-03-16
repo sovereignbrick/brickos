@@ -1,0 +1,1847 @@
+{
+  "locale": "en",
+  "fetchedAt": "2026-03-16T06:12:03.906Z",
+  "zones": [
+    {
+      "description": "Can you sustain energy throughout the day without crashes? This zone tracks your glucose, insulin, ketones, and thyroid function. These markers form the engine of your metabolic health. Fix this zone first, and the rest becomes easier.",
+      "display_order": 1,
+      "id": "1915e1a4-37f1-41fa-8b14-3773dee1b7d8",
+      "name": "Energy & Metabolic",
+      "short_description": "Glucose, insulin, ketones, and thyroid function",
+      "zone_color": "#FF9500",
+      "zone_icon": "⚡",
+      "zone_slug": "energy_metabolic"
+    },
+    {
+      "description": "Are your bones, muscles, and connective tissues strong? Calcium, magnesium, protein, and vitamin D build your structural scaffolding. This zone is about durability and physical resilience.",
+      "display_order": 2,
+      "id": "aa729ae2-0b66-47c4-b463-e17ecff7c2c7",
+      "name": "Structural",
+      "short_description": "Bones, muscles, and connective tissue strength",
+      "zone_color": "#2196F3",
+      "zone_icon": "💪",
+      "zone_slug": "structural"
+    },
+    {
+      "description": "How strong is your heart and circulation? This zone focuses on true cardiovascular risk through particle count (ApoB), blood pressure, and lipid ratios. Not just cholesterol numbers, but what actually predicts heart disease.",
+      "display_order": 3,
+      "id": "bce6b564-7b5c-4626-bd4b-b082da32a515",
+      "name": "Cardiovascular",
+      "short_description": "Heart health and circulation markers",
+      "zone_color": "#E91E63",
+      "zone_icon": "🫀",
+      "zone_slug": "cardiovascular"
+    },
+    {
+      "description": "Is your brain sharp, memory clear, and mood stable? B vitamins, magnesium, thyroid hormones, and sex hormones directly impact cognition, memory, and mood. This zone is prevention for cognitive decline.",
+      "display_order": 4,
+      "id": "a3cfce12-e5b9-4f5d-829d-780f289d54f9",
+      "name": "Cognitive",
+      "short_description": "Brain function, memory, and mood",
+      "zone_color": "#7C4DFF",
+      "zone_icon": "🧠",
+      "zone_slug": "cognitive"
+    },
+    {
+      "description": "Is your immune system balanced? Too much inflammation causes disease, too little immunity means infections. White blood cells, vitamin D, zinc, and selenium determine your immune resilience.",
+      "display_order": 5,
+      "id": "4519c5bb-6e83-40da-87d9-4ae448797fdb",
+      "name": "Immune",
+      "short_description": "Immune balance and inflammation",
+      "zone_color": "#009688",
+      "zone_icon": "🛡️",
+      "zone_slug": "immune"
+    },
+    {
+      "description": "Do you have enough micronutrients to run your cells optimally? Vitamins and minerals are cofactors for thousands of enzymes. Deficiencies cascade quietly into fatigue, poor immunity, and slow recovery.",
+      "display_order": 6,
+      "id": "36af9311-56d2-45e7-aa81-5dab73246dc3",
+      "name": "Nutritional",
+      "short_description": "Vitamins and mineral levels",
+      "zone_color": "#8BC34A",
+      "zone_icon": "🌱",
+      "zone_slug": "nutritional"
+    },
+    {
+      "description": "Are your hormones optimized for your age? Sex hormones, stress hormones, and reproductive markers orchestrate metabolism, mood, libido, and recovery. This zone is about thriving, not just surviving.",
+      "display_order": 7,
+      "id": "be490ac8-cbec-4473-9ec0-3042f09b2277",
+      "name": "Hormonal",
+      "short_description": "Sex hormones, stress hormones, and reproductive markers",
+      "zone_color": "#AB47BC",
+      "zone_icon": "🎯",
+      "zone_slug": "hormonal"
+    },
+    {
+      "description": "Can your body efficiently process and eliminate waste? Your liver and kidneys are the filtration system. ALT, GGT, creatinine, eGFR, and uric acid reveal how well your detox pathways work.",
+      "display_order": 8,
+      "id": "642beec8-0ff1-4a15-ad27-5155a8056a36",
+      "name": "Detoxification",
+      "short_description": "Liver and kidney filtration",
+      "zone_color": "#00BCD4",
+      "zone_icon": "🔄",
+      "zone_slug": "detoxification"
+    }
+  ],
+  "markers": [
+    {
+      "description": "Blood glucose is the sugar in your blood that your cells use for energy. Your body tightly regulates it with insulin. Fasting glucose is one of the best indicators of metabolic health.\n\nThis marker is affected by fasting. See the fasting protocol range below.",
+      "display_order": 1,
+      "id": "f305f49e-08c6-4bec-9bf6-c1a2634cc1c6",
+      "is_calculated": false,
+      "marker_slug": "glucose",
+      "name": "Glucose",
+      "tooltip": "Blood glucose (blood sugar) is the concentration of glucose circulating in your bloodstream, expressed in mmol/L or mg/dL. It is your body's primary fuel source and must be kept within a narrow range , too high damages blood vessels and nerves, too low starves the brain.",
+      "unit_canonical": "mmol/L",
+      "when_to_worry": "• Eat low-glycaemic-index carbohydrates and pair carbs with protein or fat to blunt spikes\n• Walk for 10–15 minutes after meals to accelerate glucose clearance into muscle\n• Prioritise 7–9 hours of sleep , even one night of poor sleep raises fasting glucose\n• Limit refined sugar, white bread, and sugary beverages\n• Resistance training increases GLUT4 transporter expression, improving insulin sensitivity\n• Manage chronic stress , cortisol raises hepatic glucose output\n• Stay well-hydrated; dehydration concentrates blood glucose",
+      "why_it_matters": "Fasting glucose above 7.0 mmol/L (126 mg/dL) on two occasions is diagnostic for type 2 diabetes. Chronically elevated glucose glycates proteins throughout the body, accelerating atherosclerosis, neuropathy, retinopathy, and kidney disease. Even modestly elevated fasting glucose (5.6–6.9 mmol/L) , the pre-diabetic range , is associated with significantly elevated cardiovascular risk.",
+      "zone_slug": "energy_metabolic"
+    },
+    {
+      "description": "Beta-hydroxybutyrate (BHB) is a ketone body your liver produces when burning fat for fuel. Higher levels indicate your body is in ketosis, using fat instead of glucose for energy.\n\nThis marker is affected by fasting. See the fasting protocol range below.",
+      "display_order": 2,
+      "id": "2c182c98-5b29-482d-94a5-7fbfcae76732",
+      "is_calculated": false,
+      "marker_slug": "ketones",
+      "name": "Ketones",
+      "tooltip": "Ketones (beta-hydroxybutyrate, acetoacetate, acetone) are water-soluble molecules produced by the liver when carbohydrate availability is low and fatty acid oxidation is high. Blood ketones are the most accurate measure; breath and urine ketones are proxies. They serve as a premium alternative fuel for the brain, heart, and skeletal muscle.",
+      "unit_canonical": "mmol/L",
+      "when_to_worry": "• Keep net carbohydrates below 20–50 g per day\n• Eat adequate protein (1.2–1.8 g/kg body weight) , excess protein can gluconeogenically suppress ketosis\n• Use coconut oil or MCT oil to rapidly boost ketone levels\n• Incorporate intermittent fasting or time-restricted eating (16:8 or longer)\n• Exercise in a fasted state to deplete glycogen and accelerate ketone production\n• Stay well-hydrated and replenish electrolytes (sodium, potassium, magnesium)",
+      "why_it_matters": "Nutritional ketosis (0.5–3.0 mmol/L) is a physiological state associated with improved insulin sensitivity, reduced inflammation, and cognitive benefits in some populations. Diabetic ketoacidosis (DKA) is a dangerous pathological state where ketones exceed 3 mmol/L alongside high blood glucose and low insulin , distinct from nutritional ketosis. Therapeutic ketosis is under investigation for epilepsy, Alzheimer''s disease, and certain cancers.",
+      "zone_slug": "energy_metabolic"
+    },
+    {
+      "description": "Total cholesterol is the sum of all cholesterol in your blood, including HDL, LDL, and VLDL fractions. By itself it is a poor predictor of cardiovascular risk.",
+      "display_order": 3,
+      "id": "78c79355-ebfd-481f-becf-cfc80245db33",
+      "is_calculated": false,
+      "marker_slug": "total_cholesterol",
+      "name": "Total Cholesterol",
+      "tooltip": "Total cholesterol is the sum of all cholesterol-carrying particles in your blood: LDL, HDL, VLDL, and IDL. It is measured in mmol/L (or mg/dL) and is a component of standard lipid panels. While useful for screening, total cholesterol alone is a weak cardiovascular risk predictor , its context (HDL ratio, LDL particle size, ApoB) matters far more.",
+      "unit_canonical": "mmol/L",
+      "when_to_worry": "• Increase soluble fibre intake (oats, psyllium, legumes, vegetables)\n• Replace saturated fat partially with monounsaturated fat (olive oil, avocado, nuts)\n• Exercise aerobically 150+ minutes per week , raises HDL and lowers triglycerides\n• Avoid trans fats entirely (partially hydrogenated oils)\n• Maintain a healthy weight , excess visceral fat drives unfavourable lipid patterns\n• Limit refined carbohydrates that elevate triglycerides and lower HDL\n• Consider plant sterols/stanols (1.5–3 g daily) as an adjunct",
+      "why_it_matters": "Total cholesterol above 5.2 mmol/L (200 mg/dL) is considered borderline high, and above 6.2 mmol/L (240 mg/dL) is high. However, research increasingly shows that total cholesterol:HDL ratio (ideally below 4) or ApoB are stronger cardiovascular risk predictors. Some individuals on low-carbohydrate diets have elevated total cholesterol driven by large, buoyant LDL particles , a pattern that may not carry the same risk as small, dense LDL.",
+      "zone_slug": "cardiovascular"
+    },
+    {
+      "description": "Uric acid is a waste product from breaking down purines found in certain foods and your own cells. High levels can cause gout and kidney stones, and may signal metabolic stress.",
+      "display_order": 4,
+      "id": "fdcb8851-99ef-4382-9ae8-7c0406f6bd0e",
+      "is_calculated": false,
+      "marker_slug": "uric_acid",
+      "name": "Uric Acid",
+      "tooltip": "Uric acid is the final metabolic product of purine catabolism in humans. Unlike most mammals, humans lack uricase (the enzyme that breaks down uric acid further), so it accumulates in the blood. It is filtered by the kidneys and excreted in urine. Elevated serum uric acid (hyperuricaemia) is associated with gout, kidney stones, hypertension, and metabolic syndrome.",
+      "unit_canonical": "µmol/L",
+      "when_to_worry": "• Eliminate sugary drinks, fruit juice, and foods with added fructose or high-fructose corn syrup\n• Limit or avoid alcohol, especially beer (high in purines and inhibits renal urate excretion)\n• Stay well-hydrated (2–3 L water daily) to support renal urate excretion\n• Limit very high-purine foods (organ meats, anchovies) if already hyperuricaemic\n• Eat cherries or tart cherry extract , clinical trials show reductions in gout attack frequency\n• Maintain a healthy weight , obesity reduces renal urate clearance\n• Vitamin C supplementation (500–1500 mg) modestly lowers serum uric acid",
+      "why_it_matters": "Normal serum uric acid is 200–430 µmol/L (3.4–7.2 mg/dL); above 360 µmol/L (6 mg/dL) crystals begin to form in joints, with gout attacks typically triggered above 420 µmol/L (7 mg/dL). Hyperuricaemia is also associated with hypertension (uric acid inhibits nitric oxide production), non-alcoholic fatty liver disease, insulin resistance, and chronic kidney disease.",
+      "zone_slug": "detoxification"
+    },
+    {
+      "description": "Hemoglobin is the protein in red blood cells that carries oxygen from your lungs to every tissue in your body. Low hemoglobin means less oxygen delivery, causing fatigue and weakness.",
+      "display_order": 5,
+      "id": "a585be88-0568-4d63-86b8-0d34edf5df71",
+      "is_calculated": false,
+      "marker_slug": "hemoglobin",
+      "name": "Hemoglobin",
+      "tooltip": "Haemoglobin (Hb) is the iron-containing protein inside red blood cells that binds and transports oxygen from the lungs to every cell in the body, and carries carbon dioxide back for exhalation. It is measured in g/dL or g/L and is a core component of the full blood count. Low haemoglobin defines anaemia; elevated levels can indicate dehydration or polycythaemia.",
+      "unit_canonical": "mmol/L",
+      "when_to_worry": "• Eat iron-rich foods: red meat, liver, oysters, dark leafy greens, legumes\n• Pair plant-based iron sources with vitamin C (lemon juice, capsicum) to enhance absorption\n• Avoid consuming tea or coffee with iron-rich meals , tannins inhibit iron absorption\n• Ensure adequate vitamin B12 (meat, fish, eggs, dairy or supplementation for vegans)\n• Ensure adequate folate (leafy greens, legumes, fortified foods)\n• Stay well-hydrated to avoid haemoconcentration falsely elevating readings\n• If anaemia is confirmed, identify the underlying cause before supplementing",
+      "why_it_matters": "Normal haemoglobin ranges are 130–175 g/L in men and 120–160 g/L in women. Anaemia (low Hb) causes fatigue, impaired cognition, reduced exercise capacity, and increased cardiovascular workload. Iron-deficiency anaemia is the most common type globally; B12 and folate deficiency cause macrocytic anaemia. Elevated Hb can indicate dehydration, sleep apnoea-driven polycythaemia, or smoking-related erythrocytosis.",
+      "zone_slug": "structural"
+    },
+    {
+      "description": "Hematocrit is the percentage of your blood volume made up of red blood cells. It reflects your blood's oxygen-carrying capacity and hydration status.",
+      "display_order": 6,
+      "id": "cf10312c-7da8-4481-96ef-c2821648f0e9",
+      "is_calculated": false,
+      "marker_slug": "hematocrit",
+      "name": "Hematocrit",
+      "tooltip": "Haematocrit (HCT) is the percentage of total blood volume occupied by red blood cells. It provides a rapid estimate of red cell mass and oxygen-carrying capacity. Normal ranges are approximately 40–52% in men and 36–48% in women. Haematocrit is closely related to haemoglobin , HCT in % is roughly 3 times the Hb in g/dL.",
+      "unit_canonical": "%",
+      "when_to_worry": "• Maintain iron, B12, and folate status to support adequate red cell production\n• Stay well-hydrated , dehydration concentrates blood and raises haematocrit artificially\n• Treat sleep apnoea if present , chronic hypoxia drives compensatory erythrocytosis\n• Avoid smoking , carbon monoxide binding reduces oxygen delivery and stimulates erythropoiesis\n• Exercise regularly to optimise red cell health and turnover\n• If haematocrit is consistently elevated, investigate for polycythaemia vera or secondary causes",
+      "why_it_matters": "Low haematocrit indicates anaemia and reduced oxygen delivery to tissues. Elevated haematocrit (above 52% in men, 48% in women) can indicate polycythaemia vera, dehydration, sleep apnoea, or EPO doping in athletes. Very high haematocrit increases blood viscosity, raising thrombosis and stroke risk. Altitude acclimatisation physiologically raises haematocrit as a compensatory response to lower oxygen availability.",
+      "zone_slug": "structural"
+    },
+    {
+      "description": "Systolic blood pressure is the top number in a blood pressure reading. It measures the pressure in your arteries when your heart beats and pushes blood out.",
+      "display_order": 7,
+      "id": "10903938-d648-4c77-a90f-24f028e9fac0",
+      "is_calculated": false,
+      "marker_slug": "bp_systolic",
+      "name": "BP Systolic",
+      "tooltip": "Systolic blood pressure is the top number in a blood pressure reading. It measures the pressure in your arteries when your heart beats and pushes blood out.",
+      "unit_canonical": "mmHg",
+      "when_to_worry": null,
+      "why_it_matters": null,
+      "zone_slug": "cardiovascular"
+    },
+    {
+      "description": "Diastolic blood pressure is the bottom number in a blood pressure reading. It measures the pressure in your arteries between heartbeats, when your heart is resting and refilling.",
+      "display_order": 8,
+      "id": "54b1ae90-7a6c-4f1d-a799-cd18ffc4d307",
+      "is_calculated": false,
+      "marker_slug": "bp_diastolic",
+      "name": "BP Diastolic",
+      "tooltip": "Diastolic blood pressure is the bottom number in a blood pressure reading. It measures the pressure in your arteries between heartbeats, when your heart is resting and refilling.",
+      "unit_canonical": "mmHg",
+      "when_to_worry": null,
+      "why_it_matters": null,
+      "zone_slug": "cardiovascular"
+    },
+    {
+      "description": "Heart rate is the number of times your heart beats per minute at rest. A lower resting heart rate generally indicates better cardiovascular fitness.",
+      "display_order": 9,
+      "id": "60486237-fab8-4ec9-869b-80b8fa30b9c4",
+      "is_calculated": false,
+      "marker_slug": "heart_rate",
+      "name": "Heart Rate",
+      "tooltip": "Heart rate is the number of times your heart beats per minute at rest. A lower resting heart rate generally indicates better cardiovascular fitness.",
+      "unit_canonical": "bpm",
+      "when_to_worry": null,
+      "why_it_matters": null,
+      "zone_slug": "cardiovascular"
+    },
+    {
+      "description": "Body weight is your total mass including muscle, fat, bone, water, and organs. While useful for tracking trends, it does not distinguish between lean mass and body fat.",
+      "display_order": 10,
+      "id": "2a5d7712-a8ee-4041-a357-052dbc69413c",
+      "is_calculated": false,
+      "marker_slug": "weight",
+      "name": "Weight",
+      "tooltip": "Body weight is your total mass including muscle, fat, bone, water, and organs. While useful for tracking trends, it does not distinguish between lean mass and body fat.",
+      "unit_canonical": "kg",
+      "when_to_worry": null,
+      "why_it_matters": null,
+      "zone_slug": "structural"
+    },
+    {
+      "description": "Waist circumference measures the distance around your midsection at the navel. It is one of the best simple indicators of visceral (belly) fat, which is strongly linked to metabolic disease risk.",
+      "display_order": 11,
+      "id": "9d7d9d18-1fea-411b-a32e-b60696025bb4",
+      "is_calculated": false,
+      "marker_slug": "waist_circumference",
+      "name": "Waist Circumference",
+      "tooltip": "Waist circumference measures the distance around your midsection at the navel. It is one of the best simple indicators of visceral (belly) fat, which is strongly linked to metabolic disease risk.",
+      "unit_canonical": "cm",
+      "when_to_worry": null,
+      "why_it_matters": null,
+      "zone_slug": "structural"
+    },
+    {
+      "description": "Fasting insulin measures how much insulin your pancreas produces when you have not eaten. High fasting insulin is one of the earliest signs of insulin resistance, often appearing years before blood sugar rises.",
+      "display_order": 12,
+      "id": "e5e8fa59-b3f9-4e26-a11b-2ceb7583cc93",
+      "is_calculated": false,
+      "marker_slug": "insulin",
+      "name": "Insulin (Fasting)",
+      "tooltip": "Insulin is a peptide hormone secreted by beta cells of the pancreatic islets of Langerhans in response to rising blood glucose. It facilitates glucose uptake into cells, promotes glycogen synthesis, inhibits fat breakdown, and stimulates protein synthesis. Fasting insulin is one of the earliest markers of insulin resistance.",
+      "unit_canonical": "µIU/mL",
+      "when_to_worry": "• Adopt a lower-carbohydrate dietary pattern to reduce insulin secretion demand\n• Practise time-restricted eating (16:8 or longer) to allow insulin to fall between meals\n• Engage in resistance training 2–3× per week to increase muscle glucose disposal\n• Prioritise sleep quality , sleep deprivation raises insulin resistance within days\n• Lose excess visceral fat , abdominal fat is the strongest driver of insulin resistance\n• Reduce fructose intake (added sugars, fruit juice) , fructose drives hepatic lipogenesis and resistance\n• Avoid frequent snacking, which keeps insulin chronically elevated",
+      "why_it_matters": "Elevated fasting insulin (hyperinsulinaemia) is a hallmark of insulin resistance and is associated with obesity, PCOS, hypertension, dyslipidaemia, and non-alcoholic fatty liver disease. Optimal fasting insulin is generally considered below 8 µIU/mL; values above 15–20 µIU/mL are strongly suggestive of significant insulin resistance. HOMA-IR (derived from fasting glucose and insulin) quantifies resistance non-invasively.",
+      "zone_slug": "energy_metabolic"
+    },
+    {
+      "description": "HbA1c (glycated hemoglobin) reflects your average blood sugar over the past 2-3 months. It shows what percentage of hemoglobin in your red blood cells has glucose attached to it.",
+      "display_order": 13,
+      "id": "c080b608-fbaf-4e71-b67a-1de348537e5c",
+      "is_calculated": false,
+      "marker_slug": "hba1c",
+      "name": "HbA1c",
+      "tooltip": "Haemoglobin A1c (HbA1c) reflects average blood glucose over the preceding 2–3 months by measuring the percentage of haemoglobin that has been glycated (glucose-bound). It is the gold standard for diagnosing and monitoring diabetes, and does not require fasting.",
+      "unit_canonical": "%",
+      "when_to_worry": "• Maintain consistent low-glycaemic eating patterns , HbA1c reflects cumulative habits, not single meals\n• Exercise regularly, especially aerobic and resistance training combined\n• Monitor fasting glucose regularly to catch upward trends early\n• Prioritise 7–9 hours of sleep per night , sleep debt raises average glucose\n• Reduce stress chronically, not just acutely , cortisol raises baseline glucose\n• Address iron deficiency or haemolytic conditions that can artificially skew the reading\n• Work with your doctor on medication optimisation if lifestyle changes are insufficient",
+      "why_it_matters": "An HbA1c below 5.7% is considered normal; 5.7–6.4% indicates pre-diabetes; 6.5% or above on two occasions confirms diabetes. Each 1% reduction in HbA1c in diabetic patients reduces microvascular complications by roughly 37% and myocardial infarction risk by 14%. Certain conditions (haemolytic anaemia, sickle cell trait, iron deficiency) can falsely alter HbA1c readings.",
+      "zone_slug": "energy_metabolic"
+    },
+    {
+      "description": "Thyroid-stimulating hormone (TSH) tells your thyroid gland how much thyroid hormone to produce. High TSH means your thyroid is underactive; low TSH means it is overactive.",
+      "display_order": 14,
+      "id": "4d1ba2ce-b96f-43fb-9aa8-971fefa04259",
+      "is_calculated": false,
+      "marker_slug": "tsh",
+      "name": "TSH",
+      "tooltip": "Thyroid-stimulating hormone (TSH) tells your thyroid gland how much thyroid hormone to produce. High TSH means your thyroid is underactive; low TSH means it is overactive.",
+      "unit_canonical": "mIU/L",
+      "when_to_worry": null,
+      "why_it_matters": null,
+      "zone_slug": "energy_metabolic"
+    },
+    {
+      "description": "Free T4 (thyroxine) is the main hormone your thyroid releases into your blood. Your body converts T4 into the more active T3 form in your tissues.",
+      "display_order": 15,
+      "id": "d6cafc47-2c43-4567-92c1-cbe0daf4506b",
+      "is_calculated": false,
+      "marker_slug": "ft4",
+      "name": "Free T4",
+      "tooltip": "Free T4 (thyroxine) is the main hormone your thyroid releases into your blood. Your body converts T4 into the more active T3 form in your tissues.",
+      "unit_canonical": "pmol/L",
+      "when_to_worry": null,
+      "why_it_matters": null,
+      "zone_slug": "energy_metabolic"
+    },
+    {
+      "description": "Free T3 (triiodothyronine) is the most active thyroid hormone. It directly controls your metabolic rate, body temperature, heart rate, and energy production.",
+      "display_order": 16,
+      "id": "d29137cf-1b2b-4527-bb19-9e8a4ec815ea",
+      "is_calculated": false,
+      "marker_slug": "ft3",
+      "name": "Free T3",
+      "tooltip": "Free T3 (triiodothyronine) is the most active thyroid hormone. It directly controls your metabolic rate, body temperature, heart rate, and energy production.",
+      "unit_canonical": "pmol/L",
+      "when_to_worry": null,
+      "why_it_matters": null,
+      "zone_slug": "energy_metabolic"
+    },
+    {
+      "description": "LDL cholesterol delivers cholesterol to your cells and artery walls. When LDL particles are elevated, especially small dense ones, they contribute to plaque buildup in arteries.",
+      "display_order": 17,
+      "id": "8408696d-426b-47d8-a35b-1ccdf77fe030",
+      "is_calculated": false,
+      "marker_slug": "ldl_c",
+      "name": "LDL Cholesterol",
+      "tooltip": "Low-density lipoprotein cholesterol (LDL-C) is the cholesterol carried within LDL particles, which transport fats from the liver to peripheral tissues. It is commonly called \"bad cholesterol\" because elevated levels are strongly associated with atherosclerotic cardiovascular disease. LDL-C is calculated or directly measured in a standard lipid panel.",
+      "unit_canonical": "mmol/L",
+      "when_to_worry": "• Increase dietary soluble fibre (oats, psyllium, legumes, apples)\n• Replace saturated fats with olive oil, avocado, and oily fish\n• Avoid trans fats completely , they raise LDL and lower HDL simultaneously\n• Exercise regularly , aerobic exercise modestly lowers LDL\n• Achieve and maintain a healthy body weight\n• If genetically elevated (familial hypercholesterolaemia), pharmacotherapy is often essential\n• Consider plant sterols/stanols (1.5–3 g/day with meals)",
+      "why_it_matters": "Current guidelines consider LDL-C above 3.4 mmol/L (130 mg/dL) borderline high, and above 4.1 mmol/L (160 mg/dL) high. In individuals with established cardiovascular disease or diabetes, targets are typically below 1.8 mmol/L (70 mg/dL). Small, dense LDL particles are more atherogenic than large, buoyant ones , a distinction LDL-C alone does not capture.",
+      "zone_slug": "cardiovascular"
+    },
+    {
+      "description": "HDL cholesterol carries excess cholesterol from your arteries back to your liver for recycling. Higher HDL is generally protective against heart disease.",
+      "display_order": 18,
+      "id": "3962a3fa-c3a3-4b1f-a955-33423e1b7f29",
+      "is_calculated": false,
+      "marker_slug": "hdl_c",
+      "name": "HDL Cholesterol",
+      "tooltip": "High-density lipoprotein cholesterol (HDL-C) is the cholesterol carried by HDL particles, which perform reverse cholesterol transport , collecting cholesterol from peripheral tissues and artery walls and returning it to the liver for recycling or excretion. Higher HDL is generally associated with lower cardiovascular risk.",
+      "unit_canonical": "mmol/L",
+      "when_to_worry": "• Exercise aerobically for at least 150 minutes per week , the most effective natural HDL raiser\n• Eat monounsaturated fats (olive oil, avocado, macadamia nuts)\n• Include oily fish 2–3x per week for EPA/DHA\n• Quit smoking , smoking actively lowers HDL-C\n• Lose excess body fat , visceral adiposity suppresses HDL\n• Avoid refined carbohydrates and sugar, which lower HDL\n• Maintain low triglycerides , high triglycerides and low HDL commonly co-occur",
+      "why_it_matters": "HDL-C below 1.0 mmol/L (40 mg/dL) in men or 1.2 mmol/L (50 mg/dL) in women is a cardiovascular risk factor and a component of metabolic syndrome criteria. Optimal HDL is generally above 1.5 mmol/L (60 mg/dL). Clinical trials of HDL-raising drugs (niacin, CETP inhibitors) have largely failed to reduce cardiovascular events, reinforcing that function matters more than the number.",
+      "zone_slug": "cardiovascular"
+    },
+    {
+      "description": "Triglycerides are fats in your blood that your body uses for energy storage. Elevated triglycerides, especially when combined with low HDL, are a strong signal of insulin resistance.",
+      "display_order": 19,
+      "id": "4d34fde6-b0a8-4a48-b312-01a28f3859e4",
+      "is_calculated": false,
+      "marker_slug": "triglycerides",
+      "name": "Triglycerides",
+      "tooltip": "Triglycerides are the most common form of fat in your body, consisting of a glycerol backbone esterified with three fatty acid chains. In the blood they are transported within VLDL and chylomicron particles. Fasting triglycerides reflect both dietary fat intake and the liver's conversion of excess carbohydrates into fat via de novo lipogenesis.",
+      "unit_canonical": "mmol/L",
+      "when_to_worry": "• Eliminate sugary drinks, fruit juice, and foods with added fructose\n• Reduce refined carbohydrates , bread, pasta, white rice, pastries\n• Limit alcohol, which directly stimulates hepatic triglyceride synthesis\n• Eat oily fish (salmon, mackerel, sardines) 2–3x per week\n• Exercise regularly , aerobic exercise is particularly effective\n• Lose excess body fat, especially visceral fat\n• Consider prescription omega-3 (icosapent ethyl) for severe hypertriglyceridaemia",
+      "why_it_matters": "Optimal fasting triglycerides are below 1.7 mmol/L (150 mg/dL); 1.7–5.6 mmol/L is borderline to high; above 5.6 mmol/L (500 mg/dL) carries acute pancreatitis risk. Elevated triglycerides are a core component of metabolic syndrome and correlate strongly with insulin resistance, visceral adiposity, and non-alcoholic fatty liver disease.",
+      "zone_slug": "cardiovascular"
+    },
+    {
+      "description": "Apolipoprotein B (ApoB) counts the number of potentially harmful cholesterol particles in your blood. Each LDL, VLDL, and Lp(a) particle carries exactly one ApoB molecule, making it the best single marker for cardiovascular risk.",
+      "display_order": 20,
+      "id": "b035c116-833c-4c15-bf63-95836cbf85a3",
+      "is_calculated": false,
+      "marker_slug": "apob",
+      "name": "ApoB",
+      "tooltip": "Apolipoprotein B (ApoB) is the primary structural protein of atherogenic lipoproteins , LDL, VLDL, IDL, and Lp(a). Each of these particles contains exactly one ApoB molecule, so ApoB directly counts the total number of atherogenic particles circulating in your blood. It is considered by many lipidologists to be the single best lipid marker for cardiovascular risk.",
+      "unit_canonical": "g/L",
+      "when_to_worry": "• Focus on lowering LDL particle number, not just LDL cholesterol concentration\n• Increase soluble fibre (psyllium, oats, legumes) to reduce particle count\n• Replace saturated and trans fats with mono- and polyunsaturated fats\n• Manage triglycerides , high VLDL raises total ApoB particle burden\n• Lose excess visceral fat , reduces VLDL secretion from the liver\n• If indicated, statins are highly effective at reducing ApoB\n• Test ApoB rather than relying solely on LDL-C for risk assessment",
+      "why_it_matters": "Optimal ApoB is below 0.7 g/L for very high cardiovascular risk individuals (established disease or diabetes with organ damage) and below 1.0 g/L for general primary prevention. Because each atherogenic particle carries exactly one ApoB, the test is unaffected by carbohydrate intake or triglyceride levels that can distort calculated LDL-C.",
+      "zone_slug": "cardiovascular"
+    },
+    {
+      "description": "Lipoprotein(a) is a genetically determined cholesterol particle similar to LDL but with an extra protein attached. Elevated Lp(a) significantly increases cardiovascular and stroke risk regardless of other lipid levels.",
+      "display_order": 21,
+      "id": "177465c8-e39c-435a-8965-ed6c2a3b371b",
+      "is_calculated": false,
+      "marker_slug": "lpa",
+      "name": "Lp(a)",
+      "tooltip": "Lipoprotein(a) is a genetically determined cholesterol particle similar to LDL but with an extra protein attached. Elevated Lp(a) significantly increases cardiovascular and stroke risk regardless of o",
+      "unit_canonical": "nmol/L",
+      "when_to_worry": null,
+      "why_it_matters": null,
+      "zone_slug": "cardiovascular"
+    },
+    {
+      "description": "High-sensitivity CRP measures low-level inflammation throughout your body. Chronic elevation is linked to increased cardiovascular disease risk, even when cholesterol is normal.",
+      "display_order": 22,
+      "id": "0968f564-001f-4fd9-9ea9-f2b76ed1c08d",
+      "is_calculated": false,
+      "marker_slug": "hs_crp",
+      "name": "hs-CRP",
+      "tooltip": "High-sensitivity C-reactive protein (hs-CRP) is an acute-phase inflammatory protein produced by the liver in response to cytokines, particularly IL-6. The high-sensitivity assay detects very low levels (below 3 mg/L) that the standard CRP test misses, making it useful for cardiovascular risk stratification in otherwise healthy individuals.",
+      "unit_canonical": "mg/L",
+      "when_to_worry": "• Follow a Mediterranean-style diet rich in vegetables, olive oil, oily fish, and legumes\n• Achieve and maintain a healthy body weight , adipose tissue secretes pro-inflammatory cytokines\n• Exercise regularly: both aerobic and resistance training reduce hs-CRP\n• Prioritise 7–9 hours of quality sleep , sleep deprivation acutely raises CRP\n• Quit smoking , a major chronic inflammatory stimulus\n• Manage gum disease (periodontitis) , a significant but underappreciated hs-CRP driver\n• Limit alcohol to moderate intake or avoid entirely\n• Address gut dysbiosis , intestinal permeability drives systemic inflammation",
+      "why_it_matters": "hs-CRP below 1 mg/L indicates low cardiovascular risk; 1–3 mg/L is intermediate; above 3 mg/L is high risk (when acute illness or injury is excluded). Values above 10 mg/L typically indicate acute infection, injury, or autoimmune disease. Elevated hs-CRP also predicts future diabetes, and high post-MI levels predict recurrence.",
+      "zone_slug": "cardiovascular"
+    },
+    {
+      "description": "Non-HDL cholesterol includes all cholesterol-carrying particles except HDL. It captures LDL plus VLDL and remnant particles, making it a better risk marker than LDL alone.",
+      "display_order": 23,
+      "id": "1207701b-f9e9-4423-ac60-0a3044d69c35",
+      "is_calculated": false,
+      "marker_slug": "non_hdl_c",
+      "name": "Non-HDL Cholesterol",
+      "tooltip": "Non-HDL cholesterol includes all cholesterol-carrying particles except HDL. It captures LDL plus VLDL and remnant particles, making it a better risk marker than LDL alone.",
+      "unit_canonical": "mmol/L",
+      "when_to_worry": null,
+      "why_it_matters": null,
+      "zone_slug": "cardiovascular"
+    },
+    {
+      "description": "Albumin is the most abundant protein in your blood, made by your liver. It maintains fluid balance, transports hormones and nutrients, and reflects overall nutritional status and liver function.",
+      "display_order": 24,
+      "id": "6b96a939-8767-49b3-9764-4d05d3114d8e",
+      "is_calculated": false,
+      "marker_slug": "albumin",
+      "name": "Albumin",
+      "tooltip": "Albumin is the most abundant protein in your blood, made by your liver. It maintains fluid balance, transports hormones and nutrients, and reflects overall nutritional status and liver function.",
+      "unit_canonical": "g/L",
+      "when_to_worry": null,
+      "why_it_matters": null,
+      "zone_slug": "structural"
+    },
+    {
+      "description": "Total protein measures albumin plus globulins in your blood. It reflects your nutritional status, immune function, and liver and kidney health.",
+      "display_order": 25,
+      "id": "cb04eb37-141a-4b7d-865c-90d594e50aff",
+      "is_calculated": false,
+      "marker_slug": "total_protein",
+      "name": "Total Protein",
+      "tooltip": "Total protein measures albumin plus globulins in your blood. It reflects your nutritional status, immune function, and liver and kidney health.",
+      "unit_canonical": "g/L",
+      "when_to_worry": null,
+      "why_it_matters": null,
+      "zone_slug": "structural"
+    },
+    {
+      "description": "Calcium is the most abundant mineral in your body, critical for strong bones, muscle contraction, nerve signaling, and blood clotting. Most calcium is stored in your bones and teeth.",
+      "display_order": 26,
+      "id": "6afc7948-c121-49c1-8242-cd9c38e32b09",
+      "is_calculated": false,
+      "marker_slug": "calcium",
+      "name": "Calcium",
+      "tooltip": "Calcium is the most abundant mineral in your body, critical for strong bones, muscle contraction, nerve signaling, and blood clotting. Most calcium is stored in your bones and teeth.",
+      "unit_canonical": "mmol/L",
+      "when_to_worry": null,
+      "why_it_matters": null,
+      "zone_slug": "structural"
+    },
+    {
+      "description": "Magnesium is involved in over 300 enzyme reactions including energy production, muscle function, and nerve signaling. It is one of the most common deficiencies and is hard to detect with blood tests alone.",
+      "display_order": 27,
+      "id": "5334f795-47e3-428a-992d-d7c09f0252f1",
+      "is_calculated": false,
+      "marker_slug": "magnesium",
+      "name": "Magnesium",
+      "tooltip": "Magnesium is involved in over 300 enzyme reactions including energy production, muscle function, and nerve signaling. It is one of the most common deficiencies and is hard to detect with blood tests a",
+      "unit_canonical": "mmol/L",
+      "when_to_worry": null,
+      "why_it_matters": null,
+      "zone_slug": "structural"
+    },
+    {
+      "description": "Potassium is an electrolyte that regulates fluid balance, nerve signals, and muscle contractions including your heartbeat. Both high and low levels can cause dangerous heart rhythm problems.",
+      "display_order": 28,
+      "id": "13d1251e-326f-4f42-b964-c3d05b62a066",
+      "is_calculated": false,
+      "marker_slug": "potassium",
+      "name": "Potassium",
+      "tooltip": "Potassium is an electrolyte that regulates fluid balance, nerve signals, and muscle contractions including your heartbeat. Both high and low levels can cause dangerous heart rhythm problems.",
+      "unit_canonical": "mmol/L",
+      "when_to_worry": null,
+      "why_it_matters": null,
+      "zone_slug": "structural"
+    },
+    {
+      "description": "Phosphate works with calcium to build strong bones and teeth. It is also part of DNA, cell membranes, and the ATP molecules your cells use for energy.",
+      "display_order": 29,
+      "id": "8279170b-0ad5-4d01-b74e-842332f6d570",
+      "is_calculated": false,
+      "marker_slug": "phosphate",
+      "name": "Phosphate",
+      "tooltip": "Phosphate works with calcium to build strong bones and teeth. It is also part of DNA, cell membranes, and the ATP molecules your cells use for energy.",
+      "unit_canonical": "mmol/L",
+      "when_to_worry": null,
+      "why_it_matters": null,
+      "zone_slug": "structural"
+    },
+    {
+      "description": "Creatinine is a waste product from normal muscle metabolism filtered out by your kidneys. Rising levels suggest your kidneys may not be filtering as efficiently as they should.",
+      "display_order": 30,
+      "id": "1c26356a-528b-406e-968e-25092edf6443",
+      "is_calculated": false,
+      "marker_slug": "creatinine",
+      "name": "Creatinine",
+      "tooltip": "Creatinine is a waste product generated from the breakdown of creatine phosphate in muscle. It is produced at a relatively constant rate proportional to muscle mass, filtered freely by the glomeruli, and excreted in urine. Serum creatinine is a widely used, inexpensive marker of kidney filtration function, though it lags behind actual kidney function changes.",
+      "unit_canonical": "µmol/L",
+      "when_to_worry": "• Stay well-hydrated , even mild dehydration raises creatinine transiently\n• Avoid nephrotoxic medications and supplements (NSAIDs, high-dose protein supplements, certain herbs)\n• Control blood pressure , hypertension is the second leading cause of CKD\n• Control blood glucose , diabetic nephropathy is the leading cause of CKD\n• Avoid very high protein intakes chronically if GFR is already reduced\n• Do not test creatinine within 24 hours of a large meat meal or intense exercise\n• Monitor trends over time , single readings are less informative than trajectory",
+      "why_it_matters": "Normal creatinine is roughly 53–106 µmol/L (0.6–1.2 mg/dL) in men and 44–97 µmol/L in women, though ranges vary with muscle mass. Elevated creatinine indicates reduced glomerular filtration rate (GFR) from CKD, acute kidney injury, dehydration, or very high muscle mass/meat intake. Low creatinine may indicate sarcopenia, malnutrition, or liver disease.",
+      "zone_slug": "detoxification"
+    },
+    {
+      "description": "eGFR (estimated glomerular filtration rate) estimates how well your kidneys filter waste from your blood. It is calculated from creatinine, age, and sex. Higher values indicate better kidney function.",
+      "display_order": 31,
+      "id": "59473405-0b8d-4ddf-8618-2dafc35bfb7e",
+      "is_calculated": false,
+      "marker_slug": "egfr",
+      "name": "eGFR",
+      "tooltip": "Estimated glomerular filtration rate (eGFR) is a calculated measure of how many millilitres of blood the kidneys filter per minute per 1.73 m² body surface area. It is derived from serum creatinine (and sometimes cystatin C) using validated equations (CKD-EPI). eGFR is the primary metric for staging chronic kidney disease (CKD).",
+      "unit_canonical": "mL/min",
+      "when_to_worry": "• Control blood pressure , target below 130/80 mmHg in CKD patients\n• Control blood glucose rigorously if diabetic , HbA1c below 7%\n• Avoid NSAIDs and other nephrotoxic drugs\n• Stay well-hydrated without excessive fluid intake\n• Reduce sodium intake to lower blood pressure and proteinuria\n• Moderate protein intake if eGFR is declining\n• Do not smoke , smoking accelerates CKD progression\n• Monitor eGFR and urine albumin:creatinine ratio (ACR) at least annually",
+      "why_it_matters": "eGFR above 90 mL/min/1.73m² is normal; 60–89 is mildly reduced; 30–59 is moderately reduced (CKD stage 3); 15–29 is severely reduced (CKD stage 4); below 15 is kidney failure. Diabetes and hypertension together account for over 70% of CKD cases globally. Early detection through eGFR monitoring is critical as CKD is largely asymptomatic until advanced stages.",
+      "zone_slug": "detoxification"
+    },
+    {
+      "description": "Cystatin C is a protein produced by all cells that is filtered by your kidneys. It provides a more accurate estimate of kidney function than creatinine, especially in people with high or low muscle mass.",
+      "display_order": 32,
+      "id": "9360d680-3b1e-416b-9855-e749d324ab45",
+      "is_calculated": false,
+      "marker_slug": "cystatin_c",
+      "name": "Cystatin C",
+      "tooltip": "Cystatin C is a protein produced by all cells that is filtered by your kidneys. It provides a more accurate estimate of kidney function than creatinine, especially in people with high or low muscle ma",
+      "unit_canonical": "mg/L",
+      "when_to_worry": null,
+      "why_it_matters": null,
+      "zone_slug": "detoxification"
+    },
+    {
+      "description": "ALT (alanine aminotransferase) is an enzyme found mainly in your liver. Elevated ALT is one of the earliest signs of liver inflammation or damage.",
+      "display_order": 33,
+      "id": "1531b0fa-5831-47ed-8c1a-25a88b62b91d",
+      "is_calculated": false,
+      "marker_slug": "alt",
+      "name": "ALT",
+      "tooltip": "Alanine aminotransferase (ALT) is an enzyme found predominantly in liver cells. When hepatocytes are damaged or inflamed, ALT leaks into the bloodstream, making it the most specific serum marker of liver injury. It is measured in U/L (units per litre) and is part of standard liver function tests (LFTs).",
+      "unit_canonical": "U/L",
+      "when_to_worry": "• Eliminate or sharply reduce alcohol , a major direct hepatotoxin\n• Adopt a low-carbohydrate or Mediterranean diet to reduce hepatic fat\n• Achieve and maintain a healthy weight , even 5% weight loss improves NAFLD\n• Avoid unnecessary use of hepatotoxic medications (paracetamol overuse, NSAIDs)\n• Exercise regularly , both aerobic and resistance training reduce hepatic steatosis\n• Avoid taking blood tests within 48 hours of intense exercise to avoid false elevation\n• Limit fructose and added sugars , primary drivers of de novo hepatic lipogenesis",
+      "why_it_matters": "Normal ALT is typically below 40–56 U/L (lab-dependent), though some researchers argue the upper limit should be 19–25 U/L for a genuinely healthy liver. Persistently elevated ALT is most commonly caused by non-alcoholic fatty liver disease (NAFLD), alcohol overuse, medications (statins, paracetamol), or viral hepatitis. ALT elevation is an early warning for metabolic liver disease, often preceding clinical symptoms by years.",
+      "zone_slug": "detoxification"
+    },
+    {
+      "description": "AST (aspartate aminotransferase) is an enzyme found in your liver, heart, and muscles. Elevated AST can indicate liver damage, but also heart or muscle injury.",
+      "display_order": 34,
+      "id": "d23c7705-e7f5-4e83-9f40-c51591ea276c",
+      "is_calculated": false,
+      "marker_slug": "ast",
+      "name": "AST",
+      "tooltip": "AST (aspartate aminotransferase) is an enzyme found in your liver, heart, and muscles. Elevated AST can indicate liver damage, but also heart or muscle injury.",
+      "unit_canonical": "U/L",
+      "when_to_worry": null,
+      "why_it_matters": null,
+      "zone_slug": "detoxification"
+    },
+    {
+      "description": "GGT (gamma-glutamyl transferase) is a liver enzyme that rises with alcohol use, fatty liver, and bile duct problems. It is a sensitive early marker for liver stress.",
+      "display_order": 35,
+      "id": "dda96eed-121d-459f-875c-e0f0310f9912",
+      "is_calculated": false,
+      "marker_slug": "ggt",
+      "name": "GGT",
+      "tooltip": "Gamma-glutamyl transferase (GGT) is an enzyme involved in glutathione metabolism and amino acid transport across cell membranes, found in the liver, bile ducts, kidneys, and pancreas. Elevated serum GGT is a sensitive but non-specific marker of hepatobiliary stress , it rises with alcohol consumption, fatty liver, bile duct obstruction, and oxidative stress.",
+      "unit_canonical": "U/L",
+      "when_to_worry": "• Reduce or eliminate alcohol , by far the most effective intervention\n• Reduce body weight and hepatic fat through diet and exercise\n• Avoid unnecessary medications and supplements that are metabolised by the liver\n• Eat a Mediterranean-style diet rich in antioxidants to reduce oxidative stress\n• Address NAFLD , hepatic steatosis independently elevates GGT\n• Ensure adequate magnesium and B vitamins to support glutathione synthesis\n• Coffee (2–3 cups/day) is associated with lower GGT in epidemiological studies",
+      "why_it_matters": "Normal GGT is typically 8–61 U/L (lab and sex-dependent). Persistently elevated GGT predicts cardiovascular disease, type 2 diabetes, and all-cause mortality independently of alcohol consumption , it appears to be a marker of systemic oxidative stress and mitochondrial dysfunction. GGT elevation alongside elevated ALP suggests bile duct pathology; with elevated ALT it suggests hepatocellular damage.",
+      "zone_slug": "detoxification"
+    },
+    {
+      "description": "ALP (alkaline phosphatase) is an enzyme found in your liver and bones. Elevated levels can indicate liver disease, bile duct obstruction, or increased bone turnover.",
+      "display_order": 36,
+      "id": "c3631e88-fa32-41fd-9909-31880ca0e92b",
+      "is_calculated": false,
+      "marker_slug": "alp",
+      "name": "ALP",
+      "tooltip": "ALP (alkaline phosphatase) is an enzyme found in your liver and bones. Elevated levels can indicate liver disease, bile duct obstruction, or increased bone turnover.",
+      "unit_canonical": "U/L",
+      "when_to_worry": null,
+      "why_it_matters": null,
+      "zone_slug": "detoxification"
+    },
+    {
+      "description": "LDH (lactate dehydrogenase) is an enzyme present in almost all body tissues. Elevated levels indicate tissue damage somewhere in the body but do not pinpoint the location.",
+      "display_order": 37,
+      "id": "5549e375-6802-4da4-85d7-289db4518c16",
+      "is_calculated": false,
+      "marker_slug": "ldh",
+      "name": "LDH",
+      "tooltip": "LDH (lactate dehydrogenase) is an enzyme present in almost all body tissues. Elevated levels indicate tissue damage somewhere in the body but do not pinpoint the location.",
+      "unit_canonical": "U/L",
+      "when_to_worry": null,
+      "why_it_matters": null,
+      "zone_slug": "detoxification"
+    },
+    {
+      "description": "Total bilirubin is a yellow pigment produced when red blood cells break down. Your liver processes it for excretion. High levels cause jaundice and may indicate liver problems or excessive red blood cell destruction.",
+      "display_order": 38,
+      "id": "68c44ca8-08a4-4951-a048-e22d19b46b8c",
+      "is_calculated": false,
+      "marker_slug": "bilirubin_total",
+      "name": "Bilirubin (Total)",
+      "tooltip": "Total bilirubin is a yellow pigment produced when red blood cells break down. Your liver processes it for excretion. High levels cause jaundice and may indicate liver problems or excessive red blood c",
+      "unit_canonical": "µmol/L",
+      "when_to_worry": null,
+      "why_it_matters": null,
+      "zone_slug": "detoxification"
+    },
+    {
+      "description": "Direct (conjugated) bilirubin is the form processed by your liver for excretion in bile. Elevated direct bilirubin specifically points to liver or bile duct obstruction.",
+      "display_order": 39,
+      "id": "50916cbd-78d8-48e5-80a2-b8604cc48e9e",
+      "is_calculated": false,
+      "marker_slug": "bilirubin_direct",
+      "name": "Bilirubin (Direct)",
+      "tooltip": "Direct (conjugated) bilirubin is the form processed by your liver for excretion in bile. Elevated direct bilirubin specifically points to liver or bile duct obstruction.",
+      "unit_canonical": "µmol/L",
+      "when_to_worry": null,
+      "why_it_matters": null,
+      "zone_slug": "detoxification"
+    },
+    {
+      "description": "Testosterone is the primary male sex hormone but is important for both sexes. It regulates muscle mass, bone density, fat distribution, mood, energy, and libido.",
+      "display_order": 40,
+      "id": "088b198b-ec2b-4dbf-bac9-9e4ac7a44474",
+      "is_calculated": false,
+      "marker_slug": "testosterone",
+      "name": "Testosterone",
+      "tooltip": "Testosterone is the primary male sex hormone but is important for both sexes. It regulates muscle mass, bone density, fat distribution, mood, energy, and libido.",
+      "unit_canonical": "nmol/L",
+      "when_to_worry": null,
+      "why_it_matters": null,
+      "zone_slug": "hormonal"
+    },
+    {
+      "description": "Free testosterone is the small fraction of testosterone not bound to proteins. It is the biologically active form that directly affects your tissues and symptoms.",
+      "display_order": 41,
+      "id": "6b25f890-d579-40f5-af86-1294f219bf51",
+      "is_calculated": false,
+      "marker_slug": "free_testosterone",
+      "name": "Free Testosterone",
+      "tooltip": "Free testosterone is the small fraction of testosterone not bound to proteins. It is the biologically active form that directly affects your tissues and symptoms.",
+      "unit_canonical": "pmol/L",
+      "when_to_worry": null,
+      "why_it_matters": null,
+      "zone_slug": "hormonal"
+    },
+    {
+      "description": "The free androgen index estimates the percentage of testosterone that is biologically active. It is calculated from total testosterone and SHBG levels.",
+      "display_order": 42,
+      "id": "4d0eaa3c-a7af-4d43-b1c3-222a81b4d500",
+      "is_calculated": false,
+      "marker_slug": "free_androgen_index",
+      "name": "Free Androgen Index",
+      "tooltip": "The free androgen index estimates the percentage of testosterone that is biologically active. It is calculated from total testosterone and SHBG levels.",
+      "unit_canonical": "ratio",
+      "when_to_worry": null,
+      "why_it_matters": null,
+      "zone_slug": "hormonal"
+    },
+    {
+      "description": "SHBG (sex hormone-binding globulin) is a protein that binds testosterone and estrogen, controlling how much is available for your tissues. Higher SHBG means less free hormone activity.",
+      "display_order": 43,
+      "id": "971e7efa-50a7-4877-a3db-01d561475633",
+      "is_calculated": false,
+      "marker_slug": "shbg",
+      "name": "SHBG",
+      "tooltip": "SHBG (sex hormone-binding globulin) is a protein that binds testosterone and estrogen, controlling how much is available for your tissues. Higher SHBG means less free hormone activity.",
+      "unit_canonical": "nmol/L",
+      "when_to_worry": null,
+      "why_it_matters": null,
+      "zone_slug": "hormonal"
+    },
+    {
+      "description": "Estradiol (E2) is the primary form of estrogen. In women it regulates the menstrual cycle and bone health. In men, balanced estradiol is important for bone density and cardiovascular health.",
+      "display_order": 44,
+      "id": "70fa48ec-4148-46e8-b717-8252977c3c73",
+      "is_calculated": false,
+      "marker_slug": "estradiol",
+      "name": "Estradiol (E2)",
+      "tooltip": "Estradiol (E2) is the primary form of estrogen. In women it regulates the menstrual cycle and bone health. In men, balanced estradiol is important for bone density and cardiovascular health.",
+      "unit_canonical": "pmol/L",
+      "when_to_worry": null,
+      "why_it_matters": null,
+      "zone_slug": "hormonal"
+    },
+    {
+      "description": "Progesterone balances estrogen and prepares the uterus for pregnancy. In both sexes it has calming effects on the nervous system and supports sleep quality.",
+      "display_order": 45,
+      "id": "a26dc81b-4041-4f9f-9f9f-5f2901252bce",
+      "is_calculated": false,
+      "marker_slug": "progesterone",
+      "name": "Progesterone",
+      "tooltip": "Progesterone balances estrogen and prepares the uterus for pregnancy. In both sexes it has calming effects on the nervous system and supports sleep quality.",
+      "unit_canonical": "nmol/L",
+      "when_to_worry": null,
+      "why_it_matters": null,
+      "zone_slug": "hormonal"
+    },
+    {
+      "description": "Prolactin is a hormone best known for stimulating breast milk production. In non-pregnant individuals, elevated prolactin can cause menstrual irregularities and reduced libido.",
+      "display_order": 46,
+      "id": "c201f6fa-dfd5-49b7-82e6-6602d409c746",
+      "is_calculated": false,
+      "marker_slug": "prolactin",
+      "name": "Prolactin",
+      "tooltip": "Prolactin is a hormone best known for stimulating breast milk production. In non-pregnant individuals, elevated prolactin can cause menstrual irregularities and reduced libido.",
+      "unit_canonical": "mIU/L",
+      "when_to_worry": null,
+      "why_it_matters": null,
+      "zone_slug": "hormonal"
+    },
+    {
+      "description": "FSH (follicle-stimulating hormone) regulates reproductive function. In women it controls egg development. In men it supports sperm production. Levels change significantly with age and menopause.",
+      "display_order": 47,
+      "id": "6e888592-418a-4a05-9c9e-d42555f841b5",
+      "is_calculated": false,
+      "marker_slug": "fsh",
+      "name": "FSH",
+      "tooltip": "FSH (follicle-stimulating hormone) regulates reproductive function. In women it controls egg development. In men it supports sperm production. Levels change significantly with age and menopause.",
+      "unit_canonical": "IU/L",
+      "when_to_worry": null,
+      "why_it_matters": null,
+      "zone_slug": "hormonal"
+    },
+    {
+      "description": "LH (luteinizing hormone) triggers ovulation in women and stimulates testosterone production in men. The LH-to-FSH ratio helps diagnose reproductive and hormonal conditions.",
+      "display_order": 48,
+      "id": "decc3166-bf90-4f1d-b6d1-d04e4a62c50e",
+      "is_calculated": false,
+      "marker_slug": "lh",
+      "name": "LH",
+      "tooltip": "LH (luteinizing hormone) triggers ovulation in women and stimulates testosterone production in men. The LH-to-FSH ratio helps diagnose reproductive and hormonal conditions.",
+      "unit_canonical": "IU/L",
+      "when_to_worry": null,
+      "why_it_matters": null,
+      "zone_slug": "hormonal"
+    },
+    {
+      "description": "DHEA-S is a precursor hormone made by your adrenal glands. Your body converts it into testosterone and estrogen. Levels naturally decline with age and can reflect adrenal function and biological aging.",
+      "display_order": 49,
+      "id": "a27eb894-782f-474f-a7a1-162e447d5fd5",
+      "is_calculated": false,
+      "marker_slug": "dheas",
+      "name": "DHEA-S",
+      "tooltip": "DHEA-S is a precursor hormone made by your adrenal glands. Your body converts it into testosterone and estrogen. Levels naturally decline with age and can reflect adrenal function and biological aging",
+      "unit_canonical": "µmol/L",
+      "when_to_worry": null,
+      "why_it_matters": null,
+      "zone_slug": "hormonal"
+    },
+    {
+      "description": "Serum iron measures the amount of iron circulating in your blood. Low iron can cause fatigue, weakness, and poor concentration. High iron can damage your liver and heart over time.",
+      "display_order": 50,
+      "id": "f63fd84e-6997-4de8-bc8f-7cb46ff2925a",
+      "is_calculated": false,
+      "marker_slug": "iron",
+      "name": "Iron",
+      "tooltip": "Serum iron measures the amount of iron bound to transferrin (the transport protein) circulating in the blood, expressed in µmol/L or µg/dL. It is just one component of iron status assessment , best interpreted alongside transferrin saturation, ferritin, and TIBC. Serum iron is highly variable throughout the day (diurnal variation of up to 30%) and is affected by recent dietary intake.",
+      "unit_canonical": "µmol/L",
+      "when_to_worry": "• Eat haem iron sources (red meat, liver, dark poultry) for best bioavailability\n• Combine plant-based iron sources with vitamin C to enhance non-haem iron absorption\n• Avoid tea, coffee, and calcium supplements within 1–2 hours of iron-rich meals\n• Cook in cast-iron cookware , it can significantly add dietary iron\n• Test iron alongside ferritin and TIBC for a complete picture\n• Do not supplement iron without confirmed deficiency , excess iron is toxic\n• Screen first-degree relatives of haemochromatosis patients (hereditary condition)",
+      "why_it_matters": "Normal serum iron is roughly 11–32 µmol/L (60–180 µg/dL). Low serum iron alongside low ferritin and high TIBC confirms iron-deficiency; low serum iron with high ferritin and low TIBC suggests anaemia of chronic disease (inflammation). Elevated serum iron with high saturation can indicate haemochromatosis or iron overload, which is toxic to the liver, heart, and joints.",
+      "zone_slug": "nutritional"
+    },
+    {
+      "description": "Ferritin is the protein that stores iron inside your cells. It is the most reliable single test for iron status. Low ferritin is the earliest sign of iron depletion, well before anemia develops.",
+      "display_order": 51,
+      "id": "692e09c7-a89e-4d21-a6f8-135e069d398e",
+      "is_calculated": false,
+      "marker_slug": "ferritin",
+      "name": "Ferritin",
+      "tooltip": "Ferritin is the primary iron storage protein, found mainly in the liver, spleen, and bone marrow. A small amount circulates in the blood, and serum ferritin concentration reflects total body iron stores with reasonable accuracy. It is the most reliable single marker of iron status , low ferritin confirms iron depletion before anaemia develops.",
+      "unit_canonical": "µg/L",
+      "when_to_worry": "• Eat iron-rich foods regularly, especially haem iron sources (liver, red meat)\n• Pair plant iron sources with vitamin C to improve non-haem iron absorption\n• Investigate causes of blood loss if ferritin is falling (menorrhagia, GI bleeding)\n• Supplement with iron bisglycinate if ferritin is confirmed low\n• If ferritin is elevated, rule out haemochromatosis with transferrin saturation testing\n• Reduce alcohol intake , alcohol elevates ferritin through liver inflammation\n• Regular blood donation modestly lowers elevated ferritin in haemochromatosis carriers",
+      "why_it_matters": "Normal ferritin ranges are approximately 30–300 µg/L in men and 15–200 µg/L in women (lab-dependent). Ferritin below 30 µg/L indicates depleted stores; below 12 µg/L is diagnostic of iron deficiency even without anaemia. Elevated ferritin (above 300 µg/L in men, 200 µg/L in women) warrants investigation for haemochromatosis, inflammatory conditions, liver disease, or malignancy.",
+      "zone_slug": "nutritional"
+    },
+    {
+      "description": "Transferrin is the protein that transports iron through your bloodstream to where it is needed. High transferrin can indicate iron deficiency as your body tries harder to capture scarce iron.",
+      "display_order": 52,
+      "id": "b77f8cd0-cff0-4f4a-9d27-27b64a1f4f7c",
+      "is_calculated": false,
+      "marker_slug": "transferrin",
+      "name": "Transferrin",
+      "tooltip": "Transferrin is the protein that transports iron through your bloodstream to where it is needed. High transferrin can indicate iron deficiency as your body tries harder to capture scarce iron.",
+      "unit_canonical": "g/L",
+      "when_to_worry": null,
+      "why_it_matters": null,
+      "zone_slug": "nutritional"
+    },
+    {
+      "description": "Transferrin saturation shows what percentage of your transferrin is carrying iron. It helps distinguish between iron deficiency and iron overload more accurately than iron levels alone.",
+      "display_order": 53,
+      "id": "4e50ae1d-3bab-46a8-8b8d-262799d98dd5",
+      "is_calculated": false,
+      "marker_slug": "transferrin_sat",
+      "name": "Transferrin Saturation",
+      "tooltip": "Transferrin saturation shows what percentage of your transferrin is carrying iron. It helps distinguish between iron deficiency and iron overload more accurately than iron levels alone.",
+      "unit_canonical": "%",
+      "when_to_worry": null,
+      "why_it_matters": null,
+      "zone_slug": "nutritional"
+    },
+    {
+      "description": "Vitamin D is both a vitamin and a hormone that regulates calcium absorption, immune function, and mood. Most people in northern climates are deficient, especially in winter.",
+      "display_order": 54,
+      "id": "d073e7d4-abd0-48ce-8122-11775e148f26",
+      "is_calculated": false,
+      "marker_slug": "vitamin_d",
+      "name": "Vitamin D (25-OH)",
+      "tooltip": "Vitamin D (measured as 25-hydroxyvitamin D, or 25(OH)D) is a fat-soluble secosteroid that functions more like a hormone than a classic vitamin. It is synthesised in the skin upon UVB exposure and converted in the liver to 25(OH)D , the storage and measurement form. The active hormone form, 1,25(OH)2D (calcitriol), is produced in the kidneys and regulates calcium absorption, immune function, cell differentiation, and gene expression across nearly every tissue.",
+      "unit_canonical": "nmol/L",
+      "when_to_worry": "• Get 15–30 minutes of midday sun exposure on arms and legs when possible (season and latitude permitting)\n• Supplement with vitamin D3 (cholecalciferol), not D2 , D3 is 87% more potent at raising 25(OH)D\n• Take vitamin D with a fat-containing meal for best absorption\n• Co-supplement with vitamin K2 (MK-7, 100–200 mcg) to ensure calcium is directed to bones, not arteries\n• Retest 25(OH)D after 3 months of supplementation to confirm adequacy\n• Maintain magnesium sufficiency , magnesium is required for vitamin D metabolism\n• Target 25(OH)D of 75–125 nmol/L (30–50 ng/mL) for general health",
+      "why_it_matters": "Deficiency (below 50 nmol/L / 20 ng/mL) is pandemic, affecting an estimated 40–50% of the global population. It is associated with osteoporosis, increased fracture risk, immune dysfunction, autoimmune disease, depression, increased infection susceptibility, and all-cause mortality. Optimal levels are debated but most functional medicine practitioners target 75–150 nmol/L (30–60 ng/mL). Toxicity occurs above 250 nmol/L (100 ng/mL) from excessive supplementation.",
+      "zone_slug": "nutritional"
+    },
+    {
+      "description": "Vitamin B12 is essential for nerve function, DNA synthesis, and red blood cell formation. Deficiency can cause fatigue, numbness, memory problems, and irreversible nerve damage if left untreated.",
+      "display_order": 55,
+      "id": "a214dfeb-9b4d-4f45-8a65-cba4b8146d83",
+      "is_calculated": false,
+      "marker_slug": "vitamin_b12",
+      "name": "Vitamin B12",
+      "tooltip": "Vitamin B12 is essential for nerve function, DNA synthesis, and red blood cell formation. Deficiency can cause fatigue, numbness, memory problems, and irreversible nerve damage if left untreated.",
+      "unit_canonical": "pmol/L",
+      "when_to_worry": null,
+      "why_it_matters": null,
+      "zone_slug": "nutritional"
+    },
+    {
+      "description": "Holotranscobalamin is the fraction of vitamin B12 that is actively available for your cells to use. It is a more sensitive and earlier marker of B12 deficiency than total B12.",
+      "display_order": 56,
+      "id": "fde54c9b-624b-4ff1-a454-c58eb12ddce0",
+      "is_calculated": false,
+      "marker_slug": "holo_tc",
+      "name": "Holotranscobalamin (HoloTC)",
+      "tooltip": "Holotranscobalamin is the fraction of vitamin B12 that is actively available for your cells to use. It is a more sensitive and earlier marker of B12 deficiency than total B12.",
+      "unit_canonical": "pmol/L",
+      "when_to_worry": null,
+      "why_it_matters": null,
+      "zone_slug": "nutritional"
+    },
+    {
+      "description": "Vitamin B1 (thiamine) is essential for converting food into energy and proper nerve function. Deficiency is rare on a varied diet but common with high alcohol intake.",
+      "display_order": 57,
+      "id": "5dcabaed-999a-471c-b862-080e2292fd7a",
+      "is_calculated": false,
+      "marker_slug": "vitamin_b1",
+      "name": "Vitamin B1 (Thiamine)",
+      "tooltip": "Vitamin B1 (thiamine) is essential for converting food into energy and proper nerve function. Deficiency is rare on a varied diet but common with high alcohol intake.",
+      "unit_canonical": "nmol/L",
+      "when_to_worry": null,
+      "why_it_matters": null,
+      "zone_slug": "nutritional"
+    },
+    {
+      "description": "Vitamin B2 (riboflavin) helps your body convert food into energy and acts as an antioxidant. It is important for red blood cell production and maintaining healthy skin.",
+      "display_order": 58,
+      "id": "ff90f374-b113-4c97-a693-99d4e441cb0f",
+      "is_calculated": false,
+      "marker_slug": "vitamin_b2",
+      "name": "Vitamin B2 (Riboflavin)",
+      "tooltip": "Vitamin B2 (riboflavin) helps your body convert food into energy and acts as an antioxidant. It is important for red blood cell production and maintaining healthy skin.",
+      "unit_canonical": "nmol/L",
+      "when_to_worry": null,
+      "why_it_matters": null,
+      "zone_slug": "nutritional"
+    },
+    {
+      "description": "Vitamin B3 (niacin) supports energy metabolism, DNA repair, and cholesterol regulation. Severe deficiency causes pellagra, with symptoms of dermatitis, diarrhea, and dementia.",
+      "display_order": 59,
+      "id": "82c465d5-39fa-46d8-a5c7-0c45b4cb7f24",
+      "is_calculated": false,
+      "marker_slug": "vitamin_b3",
+      "name": "Vitamin B3 (Niacin)",
+      "tooltip": "Vitamin B3 (niacin) supports energy metabolism, DNA repair, and cholesterol regulation. Severe deficiency causes pellagra, with symptoms of dermatitis, diarrhea, and dementia.",
+      "unit_canonical": "nmol/L",
+      "when_to_worry": null,
+      "why_it_matters": null,
+      "zone_slug": "nutritional"
+    },
+    {
+      "description": "Vitamin B5 (pantothenic acid) is needed to make coenzyme A, which is central to energy metabolism. It is found in nearly all foods, so deficiency is extremely rare.",
+      "display_order": 60,
+      "id": "f3f223c7-cb37-4895-a245-bde243d98141",
+      "is_calculated": false,
+      "marker_slug": "vitamin_b5",
+      "name": "Vitamin B5 (Pantothenic)",
+      "tooltip": "Vitamin B5 (pantothenic acid) is needed to make coenzyme A, which is central to energy metabolism. It is found in nearly all foods, so deficiency is extremely rare.",
+      "unit_canonical": "nmol/L",
+      "when_to_worry": null,
+      "why_it_matters": null,
+      "zone_slug": "nutritional"
+    },
+    {
+      "description": "Vitamin B6 is involved in over 100 enzyme reactions, including protein metabolism, neurotransmitter synthesis, and immune function. Deficiency can cause nerve damage and confusion.",
+      "display_order": 61,
+      "id": "4ed54033-c6fa-4bb7-8694-6d97a43d51b4",
+      "is_calculated": false,
+      "marker_slug": "vitamin_b6",
+      "name": "Vitamin B6",
+      "tooltip": "Vitamin B6 is involved in over 100 enzyme reactions, including protein metabolism, neurotransmitter synthesis, and immune function. Deficiency can cause nerve damage and confusion.",
+      "unit_canonical": "nmol/L",
+      "when_to_worry": null,
+      "why_it_matters": null,
+      "zone_slug": "nutritional"
+    },
+    {
+      "description": "Folate (vitamin B9) is critical for DNA synthesis, cell division, and red blood cell formation. It works closely with B12. Deficiency is especially dangerous during pregnancy.",
+      "display_order": 62,
+      "id": "9f2a5da3-7a52-4399-9463-9e64249193e9",
+      "is_calculated": false,
+      "marker_slug": "folate",
+      "name": "Folate",
+      "tooltip": "Folate (vitamin B9) is critical for DNA synthesis, cell division, and red blood cell formation. It works closely with B12. Deficiency is especially dangerous during pregnancy.",
+      "unit_canonical": "µg/L",
+      "when_to_worry": null,
+      "why_it_matters": null,
+      "zone_slug": "nutritional"
+    },
+    {
+      "description": "Vitamin A is essential for vision, immune function, and cell growth. It exists as retinol (animal sources) and beta-carotene (plant sources). Both excess and deficiency can cause health problems.",
+      "display_order": 63,
+      "id": "224e975b-8cad-4bf5-9045-0040cd990cbd",
+      "is_calculated": false,
+      "marker_slug": "vitamin_a",
+      "name": "Vitamin A (Retinol)",
+      "tooltip": "Vitamin A is essential for vision, immune function, and cell growth. It exists as retinol (animal sources) and beta-carotene (plant sources). Both excess and deficiency can cause health problems.",
+      "unit_canonical": "µmol/L",
+      "when_to_worry": null,
+      "why_it_matters": null,
+      "zone_slug": "nutritional"
+    },
+    {
+      "description": "Vitamin E is a fat-soluble antioxidant that protects cell membranes from oxidative damage. It also supports immune function and helps prevent excessive blood clotting.",
+      "display_order": 64,
+      "id": "136ea491-1b4d-46ce-8328-b593f28e80ad",
+      "is_calculated": false,
+      "marker_slug": "vitamin_e",
+      "name": "Vitamin E (Alpha-Toc.)",
+      "tooltip": "Vitamin E is a fat-soluble antioxidant that protects cell membranes from oxidative damage. It also supports immune function and helps prevent excessive blood clotting.",
+      "unit_canonical": "µmol/L",
+      "when_to_worry": null,
+      "why_it_matters": null,
+      "zone_slug": "nutritional"
+    },
+    {
+      "description": "Sodium is an essential electrolyte that controls fluid balance, nerve impulses, and muscle function. High sodium intake is linked to high blood pressure in salt-sensitive individuals.",
+      "display_order": 65,
+      "id": "e3614622-5b57-4ca3-ac7d-1cc38e61138b",
+      "is_calculated": false,
+      "marker_slug": "sodium",
+      "name": "Sodium",
+      "tooltip": "Sodium is an essential electrolyte that controls fluid balance, nerve impulses, and muscle function. High sodium intake is linked to high blood pressure in salt-sensitive individuals.",
+      "unit_canonical": "mmol/L",
+      "when_to_worry": null,
+      "why_it_matters": null,
+      "zone_slug": "nutritional"
+    },
+    {
+      "description": "Zinc supports immune function, wound healing, taste, and smell. It is essential for over 300 enzymes and plays a key role in testosterone production and thyroid function.",
+      "display_order": 66,
+      "id": "2299bc07-3746-461d-a615-089a3d93be60",
+      "is_calculated": false,
+      "marker_slug": "zinc",
+      "name": "Zinc",
+      "tooltip": "Zinc supports immune function, wound healing, taste, and smell. It is essential for over 300 enzymes and plays a key role in testosterone production and thyroid function.",
+      "unit_canonical": "µmol/L",
+      "when_to_worry": null,
+      "why_it_matters": null,
+      "zone_slug": "nutritional"
+    },
+    {
+      "description": "Selenium is a trace mineral vital for thyroid hormone conversion, antioxidant defense, and immune function. Brazil nuts are the richest dietary source.",
+      "display_order": 67,
+      "id": "4bf8983a-15c0-4d8f-8a1b-03e3589de4a9",
+      "is_calculated": false,
+      "marker_slug": "selenium",
+      "name": "Selenium",
+      "tooltip": "Selenium is a trace mineral vital for thyroid hormone conversion, antioxidant defense, and immune function. Brazil nuts are the richest dietary source.",
+      "unit_canonical": "µg/L",
+      "when_to_worry": null,
+      "why_it_matters": null,
+      "zone_slug": "nutritional"
+    },
+    {
+      "description": "Homocysteine is an amino acid that, when elevated, damages blood vessel walls and increases cardiovascular risk. B vitamins (B6, B12, folate) help keep it in check.",
+      "display_order": 68,
+      "id": "c1dcf6bb-bdd4-450e-99df-21b88f5c554a",
+      "is_calculated": false,
+      "marker_slug": "homocysteine",
+      "name": "Homocysteine",
+      "tooltip": "Homocysteine is an amino acid that, when elevated, damages blood vessel walls and increases cardiovascular risk. B vitamins (B6, B12, folate) help keep it in check.",
+      "unit_canonical": "µmol/L",
+      "when_to_worry": null,
+      "why_it_matters": null,
+      "zone_slug": "nutritional"
+    },
+    {
+      "description": "EPA (eicosapentaenoic acid) is an omega-3 fatty acid with strong anti-inflammatory effects. It is found primarily in fatty fish and fish oil supplements.",
+      "display_order": 69,
+      "id": "866d91f6-f582-422f-ac2a-119121d6b1ff",
+      "is_calculated": false,
+      "marker_slug": "epa",
+      "name": "EPA",
+      "tooltip": "EPA (eicosapentaenoic acid) is an omega-3 fatty acid with strong anti-inflammatory effects. It is found primarily in fatty fish and fish oil supplements.",
+      "unit_canonical": "g/L",
+      "when_to_worry": null,
+      "why_it_matters": null,
+      "zone_slug": "nutritional"
+    },
+    {
+      "description": "DHA (docosahexaenoic acid) is an omega-3 fatty acid critical for brain structure and function. It makes up a significant portion of brain and retinal tissue.",
+      "display_order": 70,
+      "id": "a227627f-a49f-4773-8a4d-b7c02aa3c432",
+      "is_calculated": false,
+      "marker_slug": "dha",
+      "name": "DHA",
+      "tooltip": "DHA (docosahexaenoic acid) is an omega-3 fatty acid critical for brain structure and function. It makes up a significant portion of brain and retinal tissue.",
+      "unit_canonical": "g/L",
+      "when_to_worry": null,
+      "why_it_matters": null,
+      "zone_slug": "nutritional"
+    },
+    {
+      "description": "The Omega-3 Index measures the percentage of EPA and DHA in your red blood cell membranes. A higher index is associated with reduced cardiovascular risk and better brain health.",
+      "display_order": 71,
+      "id": "e4eddbb5-0e97-4cc1-8d03-b2c3308c703e",
+      "is_calculated": false,
+      "marker_slug": "omega3_index",
+      "name": "Omega-3 Index",
+      "tooltip": "The Omega-3 Index measures the percentage of EPA and DHA in your red blood cell membranes. A higher index is associated with reduced cardiovascular risk and better brain health.",
+      "unit_canonical": "%",
+      "when_to_worry": null,
+      "why_it_matters": null,
+      "zone_slug": "nutritional"
+    },
+    {
+      "description": "White blood cells are your immune system's defense force. A high count may signal infection or inflammation. A low count may indicate immune suppression or bone marrow problems.",
+      "display_order": 72,
+      "id": "26ddafe4-d2dd-4446-bb03-45d5e8813574",
+      "is_calculated": false,
+      "marker_slug": "wbc",
+      "name": "WBC (Leukocytes)",
+      "tooltip": "White blood cells are your immune system's defense force. A high count may signal infection or inflammation. A low count may indicate immune suppression or bone marrow problems.",
+      "unit_canonical": "Gpt/L",
+      "when_to_worry": null,
+      "why_it_matters": null,
+      "zone_slug": "immune"
+    },
+    {
+      "description": "Red blood cells carry oxygen from your lungs to your entire body. Low RBC counts can cause anemia and fatigue. High counts may indicate dehydration or a bone marrow disorder.",
+      "display_order": 73,
+      "id": "cc6d55f6-378c-4b38-a2f7-fc444b7a45f9",
+      "is_calculated": false,
+      "marker_slug": "rbc",
+      "name": "RBC (Erythrocytes)",
+      "tooltip": "Red blood cells carry oxygen from your lungs to your entire body. Low RBC counts can cause anemia and fatigue. High counts may indicate dehydration or a bone marrow disorder.",
+      "unit_canonical": "Tpt/L",
+      "when_to_worry": null,
+      "why_it_matters": null,
+      "zone_slug": "immune"
+    },
+    {
+      "description": "Platelets are small cell fragments that help your blood clot to stop bleeding. Abnormal counts can cause excessive bleeding or dangerous clot formation.",
+      "display_order": 74,
+      "id": "0e71f76d-db27-4ba1-b3f6-b12e6b5b1f24",
+      "is_calculated": false,
+      "marker_slug": "platelets",
+      "name": "Platelets (Thrombocytes)",
+      "tooltip": "Platelets are small cell fragments that help your blood clot to stop bleeding. Abnormal counts can cause excessive bleeding or dangerous clot formation.",
+      "unit_canonical": "Gpt/L",
+      "when_to_worry": null,
+      "why_it_matters": null,
+      "zone_slug": "immune"
+    },
+    {
+      "description": "Neutrophils are the most common white blood cells and your first line of defense against bacterial infections. This marker shows their percentage of total white blood cells.",
+      "display_order": 75,
+      "id": "b744ff30-8b2c-4d8d-b16a-74b4fac5ad12",
+      "is_calculated": false,
+      "marker_slug": "neutrophils_pct",
+      "name": "Neutrophils %",
+      "tooltip": "Neutrophils are the most common white blood cells and your first line of defense against bacterial infections. This marker shows their percentage of total white blood cells.",
+      "unit_canonical": "%",
+      "when_to_worry": null,
+      "why_it_matters": null,
+      "zone_slug": "immune"
+    },
+    {
+      "description": "Neutrophil absolute count measures the actual number of neutrophils per liter of blood. It is more clinically useful than the percentage for assessing infection risk.",
+      "display_order": 76,
+      "id": "5b1833b5-e0bf-4689-b7f7-a28a557ec374",
+      "is_calculated": false,
+      "marker_slug": "neutrophils_abs",
+      "name": "Neutrophils (Abs)",
+      "tooltip": "Neutrophil absolute count measures the actual number of neutrophils per liter of blood. It is more clinically useful than the percentage for assessing infection risk.",
+      "unit_canonical": "Gpt/L",
+      "when_to_worry": null,
+      "why_it_matters": null,
+      "zone_slug": "immune"
+    },
+    {
+      "description": "Lymphocytes include T cells, B cells, and natural killer cells. They handle viral infections and produce antibodies. This marker shows their percentage of total white blood cells.",
+      "display_order": 77,
+      "id": "6933ad7d-4ebb-4ed5-9021-5e1269e1c0e2",
+      "is_calculated": false,
+      "marker_slug": "lymphocytes_pct",
+      "name": "Lymphocytes %",
+      "tooltip": "Lymphocytes include T cells, B cells, and natural killer cells. They handle viral infections and produce antibodies. This marker shows their percentage of total white blood cells.",
+      "unit_canonical": "%",
+      "when_to_worry": null,
+      "why_it_matters": null,
+      "zone_slug": "immune"
+    },
+    {
+      "description": "Lymphocyte absolute count measures the actual number of lymphocytes in your blood. Low counts can indicate immune deficiency.\n\nThis marker is affected by fasting. See the fasting protocol range below.",
+      "display_order": 78,
+      "id": "9a50f9e2-e99b-42ef-a313-e6a55fedea5d",
+      "is_calculated": false,
+      "marker_slug": "lymphocytes_abs",
+      "name": "Lymphocytes (Abs)",
+      "tooltip": "Lymphocyte absolute count measures the actual number of lymphocytes in your blood. Low counts can indicate immune deficiency.\n\nThis marker is affected by fasting. See the fasting protocol range below.",
+      "unit_canonical": "Gpt/L",
+      "when_to_worry": null,
+      "why_it_matters": null,
+      "zone_slug": "immune"
+    },
+    {
+      "description": "Monocytes are white blood cells that become macrophages in your tissues, engulfing and destroying pathogens and dead cells. This marker shows their percentage of total white blood cells.",
+      "display_order": 79,
+      "id": "3516258b-8563-4c03-93d4-9ee44bba871c",
+      "is_calculated": false,
+      "marker_slug": "monocytes_pct",
+      "name": "Monocytes %",
+      "tooltip": "Monocytes are white blood cells that become macrophages in your tissues, engulfing and destroying pathogens and dead cells. This marker shows their percentage of total white blood cells.",
+      "unit_canonical": "%",
+      "when_to_worry": null,
+      "why_it_matters": null,
+      "zone_slug": "immune"
+    },
+    {
+      "description": "Monocyte absolute count measures the actual number of monocytes per liter of blood. Elevated counts can indicate chronic infection or inflammatory conditions.",
+      "display_order": 80,
+      "id": "37d51fc5-4f3c-44de-8ec2-86bfd5b0f719",
+      "is_calculated": false,
+      "marker_slug": "monocytes_abs",
+      "name": "Monocytes (Abs)",
+      "tooltip": "Monocyte absolute count measures the actual number of monocytes per liter of blood. Elevated counts can indicate chronic infection or inflammatory conditions.",
+      "unit_canonical": "Gpt/L",
+      "when_to_worry": null,
+      "why_it_matters": null,
+      "zone_slug": "immune"
+    },
+    {
+      "description": "Eosinophils are white blood cells that fight parasites and play a role in allergic responses. This marker shows their percentage of total white blood cells.",
+      "display_order": 81,
+      "id": "435c7d03-f251-45eb-b083-3278f00053c1",
+      "is_calculated": false,
+      "marker_slug": "eosinophils_pct",
+      "name": "Eosinophils %",
+      "tooltip": "Eosinophils are white blood cells that fight parasites and play a role in allergic responses. This marker shows their percentage of total white blood cells.",
+      "unit_canonical": "%",
+      "when_to_worry": null,
+      "why_it_matters": null,
+      "zone_slug": "immune"
+    },
+    {
+      "description": "Eosinophil absolute count measures the actual number of eosinophils in your blood. Elevated counts can indicate allergies, parasitic infections, or certain autoimmune conditions.",
+      "display_order": 82,
+      "id": "5623bd7b-a08f-4e74-b169-cfd0f4263187",
+      "is_calculated": false,
+      "marker_slug": "eosinophils_abs",
+      "name": "Eosinophils (Abs)",
+      "tooltip": "Eosinophil absolute count measures the actual number of eosinophils in your blood. Elevated counts can indicate allergies, parasitic infections, or certain autoimmune conditions.",
+      "unit_canonical": "Gpt/L",
+      "when_to_worry": null,
+      "why_it_matters": null,
+      "zone_slug": "immune"
+    },
+    {
+      "description": "Basophils are the rarest white blood cells, involved in allergic reactions and inflammation. This marker shows their percentage of total white blood cells.",
+      "display_order": 83,
+      "id": "be867708-63b8-4fff-a652-595e9ed0b103",
+      "is_calculated": false,
+      "marker_slug": "basophils_pct",
+      "name": "Basophils %",
+      "tooltip": "Basophils are the rarest white blood cells, involved in allergic reactions and inflammation. This marker shows their percentage of total white blood cells.",
+      "unit_canonical": "%",
+      "when_to_worry": null,
+      "why_it_matters": null,
+      "zone_slug": "immune"
+    },
+    {
+      "description": "Basophil absolute count measures the actual number of basophils per liter of blood. Significant elevation is rare and may indicate an allergic reaction or blood disorder.",
+      "display_order": 84,
+      "id": "66ba65e9-b86d-4b54-969d-3ea27cb95967",
+      "is_calculated": false,
+      "marker_slug": "basophils_abs",
+      "name": "Basophils (Abs)",
+      "tooltip": "Basophil absolute count measures the actual number of basophils per liter of blood. Significant elevation is rare and may indicate an allergic reaction or blood disorder.",
+      "unit_canonical": "Gpt/L",
+      "when_to_worry": null,
+      "why_it_matters": null,
+      "zone_slug": "immune"
+    },
+    {
+      "description": "Body fat percentage measures the proportion of your total body weight that is adipose (fat) tissue. It is a more meaningful indicator of health than weight alone, as it distinguishes between fat mass and lean mass. Values are typically measured using bioelectrical impedance scales like the Qardiobase 2.",
+      "display_order": 90,
+      "id": "4af3f6e0-be1e-4132-90ba-d652d564e2d6",
+      "is_calculated": false,
+      "marker_slug": "body_fat_pct",
+      "name": "Body Fat",
+      "tooltip": "Body fat percentage measures the proportion of your total body weight that is adipose (fat) tissue. It is a more meaningful indicator of health than weight alone, as it distinguishes between fat mass ",
+      "unit_canonical": "%",
+      "when_to_worry": null,
+      "why_it_matters": null,
+      "zone_slug": "structural"
+    },
+    {
+      "description": "Body water percentage indicates how much of your total body weight is water. Adequate hydration is essential for cellular function, temperature regulation, and nutrient transport. Dehydration or overhydration both affect this reading. Bioelectrical impedance scales estimate this by measuring how electrical current passes through body tissues.",
+      "display_order": 91,
+      "id": "29e9c1b0-5c6a-4fed-957d-45775f3e6913",
+      "is_calculated": false,
+      "marker_slug": "body_water_pct",
+      "name": "Body Water",
+      "tooltip": "Body water percentage indicates how much of your total body weight is water. Adequate hydration is essential for cellular function, temperature regulation, and nutrient transport. Dehydration or overh",
+      "unit_canonical": "%",
+      "when_to_worry": null,
+      "why_it_matters": null,
+      "zone_slug": "structural"
+    },
+    {
+      "description": "Muscle mass percentage reflects the proportion of your body weight made up of skeletal muscle tissue. Higher muscle mass is associated with better metabolic health, insulin sensitivity, and physical function. Resistance training and adequate protein intake help maintain and build muscle mass.",
+      "display_order": 92,
+      "id": "fe5c48c0-fa62-403a-9929-62b505a9d55c",
+      "is_calculated": false,
+      "marker_slug": "muscle_pct",
+      "name": "Muscle Mass",
+      "tooltip": "Muscle mass percentage reflects the proportion of your body weight made up of skeletal muscle tissue. Higher muscle mass is associated with better metabolic health, insulin sensitivity, and physical f",
+      "unit_canonical": "%",
+      "when_to_worry": null,
+      "why_it_matters": null,
+      "zone_slug": "structural"
+    },
+    {
+      "description": "Bone mass percentage indicates the proportion of your body weight attributed to bone mineral content. Healthy bone density is crucial for preventing fractures and osteoporosis. Weight-bearing exercise, vitamin D, and adequate calcium intake support bone health.",
+      "display_order": 93,
+      "id": "e30234b5-75e9-4516-bbf8-52c53172d61c",
+      "is_calculated": false,
+      "marker_slug": "bone_mass_pct",
+      "name": "Bone Mass",
+      "tooltip": "Bone mass percentage indicates the proportion of your body weight attributed to bone mineral content. Healthy bone density is crucial for preventing fractures and osteoporosis. Weight-bearing exercise",
+      "unit_canonical": "%",
+      "when_to_worry": null,
+      "why_it_matters": null,
+      "zone_slug": "structural"
+    }
+  ],
+  "tiers": [
+    {
+      "description": "Self-hosted, open source. Full control over your health data.",
+      "display_order": 0,
+      "features_summary": "All markers, Self-hosting, API access, Full data control",
+      "highlight": false,
+      "id": "6ea1f08a-3ec3-4a6a-b89d-acf1351f56e1",
+      "is_active": true,
+      "name": "Core",
+      "price_annual_eur": null,
+      "price_monthly_eur": null,
+      "slug": "core",
+      "tagline": "Full Control"
+    },
+    {
+      "description": "Free to try. 10 markers, simple dashboard.",
+      "display_order": 1,
+      "features_summary": "10 markers, Basic dashboard, 3 AI questions/month",
+      "highlight": false,
+      "id": "719590f8-2b9a-4c49-bc7f-4eef4611797a",
+      "is_active": true,
+      "name": "Glimpse",
+      "price_annual_eur": 0,
+      "price_monthly_eur": 0,
+      "slug": "glimpse",
+      "tagline": "Try for Free"
+    },
+    {
+      "description": "All 75+ markers, AI-powered insights, cloud sync.",
+      "display_order": 2,
+      "features_summary": "75+ markers, AI insights, Cloud sync, 5 AI questions/month",
+      "highlight": true,
+      "id": "95bcebf7-deb2-48ce-adff-02e8f2230074",
+      "is_active": true,
+      "name": "Focus",
+      "price_annual_eur": 99.9,
+      "price_monthly_eur": 9.99,
+      "slug": "focus",
+      "tagline": "All Markers, AI Insights"
+    },
+    {
+      "description": "Advanced analytics, experiment tracking, population comparisons.",
+      "display_order": 3,
+      "features_summary": "Everything in Focus plus experiments, comparisons, 15 AI questions/month",
+      "highlight": false,
+      "id": "6fa36f0a-5caa-4d06-9b32-236174b8a85e",
+      "is_active": true,
+      "name": "Insight",
+      "price_annual_eur": 249.9,
+      "price_monthly_eur": 24.99,
+      "slug": "insight",
+      "tagline": "Advanced Analytics"
+    },
+    {
+      "description": "Unlimited AI analysis, coaching, API access.",
+      "display_order": 4,
+      "features_summary": "Everything in Insight plus unlimited AI, coaching, API access",
+      "highlight": false,
+      "id": "363260b7-4772-4c40-b474-bc5ec415c0d9",
+      "is_active": true,
+      "name": "Clarity",
+      "price_annual_eur": 499.9,
+      "price_monthly_eur": 49.99,
+      "slug": "clarity",
+      "tagline": "Unlimited AI Analysis"
+    },
+    {
+      "description": "White-label solution for clinics and enterprises.",
+      "display_order": 5,
+      "features_summary": "Everything in Clarity plus white-label, multi-user, enterprise features",
+      "highlight": false,
+      "id": "deac2198-c7a6-421a-8bbe-36d16a17ce2d",
+      "is_active": true,
+      "name": "Horizon",
+      "price_annual_eur": 999.9,
+      "price_monthly_eur": 99.99,
+      "slug": "horizon",
+      "tagline": "White-Label for Enterprise"
+    }
+  ],
+  "dietProtocols": [
+    {
+      "category": "balanced",
+      "category_label": "Balanced",
+      "id": "f5dc1ab5-f6a8-4617-95c4-fd77499e33ec",
+      "is_active": true,
+      "name": "Standard",
+      "short_description": "Normal eating without specific dietary restrictions",
+      "slug": "standard",
+      "sort_order": 1
+    },
+    {
+      "category": "animal_based",
+      "category_label": "Animal-Based",
+      "id": "2b0f9131-0f7d-4202-817d-519f1b9c0e9a",
+      "is_active": true,
+      "name": "Carnivore",
+      "short_description": "Animal products only — meat, fish, eggs, dairy",
+      "slug": "carnivore",
+      "sort_order": 2
+    },
+    {
+      "category": "low_carb",
+      "category_label": "Low Carb",
+      "id": "0d717647-2ff9-4f2e-9518-1420ece774d6",
+      "is_active": true,
+      "name": "Ketogenic",
+      "short_description": "Very low carb, high fat — typically under 20-50g carbs/day",
+      "slug": "keto",
+      "sort_order": 3
+    },
+    {
+      "category": "low_carb",
+      "category_label": "Low Carb",
+      "id": "6cd414ba-6a15-4549-815f-7a8dbe181d3d",
+      "is_active": true,
+      "name": "Low Carb",
+      "short_description": "Reduced carbohydrate intake — typically under 100g carbs/day",
+      "slug": "low_carb",
+      "sort_order": 4
+    },
+    {
+      "category": "evolutionary",
+      "category_label": "Evolutionary",
+      "id": "fe4f2144-2835-4a36-a00b-87b66cc9f326",
+      "is_active": true,
+      "name": "Paleo",
+      "short_description": "Whole foods based on what our ancestors ate — no grains, legumes, dairy",
+      "slug": "paleo",
+      "sort_order": 5
+    },
+    {
+      "category": "evolutionary",
+      "category_label": "Evolutionary",
+      "id": "dca16e74-b867-4118-a80b-66476e3d2c7f",
+      "is_active": true,
+      "name": "Primal",
+      "short_description": "Similar to Paleo but allows some dairy and more flexibility",
+      "slug": "primal",
+      "sort_order": 6
+    },
+    {
+      "category": "balanced",
+      "category_label": "Balanced",
+      "id": "3daec000-a6f8-49ff-8526-f91129c29447",
+      "is_active": true,
+      "name": "Mediterranean",
+      "short_description": "Rich in olive oil, fish, vegetables, and whole grains",
+      "slug": "mediterranean",
+      "sort_order": 7
+    },
+    {
+      "category": "plant_based",
+      "category_label": "Plant-Based",
+      "id": "e84b0220-25f7-40da-a462-d9cbe2c800a6",
+      "is_active": true,
+      "name": "Vegan",
+      "short_description": "No animal products of any kind",
+      "slug": "vegan",
+      "sort_order": 8
+    },
+    {
+      "category": "plant_forward",
+      "category_label": "Plant-Forward",
+      "id": "5941d626-3bdc-4d12-a017-0ffebf6ee620",
+      "is_active": true,
+      "name": "Vegetarian",
+      "short_description": "No meat or fish, but includes eggs and dairy",
+      "slug": "vegetarian",
+      "sort_order": 9
+    },
+    {
+      "category": "plant_forward",
+      "category_label": "Plant-Forward",
+      "id": "1217273a-9c6b-4d6a-8af8-d8692ebbfb81",
+      "is_active": true,
+      "name": "Pescatarian",
+      "short_description": "Vegetarian plus fish and seafood",
+      "slug": "pescatarian",
+      "sort_order": 10
+    },
+    {
+      "category": "plant_forward",
+      "category_label": "Plant-Forward",
+      "id": "37944aed-d03f-425c-a38e-9c44961b19a4",
+      "is_active": true,
+      "name": "Only Fish",
+      "short_description": "Fish as primary animal protein source",
+      "slug": "only_fish",
+      "sort_order": 11
+    },
+    {
+      "category": "balanced",
+      "category_label": "Balanced",
+      "id": "c67c4e89-3f7f-4797-a25e-f9bda2ab7416",
+      "is_active": true,
+      "name": "Mixed",
+      "short_description": "Flexible eating combining multiple dietary approaches",
+      "slug": "mixed",
+      "sort_order": 12
+    },
+    {
+      "category": "alternative",
+      "category_label": "Alternative",
+      "id": "8aa2ad85-795e-4900-9c47-aebc4c0bf6ba",
+      "is_active": true,
+      "name": "Custom",
+      "short_description": "A personalized dietary approach",
+      "slug": "custom",
+      "sort_order": 13
+    }
+  ],
+  "eatingPatterns": [
+    {
+      "description": "Fast for 16 hours, eat within an 8-hour window",
+      "id": "db3db329-ea52-404f-a58b-a5038bc28535",
+      "is_active": true,
+      "name": "16:8 Intermittent Fasting",
+      "slug": "16_8",
+      "sort_order": 1
+    },
+    {
+      "description": "Eat one large meal per day, fast the rest",
+      "id": "3cdebe8c-72f5-4afa-978b-d652f7577746",
+      "is_active": true,
+      "name": "OMAD (One Meal a Day)",
+      "slug": "omad",
+      "sort_order": 2
+    },
+    {
+      "description": "A day-and-a-half fast for deeper metabolic benefits",
+      "id": "77c93405-a6dc-47e7-b5f5-8f7ccde9bb1f",
+      "is_active": true,
+      "name": "36-Hour Fast",
+      "slug": "36h",
+      "sort_order": 3
+    },
+    {
+      "description": "A two-day fast for autophagy and metabolic reset",
+      "id": "a99a638c-b1e6-4011-ae8d-b6ac9fc41c7e",
+      "is_active": true,
+      "name": "48-Hour Fast",
+      "slug": "48h",
+      "sort_order": 4
+    },
+    {
+      "description": "A three-day fast for immune system regeneration",
+      "id": "9812532f-baf8-4a9e-99be-99b4f3f936a7",
+      "is_active": true,
+      "name": "72-Hour Fast",
+      "slug": "72h",
+      "sort_order": 5
+    },
+    {
+      "description": "Fasts longer than 72 hours — for experienced fasters only",
+      "id": "55ef51e0-f152-4b6a-ac4d-19e6f900e9b7",
+      "is_active": true,
+      "name": "Extended Fast (72h+)",
+      "slug": "extended",
+      "sort_order": 6
+    },
+    {
+      "description": "A personalized fasting schedule",
+      "id": "fc2a760c-82a3-4ffd-8f34-5bb548cb6db6",
+      "is_active": true,
+      "name": "Custom Fasting Protocol",
+      "slug": "custom",
+      "sort_order": 7
+    }
+  ],
+  "foodCategories": [
+    {
+      "icon": "🥩",
+      "id": "f1aecb5e-e60f-4cea-8773-35e86502dacc",
+      "name": "Red Meat",
+      "slug": "meat",
+      "sort_order": 1
+    },
+    {
+      "icon": "🍗",
+      "id": "474d8a2a-b8a2-4a9e-8bef-258bcec066ee",
+      "name": "Poultry",
+      "slug": "poultry",
+      "sort_order": 2
+    },
+    {
+      "icon": "🐟",
+      "id": "6ae74812-5595-4236-996d-fb77db2a6ae5",
+      "name": "Fish",
+      "slug": "fish",
+      "sort_order": 3
+    },
+    {
+      "icon": "🦐",
+      "id": "93cda816-2fe6-4115-b352-f574e3d19d33",
+      "name": "Seafood",
+      "slug": "seafood",
+      "sort_order": 4
+    },
+    {
+      "icon": "🫀",
+      "id": "dd4fe6a1-c365-481b-b8f3-463bd1764bae",
+      "name": "Organ Meats",
+      "slug": "organ_meat",
+      "sort_order": 5
+    },
+    {
+      "icon": "🥚",
+      "id": "7f7e71d7-93ec-412c-b214-b38e84bbf6a9",
+      "name": "Eggs",
+      "slug": "egg",
+      "sort_order": 6
+    },
+    {
+      "icon": "🧀",
+      "id": "22e2aec4-b4cc-40a9-97ec-9d32b3e5adac",
+      "name": "Dairy",
+      "slug": "dairy",
+      "sort_order": 7
+    },
+    {
+      "icon": "🥬",
+      "id": "a8339059-a542-4bf8-9397-c8477f2a3bb7",
+      "name": "Vegetables",
+      "slug": "vegetable",
+      "sort_order": 8
+    },
+    {
+      "icon": "🍎",
+      "id": "04e5b368-d7b9-4279-8b5a-efba05317a1c",
+      "name": "Fruits",
+      "slug": "fruit",
+      "sort_order": 9
+    },
+    {
+      "icon": "🥜",
+      "id": "03c31080-e03e-4f46-b8d3-483161b46366",
+      "name": "Nuts & Seeds",
+      "slug": "nut_seed",
+      "sort_order": 10
+    },
+    {
+      "icon": "🫘",
+      "id": "4bb199d6-7243-4abb-8c8e-a56e3ab30cca",
+      "name": "Legumes",
+      "slug": "legume",
+      "sort_order": 11
+    },
+    {
+      "icon": "🌾",
+      "id": "08734fb9-85b5-4c8a-961b-c1fa88df9cae",
+      "name": "Grains",
+      "slug": "grain",
+      "sort_order": 12
+    },
+    {
+      "icon": "🫙",
+      "id": "85561e32-e80e-45dc-820e-763a735b2e0f",
+      "name": "Fermented Foods",
+      "slug": "fermented",
+      "sort_order": 13
+    },
+    {
+      "icon": "🌿",
+      "id": "c5dfae7a-20fb-4e6b-b987-243a8d68373b",
+      "name": "Herbs & Spices",
+      "slug": "herb_spice",
+      "sort_order": 14
+    },
+    {
+      "icon": "🫒",
+      "id": "55ef538d-f9bb-43e4-8092-78c9597e6390",
+      "name": "Oils & Fats",
+      "slug": "oil_fat",
+      "sort_order": 15
+    },
+    {
+      "icon": "☕",
+      "id": "0bc7dbf0-cd15-4431-a6c9-31236b8b8790",
+      "name": "Beverages",
+      "slug": "beverage",
+      "sort_order": 16
+    },
+    {
+      "icon": "🍽️",
+      "id": "ac78229b-4358-410f-a332-8615743dfb7d",
+      "name": "Other",
+      "slug": "other",
+      "sort_order": 17
+    }
+  ],
+  "uiStrings": [
+    {
+      "context": "common",
+      "key": "common.back",
+      "value": "Back"
+    },
+    {
+      "context": "common",
+      "key": "common.cancel",
+      "value": "Cancel"
+    },
+    {
+      "context": "common",
+      "key": "common.delete",
+      "value": "Delete"
+    },
+    {
+      "context": "common",
+      "key": "common.edit",
+      "value": "Edit"
+    },
+    {
+      "context": "common",
+      "key": "common.error",
+      "value": "Error"
+    },
+    {
+      "context": "common",
+      "key": "common.loading",
+      "value": "Loading..."
+    },
+    {
+      "context": "common",
+      "key": "common.next",
+      "value": "Next"
+    },
+    {
+      "context": "common",
+      "key": "common.previous",
+      "value": "Previous"
+    },
+    {
+      "context": "common",
+      "key": "common.save",
+      "value": "Save"
+    },
+    {
+      "context": "common",
+      "key": "common.search",
+      "value": "Search"
+    },
+    {
+      "context": "common",
+      "key": "common.success",
+      "value": "Success"
+    },
+    {
+      "context": "dashboard",
+      "key": "dashboard.add_measurement",
+      "value": "Record your first measurement"
+    },
+    {
+      "context": "dashboard",
+      "key": "dashboard.explore",
+      "value": "Explore"
+    },
+    {
+      "context": "dashboard",
+      "key": "dashboard.health_zones",
+      "value": "Health Zones"
+    },
+    {
+      "context": "dashboard",
+      "key": "dashboard.no_measurements",
+      "value": "No measurements yet"
+    },
+    {
+      "context": "dashboard",
+      "key": "dashboard.welcome_title",
+      "value": "Your Health Overview"
+    },
+    {
+      "context": "doctor_chat",
+      "key": "doctor_chat.ask_question",
+      "value": "Ask a question..."
+    },
+    {
+      "context": "doctor_chat",
+      "key": "doctor_chat.upgrade_prompt",
+      "value": "Upgrade your plan for more Doctor Chat sessions"
+    },
+    {
+      "context": "nav",
+      "key": "nav.admin",
+      "value": "Admin"
+    },
+    {
+      "context": "nav",
+      "key": "nav.doctor_chat",
+      "value": "Doctor Chat"
+    },
+    {
+      "context": "nav",
+      "key": "nav.login",
+      "value": "Sign In"
+    },
+    {
+      "context": "nav",
+      "key": "nav.logout",
+      "value": "Log Out"
+    },
+    {
+      "context": "nav",
+      "key": "nav.overview",
+      "value": "Overview"
+    },
+    {
+      "context": "nav",
+      "key": "nav.settings",
+      "value": "Settings"
+    },
+    {
+      "context": "nav",
+      "key": "nav.signup",
+      "value": "Sign Up"
+    },
+    {
+      "context": "nav",
+      "key": "nav.trends",
+      "value": "Trends"
+    },
+    {
+      "context": "settings",
+      "key": "settings.language",
+      "value": "Language"
+    },
+    {
+      "context": "settings",
+      "key": "settings.profile",
+      "value": "Profile"
+    },
+    {
+      "context": "settings",
+      "key": "settings.save_error",
+      "value": "Failed to save settings"
+    },
+    {
+      "context": "settings",
+      "key": "settings.save_success",
+      "value": "Settings saved"
+    },
+    {
+      "context": "status",
+      "key": "status.borderline",
+      "value": "Borderline"
+    },
+    {
+      "context": "status",
+      "key": "status.no_data",
+      "value": "No data"
+    },
+    {
+      "context": "status",
+      "key": "status.optimal",
+      "value": "Optimal"
+    },
+    {
+      "context": "status",
+      "key": "status.out_of_range",
+      "value": "Out of Range"
+    }
+  ],
+  "webContent": [
+    {
+      "page": "homepage",
+      "sections": {
+        "hero_cta_primary": "Get Started Free",
+        "hero_cta_secondary": "View Features",
+        "hero_description": "Track 90+ biomarkers across 8 health zones. Protocol-aware thresholds for your diet. AI-powered insights with Dr. Alex.",
+        "hero_title": "Privacy-First Metabolic Health Tracking",
+        "section_cta_description": "Join thousands taking control of their metabolic health with privacy-first tracking.",
+        "section_cta_title": "Start Tracking Your Health Today",
+        "section_how_title": "How It Works",
+        "section_zones_description": "Your markers organized into functional zones that reflect how your body actually works.",
+        "section_zones_title": "8 Health Zones",
+        "trust_encryption": "AES-256 Encryption",
+        "trust_gdpr": "GDPR Compliant",
+        "trust_oss": "Open Source Auditable",
+        "trust_tls": "TLS 1.3",
+        "trust_tracking": "No Tracking"
+      }
+    },
+    {
+      "page": "features",
+      "sections": {
+        "feature_doctor_desc": "Ask Dr. Alex about your blood work, trends, and what to do next.",
+        "feature_doctor_title": "Dr. Alex AI Chat",
+        "feature_markers_desc": "Track everything from basic glucose to advanced hormones, with protocol-aware reference ranges.",
+        "feature_markers_title": "75+ Biomarkers",
+        "feature_protocol_desc": "Your diet and fasting pattern change what normal means. We adjust automatically.",
+        "feature_protocol_title": "Protocol-Aware Thresholds",
+        "feature_zones_desc": "Your markers organized into functional zones that reflect how your body actually works.",
+        "feature_zones_title": "8 Health Zones",
+        "hero_title": "Everything You Need to Understand Your Health"
+      }
+    },
+    {
+      "page": "global",
+      "sections": {
+        "footer_contact": "Contact",
+        "footer_copyright": "© 2026 Sovereign Health Intelligence",
+        "footer_impressum": "Impressum",
+        "footer_privacy": "Privacy Policy",
+        "footer_terms": "Terms of Service",
+        "nav_about": "About",
+        "nav_features": "Features",
+        "nav_home": "Home",
+        "nav_login": "Log In",
+        "nav_open_source": "Open Source",
+        "nav_pricing": "Pricing",
+        "nav_signup": "Sign Up"
+      }
+    }
+  ]
+}

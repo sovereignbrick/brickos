@@ -1,0 +1,48 @@
+# Sovereign Health Intelligence - robots.txt
+# Allow search engines, block AI training crawlers
+
+Sitemap: https://app.sovereignhealth.io/sitemap.xml
+
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /settings/
+Disallow: /measurements/
+Disallow: /export/
+
+# Block known AI training crawlers
+User-agent: GPTBot
+Disallow: /
+
+User-agent: ChatGPT-User
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
+
+User-agent: anthropic-ai
+Disallow: /
+
+User-agent: Claude-Web
+Disallow: /
+
+User-agent: Google-Extended
+Disallow: /
+
+User-agent: Bytespider
+Disallow: /
+
+User-agent: Amazonbot
+Disallow: /
+
+# Facebook limited to public pages only
+User-agent: FacebookBot
+Disallow: /markers/
+Disallow: /zones/
+
+# Allow search engines for SEO
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /

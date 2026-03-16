@@ -1,0 +1,1732 @@
+[
+  {
+    "slug": "glucose",
+    "name": "Glucose",
+    "display_name": "Glucose",
+    "description": "Blood glucose is the sugar in your blood that your cells use for energy. Your body tightly regulates it with insulin. Fasting glucose is one of the best indicators of metabolic health.\n\nThis marker is affected by fasting. See the fasting protocol range below.",
+    "unit": "mmol/L",
+    "source_type": "home",
+    "is_calculated": false,
+    "zone_slug": "energy_metabolic",
+    "zone_name": "Energy & Metabolic",
+    "zones": [
+      {
+        "icon": "⚡",
+        "name": "Energy & Metabolic",
+        "slug": "energy_metabolic"
+      }
+    ]
+  },
+  {
+    "slug": "insulin",
+    "name": "Insulin (Fasting)",
+    "display_name": "Insulin (Fasting)",
+    "description": "Fasting insulin measures how much insulin your pancreas produces when you have not eaten. High fasting insulin is one of the earliest signs of insulin resistance, often appearing years before blood sugar rises.",
+    "unit": "µIU/mL",
+    "source_type": "lab",
+    "is_calculated": false,
+    "zone_slug": "energy_metabolic",
+    "zone_name": "Energy & Metabolic",
+    "zones": [
+      {
+        "icon": "⚡",
+        "name": "Energy & Metabolic",
+        "slug": "energy_metabolic"
+      }
+    ]
+  },
+  {
+    "slug": "hba1c",
+    "name": "HbA1c",
+    "display_name": "HbA1c",
+    "description": "HbA1c (glycated hemoglobin) reflects your average blood sugar over the past 2-3 months. It shows what percentage of hemoglobin in your red blood cells has glucose attached to it.",
+    "unit": "%",
+    "source_type": "lab",
+    "is_calculated": false,
+    "zone_slug": "energy_metabolic",
+    "zone_name": "Energy & Metabolic",
+    "zones": [
+      {
+        "icon": "⚡",
+        "name": "Energy & Metabolic",
+        "slug": "energy_metabolic"
+      }
+    ]
+  },
+  {
+    "slug": "ketones",
+    "name": "Ketones",
+    "display_name": "Ketones",
+    "description": "Beta-hydroxybutyrate (BHB) is a ketone body your liver produces when burning fat for fuel. Higher levels indicate your body is in ketosis, using fat instead of glucose for energy.\n\nThis marker is affected by fasting. See the fasting protocol range below.",
+    "unit": "mmol/L",
+    "source_type": "home",
+    "is_calculated": false,
+    "zone_slug": "energy_metabolic",
+    "zone_name": "Energy & Metabolic",
+    "zones": [
+      {
+        "icon": "⚡",
+        "name": "Energy & Metabolic",
+        "slug": "energy_metabolic"
+      }
+    ]
+  },
+  {
+    "slug": "tsh",
+    "name": "TSH",
+    "display_name": "TSH",
+    "description": "Thyroid-stimulating hormone (TSH) tells your thyroid gland how much thyroid hormone to produce. High TSH means your thyroid is underactive; low TSH means it is overactive.",
+    "unit": "mIU/L",
+    "source_type": "lab",
+    "is_calculated": false,
+    "zone_slug": "energy_metabolic",
+    "zone_name": "Energy & Metabolic",
+    "zones": [
+      {
+        "icon": "⚡",
+        "name": "Energy & Metabolic",
+        "slug": "energy_metabolic"
+      }
+    ]
+  },
+  {
+    "slug": "ft4",
+    "name": "Free T4",
+    "display_name": "Free T4",
+    "description": "Free T4 (thyroxine) is the main hormone your thyroid releases into your blood. Your body converts T4 into the more active T3 form in your tissues.",
+    "unit": "pmol/L",
+    "source_type": "lab",
+    "is_calculated": false,
+    "zone_slug": "energy_metabolic",
+    "zone_name": "Energy & Metabolic",
+    "zones": [
+      {
+        "icon": "⚡",
+        "name": "Energy & Metabolic",
+        "slug": "energy_metabolic"
+      }
+    ]
+  },
+  {
+    "slug": "ft3",
+    "name": "Free T3",
+    "display_name": "Free T3",
+    "description": "Free T3 (triiodothyronine) is the most active thyroid hormone. It directly controls your metabolic rate, body temperature, heart rate, and energy production.",
+    "unit": "pmol/L",
+    "source_type": "lab",
+    "is_calculated": false,
+    "zone_slug": "energy_metabolic",
+    "zone_name": "Energy & Metabolic",
+    "zones": [
+      {
+        "icon": "⚡",
+        "name": "Energy & Metabolic",
+        "slug": "energy_metabolic"
+      },
+      {
+        "icon": "🧠",
+        "name": "Cognitive",
+        "slug": "cognitive"
+      }
+    ]
+  },
+  {
+    "slug": "dheas",
+    "name": "DHEA-S",
+    "display_name": "DHEA-S",
+    "description": "DHEA-S is a precursor hormone made by your adrenal glands. Your body converts it into testosterone and estrogen. Levels naturally decline with age and can reflect adrenal function and biological aging.",
+    "unit": "µmol/L",
+    "source_type": "lab",
+    "is_calculated": false,
+    "zone_slug": "energy_metabolic",
+    "zone_name": "Energy & Metabolic",
+    "zones": [
+      {
+        "icon": "⚡",
+        "name": "Energy & Metabolic",
+        "slug": "energy_metabolic"
+      },
+      {
+        "icon": "🎯",
+        "name": "Hormonal",
+        "slug": "hormonal"
+      }
+    ]
+  },
+  {
+    "slug": "weight",
+    "name": "Weight",
+    "display_name": "Weight",
+    "description": "Body weight is your total mass including muscle, fat, bone, water, and organs. While useful for tracking trends, it does not distinguish between lean mass and body fat.",
+    "unit": "kg",
+    "source_type": "home",
+    "is_calculated": false,
+    "zone_slug": "energy_metabolic",
+    "zone_name": "Energy & Metabolic",
+    "zones": [
+      {
+        "icon": "⚡",
+        "name": "Energy & Metabolic",
+        "slug": "energy_metabolic"
+      }
+    ]
+  },
+  {
+    "slug": "gki",
+    "name": "GKI - Glucose-Ketone Index",
+    "display_name": "GKI - Glucose-Ketone Index",
+    "description": "The Glucose-Ketone Index measures the ratio between your blood glucose and ketone levels. A lower GKI indicates deeper ketosis and more effective fat burning. It was developed by Dr. Thomas Seyfried.\n\nFormula: Glucose (mmol/L) / Ketones (mmol/L)\nBased on: Glucose (glucose), Ketones (ketones)",
+    "unit": "ratio",
+    "source_type": "home",
+    "is_calculated": true,
+    "zone_slug": "energy_metabolic",
+    "zone_name": "Energy & Metabolic",
+    "zones": [
+      {
+        "icon": "⚡",
+        "name": "Energy & Metabolic",
+        "slug": "energy_metabolic"
+      }
+    ]
+  },
+  {
+    "slug": "dr_boz_ratio",
+    "name": "Dr. Boz Ratio",
+    "display_name": "Dr. Boz Ratio",
+    "description": "The Dr. Boz Ratio is a popular alternative to GKI used in the ketogenic community, developed by Dr. Annette Bosworth. Lower values indicate deeper ketosis.\n\nFormula: Glucose (mg/dL) / Ketones (mmol/L)\nBased on: Glucose (glucose), Ketones (ketones)",
+    "unit": "ratio",
+    "source_type": "home",
+    "is_calculated": true,
+    "zone_slug": "energy_metabolic",
+    "zone_name": "Energy & Metabolic",
+    "zones": [
+      {
+        "icon": "⚡",
+        "name": "Energy & Metabolic",
+        "slug": "energy_metabolic"
+      }
+    ]
+  },
+  {
+    "slug": "homa_ir",
+    "name": "HOMA-IR",
+    "display_name": "HOMA-IR",
+    "description": "HOMA-IR estimates how resistant your cells are to insulin. Lower values mean better insulin sensitivity. A value under 1.0 is considered optimal for metabolic health.\n\nFormula: (Fasting Glucose mg/dL x Fasting Insulin uIU/mL) / 405\nBased on: Glucose (glucose), Insulin (insulin)",
+    "unit": "index",
+    "source_type": "hybrid",
+    "is_calculated": true,
+    "zone_slug": "energy_metabolic",
+    "zone_name": "Energy & Metabolic",
+    "zones": [
+      {
+        "icon": "⚡",
+        "name": "Energy & Metabolic",
+        "slug": "energy_metabolic"
+      }
+    ]
+  },
+  {
+    "slug": "tyg_index",
+    "name": "TyG Index",
+    "display_name": "TyG Index",
+    "description": "The TyG Index estimates insulin resistance using fasting triglycerides and glucose. It does not require an insulin test, making it more accessible. A lower value indicates better insulin sensitivity.\n\nFormula: ln(Triglycerides mg/dL x Glucose mg/dL / 2)\nBased on: Triglycerides (triglycerides), Glucose (glucose)",
+    "unit": "index",
+    "source_type": "hybrid",
+    "is_calculated": true,
+    "zone_slug": "energy_metabolic",
+    "zone_name": "Energy & Metabolic",
+    "zones": [
+      {
+        "icon": "⚡",
+        "name": "Energy & Metabolic",
+        "slug": "energy_metabolic"
+      }
+    ]
+  },
+  {
+    "slug": "albumin",
+    "name": "Albumin",
+    "display_name": "Albumin",
+    "description": "Albumin is the most abundant protein in your blood, made by your liver. It maintains fluid balance, transports hormones and nutrients, and reflects overall nutritional status and liver function.",
+    "unit": "g/L",
+    "source_type": "lab",
+    "is_calculated": false,
+    "zone_slug": "structural",
+    "zone_name": "Structural",
+    "zones": [
+      {
+        "icon": "💪",
+        "name": "Structural",
+        "slug": "structural"
+      },
+      {
+        "icon": "🔄",
+        "name": "Detoxification",
+        "slug": "detoxification"
+      }
+    ]
+  },
+  {
+    "slug": "total_protein",
+    "name": "Total Protein",
+    "display_name": "Total Protein",
+    "description": "Total protein measures albumin plus globulins in your blood. It reflects your nutritional status, immune function, and liver and kidney health.",
+    "unit": "g/L",
+    "source_type": "lab",
+    "is_calculated": false,
+    "zone_slug": "structural",
+    "zone_name": "Structural",
+    "zones": [
+      {
+        "icon": "💪",
+        "name": "Structural",
+        "slug": "structural"
+      },
+      {
+        "icon": "🔄",
+        "name": "Detoxification",
+        "slug": "detoxification"
+      }
+    ]
+  },
+  {
+    "slug": "calcium",
+    "name": "Calcium",
+    "display_name": "Calcium",
+    "description": "Calcium is the most abundant mineral in your body, critical for strong bones, muscle contraction, nerve signaling, and blood clotting. Most calcium is stored in your bones and teeth.",
+    "unit": "mmol/L",
+    "source_type": "lab",
+    "is_calculated": false,
+    "zone_slug": "structural",
+    "zone_name": "Structural",
+    "zones": [
+      {
+        "icon": "💪",
+        "name": "Structural",
+        "slug": "structural"
+      },
+      {
+        "icon": "🌱",
+        "name": "Nutritional",
+        "slug": "nutritional"
+      }
+    ]
+  },
+  {
+    "slug": "magnesium",
+    "name": "Magnesium",
+    "display_name": "Magnesium",
+    "description": "Magnesium is involved in over 300 enzyme reactions including energy production, muscle function, and nerve signaling. It is one of the most common deficiencies and is hard to detect with blood tests alone.",
+    "unit": "mmol/L",
+    "source_type": "lab",
+    "is_calculated": false,
+    "zone_slug": "structural",
+    "zone_name": "Structural",
+    "zones": [
+      {
+        "icon": "💪",
+        "name": "Structural",
+        "slug": "structural"
+      },
+      {
+        "icon": "🧠",
+        "name": "Cognitive",
+        "slug": "cognitive"
+      },
+      {
+        "icon": "🌱",
+        "name": "Nutritional",
+        "slug": "nutritional"
+      },
+      {
+        "icon": "🔄",
+        "name": "Detoxification",
+        "slug": "detoxification"
+      }
+    ]
+  },
+  {
+    "slug": "potassium",
+    "name": "Potassium",
+    "display_name": "Potassium",
+    "description": "Potassium is an electrolyte that regulates fluid balance, nerve signals, and muscle contractions including your heartbeat. Both high and low levels can cause dangerous heart rhythm problems.",
+    "unit": "mmol/L",
+    "source_type": "lab",
+    "is_calculated": false,
+    "zone_slug": "structural",
+    "zone_name": "Structural",
+    "zones": [
+      {
+        "icon": "💪",
+        "name": "Structural",
+        "slug": "structural"
+      },
+      {
+        "icon": "🌱",
+        "name": "Nutritional",
+        "slug": "nutritional"
+      }
+    ]
+  },
+  {
+    "slug": "creatinine",
+    "name": "Creatinine",
+    "display_name": "Creatinine",
+    "description": "Creatinine is a waste product from normal muscle metabolism filtered out by your kidneys. Rising levels suggest your kidneys may not be filtering as efficiently as they should.",
+    "unit": "µmol/L",
+    "source_type": "lab",
+    "is_calculated": false,
+    "zone_slug": "structural",
+    "zone_name": "Structural",
+    "zones": [
+      {
+        "icon": "💪",
+        "name": "Structural",
+        "slug": "structural"
+      },
+      {
+        "icon": "🧠",
+        "name": "Cognitive",
+        "slug": "cognitive"
+      },
+      {
+        "icon": "🔄",
+        "name": "Detoxification",
+        "slug": "detoxification"
+      }
+    ]
+  },
+  {
+    "slug": "vitamin_d",
+    "name": "Vitamin D (25-OH)",
+    "display_name": "Vitamin D (25-OH)",
+    "description": "Vitamin D is both a vitamin and a hormone that regulates calcium absorption, immune function, and mood. Most people in northern climates are deficient, especially in winter.",
+    "unit": "nmol/L",
+    "source_type": "lab",
+    "is_calculated": false,
+    "zone_slug": "nutritional",
+    "zone_name": "Nutritional",
+    "zones": [
+      {
+        "icon": "🌱",
+        "name": "Nutritional",
+        "slug": "nutritional"
+      },
+      {
+        "icon": "💪",
+        "name": "Structural",
+        "slug": "structural"
+      },
+      {
+        "icon": "🛡️",
+        "name": "Immune",
+        "slug": "immune"
+      }
+    ]
+  },
+  {
+    "slug": "iron",
+    "name": "Iron",
+    "display_name": "Iron",
+    "description": "Serum iron measures the amount of iron circulating in your blood. Low iron can cause fatigue, weakness, and poor concentration. High iron can damage your liver and heart over time.",
+    "unit": "µmol/L",
+    "source_type": "lab",
+    "is_calculated": false,
+    "zone_slug": "structural",
+    "zone_name": "Structural",
+    "zones": [
+      {
+        "icon": "💪",
+        "name": "Structural",
+        "slug": "structural"
+      },
+      {
+        "icon": "🌱",
+        "name": "Nutritional",
+        "slug": "nutritional"
+      }
+    ]
+  },
+  {
+    "slug": "phosphate",
+    "name": "Phosphate",
+    "display_name": "Phosphate",
+    "description": "Phosphate works with calcium to build strong bones and teeth. It is also part of DNA, cell membranes, and the ATP molecules your cells use for energy.",
+    "unit": "mmol/L",
+    "source_type": "lab",
+    "is_calculated": false,
+    "zone_slug": "structural",
+    "zone_name": "Structural",
+    "zones": [
+      {
+        "icon": "💪",
+        "name": "Structural",
+        "slug": "structural"
+      }
+    ]
+  },
+  {
+    "slug": "body_fat_pct",
+    "name": "Body Fat",
+    "display_name": "Body Fat",
+    "description": "Body fat percentage measures the proportion of your total body weight that is adipose (fat) tissue. It is a more meaningful indicator of health than weight alone, as it distinguishes between fat mass and lean mass. Values are typically measured using bioelectrical impedance scales like the Qardiobase 2.",
+    "unit": "%",
+    "source_type": "home",
+    "is_calculated": false,
+    "zone_slug": "structural",
+    "zone_name": "Structural",
+    "zones": [
+      {
+        "icon": "💪",
+        "name": "Structural",
+        "slug": "structural"
+      }
+    ]
+  },
+  {
+    "slug": "body_water_pct",
+    "name": "Body Water",
+    "display_name": "Body Water",
+    "description": "Body water percentage indicates how much of your total body weight is water. Adequate hydration is essential for cellular function, temperature regulation, and nutrient transport. Dehydration or overhydration both affect this reading. Bioelectrical impedance scales estimate this by measuring how electrical current passes through body tissues.",
+    "unit": "%",
+    "source_type": "home",
+    "is_calculated": false,
+    "zone_slug": "structural",
+    "zone_name": "Structural",
+    "zones": [
+      {
+        "icon": "💪",
+        "name": "Structural",
+        "slug": "structural"
+      }
+    ]
+  },
+  {
+    "slug": "muscle_pct",
+    "name": "Muscle Mass",
+    "display_name": "Muscle Mass",
+    "description": "Muscle mass percentage reflects the proportion of your body weight made up of skeletal muscle tissue. Higher muscle mass is associated with better metabolic health, insulin sensitivity, and physical function. Resistance training and adequate protein intake help maintain and build muscle mass.",
+    "unit": "%",
+    "source_type": "home",
+    "is_calculated": false,
+    "zone_slug": "structural",
+    "zone_name": "Structural",
+    "zones": [
+      {
+        "icon": "💪",
+        "name": "Structural",
+        "slug": "structural"
+      }
+    ]
+  },
+  {
+    "slug": "bone_mass_pct",
+    "name": "Bone Mass",
+    "display_name": "Bone Mass",
+    "description": "Bone mass percentage indicates the proportion of your body weight attributed to bone mineral content. Healthy bone density is crucial for preventing fractures and osteoporosis. Weight-bearing exercise, vitamin D, and adequate calcium intake support bone health.",
+    "unit": "%",
+    "source_type": "home",
+    "is_calculated": false,
+    "zone_slug": "structural",
+    "zone_name": "Structural",
+    "zones": [
+      {
+        "icon": "💪",
+        "name": "Structural",
+        "slug": "structural"
+      }
+    ]
+  },
+  {
+    "slug": "whtr",
+    "name": "WHtR - Waist-to-Height Ratio",
+    "display_name": "WHtR - Waist-to-Height Ratio",
+    "description": "Waist-to-Height Ratio is one of the most reliable simple measures of visceral fat and metabolic risk. A ratio under 0.5 is considered healthy for most adults.\n\nFormula: Waist Circumference (cm) / Height (cm)\nBased on: Waist Circumference (waist_circumference), Height (from profile)",
+    "unit": "ratio",
+    "source_type": "home",
+    "is_calculated": true,
+    "zone_slug": "structural",
+    "zone_name": "Structural",
+    "zones": [
+      {
+        "icon": "💪",
+        "name": "Structural",
+        "slug": "structural"
+      }
+    ]
+  },
+  {
+    "slug": "bmi",
+    "name": "BMI - Body Mass Index",
+    "display_name": "BMI - Body Mass Index",
+    "description": "BMI (Body Mass Index) estimates body fat based on your weight and height. It is a rough screening tool, not a direct measure of body composition.\n\nFormula: Weight (kg) / Height (m)^2\nBased on: Weight (weight), Height (from profile)",
+    "unit": "kg/m²",
+    "source_type": "home",
+    "is_calculated": true,
+    "zone_slug": "structural",
+    "zone_name": "Structural",
+    "zones": [
+      {
+        "icon": "💪",
+        "name": "Structural",
+        "slug": "structural"
+      }
+    ]
+  },
+  {
+    "slug": "bp_systolic",
+    "name": "BP Systolic",
+    "display_name": "BP Systolic",
+    "description": "Systolic blood pressure is the top number in a blood pressure reading. It measures the pressure in your arteries when your heart beats and pushes blood out.",
+    "unit": "mmHg",
+    "source_type": "home",
+    "is_calculated": false,
+    "zone_slug": "cardiovascular",
+    "zone_name": "Cardiovascular",
+    "zones": [
+      {
+        "icon": "🫀",
+        "name": "Cardiovascular",
+        "slug": "cardiovascular"
+      }
+    ]
+  },
+  {
+    "slug": "bp_diastolic",
+    "name": "BP Diastolic",
+    "display_name": "BP Diastolic",
+    "description": "Diastolic blood pressure is the bottom number in a blood pressure reading. It measures the pressure in your arteries between heartbeats, when your heart is resting and refilling.",
+    "unit": "mmHg",
+    "source_type": "home",
+    "is_calculated": false,
+    "zone_slug": "cardiovascular",
+    "zone_name": "Cardiovascular",
+    "zones": [
+      {
+        "icon": "🫀",
+        "name": "Cardiovascular",
+        "slug": "cardiovascular"
+      }
+    ]
+  },
+  {
+    "slug": "heart_rate",
+    "name": "Heart Rate",
+    "display_name": "Heart Rate",
+    "description": "Heart rate is the number of times your heart beats per minute at rest. A lower resting heart rate generally indicates better cardiovascular fitness.",
+    "unit": "bpm",
+    "source_type": "home",
+    "is_calculated": false,
+    "zone_slug": "cardiovascular",
+    "zone_name": "Cardiovascular",
+    "zones": [
+      {
+        "icon": "🫀",
+        "name": "Cardiovascular",
+        "slug": "cardiovascular"
+      }
+    ]
+  },
+  {
+    "slug": "total_cholesterol",
+    "name": "Total Cholesterol",
+    "display_name": "Total Cholesterol",
+    "description": "Total cholesterol is the sum of all cholesterol in your blood, including HDL, LDL, and VLDL fractions. By itself it is a poor predictor of cardiovascular risk.",
+    "unit": "mmol/L",
+    "source_type": "home",
+    "is_calculated": false,
+    "zone_slug": "cardiovascular",
+    "zone_name": "Cardiovascular",
+    "zones": [
+      {
+        "icon": "🫀",
+        "name": "Cardiovascular",
+        "slug": "cardiovascular"
+      }
+    ]
+  },
+  {
+    "slug": "ldl_c",
+    "name": "LDL Cholesterol",
+    "display_name": "LDL Cholesterol",
+    "description": "LDL cholesterol delivers cholesterol to your cells and artery walls. When LDL particles are elevated, especially small dense ones, they contribute to plaque buildup in arteries.",
+    "unit": "mmol/L",
+    "source_type": "lab",
+    "is_calculated": false,
+    "zone_slug": "cardiovascular",
+    "zone_name": "Cardiovascular",
+    "zones": [
+      {
+        "icon": "🫀",
+        "name": "Cardiovascular",
+        "slug": "cardiovascular"
+      }
+    ]
+  },
+  {
+    "slug": "hdl_c",
+    "name": "HDL Cholesterol",
+    "display_name": "HDL Cholesterol",
+    "description": "HDL cholesterol carries excess cholesterol from your arteries back to your liver for recycling. Higher HDL is generally protective against heart disease.",
+    "unit": "mmol/L",
+    "source_type": "lab",
+    "is_calculated": false,
+    "zone_slug": "cardiovascular",
+    "zone_name": "Cardiovascular",
+    "zones": [
+      {
+        "icon": "🫀",
+        "name": "Cardiovascular",
+        "slug": "cardiovascular"
+      }
+    ]
+  },
+  {
+    "slug": "triglycerides",
+    "name": "Triglycerides",
+    "display_name": "Triglycerides",
+    "description": "Triglycerides are fats in your blood that your body uses for energy storage. Elevated triglycerides, especially when combined with low HDL, are a strong signal of insulin resistance.",
+    "unit": "mmol/L",
+    "source_type": "lab",
+    "is_calculated": false,
+    "zone_slug": "cardiovascular",
+    "zone_name": "Cardiovascular",
+    "zones": [
+      {
+        "icon": "🫀",
+        "name": "Cardiovascular",
+        "slug": "cardiovascular"
+      }
+    ]
+  },
+  {
+    "slug": "apob",
+    "name": "ApoB",
+    "display_name": "ApoB",
+    "description": "Apolipoprotein B (ApoB) counts the number of potentially harmful cholesterol particles in your blood. Each LDL, VLDL, and Lp(a) particle carries exactly one ApoB molecule, making it the best single marker for cardiovascular risk.",
+    "unit": "g/L",
+    "source_type": "lab",
+    "is_calculated": false,
+    "zone_slug": "cardiovascular",
+    "zone_name": "Cardiovascular",
+    "zones": [
+      {
+        "icon": "🫀",
+        "name": "Cardiovascular",
+        "slug": "cardiovascular"
+      }
+    ]
+  },
+  {
+    "slug": "lpa",
+    "name": "Lp(a)",
+    "display_name": "Lp(a)",
+    "description": "Lipoprotein(a) is a genetically determined cholesterol particle similar to LDL but with an extra protein attached. Elevated Lp(a) significantly increases cardiovascular and stroke risk regardless of other lipid levels.",
+    "unit": "nmol/L",
+    "source_type": "lab",
+    "is_calculated": false,
+    "zone_slug": "cardiovascular",
+    "zone_name": "Cardiovascular",
+    "zones": [
+      {
+        "icon": "🫀",
+        "name": "Cardiovascular",
+        "slug": "cardiovascular"
+      }
+    ]
+  },
+  {
+    "slug": "hs_crp",
+    "name": "hs-CRP",
+    "display_name": "hs-CRP",
+    "description": "High-sensitivity CRP measures low-level inflammation throughout your body. Chronic elevation is linked to increased cardiovascular disease risk, even when cholesterol is normal.",
+    "unit": "mg/L",
+    "source_type": "lab",
+    "is_calculated": false,
+    "zone_slug": "cardiovascular",
+    "zone_name": "Cardiovascular",
+    "zones": [
+      {
+        "icon": "🫀",
+        "name": "Cardiovascular",
+        "slug": "cardiovascular"
+      },
+      {
+        "icon": "🛡️",
+        "name": "Immune",
+        "slug": "immune"
+      }
+    ]
+  },
+  {
+    "slug": "tg_hdl_ratio",
+    "name": "TG/HDL Ratio",
+    "display_name": "TG/HDL Ratio",
+    "description": "The TG/HDL Ratio is a simple proxy for insulin resistance and cardiovascular risk. A lower ratio suggests better metabolic health. Values under 1.5 (mmol/L) are considered optimal.\n\nFormula: Triglycerides / HDL Cholesterol\nBased on: Triglycerides (triglycerides), HDL Cholesterol (hdl_c)",
+    "unit": "ratio",
+    "source_type": "lab",
+    "is_calculated": true,
+    "zone_slug": "cardiovascular",
+    "zone_name": "Cardiovascular",
+    "zones": [
+      {
+        "icon": "🫀",
+        "name": "Cardiovascular",
+        "slug": "cardiovascular"
+      }
+    ]
+  },
+  {
+    "slug": "vitamin_b12",
+    "name": "Vitamin B12",
+    "display_name": "Vitamin B12",
+    "description": "Vitamin B12 is essential for nerve function, DNA synthesis, and red blood cell formation. Deficiency can cause fatigue, numbness, memory problems, and irreversible nerve damage if left untreated.",
+    "unit": "pmol/L",
+    "source_type": "lab",
+    "is_calculated": false,
+    "zone_slug": "cognitive",
+    "zone_name": "Cognitive",
+    "zones": [
+      {
+        "icon": "🧠",
+        "name": "Cognitive",
+        "slug": "cognitive"
+      },
+      {
+        "icon": "🌱",
+        "name": "Nutritional",
+        "slug": "nutritional"
+      }
+    ]
+  },
+  {
+    "slug": "folate",
+    "name": "Folate",
+    "display_name": "Folate",
+    "description": "Folate (vitamin B9) is critical for DNA synthesis, cell division, and red blood cell formation. It works closely with B12. Deficiency is especially dangerous during pregnancy.",
+    "unit": "µg/L",
+    "source_type": "lab",
+    "is_calculated": false,
+    "zone_slug": "cognitive",
+    "zone_name": "Cognitive",
+    "zones": [
+      {
+        "icon": "🧠",
+        "name": "Cognitive",
+        "slug": "cognitive"
+      },
+      {
+        "icon": "🌱",
+        "name": "Nutritional",
+        "slug": "nutritional"
+      }
+    ]
+  },
+  {
+    "slug": "vitamin_b6",
+    "name": "Vitamin B6",
+    "display_name": "Vitamin B6",
+    "description": "Vitamin B6 is involved in over 100 enzyme reactions, including protein metabolism, neurotransmitter synthesis, and immune function. Deficiency can cause nerve damage and confusion.",
+    "unit": "nmol/L",
+    "source_type": "lab",
+    "is_calculated": false,
+    "zone_slug": "cognitive",
+    "zone_name": "Cognitive",
+    "zones": [
+      {
+        "icon": "🧠",
+        "name": "Cognitive",
+        "slug": "cognitive"
+      },
+      {
+        "icon": "🌱",
+        "name": "Nutritional",
+        "slug": "nutritional"
+      }
+    ]
+  },
+  {
+    "slug": "testosterone",
+    "name": "Testosterone",
+    "display_name": "Testosterone",
+    "description": "Testosterone is the primary male sex hormone but is important for both sexes. It regulates muscle mass, bone density, fat distribution, mood, energy, and libido.",
+    "unit": "nmol/L",
+    "source_type": "lab",
+    "is_calculated": false,
+    "zone_slug": "hormonal",
+    "zone_name": "Hormonal",
+    "zones": [
+      {
+        "icon": "🎯",
+        "name": "Hormonal",
+        "slug": "hormonal"
+      },
+      {
+        "icon": "🧠",
+        "name": "Cognitive",
+        "slug": "cognitive"
+      }
+    ]
+  },
+  {
+    "slug": "estradiol",
+    "name": "Estradiol (E2)",
+    "display_name": "Estradiol (E2)",
+    "description": "Estradiol (E2) is the primary form of estrogen. In women it regulates the menstrual cycle and bone health. In men, balanced estradiol is important for bone density and cardiovascular health.",
+    "unit": "pmol/L",
+    "source_type": "lab",
+    "is_calculated": false,
+    "zone_slug": "hormonal",
+    "zone_name": "Hormonal",
+    "zones": [
+      {
+        "icon": "🎯",
+        "name": "Hormonal",
+        "slug": "hormonal"
+      },
+      {
+        "icon": "🧠",
+        "name": "Cognitive",
+        "slug": "cognitive"
+      }
+    ]
+  },
+  {
+    "slug": "wbc",
+    "name": "WBC (Leukocytes)",
+    "display_name": "WBC (Leukocytes)",
+    "description": "White blood cells are your immune system's defense force. A high count may signal infection or inflammation. A low count may indicate immune suppression or bone marrow problems.",
+    "unit": "Gpt/L",
+    "source_type": "lab",
+    "is_calculated": false,
+    "zone_slug": "immune",
+    "zone_name": "Immune",
+    "zones": [
+      {
+        "icon": "🛡️",
+        "name": "Immune",
+        "slug": "immune"
+      }
+    ]
+  },
+  {
+    "slug": "rbc",
+    "name": "RBC (Erythrocytes)",
+    "display_name": "RBC (Erythrocytes)",
+    "description": "Red blood cells carry oxygen from your lungs to your entire body. Low RBC counts can cause anemia and fatigue. High counts may indicate dehydration or a bone marrow disorder.",
+    "unit": "Tpt/L",
+    "source_type": "lab",
+    "is_calculated": false,
+    "zone_slug": "immune",
+    "zone_name": "Immune",
+    "zones": [
+      {
+        "icon": "🛡️",
+        "name": "Immune",
+        "slug": "immune"
+      }
+    ]
+  },
+  {
+    "slug": "hemoglobin",
+    "name": "Hemoglobin",
+    "display_name": "Hemoglobin",
+    "description": "Hemoglobin is the protein in red blood cells that carries oxygen from your lungs to every tissue in your body. Low hemoglobin means less oxygen delivery, causing fatigue and weakness.",
+    "unit": "mmol/L",
+    "source_type": "home",
+    "is_calculated": false,
+    "zone_slug": "immune",
+    "zone_name": "Immune",
+    "zones": [
+      {
+        "icon": "🛡️",
+        "name": "Immune",
+        "slug": "immune"
+      }
+    ]
+  },
+  {
+    "slug": "hematocrit",
+    "name": "Hematocrit",
+    "display_name": "Hematocrit",
+    "description": "Hematocrit is the percentage of your blood volume made up of red blood cells. It reflects your blood's oxygen-carrying capacity and hydration status.",
+    "unit": "%",
+    "source_type": "home",
+    "is_calculated": false,
+    "zone_slug": "immune",
+    "zone_name": "Immune",
+    "zones": [
+      {
+        "icon": "🛡️",
+        "name": "Immune",
+        "slug": "immune"
+      }
+    ]
+  },
+  {
+    "slug": "platelets",
+    "name": "Platelets (Thrombocytes)",
+    "display_name": "Platelets (Thrombocytes)",
+    "description": "Platelets are small cell fragments that help your blood clot to stop bleeding. Abnormal counts can cause excessive bleeding or dangerous clot formation.",
+    "unit": "Gpt/L",
+    "source_type": "lab",
+    "is_calculated": false,
+    "zone_slug": "immune",
+    "zone_name": "Immune",
+    "zones": [
+      {
+        "icon": "🛡️",
+        "name": "Immune",
+        "slug": "immune"
+      }
+    ]
+  },
+  {
+    "slug": "neutrophils_pct",
+    "name": "Neutrophils %",
+    "display_name": "Neutrophils %",
+    "description": "Neutrophils are the most common white blood cells and your first line of defense against bacterial infections. This marker shows their percentage of total white blood cells.",
+    "unit": "%",
+    "source_type": "lab",
+    "is_calculated": false,
+    "zone_slug": "immune",
+    "zone_name": "Immune",
+    "zones": [
+      {
+        "icon": "🛡️",
+        "name": "Immune",
+        "slug": "immune"
+      }
+    ]
+  },
+  {
+    "slug": "neutrophils_abs",
+    "name": "Neutrophils (Abs)",
+    "display_name": "Neutrophils (Abs)",
+    "description": "Neutrophil absolute count measures the actual number of neutrophils per liter of blood. It is more clinically useful than the percentage for assessing infection risk.",
+    "unit": "Gpt/L",
+    "source_type": "lab",
+    "is_calculated": false,
+    "zone_slug": "immune",
+    "zone_name": "Immune",
+    "zones": [
+      {
+        "icon": "🛡️",
+        "name": "Immune",
+        "slug": "immune"
+      }
+    ]
+  },
+  {
+    "slug": "lymphocytes_pct",
+    "name": "Lymphocytes %",
+    "display_name": "Lymphocytes %",
+    "description": "Lymphocytes include T cells, B cells, and natural killer cells. They handle viral infections and produce antibodies. This marker shows their percentage of total white blood cells.",
+    "unit": "%",
+    "source_type": "lab",
+    "is_calculated": false,
+    "zone_slug": "immune",
+    "zone_name": "Immune",
+    "zones": [
+      {
+        "icon": "🛡️",
+        "name": "Immune",
+        "slug": "immune"
+      }
+    ]
+  },
+  {
+    "slug": "lymphocytes_abs",
+    "name": "Lymphocytes (Abs)",
+    "display_name": "Lymphocytes (Abs)",
+    "description": "Lymphocyte absolute count measures the actual number of lymphocytes in your blood. Low counts can indicate immune deficiency.\n\nThis marker is affected by fasting. See the fasting protocol range below.",
+    "unit": "Gpt/L",
+    "source_type": "lab",
+    "is_calculated": false,
+    "zone_slug": "immune",
+    "zone_name": "Immune",
+    "zones": [
+      {
+        "icon": "🛡️",
+        "name": "Immune",
+        "slug": "immune"
+      }
+    ]
+  },
+  {
+    "slug": "monocytes_pct",
+    "name": "Monocytes %",
+    "display_name": "Monocytes %",
+    "description": "Monocytes are white blood cells that become macrophages in your tissues, engulfing and destroying pathogens and dead cells. This marker shows their percentage of total white blood cells.",
+    "unit": "%",
+    "source_type": "lab",
+    "is_calculated": false,
+    "zone_slug": "immune",
+    "zone_name": "Immune",
+    "zones": [
+      {
+        "icon": "🛡️",
+        "name": "Immune",
+        "slug": "immune"
+      }
+    ]
+  },
+  {
+    "slug": "monocytes_abs",
+    "name": "Monocytes (Abs)",
+    "display_name": "Monocytes (Abs)",
+    "description": "Monocyte absolute count measures the actual number of monocytes per liter of blood. Elevated counts can indicate chronic infection or inflammatory conditions.",
+    "unit": "Gpt/L",
+    "source_type": "lab",
+    "is_calculated": false,
+    "zone_slug": "immune",
+    "zone_name": "Immune",
+    "zones": [
+      {
+        "icon": "🛡️",
+        "name": "Immune",
+        "slug": "immune"
+      }
+    ]
+  },
+  {
+    "slug": "eosinophils_pct",
+    "name": "Eosinophils %",
+    "display_name": "Eosinophils %",
+    "description": "Eosinophils are white blood cells that fight parasites and play a role in allergic responses. This marker shows their percentage of total white blood cells.",
+    "unit": "%",
+    "source_type": "lab",
+    "is_calculated": false,
+    "zone_slug": "immune",
+    "zone_name": "Immune",
+    "zones": [
+      {
+        "icon": "🛡️",
+        "name": "Immune",
+        "slug": "immune"
+      }
+    ]
+  },
+  {
+    "slug": "eosinophils_abs",
+    "name": "Eosinophils (Abs)",
+    "display_name": "Eosinophils (Abs)",
+    "description": "Eosinophil absolute count measures the actual number of eosinophils in your blood. Elevated counts can indicate allergies, parasitic infections, or certain autoimmune conditions.",
+    "unit": "Gpt/L",
+    "source_type": "lab",
+    "is_calculated": false,
+    "zone_slug": "immune",
+    "zone_name": "Immune",
+    "zones": [
+      {
+        "icon": "🛡️",
+        "name": "Immune",
+        "slug": "immune"
+      }
+    ]
+  },
+  {
+    "slug": "basophils_pct",
+    "name": "Basophils %",
+    "display_name": "Basophils %",
+    "description": "Basophils are the rarest white blood cells, involved in allergic reactions and inflammation. This marker shows their percentage of total white blood cells.",
+    "unit": "%",
+    "source_type": "lab",
+    "is_calculated": false,
+    "zone_slug": "immune",
+    "zone_name": "Immune",
+    "zones": [
+      {
+        "icon": "🛡️",
+        "name": "Immune",
+        "slug": "immune"
+      }
+    ]
+  },
+  {
+    "slug": "basophils_abs",
+    "name": "Basophils (Abs)",
+    "display_name": "Basophils (Abs)",
+    "description": "Basophil absolute count measures the actual number of basophils per liter of blood. Significant elevation is rare and may indicate an allergic reaction or blood disorder.",
+    "unit": "Gpt/L",
+    "source_type": "lab",
+    "is_calculated": false,
+    "zone_slug": "immune",
+    "zone_name": "Immune",
+    "zones": [
+      {
+        "icon": "🛡️",
+        "name": "Immune",
+        "slug": "immune"
+      }
+    ]
+  },
+  {
+    "slug": "selenium",
+    "name": "Selenium",
+    "display_name": "Selenium",
+    "description": "Selenium is a trace mineral vital for thyroid hormone conversion, antioxidant defense, and immune function. Brazil nuts are the richest dietary source.",
+    "unit": "µg/L",
+    "source_type": "lab",
+    "is_calculated": false,
+    "zone_slug": "nutritional",
+    "zone_name": "Nutritional",
+    "zones": [
+      {
+        "icon": "🌱",
+        "name": "Nutritional",
+        "slug": "nutritional"
+      },
+      {
+        "icon": "🛡️",
+        "name": "Immune",
+        "slug": "immune"
+      }
+    ]
+  },
+  {
+    "slug": "zinc",
+    "name": "Zinc",
+    "display_name": "Zinc",
+    "description": "Zinc supports immune function, wound healing, taste, and smell. It is essential for over 300 enzymes and plays a key role in testosterone production and thyroid function.",
+    "unit": "µmol/L",
+    "source_type": "lab",
+    "is_calculated": false,
+    "zone_slug": "nutritional",
+    "zone_name": "Nutritional",
+    "zones": [
+      {
+        "icon": "🌱",
+        "name": "Nutritional",
+        "slug": "nutritional"
+      },
+      {
+        "icon": "🛡️",
+        "name": "Immune",
+        "slug": "immune"
+      }
+    ]
+  },
+  {
+    "slug": "hct_hb_ratio",
+    "name": "HCT/HB Ratio",
+    "display_name": "HCT/HB Ratio",
+    "description": "The HCT/HB Ratio estimates mean corpuscular volume (MCV) and helps detect hydration changes during fasting. Abnormal values can signal dehydration or blood cell size issues.\n\nFormula: Hematocrit (%) / Hemoglobin (g/dL)\nBased on: Hematocrit (hematocrit), Hemoglobin (hemoglobin)",
+    "unit": "ratio",
+    "source_type": "home",
+    "is_calculated": true,
+    "zone_slug": "immune",
+    "zone_name": "Immune",
+    "zones": [
+      {
+        "icon": "🛡️",
+        "name": "Immune",
+        "slug": "immune"
+      }
+    ]
+  },
+  {
+    "slug": "vitamin_a",
+    "name": "Vitamin A (Retinol)",
+    "display_name": "Vitamin A (Retinol)",
+    "description": "Vitamin A is essential for vision, immune function, and cell growth. It exists as retinol (animal sources) and beta-carotene (plant sources). Both excess and deficiency can cause health problems.",
+    "unit": "µmol/L",
+    "source_type": "lab",
+    "is_calculated": false,
+    "zone_slug": "nutritional",
+    "zone_name": "Nutritional",
+    "zones": [
+      {
+        "icon": "🌱",
+        "name": "Nutritional",
+        "slug": "nutritional"
+      }
+    ]
+  },
+  {
+    "slug": "vitamin_e",
+    "name": "Vitamin E (Alpha-Toc.)",
+    "display_name": "Vitamin E (Alpha-Toc.)",
+    "description": "Vitamin E is a fat-soluble antioxidant that protects cell membranes from oxidative damage. It also supports immune function and helps prevent excessive blood clotting.",
+    "unit": "µmol/L",
+    "source_type": "lab",
+    "is_calculated": false,
+    "zone_slug": "nutritional",
+    "zone_name": "Nutritional",
+    "zones": [
+      {
+        "icon": "🌱",
+        "name": "Nutritional",
+        "slug": "nutritional"
+      }
+    ]
+  },
+  {
+    "slug": "vitamin_b1",
+    "name": "Vitamin B1 (Thiamine)",
+    "display_name": "Vitamin B1 (Thiamine)",
+    "description": "Vitamin B1 (thiamine) is essential for converting food into energy and proper nerve function. Deficiency is rare on a varied diet but common with high alcohol intake.",
+    "unit": "nmol/L",
+    "source_type": "lab",
+    "is_calculated": false,
+    "zone_slug": "nutritional",
+    "zone_name": "Nutritional",
+    "zones": [
+      {
+        "icon": "🌱",
+        "name": "Nutritional",
+        "slug": "nutritional"
+      }
+    ]
+  },
+  {
+    "slug": "vitamin_b2",
+    "name": "Vitamin B2 (Riboflavin)",
+    "display_name": "Vitamin B2 (Riboflavin)",
+    "description": "Vitamin B2 (riboflavin) helps your body convert food into energy and acts as an antioxidant. It is important for red blood cell production and maintaining healthy skin.",
+    "unit": "nmol/L",
+    "source_type": "lab",
+    "is_calculated": false,
+    "zone_slug": "nutritional",
+    "zone_name": "Nutritional",
+    "zones": [
+      {
+        "icon": "🌱",
+        "name": "Nutritional",
+        "slug": "nutritional"
+      }
+    ]
+  },
+  {
+    "slug": "vitamin_b3",
+    "name": "Vitamin B3 (Niacin)",
+    "display_name": "Vitamin B3 (Niacin)",
+    "description": "Vitamin B3 (niacin) supports energy metabolism, DNA repair, and cholesterol regulation. Severe deficiency causes pellagra, with symptoms of dermatitis, diarrhea, and dementia.",
+    "unit": "nmol/L",
+    "source_type": "lab",
+    "is_calculated": false,
+    "zone_slug": "nutritional",
+    "zone_name": "Nutritional",
+    "zones": [
+      {
+        "icon": "🌱",
+        "name": "Nutritional",
+        "slug": "nutritional"
+      }
+    ]
+  },
+  {
+    "slug": "vitamin_b5",
+    "name": "Vitamin B5 (Pantothenic)",
+    "display_name": "Vitamin B5 (Pantothenic)",
+    "description": "Vitamin B5 (pantothenic acid) is needed to make coenzyme A, which is central to energy metabolism. It is found in nearly all foods, so deficiency is extremely rare.",
+    "unit": "nmol/L",
+    "source_type": "lab",
+    "is_calculated": false,
+    "zone_slug": "nutritional",
+    "zone_name": "Nutritional",
+    "zones": [
+      {
+        "icon": "🌱",
+        "name": "Nutritional",
+        "slug": "nutritional"
+      }
+    ]
+  },
+  {
+    "slug": "sodium",
+    "name": "Sodium",
+    "display_name": "Sodium",
+    "description": "Sodium is an essential electrolyte that controls fluid balance, nerve impulses, and muscle function. High sodium intake is linked to high blood pressure in salt-sensitive individuals.",
+    "unit": "mmol/L",
+    "source_type": "lab",
+    "is_calculated": false,
+    "zone_slug": "nutritional",
+    "zone_name": "Nutritional",
+    "zones": [
+      {
+        "icon": "🌱",
+        "name": "Nutritional",
+        "slug": "nutritional"
+      }
+    ]
+  },
+  {
+    "slug": "epa",
+    "name": "EPA",
+    "display_name": "EPA",
+    "description": "EPA (eicosapentaenoic acid) is an omega-3 fatty acid with strong anti-inflammatory effects. It is found primarily in fatty fish and fish oil supplements.",
+    "unit": "g/L",
+    "source_type": "lab",
+    "is_calculated": false,
+    "zone_slug": "nutritional",
+    "zone_name": "Nutritional",
+    "zones": [
+      {
+        "icon": "🌱",
+        "name": "Nutritional",
+        "slug": "nutritional"
+      }
+    ]
+  },
+  {
+    "slug": "dha",
+    "name": "DHA",
+    "display_name": "DHA",
+    "description": "DHA (docosahexaenoic acid) is an omega-3 fatty acid critical for brain structure and function. It makes up a significant portion of brain and retinal tissue.",
+    "unit": "g/L",
+    "source_type": "lab",
+    "is_calculated": false,
+    "zone_slug": "nutritional",
+    "zone_name": "Nutritional",
+    "zones": [
+      {
+        "icon": "🌱",
+        "name": "Nutritional",
+        "slug": "nutritional"
+      }
+    ]
+  },
+  {
+    "slug": "omega3_index",
+    "name": "Omega-3 Index",
+    "display_name": "Omega-3 Index",
+    "description": "The Omega-3 Index measures the percentage of EPA and DHA in your red blood cell membranes. A higher index is associated with reduced cardiovascular risk and better brain health.",
+    "unit": "%",
+    "source_type": "lab",
+    "is_calculated": false,
+    "zone_slug": "nutritional",
+    "zone_name": "Nutritional",
+    "zones": [
+      {
+        "icon": "🌱",
+        "name": "Nutritional",
+        "slug": "nutritional"
+      }
+    ]
+  },
+  {
+    "slug": "homocysteine",
+    "name": "Homocysteine",
+    "display_name": "Homocysteine",
+    "description": "Homocysteine is an amino acid that, when elevated, damages blood vessel walls and increases cardiovascular risk. B vitamins (B6, B12, folate) help keep it in check.",
+    "unit": "µmol/L",
+    "source_type": "lab",
+    "is_calculated": false,
+    "zone_slug": "nutritional",
+    "zone_name": "Nutritional",
+    "zones": [
+      {
+        "icon": "🌱",
+        "name": "Nutritional",
+        "slug": "nutritional"
+      }
+    ]
+  },
+  {
+    "slug": "free_testosterone",
+    "name": "Free Testosterone",
+    "display_name": "Free Testosterone",
+    "description": "Free testosterone is the small fraction of testosterone not bound to proteins. It is the biologically active form that directly affects your tissues and symptoms.",
+    "unit": "pmol/L",
+    "source_type": "lab",
+    "is_calculated": false,
+    "zone_slug": "hormonal",
+    "zone_name": "Hormonal",
+    "zones": [
+      {
+        "icon": "🎯",
+        "name": "Hormonal",
+        "slug": "hormonal"
+      }
+    ]
+  },
+  {
+    "slug": "free_androgen_index",
+    "name": "Free Androgen Index",
+    "display_name": "Free Androgen Index",
+    "description": "The free androgen index estimates the percentage of testosterone that is biologically active. It is calculated from total testosterone and SHBG levels.",
+    "unit": "ratio",
+    "source_type": "lab",
+    "is_calculated": false,
+    "zone_slug": "hormonal",
+    "zone_name": "Hormonal",
+    "zones": [
+      {
+        "icon": "🎯",
+        "name": "Hormonal",
+        "slug": "hormonal"
+      }
+    ]
+  },
+  {
+    "slug": "shbg",
+    "name": "SHBG",
+    "display_name": "SHBG",
+    "description": "SHBG (sex hormone-binding globulin) is a protein that binds testosterone and estrogen, controlling how much is available for your tissues. Higher SHBG means less free hormone activity.",
+    "unit": "nmol/L",
+    "source_type": "lab",
+    "is_calculated": false,
+    "zone_slug": "hormonal",
+    "zone_name": "Hormonal",
+    "zones": [
+      {
+        "icon": "🎯",
+        "name": "Hormonal",
+        "slug": "hormonal"
+      }
+    ]
+  },
+  {
+    "slug": "progesterone",
+    "name": "Progesterone",
+    "display_name": "Progesterone",
+    "description": "Progesterone balances estrogen and prepares the uterus for pregnancy. In both sexes it has calming effects on the nervous system and supports sleep quality.",
+    "unit": "nmol/L",
+    "source_type": "lab",
+    "is_calculated": false,
+    "zone_slug": "hormonal",
+    "zone_name": "Hormonal",
+    "zones": [
+      {
+        "icon": "🎯",
+        "name": "Hormonal",
+        "slug": "hormonal"
+      }
+    ]
+  },
+  {
+    "slug": "prolactin",
+    "name": "Prolactin",
+    "display_name": "Prolactin",
+    "description": "Prolactin is a hormone best known for stimulating breast milk production. In non-pregnant individuals, elevated prolactin can cause menstrual irregularities and reduced libido.",
+    "unit": "mIU/L",
+    "source_type": "lab",
+    "is_calculated": false,
+    "zone_slug": "hormonal",
+    "zone_name": "Hormonal",
+    "zones": [
+      {
+        "icon": "🎯",
+        "name": "Hormonal",
+        "slug": "hormonal"
+      }
+    ]
+  },
+  {
+    "slug": "fsh",
+    "name": "FSH",
+    "display_name": "FSH",
+    "description": "FSH (follicle-stimulating hormone) regulates reproductive function. In women it controls egg development. In men it supports sperm production. Levels change significantly with age and menopause.",
+    "unit": "IU/L",
+    "source_type": "lab",
+    "is_calculated": false,
+    "zone_slug": "hormonal",
+    "zone_name": "Hormonal",
+    "zones": [
+      {
+        "icon": "🎯",
+        "name": "Hormonal",
+        "slug": "hormonal"
+      }
+    ]
+  },
+  {
+    "slug": "lh",
+    "name": "LH",
+    "display_name": "LH",
+    "description": "LH (luteinizing hormone) triggers ovulation in women and stimulates testosterone production in men. The LH-to-FSH ratio helps diagnose reproductive and hormonal conditions.",
+    "unit": "IU/L",
+    "source_type": "lab",
+    "is_calculated": false,
+    "zone_slug": "hormonal",
+    "zone_name": "Hormonal",
+    "zones": [
+      {
+        "icon": "🎯",
+        "name": "Hormonal",
+        "slug": "hormonal"
+      }
+    ]
+  },
+  {
+    "slug": "alt",
+    "name": "ALT",
+    "display_name": "ALT",
+    "description": "ALT (alanine aminotransferase) is an enzyme found mainly in your liver. Elevated ALT is one of the earliest signs of liver inflammation or damage.",
+    "unit": "U/L",
+    "source_type": "lab",
+    "is_calculated": false,
+    "zone_slug": "detoxification",
+    "zone_name": "Detoxification",
+    "zones": [
+      {
+        "icon": "🔄",
+        "name": "Detoxification",
+        "slug": "detoxification"
+      }
+    ]
+  },
+  {
+    "slug": "ast",
+    "name": "AST",
+    "display_name": "AST",
+    "description": "AST (aspartate aminotransferase) is an enzyme found in your liver, heart, and muscles. Elevated AST can indicate liver damage, but also heart or muscle injury.",
+    "unit": "U/L",
+    "source_type": "lab",
+    "is_calculated": false,
+    "zone_slug": "detoxification",
+    "zone_name": "Detoxification",
+    "zones": [
+      {
+        "icon": "🔄",
+        "name": "Detoxification",
+        "slug": "detoxification"
+      }
+    ]
+  },
+  {
+    "slug": "ggt",
+    "name": "GGT",
+    "display_name": "GGT",
+    "description": "GGT (gamma-glutamyl transferase) is a liver enzyme that rises with alcohol use, fatty liver, and bile duct problems. It is a sensitive early marker for liver stress.",
+    "unit": "U/L",
+    "source_type": "lab",
+    "is_calculated": false,
+    "zone_slug": "detoxification",
+    "zone_name": "Detoxification",
+    "zones": [
+      {
+        "icon": "🔄",
+        "name": "Detoxification",
+        "slug": "detoxification"
+      }
+    ]
+  },
+  {
+    "slug": "alp",
+    "name": "ALP",
+    "display_name": "ALP",
+    "description": "ALP (alkaline phosphatase) is an enzyme found in your liver and bones. Elevated levels can indicate liver disease, bile duct obstruction, or increased bone turnover.",
+    "unit": "U/L",
+    "source_type": "lab",
+    "is_calculated": false,
+    "zone_slug": "detoxification",
+    "zone_name": "Detoxification",
+    "zones": [
+      {
+        "icon": "🔄",
+        "name": "Detoxification",
+        "slug": "detoxification"
+      }
+    ]
+  },
+  {
+    "slug": "ldh",
+    "name": "LDH",
+    "display_name": "LDH",
+    "description": "LDH (lactate dehydrogenase) is an enzyme present in almost all body tissues. Elevated levels indicate tissue damage somewhere in the body but do not pinpoint the location.",
+    "unit": "U/L",
+    "source_type": "lab",
+    "is_calculated": false,
+    "zone_slug": "detoxification",
+    "zone_name": "Detoxification",
+    "zones": [
+      {
+        "icon": "🔄",
+        "name": "Detoxification",
+        "slug": "detoxification"
+      }
+    ]
+  },
+  {
+    "slug": "bilirubin_total",
+    "name": "Bilirubin (Total)",
+    "display_name": "Bilirubin (Total)",
+    "description": "Total bilirubin is a yellow pigment produced when red blood cells break down. Your liver processes it for excretion. High levels cause jaundice and may indicate liver problems or excessive red blood cell destruction.",
+    "unit": "µmol/L",
+    "source_type": "lab",
+    "is_calculated": false,
+    "zone_slug": "detoxification",
+    "zone_name": "Detoxification",
+    "zones": [
+      {
+        "icon": "🔄",
+        "name": "Detoxification",
+        "slug": "detoxification"
+      }
+    ]
+  },
+  {
+    "slug": "bilirubin_direct",
+    "name": "Bilirubin (Direct)",
+    "display_name": "Bilirubin (Direct)",
+    "description": "Direct (conjugated) bilirubin is the form processed by your liver for excretion in bile. Elevated direct bilirubin specifically points to liver or bile duct obstruction.",
+    "unit": "µmol/L",
+    "source_type": "lab",
+    "is_calculated": false,
+    "zone_slug": "detoxification",
+    "zone_name": "Detoxification",
+    "zones": [
+      {
+        "icon": "🔄",
+        "name": "Detoxification",
+        "slug": "detoxification"
+      }
+    ]
+  },
+  {
+    "slug": "egfr",
+    "name": "eGFR",
+    "display_name": "eGFR",
+    "description": "eGFR (estimated glomerular filtration rate) estimates how well your kidneys filter waste from your blood. It is calculated from creatinine, age, and sex. Higher values indicate better kidney function.",
+    "unit": "mL/min",
+    "source_type": "lab",
+    "is_calculated": false,
+    "zone_slug": "detoxification",
+    "zone_name": "Detoxification",
+    "zones": [
+      {
+        "icon": "🔄",
+        "name": "Detoxification",
+        "slug": "detoxification"
+      }
+    ]
+  },
+  {
+    "slug": "cystatin_c",
+    "name": "Cystatin C",
+    "display_name": "Cystatin C",
+    "description": "Cystatin C is a protein produced by all cells that is filtered by your kidneys. It provides a more accurate estimate of kidney function than creatinine, especially in people with high or low muscle mass.",
+    "unit": "mg/L",
+    "source_type": "lab",
+    "is_calculated": false,
+    "zone_slug": "detoxification",
+    "zone_name": "Detoxification",
+    "zones": [
+      {
+        "icon": "🔄",
+        "name": "Detoxification",
+        "slug": "detoxification"
+      }
+    ]
+  },
+  {
+    "slug": "uric_acid",
+    "name": "Uric Acid",
+    "display_name": "Uric Acid",
+    "description": "Uric acid is a waste product from breaking down purines found in certain foods and your own cells. High levels can cause gout and kidney stones, and may signal metabolic stress.",
+    "unit": "µmol/L",
+    "source_type": "home",
+    "is_calculated": false,
+    "zone_slug": "detoxification",
+    "zone_name": "Detoxification",
+    "zones": [
+      {
+        "icon": "🔄",
+        "name": "Detoxification",
+        "slug": "detoxification"
+      }
+    ]
+  }
+]

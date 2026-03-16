@@ -1,0 +1,698 @@
+{
+  "glucose": [
+    {
+      "display_order": 0,
+      "id": "7cc929cf-af3d-4035-b9c8-08ae9884cc81",
+      "notes": "Activates AMPK similarly to metformin; shown to reduce fasting glucose by 1-2 mmol/L in RCTs.",
+      "supplement_name": "Berberine",
+      "typical_dose": "500 mg 2-3× daily with meals"
+    },
+    {
+      "display_order": 1,
+      "id": "f40a3e73-249b-499f-8334-96b0e1a6873f",
+      "notes": "Magnesium is a cofactor for insulin receptor signalling; deficiency is common in insulin-resistant individuals.",
+      "supplement_name": "Magnesium (glycinate)",
+      "typical_dose": "200-400 mg daily"
+    },
+    {
+      "display_order": 2,
+      "id": "65f07f19-63f8-4926-8eea-3c4c73a981d7",
+      "notes": "Antioxidant that improves insulin-mediated glucose uptake; evidence strongest for peripheral neuropathy.",
+      "supplement_name": "Alpha-Lipoic Acid",
+      "typical_dose": "600 mg daily"
+    },
+    {
+      "display_order": 3,
+      "id": "5a532592-53ab-4f00-9417-f7eb62bdcd3e",
+      "notes": "Potentiates insulin action; modest but consistent reductions in fasting glucose in meta-analyses.",
+      "supplement_name": "Chromium Picolinate",
+      "typical_dose": "200-1000 mcg daily"
+    }
+  ],
+  "insulin": [
+    {
+      "display_order": 0,
+      "id": "035d8a66-03ee-4f69-98a8-f42931377814",
+      "notes": "Reduces hepatic glucose production and improves peripheral insulin sensitivity via AMPK activation.",
+      "supplement_name": "Berberine",
+      "typical_dose": "500 mg 2-3× daily with meals"
+    },
+    {
+      "display_order": 1,
+      "id": "a3730e36-f073-4ed8-8042-2098443dbbc7",
+      "notes": "Acts as a secondary messenger in insulin signalling; evidence is strongest for PCOS-related insulin resistance.",
+      "supplement_name": "Inositol (Myo-inositol)",
+      "typical_dose": "2-4 g daily"
+    },
+    {
+      "display_order": 2,
+      "id": "ba97fd62-99c5-46f4-b0c6-2be0ce7f1bab",
+      "notes": "Required cofactor for over 300 enzymatic reactions including insulin receptor phosphorylation.",
+      "supplement_name": "Magnesium (glycinate or malate)",
+      "typical_dose": "300-400 mg daily"
+    }
+  ],
+  "hba1c": [
+    {
+      "display_order": 0,
+      "id": "73e7563c-6419-4e0d-96e1-83729ac7205d",
+      "notes": "Meta-analyses show berberine reduces HbA1c by 0.5-1.0% in type 2 diabetes patients.",
+      "supplement_name": "Berberine",
+      "typical_dose": "500 mg 2-3× daily"
+    },
+    {
+      "display_order": 1,
+      "id": "3059d9b6-ef6d-4324-b705-395b7c4ef831",
+      "notes": "Low magnesium is associated with higher HbA1c; supplementation modestly improves glycaemic control.",
+      "supplement_name": "Magnesium",
+      "typical_dose": "300-400 mg daily"
+    },
+    {
+      "display_order": 2,
+      "id": "cb9ffd90-c9b4-40be-809a-4371ecd93acd",
+      "notes": "Vitamin D deficiency is associated with impaired insulin secretion; correction may improve HbA1c modestly.",
+      "supplement_name": "Vitamin D3",
+      "typical_dose": "2000-4000 IU daily"
+    }
+  ],
+  "ketones": [
+    {
+      "display_order": 0,
+      "id": "7c415be0-d30c-4496-b1a9-4f686794ce8b",
+      "notes": "Medium-chain triglycerides bypass normal fat digestion and are directly converted to ketones in the liver; C8 (caprylic acid) is most ketogenic.",
+      "supplement_name": "MCT Oil",
+      "typical_dose": "1-3 tbsp daily (start low)"
+    },
+    {
+      "display_order": 1,
+      "id": "c9e3101f-39df-4ead-96db-cc10ea8268d2",
+      "notes": "Raises blood ketone levels acutely; useful for cognitive performance or transitioning into ketosis but does not replace dietary discipline.",
+      "supplement_name": "Exogenous Ketones (BHB salts)",
+      "typical_dose": "10-12 g per serving"
+    },
+    {
+      "display_order": 2,
+      "id": "85c3aed7-e86c-46f0-a84a-4a53f6d7919d",
+      "notes": "Ketogenic diets increase renal excretion of electrolytes; supplementation reduces \"keto flu\" and supports energy.",
+      "supplement_name": "Electrolyte blend (Na/K/Mg)",
+      "typical_dose": "Per label, adjusted for sweat loss"
+    }
+  ],
+  "creatinine": [
+    {
+      "display_order": 0,
+      "id": "1e7988fb-09bb-4798-a2f0-6e9e3f549517",
+      "notes": "Anti-inflammatory; may slow CKD progression and reduce proteinuria in early kidney disease.",
+      "supplement_name": "Omega-3 (EPA+DHA)",
+      "typical_dose": "2-4 g daily"
+    },
+    {
+      "display_order": 1,
+      "id": "2d754b2e-8d63-47ec-abf7-587bf475ee50",
+      "notes": "Traditional Chinese herb with RCT evidence for reducing proteinuria and slowing CKD progression.",
+      "supplement_name": "Astragalus (Huang Qi)",
+      "typical_dose": "15-60 g dried root or standardised extract"
+    },
+    {
+      "display_order": 2,
+      "id": "adad8e71-7ec3-4277-a857-1e6de07202d0",
+      "notes": "Renal cells have high mitochondrial density; CoQ10 may support kidney energy metabolism and reduce oxidative stress.",
+      "supplement_name": "CoQ10 (Ubiquinol)",
+      "typical_dose": "200-300 mg daily"
+    },
+    {
+      "display_order": 50,
+      "id": "2876c6f1-2818-458c-85e2-8d1050dd4a16",
+      "notes": "Supports kidney function and reduces oxidative stress",
+      "supplement_name": "Alpha Lipoic Acid",
+      "typical_dose": "300-600mg/day"
+    },
+    {
+      "display_order": 51,
+      "id": "e0ce88c8-154f-44a5-aed1-857c49f9134a",
+      "notes": "Anti-inflammatory, supports kidney health",
+      "supplement_name": "Omega-3 Fish Oil",
+      "typical_dose": "2-4g/day"
+    },
+    {
+      "display_order": 52,
+      "id": "8d203d68-985d-4104-8841-b146bd39d005",
+      "notes": "Antioxidant that may support renal function",
+      "supplement_name": "CoQ10",
+      "typical_dose": "100-200mg/day"
+    }
+  ],
+  "vitamin_d": [
+    {
+      "display_order": 0,
+      "id": "a2c6a774-0add-440a-abb8-1b7addb4586a",
+      "notes": "D3 is the most effective form for raising serum 25(OH)D; always test before and after to personalise dose.",
+      "supplement_name": "Vitamin D3 (Cholecalciferol)",
+      "typical_dose": "2000-5000 IU daily (adjust per testing)"
+    },
+    {
+      "display_order": 1,
+      "id": "0458f010-435a-4bfb-8e8d-1a08b9a9d3e6",
+      "notes": "Activates osteocalcin and matrix Gla protein to direct calcium to bones rather than arteries; synergistic with vitamin D3.",
+      "supplement_name": "Vitamin K2 (MK-7)",
+      "typical_dose": "100-200 mcg daily"
+    },
+    {
+      "display_order": 2,
+      "id": "2f8a4e69-e6b6-4470-9bb7-becd06296551",
+      "notes": "Required cofactor for vitamin D hydroxylation in the liver and kidneys; deficiency impairs vitamin D activation.",
+      "supplement_name": "Magnesium (glycinate or malate)",
+      "typical_dose": "300-400 mg daily"
+    },
+    {
+      "display_order": 50,
+      "id": "7f150a75-43af-44b0-b037-f6dd358e5300",
+      "notes": "Cholecalciferol, best-absorbed form; take with fat",
+      "supplement_name": "Vitamin D3",
+      "typical_dose": "2000-5000IU/day"
+    },
+    {
+      "display_order": 52,
+      "id": "dccff720-5090-4c7c-98f4-a009b00cf010",
+      "notes": "Required for vitamin D activation in the body",
+      "supplement_name": "Magnesium Glycinate",
+      "typical_dose": "200-400mg/day"
+    }
+  ],
+  "iron": [
+    {
+      "display_order": 0,
+      "id": "badf7987-1097-4996-b4a5-ed24688050a1",
+      "notes": "Better tolerated than ferrous sulphate; high bioavailability; take with vitamin C, away from calcium and tannins.",
+      "supplement_name": "Iron bisglycinate",
+      "typical_dose": "25-50 mg elemental iron daily"
+    },
+    {
+      "display_order": 1,
+      "id": "ea99be62-afa2-45ff-bf99-568975a1370e",
+      "notes": "Standard first-line supplement; effective but frequently causes constipation and GI upset.",
+      "supplement_name": "Ferrous sulphate",
+      "typical_dose": "200 mg (65 mg elemental iron) daily"
+    },
+    {
+      "display_order": 2,
+      "id": "1cd33ee1-8c62-4a0f-8885-c2e713e82fd3",
+      "notes": "Reduces Fe3+ to the more absorbable Fe2+ form; increases non-haem iron absorption by 3-6-fold.",
+      "supplement_name": "Vitamin C",
+      "typical_dose": "200-500 mg with each iron dose"
+    },
+    {
+      "display_order": 50,
+      "id": "94b05e3e-59db-442f-8a52-d7a9687e0f8a",
+      "notes": "Gentle on stomach, high bioavailability",
+      "supplement_name": "Iron Bisglycinate",
+      "typical_dose": "25-50mg/day"
+    },
+    {
+      "display_order": 52,
+      "id": "5b2a296a-6455-49b2-9496-891be120d4d9",
+      "notes": "Enhances iron uptake and regulates iron homeostasis",
+      "supplement_name": "Lactoferrin",
+      "typical_dose": "100-200mg/day"
+    }
+  ],
+  "total_cholesterol": [
+    {
+      "display_order": 0,
+      "id": "5979a818-932f-4e54-958d-b0738996bc6d",
+      "notes": "Soluble fibre that binds bile acids; reduces LDL by 5-10% in meta-analyses.",
+      "supplement_name": "Psyllium husk",
+      "typical_dose": "5-10 g daily with water"
+    },
+    {
+      "display_order": 1,
+      "id": "161641c0-9b0e-4892-95d5-0c3dffa785f3",
+      "notes": "Contains monacolin K (identical to lovastatin); reduces total cholesterol by 15-25%. Use only under medical supervision.",
+      "supplement_name": "Red Yeast Rice",
+      "typical_dose": "600-1200 mg twice daily"
+    },
+    {
+      "display_order": 2,
+      "id": "62f017be-4d34-45b1-8acd-b380550177ec",
+      "notes": "Competitively inhibit cholesterol absorption; endorsed by the European Atherosclerosis Society.",
+      "supplement_name": "Plant Sterols/Stanols",
+      "typical_dose": "1.5-3 g daily with meals"
+    },
+    {
+      "display_order": 50,
+      "id": "532b4e83-6a42-4cc4-8059-a29b852773ec",
+      "notes": "Improves lipid ratios, lowers triglycerides",
+      "supplement_name": "Fish Oil (Omega-3)",
+      "typical_dose": "2-4g EPA+DHA/day"
+    },
+    {
+      "display_order": 52,
+      "id": "beb08387-3fee-4196-aa8e-1e38bf9f8bcc",
+      "notes": "Blocks cholesterol absorption, found in fortified foods",
+      "supplement_name": "Plant Sterols",
+      "typical_dose": "2g/day"
+    },
+    {
+      "display_order": 53,
+      "id": "358cc286-5a3a-4b87-96c0-965632c455d9",
+      "notes": "Comparable to mild statin effect in studies",
+      "supplement_name": "Berberine",
+      "typical_dose": "500mg 2-3x/day"
+    }
+  ],
+  "ldl_c": [
+    {
+      "display_order": 0,
+      "id": "e460b91f-887c-4860-8615-6e09251cb2cf",
+      "notes": "Best-evidenced soluble fibre supplement; reduces LDL-C by 5-10% when taken consistently.",
+      "supplement_name": "Psyllium husk",
+      "typical_dose": "7 g 1-3x daily"
+    },
+    {
+      "display_order": 1,
+      "id": "1b07cf70-8842-44ee-a7a9-88da82af8ef0",
+      "notes": "Block intestinal cholesterol absorption; endorsed by European Atherosclerosis Society guidelines.",
+      "supplement_name": "Plant Sterols",
+      "typical_dose": "2 g daily with meals"
+    },
+    {
+      "display_order": 2,
+      "id": "4b6f31a0-c7d0-406c-9e6f-ede44bad334a",
+      "notes": "Primarily lowers triglycerides; at high doses may modestly reduce cardiovascular events independent of LDL.",
+      "supplement_name": "Omega-3 (EPA+DHA)",
+      "typical_dose": "1-4 g EPA+DHA daily"
+    },
+    {
+      "display_order": 3,
+      "id": "dfab43b3-24cf-4c63-a094-6bfa63f46c81",
+      "notes": "Citrus polyphenol with statin-like HMG-CoA reductase inhibition; emerging evidence for LDL reduction.",
+      "supplement_name": "Bergamot extract",
+      "typical_dose": "500-1000 mg daily"
+    },
+    {
+      "display_order": 50,
+      "id": "f67e8ded-6e28-4980-a380-cb1134ac9e98",
+      "notes": "Supports healthy LDL particle size",
+      "supplement_name": "Fish Oil (Omega-3)",
+      "typical_dose": "2-4g EPA+DHA/day"
+    },
+    {
+      "display_order": 52,
+      "id": "cfd5ec99-756b-458e-b6f5-28c92da87b34",
+      "notes": "Important if taking statins; supports heart health",
+      "supplement_name": "CoQ10",
+      "typical_dose": "100-200mg/day"
+    }
+  ],
+  "hdl_c": [
+    {
+      "display_order": 0,
+      "id": "5780dcd8-abc3-4068-bc45-4ba64ce3d6ce",
+      "notes": "Modestly raises HDL and significantly lowers triglycerides; improves HDL function and reduces inflammation.",
+      "supplement_name": "Omega-3 (EPA+DHA)",
+      "typical_dose": "2-4 g EPA+DHA daily"
+    },
+    {
+      "display_order": 1,
+      "id": "4bc19931-5ea3-4982-a8b0-10aecb00e3c8",
+      "notes": "Most potent HDL-raising agent (+20-30%) but cardiovascular outcome trials showed no benefit over statin alone; flushing is a major side effect.",
+      "supplement_name": "Niacin (B3)",
+      "typical_dose": "1000-2000 mg extended-release daily"
+    },
+    {
+      "display_order": 2,
+      "id": "d377603c-7749-4061-81bd-cd8064d8fc0c",
+      "notes": "May improve HDL function and reduce oxidative stress; evidence is preliminary but promising.",
+      "supplement_name": "Resveratrol",
+      "typical_dose": "150-500 mg daily"
+    },
+    {
+      "display_order": 50,
+      "id": "1fd8eff0-c2b4-4e29-beb7-5048596a9cf9",
+      "notes": "Raises HDL levels",
+      "supplement_name": "Fish Oil (Omega-3)",
+      "typical_dose": "2-4g EPA+DHA/day"
+    },
+    {
+      "display_order": 51,
+      "id": "faf01648-7141-4696-bc8f-d69c5cc0a5d5",
+      "notes": "Most effective supplement for raising HDL",
+      "supplement_name": "Niacin (Vitamin B3)",
+      "typical_dose": "500-1500mg/day"
+    },
+    {
+      "display_order": 52,
+      "id": "c56595c5-bb03-4fae-a026-ffec1bef36e0",
+      "notes": "Anti-inflammatory, supports healthy lipid profile",
+      "supplement_name": "Curcumin",
+      "typical_dose": "500mg 2x/day"
+    }
+  ],
+  "triglycerides": [
+    {
+      "display_order": 0,
+      "id": "bdd9cfde-9ba5-4772-9404-19cdfa62e0d0",
+      "notes": "Reduces triglycerides by 20-50% dose-dependently; prescription icosapent ethyl also reduces MACE at 4 g/day.",
+      "supplement_name": "Omega-3 (EPA+DHA)",
+      "typical_dose": "2-4 g EPA+DHA daily"
+    },
+    {
+      "display_order": 1,
+      "id": "0b1cc0ee-62f8-44b3-b5f2-93d112cf1397",
+      "notes": "Reduces triglycerides by activating AMPK and inhibiting hepatic lipogenesis.",
+      "supplement_name": "Berberine",
+      "typical_dose": "500 mg 2-3x daily"
+    },
+    {
+      "display_order": 2,
+      "id": "e3f920d5-1196-4912-881d-a16887055126",
+      "notes": "Reduces triglycerides by 20-50% and raises HDL; use under medical supervision.",
+      "supplement_name": "Niacin (B3)",
+      "typical_dose": "1000-2000 mg extended-release daily"
+    },
+    {
+      "display_order": 50,
+      "id": "366d91a6-7239-44fa-a96f-172fcf83af73",
+      "notes": "Proven to lower TG 15-30%",
+      "supplement_name": "Fish Oil (Omega-3)",
+      "typical_dose": "2-4g EPA+DHA/day"
+    },
+    {
+      "display_order": 51,
+      "id": "18628c31-7e8c-40c1-842a-be879aba3dab",
+      "notes": "Very effective for TG; causes flushing at higher doses",
+      "supplement_name": "Niacin (Vitamin B3)",
+      "typical_dose": "500-2000mg/day"
+    }
+  ],
+  "apob": [
+    {
+      "display_order": 0,
+      "id": "66ae9ec0-5a99-4d9e-83dd-ec7bbdab91c9",
+      "notes": "Reduce intestinal cholesterol absorption, lowering LDL-C and ApoB by 8-10%.",
+      "supplement_name": "Plant Sterols/Stanols",
+      "typical_dose": "2 g daily with meals"
+    },
+    {
+      "display_order": 1,
+      "id": "cb46a15b-7b88-4d9c-b9ca-8bc561b89485",
+      "notes": "Soluble fibre reduces both LDL-C and ApoB particle number.",
+      "supplement_name": "Psyllium husk",
+      "typical_dose": "7 g 1-3x daily"
+    },
+    {
+      "display_order": 2,
+      "id": "f79deee8-f375-4676-b27f-a32c66feef7c",
+      "notes": "Reduces VLDL-ApoB specifically; lowers total atherogenic particle burden.",
+      "supplement_name": "Omega-3 (EPA+DHA)",
+      "typical_dose": "2-4 g daily"
+    },
+    {
+      "display_order": 50,
+      "id": "4445891f-7772-44b8-9b66-2923a3a4d3c4",
+      "notes": "Reduces ApoB particle count",
+      "supplement_name": "Fish Oil (Omega-3)",
+      "typical_dose": "2-4g EPA+DHA/day"
+    },
+    {
+      "display_order": 51,
+      "id": "b30218a2-55ab-4484-babf-fcff34538a00",
+      "notes": "Lowers ApoB and LDL-C",
+      "supplement_name": "Berberine",
+      "typical_dose": "500mg 2-3x/day"
+    },
+    {
+      "display_order": 52,
+      "id": "2c1ee5ba-91f3-48c8-92af-598b5a651703",
+      "notes": "Blocks cholesterol absorption, lowers ApoB",
+      "supplement_name": "Plant Sterols",
+      "typical_dose": "2g/day"
+    }
+  ],
+  "hs_crp": [
+    {
+      "display_order": 0,
+      "id": "73e95fd8-d49e-4409-9046-bcf938435e55",
+      "notes": "Most consistently reduces hs-CRP; meta-analyses show reductions of 0.3-0.5 mg/L.",
+      "supplement_name": "Omega-3 (EPA+DHA)",
+      "typical_dose": "2-4 g EPA+DHA daily"
+    },
+    {
+      "display_order": 1,
+      "id": "8dc96d17-f072-4e0d-9ed0-38af9dc63cb2",
+      "notes": "Strong anti-inflammatory; piperine increases bioavailability 20-fold; reduces IL-6 and TNF-alpha.",
+      "supplement_name": "Curcumin (with piperine)",
+      "typical_dose": "500-1000 mg curcumin + 5-10 mg piperine daily"
+    },
+    {
+      "display_order": 2,
+      "id": "e093f843-d5a6-497b-9434-7625d1961e9b",
+      "notes": "Low magnesium is associated with higher CRP; supplementation modestly reduces inflammatory markers.",
+      "supplement_name": "Magnesium",
+      "typical_dose": "300-400 mg daily"
+    },
+    {
+      "display_order": 3,
+      "id": "377be376-3320-466c-8cd6-1a3077d58ac2",
+      "notes": "Deficiency is associated with elevated hs-CRP; correction reduces inflammatory markers in deficient individuals.",
+      "supplement_name": "Vitamin D3",
+      "typical_dose": "2000-4000 IU daily"
+    },
+    {
+      "display_order": 50,
+      "id": "b45e0fb7-731e-4926-afc2-258a840c4b43",
+      "notes": "Proven to lower CRP in clinical trials",
+      "supplement_name": "Omega-3 Fish Oil",
+      "typical_dose": "2-4g EPA+DHA/day"
+    },
+    {
+      "display_order": 51,
+      "id": "c5ae4ff4-25ce-437d-b6d3-1f1634064df5",
+      "notes": "Potent anti-inflammatory, pair with piperine for absorption",
+      "supplement_name": "Curcumin",
+      "typical_dose": "500mg 2x/day"
+    }
+  ],
+  "hemoglobin": [
+    {
+      "display_order": 0,
+      "id": "b75565a6-7232-4c87-a637-90c1ad722b0d",
+      "notes": "Gentler on the gut than ferrous sulphate; take on an empty stomach with vitamin C for best absorption.",
+      "supplement_name": "Iron bisglycinate",
+      "typical_dose": "25-50 mg elemental iron daily"
+    },
+    {
+      "display_order": 1,
+      "id": "7830565b-dc4f-455a-a76c-059cdb884493",
+      "notes": "Essential for red blood cell maturation; critical for vegans and elderly (who have reduced gastric acid).",
+      "supplement_name": "Vitamin B12 (methylcobalamin)",
+      "typical_dose": "1000 mcg daily (sublingual)"
+    },
+    {
+      "display_order": 2,
+      "id": "261d2b0b-0bdf-4e76-b30a-bcaceaad847a",
+      "notes": "Required for DNA synthesis in erythropoiesis; MTHFR variants may require the methylated form.",
+      "supplement_name": "Folate (methylfolate)",
+      "typical_dose": "400-800 mcg daily"
+    },
+    {
+      "display_order": 3,
+      "id": "fdc48817-f0f5-4056-8e8e-57bb17fdf6c9",
+      "notes": "Reduces dietary iron from Fe3+ to Fe2+, substantially increasing non-haem iron absorption from plant foods.",
+      "supplement_name": "Vitamin C",
+      "typical_dose": "200-500 mg with meals"
+    },
+    {
+      "display_order": 50,
+      "id": "5a60586e-71b1-40db-a28e-5ec00c999fe1",
+      "notes": "Best-absorbed iron form, less GI upset",
+      "supplement_name": "Iron Bisglycinate",
+      "typical_dose": "25-50mg/day"
+    },
+    {
+      "display_order": 51,
+      "id": "9479c283-96d7-4fd2-bdc9-7ffd884f9d12",
+      "notes": "Essential for red blood cell production",
+      "supplement_name": "Vitamin B12",
+      "typical_dose": "1000mcg/day"
+    },
+    {
+      "display_order": 52,
+      "id": "f5d0cfcb-d4e5-4828-a255-cd25d17ef7e2",
+      "notes": "Active form; supports hemoglobin synthesis",
+      "supplement_name": "Folate (5-MTHF)",
+      "typical_dose": "400-800mcg/day"
+    }
+  ],
+  "hematocrit": [
+    {
+      "display_order": 0,
+      "id": "a3387186-07cc-40c4-8bb9-da147b02e522",
+      "notes": "Supports haemoglobin synthesis and therefore haematocrit; use only when deficiency is confirmed.",
+      "supplement_name": "Iron bisglycinate",
+      "typical_dose": "25-50 mg elemental iron daily"
+    },
+    {
+      "display_order": 1,
+      "id": "9246c78e-c5ff-43c2-8cfa-7393f75d673b",
+      "notes": "Deficiency causes macrocytic anaemia with low haematocrit despite normal iron.",
+      "supplement_name": "Vitamin B12 (methylcobalamin)",
+      "typical_dose": "1000 mcg daily"
+    },
+    {
+      "display_order": 2,
+      "id": "da319996-c84c-408d-9403-720283d8f31d",
+      "notes": "Required alongside B12 for erythropoiesis; deficiency reduces red cell production.",
+      "supplement_name": "Folate (methylfolate)",
+      "typical_dose": "400-800 mcg daily"
+    },
+    {
+      "display_order": 50,
+      "id": "46f14b0e-f935-4fae-b183-3bb08a282c2b",
+      "notes": "Raises hematocrit via red blood cell production",
+      "supplement_name": "Iron Bisglycinate",
+      "typical_dose": "25-50mg/day"
+    },
+    {
+      "display_order": 51,
+      "id": "d1bb3fd9-1dc8-4e39-b273-7b73e495c674",
+      "notes": "Supports RBC production",
+      "supplement_name": "Vitamin B12",
+      "typical_dose": "1000mcg/day"
+    },
+    {
+      "display_order": 52,
+      "id": "18328650-4aac-4ad0-b402-2ea9e99c5eb4",
+      "notes": "Required for iron metabolism and RBC formation",
+      "supplement_name": "Copper",
+      "typical_dose": "1-2mg/day"
+    }
+  ],
+  "alt": [
+    {
+      "display_order": 0,
+      "id": "0b364412-1d27-4d33-8bcd-43ab45fa6e18",
+      "notes": "Most studied hepatoprotective supplement; meta-analyses show modest ALT reduction and anti-inflammatory/antifibrotic effects.",
+      "supplement_name": "Milk Thistle (Silymarin)",
+      "typical_dose": "140-420 mg silymarin daily"
+    },
+    {
+      "display_order": 1,
+      "id": "fcc3bafc-6ea4-4e74-a075-3270b7b6ceb7",
+      "notes": "Shown in the PIVENS trial to reduce ALT and liver inflammation in non-diabetic NAFLD; use with caution at high doses.",
+      "supplement_name": "Vitamin E (alpha-tocopherol)",
+      "typical_dose": "800 IU daily"
+    },
+    {
+      "display_order": 2,
+      "id": "a1036863-e29d-4cf5-a17d-fd237c93af8a",
+      "notes": "Precursor to glutathione; standard treatment for paracetamol overdose; may protect against general liver oxidative stress.",
+      "supplement_name": "NAC (N-Acetyl Cysteine)",
+      "typical_dose": "600-1200 mg daily"
+    },
+    {
+      "display_order": 52,
+      "id": "7934d088-9c69-4b73-9014-e7ffbb322fc4",
+      "notes": "Antioxidant that supports liver detoxification",
+      "supplement_name": "Alpha Lipoic Acid",
+      "typical_dose": "300-600mg/day"
+    }
+  ],
+  "ggt": [
+    {
+      "display_order": 0,
+      "id": "50ff0ec0-dc77-403a-a6c2-4f71a7c7bd4f",
+      "notes": "Directly supports glutathione synthesis, addressing a key metabolic pathway involving GGT.",
+      "supplement_name": "NAC (N-Acetyl Cysteine)",
+      "typical_dose": "600-1200 mg daily"
+    },
+    {
+      "display_order": 1,
+      "id": "654039b6-d419-437a-8bab-21f2859e7cfd",
+      "notes": "Hepatoprotective and antioxidant; reduces GGT in chronic liver disease and alcoholic liver disease trials.",
+      "supplement_name": "Milk Thistle (Silymarin)",
+      "typical_dose": "140-420 mg silymarin daily"
+    },
+    {
+      "display_order": 2,
+      "id": "18d97120-b4d7-485f-8733-79c8494a727b",
+      "notes": "Broad-spectrum antioxidant that regenerates glutathione; associated with lower GGT in metabolic syndrome.",
+      "supplement_name": "Alpha-Lipoic Acid",
+      "typical_dose": "300-600 mg daily"
+    },
+    {
+      "display_order": 52,
+      "id": "45546bb5-236f-4eef-994b-03397d73d4bc",
+      "notes": "Reduces oxidative stress on liver",
+      "supplement_name": "Vitamin E (Mixed Tocopherols)",
+      "typical_dose": "400IU/day"
+    }
+  ],
+  "egfr": [
+    {
+      "display_order": 0,
+      "id": "ac5f9c11-f990-40d2-82ed-4061ba25b09a",
+      "notes": "Reduces proteinuria and inflammation; some RCTs show slowed eGFR decline in IgA nephropathy.",
+      "supplement_name": "Omega-3 (EPA+DHA)",
+      "typical_dose": "2-4 g daily"
+    },
+    {
+      "display_order": 1,
+      "id": "783d0ecf-4493-4ca1-8aa2-d926685f6236",
+      "notes": "Supports renal mitochondrial function; early evidence for benefit in CKD-related oxidative stress.",
+      "supplement_name": "CoQ10 (Ubiquinol)",
+      "typical_dose": "200-300 mg daily"
+    },
+    {
+      "display_order": 2,
+      "id": "6da06ac9-2fe1-457f-9a31-ae37ee202764",
+      "notes": "Corrects metabolic acidosis common in CKD stages 3-4; slows disease progression in RCTs.",
+      "supplement_name": "Sodium Bicarbonate",
+      "typical_dose": "0.5-1 g twice daily (under medical supervision)"
+    },
+    {
+      "display_order": 50,
+      "id": "d3d3fc58-b4fb-4141-8dc7-e937f01797fb",
+      "notes": "Reduces kidney inflammation",
+      "supplement_name": "Omega-3 Fish Oil",
+      "typical_dose": "2-4g/day"
+    },
+    {
+      "display_order": 51,
+      "id": "4987fea4-f63a-4d21-9ed6-55bcaa1feb49",
+      "notes": "May slow kidney function decline",
+      "supplement_name": "CoQ10",
+      "typical_dose": "100-200mg/day"
+    },
+    {
+      "display_order": 52,
+      "id": "0a400329-40be-4209-ad7d-34b87f3ff4a8",
+      "notes": "Traditional herb used for kidney support",
+      "supplement_name": "Astragalus",
+      "typical_dose": "500-1000mg/day"
+    }
+  ],
+  "uric_acid": [
+    {
+      "display_order": 0,
+      "id": "e714d1be-cbbb-42c6-9bed-2f96fcaf2881",
+      "notes": "Competes with uric acid for renal tubular reabsorption, increasing uric acid excretion; reduces serum levels by ~20 µmol/L.",
+      "supplement_name": "Vitamin C",
+      "typical_dose": "500-1500 mg daily"
+    },
+    {
+      "display_order": 1,
+      "id": "b12298ed-76d3-46d0-9d4a-5f597836df6e",
+      "notes": "Anthocyanins inhibit xanthine oxidase and have anti-inflammatory effects; RCTs show reduced gout attack frequency.",
+      "supplement_name": "Tart Cherry Extract",
+      "typical_dose": "480 mg concentrate or 240 mL juice daily"
+    },
+    {
+      "display_order": 2,
+      "id": "247297b3-a777-4b0a-909c-5b3e411d6764",
+      "notes": "Xanthine oxidase inhibitor (same mechanism as allopurinol); modest evidence for uric acid reduction.",
+      "supplement_name": "Quercetin",
+      "typical_dose": "500 mg daily"
+    }
+  ]
+}

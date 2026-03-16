@@ -1,0 +1,70 @@
+// Sovereign Health Intelligence -- AGPL-3.0 -- https://sovereignhealth.io/
+
+use actix_web::{web, FromRequest, HttpRequest};
+use std::future::{ready, Ready};
+use uuid::Uuid;
+
+use crate::{config::Config, error::AppError, services::auth::verify_jwt};
+
+pub struct AuthenticatedUser {
+    pub user_id: Uuid,
+    pub role: String,
+    pub tier: String,
+}
+
+impl FromRequest for AuthenticatedUser {
+    type Error = AppError;
+    type Future = Ready<Result<Self, Self::Error>>;
+
+    fn from_request(req: &HttpRequest, _payload: &mut actix_web::dev::Payload) -> Self::Future {
+        let result = extract_user(req);
+        ready(result)
+    }
+}
+
+/// Extractor that requires admin role.
+pub struct AdminUser {
+    pub user_id: Uuid,
+}
+
+impl FromRequest for AdminUser {
+    type Error = AppError;
+    type Future = Ready<Result<Self, Self::Error>>;
+
+    fn from_request(req: &HttpRequest, _payload: &mut actix_web::dev::Payload) -> Self::Future {
+        let result = extract_user(req).and_then(|u| {
+            if u.role == "admin" {
+                Ok(AdminUser { user_id: u.user_id })
+            } else {
+                Err(AppError::Forbidden)
+            }
+        });
+        ready(result)
+    }
+}
+
+fn extract_user(req: &HttpRequest) -> Result<AuthenticatedUser, AppError> {
+    let config = req
+        .app_data::<web::Data<Config>>()
+        .ok_or(AppError::Internal)?;
+
+    let auth_header = req
+        .headers()
+        .get("Authorization")
+        .and_then(|v| v.to_str().ok())
+        .ok_or(AppError::Unauthorized)?;
+
+    let token = auth_header
+        .strip_prefix("Bearer ")
+        .ok_or(AppError::Unauthorized)?;
+
+    let claims = verify_jwt(token, &config.jwt_secret).map_err(|_| AppError::Unauthorized)?;
+
+    let user_id = Uuid::parse_str(&claims.sub).map_err(|_| AppError::Unauthorized)?;
+
+    Ok(AuthenticatedUser {
+        user_id,
+        role: claims.role,
+        tier: claims.tier,
+    })
+}

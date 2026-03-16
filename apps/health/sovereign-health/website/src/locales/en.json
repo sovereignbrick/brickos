@@ -1,0 +1,1644 @@
+{
+  "nav": {
+    "features": "Features",
+    "pricing": "Pricing",
+    "healthZones": "Health Zones",
+    "markers": "Markers",
+    "openSource": "Open Source",
+    "about": "About",
+    "brandFull": "Sovereign Health Intelligence",
+    "brandShort": "SHI",
+    "tryTheApp": "Try the App",
+    "toggleMenu": "Toggle menu",
+    "menu": "Menu"
+  },
+  "footer": {
+    "sections": {
+      "product": {
+        "title": "Product",
+        "features": "Features",
+        "pricing": "Pricing",
+        "healthZones": "Health Zones",
+        "markers": "Markers"
+      },
+      "company": {
+        "title": "Company",
+        "about": "About",
+        "partners": "Partners",
+        "contact": "Contact",
+        "openSource": "Open Source"
+      },
+      "resources": {
+        "title": "Resources",
+        "learn": "Learn",
+        "security": "Security",
+        "gitlab": "GitLab",
+        "referralProgram": "Referral Program"
+      },
+      "legal": {
+        "title": "Legal",
+        "termsOfService": "Terms of Service",
+        "privacyPolicy": "Privacy Policy",
+        "impressum": "Impressum"
+      }
+    },
+    "copyright": "© {year} Sovereign Health Intelligence. All rights reserved.",
+    "donateTitle": "Support with Bitcoin",
+    "donateDesc": "Support open source health tracking via Lightning Network",
+    "donateButton": "Donate Bitcoin"
+  },
+  "home": {
+    "hero": {
+      "title": "Take Control of Your Health Data",
+      "tagline": "Privacy-first metabolic health tracking.",
+      "subtitle": "Track 85+ biomarkers. Analyze trends with AI. Self-host or use our encrypted cloud. Your data, your rules.",
+      "tryTheApp": "Try the App",
+      "selfHostForFree": "Self-Host for Free"
+    },
+    "howItWorks": {
+      "heading": "How It Works",
+      "step1": {
+        "title": "Track",
+        "description": "Record your biomarkers in seconds using your home device or lab results."
+      },
+      "step2": {
+        "title": "Understand",
+        "description": "Dr. Alex, your AI health assistant, explains what your numbers mean in plain language."
+      },
+      "step3": {
+        "title": "Optimize",
+        "description": "Compare diet protocols, adjust your approach, and watch your markers improve over time."
+      }
+    },
+    "features": {
+      "heading": "Features",
+      "healthMarkers": {
+        "title": "85+ Biomarkers",
+        "description": "Track markers across 8 health zones from blood sugar to hormones. Use devices like Fora 6, Qardio, or any lab."
+      },
+      "drAlex": {
+        "title": "Dr. Alex AI Assistant",
+        "description": "Six specialized analysis modes including trend analysis, lab explanation, nutrition advice, and supplement review."
+      },
+      "encrypted": {
+        "title": "Encrypted and Private",
+        "description": "AES-256 encryption at rest. Zero-knowledge design. Even we cannot read your health data. No tracking, no cookies, no analytics."
+      },
+      "dataExport": {
+        "title": "Full Data Export",
+        "description": "Download your complete health history as CSV or JSON anytime. PDF health reports for your doctor. Your data, your choice."
+      },
+      "medication": {
+        "title": "Medication Tracking",
+        "description": "Log your supplements and medications. Get warnings about interactions. See how they affect your markers over time."
+      },
+      "openSource": {
+        "title": "Open Source",
+        "description": "AGPL-3.0 licensed. Run it on your own server with Docker in 5 minutes. Free forever, no strings attached."
+      }
+    },
+    "stats": {
+      "markers": "Biomarkers",
+      "zones": "Health Zones",
+      "features": "Features"
+    },
+    "sections": {
+      "viewAll": "View all",
+      "healthZones": "Health Zones",
+      "markers": "Key Markers",
+      "securityPrivacy": "Security & Privacy",
+      "markersInZone": "markers",
+      "learnMore": "Learn more"
+    },
+    "trustBadges": {
+      "aes256": "AES-256 Encrypted",
+      "tls13": "TLS 1.3",
+      "gdpr": "GDPR Compliant",
+      "ePrivacy": "ePrivacy Compliant",
+      "zeroKnowledge": "Zero-Knowledge",
+      "noTracking": "No Tracking",
+      "owasp": "OWASP Secure",
+      "openSource": "Open Source Auditable"
+    },
+    "securityDescriptions": {
+      "aes256": "All health data is encrypted at rest using AES-256, the same standard used by banks and governments.",
+      "zeroKnowledge": "We cannot read your health data. Your measurements are encrypted before they reach our servers.",
+      "gdpr": "Fully GDPR and ePrivacy compliant. Your data stays in your control with full export and deletion rights.",
+      "noTracking": "No cookies, no analytics, no tracking pixels. We don't monitor your behavior or sell your data.",
+      "openSource": "Our core is AGPL-3.0 licensed. Audit the code yourself, or self-host for complete independence.",
+      "tls13": "All data in transit is protected with TLS 1.3, ensuring secure communication between you and our servers."
+    },
+    "demo": {
+      "heading": "See it in action",
+      "description": "Explore the full platform with sample health data. Three demo profiles show how different health patterns look.",
+      "openTheApp": "Open the App",
+      "screenshotPlaceholder": "App Screenshot"
+    },
+    "pricing": {
+      "heading": "Pricing",
+      "seeFullComparison": "See the full comparison",
+      "tiers": {
+        "glimpse": {
+          "name": "Glimpse",
+          "price": "Free",
+          "tagline": "Get started with the basics"
+        },
+        "focus": {
+          "name": "Focus",
+          "price": "EUR 9.99/mo",
+          "tagline": "For consistent self-trackers"
+        },
+        "insight": {
+          "name": "Insight",
+          "price": "EUR 24.99/mo",
+          "tagline": "AI-powered health analysis"
+        },
+        "clarity": {
+          "name": "Clarity",
+          "price": "EUR 49.99/mo",
+          "tagline": "Full data sovereignty"
+        },
+        "horizon": {
+          "name": "Horizon",
+          "price": "Custom",
+          "tagline": "Professional and clinical use"
+        }
+      }
+    },
+    "founderQuote": {
+      "quote": "I tracked over 80 biomarkers in Excel for a year before building the tool I wished existed. Now I use it twice a week and it takes two minutes.",
+      "attribution": "Helmut, Founder"
+    }
+  },
+  "features": {
+    "hero": {
+      "title": "Everything You Need to Own Your Health Data",
+      "subtitle": "From daily tracking to AI-powered analysis, every feature is designed with privacy and clarity in mind."
+    },
+    "badges": {
+      "allPlans": "All Plans",
+      "comingSoon": "Coming Soon"
+    },
+    "categories": {
+      "trackYourHealth": {
+        "heading": "Track Your Health",
+        "recordDailyMeasurements": {
+          "name": "Record Daily Measurements",
+          "description": "Log your biomarkers in seconds. Build a template for your routine tests so you only see the markers you care about. Whether you use a Fora 6, Qardio smart scale, or get lab work done, everything goes into one secure place."
+        },
+        "supportedDevices": {
+          "name": "Supported Devices",
+          "description": "Works with home testing devices like the Fora 6 multi-parameter meter (glucose, ketones, cholesterol, uric acid, hemoglobin, hematocrit), Qardio Arm blood pressure monitor, Qardiobase 2 smart scale (weight, body fat, muscle mass, water, bone mass), and any lab provider. You can also add your own devices and define what they measure."
+        },
+        "measurementTemplates": {
+          "name": "Measurement Templates",
+          "description": "Save your routine as a template. Select the markers you measure regularly, give it a name, and load it with one tap next time.",
+          "badge": "Glimpse 1, Focus 3, Insight+ Unlimited"
+        },
+        "calculatedHealthScores": {
+          "name": "Calculated Health Scores",
+          "description": "Automatically calculated from your base measurements. BMI from weight and height. HOMA-IR from glucose and insulin. GKI from glucose and ketones. No manual math required.",
+          "badge": "Glimpse 3, Focus+ All 8+"
+        },
+        "bodyComposition": {
+          "name": "Body Composition",
+          "description": "Track body fat percentage, muscle mass, water percentage, and bone mass alongside your weight.",
+          "badge": "Focus+"
+        },
+        "editAndCorrect": {
+          "name": "Edit and Correct",
+          "description": "Made a mistake? Edit or delete any measurement at any time. Full control over every data point."
+        },
+        "labResultImport": {
+          "name": "Lab Result Import",
+          "description": "Photo or PDF of your lab report. Auto-extracted, reviewed by you before saving.",
+          "badge": "Insight 3/mo, Clarity 4, Horizon Unlimited"
+        },
+        "medicationImport": {
+          "name": "Medication Import",
+          "description": "Photo of supplement bottles. Identified and logged automatically.",
+          "badge": "Insight 1/mo, Clarity 2, Horizon Unlimited"
+        }
+      },
+      "understandYourNumbers": {
+        "heading": "Understand Your Numbers",
+        "markerDetailPages": {
+          "name": "Marker Detail Pages",
+          "description": "Every marker has a dedicated page that explains what it measures and why it matters. Written in plain language that anyone can understand."
+        },
+        "foodRecommendations": {
+          "name": "Food Recommendations",
+          "description": "See which foods can help improve each marker. From grass-fed beef and salmon to blueberries and dark chocolate, organized by category with explanations."
+        },
+        "supplementGuidance": {
+          "name": "Supplement Guidance",
+          "description": "Evidence-based supplement suggestions for each marker. Includes typical dosage ranges, timing tips, and how each supplement affects your numbers."
+        },
+        "fastingImpact": {
+          "name": "Fasting Impact",
+          "description": "22 markers have fasting-specific reference ranges with explanations. Understand why your glucose drops, ketones rise, and uric acid increases during a fast."
+        },
+        "markerRelationships": {
+          "name": "Marker Relationships",
+          "description": "See how your markers connect to each other. Over 30 documented relationships help you see the bigger picture."
+        },
+        "protocolGuides": {
+          "name": "Protocol Guides",
+          "description": "What happens to your markers on carnivore? How does keto affect your insulin? Six diet protocols mapped against 20+ markers."
+        }
+      },
+      "seeYourProgress": {
+        "heading": "See Your Progress",
+        "trendCharts": {
+          "name": "Trend Charts",
+          "description": "Interactive charts showing your marker values over time with colored reference range bands.",
+          "badge": "Glimpse 90 days, Focus+ Unlimited"
+        },
+        "compareProtocols": {
+          "name": "Compare Protocols",
+          "description": "Changed your diet? See exactly how your markers responded. Side-by-side comparison of different phases.",
+          "badge": "Focus+"
+        },
+        "aiDashboardInsights": {
+          "name": "AI Dashboard Insights",
+          "description": "Automated observations about your trends in plain language.",
+          "badge": "Insight+"
+        },
+        "communityComparison": {
+          "name": "Community Comparison",
+          "description": "See how your markers compare to anonymized, aggregated data from similar users.",
+          "badge": "Clarity+"
+        }
+      },
+      "drAlexAi": {
+        "heading": "Dr. Alex AI Assistant",
+        "generalHealthQA": {
+          "name": "General Health Q&A",
+          "description": "Ask anything about your health data. Answers based on your actual numbers, not generic internet advice.",
+          "badge": "Glimpse 3/mo, Focus 10, Insight 30, Clarity+ Unlimited"
+        },
+        "trendAnalysis": {
+          "name": "Trend Analysis",
+          "description": "One tap and Dr. Alex reviews your last 60 days. What improved, what needs attention, clear next steps.",
+          "badge": "Glimpse 1/mo, Focus 3, Insight 10, Clarity+ Unlimited"
+        },
+        "labResultExplanation": {
+          "name": "Lab Result Explanation",
+          "description": "Just got blood work back? Dr. Alex goes through every marker and explains what each number means for you.",
+          "badge": "Glimpse 1/mo, Focus 3, Insight 10, Clarity+ Unlimited"
+        },
+        "personalizedNutrition": {
+          "name": "Personalized Nutrition",
+          "description": "Based on your actual marker levels and diet protocol, get specific food recommendations.",
+          "badge": "Focus 3/mo, Insight 10, Clarity+ Unlimited"
+        },
+        "supplementReview": {
+          "name": "Supplement Review",
+          "description": "Your supplement stack checked against your markers. What is working, what is missing, interaction warnings.",
+          "badge": "Focus 3/mo, Insight 10, Clarity+ Unlimited"
+        },
+        "protocolComparison": {
+          "name": "Protocol Comparison",
+          "description": "Thinking about changing your diet? Dr. Alex analyzes how your markers performed across protocols.",
+          "badge": "Insight 5/mo, Clarity+ Unlimited"
+        }
+      },
+      "medicationsAndSupplements": {
+        "heading": "Medications and Supplements",
+        "trackWhatYouTake": {
+          "name": "Track What You Take",
+          "description": "Log every supplement and medication with dosage, frequency, and timing.",
+          "badge": "Glimpse 5, Focus 10, Insight+ Unlimited"
+        },
+        "interactionWarnings": {
+          "name": "Interaction Warnings",
+          "description": "Iron and zinc compete for absorption. Our database flags conflicts.",
+          "badge": "Glimpse Basic, Focus+ Full"
+        },
+        "impactOnYourMarkers": {
+          "name": "Impact on Your Markers",
+          "description": "See which supplements affect which markers over time.",
+          "badge": "Focus+"
+        }
+      },
+      "yourDataYourControl": {
+        "heading": "Your Data, Your Control",
+        "fullDataExport": {
+          "name": "Full Data Export",
+          "description": "Download everything as JSON or CSV. No lock-in.",
+          "badge": "Focus+"
+        },
+        "accountDeletion": {
+          "name": "Account Deletion",
+          "description": "Delete your account and all data. 30-day grace period. GDPR compliant."
+        },
+        "pdfHealthReport": {
+          "name": "PDF Health Report",
+          "description": "Formatted summary for your doctor.",
+          "badge": "Insight 1/mo, Clarity 2, Horizon Weekly"
+        }
+      },
+      "securityAndPrivacy": {
+        "heading": "Security and Privacy",
+        "encryptionAtRest": {
+          "name": "Encryption at Rest (AES-256-GCM)",
+          "description": "Your health data is encrypted when stored. Even in the unlikely event of a server breach, your data remains unreadable and protected."
+        },
+        "encryptionInTransit": {
+          "name": "Encryption in Transit (TLS 1.3)",
+          "description": "All data between your browser and our servers is encrypted with the latest TLS standard. No one can intercept your health information."
+        },
+        "zeroKnowledgeDesign": {
+          "name": "Zero-Knowledge Design",
+          "description": "Platform administrators cannot read your health data. Even with full database access, measurement values remain encrypted and unreadable without the separate encryption key."
+        },
+        "twoFactorAuth": {
+          "name": "Two-Factor Authentication (TOTP)",
+          "description": "Secure your account with app-based 2FA. Even if your password is compromised, your health data stays protected.",
+          "badge": "Focus+"
+        },
+        "anonymousAi": {
+          "name": "Anonymous AI",
+          "description": "Your name, email, and personal identifiers are never sent to AI providers. Dr. Alex works with anonymized data only, so your identity stays completely separate from your health questions."
+        },
+        "noTracking": {
+          "name": "No Third-Party Tracking",
+          "description": "Zero analytics cookies, no tracking pixels, no data brokers. Your browsing and health data are never shared with advertisers."
+        },
+        "gdprEprivacy": {
+          "name": "GDPR and ePrivacy Compliant",
+          "description": "Full compliance with European data protection standards. You have the right to access, export, and delete your data at any time."
+        },
+        "openSourceAuditable": {
+          "name": "Open Source Auditable",
+          "description": "Our core technology is fully auditable under the AGPL-3.0 license. You don't have to trust our claims. You can verify our security yourself."
+        }
+      },
+      "comingSoon": {
+        "heading": "Coming Soon",
+        "symptomJournal": {
+          "name": "Symptom Journal",
+          "description": "Log how you feel alongside every measurement. Track headaches, cramps, fatigue, brain fog, and more. Over time, Dr. Alex connects the dots between your symptoms and your blood work."
+        },
+        "foodIntelligence": {
+          "name": "Food Intelligence",
+          "description": "See what your body actually absorbs, not just what's on the label. Flags anti-nutrients like oxalates and phytates that block mineral absorption. Smarter food choices for your protocol."
+        },
+        "allergySensitivityTracker": {
+          "name": "Allergy & Sensitivity Tracker",
+          "description": "Record your allergies and sensitivities. See how allergy seasons and trigger foods correlate with your inflammatory markers like hs-CRP. Turn guesswork into data."
+        },
+        "mealAnalysis": {
+          "name": "Meal Analysis",
+          "description": "Take a photo of your meal and Dr. Alex tells you how it fits your protocol. Get instant feedback on whether that dish supports your goals or might affect your blood work."
+        }
+      }
+    },
+    "cta": {
+      "title": "Ready to take control?",
+      "description": "Start tracking your health data with privacy-first tools built for serious self-trackers.",
+      "getEarlyAccess": "View Plans",
+      "seePricing": "See Pricing"
+    }
+  },
+  "markerDirectory": {
+    "title": "Biomarker Directory",
+    "tagline": "Every biomarker tells a story. We help you read it.",
+    "description": "Browse all {count} biomarkers tracked by Sovereign Health. Click any marker to see reference ranges, food recommendations, and supplements.",
+    "searchPlaceholder": "Search markers...",
+    "allHealthZones": "All Health Zones",
+    "found": "found",
+    "markerSingular": "biomarker",
+    "markerPlural": "biomarkers",
+    "tableMarker": "Biomarker",
+    "tableHealthZone": "Health Zone",
+    "tableUnit": "Unit",
+    "tableType": "Type",
+    "typeCalculated": "Calculated",
+    "typeHomeDevice": "Home Device",
+    "typeLab": "Lab",
+    "noResults": "No markers found matching your search.",
+    "clickHint": "Click on any biomarker for detailed information including foods, supplements, and related markers. In {appLink}, all insights are personalized based on your Diet and Fasting Protocol.",
+    "theApp": "the app"
+  },
+  "pricing": {
+    "hero": {
+      "title": "Simple, Transparent Pricing",
+      "tagline": "Simple plans that grow with your health journey.",
+      "subtitle": "Start free. Upgrade when you need more. Every plan includes encryption, privacy, and full data ownership."
+    },
+    "toggle": {
+      "monthly": "Monthly",
+      "annual": "Annual",
+      "save17": "Save 17%"
+    },
+    "perMonth": "/mo",
+    "perYear": "/year",
+    "subscribe": "Subscribe",
+    "getStartedFree": "Get Started Free",
+    "bestValue": "Best Value",
+    "soon": "Soon",
+    "comingSoon": "Soon",
+    "locked": "Available from {tier}",
+    "unlimited": "Unlimited",
+    "days": "days",
+    "feature": {
+      "biomarkers": {
+        "label": "Biomarkers",
+        "tooltip": "Track blood, body and lifestyle markers"
+      },
+      "history": {
+        "label": "History",
+        "tooltip": "How far back you can see your data"
+      },
+      "calculated": {
+        "label": "Calculated Markers",
+        "tooltip": "Auto-calculated ratios like TG/HDL, ApoB/ApoA1"
+      },
+      "templates": {
+        "label": "Measurement templates",
+        "tooltip": "Save your routine measurement sets"
+      },
+      "medications": {
+        "label": "Influence Factors",
+        "tooltip": "Track medications and supplements"
+      },
+      "ai_chats": {
+        "label": "AI Chats",
+        "tooltip": "Monthly conversations with Dr. Alex"
+      },
+      "trends": {
+        "label": "Trend analysis",
+        "tooltip": "AI-powered trend detection across your data"
+      },
+      "lab_explain": {
+        "label": "Lab explanations",
+        "tooltip": "Dr. Alex explains your lab results simply"
+      },
+      "nutrition": {
+        "label": "Nutrition advice",
+        "tooltip": "Personalized nutrition recommendations"
+      },
+      "supplement": {
+        "label": "Check Influence Factors",
+        "tooltip": "Evaluate if your supplements help your markers"
+      },
+      "csv_export": {
+        "label": "CSV/JSON Export",
+        "tooltip": "Download your data in open formats"
+      },
+      "thresholds": {
+        "label": "Reference Ranges",
+        "tooltip": "Set personal alert thresholds per marker"
+      },
+      "body_comp": {
+        "label": "Body composition",
+        "tooltip": "Track body fat, muscle mass, water"
+      },
+      "twofa": {
+        "label": "2FA Security",
+        "tooltip": "Two-factor authentication for your account"
+      },
+      "decentralized_auth": {
+        "label": "Decentralized Authentication",
+        "tooltip": "Authenticate using your Nostr secret key (nsec). Your key remains under your control and is never stored on our servers."
+      },
+      "measurements": {
+        "label": "Measurements",
+        "tooltip": "Total measurements you can store"
+      },
+      "ai_dashboard": {
+        "label": "AI Dashboard Insights",
+        "tooltip": "AI-generated insights on your dashboard"
+      },
+      "pdf_reports": {
+        "label": "PDF Health Reports",
+        "tooltip": "Downloadable health summary reports"
+      },
+      "lab_import": {
+        "label": "Lab import",
+        "tooltip": "Import lab results from PDF or photo"
+      },
+      "med_import": {
+        "label": "Influence Factor Import",
+        "tooltip": "Import medication lists automatically"
+      },
+      "protocols": {
+        "label": "Protocol comparison",
+        "tooltip": "Compare different diet/training phases"
+      },
+      "cohort": {
+        "label": "Benchmark",
+        "tooltip": "Compare your data with anonymous cohorts"
+      },
+      "api_access": {
+        "label": "API Access",
+        "tooltip": "Programmatic access to your data"
+      },
+      "self_hosted": {
+        "label": "Self-hosted option",
+        "tooltip": "Run Sovereign Health on your own server"
+      },
+      "onboarding": {
+        "label": "Personal onboarding",
+        "tooltip": "1:1 setup session with our team"
+      },
+      "priority": {
+        "label": "Priority support",
+        "tooltip": "Fast-track support response"
+      },
+      "weekly_pdf": {
+        "label": "Weekly PDF reports",
+        "tooltip": "Automated weekly health summaries"
+      },
+      "unlimited_import": {
+        "label": "Unlimited imports",
+        "tooltip": "No limits on lab/med imports"
+      },
+      "tor_support": {
+        "label": "Tor Browser Support",
+        "tooltip": "Access your health dashboard anonymously via the Tor network. Your IP address is never revealed."
+      },
+      "start9_package": {
+        "label": "StartOS Package",
+        "tooltip": "One-click installation on your Start9 server. Full data sovereignty -- your health data never leaves your home."
+      }
+    },
+    "learnMoreSecurity": "Learn more about our security measures",
+    "viewFullFeatureList": "View full feature comparison",
+    "testModeBanner": "Test Mode - payments use Stripe test sandbox. No real charges.",
+    "btcNote": "Pay with Bitcoin via Lightning Network. 5% discount applied automatically.",
+    "promoCode": "Promo Code",
+    "promoPlaceholder": "Enter promo code",
+    "promoApply": "Apply",
+    "paymentOptions": "Payment Options",
+    "payCard": "Card",
+    "payBitcoin": "Bitcoin",
+    "btcDiscount": "-5%",
+    "btcDiscountLabel": "5% BTC discount",
+    "promoRemove": "Remove",
+    "promoApplied": "applied",
+    "promoFor": "for",
+    "promoForMonths": "for {months} months, then {price}/mo",
+    "promoFirstMonth": "first month, then {price}/mo",
+    "loadingFeatures": "Loading features...",
+    "coreTier": "Core",
+    "tiers": {
+      "glimpse": {
+        "name": "Glimpse",
+        "tagline": "Start your health journey",
+        "monthlyPrice": "Free",
+        "annualPrice": "Free",
+        "annualMonthly": "Free"
+      },
+      "focus": {
+        "name": "Focus",
+        "tagline": "For committed self-trackers",
+        "monthlyPrice": "EUR 9.99",
+        "annualPrice": "EUR 99.90",
+        "annualMonthly": "EUR 8.33"
+      },
+      "insight": {
+        "name": "Insight",
+        "tagline": "Deep understanding",
+        "monthlyPrice": "EUR 24.99",
+        "annualPrice": "EUR 249.90",
+        "annualMonthly": "EUR 20.83"
+      },
+      "clarity": {
+        "name": "Clarity",
+        "tagline": "Complete picture",
+        "monthlyPrice": "EUR 49.99",
+        "annualPrice": "EUR 499.90",
+        "annualMonthly": "EUR 41.66"
+      },
+      "horizon": {
+        "name": "Horizon",
+        "tagline": "Maximum sovereignty",
+        "monthlyPrice": "Custom",
+        "annualPrice": "Custom",
+        "annualMonthly": "Custom"
+      }
+    },
+    "allPlansInclude": {
+      "heading": "All plans include",
+      "openSourceCore": {
+        "title": "Open Source Core",
+        "description": "AGPL-3.0 licensed. Verify every line of code."
+      },
+      "aes256Encryption": {
+        "title": "AES-256 Encryption",
+        "description": "Your health data encrypted at rest and in transit."
+      },
+      "dataPortability": {
+        "title": "Data Portability",
+        "description": "Export your data anytime. No vendor lock-in."
+      },
+      "gdprCompliant": {
+        "title": "GDPR Compliant",
+        "description": "Full right to erasure and data portability."
+      },
+      "noTracking": {
+        "title": "Zero Tracking",
+        "description": "No cookies, no analytics, no fingerprinting. Ever."
+      },
+      "selfHostOption": {
+        "title": "Self-Host Option",
+        "description": "Run your own instance. Full code access under AGPL-3.0."
+      }
+    },
+    "comparison": {
+      "heading": "Feature Comparison",
+      "featureColumn": "Feature",
+      "rows": {
+        "markers": {
+          "feature": "Markers",
+          "desc": "Number of biomarkers you can track"
+        },
+        "history": {
+          "feature": "History",
+          "desc": "How far back your data goes"
+        },
+        "calculatedMarkers": {
+          "feature": "Calculated Markers",
+          "desc": "Auto-computed scores like BMI, GKI, HOMA-IR"
+        },
+        "measurementTemplates": {
+          "feature": "Measurement Templates",
+          "desc": "Saved routines for quick logging"
+        },
+        "medications": {
+          "feature": "Influence Factors",
+          "desc": "Supplements and medications tracked"
+        },
+        "bodyComposition": {
+          "feature": "Body Composition",
+          "desc": "Fat, muscle, water, bone mass tracking"
+        },
+        "customThresholds": {
+          "feature": "Reference Ranges",
+          "desc": "Set your own reference ranges"
+        },
+        "csvJsonExport": {
+          "feature": "CSV/JSON Export",
+          "desc": "Download all your health data"
+        },
+        "pdfReports": {
+          "feature": "PDF Reports",
+          "desc": "Formatted summaries for your doctor"
+        },
+        "twoFA": {
+          "feature": "2FA",
+          "desc": "Two-factor authentication security"
+        },
+        "aiDashboardInsights": {
+          "feature": "AI Dashboard Insights",
+          "desc": "Automated trend observations"
+        },
+        "labResultImport": {
+          "feature": "Lab Result Import",
+          "desc": "Photo/PDF auto-extraction"
+        },
+        "medicationImport": {
+          "feature": "Influence Factor Import",
+          "desc": "Photo-based supplement logging"
+        },
+        "cohortComparison": {
+          "feature": "Benchmark",
+          "desc": "Compare with anonymized user averages"
+        },
+        "aiChats": {
+          "feature": "AI Chats",
+          "desc": "Questions to Dr. Alex AI assistant"
+        },
+        "trendAnalysis": {
+          "feature": "Trend Analysis",
+          "desc": "AI review of your recent markers"
+        },
+        "labExplanation": {
+          "feature": "Lab Explanation",
+          "desc": "AI breakdown of lab results"
+        },
+        "personalizedNutrition": {
+          "feature": "Personalized Nutrition",
+          "desc": "Food recommendations from your data"
+        },
+        "supplementReview": {
+          "feature": "Check Influence Factors",
+          "desc": "AI check of your supplement stack"
+        },
+        "protocolComparison": {
+          "feature": "Protocol Comparison",
+          "desc": "Compare diet protocol effects"
+        },
+        "apiAccess": {
+          "feature": "API Access",
+          "desc": "Programmatic access to your data"
+        },
+        "selfHostedHybrid": {
+          "feature": "Self-Hosted Hybrid",
+          "desc": "Sync self-hosted with cloud features"
+        }
+      }
+    },
+    "enterprise": {
+      "heading": "Clinics and Health Professionals",
+      "description": "Need multi-patient dashboards, team accounts, or custom integrations? Horizon+ is built for clinics, nutritionists, and health coaches who manage client health data.",
+      "contactUs": "Contact Us"
+    },
+    "faq": {
+      "heading": "Frequently Asked Questions",
+      "items": {
+        "freeTier": {
+          "question": "Is the free tier really free forever?",
+          "answer": "Yes. Glimpse is free with no time limit and no credit card required. You get 8 biomarkers, 30 days of history, 2 AI chats per month, and Dr. Alex Chat. It is a fully functional tier, not a trial."
+        },
+        "paymentMethods": {
+          "question": "What payment methods do you accept?",
+          "answer": "We accept credit cards, debit cards, and SEPA direct debit via Stripe. All prices are in EUR. We also accept Bitcoin (Lightning and on-chain) via Strike with a 5% discount."
+        },
+        "cancelAnytime": {
+          "question": "Can I cancel anytime?",
+          "answer": "Yes. Cancel anytime from your account settings. Your data stays accessible at the Glimpse (free) level. No cancellation fees, no questions asked."
+        },
+        "refundPolicy": {
+          "question": "What is your refund policy?",
+          "answer": "Full refund within 30 days of your first paid subscription, no questions asked. After 30 days, your subscription continues until the end of the billing period."
+        },
+        "dataOwnership": {
+          "question": "Who owns my data?",
+          "answer": "You do. Always. We never sell, share, or analyze your health data for third parties. Export everything anytime (CSV/JSON) and delete your account permanently. [Our privacy policy](https://sovereignhealth.io/privacy/)"
+        },
+        "selfHost": {
+          "question": "Can I self-host instead?",
+          "answer": "Yes. The open-source core is free under AGPL-3.0. Run it with Docker on your own server. The Horizon plan additionally offers a hybrid option. [More on our Features page](/features/) | [Full feature comparison](/feature-details/)"
+        },
+        "dataSecurity": {
+          "question": "Is my data secure?",
+          "answer": "Yes. AES-256 encryption, zero-knowledge architecture (even we can't read your data), TLS 1.3, 2FA (from Focus), fully GDPR compliant. EU data storage. No tracking, no cookies, no analytics. [Privacy policy](https://sovereignhealth.io/privacy/)"
+        },
+        "aiChats": {
+          "question": "What are AI Chats?",
+          "answer": "Conversations with Dr. Alex, your AI health assistant. Ask about biomarkers, trends, nutrition, or lab results. Each plan includes a monthly chat pool - you decide how to use it. [Try it free](https://app.sovereignhealth.io/signup)"
+        },
+        "quotaRollover": {
+          "question": "Do monthly quotas roll over?",
+          "answer": "No. AI chats, exports, and imports reset on your billing cycle date each month. Unused quota does not accumulate."
+        },
+        "bitcoinPayment": {
+          "question": "What is Bitcoin payment?",
+          "answer": "We accept Bitcoin via Lightning Network and on-chain payments through Strike. Bitcoin payments get a 5% discount on all plans. Pay in BTC for prepaid periods (monthly or yearly)."
+        }
+      }
+    },
+    "trustBadges": {
+      "aes256": {
+        "label": "AES-256 Encrypted",
+        "desc": "Your health data is encrypted before it touches the database"
+      },
+      "tls13": {
+        "label": "TLS 1.3",
+        "desc": "All communication between you and our servers is encrypted"
+      },
+      "gdpr": {
+        "label": "GDPR Compliant",
+        "desc": "Full European data protection, built in from day one"
+      },
+      "ePrivacy": {
+        "label": "ePrivacy Compliant",
+        "desc": "No cookies, no tracking scripts, no third-party data sharing"
+      },
+      "zeroKnowledge": {
+        "label": "Zero-Knowledge",
+        "desc": "Even we cannot read your health data"
+      },
+      "noTracking": {
+        "label": "No Tracking",
+        "desc": "No analytics, no pixels, no fingerprinting, nothing"
+      },
+      "owasp": {
+        "label": "OWASP Secure",
+        "desc": "Protected against the top 10 web application security risks"
+      },
+      "openSource": {
+        "label": "Open Source Auditable",
+        "desc": "Anyone can inspect the code and verify our security claims"
+      }
+    },
+    "cta": {
+      "heading": "Start tracking your health today",
+      "description": "The free tier is yours forever. No credit card, no commitment.",
+      "getEarlyAccess": "Try the App",
+      "seeAllFeatures": "See All Features"
+    }
+  },
+  "featureDetails": {
+    "title": "Feature Comparison",
+    "subtitle": "Compare all 33 features across every plan side by side. Use the search to find specific features, or ask Dr. Alex - he knows every feature and can help you choose the right plan.",
+    "backToPricing": "Back to Pricing",
+    "searchPlaceholder": "Search features...",
+    "noResults": "No features match your search.",
+    "cta": {
+      "tryApp": {
+        "title": "Try the App",
+        "description": "Start tracking your biomarkers for free. No credit card required.",
+        "button": "Sign Up Free"
+      },
+      "choosePlan": {
+        "title": "Choose a Plan",
+        "description": "Find the perfect tier for your health tracking goals.",
+        "button": "View Pricing"
+      },
+      "exploreFeatures": {
+        "title": "Explore Features",
+        "description": "Learn more about what Sovereign Health can do for you.",
+        "button": "All Features"
+      }
+    }
+  },
+  "openSource": {
+    "hero": {
+      "title": "Free and Open Source",
+      "subtitle": "Run Sovereign Health on your own hardware. Your server, your data, your rules. Licensed under AGPL-3.0  - free forever, no strings attached."
+    },
+    "whyOpenSource": {
+      "heading": "Why Open Source Matters",
+      "dataSovereignty": {
+        "title": "Data Sovereignty",
+        "description": "Your health data lives on your server. No cloud dependency, no third-party access. You control the database, the backups, and who can see it."
+      },
+      "fullTransparency": {
+        "title": "Full Transparency",
+        "description": "Every line of code is auditable. No hidden telemetry, no secret data collection, no obfuscated logic. What you see is what runs."
+      },
+      "zeroTrust": {
+        "title": "Zero Trust Architecture",
+        "description": "AES-256 encryption at rest, TLS 1.3 in transit. Even the database stores encrypted values  - a compromised server reveals nothing."
+      },
+      "communityDriven": {
+        "title": "Community Driven",
+        "description": "Built in the open with community input. Feature requests, bug reports, and pull requests are all welcome. Your voice shapes the roadmap."
+      }
+    },
+    "quickStart": {
+      "heading": "Quick Start",
+      "subtitle": "Get up and running in under 5 minutes with Docker Compose.",
+      "dockerNote": "Requires Docker and Docker Compose. See the README for detailed setup instructions."
+    },
+    "whatYouGet": {
+      "heading": "What You Get",
+      "features": [
+        "85+ biomarkers across 8 zones",
+        "Trend analysis with reference ranges",
+        "Fasting protocol adjustments",
+        "Medication and supplement tracking",
+        "Calculated health scores",
+        "Full data export (CSV, JSON)",
+        "AES-256 encryption at rest",
+        "Dr. Alex AI (bring your own API key)"
+      ]
+    },
+    "ossVsSaas": {
+      "heading": "OSS vs SaaS",
+      "subtitle": "The open source version gives you the full core platform. The SaaS adds convenience features and managed infrastructure.",
+      "columnOss": "OSS",
+      "columnSaas": "SaaS",
+      "saasOnly": "SaaS only",
+      "rows": {
+        "selfHosted": {
+          "label": "Self-hosted",
+          "oss": "Yes",
+          "saas": "Hosted at app.sovereignhealth.io"
+        },
+        "dataLocation": {
+          "label": "Data location",
+          "oss": "Your server",
+          "saas": "Encrypted EU servers"
+        },
+        "tierLimits": {
+          "label": "Tier limits",
+          "oss": "None (unlimited)",
+          "saas": "Free + paid plans"
+        },
+        "drAlexAi": {
+          "label": "Dr. Alex AI",
+          "oss": "Bring your own key",
+          "saas": "Included"
+        },
+        "labResultImport": {
+          "label": "Lab result import",
+          "oss": "-",
+          "saas": "Photo/PDF auto-extraction"
+        },
+        "medicationImport": {
+          "label": "Influence Factor Import",
+          "oss": "-",
+          "saas": "Photo-based logging"
+        },
+        "pdfHealthReports": {
+          "label": "PDF health reports",
+          "oss": "-",
+          "saas": "Formatted for your doctor"
+        },
+        "cohortComparison": {
+          "label": "Benchmark",
+          "oss": "-",
+          "saas": "Anonymous benchmarking"
+        },
+        "aiDashboardInsights": {
+          "label": "AI dashboard insights",
+          "oss": "-",
+          "saas": "Automated trend analysis"
+        },
+        "prioritySupport": {
+          "label": "Priority support",
+          "oss": "-",
+          "saas": "Email + in-app"
+        },
+        "price": {
+          "label": "Price",
+          "oss": "Free forever",
+          "saas": "Free + paid plans"
+        }
+      }
+    },
+    "builtWith": {
+      "heading": "Built With",
+      "rust": {
+        "name": "Rust",
+        "desc": "Backend API"
+      },
+      "nextjs": {
+        "name": "Next.js",
+        "desc": "Frontend app"
+      },
+      "postgresql": {
+        "name": "PostgreSQL",
+        "desc": "Database"
+      },
+      "redis": {
+        "name": "Redis",
+        "desc": "Cache & sessions"
+      },
+      "docker": {
+        "name": "Docker",
+        "desc": "Containerized deployment"
+      },
+      "nginx": {
+        "name": "nginx",
+        "desc": "Reverse proxy & TLS"
+      }
+    },
+    "contribute": {
+      "heading": "Contribute",
+      "description": "Help us build the future of privacy-first health tracking. Whether it's code, documentation, translations, or bug reports  - every contribution matters.",
+      "viewOnGitlab": "View on GitLab",
+      "contributingGuide": "Contributing Guide"
+    },
+    "donate": {
+      "heading": "Support with Bitcoin",
+      "description": "Sovereign Health is open source and community-driven. Support development with a Bitcoin donation via Lightning Network. Every satoshi helps us stay independent.",
+      "button": "Donate Bitcoin",
+      "lightningNote": "Lightning Network - instant, low fees"
+    }
+  },
+  "about": {
+    "hero": {
+      "title": "Built by Someone Who Needed It"
+    },
+    "story": {
+      "paragraph1": "My name is Helmut, and for the past several years I have been on a journey to take back control of the systems that run my life. It started with money when I discovered Bitcoin in 2017 and became a maximalist by 2023. The idea that a decentralized protocol could replace the need to trust banks and governments resonated deeply with me, and it changed how I think about everything.",
+      "paragraph2": "In 2025, I applied the same philosophy to my health and went carnivore. Not because a YouTube influencer convinced me, but because I wanted to reduce the noise and focus on the signal. Only real food, no highly processed ingredients, no seed oils. The results were remarkable, but I did not want to just feel better. I wanted to measure it and prove it to myself with data.",
+      "paragraph3": "So I started tracking my biomarkers obsessively. Twice a week, every Tuesday and Friday morning, I prick my finger with a Fora 6 device and measure glucose, ketones, cholesterol, uric acid, hemoglobin, and hematocrit. I step on my Qardio smart scale for weight and body composition. Once a year I get a comprehensive blood panel done by a professional lab, covering over 40 additional markers including hormones, thyroid, liver, kidneys, vitamins, and inflammation.",
+      "paragraph4": "I tried multiple health tracking apps from different companies, but every single one held my data hostage in their proprietary cloud. I could not export it properly, I could not analyze it the way I wanted to, and I certainly could not trust them with my most sensitive personal information. I ended up tracking over 80 biomarkers in Excel because at least there I had sovereign access to my own health data.",
+      "paragraph5": "I described this entire journey in my book \"Brick by Brick,\" where I write about taking back control of your health, your finances, and your data, one decision at a time. You can find it here:",
+      "paragraph6": "Out of this experience, and driven by my curiosity for building with AI tools like OpenClaw and Claude Code, I decided to create the app I wished existed. Sovereign Health is the open source version that anyone can self-host for free on their own hardware. Your server, your data, your rules. Sovereign Health Intelligence is the hosted platform for those who prefer convenience, with AI-powered analysis, smart import, medication tracking, and team features on top.",
+      "paragraph7": "The platform is fully encrypted, fully GDPR compliant, and designed so that even as the operator, I cannot read your health data. That is not a marketing claim. It is an architectural decision baked into the code, which you can verify yourself because the source is open.",
+      "paragraph8": "This is not a venture-funded startup chasing growth metrics. This is one person building a tool that solves a real problem, sharing it with the world, and offering a premium version for those who want more. Decentralize everything. Verify, do not trust. Brick by brick. Or should I say, blood drop by drop?"
+    },
+    "values": {
+      "sovereignty": {
+        "title": "Sovereignty",
+        "description": "Your data belongs to you. Full stop. Self-host it, export it, delete it. No lock-in, no hostages."
+      },
+      "verification": {
+        "title": "Verification",
+        "description": "Do not trust. Verify. Open source code, client-side encryption, zero-knowledge architecture."
+      },
+      "simplicity": {
+        "title": "Simplicity",
+        "description": "Health tracking should take two minutes, not twenty. Measure, record, understand. That is it."
+      }
+    },
+    "book": {
+      "heading": "Read the Book",
+      "description": "\"Brick by Brick\" tells the full story of taking back control of your health, your finances, and your data, one decision at a time.",
+      "cta": "Get the Book on Amazon"
+    }
+  },
+  "healthZones": {
+    "hero": {
+      "title": "8 Health Zones. 85+ Biomarkers.",
+      "tagline": "Eight functional zones. One complete picture.",
+      "subtitle": "Every biomarker belongs to a health zone. Zones help you understand which systems in your body are performing well and which need attention."
+    },
+    "markersLabel": "{count} Biomarkers",
+    "zones": {
+      "energyMetabolic": {
+        "name": "Energy and Metabolic",
+        "description": "Blood sugar, insulin, ketones, and the markers that determine how your body produces and uses energy. Essential for anyone tracking fasting, keto, or carnivore protocols.",
+        "sampleMarkers": [
+          "Glucose",
+          "Insulin",
+          "Ketones",
+          "HbA1c",
+          "HOMA-IR",
+          "GKI"
+        ]
+      },
+      "structural": {
+        "name": "Structural",
+        "description": "Body composition, bone health, and structural integrity. Track weight, body fat, muscle mass, BMI, and waist-to-height ratio to see how your body is physically changing.",
+        "sampleMarkers": [
+          "Weight",
+          "Body Fat %",
+          "Muscle Mass",
+          "BMI",
+          "WHtR",
+          "Bone Mass"
+        ]
+      },
+      "cardiovascular": {
+        "name": "Cardiovascular",
+        "description": "Heart and blood vessel health. Cholesterol panels, blood pressure, heart rate, and calculated ratios like TG/HDL that give you a real picture of cardiovascular risk.",
+        "sampleMarkers": [
+          "Total Cholesterol",
+          "LDL-C",
+          "HDL-C",
+          "Triglycerides",
+          "Blood Pressure",
+          "Heart Rate"
+        ]
+      },
+      "cognitive": {
+        "name": "Cognitive",
+        "description": "Brain health and nervous system markers. Vitamins, minerals, and biomarkers that influence cognitive function, mood, and mental clarity.",
+        "sampleMarkers": [
+          "Vitamin B12",
+          "Folate",
+          "Magnesium",
+          "Omega-3 Index"
+        ]
+      },
+      "immune": {
+        "name": "Immune",
+        "description": "Inflammation, white blood cells, and immune system function. CRP, ESR, and complete blood count markers that show how well your body defends itself.",
+        "sampleMarkers": [
+          "CRP",
+          "ESR",
+          "WBC",
+          "Neutrophils",
+          "Lymphocytes",
+          "Uric Acid"
+        ]
+      },
+      "nutritional": {
+        "name": "Nutritional",
+        "description": "Vitamins, minerals, and essential nutrients. From iron and ferritin to vitamin D and zinc, see if your diet is giving you what you need.",
+        "sampleMarkers": [
+          "Iron",
+          "Ferritin",
+          "Vitamin D",
+          "Zinc",
+          "Selenium",
+          "Calcium"
+        ]
+      },
+      "hormonal": {
+        "name": "Hormonal",
+        "description": "Thyroid, testosterone, cortisol, and other hormones that regulate everything from energy to mood. Track changes over time to understand your hormonal balance.",
+        "sampleMarkers": [
+          "TSH",
+          "Free T4",
+          "Free T3",
+          "Testosterone",
+          "Cortisol",
+          "DHEA-S"
+        ]
+      },
+      "detoxification": {
+        "name": "Detoxification",
+        "description": "Liver and kidney function markers. ALT, AST, GGT, creatinine, and eGFR tell you how well your organs are filtering and processing.",
+        "sampleMarkers": [
+          "ALT",
+          "AST",
+          "GGT",
+          "Creatinine",
+          "eGFR",
+          "Bilirubin"
+        ]
+      }
+    },
+    "cta": {
+      "heading": "Track All Zones with Sovereign Health",
+      "description": "Start recording your markers today. See the full picture of your health across every zone.",
+      "tryTheApp": "Try the App",
+      "selfHostForFree": "Self-Host for Free"
+    }
+  },
+  "contact": {
+    "hero": {
+      "title": "Get in Touch",
+      "tagline": "Have a question, suggestion, or partnership inquiry? Send us a message."
+    },
+    "form": {
+      "name": "Your Name",
+      "email": "Email Address",
+      "subject": "Subject",
+      "message": "Message",
+      "messagePlaceholder": "Tell us how we can help...",
+      "submit": "Send Message",
+      "sending": "Sending...",
+      "success": "Message sent successfully! We will get back to you within 48 hours.",
+      "errorGeneric": "Something went wrong. Please try again later.",
+      "errorRateLimit": "Too many submissions. Please try again later.",
+      "subjects": {
+        "general": "General Inquiry",
+        "support": "Technical Support",
+        "partnership": "Partnership Inquiry",
+        "bug": "Bug Report",
+        "feature": "Feature Request",
+        "security": "Security Issue",
+        "billing": "Billing Question",
+        "gdpr": "GDPR Request"
+      }
+    },
+    "directContact": {
+      "title": "Other Ways to Reach Us",
+      "emailLabel": "Email us directly at",
+      "gitlabLabel": "Report issues or contribute on",
+      "responseTime": "We typically respond within 48 hours."
+    }
+  },
+  "learn": {
+    "hero": {
+      "title": "Learn",
+      "subtitle": "Tutorials and guides to help you get the most out of Sovereign Health."
+    },
+    "tutorials": {
+      "gettingStarted": {
+        "title": "Getting Started",
+        "description": "Set up your account, connect your first device, and record your first measurement."
+      },
+      "healthZonesExplained": {
+        "title": "Health Zones Explained",
+        "description": "Understand the 8 health zones and how they organize your biomarkers."
+      },
+      "usingDrAlex": {
+        "title": "Using Dr. Alex",
+        "description": "Get the most out of your AI health assistant with effective questions and prompts."
+      },
+      "selfHostedSetup": {
+        "title": "Self-Hosted Setup",
+        "description": "Deploy Sovereign Health on your own server with Docker in under 5 minutes."
+      },
+      "customizingThresholds": {
+        "title": "Customizing Reference Ranges",
+        "description": "Set your own reference ranges based on your health goals and protocol."
+      }
+    },
+    "videoComingSoon": "Video coming soon",
+    "unsupportedProvider": "Unsupported video provider",
+    "note": "Videos are being produced. Check back soon."
+  },
+  "partners": {
+    "hero": {
+      "title": "Partner With Us",
+      "tagline": "Better health outcomes through better partnerships."
+    },
+    "affiliate": {
+      "title": "Become a Referral Partner",
+      "description": "Share Sovereign Health with your network and earn 20% commission on every referred subscription. Every registered user is automatically an affiliate. No application needed. Ideal for health podcasters, nutrition coaches, carnivore and keto community leaders, and Bitcoin advocates who understand the value of data sovereignty.",
+      "highlights": {
+        "commission": "20% commission on first subscription",
+        "bitcoin": "Bitcoin payouts available (+5% bonus)",
+        "cookie": "30-day cookie attribution",
+        "dashboard": "Real-time tracking dashboard"
+      },
+      "cta": "Log in to get your referral link",
+      "learnMore": "Learn more about the program"
+    },
+    "types": {
+      "healthPractitioners": {
+        "title": "Health Practitioners",
+        "description": "Your patients spend 99% of their time outside your office. Give them a tool to track biomarkers, medications, and lifestyle changes between visits. When they come back, they bring real data instead of vague descriptions. Sovereign Health integrates with any lab provider and supports 85+ markers. Patients become active participants in their health journey, and you get better data to work with. The Horizon tier includes multi-patient oversight so you can monitor trends across your practice."
+      },
+      "deviceManufacturers": {
+        "title": "Device Manufacturers",
+        "description": "Your hardware generates valuable health data. Make sure it reaches your customers in a platform they actually control. Sovereign Health supports open device integrations and gives users full ownership of their measurements. By partnering with us, your device becomes part of a privacy-first ecosystem that health-conscious users actively seek out. We handle the software, you handle the hardware."
+      },
+      "contentContributors": {
+        "title": "Content and Knowledge Contributors",
+        "description": "Our knowledge base covers 85+ markers with plain-language descriptions, food recommendations, supplement guidance, and protocol effects. Medical professionals, nutritionists, and researchers can contribute to make it better. All contributions are open source, credited, and help thousands of users understand their health data. If you have expertise in metabolic health, we want to hear from you."
+      }
+    },
+    "cta": {
+      "prefix": "Interested? Reach out at",
+      "linkText": "Contact Us"
+    }
+  },
+  "impressum": {
+    "title": "Impressum",
+    "legalNotice": "Legal Notice",
+    "serviceProvider": {
+      "heading": "Service Provider",
+      "name": "Sovereign Health Intelligence",
+      "type": "Type: Individual Entrepreneur (Einzelunternehmer)"
+    },
+    "contact": {
+      "heading": "Contact",
+      "emailLabel": "Email:",
+      "emailLinkText": "Contact Us"
+    },
+    "applicableLaw": {
+      "heading": "Applicable Law",
+      "text": "Austrian law applies to this website and service, in particular the Austrian E-Commerce Act (E-Commerce-Gesetz, ECG) and the Austrian Media Act (MedienG)."
+    },
+    "regulatoryAuthority": {
+      "heading": "Regulatory Authority",
+      "text": "Applicable Austrian trade authority (Gewerbebehorde)."
+    },
+    "registration": {
+      "heading": "Registration Details",
+      "text": "Full registration details (company register number, VAT ID) will be published upon formal company registration."
+    },
+    "disputeResolution": {
+      "heading": "EU Online Dispute Resolution",
+      "paragraph1": "The European Commission provides a platform for online dispute resolution (ODR) for consumers. This platform is available at:",
+      "paragraph2": "If you are a consumer residing in the European Union, you may use this platform to submit a complaint regarding a product or service purchased online. We are committed to resolving any disputes through direct communication and will respond to any complaints received through the ODR platform promptly."
+    },
+    "contentResponsibility": {
+      "heading": "Content Responsibility",
+      "text": "Helmut Schindlwick, as the operator of this website, is responsible for the content pursuant to Section 55(2) of the Austrian Broadcasting Agreement (RStV)."
+    }
+  },
+  "markers": {
+    "directory": {
+      "title": "Biomarker Directory",
+      "subtitle": "Browse all {count} biomarkers tracked by Sovereign Health. Click any biomarker to see reference ranges, food recommendations, and supplements.",
+      "searchPlaceholder": "Search biomarkers...",
+      "allZones": "All Zones",
+      "resultCount": "{count} marker",
+      "resultCountPlural": "{count} markers",
+      "found": "found",
+      "tableHeaders": {
+        "marker": "Marker",
+        "zone": "Zone",
+        "unit": "Unit",
+        "type": "Type",
+        "description": "Description"
+      },
+      "noResults": "No markers found matching your search."
+    },
+    "detail": {
+      "breadcrumbMarkers": "Markers",
+      "notFoundTitle": "Marker Not Found",
+      "backToDirectory": "Back to Marker Directory",
+      "aboutThisMarker": "About This Marker",
+      "referenceRanges": "Reference Ranges",
+      "standardRange": "Standard Range",
+      "fastingRange": "Fasting Range",
+      "rangeLow": "Low",
+      "rangeOptimal": "Optimal",
+      "rangeHigh": "High",
+      "topFoods": "Top Foods for {name}",
+      "supplements": "Supplements for {name}",
+      "relatedMarkers": "Related Markers",
+      "showAll": "Show all {count} items",
+      "showLess": "Show less",
+      "personalizedCallout": "These recommendations are personalized in the {appLink} based on your Diet Protocol and Fasting Protocol.",
+      "sovereignHealthApp": "Sovereign Health app",
+      "ctaTitle": "Track {name} with Sovereign Health",
+      "ctaDescription": "Record measurements, see trends over time, and get personalized insights from Dr. Alex.",
+      "tryTheApp": "Try the App",
+      "selfHostForFree": "Self-Host for Free"
+    },
+    "types": {
+      "calculated": "Calculated",
+      "homeDevice": "Home Device",
+      "lab": "Lab"
+    }
+  },
+  "forms": {
+    "earlyAccess": {
+      "placeholder": "you@example.com",
+      "submitButton": "Notify Me",
+      "submitting": "Submitting...",
+      "successTitle": "You are on the list!",
+      "successMessage": "We will send you one email when registration opens.",
+      "errorDefault": "Something went wrong. Please try again."
+    },
+    "contact": {
+      "nameLabel": "Name",
+      "namePlaceholder": "Your name",
+      "emailLabel": "Email",
+      "emailPlaceholder": "you@example.com",
+      "subjectLabel": "Subject",
+      "subjectPlaceholder": "Select a subject",
+      "subjects": {
+        "generalInquiry": "General Inquiry",
+        "bugReport": "Bug Report",
+        "featureRequest": "Feature Request",
+        "partnership": "Partnership",
+        "securityIssue": "Security Issue",
+        "other": "Other"
+      },
+      "messageLabel": "Message",
+      "messagePlaceholder": "How can we help?",
+      "submitButton": "Send Message",
+      "sending": "Sending...",
+      "successTitle": "Message sent!",
+      "successMessage": "Thank you for reaching out. We will get back to you soon.",
+      "errorDefault": "Something went wrong. Please try again."
+    },
+    "partner": {
+      "nameLabel": "Name",
+      "namePlaceholder": "Your name",
+      "emailLabel": "Email",
+      "emailPlaceholder": "you@example.com",
+      "partnerTypeLabel": "Partner Type",
+      "partnerTypePlaceholder": "Select a type",
+      "partnerTypes": {
+        "healthPractitioner": "Health Practitioner",
+        "deviceManufacturer": "Device Manufacturer",
+        "contentContributor": "Content Contributor",
+        "affiliate": "Affiliate",
+        "other": "Other"
+      },
+      "messageLabel": "Message",
+      "messagePlaceholder": "Tell us about your interest in partnering...",
+      "submitButton": "Send Message",
+      "submitting": "Submitting...",
+      "successTitle": "Thank you!",
+      "successMessage": "We will be in touch.",
+      "errorDefault": "Something went wrong. Please try again."
+    }
+  },
+  "drAlexChat": {
+    "bubbleLabel": "Ask Dr. Alex",
+    "openChat": "Open Dr. Alex chat",
+    "closeChat": "Close chat",
+    "headerTitle": "Ask Dr. Alex",
+    "betaBadge": "Beta",
+    "lockedFeatures": {
+      "uploadLabResults": "Upload my lab results",
+      "analyzeBloodWork": "Analyze my blood work",
+      "trackMedications": "Track my medications",
+      "tooltip": "Sign up to unlock this feature.",
+      "viewPricing": "View pricing →"
+    },
+    "availableWithPro": "Available with Dr. Alex Pro",
+    "quickQuestionsPrompt": "Ask me about biomarkers, diet protocols, or our product:",
+    "quickQuestions": [
+      "What is ApoB and why does it matter?",
+      "Carnivore vs Keto — what's the difference?",
+      "What plan is right for me?",
+      "How do health zones work?",
+      "Can I self-host this?",
+      "What's the GKI and why track it?"
+    ],
+    "upsellMessage": "Want personalized health insights?",
+    "upsellLink": "Sign up for Dr. Alex Pro →",
+    "startNewConversation": "Start new conversation",
+    "inputPlaceholder": "Type your question...",
+    "inputPlaceholderLimitReached": "Start a new conversation above",
+    "sendMessage": "Send message",
+    "disclaimer": "General health education, not medical advice",
+    "errors": {
+      "default": "Something went wrong. Please try again.",
+      "connectionError": "Could not connect to Dr. Alex. Please check your connection."
+    }
+  },
+  "common": {
+    "tryTheApp": "Try the App",
+    "getEarlyAccess": "View Plans",
+    "selfHostForFree": "Self-Host for Free",
+    "contactUs": "Contact Us",
+    "seePricing": "See Pricing",
+    "viewOnGitlab": "View on GitLab",
+    "comingSoon": "Coming Soon",
+    "allPlans": "All Plans",
+    "yes": "Yes",
+    "unlimited": "Unlimited",
+    "free": "Free",
+    "custom": "Custom",
+    "seeAllFeatures": "See All Features",
+    "openTheApp": "Open the App"
+  },
+  "privacy": {
+    "note": "Legal document - English only"
+  },
+  "terms": {
+    "note": "Legal document - English only"
+  },
+  "security": {
+    "hero": {
+      "title": "Security & Trust",
+      "tagline": "Transparency builds trust. Here is exactly how we protect your data."
+    },
+    "intro": {
+      "paragraph1": "Health data is among the most sensitive information a person can have. Where you store it, who can access it, and how it is protected are not minor details. They are the foundation of any health platform worth using.",
+      "paragraph2": "Sovereign Health Intelligence was built from day one with a single architectural principle: we should not be able to read your health data, even if we wanted to. This is not a marketing claim. It is a technical decision baked into the code, which you can verify yourself because the source is open.",
+      "paragraph3": "This page explains our security approach in detail. Every claim made here is verifiable in the source code."
+    },
+    "principles": {
+      "heading": "Our Security Principles",
+      "dataSovereignty": {
+        "title": "Data Sovereignty",
+        "description": "Your data belongs to you. Export it anytime as JSON or CSV. Delete your account and all data is removed within 30 days. We never lock you in."
+      },
+      "openSource": {
+        "title": "Open Source",
+        "description": "Our core technology is AGPL-3.0 licensed. Every line of code is publicly auditable. You do not have to trust our claims. You can verify them."
+      },
+      "privacyByDesign": {
+        "title": "Privacy by Design",
+        "description": "No tracking, no profiling, no behavioral analytics. We do not monitor how you use the platform. We do not build user profiles for any purpose."
+      },
+      "minimalData": {
+        "title": "Minimal Data Collection",
+        "description": "We collect only what is needed to provide the service: your email, your health measurements (encrypted), and your preferences. Nothing more."
+      }
+    },
+    "technical": {
+      "heading": "Technical Security",
+      "aes256": {
+        "title": "AES-256-GCM Encryption at Rest",
+        "description": "All health measurement values are encrypted using AES-256-GCM before being written to the database. The encryption key is stored separately from the database."
+      },
+      "tls13": {
+        "title": "TLS 1.3 Encryption in Transit",
+        "description": "All communication between your browser and our servers uses TLS 1.3, the latest transport layer security protocol."
+      },
+      "zeroKnowledge": {
+        "title": "Zero-Knowledge Architecture",
+        "description": "Platform administrators cannot read your health data. Even with full database access, measurement values remain encrypted and unreadable without the separate encryption key."
+      },
+      "noAnalytics": {
+        "title": "No Third-Party Analytics",
+        "description": "No Google Analytics, no Plausible, no tracking pixels, no cookies (except one optional referral cookie). No browser fingerprinting. No device identifiers."
+      },
+      "docker": {
+        "title": "Containerized Deployment",
+        "description": "The platform runs in isolated Docker containers with minimal attack surface. Each service (API, frontend, database) runs in its own container."
+      },
+      "securityUpdates": {
+        "title": "Regular Security Updates",
+        "description": "Dependencies are kept up to date. The Rust backend provides memory safety guarantees. OWASP Top 10 protections are implemented throughout the stack."
+      }
+    },
+    "compliance": {
+      "heading": "Compliance",
+      "gdpr": {
+        "title": "GDPR Compliant",
+        "description": "Full compliance with the EU General Data Protection Regulation. Data stored in EU (Lithuania). Full data portability and right to erasure built into the platform."
+      },
+      "austrianEcg": {
+        "title": "Austrian ECG / Impressum",
+        "description": "Operated under Austrian law with full legal disclosure per the Austrian E-Commerce Act (ECG). See our Impressum for complete details."
+      },
+      "ageRequirement": {
+        "title": "18+ Age Requirement",
+        "description": "The platform is intended for adults only. Accounts created by users under 18 will be deleted upon discovery."
+      },
+      "refundPolicy": {
+        "title": "30-Day Refund Policy",
+        "description": "Full refund within 30 days of your first paid subscription, no questions asked. After 30 days, your subscription continues until the end of the billing period."
+      },
+      "dataExport": {
+        "title": "Full Data Export",
+        "description": "Download your complete health history as JSON or CSV anytime from the application. Generate PDF health reports for your doctor."
+      },
+      "dataDeletion": {
+        "title": "Data Deletion on Request",
+        "description": "Delete your account from Settings at any time. All data removed from the primary database within 30 days. Encrypted backups purged within 90 days."
+      }
+    },
+    "payment": {
+      "heading": "Payment Security",
+      "stripe": {
+        "title": "Stripe (PCI DSS Compliant)",
+        "description": "Credit card payments are processed by Stripe, a PCI DSS Level 1 certified payment processor. We never see or store your card details."
+      },
+      "btcpay": {
+        "title": "BTCPay Server (Self-Hosted)",
+        "description": "Bitcoin payments are processed through our self-hosted BTCPay Server instance. No third-party payment processor involved for cryptocurrency payments."
+      },
+      "noPaymentData": {
+        "title": "No Payment Data Stored",
+        "description": "We do not store credit card numbers, CVVs, or any payment credentials on our servers. All payment data is handled by Stripe or BTCPay Server."
+      },
+      "bitcoinDiscount": {
+        "title": "5% Bitcoin Discount",
+        "description": "Pay with Bitcoin for privacy-preserving payments and receive a 5% discount. Bitcoin payments do not require sharing personal financial information."
+      }
+    },
+    "openSource": {
+      "heading": "Open Source Commitment",
+      "description": "Our core technology is open source under the AGPL-3.0 license. The backend, frontend, and database schema are all publicly available. Community contributions are welcome. We believe that open source is the only way to build real trust in a health platform.",
+      "link": "View our open source projects"
+    },
+    "ai": {
+      "heading": "AI & Health Data",
+      "aiAssisted": {
+        "title": "AI-Assisted, Not AI-Decided",
+        "description": "Dr. Alex provides AI-powered insights to help you understand your health data. All analysis is informational. The AI does not make decisions for you."
+      },
+      "noMedicalAdvice": {
+        "title": "Not Medical Advice",
+        "description": "Sovereign Health Intelligence is not a medical device and does not provide medical advice. Always consult your doctor for medical decisions."
+      },
+      "noAiTraining": {
+        "title": "Your Data Does Not Train AI",
+        "description": "AI queries are sent to Anthropic Claude with anonymized context only. Your name, email, and identifying information are never included. Your data is not used to train AI models."
+      },
+      "noDataSharing": {
+        "title": "Health Data Never Shared or Sold",
+        "description": "Your health data is never shared with third parties, never sold, and never used for advertising. This is a core architectural commitment, not a policy that can be changed."
+      }
+    },
+    "contact": {
+      "heading": "Report a Security Issue",
+      "description": "If you discover a security vulnerability, please report it responsibly. We take every report seriously and will respond promptly.",
+      "cta": "Report Security Issue"
+    }
+  },
+  "referral": {
+    "hero": {
+      "title": "Referral Program",
+      "colorSubtitle": "Earn while helping others take control of their health.",
+      "subtitle": "Share Sovereign Health Intelligence with friends and colleagues. Earn 20% commission on every referred subscription."
+    },
+    "howItWorks": {
+      "heading": "How It Works",
+      "step": "Step",
+      "steps": {
+        "signUp": {
+          "title": "Sign Up",
+          "description": "Create an account and subscribe to any plan."
+        },
+        "getLink": {
+          "title": "Get Your Link",
+          "description": "Find your unique referral link in your account settings."
+        },
+        "share": {
+          "title": "Share",
+          "description": "Share your link with friends, colleagues, or your community."
+        },
+        "earn": {
+          "title": "Earn",
+          "description": "Earn 20% commission on every referred subscription."
+        }
+      }
+    },
+    "details": {
+      "heading": "Commission Details",
+      "items": {
+        "commission": {
+          "title": "20% Commission",
+          "description": "Earn 20% of the first subscription payment for every user you refer."
+        },
+        "evaluation": {
+          "title": "30-Day Evaluation",
+          "description": "Commission unlocks after the referred user completes a 30-day evaluation period."
+        },
+        "payoutOptions": {
+          "title": "EUR or Bitcoin",
+          "description": "Choose your payout in EUR or Bitcoin. BTC payouts earn an extra 5% bonus."
+        },
+        "minimumPayout": {
+          "title": "Minimum Payout",
+          "description": "Minimum payout threshold is EUR 25. Earnings accumulate until reached."
+        },
+        "payoutSchedule": {
+          "title": "Monthly Payouts",
+          "description": "Approved commissions are paid out monthly."
+        }
+      }
+    },
+    "promoCodes": {
+      "heading": "Promo Codes & Referrals",
+      "items": [
+        "Promo codes give buyers a discount on their subscription.",
+        "Promo discounts and referral commissions work independently.",
+        "Affiliate commission is calculated on the discounted price."
+      ]
+    },
+    "cta": {
+      "heading": "Get Started",
+      "description": "Already have an account? View your referral dashboard. New here? Create your account to start earning.",
+      "viewDashboard": "View Referral Dashboard",
+      "createAccount": "Create Account"
+    }
+  }
+}

@@ -1,0 +1,60 @@
+#!/bin/bash
+# Sovereign Health Intelligence -- pre-push hook
+#
+# Runs before every 'git push'. Catches CI failures locally so you
+# don't have to wait 5+ minutes for GitLab to tell you what's wrong.
+#
+# Install: git config core.hooksPath .githooks
+# Skip once: git push --no-verify (use sparingly)
+
+set -e
+
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+NC='\033[0m'
+
+echo ""
+echo "=== Pre-push checks ==="
+echo ""
+
+# 1. Formatting
+echo -n "  cargo fmt --check ... "
+if cargo fmt --check 2>/dev/null; then
+    echo -e "${GREEN}OK${NC}"
+else
+    echo -e "${RED}FAIL${NC}"
+    echo "  Run: cargo fmt"
+    exit 1
+fi
+
+# 2. Clippy (same flags as CI: -D warnings)
+echo -n "  cargo clippy ... "
+if cargo clippy --all-targets -- -D warnings 2>/dev/null; then
+    echo -e "${GREEN}OK${NC}"
+else
+    echo -e "${RED}FAIL${NC}"
+    echo "  Fix clippy warnings above."
+    exit 1
+fi
+
+# 3. Tests compile (fast check without running)
+echo -n "  cargo check --tests ... "
+if cargo check --tests 2>/dev/null; then
+    echo -e "${GREEN}OK${NC}"
+else
+    echo -e "${RED}FAIL${NC}"
+    exit 1
+fi
+
+# 4. Smoke + integration tests (no DB required)
+echo -n "  cargo test --test smoke --test integration ... "
+if cargo test --test smoke --test integration 2>/dev/null; then
+    echo -e "${GREEN}OK${NC}"
+else
+    echo -e "${RED}FAIL${NC}"
+    exit 1
+fi
+
+echo ""
+echo -e "=== All pre-push checks ${GREEN}passed${NC} ==="
+echo ""

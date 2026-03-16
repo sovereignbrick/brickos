@@ -1,0 +1,66 @@
+[
+  {
+    "slug": "energy_metabolic",
+    "name": "Energy & Metabolic",
+    "icon": "\u26a1",
+    "color": "#FF9500",
+    "marker_count": 13,
+    "display_order": 1
+  },
+  {
+    "slug": "structural",
+    "name": "Structural",
+    "icon": "\ud83d\udcaa",
+    "color": "#2196F3",
+    "marker_count": 15,
+    "display_order": 2
+  },
+  {
+    "slug": "cardiovascular",
+    "name": "Cardiovascular",
+    "icon": "\ud83e\udec0",
+    "color": "#E91E63",
+    "marker_count": 11,
+    "display_order": 3
+  },
+  {
+    "slug": "cognitive",
+    "name": "Cognitive",
+    "icon": "\ud83e\udde0",
+    "color": "#7C4DFF",
+    "marker_count": 8,
+    "display_order": 4
+  },
+  {
+    "slug": "immune",
+    "name": "Immune",
+    "icon": "\ud83d\udee1\ufe0f",
+    "color": "#009688",
+    "marker_count": 20,
+    "display_order": 5
+  },
+  {
+    "slug": "nutritional",
+    "name": "Nutritional",
+    "icon": "\ud83c\udf31",
+    "color": "#8BC34A",
+    "marker_count": 21,
+    "display_order": 6
+  },
+  {
+    "slug": "hormonal",
+    "name": "Hormonal",
+    "icon": "\ud83c\udfaf",
+    "color": "#AB47BC",
+    "marker_count": 10,
+    "display_order": 7
+  },
+  {
+    "slug": "detoxification",
+    "name": "Detoxification",
+    "icon": "\ud83d\udd04",
+    "color": "#00BCD4",
+    "marker_count": 14,
+    "display_order": 8
+  }
+]

@@ -1,0 +1,472 @@
+{
+  "glucose": [
+    {
+      "clinical_significance": "high",
+      "description": "Insulin is released in response to rising blood glucose. Higher glucose triggers more insulin secretion. Chronically elevated glucose with high insulin suggests developing insulin resistance.",
+      "direction": "correlated",
+      "related_marker": "insulin"
+    },
+    {
+      "clinical_significance": "high",
+      "description": "HbA1c reflects the average blood glucose level over the past 2-3 months. Elevated glucose consistently leads to higher HbA1c through glycation of hemoglobin.",
+      "direction": "correlated",
+      "related_marker": "hba1c"
+    },
+    {
+      "clinical_significance": "high",
+      "description": "Glucose and ketones have an inverse relationship. When glucose is low (fasting, keto diet), the liver produces ketone bodies as alternative fuel. High glucose suppresses ketogenesis.",
+      "direction": "inverse",
+      "related_marker": "ketones"
+    },
+    {
+      "clinical_significance": "high",
+      "description": "Excess glucose is converted to triglycerides via de novo lipogenesis in the liver. High-carbohydrate diets that raise glucose also tend to raise triglycerides.",
+      "direction": "correlated",
+      "related_marker": "triglycerides"
+    }
+  ],
+  "insulin": [
+    {
+      "clinical_significance": "high",
+      "description": "Insulin is released in response to rising blood glucose. Higher glucose triggers more insulin secretion. Chronically elevated glucose with high insulin suggests developing insulin resistance.",
+      "direction": "correlated",
+      "related_marker": "glucose"
+    },
+    {
+      "clinical_significance": "high",
+      "description": "Insulin promotes triglyceride synthesis and inhibits lipolysis. Hyperinsulinemia drives elevated triglycerides through increased hepatic VLDL production.",
+      "direction": "correlated",
+      "related_marker": "triglycerides"
+    },
+    {
+      "clinical_significance": "high",
+      "description": "Insulin resistance is associated with lower HDL-C. The mechanism involves increased CETP activity and altered lipoprotein metabolism when insulin signaling is impaired.",
+      "direction": "inverse",
+      "related_marker": "hdl_c"
+    },
+    {
+      "clinical_significance": "medium",
+      "description": "Insulin reduces renal uric acid excretion. Hyperinsulinemia promotes uric acid reabsorption in the kidneys, often leading to elevated serum uric acid.",
+      "direction": "correlated",
+      "related_marker": "uric_acid"
+    },
+    {
+      "clinical_significance": "medium",
+      "description": "In males, insulin resistance can lower testosterone via reduced Leydig cell function. In females with PCOS, hyperinsulinemia drives excess androgen production.",
+      "direction": "contextual",
+      "related_marker": "testosterone"
+    },
+    {
+      "clinical_significance": "medium",
+      "description": "GGT is an independent marker of insulin resistance and metabolic syndrome. Elevated GGT often precedes diabetes diagnosis, reflecting hepatic fat accumulation.",
+      "direction": "correlated",
+      "related_marker": "ggt"
+    },
+    {
+      "clinical_significance": "medium",
+      "description": "Chronic low-grade inflammation (elevated CRP) is associated with insulin resistance. Adipose tissue inflammation produces cytokines that impair insulin signaling.",
+      "direction": "correlated",
+      "related_marker": "hs_crp"
+    }
+  ],
+  "hba1c": [
+    {
+      "clinical_significance": "high",
+      "description": "HbA1c reflects the average blood glucose level over the past 2-3 months. Elevated glucose consistently leads to higher HbA1c through glycation of hemoglobin.",
+      "direction": "correlated",
+      "related_marker": "glucose"
+    }
+  ],
+  "ketones": [
+    {
+      "clinical_significance": "high",
+      "description": "Glucose and ketones have an inverse relationship. When glucose is low (fasting, keto diet), the liver produces ketone bodies as alternative fuel. High glucose suppresses ketogenesis.",
+      "direction": "inverse",
+      "related_marker": "glucose"
+    }
+  ],
+  "tsh": [
+    {
+      "clinical_significance": "high",
+      "description": "TSH and free T4 have a log-linear inverse relationship. When T4 drops, the pituitary increases TSH production. Elevated TSH with low FT4 indicates hypothyroidism.",
+      "direction": "inverse",
+      "related_marker": "ft4"
+    },
+    {
+      "clinical_significance": "high",
+      "description": "TSH rises when T3 is insufficient. T3 is the active thyroid hormone. Poor T4-to-T3 conversion can cause elevated TSH with normal FT4 but low FT3.",
+      "direction": "inverse",
+      "related_marker": "ft3"
+    }
+  ],
+  "ft4": [
+    {
+      "clinical_significance": "high",
+      "description": "TSH and free T4 have a log-linear inverse relationship. When T4 drops, the pituitary increases TSH production. Elevated TSH with low FT4 indicates hypothyroidism.",
+      "direction": "inverse",
+      "related_marker": "tsh"
+    },
+    {
+      "clinical_significance": "medium",
+      "description": "T3 is produced primarily by peripheral conversion of T4. They generally move together, but conversion can be impaired by selenium deficiency, inflammation, or stress.",
+      "direction": "correlated",
+      "related_marker": "ft3"
+    }
+  ],
+  "ft3": [
+    {
+      "clinical_significance": "high",
+      "description": "TSH rises when T3 is insufficient. T3 is the active thyroid hormone. Poor T4-to-T3 conversion can cause elevated TSH with normal FT4 but low FT3.",
+      "direction": "inverse",
+      "related_marker": "tsh"
+    },
+    {
+      "clinical_significance": "medium",
+      "description": "T3 is produced primarily by peripheral conversion of T4. They generally move together, but conversion can be impaired by selenium deficiency, inflammation, or stress.",
+      "direction": "correlated",
+      "related_marker": "ft4"
+    }
+  ],
+  "calcium": [
+    {
+      "clinical_significance": "medium",
+      "description": "Vitamin D enhances intestinal calcium absorption. Deficiency leads to reduced calcium absorption, triggering PTH release to maintain serum calcium by pulling from bones.",
+      "direction": "correlated",
+      "related_marker": "vitamin_d"
+    }
+  ],
+  "magnesium": [
+    {
+      "clinical_significance": "medium",
+      "description": "Magnesium is required for the Na/K-ATPase pump that maintains potassium balance. Magnesium deficiency can cause refractory hypokalemia that does not respond to potassium supplementation alone.",
+      "direction": "correlated",
+      "related_marker": "potassium"
+    }
+  ],
+  "potassium": [
+    {
+      "clinical_significance": "medium",
+      "description": "Magnesium is required for the Na/K-ATPase pump that maintains potassium balance. Magnesium deficiency can cause refractory hypokalemia that does not respond to potassium supplementation alone.",
+      "direction": "correlated",
+      "related_marker": "magnesium"
+    }
+  ],
+  "creatinine": [
+    {
+      "clinical_significance": "high",
+      "description": "eGFR is calculated from creatinine (and sometimes cystatin C). As kidney function declines, creatinine rises and eGFR falls. Note: creatine supplementation raises creatinine without affecting kidney function.",
+      "direction": "inverse",
+      "related_marker": "egfr"
+    }
+  ],
+  "vitamin_d": [
+    {
+      "clinical_significance": "medium",
+      "description": "Vitamin D enhances intestinal calcium absorption. Deficiency leads to reduced calcium absorption, triggering PTH release to maintain serum calcium by pulling from bones.",
+      "direction": "correlated",
+      "related_marker": "calcium"
+    }
+  ],
+  "iron": [
+    {
+      "clinical_significance": "high",
+      "description": "Ferritin reflects total body iron stores. Low ferritin indicates iron depletion even before serum iron drops. However, ferritin is also an acute phase reactant and rises with inflammation.",
+      "direction": "correlated",
+      "related_marker": "ferritin"
+    },
+    {
+      "clinical_significance": "high",
+      "description": "Iron is essential for hemoglobin synthesis. Iron deficiency leads to decreased hemoglobin production and eventually iron-deficiency anemia.",
+      "direction": "correlated",
+      "related_marker": "hemoglobin"
+    },
+    {
+      "clinical_significance": "high",
+      "description": "Transferrin saturation indicates what percentage of iron-binding sites are occupied. It reflects current iron availability more acutely than ferritin.",
+      "direction": "correlated",
+      "related_marker": "transferrin_sat"
+    }
+  ],
+  "total_cholesterol": [
+    {
+      "clinical_significance": "medium",
+      "description": "LDL-C is the largest component of total cholesterol. Total cholesterol rises primarily when LDL-C increases, though HDL and VLDL also contribute.",
+      "direction": "correlated",
+      "related_marker": "ldl_c"
+    }
+  ],
+  "ldl_c": [
+    {
+      "clinical_significance": "high",
+      "description": "Each LDL particle carries one ApoB molecule. LDL-C and ApoB generally move together, but can diverge when LDL particles are small and dense (more particles per unit of cholesterol).",
+      "direction": "correlated",
+      "related_marker": "apob"
+    },
+    {
+      "clinical_significance": "high",
+      "description": "LDL and HDL cholesterol should be interpreted together. The ratio reflects cardiovascular risk better than either alone. HDL performs reverse cholesterol transport.",
+      "direction": "contextual",
+      "related_marker": "hdl_c"
+    },
+    {
+      "clinical_significance": "medium",
+      "description": "LDL-C is the largest component of total cholesterol. Total cholesterol rises primarily when LDL-C increases, though HDL and VLDL also contribute.",
+      "direction": "correlated",
+      "related_marker": "total_cholesterol"
+    }
+  ],
+  "hdl_c": [
+    {
+      "clinical_significance": "high",
+      "description": "Insulin resistance is associated with lower HDL-C. The mechanism involves increased CETP activity and altered lipoprotein metabolism when insulin signaling is impaired.",
+      "direction": "inverse",
+      "related_marker": "insulin"
+    },
+    {
+      "clinical_significance": "high",
+      "description": "LDL and HDL cholesterol should be interpreted together. The ratio reflects cardiovascular risk better than either alone. HDL performs reverse cholesterol transport.",
+      "direction": "contextual",
+      "related_marker": "ldl_c"
+    },
+    {
+      "clinical_significance": "high",
+      "description": "High triglycerides are strongly associated with low HDL-C. This dyslipidemia pattern is a hallmark of metabolic syndrome and insulin resistance.",
+      "direction": "inverse",
+      "related_marker": "triglycerides"
+    }
+  ],
+  "triglycerides": [
+    {
+      "clinical_significance": "high",
+      "description": "Excess glucose is converted to triglycerides via de novo lipogenesis in the liver. High-carbohydrate diets that raise glucose also tend to raise triglycerides.",
+      "direction": "correlated",
+      "related_marker": "glucose"
+    },
+    {
+      "clinical_significance": "high",
+      "description": "Insulin promotes triglyceride synthesis and inhibits lipolysis. Hyperinsulinemia drives elevated triglycerides through increased hepatic VLDL production.",
+      "direction": "correlated",
+      "related_marker": "insulin"
+    },
+    {
+      "clinical_significance": "high",
+      "description": "High triglycerides are strongly associated with low HDL-C. This dyslipidemia pattern is a hallmark of metabolic syndrome and insulin resistance.",
+      "direction": "inverse",
+      "related_marker": "hdl_c"
+    }
+  ],
+  "apob": [
+    {
+      "clinical_significance": "high",
+      "description": "Each LDL particle carries one ApoB molecule. LDL-C and ApoB generally move together, but can diverge when LDL particles are small and dense (more particles per unit of cholesterol).",
+      "direction": "correlated",
+      "related_marker": "ldl_c"
+    },
+    {
+      "clinical_significance": "medium",
+      "description": "Lp(a) particles carry one ApoB each and contribute to the total ApoB count. Elevated Lp(a) can make ApoB appear high even when LDL particle count is normal.",
+      "direction": "contextual",
+      "related_marker": "lpa"
+    }
+  ],
+  "lpa": [
+    {
+      "clinical_significance": "medium",
+      "description": "Lp(a) particles carry one ApoB each and contribute to the total ApoB count. Elevated Lp(a) can make ApoB appear high even when LDL particle count is normal.",
+      "direction": "contextual",
+      "related_marker": "apob"
+    }
+  ],
+  "hs_crp": [
+    {
+      "clinical_significance": "medium",
+      "description": "Both ferritin and CRP rise during inflammation. Elevated ferritin with elevated CRP may reflect acute phase response rather than true iron overload. Interpret ferritin in context of inflammatory markers.",
+      "direction": "contextual",
+      "related_marker": "ferritin"
+    },
+    {
+      "clinical_significance": "medium",
+      "description": "Both are markers of systemic inflammation. CRP is produced by the liver in response to IL-6, while elevated WBC indicates immune system activation. Chronic elevation of both suggests ongoing inflammatory processes.",
+      "direction": "correlated",
+      "related_marker": "wbc"
+    },
+    {
+      "clinical_significance": "medium",
+      "description": "Chronic low-grade inflammation (elevated CRP) is associated with insulin resistance. Adipose tissue inflammation produces cytokines that impair insulin signaling.",
+      "direction": "correlated",
+      "related_marker": "insulin"
+    }
+  ],
+  "vitamin_b12": [
+    {
+      "clinical_significance": "high",
+      "description": "B12 is a cofactor for methionine synthase, which converts homocysteine to methionine. B12 deficiency leads to homocysteine accumulation, increasing cardiovascular risk.",
+      "direction": "inverse",
+      "related_marker": "homocysteine"
+    },
+    {
+      "clinical_significance": "medium",
+      "description": "B12 and folate work together in the methionine cycle and DNA synthesis. Deficiency of either can cause megaloblastic anemia. B12 deficiency can mask folate deficiency and vice versa.",
+      "direction": "contextual",
+      "related_marker": "folate"
+    }
+  ],
+  "folate": [
+    {
+      "clinical_significance": "high",
+      "description": "Folate donates the methyl group needed to convert homocysteine back to methionine. Low folate is one of the most common causes of elevated homocysteine.",
+      "direction": "inverse",
+      "related_marker": "homocysteine"
+    },
+    {
+      "clinical_significance": "medium",
+      "description": "B12 and folate work together in the methionine cycle and DNA synthesis. Deficiency of either can cause megaloblastic anemia. B12 deficiency can mask folate deficiency and vice versa.",
+      "direction": "contextual",
+      "related_marker": "vitamin_b12"
+    }
+  ],
+  "testosterone": [
+    {
+      "clinical_significance": "high",
+      "description": "SHBG binds testosterone, reducing its bioavailability. High SHBG can cause symptoms of low testosterone despite normal total testosterone. Free testosterone is what matters clinically.",
+      "direction": "contextual",
+      "related_marker": "shbg"
+    },
+    {
+      "clinical_significance": "high",
+      "description": "Free testosterone is the unbound, bioactive fraction. It depends on both total testosterone and SHBG levels. Low free testosterone with normal total may indicate high SHBG.",
+      "direction": "correlated",
+      "related_marker": "free_testosterone"
+    },
+    {
+      "clinical_significance": "medium",
+      "description": "In males, insulin resistance can lower testosterone via reduced Leydig cell function. In females with PCOS, hyperinsulinemia drives excess androgen production.",
+      "direction": "contextual",
+      "related_marker": "insulin"
+    },
+    {
+      "clinical_significance": "medium",
+      "description": "Testosterone is converted to estradiol by aromatase enzyme, primarily in adipose tissue. Higher body fat can shift the ratio toward estradiol. Both are important for bone health in both sexes.",
+      "direction": "contextual",
+      "related_marker": "estradiol"
+    }
+  ],
+  "estradiol": [
+    {
+      "clinical_significance": "medium",
+      "description": "Testosterone is converted to estradiol by aromatase enzyme, primarily in adipose tissue. Higher body fat can shift the ratio toward estradiol. Both are important for bone health in both sexes.",
+      "direction": "contextual",
+      "related_marker": "testosterone"
+    }
+  ],
+  "wbc": [
+    {
+      "clinical_significance": "medium",
+      "description": "Both are markers of systemic inflammation. CRP is produced by the liver in response to IL-6, while elevated WBC indicates immune system activation. Chronic elevation of both suggests ongoing inflammatory processes.",
+      "direction": "correlated",
+      "related_marker": "hs_crp"
+    }
+  ],
+  "hemoglobin": [
+    {
+      "clinical_significance": "high",
+      "description": "Iron is essential for hemoglobin synthesis. Iron deficiency leads to decreased hemoglobin production and eventually iron-deficiency anemia.",
+      "direction": "correlated",
+      "related_marker": "iron"
+    }
+  ],
+  "homocysteine": [
+    {
+      "clinical_significance": "high",
+      "description": "B12 is a cofactor for methionine synthase, which converts homocysteine to methionine. B12 deficiency leads to homocysteine accumulation, increasing cardiovascular risk.",
+      "direction": "inverse",
+      "related_marker": "vitamin_b12"
+    },
+    {
+      "clinical_significance": "high",
+      "description": "Folate donates the methyl group needed to convert homocysteine back to methionine. Low folate is one of the most common causes of elevated homocysteine.",
+      "direction": "inverse",
+      "related_marker": "folate"
+    }
+  ],
+  "free_testosterone": [
+    {
+      "clinical_significance": "high",
+      "description": "Free testosterone is the unbound, bioactive fraction. It depends on both total testosterone and SHBG levels. Low free testosterone with normal total may indicate high SHBG.",
+      "direction": "correlated",
+      "related_marker": "testosterone"
+    }
+  ],
+  "shbg": [
+    {
+      "clinical_significance": "high",
+      "description": "SHBG binds testosterone, reducing its bioavailability. High SHBG can cause symptoms of low testosterone despite normal total testosterone. Free testosterone is what matters clinically.",
+      "direction": "contextual",
+      "related_marker": "testosterone"
+    }
+  ],
+  "alt": [
+    {
+      "clinical_significance": "medium",
+      "description": "Both are liver enzymes released during hepatocyte damage. ALT is more liver-specific, while AST is also found in muscle and heart. Their ratio helps distinguish liver conditions.",
+      "direction": "correlated",
+      "related_marker": "ast"
+    },
+    {
+      "clinical_significance": "medium",
+      "description": "Both rise with liver stress. GGT is particularly sensitive to alcohol use and biliary obstruction. Elevated GGT with normal ALT may indicate oxidative stress or medication effects.",
+      "direction": "correlated",
+      "related_marker": "ggt"
+    }
+  ],
+  "ast": [
+    {
+      "clinical_significance": "medium",
+      "description": "Both are liver enzymes released during hepatocyte damage. ALT is more liver-specific, while AST is also found in muscle and heart. Their ratio helps distinguish liver conditions.",
+      "direction": "correlated",
+      "related_marker": "alt"
+    }
+  ],
+  "ggt": [
+    {
+      "clinical_significance": "medium",
+      "description": "Both rise with liver stress. GGT is particularly sensitive to alcohol use and biliary obstruction. Elevated GGT with normal ALT may indicate oxidative stress or medication effects.",
+      "direction": "correlated",
+      "related_marker": "alt"
+    },
+    {
+      "clinical_significance": "medium",
+      "description": "GGT is an independent marker of insulin resistance and metabolic syndrome. Elevated GGT often precedes diabetes diagnosis, reflecting hepatic fat accumulation.",
+      "direction": "correlated",
+      "related_marker": "insulin"
+    }
+  ],
+  "egfr": [
+    {
+      "clinical_significance": "high",
+      "description": "eGFR is calculated from creatinine (and sometimes cystatin C). As kidney function declines, creatinine rises and eGFR falls. Note: creatine supplementation raises creatinine without affecting kidney function.",
+      "direction": "inverse",
+      "related_marker": "creatinine"
+    },
+    {
+      "clinical_significance": "medium",
+      "description": "Elevated uric acid is associated with declining kidney function. The kidneys excrete uric acid, so impaired filtration leads to accumulation. Uric acid may also directly damage renal tubules.",
+      "direction": "inverse",
+      "related_marker": "uric_acid"
+    }
+  ],
+  "uric_acid": [
+    {
+      "clinical_significance": "medium",
+      "description": "Insulin reduces renal uric acid excretion. Hyperinsulinemia promotes uric acid reabsorption in the kidneys, often leading to elevated serum uric acid.",
+      "direction": "correlated",
+      "related_marker": "insulin"
+    },
+    {
+      "clinical_significance": "medium",
+      "description": "Elevated uric acid is associated with declining kidney function. The kidneys excrete uric acid, so impaired filtration leads to accumulation. Uric acid may also directly damage renal tubules.",
+      "direction": "inverse",
+      "related_marker": "egfr"
+    }
+  ]
+}

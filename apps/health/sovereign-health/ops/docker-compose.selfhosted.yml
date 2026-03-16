@@ -1,0 +1,56 @@
+# Self-hosted — builds images locally from source.
+# No registry access required.
+# Usage:
+#   cp .env.example .env && vim .env   # set DB_PASSWORD and JWT_SECRET
+#   docker compose -f docker-compose.selfhosted.yml up -d
+
+services:
+  backend:
+    build:
+      context: ../core-backend
+      dockerfile: Dockerfile
+    ports:
+      - "127.0.0.1:8080:8080"
+    environment:
+      DATABASE_URL: postgres://sovereign_health:${DB_PASSWORD}@db:5432/sovereign_health
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: ${JWT_SECRET}
+      RUST_LOG: info
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ../core-frontend
+      dockerfile: Dockerfile
+    ports:
+      - "127.0.0.1:3000:3000"
+    environment:
+      NEXT_PUBLIC_API_URL: ${API_URL:-http://localhost:8080}
+      NEXT_PUBLIC_APP_NAME: Sovereign Health Intelligence
+    restart: unless-stopped
+
+  db:
+    image: postgres:16-alpine
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: sovereign_health
+      POSTGRES_USER: sovereign_health
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sovereign_health"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+
+volumes:
+  pgdata:

@@ -1,0 +1,220 @@
+'use client'
+import { useEffect, useState } from 'react'
+import { useAuth } from '@/lib/auth-context'
+import { useParams } from 'next/navigation'
+import { api } from '@/lib/api'
+import { ZoneDetail, MarkerLatest } from '@/lib/types'
+import { Navbar } from '@/components/layout/navbar'
+import { Footer } from '@/components/layout/footer'
+import { StatusBadge } from '@/components/status-badge'
+import Link from 'next/link'
+import { useDemoProfile } from '@/lib/demo-profile-context'
+import { Breadcrumb } from '@/components/breadcrumb'
+import { formatShortDate } from '@/lib/date-format'
+import { useDemoHref } from '@/lib/use-demo-href'
+import { useTranslations } from 'next-intl'
+
+const ZONE_SLUG_TO_KEY: Record<string, string> = {
+  energy_metabolic: 'energy',
+  structural: 'structural',
+  cardiovascular: 'cardiovascular',
+  cognitive: 'cognitive',
+  immune: 'immune',
+  nutritional: 'nutritional',
+  hormonal: 'hormonal',
+  detoxification: 'detoxification',
+}
+
+export default function ZoneDetailPage() {
+  const { user, loading, isDemo } = useAuth()
+  const { profile } = useDemoProfile()
+  const params = useParams()
+  const slug = params.slug as string
+  const demoHref = useDemoHref()
+  const tZones = useTranslations('zones')
+  const tCommon = useTranslations('common')
+
+  const [zone, setZone] = useState<ZoneDetail | null>(null)
+  const [fetching, setFetching] = useState(true)
+
+  useEffect(() => {
+    if (loading) return
+    if (!isDemo && !user) return
+
+    const fetchZone = isDemo
+      ? () => api.demo.zone(slug, profile).then(res => setZone(res.data))
+      : () => api.zones.get(slug).then(res => setZone(res.data))
+
+    fetchZone()
+      .catch(() => setZone(null))
+      .finally(() => setFetching(false))
+  }, [user, loading, isDemo, slug, profile])
+
+  if (loading || fetching) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">{tCommon('loading')}</div>
+
+  if (!zone) return (
+    <div className="min-h-screen">
+      <Navbar />
+      <main className="max-w-2xl mx-auto px-4 py-8">
+        <p className="text-muted-foreground">Zone not found.</p>
+        <Link href="/dashboard" className="text-blue-400 hover:text-blue-300 text-sm mt-2 inline-block">
+          ← Overview
+        </Link>
+      </main>
+    </div>
+  )
+
+  const zoneKey = ZONE_SLUG_TO_KEY[zone.zone_slug]
+  const description = zoneKey && tZones.has(zoneKey as 'energy') ? tZones(zoneKey as 'energy') : ''
+  const noDataCount = zone.markers_total - zone.markers_with_data
+  const statusCounts = zone.markers.reduce(
+    (acc, m) => {
+      if (m.status === 'green') acc.green++
+      else if (m.status === 'orange') acc.orange++
+      else if (m.status === 'red') acc.red++
+      return acc
+    },
+    { green: 0, orange: 0, red: 0 }
+  )
+
+  return (
+    <div className="min-h-screen">
+      <Navbar />
+      <main className="max-w-3xl mx-auto px-4 py-6 pb-8">
+        <div className="mb-6">
+          <Breadcrumb items={[
+            { label: 'Overview', href: '/dashboard' },
+            { label: zone.zone_name },
+          ]} />
+        </div>
+
+        {/* Zone header with description */}
+        <div className="rounded-2xl border p-6 mb-6" style={{ borderLeftWidth: 4, borderLeftColor: zone.zone_color, borderColor: zone.zone_color + '44' }}>
+          <div className="flex items-center gap-4 mb-3">
+            <div
+              className="w-14 h-14 rounded-2xl flex items-center justify-center text-3xl shrink-0"
+              style={{ backgroundColor: zone.zone_color + '22' }}
+            >
+              {zone.zone_icon}
+            </div>
+            <div>
+              <h1 className="text-xl font-bold" style={{ color: zone.zone_color }}>
+                {zone.zone_name}
+              </h1>
+              <p className="text-sm text-muted-foreground">
+                {zone.markers_with_data > 0
+                  ? `${zone.markers_with_data} of ${zone.markers_total} markers have data`
+                  : `${zone.markers_total} marker${zone.markers_total !== 1 ? 's' : ''}`
+                }
+              </p>
+            </div>
+          </div>
+          {description && (
+            <p className="text-sm text-muted-foreground leading-relaxed mb-3">{description}</p>
+          )}
+          {/* Status summary dots */}
+          <div className="flex flex-wrap gap-3 text-xs">
+            {statusCounts.green > 0 && (
+              <span className="text-[#4ade80]">🟢 {statusCounts.green} optimal</span>
+            )}
+            {statusCounts.orange > 0 && (
+              <span className="text-[#fb923c]">🟡 {statusCounts.orange} borderline</span>
+            )}
+            {statusCounts.red > 0 && (
+              <span className="text-[#ef4444]">🔴 {statusCounts.red} out of range</span>
+            )}
+            {noDataCount > 0 && (
+              <span className="text-muted-foreground">⚪ {noDataCount} no data</span>
+            )}
+          </div>
+        </div>
+
+        {/* Markers list */}
+        {zone.markers.length === 0 ? (
+          <div className="rounded-2xl border border-dashed p-10 text-center">
+            <p className="text-muted-foreground text-sm">{tZones('noBiomarkersYet')}</p>
+            {!isDemo && (
+              <Link
+                href="/measurements/new"
+                className="bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors inline-block mt-4"
+              >
+                Add a measurement
+              </Link>
+            )}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {[...zone.markers].sort((a, b) => {
+              const aHas = a.latest_value !== null ? 0 : 1
+              const bHas = b.latest_value !== null ? 0 : 1
+              if (aHas !== bHas) return aHas - bHas
+              return a.marker_name.localeCompare(b.marker_name)
+            }).map((marker: MarkerLatest, index: number) => {
+              const hasData = marker.latest_value !== null
+              const isCalc = marker.marker_type === 'calculated'
+              const sourceLabel = isCalc
+                ? null
+                : (marker.device_name ?? (marker.source_type === 'lab' ? 'Lab Test' : 'Home Device'))
+              return (
+                <Link
+                  key={`${marker.marker_slug}-${index}`}
+                  href={demoHref(`/markers/${marker.marker_slug}`)}
+                  className={`rounded-xl border p-4 flex items-center justify-between hover:border-zinc-600 hover:bg-zinc-900/50 transition-colors block ${!hasData ? 'opacity-60' : ''}`}
+                >
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-semibold">{marker.marker_name}</p>
+                      {isCalc ? (
+                        <span className="text-[10px] px-1.5 py-0.5 rounded border border-indigo-700 bg-indigo-900/40 text-indigo-300 font-medium">
+                          📐 Calculated
+                        </span>
+                      ) : sourceLabel ? (
+                        <span
+                          onClick={(e) => { e.preventDefault(); e.stopPropagation(); window.location.href = '/settings?tab=devices' }}
+                          className="text-[10px] px-1.5 py-0.5 rounded border border-zinc-700 text-muted-foreground hover:text-foreground hover:border-zinc-500 cursor-pointer transition-colors"
+                          title={`View ${sourceLabel} in device settings`}
+                        >{sourceLabel}</span>
+                      ) : null}
+                    </div>
+                    {marker.measured_at ? (
+                      <p className="text-xs text-muted-foreground">
+                        {formatShortDate(marker.measured_at, user?.country_code)}
+                      </p>
+                    ) : (
+                      <p className="text-xs text-muted-foreground/60">No data yet</p>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-3">
+                    {hasData ? (
+                      <>
+                        <span className="text-sm font-semibold">
+                          {marker.latest_value} <span className="text-xs text-muted-foreground">{marker.unit}</span>
+                        </span>
+                        <StatusBadge status={marker.status as 'green' | 'orange' | 'red' | null} />
+                      </>
+                    ) : (
+                      <span className="text-xs text-muted-foreground/60">{marker.unit}</span>
+                    )}
+                    <span className="text-muted-foreground text-xs">›</span>
+                  </div>
+                </Link>
+              )
+            })}
+          </div>
+        )}
+
+        {!isDemo && (
+          <div className="mt-6 text-center">
+            <Link
+              href="/measurements/new"
+              className="bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium px-5 py-2.5 rounded-lg transition-colors inline-block"
+            >
+              + Add measurement
+            </Link>
+          </div>
+        )}
+      </main>
+      <Footer />
+    </div>
+  )
+}

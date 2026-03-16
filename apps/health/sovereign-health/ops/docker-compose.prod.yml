@@ -1,0 +1,77 @@
+# Production — VPS deployment via GitLab Container Registry images.
+# Requires: .env file with DB_PASSWORD and JWT_SECRET set.
+# Usage: docker compose -f docker-compose.prod.yml up -d
+
+services:
+  backend:
+    image: registry.gitlab.com/sovereign-health/core-backend:latest
+    ports:
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - ./data:/app/data
+    environment:
+      DATABASE_URL: postgres://sovereign_health:${DB_PASSWORD}@db:5432/sovereign_health
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: ${JWT_SECRET}
+      RUST_LOG: warn
+      FRONTEND_URL: https://app.sovereignhealth.io
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY}
+      MAILGUN_API_KEY: ${MAILGUN_API_KEY}
+      MAILGUN_DOMAIN: ${MAILGUN_DOMAIN:-mg.sovereignhealth.io}
+      MAILGUN_API_BASE: ${MAILGUN_API_BASE:-https://api.eu.mailgun.net}
+      MAILGUN_FROM: ${MAILGUN_FROM:-Sovereign Health <noreply@mg.sovereignhealth.io>}
+      MAILGUN_LIST: ${MAILGUN_LIST:-users@mg.sovereignhealth.io}
+      SHI_MODE: ${SHI_MODE:-saas}
+      STRIKE_API_KEY: ${STRIKE_API_KEY:-}
+      STRIKE_WEBHOOK_SECRET: ${STRIKE_WEBHOOK_SECRET:-}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+      STRIPE_PUBLISHABLE_KEY: ${STRIPE_PUBLISHABLE_KEY:-}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+      STRIPE_PRICE_FOCUS_MONTHLY: ${STRIPE_PRICE_FOCUS_MONTHLY:-}
+      STRIPE_PRICE_FOCUS_ANNUAL: ${STRIPE_PRICE_FOCUS_ANNUAL:-}
+      STRIPE_PRICE_INSIGHT_MONTHLY: ${STRIPE_PRICE_INSIGHT_MONTHLY:-}
+      STRIPE_PRICE_INSIGHT_ANNUAL: ${STRIPE_PRICE_INSIGHT_ANNUAL:-}
+      STRIPE_PRICE_CLARITY_MONTHLY: ${STRIPE_PRICE_CLARITY_MONTHLY:-}
+      STRIPE_PRICE_CLARITY_ANNUAL: ${STRIPE_PRICE_CLARITY_ANNUAL:-}
+      STRIPE_PRICE_HORIZON_MONTHLY: ${STRIPE_PRICE_HORIZON_MONTHLY:-}
+      STRIPE_PRICE_HORIZON_ANNUAL: ${STRIPE_PRICE_HORIZON_ANNUAL:-}
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  frontend:
+    image: registry.gitlab.com/sovereign-health/core-frontend:latest
+    ports:
+      - "127.0.0.1:3000:3000"
+    environment:
+      NEXT_PUBLIC_API_URL: https://api.sovereignhealth.io
+      NEXT_PUBLIC_APP_NAME: Sovereign Health Intelligence
+    restart: unless-stopped
+
+  # Staging containers are in docker-compose.staging.yml (separate DB, Redis, ports).
+
+  db:
+    image: postgres:16-alpine
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: sovereign_health
+      POSTGRES_USER: sovereign_health
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sovereign_health"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    # NOT exposed to host — internal network only
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    # NOT exposed to host — internal network only
+
+volumes:
+  pgdata:

@@ -1,0 +1,12 @@
+# cargo-audit configuration
+# Ignore advisories that cannot be fixed without major dependency upgrades.
+# Review periodically and remove ignores when upstream fixes are available.
+
+[advisories]
+ignore = [
+    # rsa timing sidechannel -- only pulled in via sqlx-mysql which we don't use
+    # (we use sqlx-postgres with runtime-tokio-rustls). No risk for our setup.
+    "RUSTSEC-2023-0071",
+
+    # RUSTSEC-2024-0363 (sqlx binary protocol) -- RESOLVED by upgrade to sqlx 0.8
+]

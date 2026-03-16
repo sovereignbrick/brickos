@@ -1,0 +1,99 @@
+# Staging -- VPS deployment for testing before production.
+# Runs alongside production on the same VPS, with separate DB/Redis/ports.
+# All staging containers are prefixed with 'sh-staging-'.
+#
+# Requires: .env.staging file with test keys (NOT production keys).
+# Usage: docker compose -f docker-compose.staging.yml --env-file .env.staging up -d
+
+services:
+
+  # ── Backend API ───────────────────────────────────────────────────────────
+  # Same Rust binary as production, but:
+  #   - Points to staging DB (sovereign_health_staging)
+  #   - Uses staging Redis (:6380)
+  #   - Uses Stripe TEST keys (no real charges)
+  #   - Uses separate ENCRYPTION_KEY and JWT_SECRET
+  #   - Logs at 'info' level (more verbose than production 'warn')
+  backend:
+    image: sovereign-health-backend:staging
+    container_name: sh-staging-backend
+    ports:
+      - "127.0.0.1:8081:8080"
+    volumes:
+      - ./data-staging:/app/data
+    environment:
+      DATABASE_URL: postgres://sovereign_health:${DB_PASSWORD_STAGING}@db:5432/sovereign_health_staging
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: ${JWT_SECRET_STAGING}
+      RUST_LOG: info
+      FRONTEND_URL: https://demo.sovereignhealth.io
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY_STAGING}
+      MAILGUN_API_KEY: ${MAILGUN_API_KEY:-}
+      MAILGUN_DOMAIN: ${MAILGUN_DOMAIN_STAGING:-sandbox.mailgun.org}
+      MAILGUN_API_BASE: ${MAILGUN_API_BASE:-https://api.eu.mailgun.net}
+      MAILGUN_FROM: ${MAILGUN_FROM_STAGING:-Staging <noreply@sandbox.mailgun.org>}
+      MAILGUN_LIST: ${MAILGUN_LIST:-}
+      SHI_MODE: ${SHI_MODE:-saas}
+      STRIKE_API_KEY: ${STRIKE_API_KEY_STAGING:-}
+      STRIKE_WEBHOOK_SECRET: ${STRIKE_WEBHOOK_SECRET_STAGING:-}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY_STAGING:-}
+      STRIPE_PUBLISHABLE_KEY: ${STRIPE_PUBLISHABLE_KEY_STAGING:-}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET_STAGING:-}
+      STRIPE_PRICE_FOCUS_MONTHLY: ${STRIPE_PRICE_FOCUS_MONTHLY_STAGING:-}
+      STRIPE_PRICE_FOCUS_ANNUAL: ${STRIPE_PRICE_FOCUS_ANNUAL_STAGING:-}
+      STRIPE_PRICE_INSIGHT_MONTHLY: ${STRIPE_PRICE_INSIGHT_MONTHLY_STAGING:-}
+      STRIPE_PRICE_INSIGHT_ANNUAL: ${STRIPE_PRICE_INSIGHT_ANNUAL_STAGING:-}
+      STRIPE_PRICE_CLARITY_MONTHLY: ${STRIPE_PRICE_CLARITY_MONTHLY_STAGING:-}
+      STRIPE_PRICE_CLARITY_ANNUAL: ${STRIPE_PRICE_CLARITY_ANNUAL_STAGING:-}
+      STRIPE_PRICE_HORIZON_MONTHLY: ${STRIPE_PRICE_HORIZON_MONTHLY_STAGING:-}
+      STRIPE_PRICE_HORIZON_ANNUAL: ${STRIPE_PRICE_HORIZON_ANNUAL_STAGING:-}
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ── Frontend App ──────────────────────────────────────────────────────────
+  # Built with NEXT_PUBLIC_API_URL=https://api-demo.sovereignhealth.io
+  # and NEXT_PUBLIC_ENVIRONMENT=staging (shows STAGING ribbon in UI).
+  frontend:
+    image: sovereign-health-frontend:staging
+    container_name: sh-staging-frontend
+    ports:
+      - "127.0.0.1:3001:3000"
+    environment:
+      NEXT_PUBLIC_API_URL: https://api-demo.sovereignhealth.io
+      NEXT_PUBLIC_APP_NAME: Sovereign Health Intelligence
+      NEXT_PUBLIC_ENVIRONMENT: staging
+    restart: unless-stopped
+
+  # ── Database ──────────────────────────────────────────────────────────────
+  # Separate Postgres instance for staging. Uses its own volume so
+  # staging data is completely isolated from production.
+  db:
+    image: postgres:16-alpine
+    container_name: sh-staging-db
+    volumes:
+      - pgdata-staging:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: sovereign_health_staging
+      POSTGRES_USER: sovereign_health
+      POSTGRES_PASSWORD: ${DB_PASSWORD_STAGING}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sovereign_health"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    # NOT exposed to host -- internal network only
+
+  # ── Redis ─────────────────────────────────────────────────────────────────
+  # Separate Redis for staging session/cache data.
+  redis:
+    image: redis:7-alpine
+    container_name: sh-staging-redis
+    restart: unless-stopped
+    # NOT exposed to host -- internal network only
+
+volumes:
+  pgdata-staging:

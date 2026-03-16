@@ -1,0 +1,1064 @@
+'use client'
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
+import { createPortal } from 'react-dom'
+import { useAuth } from '@/lib/auth-context'
+import { useRouter } from 'next/navigation'
+import { api } from '@/lib/api'
+import { toast } from '@/lib/toast'
+import { Navbar } from '@/components/layout/navbar'
+import { Footer } from '@/components/layout/footer'
+import { CalculatedMarkerCard } from '@/components/calculated-marker-card'
+import { computeMarkers, SessionValues } from '@/lib/calculated'
+import { computeStatus, DEFAULT_RANGES } from '@/lib/status'
+import type { DeviceInfo, MeasurementTemplate, MarkerWithZone, UnitPreferences } from '@/lib/types'
+import { Breadcrumb } from '@/components/breadcrumb'
+import { DateTimePicker } from '@/components/date-time-picker'
+import { getDisplayUnit, convertValue } from '@/lib/units'
+import { useTranslations } from 'next-intl'
+import { useContent } from '@/lib/content-context'
+import Link from 'next/link'
+
+// -- Helpers ---------------------------------------------------------------
+
+function formatLocalDatetime(date: Date): string {
+  const p = (n: number) => n.toString().padStart(2, '0')
+  return `${date.getFullYear()}-${p(date.getMonth() + 1)}-${p(date.getDate())}T${p(date.getHours())}:${p(date.getMinutes())}`
+}
+
+function getDeviceBadge(slug: string, devices: DeviceInfo[]): string | null {
+  const dev = devices.find(d => d.markers_measured.includes(slug))
+  if (dev) return dev.device_name
+  if (slug === 'waist_circumference') return 'Manual'
+  return null
+}
+
+const MARKERS_PER_PAGE = 10
+
+// -- Sub-components --------------------------------------------------------
+
+function StatusDot({ slug, value, canonicalUnit, displayUnit }: {
+  slug: string; value: string; canonicalUnit: string; displayUnit: string
+}) {
+  const n = parseFloat(value)
+  if (!value || isNaN(n)) return null
+  const canonical = convertValue(slug, n, displayUnit, canonicalUnit)
+  const range = DEFAULT_RANGES[slug]
+  if (!range) return null
+  const status = computeStatus(canonical, range)
+  const dot = status === 'green' ? '🟢' : status === 'orange' ? '🟡' : status === 'red' ? '🔴' : null
+  return dot ? <span className="text-sm leading-none">{dot}</span> : null
+}
+
+function MarkerInfoTooltip({ slug }: { slug: string }) {
+  const { markers: contentMarkers } = useContent()
+  const desc = contentMarkers[slug]?.description
+  const [show, setShow] = useState(false)
+  const [pos, setPos] = useState({ x: 0, y: 0 })
+  const ref = useRef<HTMLSpanElement>(null)
+
+  if (!desc) return null
+
+  const handleEnter = () => {
+    if (ref.current) {
+      const r = ref.current.getBoundingClientRect()
+      setPos({ x: r.right + 8, y: r.top + r.height / 2 })
+    }
+    setShow(true)
+  }
+
+  return (
+    <>
+      <span
+        ref={ref}
+        onMouseEnter={handleEnter}
+        onMouseLeave={() => setShow(false)}
+        className="text-muted-foreground/50 hover:text-muted-foreground cursor-help shrink-0 text-xs"
+      >
+        ⓘ
+      </span>
+      {show && typeof document !== 'undefined' && createPortal(
+        <div
+          style={{ position: 'fixed', left: pos.x, top: pos.y, transform: 'translateY(-50%)', zIndex: 9999 }}
+          className="max-w-xs bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-xs text-zinc-200 shadow-xl pointer-events-none"
+        >
+          {desc}
+        </div>,
+        document.body,
+      )}
+    </>
+  )
+}
+
+function ZoneIconTooltip({ name, icon, color }: { name: string; icon: string; color: string }) {
+  const [show, setShow] = useState(false)
+  const [pos, setPos] = useState({ x: 0, y: 0 })
+  const ref = useRef<HTMLSpanElement>(null)
+
+  const handleEnter = () => {
+    if (ref.current) {
+      const r = ref.current.getBoundingClientRect()
+      setPos({ x: r.left + r.width / 2, y: r.top })
+    }
+    setShow(true)
+  }
+
+  return (
+    <>
+      <span
+        ref={ref}
+        onMouseEnter={handleEnter}
+        onMouseLeave={() => setShow(false)}
+        className="text-[9px] px-1 py-0.5 rounded shrink-0 hidden sm:inline-block cursor-help"
+        style={{ backgroundColor: color + '22', color, border: `1px solid ${color}44` }}
+      >
+        {icon}
+      </span>
+      {show && typeof document !== 'undefined' && createPortal(
+        <div
+          style={{ position: 'fixed', left: pos.x, top: pos.y - 6, transform: 'translate(-50%, -100%)', zIndex: 9999 }}
+          className="bg-zinc-800 border border-zinc-700 rounded-lg px-2.5 py-1.5 text-xs text-zinc-200 shadow-xl pointer-events-none whitespace-nowrap"
+        >
+          {icon} {name}
+        </div>,
+        document.body,
+      )}
+    </>
+  )
+}
+
+function MarkerRow({ marker, value, displayUnit, badge, onChange, onRemove, zoneBadge }: {
+  marker: MarkerWithZone
+  value: string
+  displayUnit: string
+  badge: string | null
+  onChange: (slug: string, val: string) => void
+  onRemove: (slug: string) => void
+  zoneBadge?: { name: string; icon: string; color: string } | null
+}) {
+  const tCommon = useTranslations('common')
+  const { markers: contentMarkers } = useContent()
+  const name = contentMarkers[marker.marker_slug]?.name ?? marker.display_name ?? marker.marker_name
+
+  return (
+    <div className="flex items-center gap-2 py-1.5">
+      <div className="flex-1 min-w-0 flex items-center gap-1.5">
+        <span className="text-sm truncate" title={name}>
+          {name}
+        </span>
+        <MarkerInfoTooltip slug={marker.marker_slug} />
+        {zoneBadge && (
+          <ZoneIconTooltip name={zoneBadge.name} icon={zoneBadge.icon} color={zoneBadge.color} />
+        )}
+      </div>
+      <input
+        type="text"
+        inputMode="decimal"
+        value={value}
+        placeholder="-"
+        onInput={e => {
+          const el = e.currentTarget
+          const fixed = el.value.replace(',', '.')
+          if (fixed !== el.value) el.value = fixed
+        }}
+        onChange={e => onChange(marker.marker_slug, e.target.value.replace(',', '.'))}
+        className="w-20 shrink-0 bg-white/5 border rounded-lg px-2.5 py-1.5 text-sm text-center focus:outline-none focus:ring-1 focus:ring-blue-500"
+      />
+      <span className="text-xs text-muted-foreground w-16 shrink-0 text-right">{displayUnit}</span>
+      <div className="w-5 shrink-0 flex justify-center">
+        <StatusDot
+          slug={marker.marker_slug}
+          value={value}
+          canonicalUnit={marker.unit_canonical}
+          displayUnit={displayUnit}
+        />
+      </div>
+      {badge && (
+        <span className="text-[10px] text-muted-foreground/60 bg-white/5 px-1.5 py-0.5 rounded shrink-0 hidden sm:inline-block">
+          {badge}
+        </span>
+      )}
+      <button
+        type="button"
+        onClick={() => onRemove(marker.marker_slug)}
+        className="text-muted-foreground hover:text-foreground text-sm w-5 shrink-0 text-center"
+        aria-label={tCommon('removeMarker')}
+      >
+        ✕
+      </button>
+    </div>
+  )
+}
+
+// -- Constants -------------------------------------------------------------
+
+const STRESS_OPTIONS = [
+  { key: 'notRecorded' as const, value: '' },
+  { key: 'none' as const,        value: '1' },
+  { key: 'low' as const,         value: '3' },
+  { key: 'moderate' as const,    value: '5' },
+  { key: 'high' as const,        value: '7' },
+  { key: 'veryHigh' as const,    value: '9' },
+]
+
+// -- Main page -------------------------------------------------------------
+
+export default function NewMeasurementPage() {
+  const { user, loading, isDemo } = useAuth()
+  const router = useRouter()
+  const t = useTranslations('newMeasurement')
+  const tCommon = useTranslations('common')
+  const tNav = useTranslations('nav')
+  const tMeasurements = useTranslations('measurements')
+  const tProtocols = useTranslations('protocols')
+  const tFasting = useTranslations('fastingProtocols')
+  const tExercise = useTranslations('exercise')
+  const tSleepQuality = useTranslations('sleepQuality')
+  const tStressLevel = useTranslations('stressLevel')
+  const { markers: contentMarkers, zones: contentZones } = useContent()
+
+  // API data
+  const [allMarkers, setAllMarkers] = useState<MarkerWithZone[]>([])
+  const [units, setUnits] = useState<UnitPreferences | null>(null)
+  const [devices, setDevices] = useState<DeviceInfo[]>([])
+  const [templates, setTemplates] = useState<MeasurementTemplate[]>([])
+  const [dataLoaded, setDataLoaded] = useState(false)
+
+  // Profile defaults
+  const heightCm = (user as (typeof user & { height_cm?: number }) | null)?.height_cm ?? undefined
+
+  // Marker values: slug -> input string (in display unit)
+  const [values, setValues] = useState<Record<string, string>>({})
+
+  // Active marker slugs (flat list, no zone grouping)
+  const [activeSlugs, setActiveSlugs] = useState<Set<string>>(new Set())
+
+  // Template state
+  const [activeTemplate, setActiveTemplate] = useState<string>('')
+  const [templateOriginalSlugs, setTemplateOriginalSlugs] = useState<Set<string> | null>(null)
+
+  // Add marker browser state
+  const [addMarkerSearch, setAddMarkerSearch] = useState('')
+  const [addMarkerPage, setAddMarkerPage] = useState(0)
+
+  // Marker search filter (for "My Markers" section)
+  const [markerFilter, setMarkerFilter] = useState('')
+
+  // Device state
+  const [selectedDeviceId, setSelectedDeviceId] = useState<string>('')
+
+  // Form state
+  const [measuredAt, setMeasuredAt]     = useState(formatLocalDatetime(new Date()))
+  const [protocol, setProtocol]         = useState<'standard' | 'fasting'>('standard')
+  const [dietProtocol, setDietProtocol] = useState('')
+  const [fastingProtocol, setFastingProtocol] = useState('16_8')
+  const [fastStart, setFastStart]       = useState('')
+  const [exercise, setExercise]         = useState('')
+  const [sleepHours, setSleepHours]     = useState('')
+  const [sleepQuality, setSleepQuality] = useState('')
+  const [stressLevel, setStressLevel]   = useState('')
+  const [note, setNote]                 = useState('')
+  const [submitting, setSubmitting]     = useState(false)
+
+  // Build zone lookup for badges
+  const zoneLookup = useMemo(() => {
+    const map = new Map<string, { name: string; icon: string; color: string }>()
+    for (const m of allMarkers) {
+      if (m.zone_slug && !map.has(m.marker_slug)) {
+        map.set(m.marker_slug, {
+          name: contentZones[m.zone_slug]?.name ?? m.zone_name ?? m.zone_slug,
+          icon: contentZones[m.zone_slug]?.zone_icon ?? m.zone_icon ?? '',
+          color: contentZones[m.zone_slug]?.zone_color ?? m.zone_color ?? '#71717a',
+        })
+      }
+    }
+    return map
+  }, [allMarkers, contentZones])
+
+  // Zone list for grouping
+  const zoneList = useMemo(() => {
+    const zones: { slug: string; name: string; icon: string; color: string }[] = []
+    const seen = new Set<string>()
+    for (const m of allMarkers) {
+      if (m.zone_slug && !seen.has(m.zone_slug)) {
+        seen.add(m.zone_slug)
+        zones.push({
+          slug: m.zone_slug,
+          name: contentZones[m.zone_slug]?.name ?? m.zone_name ?? m.zone_slug,
+          icon: contentZones[m.zone_slug]?.zone_icon ?? m.zone_icon ?? '',
+          color: contentZones[m.zone_slug]?.zone_color ?? m.zone_color ?? '#71717a',
+        })
+      }
+    }
+    return zones
+  }, [allMarkers, contentZones])
+
+  // Is template modified?
+  const isTemplateModified = useMemo(() => {
+    if (!templateOriginalSlugs) return false
+    if (activeSlugs.size !== templateOriginalSlugs.size) return true
+    for (const s of activeSlugs) {
+      if (!templateOriginalSlugs.has(s)) return true
+    }
+    return false
+  }, [activeSlugs, templateOriginalSlugs])
+
+  // Apply template
+  const applyTemplate = useCallback((template: MeasurementTemplate) => {
+    const slugs = new Set(template.marker_slugs)
+    setActiveSlugs(slugs)
+    setTemplateOriginalSlugs(new Set(slugs))
+  }, [])
+
+  // Add a marker to the form
+  const addMarker = useCallback((slug: string) => {
+    setActiveSlugs(prev => {
+      const next = new Set(prev)
+      next.add(slug)
+      return next
+    })
+  }, [])
+
+  // Remove a marker from the form
+  const removeMarker = useCallback((slug: string) => {
+    setActiveSlugs(prev => {
+      const next = new Set(prev)
+      next.delete(slug)
+      return next
+    })
+    setValues(prev => {
+      if (!(slug in prev)) return prev
+      const next = { ...prev }
+      delete next[slug]
+      return next
+    })
+  }, [])
+
+  // Load data on mount
+  useEffect(() => {
+    if (!loading && !user && !isDemo) { router.push('/login'); return }
+    if (user && !dataLoaded) {
+      Promise.all([
+        api.settings.get(),
+        api.devices.list().catch(() => ({ data: [] as DeviceInfo[] })),
+        api.templates.list().catch(() => ({ data: [] as MeasurementTemplate[] })),
+      ]).then(([settingsRes, devicesRes, templatesRes]) => {
+        const settings = settingsRes.data
+        if (settings) {
+          setAllMarkers(settings.all_markers ?? [])
+          setUnits(settings.units)
+
+          // Load lifestyle defaults
+          const ld = settings.lifestyle_defaults
+          if (ld) {
+            if (ld.default_diet_protocol) setDietProtocol(ld.default_diet_protocol)
+            if (ld.default_fasting_protocol) {
+              setFastingProtocol(ld.default_fasting_protocol)
+              setProtocol('fasting')
+            }
+            if (ld.default_exercise) setExercise(ld.default_exercise)
+            if (ld.default_sleep_hours != null) setSleepHours(String(ld.default_sleep_hours))
+            if (ld.default_sleep_quality) setSleepQuality(ld.default_sleep_quality)
+            if (ld.default_stress_level != null) setStressLevel(String(ld.default_stress_level))
+          }
+        }
+
+        const deviceList = devicesRes.data ?? []
+        setDevices(deviceList)
+        const defaultDev = deviceList.find(d => d.is_default)
+        if (defaultDev) setSelectedDeviceId(defaultDev.id)
+        const tpls = templatesRes.data ?? []
+        setTemplates(tpls)
+
+        // Auto-apply: prefer default template, then last-used template, else empty
+        const def = tpls.find(tp => tp.is_default)
+        if (def) {
+          setActiveTemplate(def.id)
+          const slugs = new Set(def.marker_slugs)
+          setActiveSlugs(slugs)
+          setTemplateOriginalSlugs(new Set(slugs))
+        } else if (tpls.length > 0) {
+          // Pick most recently used template
+          const sorted = [...tpls].sort((a, b) => {
+            if (a.last_used_at && b.last_used_at) return b.last_used_at.localeCompare(a.last_used_at)
+            if (a.last_used_at) return -1
+            if (b.last_used_at) return 1
+            return 0
+          })
+          const lastUsed = sorted[0]
+          if (lastUsed.last_used_at) {
+            setActiveTemplate(lastUsed.id)
+            const slugs = new Set(lastUsed.marker_slugs)
+            setActiveSlugs(slugs)
+            setTemplateOriginalSlugs(new Set(slugs))
+          }
+          // If no template has ever been used, start empty
+        }
+        // No template at all: start empty (activeSlugs stays empty)
+
+        setDataLoaded(true)
+      }).catch(() => {
+        setDataLoaded(true)
+      })
+    }
+  }, [user, loading, router, dataLoaded])
+
+  // Value change handler
+  const handleValueChange = useCallback((slug: string, val: string) => {
+    setValues(prev => {
+      if (val === '' && !(slug in prev)) return prev
+      if (val === '') {
+        const next = { ...prev }
+        delete next[slug]
+        return next
+      }
+      return { ...prev, [slug]: val }
+    })
+  }, [])
+
+  // Computed session values for calculated markers (in canonical units)
+  const sessionValues: SessionValues = useMemo(() => {
+    const sv: Record<string, number> = {}
+    for (const [slug, val] of Object.entries(values)) {
+      const n = parseFloat(val)
+      if (isNaN(n)) continue
+      const marker = allMarkers.find(m => m.marker_slug === slug)
+      if (!marker) continue
+      const displayUnit = getDisplayUnit(slug, marker.unit_canonical, units)
+      sv[slug] = convertValue(slug, n, displayUnit, marker.unit_canonical)
+    }
+    return sv
+  }, [values, allMarkers, units])
+
+  const computed = computeMarkers(sessionValues, heightCm)
+
+  // Device-filtered markers
+  const selectedDevice = devices.find(d => d.id === selectedDeviceId)
+  const deviceMarkerSet = useMemo(() => {
+    if (!selectedDevice) return null
+    return new Set(selectedDevice.markers_measured)
+  }, [selectedDevice])
+
+  // Visible markers: active markers filtered by search and optionally by device
+  const visibleMarkers = useMemo(() => {
+    let active = allMarkers.filter(m => activeSlugs.has(m.marker_slug))
+    // When a device is selected, show device markers first, then any others with values
+    if (deviceMarkerSet) {
+      active = active.filter(m =>
+        deviceMarkerSet.has(m.marker_slug) || (values[m.marker_slug] && values[m.marker_slug].trim())
+      )
+    }
+    if (!markerFilter.trim()) return active
+    const q = markerFilter.toLowerCase()
+    return active.filter(m => {
+      const translatedName = contentMarkers[m.marker_slug]?.name ?? m.display_name ?? m.marker_name
+      return translatedName.toLowerCase().includes(q) ||
+        (m.display_name ?? m.marker_name).toLowerCase().includes(q) ||
+        (m.abbreviation ?? '').toLowerCase().includes(q) ||
+        m.marker_slug.toLowerCase().includes(q) ||
+        (m.zone_name ?? '').toLowerCase().includes(q)
+    })
+  }, [allMarkers, activeSlugs, markerFilter, deviceMarkerSet, values, contentMarkers])
+
+  // Markers for "Add Markers" browser: grouped by zone, filtered, paginated
+  const addBrowserMarkers = useMemo(() => {
+    let filtered = allMarkers
+    if (addMarkerSearch.trim()) {
+      const q = addMarkerSearch.toLowerCase()
+      filtered = allMarkers.filter(m => {
+        const translatedName = contentMarkers[m.marker_slug]?.name ?? m.display_name ?? m.marker_name
+        return translatedName.toLowerCase().includes(q) ||
+          (m.display_name ?? m.marker_name).toLowerCase().includes(q) ||
+          (m.abbreviation ?? '').toLowerCase().includes(q) ||
+          m.marker_slug.toLowerCase().includes(q) ||
+          (m.zone_name ?? '').toLowerCase().includes(q)
+      })
+    }
+    // Group by zone, maintaining zone order
+    const grouped: { zone: { slug: string; name: string; icon: string; color: string } | null; markers: MarkerWithZone[] }[] = []
+    const zoneMap = new Map<string, MarkerWithZone[]>()
+    const noZone: MarkerWithZone[] = []
+    for (const m of filtered) {
+      if (m.zone_slug) {
+        const list = zoneMap.get(m.zone_slug) ?? []
+        list.push(m)
+        zoneMap.set(m.zone_slug, list)
+      } else {
+        noZone.push(m)
+      }
+    }
+    for (const z of zoneList) {
+      const markers = zoneMap.get(z.slug)
+      if (markers && markers.length > 0) {
+        grouped.push({ zone: z, markers })
+      }
+    }
+    if (noZone.length > 0) {
+      grouped.push({ zone: null, markers: noZone })
+    }
+    return { grouped, total: filtered.length }
+  }, [allMarkers, addMarkerSearch, contentMarkers, zoneList])
+
+  // Paginated flat list for add browser
+  const paginatedAddMarkers = useMemo(() => {
+    // Flatten grouped markers for pagination
+    const flat: { marker: MarkerWithZone; zoneHeader?: { name: string; icon: string; color: string } }[] = []
+    for (const group of addBrowserMarkers.grouped) {
+      for (let i = 0; i < group.markers.length; i++) {
+        flat.push({
+          marker: group.markers[i],
+          zoneHeader: i === 0 && group.zone ? group.zone : undefined,
+        })
+      }
+    }
+    const start = addMarkerPage * MARKERS_PER_PAGE
+    const pageItems = flat.slice(start, start + MARKERS_PER_PAGE)
+    // If first item on page doesn't have a zone header but belongs to a zone that started on a previous page, add it
+    if (pageItems.length > 0 && !pageItems[0].zoneHeader && start > 0) {
+      const m = pageItems[0].marker
+      if (m.zone_slug) {
+        const z = zoneList.find(z => z.slug === m.zone_slug)
+        if (z) pageItems[0] = { ...pageItems[0], zoneHeader: z }
+      }
+    }
+    return { items: pageItems, totalFlat: flat.length }
+  }, [addBrowserMarkers, addMarkerPage, zoneList])
+
+  const totalAddPages = Math.max(1, Math.ceil(paginatedAddMarkers.totalFlat / MARKERS_PER_PAGE))
+
+  // Submit
+  const handleSubmit = async () => {
+    const measurementValues: { marker_slug: string; value: number }[] = []
+
+    for (const [slug, val] of Object.entries(values)) {
+      if (!val.trim()) continue
+      if (!activeSlugs.has(slug)) continue
+      const n = parseFloat(val)
+      if (isNaN(n)) {
+        const marker = allMarkers.find(m => m.marker_slug === slug)
+        toast.error(t('invalidNumber', { marker: contentMarkers[slug]?.name ?? marker?.marker_name ?? slug }))
+        return
+      }
+      const marker = allMarkers.find(m => m.marker_slug === slug)
+      if (!marker) continue
+      const displayUnit = getDisplayUnit(slug, marker.unit_canonical, units)
+      const canonical = convertValue(slug, n, displayUnit, marker.unit_canonical)
+      measurementValues.push({ marker_slug: slug, value: canonical })
+    }
+
+    if (measurementValues.length === 0) {
+      toast.error(t('enterAtLeastOne'))
+      return
+    }
+
+    setSubmitting(true)
+    try {
+      await api.measurements.create({
+        measured_at: new Date(measuredAt).toISOString(),
+        values: measurementValues,
+        device_id: selectedDeviceId || undefined,
+        protocol_tag: protocol,
+        diet_protocol: dietProtocol || undefined,
+        fasting_protocol: protocol === 'fasting' ? fastingProtocol : undefined,
+        fast_start_datetime: protocol === 'fasting' && fastStart ? new Date(fastStart).toISOString() : undefined,
+        meal_timing_tag: 'no_tag',
+        exercise_activity: exercise || undefined,
+        sleep_hours: sleepHours ? parseFloat(sleepHours) : undefined,
+        sleep_quality: sleepQuality || undefined,
+        stress_level: stressLevel ? parseInt(stressLevel) : undefined,
+        lifestyle_note: note || undefined,
+      })
+      // Touch active template to update last_used_at
+      if (activeTemplate) {
+        api.templates.touch(activeTemplate).catch(() => {})
+      }
+      toast.success(t('saved'))
+      router.push('/dashboard')
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : tCommon('saveFailed'))
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  // Save current markers as template
+  const saveAsTemplate = async () => {
+    const currentSlugs = [...activeSlugs]
+    if (currentSlugs.length === 0) {
+      toast.error(t('templateAddMarker'))
+      return
+    }
+    const name = prompt(t('saveTemplateName'))
+    if (!name?.trim()) return
+    const setDefault = confirm(t('saveTemplatePrompt'))
+    try {
+      const res = await api.templates.create({
+        name: name.trim(),
+        marker_slugs: currentSlugs,
+        is_default: setDefault,
+      })
+      if (res.data) {
+        if (setDefault) {
+          setTemplates(prev => [...prev.map(tp => ({ ...tp, is_default: false })), res.data])
+        } else {
+          setTemplates(prev => [...prev, res.data])
+        }
+        setActiveTemplate(res.data.id)
+        setTemplateOriginalSlugs(new Set(currentSlugs))
+        toast.success(setDefault ? t('templateSavedDefault') : t('templateSaved'))
+      }
+    } catch {
+      toast.error(t('templateSaveFailed'))
+    }
+  }
+
+  // Update existing template
+  const saveTemplate = async () => {
+    if (!activeTemplate) return
+    const tpl = templates.find(tp => tp.id === activeTemplate)
+    if (!tpl) return
+    const currentSlugs = [...activeSlugs]
+    try {
+      await api.templates.update(activeTemplate, {
+        name: tpl.name,
+        marker_slugs: currentSlugs,
+        is_default: tpl.is_default,
+      })
+      setTemplates(prev => prev.map(tp => tp.id === activeTemplate ? { ...tp, marker_slugs: currentSlugs } : tp))
+      setTemplateOriginalSlugs(new Set(currentSlugs))
+      toast.success(t('templateUpdated'))
+    } catch {
+      toast.error(t('templateUpdateFailed'))
+    }
+  }
+
+  // Delete template
+  const deleteTemplate = async () => {
+    if (!activeTemplate) return
+    const tpl = templates.find(tp => tp.id === activeTemplate)
+    if (!tpl) return
+    if (!confirm(`Delete template "${tpl.name}"?`)) return
+    try {
+      await api.templates.delete(activeTemplate)
+      setTemplates(prev => prev.filter(tp => tp.id !== activeTemplate))
+      setActiveTemplate('')
+      setTemplateOriginalSlugs(null)
+      setActiveSlugs(new Set())
+      toast.success(t('templateDeleted'))
+    } catch {
+      toast.error(t('templateDeleteFailed'))
+    }
+  }
+
+  if (loading || !dataLoaded) return (
+    <div className="min-h-screen flex items-center justify-center text-muted-foreground">{tCommon('loading')}</div>
+  )
+
+  const filledCount = Object.entries(values).filter(([slug, v]) => activeSlugs.has(slug) && v.trim()).length
+
+  return (
+    <div className="min-h-screen">
+      <Navbar />
+      <main className="max-w-3xl mx-auto px-4 py-6 pb-8">
+        <div className="mb-4">
+          <Breadcrumb items={[
+            { label: tNav('overview'), href: '/dashboard' },
+            { label: t('title') },
+          ]} />
+        </div>
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-lg font-bold">{t('title')}</h1>
+          <button
+            type="button"
+            onClick={() => {
+              const hasValues = Object.values(values).some(v => v.trim())
+              if (hasValues) {
+                if (confirm('You have unsaved changes. Discard?')) router.back()
+              } else {
+                router.back()
+              }
+            }}
+            className="text-muted-foreground hover:text-foreground text-sm transition-colors"
+          >
+            {tCommon('cancel')}
+          </button>
+        </div>
+
+        {/* ── Row 1: Date/Time + Device + Template controls ─────────── */}
+        <div className="rounded-xl border p-4 mb-4">
+          <div className="flex flex-wrap gap-3 items-end">
+            <div className="flex-1 min-w-48">
+              <label className="text-xs text-muted-foreground block mb-1">{t('dateTime')}</label>
+              <DateTimePicker
+                value={measuredAt}
+                onChange={setMeasuredAt}
+                countryCode={user?.country_code}
+              />
+            </div>
+            {devices.length > 0 && (
+              <div className="min-w-40">
+                <label className="text-xs text-muted-foreground block mb-1">{tMeasurements('device')}</label>
+                <select
+                  value={selectedDeviceId}
+                  onChange={e => setSelectedDeviceId(e.target.value)}
+                  className="bg-zinc-900 border border-zinc-700 rounded-lg px-2.5 py-1.5 text-sm w-full text-white [&>option]:bg-zinc-900 [&>option]:text-white"
+                >
+                  <option value="">{t('noTemplate')}</option>
+                  {devices.map(d => (
+                    <option key={d.id} value={d.id}>
+                      {d.device_name}{d.is_default ? ' (default)' : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+            <div className="flex-1 min-w-48">
+              <label className="text-xs text-muted-foreground block mb-1">{t('template')}</label>
+              <div className="flex items-center gap-2">
+                <select
+                  value={activeTemplate}
+                  onChange={e => {
+                    const id = e.target.value
+                    setActiveTemplate(id)
+                    if (id === '') {
+                      // No template = empty markers
+                      setActiveSlugs(new Set())
+                      setTemplateOriginalSlugs(null)
+                    } else {
+                      const tpl = templates.find(tp => tp.id === id)
+                      if (tpl) applyTemplate(tpl)
+                    }
+                  }}
+                  className="bg-zinc-900 border border-zinc-700 rounded-lg px-2.5 py-1.5 text-sm flex-1 text-white [&>option]:bg-zinc-900 [&>option]:text-white"
+                >
+                  <option value="">{t('noTemplate')}</option>
+                  {templates.map(tp => (
+                    <option key={tp.id} value={tp.id}>
+                      {tp.is_default ? `${tp.name} (default)` : tp.name}{activeTemplate === tp.id && isTemplateModified ? ' *' : ''}
+                    </option>
+                  ))}
+                </select>
+                {activeTemplate && isTemplateModified && (
+                  <button
+                    type="button"
+                    onClick={saveTemplate}
+                    className="text-xs text-blue-400 hover:text-blue-300 transition-colors whitespace-nowrap"
+                  >
+                    {t('saveTemplate')}
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={saveAsTemplate}
+                  className="text-xs text-blue-400 hover:text-blue-300 transition-colors whitespace-nowrap"
+                >
+                  {t('saveAs')}
+                </button>
+                {activeTemplate && (
+                  <button
+                    type="button"
+                    onClick={deleteTemplate}
+                    className="text-xs text-red-400 hover:text-red-300 transition-colors whitespace-nowrap"
+                  >
+                    {tCommon('delete')}
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ── Row 2: Lifestyle context (always visible) ─────────────── */}
+        <div className="rounded-xl border p-4 mb-4 space-y-4">
+          {/* Profile defaults (read-only) */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">{t('lifestyle.profileDefaults')}</span>
+              <Link href="/settings" className="text-xs text-blue-400 hover:text-blue-300">{t('lifestyle.editInSettings')}</Link>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              <div className="bg-white/[0.03] rounded-lg px-3 py-2">
+                <span className="text-[10px] text-muted-foreground block">{tCommon('dietProtocol')}</span>
+                <span className="text-sm">{dietProtocol ? (dietProtocol === 'only_fish' ? tProtocols('onlyFish') : dietProtocol === 'standard' ? tProtocols('standard') : tCommon(dietProtocol)) : tCommon('notSet')}</span>
+              </div>
+              <div className="bg-white/[0.03] rounded-lg px-3 py-2">
+                <span className="text-[10px] text-muted-foreground block">{tCommon('fastingProtocol')}</span>
+                <span className="text-sm">
+                  {protocol === 'fasting' && fastingProtocol
+                    ? (['none', '18_6', '20_4'].includes(fastingProtocol) ? tCommon(fastingProtocol) : tFasting(fastingProtocol))
+                    : tCommon('none')}
+                </span>
+              </div>
+              <div className="bg-white/[0.03] rounded-lg px-3 py-2">
+                <span className="text-[10px] text-muted-foreground block">{t('lifestyle.exercise')}</span>
+                <span className="text-sm">{exercise ? (['cardio', 'hiit', 'none', 'rest', 'strength', 'walking'].includes(exercise) ? tCommon(exercise) : tExercise(exercise)) : tCommon('notSet')}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Session overrides (editable) */}
+          <div>
+            <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground block mb-2">{t('lifestyle.sessionOverrides')}</span>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              <div>
+                <label className="text-xs text-muted-foreground block mb-1">{t('lifestyle.sleepHours')}</label>
+                <input
+                  type="text"
+                  inputMode="decimal"
+                  value={sleepHours}
+                  onInput={e => {
+                    const el = e.currentTarget
+                    const fixed = el.value.replace(',', '.')
+                    if (fixed !== el.value) el.value = fixed
+                  }}
+                  onChange={e => setSleepHours(e.target.value.replace(',', '.'))}
+                  placeholder="-"
+                  className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-2.5 py-1.5 text-sm text-white [&>option]:bg-zinc-900 [&>option]:text-white"
+                />
+              </div>
+              <div>
+                <label className="text-xs text-muted-foreground block mb-1">{t('lifestyle.sleepQuality')}</label>
+                <select
+                  value={sleepQuality}
+                  onChange={e => setSleepQuality(e.target.value)}
+                  className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-2.5 py-1.5 text-sm text-white [&>option]:bg-zinc-900 [&>option]:text-white"
+                >
+                  <option value="">-</option>
+                  <option value="poor">{tSleepQuality('poor')}</option>
+                  <option value="fair">{tCommon('fair')}</option>
+                  <option value="good">{tCommon('good')}</option>
+                  <option value="excellent">{tSleepQuality('excellent')}</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-xs text-muted-foreground block mb-1">{t('lifestyle.stressLevel')}</label>
+                <select
+                  value={stressLevel}
+                  onChange={e => setStressLevel(e.target.value)}
+                  className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-2.5 py-1.5 text-sm text-white [&>option]:bg-zinc-900 [&>option]:text-white"
+                >
+                  {STRESS_OPTIONS.map(o => (
+                    <option key={o.value} value={o.value}>{tStressLevel(o.key)}</option>
+                  ))}
+                </select>
+              </div>
+              {protocol === 'fasting' && (
+                <div>
+                  <label className="text-xs text-muted-foreground block mb-1">{t('lifestyle.fastStarted')}</label>
+                  <DateTimePicker
+                    value={fastStart}
+                    onChange={setFastStart}
+                    countryCode={user?.country_code}
+                    className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-2.5 py-1.5 text-sm text-white [&>option]:bg-zinc-900 [&>option]:text-white"
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Note */}
+          <div>
+            <label className="text-xs text-muted-foreground block mb-1">{t('lifestyle.note')}</label>
+            <textarea
+              value={note}
+              onChange={e => setNote(e.target.value.slice(0, 300))}
+              rows={2}
+              className="w-full bg-white/5 border rounded-lg px-3 py-2 text-sm resize-none"
+              placeholder={t('lifestyle.notePlaceholder')}
+            />
+            <p className="text-xs text-muted-foreground text-right">{t('lifestyle.charCount', { chars: note.length })}</p>
+          </div>
+        </div>
+
+        {/* ── "My Markers" section ─────────────────────────────────── */}
+        <div className="rounded-xl border mb-4">
+          <div className="px-4 py-3 border-b border-zinc-800 flex items-center justify-between">
+            <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">{t('myMarkers')}</span>
+            {activeSlugs.size > 0 && (
+              <span className="text-xs text-muted-foreground">
+                {t('markersFilled', { filled: filledCount, total: activeSlugs.size })}
+              </span>
+            )}
+          </div>
+
+          {activeSlugs.size > 0 && (
+            <div className="px-4 pt-2 pb-1">
+              <input
+                type="text"
+                value={markerFilter}
+                onChange={e => setMarkerFilter(e.target.value)}
+                placeholder={tCommon('searchMarkers')}
+                className="w-full bg-white/5 border rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+              />
+            </div>
+          )}
+
+          {activeSlugs.size === 0 ? (
+            <div className="p-8 text-center">
+              <p className="text-muted-foreground text-sm">{t('noMarkersHint')}</p>
+            </div>
+          ) : visibleMarkers.length === 0 && markerFilter ? (
+            <div className="p-6 text-center">
+              <p className="text-muted-foreground text-sm">{t('noMatchingMarkers', { filter: markerFilter })}</p>
+            </div>
+          ) : (
+            <div className="px-4 py-2 divide-y divide-zinc-800/50">
+              {visibleMarkers.map((marker, index) => {
+                const displayUnit = getDisplayUnit(marker.marker_slug, marker.unit_canonical, units)
+                const badge = getDeviceBadge(marker.marker_slug, devices)
+                const zoneBadge = zoneLookup.get(marker.marker_slug)
+                return (
+                  <MarkerRow
+                    key={`${marker.marker_slug}-${index}`}
+                    marker={marker}
+                    value={values[marker.marker_slug] ?? ''}
+                    displayUnit={displayUnit}
+                    badge={badge}
+                    onChange={handleValueChange}
+                    onRemove={removeMarker}
+                    zoneBadge={zoneBadge}
+                  />
+                )
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Calculated markers */}
+        {computed.length > 0 && (
+          <div className="rounded-xl border p-4 mb-4">
+            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">
+              {tCommon('calculatedMarkers')}
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {computed.map(m => <CalculatedMarkerCard key={m.slug} marker={m} />)}
+            </div>
+          </div>
+        )}
+
+        {/* Submit button — above Add Markers for daily workflow */}
+        {isDemo && !user && (
+          <div className="rounded-xl border border-dashed border-zinc-700 p-4 mb-4 text-center">
+            <p className="text-sm text-muted-foreground">{t('loginToRecord')}</p>
+          </div>
+        )}
+        <button
+          type="button"
+          onClick={handleSubmit}
+          disabled={submitting || activeSlugs.size === 0 || (isDemo && !user)}
+          className="w-full bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl py-3 text-sm font-medium transition-colors mb-6"
+        >
+          {submitting ? tCommon('saving') : t('saveButton')}
+        </button>
+
+        {/* ── "Add Markers" browser section ────────────────────────── */}
+        <div className="rounded-xl border mb-4">
+          <div className="px-4 py-3 border-b border-zinc-800">
+            <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">{t('addMarkerSection')}</span>
+          </div>
+
+          <div className="px-4 pt-2 pb-1">
+            <input
+              type="text"
+              value={addMarkerSearch}
+              onChange={e => { setAddMarkerSearch(e.target.value); setAddMarkerPage(0) }}
+              placeholder={t('searchPlaceholder')}
+              className="w-full bg-white/5 border rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+            />
+          </div>
+
+          <div className="px-2 py-1">
+            {paginatedAddMarkers.items.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-4">{t('noMatching')}</p>
+            ) : (
+              paginatedAddMarkers.items.map(({ marker, zoneHeader }, index) => {
+                const isActive = activeSlugs.has(marker.marker_slug)
+                const displayUnit = getDisplayUnit(marker.marker_slug, marker.unit_canonical, units)
+                return (
+                  <div key={`${marker.marker_slug}-${index}`}>
+                    {zoneHeader && (
+                      <div className="flex items-center gap-2 px-2 pt-3 pb-1">
+                        <span
+                          className="text-[10px] font-semibold uppercase tracking-wider"
+                          style={{ color: zoneHeader.color }}
+                        >
+                          {zoneHeader.icon} {zoneHeader.name}
+                        </span>
+                        <div className="flex-1 border-t" style={{ borderColor: zoneHeader.color + '33' }} />
+                      </div>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => { if (!isActive) addMarker(marker.marker_slug) }}
+                      disabled={isActive}
+                      className={`w-full px-3 py-2 text-left flex items-center gap-2 text-sm rounded-lg transition-colors ${
+                        isActive
+                          ? 'opacity-40 cursor-default'
+                          : 'hover:bg-white/5 cursor-pointer'
+                      }`}
+                    >
+                      {isActive ? (
+                        <span className="text-emerald-400 w-5 shrink-0 text-center">✓</span>
+                      ) : (
+                        <span className="text-blue-400 w-5 shrink-0 text-center">+</span>
+                      )}
+                      <span className="flex-1 min-w-0 truncate">
+                        {contentMarkers[marker.marker_slug]?.name ?? marker.display_name ?? marker.marker_name}
+                        {marker.abbreviation && (
+                          <span className="text-muted-foreground ml-1">({marker.abbreviation})</span>
+                        )}
+                      </span>
+                      <MarkerInfoTooltip slug={marker.marker_slug} />
+                      <span className="text-xs text-muted-foreground shrink-0">{displayUnit}</span>
+                      <span className="text-xs shrink-0 w-16 text-right">
+                        {isActive ? (
+                          <span className="text-emerald-400/70">{t('alreadyAdded')}</span>
+                        ) : (
+                          <span className="text-blue-400">{t('addToTemplate')}</span>
+                        )}
+                      </span>
+                    </button>
+                  </div>
+                )
+              })
+            )}
+          </div>
+
+          {/* Pagination */}
+          {totalAddPages > 1 && (
+            <div className="px-4 py-2 border-t border-zinc-800 flex items-center justify-between">
+              <span className="text-xs text-muted-foreground">
+                {t('markersPerPage', {
+                  from: addMarkerPage * MARKERS_PER_PAGE + 1,
+                  to: Math.min((addMarkerPage + 1) * MARKERS_PER_PAGE, paginatedAddMarkers.totalFlat),
+                  total: paginatedAddMarkers.totalFlat,
+                })}
+              </span>
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => setAddMarkerPage(p => Math.max(0, p - 1))}
+                  disabled={addMarkerPage === 0}
+                  className="px-2 py-1 text-xs rounded hover:bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed"
+                >
+                  ←
+                </button>
+                <span className="text-xs text-muted-foreground px-2">
+                  {addMarkerPage + 1} / {totalAddPages}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setAddMarkerPage(p => Math.min(totalAddPages - 1, p + 1))}
+                  disabled={addMarkerPage >= totalAddPages - 1}
+                  className="px-2 py-1 text-xs rounded hover:bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed"
+                >
+                  →
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </main>
+      <Footer />
+    </div>
+  )
+}

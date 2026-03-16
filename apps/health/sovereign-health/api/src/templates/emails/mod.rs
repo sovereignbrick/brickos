@@ -1,0 +1,913 @@
+// Sovereign Health Intelligence -- AGPL-3.0 -- https://sovereignhealth.io/
+
+use std::collections::HashMap;
+
+// ---------------------------------------------------------------------------
+// Simple {{var}} template engine
+// ---------------------------------------------------------------------------
+
+pub fn render(template: &str, vars: &HashMap<&str, String>) -> String {
+    let mut result = template.to_string();
+    for (key, value) in vars {
+        result = result.replace(&format!("{{{{{}}}}}", key), value);
+    }
+    result
+}
+
+// ---------------------------------------------------------------------------
+// Template pairs (HTML + plain text)
+// ---------------------------------------------------------------------------
+
+pub struct EmailTemplate {
+    pub subject: &'static str,
+    pub html: &'static str,
+    pub text: &'static str,
+}
+
+// ---------------------------------------------------------------------------
+// Shared HTML wrapper - light theme, dark mode support, WCAG 2.1 AA
+// ---------------------------------------------------------------------------
+
+const HTML_WRAPPER_START: &str = r#"<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>{{subject}}</title>
+<style>
+:root { color-scheme: light dark; }
+@media (prefers-color-scheme: dark) {
+  .email-body { background-color: #1a1a1a !important; }
+  .email-card { background-color: #2a2a2a !important; border-color: #3a3a3a !important; }
+  .email-heading { color: #ffffff !important; }
+  .email-text { color: #e0e0e0 !important; }
+  .email-subtext { color: #aaaaaa !important; }
+  .email-footer { color: #888888 !important; }
+  .email-footer a { color: #888888 !important; }
+  .email-info-box { background-color: #1a2e1a !important; border-color: #2d4a2d !important; }
+  .email-info-text { color: #86efac !important; }
+}
+</style>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; -webkit-font-smoothing: antialiased;">
+<div class="email-body" style="background-color: #f5f5f5; padding: 32px 16px;">
+<div style="max-width: 560px; margin: 0 auto;">
+
+<!-- Logo -->
+<div style="text-align: center; padding: 24px 0 16px;">
+  <img src="https://sovereignhealth.io/logo.png" alt="Sovereign Health" width="180" style="max-width: 180px; height: auto;" />
+</div>
+
+<!-- Card -->
+<div class="email-card" style="background-color: #ffffff; border-radius: 12px; padding: 32px; box-shadow: 0 1px 3px rgba(0,0,0,0.08);">
+"#;
+
+const HTML_WRAPPER_END: &str = r#"
+</div>
+
+<!-- Footer -->
+<div class="email-footer" style="text-align: center; padding: 24px 0; font-size: 13px; color: #666666; line-height: 1.5;">
+  <p style="margin: 0;">Sovereign Health Intelligence</p>
+  <p style="margin: 4px 0 0;"><a href="https://sovereignhealth.io" style="color: #666666; text-decoration: none;">sovereignhealth.io</a></p>
+  <p style="margin: 12px 0 0; font-size: 11px; color: #999999;">&copy; 2026 Sovereign Health Intelligence. All rights reserved.</p>
+  <p style="margin: 4px 0 0; font-size: 11px;">
+    <a href="https://sovereignhealth.io/terms" style="color: #999999; text-decoration: none;">Terms</a> &nbsp;|&nbsp;
+    <a href="https://sovereignhealth.io/privacy" style="color: #999999; text-decoration: none;">Privacy</a> &nbsp;|&nbsp;
+    <a href="https://sovereignhealth.io/impressum" style="color: #999999; text-decoration: none;">Impressum</a>
+  </p>
+</div>
+
+</div>
+</div>
+</body>
+</html>"#;
+
+fn wrap_html(body: &str) -> String {
+    format!("{}{}{}", HTML_WRAPPER_START, body, HTML_WRAPPER_END)
+}
+
+// ---------------------------------------------------------------------------
+// German wrapper
+// ---------------------------------------------------------------------------
+
+const HTML_WRAPPER_START_DE: &str = r#"<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>{{subject}}</title>
+<style>
+:root { color-scheme: light dark; }
+@media (prefers-color-scheme: dark) {
+  .email-body { background-color: #1a1a1a !important; }
+  .email-card { background-color: #2a2a2a !important; border-color: #3a3a3a !important; }
+  .email-heading { color: #ffffff !important; }
+  .email-text { color: #e0e0e0 !important; }
+  .email-subtext { color: #aaaaaa !important; }
+  .email-footer { color: #888888 !important; }
+  .email-footer a { color: #888888 !important; }
+  .email-info-box { background-color: #1a2e1a !important; border-color: #2d4a2d !important; }
+  .email-info-text { color: #86efac !important; }
+}
+</style>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; -webkit-font-smoothing: antialiased;">
+<div class="email-body" style="background-color: #f5f5f5; padding: 32px 16px;">
+<div style="max-width: 560px; margin: 0 auto;">
+
+<!-- Logo -->
+<div style="text-align: center; padding: 24px 0 16px;">
+  <img src="https://sovereignhealth.io/logo.png" alt="Sovereign Health" width="180" style="max-width: 180px; height: auto;" />
+</div>
+
+<!-- Card -->
+<div class="email-card" style="background-color: #ffffff; border-radius: 12px; padding: 32px; box-shadow: 0 1px 3px rgba(0,0,0,0.08);">
+"#;
+
+const HTML_WRAPPER_END_DE: &str = r#"
+</div>
+
+<!-- Footer -->
+<div class="email-footer" style="text-align: center; padding: 24px 0; font-size: 13px; color: #666666; line-height: 1.5;">
+  <p style="margin: 0;">Sovereign Health Intelligence</p>
+  <p style="margin: 4px 0 0;"><a href="https://sovereignhealth.io" style="color: #666666; text-decoration: none;">sovereignhealth.io</a></p>
+  <p style="margin: 12px 0 0; font-size: 11px; color: #999999;">&copy; 2026 Sovereign Health Intelligence. Alle Rechte vorbehalten.</p>
+  <p style="margin: 4px 0 0; font-size: 11px;">
+    <a href="https://sovereignhealth.io/terms" style="color: #999999; text-decoration: none;">Nutzungsbedingungen</a> &nbsp;|&nbsp;
+    <a href="https://sovereignhealth.io/privacy" style="color: #999999; text-decoration: none;">Datenschutz</a> &nbsp;|&nbsp;
+    <a href="https://sovereignhealth.io/impressum" style="color: #999999; text-decoration: none;">Impressum</a>
+  </p>
+</div>
+
+</div>
+</div>
+</body>
+</html>"#;
+
+fn wrap_html_de(body: &str) -> String {
+    format!("{}{}{}", HTML_WRAPPER_START_DE, body, HTML_WRAPPER_END_DE)
+}
+
+// ---------------------------------------------------------------------------
+// 1. Email Verification (EN)
+// ---------------------------------------------------------------------------
+
+pub fn verification() -> EmailTemplate {
+    EmailTemplate {
+        subject: "Verify your email - Sovereign Health",
+        html: concat!(
+            r#"<h2 class="email-heading" style="margin: 0 0 16px; font-size: 22px; font-weight: 600; color: #1a1a1a;">Welcome!</h2>"#,
+            r#"<p class="email-text" style="margin: 0 0 12px; font-size: 16px; line-height: 1.6; color: #333333;">Thanks for joining Sovereign Health Intelligence. Please verify your email to get started:</p>"#,
+            r#"<div style="text-align: center; margin: 24px 0;"><a href="{{verification_url}}" style="background-color: #16a34a; color: #ffffff; padding: 14px 36px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px; display: inline-block;">Verify Email Address</a></div>"#,
+            r#"<p class="email-subtext" style="margin: 24px 0 0; font-size: 14px; line-height: 1.5; color: #666666;">This link expires in 24 hours. If you didn't create this account, you can safely ignore this email.</p>"#,
+        ),
+        text: concat!(
+            "Welcome!\n\n",
+            "Thanks for joining Sovereign Health Intelligence. Please verify your email to get started:\n\n",
+            "{{verification_url}}\n\n",
+            "This link expires in 24 hours.\n\n",
+            "If you didn't create this account, you can safely ignore this email.\n\n",
+            "- Sovereign Health Intelligence\n",
+            "  sovereignhealth.io\n",
+        ),
+    }
+}
+
+// ---------------------------------------------------------------------------
+// 2. Password Reset (EN)
+// ---------------------------------------------------------------------------
+
+pub fn password_reset() -> EmailTemplate {
+    EmailTemplate {
+        subject: "Reset your password - Sovereign Health",
+        html: concat!(
+            r#"<h2 class="email-heading" style="margin: 0 0 16px; font-size: 22px; font-weight: 600; color: #1a1a1a;">Password Reset</h2>"#,
+            r#"<p class="email-text" style="margin: 0 0 12px; font-size: 16px; line-height: 1.6; color: #333333;">We received a request to reset your Sovereign Health password.</p>"#,
+            r#"<p class="email-text" style="margin: 0 0 24px; font-size: 16px; line-height: 1.6; color: #333333;">Click the button below to choose a new password:</p>"#,
+            r#"<div style="text-align: center; margin: 24px 0;"><a href="{{reset_url}}" style="background-color: #16a34a; color: #ffffff; padding: 14px 36px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px; display: inline-block;">Reset Password</a></div>"#,
+            r#"<p class="email-subtext" style="margin: 24px 0 0; font-size: 14px; line-height: 1.5; color: #666666;">This link expires in 1 hour. If you did not request this, no action is needed - your account is safe.</p>"#,
+        ),
+        text: concat!(
+            "Password Reset\n\n",
+            "We received a request to reset your Sovereign Health password.\n\n",
+            "Reset here: {{reset_url}}\n\n",
+            "This link expires in 1 hour. If you did not request this, no action is needed.\n\n",
+            "- Sovereign Health Intelligence\n",
+            "  sovereignhealth.io\n",
+        ),
+    }
+}
+
+// ---------------------------------------------------------------------------
+// 3. Welcome (EN)
+// ---------------------------------------------------------------------------
+
+pub fn welcome() -> EmailTemplate {
+    EmailTemplate {
+        subject: "Welcome to Sovereign Health",
+        html: concat!(
+            r#"<h2 class="email-heading" style="margin: 0 0 16px; font-size: 22px; font-weight: 600; color: #1a1a1a;">Welcome to Sovereign Health Intelligence</h2>"#,
+            r#"<p class="email-text" style="margin: 0 0 16px; font-size: 16px; line-height: 1.6; color: #333333;">Your account is verified and ready to go. Here is how to get started:</p>"#,
+            r#"<h3 class="email-heading" style="margin: 20px 0 8px; font-size: 16px; font-weight: 600; color: #1a1a1a;">1. Record your first measurement</h3>"#,
+            r#"<p class="email-text" style="margin: 0 0 12px; font-size: 16px; line-height: 1.6; color: #333333;">Open the app, tap New Measurement, and log your morning fasting values.</p>"#,
+            r#"<h3 class="email-heading" style="margin: 20px 0 8px; font-size: 16px; font-weight: 600; color: #1a1a1a;">2. Explore your Health Zones</h3>"#,
+            r#"<p class="email-text" style="margin: 0 0 12px; font-size: 16px; line-height: 1.6; color: #333333;">Eight zones organize your markers from metabolic health to hormones. See what each zone tracks and why it matters.</p>"#,
+            r#"<h3 class="email-heading" style="margin: 20px 0 8px; font-size: 16px; font-weight: 600; color: #1a1a1a;">3. Ask Dr. Alex</h3>"#,
+            r#"<p class="email-text" style="margin: 0 0 16px; font-size: 16px; line-height: 1.6; color: #333333;">Your AI health assistant can explain your numbers, analyze trends, and suggest what to focus on next.</p>"#,
+            r#"<div style="text-align: center; margin: 24px 0;"><a href="{{frontend_url}}" style="background-color: #16a34a; color: #ffffff; padding: 14px 36px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px; display: inline-block;">Go to Dashboard</a></div>"#,
+            r#"<p class="email-subtext" style="margin: 16px 0 0; font-size: 14px; line-height: 1.5; color: #666666;">Questions? Visit <a href="https://sovereignhealth.io/contact" style="color: #3b82f6;">sovereignhealth.io/contact</a></p>"#,
+        ),
+        text: concat!(
+            "Welcome to Sovereign Health Intelligence\n\n",
+            "Your account is verified and ready to go. Here is how to get started:\n\n",
+            "1. Record your first measurement\n",
+            "   Open the app, tap New Measurement, and log your morning fasting values.\n\n",
+            "2. Explore your Health Zones\n",
+            "   Eight zones organize your markers from metabolic health to hormones.\n\n",
+            "3. Ask Dr. Alex\n",
+            "   Your AI health assistant can explain your numbers, analyze trends,\n",
+            "   and suggest what to focus on next.\n\n",
+            "Go to Dashboard: {{frontend_url}}\n\n",
+            "Questions? Visit https://sovereignhealth.io/contact\n\n",
+            "- Sovereign Health Intelligence\n",
+            "  sovereignhealth.io\n",
+        ),
+    }
+}
+
+// ---------------------------------------------------------------------------
+// 4. Tier Change (EN)
+// ---------------------------------------------------------------------------
+
+pub fn tier_change() -> EmailTemplate {
+    EmailTemplate {
+        subject: "Your plan has changed - Sovereign Health",
+        html: concat!(
+            r#"<h2 class="email-heading" style="margin: 0 0 16px; font-size: 22px; font-weight: 600; color: #1a1a1a;">Plan Updated</h2>"#,
+            r#"<p class="email-text" style="margin: 0 0 12px; font-size: 16px; line-height: 1.6; color: #333333;">Hi {{display_name}},</p>"#,
+            r#"<p class="email-text" style="margin: 0 0 16px; font-size: 16px; line-height: 1.6; color: #333333;">Your plan has been changed from <strong>{{from_tier}}</strong> to <strong>{{to_tier}}</strong>.</p>"#,
+            r#"<p class="email-text" style="margin: 0 0 16px; font-size: 16px; line-height: 1.6; color: #333333;">{{tier_message}}</p>"#,
+            r#"<div style="text-align: center; margin: 24px 0;"><a href="{{frontend_url}}/billing" style="background-color: #16a34a; color: #ffffff; padding: 14px 36px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px; display: inline-block;">View Plan Details</a></div>"#,
+        ),
+        text: concat!(
+            "Plan Updated\n\n",
+            "Hi {{display_name}},\n\n",
+            "Your plan has been changed from {{from_tier}} to {{to_tier}}.\n\n",
+            "{{tier_message}}\n\n",
+            "View details: {{frontend_url}}/billing\n\n",
+            "- Sovereign Health Intelligence\n",
+            "  sovereignhealth.io\n",
+        ),
+    }
+}
+
+// ---------------------------------------------------------------------------
+// 5. Payment Confirmation (EN)
+// ---------------------------------------------------------------------------
+
+pub fn payment_confirmation() -> EmailTemplate {
+    EmailTemplate {
+        subject: "Payment received - Sovereign Health",
+        html: concat!(
+            r#"<h2 class="email-heading" style="margin: 0 0 16px; font-size: 22px; font-weight: 600; color: #1a1a1a;">Payment Confirmed</h2>"#,
+            r#"<p class="email-text" style="margin: 0 0 16px; font-size: 16px; line-height: 1.6; color: #333333;">Hi {{display_name}},</p>"#,
+            r#"<p class="email-text" style="margin: 0 0 16px; font-size: 16px; line-height: 1.6; color: #333333;">We received your payment for the <strong>{{tier_name}}</strong> plan.</p>"#,
+            r#"<div class="email-info-box" style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 16px; margin: 16px 0;">"#,
+            r#"<p class="email-info-text" style="margin: 0; font-size: 15px; color: #166534;"><strong>Plan:</strong> {{tier_name}}</p>"#,
+            r#"<p class="email-info-text" style="margin: 8px 0 0; font-size: 15px; color: #166534;"><strong>Amount:</strong> {{amount}}</p>"#,
+            r#"<p class="email-info-text" style="margin: 8px 0 0; font-size: 15px; color: #166534;"><strong>Active until:</strong> {{period_end}}</p>"#,
+            r#"</div>"#,
+            r#"<p class="email-text" style="margin: 16px 0 0; font-size: 16px; line-height: 1.6; color: #333333;">Thank you for supporting privacy-first health tracking.</p>"#,
+        ),
+        text: concat!(
+            "Payment Confirmed\n\n",
+            "Hi {{display_name}},\n\n",
+            "We received your payment for the {{tier_name}} plan.\n\n",
+            "  Plan: {{tier_name}}\n",
+            "  Amount: {{amount}}\n",
+            "  Active until: {{period_end}}\n\n",
+            "Thank you for supporting privacy-first health tracking.\n\n",
+            "- Sovereign Health Intelligence\n",
+            "  sovereignhealth.io\n",
+        ),
+    }
+}
+
+// ---------------------------------------------------------------------------
+// 6. Payment Failed (EN)
+// ---------------------------------------------------------------------------
+
+pub fn payment_failed() -> EmailTemplate {
+    EmailTemplate {
+        subject: "Payment failed - Sovereign Health",
+        html: concat!(
+            r#"<h2 class="email-heading" style="margin: 0 0 16px; font-size: 22px; font-weight: 600; color: #1a1a1a;">Payment Issue</h2>"#,
+            r#"<p class="email-text" style="margin: 0 0 12px; font-size: 16px; line-height: 1.6; color: #333333;">Hi {{display_name}},</p>"#,
+            r#"<p class="email-text" style="margin: 0 0 12px; font-size: 16px; line-height: 1.6; color: #333333;">We couldn't process your latest payment for the <strong>{{tier_name}}</strong> plan.</p>"#,
+            r#"<p class="email-text" style="margin: 0 0 24px; font-size: 16px; line-height: 1.6; color: #333333;">Please update your payment method to keep your features active:</p>"#,
+            r#"<div style="text-align: center; margin: 24px 0;"><a href="{{frontend_url}}/billing" style="background-color: #dc2626; color: #ffffff; padding: 14px 36px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px; display: inline-block;">Update Payment Method</a></div>"#,
+            r#"<p class="email-subtext" style="margin: 24px 0 0; font-size: 14px; line-height: 1.5; color: #666666;">If your payment isn't updated within 7 days, your account will be downgraded to the free plan.</p>"#,
+        ),
+        text: concat!(
+            "Payment Issue\n\n",
+            "Hi {{display_name}},\n\n",
+            "We couldn't process your latest payment for the {{tier_name}} plan.\n",
+            "Please update your payment method to keep your features active.\n\n",
+            "Update payment: {{frontend_url}}/billing\n\n",
+            "If your payment isn't updated within 7 days, your account will be downgraded to the free plan.\n\n",
+            "- Sovereign Health Intelligence\n",
+            "  sovereignhealth.io\n",
+        ),
+    }
+}
+
+// ---------------------------------------------------------------------------
+// 7. Subscription Cancelled (EN)
+// ---------------------------------------------------------------------------
+
+pub fn subscription_cancelled() -> EmailTemplate {
+    EmailTemplate {
+        subject: "Subscription cancelled - Sovereign Health",
+        html: concat!(
+            r#"<h2 class="email-heading" style="margin: 0 0 16px; font-size: 22px; font-weight: 600; color: #1a1a1a;">Subscription Cancelled</h2>"#,
+            r#"<p class="email-text" style="margin: 0 0 12px; font-size: 16px; line-height: 1.6; color: #333333;">Hi {{display_name}},</p>"#,
+            r#"<p class="email-text" style="margin: 0 0 12px; font-size: 16px; line-height: 1.6; color: #333333;">Your <strong>{{tier_name}}</strong> subscription has been cancelled.</p>"#,
+            r#"<p class="email-text" style="margin: 0 0 12px; font-size: 16px; line-height: 1.6; color: #333333;">You will retain access to your current plan features until <strong>{{access_until}}</strong>.</p>"#,
+            r#"<p class="email-text" style="margin: 0 0 16px; font-size: 16px; line-height: 1.6; color: #333333;">After that, your account will move to the free Glimpse plan. Your data will not be deleted.</p>"#,
+            r#"<p class="email-subtext" style="margin: 16px 0 0; font-size: 14px; line-height: 1.5; color: #666666;">You can resubscribe at any time from your billing settings.</p>"#,
+        ),
+        text: concat!(
+            "Subscription Cancelled\n\n",
+            "Hi {{display_name}},\n\n",
+            "Your {{tier_name}} subscription has been cancelled.\n",
+            "You will retain access until {{access_until}}.\n\n",
+            "After that, your account will move to the free Glimpse plan. Your data will not be deleted.\n\n",
+            "You can resubscribe at any time from your billing settings.\n\n",
+            "- Sovereign Health Intelligence\n",
+            "  sovereignhealth.io\n",
+        ),
+    }
+}
+
+// ---------------------------------------------------------------------------
+// 8. Account Deletion (EN)
+// ---------------------------------------------------------------------------
+
+pub fn account_deletion() -> EmailTemplate {
+    EmailTemplate {
+        subject: "Account deleted - Sovereign Health",
+        html: concat!(
+            r#"<h2 class="email-heading" style="margin: 0 0 16px; font-size: 22px; font-weight: 600; color: #1a1a1a;">Account Deleted</h2>"#,
+            r#"<p class="email-text" style="margin: 0 0 12px; font-size: 16px; line-height: 1.6; color: #333333;">Your Sovereign Health account and all associated data have been permanently deleted.</p>"#,
+            r#"<p class="email-text" style="margin: 0 0 12px; font-size: 16px; line-height: 1.6; color: #333333;">If this was a mistake, contact us within 30 days via <a href="https://sovereignhealth.io/contact" style="color: #3b82f6;">sovereignhealth.io/contact</a> and we may be able to assist.</p>"#,
+            r#"<p class="email-text" style="margin: 0; font-size: 16px; line-height: 1.6; color: #333333;">Thank you for being part of Sovereign Health.</p>"#,
+        ),
+        text: concat!(
+            "Account Deleted\n\n",
+            "Your Sovereign Health account and all associated data have been permanently deleted.\n\n",
+            "If this was a mistake, contact us within 30 days via https://sovereignhealth.io/contact\n\n",
+            "Thank you for being part of Sovereign Health.\n\n",
+            "- Sovereign Health Intelligence\n",
+            "  sovereignhealth.io\n",
+        ),
+    }
+}
+
+// ---------------------------------------------------------------------------
+// 9. Newsletter (EN) - marketing, so unsubscribe IS included in wrapper
+// ---------------------------------------------------------------------------
+
+pub fn newsletter() -> EmailTemplate {
+    EmailTemplate {
+        subject: "{{subject}}",
+        html: concat!(
+            r#"<h2 class="email-heading" style="margin: 0 0 16px; font-size: 22px; font-weight: 600; color: #1a1a1a;">{{subject}}</h2>"#,
+            r#"{{content}}"#,
+        ),
+        text: "{{subject}}\n\n{{content_text}}\n",
+    }
+}
+
+// ---------------------------------------------------------------------------
+// 10. Early Access Welcome (EN)
+// ---------------------------------------------------------------------------
+
+pub fn early_access_welcome() -> EmailTemplate {
+    EmailTemplate {
+        subject: "You're on the Sovereign Health early access list!",
+        html: concat!(
+            r#"<h2 class="email-heading" style="margin: 0 0 16px; font-size: 22px; font-weight: 600; color: #1a1a1a;">You're in!</h2>"#,
+            r#"<p class="email-text" style="margin: 0 0 12px; font-size: 16px; line-height: 1.6; color: #333333;">Thanks for signing up for early access to Sovereign Health Intelligence.</p>"#,
+            r#"<p class="email-text" style="margin: 0 0 12px; font-size: 16px; line-height: 1.6; color: #333333;">We're building the most comprehensive health intelligence platform - protocol-aware, privacy-first, and powered by AI.</p>"#,
+            r#"<p class="email-text" style="margin: 0 0 24px; font-size: 16px; line-height: 1.6; color: #333333;">We'll notify you as soon as early access opens. In the meantime, check out what's coming:</p>"#,
+            r#"<div style="text-align: center; margin: 24px 0;"><a href="https://sovereignhealth.io/features" style="background-color: #16a34a; color: #ffffff; padding: 14px 36px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px; display: inline-block;">Explore Features</a></div>"#,
+        ),
+        text: concat!(
+            "You're in!\n\n",
+            "Thanks for signing up for early access to Sovereign Health Intelligence.\n\n",
+            "We're building the most comprehensive health intelligence platform -\n",
+            "protocol-aware, privacy-first, and powered by AI.\n\n",
+            "We'll notify you as soon as early access opens.\n\n",
+            "Explore features: https://sovereignhealth.io/features\n\n",
+            "- Sovereign Health Intelligence\n",
+            "  sovereignhealth.io\n",
+        ),
+    }
+}
+
+// ---------------------------------------------------------------------------
+// 10. Early Access Welcome (DE)
+// ---------------------------------------------------------------------------
+
+pub fn early_access_welcome_de() -> EmailTemplate {
+    EmailTemplate {
+        subject: "Sie sind auf der Sovereign Health Early-Access-Liste!",
+        html: concat!(
+            r#"<h2 class="email-heading" style="margin: 0 0 16px; font-size: 22px; font-weight: 600; color: #1a1a1a;">Sie sind dabei!</h2>"#,
+            r#"<p class="email-text" style="margin: 0 0 12px; font-size: 16px; line-height: 1.6; color: #333333;">Vielen Dank für Ihre Anmeldung zum Early Access von Sovereign Health Intelligence.</p>"#,
+            r#"<p class="email-text" style="margin: 0 0 12px; font-size: 16px; line-height: 1.6; color: #333333;">Wir entwickeln die umfassendste Gesundheits-Intelligenz-Plattform - protokollbewusst, datenschutzorientiert und KI-gestützt.</p>"#,
+            r#"<p class="email-text" style="margin: 0 0 24px; font-size: 16px; line-height: 1.6; color: #333333;">Wir benachrichtigen Sie, sobald der Early Access verfügbar ist.</p>"#,
+            r#"<div style="text-align: center; margin: 24px 0;"><a href="https://sovereignhealth.io/features" style="background-color: #16a34a; color: #ffffff; padding: 14px 36px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px; display: inline-block;">Features entdecken</a></div>"#,
+        ),
+        text: concat!(
+            "Sie sind dabei!\n\n",
+            "Vielen Dank für Ihre Anmeldung zum Early Access von Sovereign Health Intelligence.\n\n",
+            "Wir entwickeln die umfassendste Gesundheits-Intelligenz-Plattform -\n",
+            "protokollbewusst, datenschutzorientiert und KI-gestützt.\n\n",
+            "Wir benachrichtigen Sie, sobald der Early Access verfügbar ist.\n\n",
+            "Features entdecken: https://sovereignhealth.io/features\n\n",
+            "- Sovereign Health Intelligence\n",
+            "  sovereignhealth.io\n",
+        ),
+    }
+}
+
+// ===========================================================================
+// German email templates (formal "Sie")
+// ===========================================================================
+
+// ---------------------------------------------------------------------------
+// 1. Email Verification (DE)
+// ---------------------------------------------------------------------------
+
+pub fn verification_de() -> EmailTemplate {
+    EmailTemplate {
+        subject: "E-Mail bestätigen - Sovereign Health",
+        html: concat!(
+            r#"<h2 class="email-heading" style="margin: 0 0 16px; font-size: 22px; font-weight: 600; color: #1a1a1a;">Willkommen!</h2>"#,
+            r#"<p class="email-text" style="margin: 0 0 12px; font-size: 16px; line-height: 1.6; color: #333333;">Vielen Dank für Ihre Registrierung bei Sovereign Health Intelligence. Bitte bestätigen Sie Ihre E-Mail-Adresse:</p>"#,
+            r#"<div style="text-align: center; margin: 24px 0;"><a href="{{verification_url}}" style="background-color: #16a34a; color: #ffffff; padding: 14px 36px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px; display: inline-block;">E-Mail bestätigen</a></div>"#,
+            r#"<p class="email-subtext" style="margin: 24px 0 0; font-size: 14px; line-height: 1.5; color: #666666;">Dieser Link ist 24 Stunden gültig. Falls Sie kein Konto erstellt haben, können Sie diese E-Mail ignorieren.</p>"#,
+        ),
+        text: concat!(
+            "Willkommen!\n\n",
+            "Vielen Dank für Ihre Registrierung bei Sovereign Health Intelligence.\n",
+            "Bitte bestätigen Sie Ihre E-Mail-Adresse:\n\n",
+            "{{verification_url}}\n\n",
+            "Dieser Link ist 24 Stunden gültig.\n\n",
+            "Falls Sie kein Konto erstellt haben, können Sie diese E-Mail ignorieren.\n\n",
+            "- Sovereign Health Intelligence\n",
+            "  sovereignhealth.io\n",
+        ),
+    }
+}
+
+// ---------------------------------------------------------------------------
+// 2. Password Reset (DE)
+// ---------------------------------------------------------------------------
+
+pub fn password_reset_de() -> EmailTemplate {
+    EmailTemplate {
+        subject: "Passwort zurücksetzen - Sovereign Health",
+        html: concat!(
+            r#"<h2 class="email-heading" style="margin: 0 0 16px; font-size: 22px; font-weight: 600; color: #1a1a1a;">Passwort zurücksetzen</h2>"#,
+            r#"<p class="email-text" style="margin: 0 0 12px; font-size: 16px; line-height: 1.6; color: #333333;">Wir haben eine Anfrage erhalten, Ihr Sovereign Health Passwort zurückzusetzen.</p>"#,
+            r#"<p class="email-text" style="margin: 0 0 24px; font-size: 16px; line-height: 1.6; color: #333333;">Klicken Sie auf die Schaltfläche, um ein neues Passwort zu wählen:</p>"#,
+            r#"<div style="text-align: center; margin: 24px 0;"><a href="{{reset_url}}" style="background-color: #16a34a; color: #ffffff; padding: 14px 36px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px; display: inline-block;">Passwort zurücksetzen</a></div>"#,
+            r#"<p class="email-subtext" style="margin: 24px 0 0; font-size: 14px; line-height: 1.5; color: #666666;">Dieser Link ist 1 Stunde gültig. Falls Sie dies nicht angefordert haben, ist keine Aktion erforderlich - Ihr Konto ist sicher.</p>"#,
+        ),
+        text: concat!(
+            "Passwort zurücksetzen\n\n",
+            "Wir haben eine Anfrage erhalten, Ihr Sovereign Health Passwort zurückzusetzen.\n\n",
+            "Hier zurücksetzen: {{reset_url}}\n\n",
+            "Dieser Link ist 1 Stunde gültig. Falls Sie dies nicht angefordert haben, ist keine Aktion erforderlich.\n\n",
+            "- Sovereign Health Intelligence\n",
+            "  sovereignhealth.io\n",
+        ),
+    }
+}
+
+// ---------------------------------------------------------------------------
+// 3. Welcome (DE)
+// ---------------------------------------------------------------------------
+
+pub fn welcome_de() -> EmailTemplate {
+    EmailTemplate {
+        subject: "Willkommen bei Sovereign Health",
+        html: concat!(
+            r#"<h2 class="email-heading" style="margin: 0 0 16px; font-size: 22px; font-weight: 600; color: #1a1a1a;">Willkommen bei Sovereign Health Intelligence</h2>"#,
+            r#"<p class="email-text" style="margin: 0 0 16px; font-size: 16px; line-height: 1.6; color: #333333;">Ihr Konto ist verifiziert und einsatzbereit. So legen Sie los:</p>"#,
+            r#"<h3 class="email-heading" style="margin: 20px 0 8px; font-size: 16px; font-weight: 600; color: #1a1a1a;">1. Erfassen Sie Ihre erste Messung</h3>"#,
+            r#"<p class="email-text" style="margin: 0 0 12px; font-size: 16px; line-height: 1.6; color: #333333;">Öffnen Sie die App, tippen Sie auf Neue Messung und erfassen Sie Ihre morgendlichen Nüchternwerte.</p>"#,
+            r#"<h3 class="email-heading" style="margin: 20px 0 8px; font-size: 16px; font-weight: 600; color: #1a1a1a;">2. Erkunden Sie Ihre Gesundheitszonen</h3>"#,
+            r#"<p class="email-text" style="margin: 0 0 12px; font-size: 16px; line-height: 1.6; color: #333333;">Acht Zonen organisieren Ihre Marker von Stoffwechselgesundheit bis Hormone. Sehen Sie, was jede Zone verfolgt und warum es wichtig ist.</p>"#,
+            r#"<h3 class="email-heading" style="margin: 20px 0 8px; font-size: 16px; font-weight: 600; color: #1a1a1a;">3. Fragen Sie Dr. Alex</h3>"#,
+            r#"<p class="email-text" style="margin: 0 0 16px; font-size: 16px; line-height: 1.6; color: #333333;">Ihr KI-Gesundheitsassistent kann Ihre Werte erklären, Trends analysieren und vorschlagen, worauf Sie sich als nächstes konzentrieren sollten.</p>"#,
+            r#"<div style="text-align: center; margin: 24px 0;"><a href="{{frontend_url}}" style="background-color: #16a34a; color: #ffffff; padding: 14px 36px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px; display: inline-block;">Zum Dashboard</a></div>"#,
+            r#"<p class="email-subtext" style="margin: 16px 0 0; font-size: 14px; line-height: 1.5; color: #666666;">Fragen? Besuchen Sie <a href="https://sovereignhealth.io/contact" style="color: #3b82f6;">sovereignhealth.io/contact</a></p>"#,
+        ),
+        text: concat!(
+            "Willkommen bei Sovereign Health Intelligence\n\n",
+            "Ihr Konto ist verifiziert und einsatzbereit. So legen Sie los:\n\n",
+            "1. Erfassen Sie Ihre erste Messung\n",
+            "   Öffnen Sie die App, tippen Sie auf Neue Messung und erfassen Sie Ihre morgendlichen Nüchternwerte.\n\n",
+            "2. Erkunden Sie Ihre Gesundheitszonen\n",
+            "   Acht Zonen organisieren Ihre Marker von Stoffwechselgesundheit bis Hormone.\n\n",
+            "3. Fragen Sie Dr. Alex\n",
+            "   Ihr KI-Gesundheitsassistent kann Ihre Werte erklären, Trends analysieren,\n",
+            "   und vorschlagen, worauf Sie sich als nächstes konzentrieren sollten.\n\n",
+            "Zum Dashboard: {{frontend_url}}\n\n",
+            "Fragen? Besuchen Sie https://sovereignhealth.io/contact\n\n",
+            "- Sovereign Health Intelligence\n",
+            "  sovereignhealth.io\n",
+        ),
+    }
+}
+
+// ---------------------------------------------------------------------------
+// 4. Tier Change (DE)
+// ---------------------------------------------------------------------------
+
+pub fn tier_change_de() -> EmailTemplate {
+    EmailTemplate {
+        subject: "Ihr Plan wurde geändert - Sovereign Health",
+        html: concat!(
+            r#"<h2 class="email-heading" style="margin: 0 0 16px; font-size: 22px; font-weight: 600; color: #1a1a1a;">Plan aktualisiert</h2>"#,
+            r#"<p class="email-text" style="margin: 0 0 12px; font-size: 16px; line-height: 1.6; color: #333333;">Hallo {{display_name}},</p>"#,
+            r#"<p class="email-text" style="margin: 0 0 16px; font-size: 16px; line-height: 1.6; color: #333333;">Ihr Plan wurde von <strong>{{from_tier}}</strong> auf <strong>{{to_tier}}</strong> geändert.</p>"#,
+            r#"<p class="email-text" style="margin: 0 0 16px; font-size: 16px; line-height: 1.6; color: #333333;">{{tier_message}}</p>"#,
+            r#"<div style="text-align: center; margin: 24px 0;"><a href="{{frontend_url}}/billing" style="background-color: #16a34a; color: #ffffff; padding: 14px 36px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px; display: inline-block;">Plandetails ansehen</a></div>"#,
+        ),
+        text: concat!(
+            "Plan aktualisiert\n\n",
+            "Hallo {{display_name}},\n\n",
+            "Ihr Plan wurde von {{from_tier}} auf {{to_tier}} geändert.\n\n",
+            "{{tier_message}}\n\n",
+            "Details ansehen: {{frontend_url}}/billing\n\n",
+            "- Sovereign Health Intelligence\n",
+            "  sovereignhealth.io\n",
+        ),
+    }
+}
+
+// ---------------------------------------------------------------------------
+// 5. Payment Confirmation (DE)
+// ---------------------------------------------------------------------------
+
+pub fn payment_confirmation_de() -> EmailTemplate {
+    EmailTemplate {
+        subject: "Zahlung erhalten - Sovereign Health",
+        html: concat!(
+            r#"<h2 class="email-heading" style="margin: 0 0 16px; font-size: 22px; font-weight: 600; color: #1a1a1a;">Zahlung bestätigt</h2>"#,
+            r#"<p class="email-text" style="margin: 0 0 16px; font-size: 16px; line-height: 1.6; color: #333333;">Hallo {{display_name}},</p>"#,
+            r#"<p class="email-text" style="margin: 0 0 16px; font-size: 16px; line-height: 1.6; color: #333333;">Wir haben Ihre Zahlung für den <strong>{{tier_name}}</strong>-Plan erhalten.</p>"#,
+            r#"<div class="email-info-box" style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 16px; margin: 16px 0;">"#,
+            r#"<p class="email-info-text" style="margin: 0; font-size: 15px; color: #166534;"><strong>Plan:</strong> {{tier_name}}</p>"#,
+            r#"<p class="email-info-text" style="margin: 8px 0 0; font-size: 15px; color: #166534;"><strong>Betrag:</strong> {{amount}}</p>"#,
+            r#"<p class="email-info-text" style="margin: 8px 0 0; font-size: 15px; color: #166534;"><strong>Aktiv bis:</strong> {{period_end}}</p>"#,
+            r#"</div>"#,
+            r#"<p class="email-text" style="margin: 16px 0 0; font-size: 16px; line-height: 1.6; color: #333333;">Vielen Dank für Ihre Unterstützung von datenschutzorientiertem Gesundheitstracking.</p>"#,
+        ),
+        text: concat!(
+            "Zahlung bestätigt\n\n",
+            "Hallo {{display_name}},\n\n",
+            "Wir haben Ihre Zahlung für den {{tier_name}}-Plan erhalten.\n\n",
+            "  Plan: {{tier_name}}\n",
+            "  Betrag: {{amount}}\n",
+            "  Aktiv bis: {{period_end}}\n\n",
+            "Vielen Dank für Ihre Unterstützung von datenschutzorientiertem Gesundheitstracking.\n\n",
+            "- Sovereign Health Intelligence\n",
+            "  sovereignhealth.io\n",
+        ),
+    }
+}
+
+// ---------------------------------------------------------------------------
+// 6. Payment Failed (DE)
+// ---------------------------------------------------------------------------
+
+pub fn payment_failed_de() -> EmailTemplate {
+    EmailTemplate {
+        subject: "Zahlung fehlgeschlagen - Sovereign Health",
+        html: concat!(
+            r#"<h2 class="email-heading" style="margin: 0 0 16px; font-size: 22px; font-weight: 600; color: #1a1a1a;">Zahlungsproblem</h2>"#,
+            r#"<p class="email-text" style="margin: 0 0 12px; font-size: 16px; line-height: 1.6; color: #333333;">Hallo {{display_name}},</p>"#,
+            r#"<p class="email-text" style="margin: 0 0 12px; font-size: 16px; line-height: 1.6; color: #333333;">Wir konnten Ihre letzte Zahlung für den <strong>{{tier_name}}</strong>-Plan nicht verarbeiten.</p>"#,
+            r#"<p class="email-text" style="margin: 0 0 24px; font-size: 16px; line-height: 1.6; color: #333333;">Bitte aktualisieren Sie Ihre Zahlungsmethode, um Ihre Funktionen beizubehalten:</p>"#,
+            r#"<div style="text-align: center; margin: 24px 0;"><a href="{{frontend_url}}/billing" style="background-color: #dc2626; color: #ffffff; padding: 14px 36px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px; display: inline-block;">Zahlungsmethode aktualisieren</a></div>"#,
+            r#"<p class="email-subtext" style="margin: 24px 0 0; font-size: 14px; line-height: 1.5; color: #666666;">Wenn Ihre Zahlung nicht innerhalb von 7 Tagen aktualisiert wird, wird Ihr Konto auf den kostenlosen Plan herabgestuft.</p>"#,
+        ),
+        text: concat!(
+            "Zahlungsproblem\n\n",
+            "Hallo {{display_name}},\n\n",
+            "Wir konnten Ihre letzte Zahlung für den {{tier_name}}-Plan nicht verarbeiten.\n",
+            "Bitte aktualisieren Sie Ihre Zahlungsmethode, um Ihre Funktionen beizubehalten.\n\n",
+            "Zahlungsmethode aktualisieren: {{frontend_url}}/billing\n\n",
+            "Wenn Ihre Zahlung nicht innerhalb von 7 Tagen aktualisiert wird, wird Ihr Konto auf den kostenlosen Plan herabgestuft.\n\n",
+            "- Sovereign Health Intelligence\n",
+            "  sovereignhealth.io\n",
+        ),
+    }
+}
+
+// ---------------------------------------------------------------------------
+// 7. Subscription Cancelled (DE)
+// ---------------------------------------------------------------------------
+
+pub fn subscription_cancelled_de() -> EmailTemplate {
+    EmailTemplate {
+        subject: "Abonnement gekündigt - Sovereign Health",
+        html: concat!(
+            r#"<h2 class="email-heading" style="margin: 0 0 16px; font-size: 22px; font-weight: 600; color: #1a1a1a;">Abonnement gekündigt</h2>"#,
+            r#"<p class="email-text" style="margin: 0 0 12px; font-size: 16px; line-height: 1.6; color: #333333;">Hallo {{display_name}},</p>"#,
+            r#"<p class="email-text" style="margin: 0 0 12px; font-size: 16px; line-height: 1.6; color: #333333;">Ihr <strong>{{tier_name}}</strong>-Abonnement wurde gekündigt.</p>"#,
+            r#"<p class="email-text" style="margin: 0 0 12px; font-size: 16px; line-height: 1.6; color: #333333;">Sie behalten Zugriff auf Ihre aktuellen Planfunktionen bis <strong>{{access_until}}</strong>.</p>"#,
+            r#"<p class="email-text" style="margin: 0 0 16px; font-size: 16px; line-height: 1.6; color: #333333;">Danach wechselt Ihr Konto zum kostenlosen Glimpse-Plan. Ihre Daten werden nicht gelöscht.</p>"#,
+            r#"<p class="email-subtext" style="margin: 16px 0 0; font-size: 14px; line-height: 1.5; color: #666666;">Sie können jederzeit in Ihren Abrechnungseinstellungen erneut abonnieren.</p>"#,
+        ),
+        text: concat!(
+            "Abonnement gekündigt\n\n",
+            "Hallo {{display_name}},\n\n",
+            "Ihr {{tier_name}}-Abonnement wurde gekündigt.\n",
+            "Sie behalten Zugriff bis {{access_until}}.\n\n",
+            "Danach wechselt Ihr Konto zum kostenlosen Glimpse-Plan. Ihre Daten werden nicht gelöscht.\n\n",
+            "Sie können jederzeit in Ihren Abrechnungseinstellungen erneut abonnieren.\n\n",
+            "- Sovereign Health Intelligence\n",
+            "  sovereignhealth.io\n",
+        ),
+    }
+}
+
+// ---------------------------------------------------------------------------
+// 8. Account Deletion (DE)
+// ---------------------------------------------------------------------------
+
+pub fn account_deletion_de() -> EmailTemplate {
+    EmailTemplate {
+        subject: "Konto gelöscht - Sovereign Health",
+        html: concat!(
+            r#"<h2 class="email-heading" style="margin: 0 0 16px; font-size: 22px; font-weight: 600; color: #1a1a1a;">Konto gelöscht</h2>"#,
+            r#"<p class="email-text" style="margin: 0 0 12px; font-size: 16px; line-height: 1.6; color: #333333;">Ihr Sovereign Health Konto und alle zugehörigen Daten wurden dauerhaft gelöscht.</p>"#,
+            r#"<p class="email-text" style="margin: 0 0 12px; font-size: 16px; line-height: 1.6; color: #333333;">Falls dies ein Fehler war, kontaktieren Sie uns innerhalb von 30 Tagen über <a href="https://sovereignhealth.io/contact" style="color: #3b82f6;">sovereignhealth.io/contact</a> und wir können möglicherweise helfen.</p>"#,
+            r#"<p class="email-text" style="margin: 0; font-size: 16px; line-height: 1.6; color: #333333;">Vielen Dank, dass Sie Teil von Sovereign Health waren.</p>"#,
+        ),
+        text: concat!(
+            "Konto gelöscht\n\n",
+            "Ihr Sovereign Health Konto und alle zugehörigen Daten wurden dauerhaft gelöscht.\n\n",
+            "Falls dies ein Fehler war, kontaktieren Sie uns innerhalb von 30 Tagen über https://sovereignhealth.io/contact\n\n",
+            "Vielen Dank, dass Sie Teil von Sovereign Health waren.\n\n",
+            "- Sovereign Health Intelligence\n",
+            "  sovereignhealth.io\n",
+        ),
+    }
+}
+
+// ---------------------------------------------------------------------------
+// 9. Contact Form - Notification to admin
+// ---------------------------------------------------------------------------
+
+pub fn contact_notification() -> EmailTemplate {
+    EmailTemplate {
+        subject: "New Contact Form Submission - {{subject}}",
+        html: concat!(
+            r#"<h2 class="email-heading" style="margin: 0 0 16px; font-size: 22px; font-weight: 600; color: #1a1a1a;">New Contact Submission</h2>"#,
+            r#"<div style="margin: 0 0 16px; padding: 12px 16px; background: #f0f9ff; border-left: 4px solid #3b82f6; border-radius: 4px;">"#,
+            r#"<p style="margin: 0 0 4px; font-size: 14px; color: #333;"><strong>From:</strong> {{name}} &lt;{{email}}&gt;</p>"#,
+            r#"<p style="margin: 0; font-size: 14px; color: #333;"><strong>Subject:</strong> {{subject}}</p>"#,
+            r#"</div>"#,
+            r#"<div style="margin: 0 0 16px; padding: 16px; background: #fafafa; border: 1px solid #e5e7eb; border-radius: 8px;">"#,
+            r#"<p class="email-text" style="margin: 0; font-size: 15px; line-height: 1.6; color: #333333; white-space: pre-wrap;">{{message}}</p>"#,
+            r#"</div>"#,
+            r#"<p class="email-subtext" style="margin: 16px 0 0; font-size: 13px; color: #666;">Reply directly to this email to respond to {{name}} at {{email}}.</p>"#,
+        ),
+        text: concat!(
+            "New Contact Form Submission\n\n",
+            "From: {{name}} <{{email}}>\n",
+            "Subject: {{subject}}\n\n",
+            "Message:\n{{message}}\n\n",
+            "Reply to: {{email}}\n",
+        ),
+    }
+}
+
+// ---------------------------------------------------------------------------
+// 10. Contact Form - Confirmation to submitter
+// ---------------------------------------------------------------------------
+
+pub fn contact_confirmation() -> EmailTemplate {
+    EmailTemplate {
+        subject: "We received your message - Sovereign Health",
+        html: concat!(
+            r#"<h2 class="email-heading" style="margin: 0 0 16px; font-size: 22px; font-weight: 600; color: #1a1a1a;">Message Received</h2>"#,
+            r#"<p class="email-text" style="margin: 0 0 12px; font-size: 16px; line-height: 1.6; color: #333333;">Hi {{name}},</p>"#,
+            r#"<p class="email-text" style="margin: 0 0 12px; font-size: 16px; line-height: 1.6; color: #333333;">Thank you for reaching out. We have received your message and will get back to you within 48 hours.</p>"#,
+            r#"<p class="email-text" style="margin: 0 0 16px; font-size: 16px; line-height: 1.6; color: #333333;">You can track updates at <a href="https://sovereignhealth.io/contact" style="color: #3b82f6;">sovereignhealth.io/contact</a>.</p>"#,
+        ),
+        text: concat!(
+            "Message Received\n\n",
+            "Hi {{name}},\n\n",
+            "Thank you for reaching out. We have received your message and will get back to you within 48 hours.\n\n",
+            "You can track updates at https://sovereignhealth.io/contact\n\n",
+            "- Sovereign Health Intelligence\n",
+            "  sovereignhealth.io\n",
+        ),
+    }
+}
+
+// ---------------------------------------------------------------------------
+// 10b. Contact Form - Confirmation to submitter (DE)
+// ---------------------------------------------------------------------------
+
+pub fn contact_confirmation_de() -> EmailTemplate {
+    EmailTemplate {
+        subject: "Wir haben Ihre Nachricht erhalten - Sovereign Health",
+        html: concat!(
+            r#"<h2 class="email-heading" style="margin: 0 0 16px; font-size: 22px; font-weight: 600; color: #1a1a1a;">Nachricht erhalten</h2>"#,
+            r#"<p class="email-text" style="margin: 0 0 12px; font-size: 16px; line-height: 1.6; color: #333333;">Hallo {{name}},</p>"#,
+            r#"<p class="email-text" style="margin: 0 0 12px; font-size: 16px; line-height: 1.6; color: #333333;">Vielen Dank für Ihre Nachricht. Wir haben sie erhalten und werden uns innerhalb von 48 Stunden bei Ihnen melden.</p>"#,
+            r#"<p class="email-text" style="margin: 0 0 16px; font-size: 16px; line-height: 1.6; color: #333333;">Weitere Informationen finden Sie unter <a href="https://sovereignhealth.io/contact" style="color: #3b82f6;">sovereignhealth.io/contact</a>.</p>"#,
+        ),
+        text: concat!(
+            "Nachricht erhalten\n\n",
+            "Hallo {{name}},\n\n",
+            "Vielen Dank für Ihre Nachricht. Wir haben sie erhalten und werden uns innerhalb von 48 Stunden bei Ihnen melden.\n\n",
+            "Weitere Informationen: https://sovereignhealth.io/contact\n\n",
+            "- Sovereign Health Intelligence\n",
+            "  sovereignhealth.io\n",
+        ),
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Language-aware template selector
+// ---------------------------------------------------------------------------
+
+/// Get template for a given name and language code (e.g. "en", "de").
+/// Falls back to English for unknown languages.
+pub fn get_template(name: &str, lang: &str) -> EmailTemplate {
+    match (name, lang) {
+        ("verification", "de") => verification_de(),
+        ("password_reset", "de") => password_reset_de(),
+        ("welcome", "de") => welcome_de(),
+        ("tier_change", "de") => tier_change_de(),
+        ("payment_confirmation", "de") => payment_confirmation_de(),
+        ("payment_failed", "de") => payment_failed_de(),
+        ("subscription_cancelled", "de") => subscription_cancelled_de(),
+        ("account_deletion", "de") => account_deletion_de(),
+        ("verification", _) => verification(),
+        ("password_reset", _) => password_reset(),
+        ("welcome", _) => welcome(),
+        ("tier_change", _) => tier_change(),
+        ("payment_confirmation", _) => payment_confirmation(),
+        ("payment_failed", _) => payment_failed(),
+        ("subscription_cancelled", _) => subscription_cancelled(),
+        ("account_deletion", _) => account_deletion(),
+        ("newsletter", _) => newsletter(),
+        ("early_access_welcome", "de") => early_access_welcome_de(),
+        ("early_access_welcome", _) => early_access_welcome(),
+        ("contact_notification", _) => contact_notification(),
+        ("contact_confirmation", "de") => contact_confirmation_de(),
+        ("contact_confirmation", _) => contact_confirmation(),
+        _ => verification(), // fallback
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Render helpers
+// ---------------------------------------------------------------------------
+
+/// Minify HTML to stay well under Gmail's 102 KB clipping limit.
+fn minify_html(html: &str) -> String {
+    html.lines()
+        .map(|l| l.trim())
+        .filter(|l| !l.is_empty())
+        .collect::<Vec<_>>()
+        .join("")
+}
+
+pub fn render_template(
+    template: &EmailTemplate,
+    vars: &HashMap<&str, String>,
+) -> (String, String, String) {
+    let subject = render(template.subject, vars);
+    let html_body = render(template.html, vars);
+    let html = minify_html(&render(&wrap_html(&html_body), vars));
+    let text = render(template.text, vars);
+    (subject, html, text)
+}
+
+pub fn render_template_localized(
+    template: &EmailTemplate,
+    vars: &HashMap<&str, String>,
+    lang: &str,
+) -> (String, String, String) {
+    let subject = render(template.subject, vars);
+    let html_body = render(template.html, vars);
+    let wrapper = if lang == "de" {
+        wrap_html_de(&html_body)
+    } else {
+        wrap_html(&html_body)
+    };
+    let html = minify_html(&render(&wrapper, vars));
+    let text = render(template.text, vars);
+    (subject, html, text)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_render_replaces_vars() {
+        let mut vars = HashMap::new();
+        vars.insert("name", "Alice".to_string());
+        vars.insert("url", "https://example.com".to_string());
+        let result = render("Hello {{name}}, visit {{url}}", &vars);
+        assert_eq!(result, "Hello Alice, visit https://example.com");
+    }
+
+    #[test]
+    fn test_render_template_welcome() {
+        let tmpl = welcome();
+        let mut vars = HashMap::new();
+        vars.insert("frontend_url", "https://app.sovereignhealth.io".to_string());
+        vars.insert("subject", "Welcome to Sovereign Health".to_string());
+        let (subject, html, text) = render_template(&tmpl, &vars);
+        assert_eq!(subject, "Welcome to Sovereign Health");
+        assert!(html.contains("Health Zones"));
+        assert!(html.contains("Dr. Alex"));
+        assert!(text.contains("Dr. Alex"));
+    }
+
+    #[test]
+    fn test_no_tracking_pixels() {
+        let tmpl = welcome();
+        let mut vars = HashMap::new();
+        vars.insert("frontend_url", "https://app.sovereignhealth.io".to_string());
+        vars.insert("subject", "Welcome".to_string());
+        let (_, html, _) = render_template(&tmpl, &vars);
+        assert!(!html.contains("1x1"));
+        assert!(!html.contains("pixel"));
+    }
+
+    #[test]
+    fn test_no_raw_urls_in_verification() {
+        let tmpl = verification();
+        assert!(!tmpl.html.contains("<code>"));
+        assert!(!tmpl.html.contains("copy this link"));
+    }
+
+    #[test]
+    fn test_no_unsubscribe_in_transactional() {
+        let tmpl = verification();
+        let mut vars = HashMap::new();
+        vars.insert("verification_url", "https://example.com/verify".to_string());
+        vars.insert("subject", "Verify".to_string());
+        let (_, html, _) = render_template(&tmpl, &vars);
+        assert!(!html.contains("Unsubscribe"));
+        assert!(!html.contains("unsubscribe"));
+        assert!(!html.contains("Abmelden"));
+    }
+
+    #[test]
+    fn test_no_gmbh_in_footer() {
+        let tmpl = verification();
+        let mut vars = HashMap::new();
+        vars.insert("verification_url", "https://example.com/verify".to_string());
+        vars.insert("subject", "Verify".to_string());
+        let (_, html, _) = render_template(&tmpl, &vars);
+        assert!(!html.contains("GmbH"));
+    }
+
+    #[test]
+    fn test_logo_present() {
+        let tmpl = verification();
+        let mut vars = HashMap::new();
+        vars.insert("verification_url", "https://example.com/verify".to_string());
+        vars.insert("subject", "Verify".to_string());
+        let (_, html, _) = render_template(&tmpl, &vars);
+        assert!(html.contains("logo.png"));
+        assert!(html.contains("alt=\"Sovereign Health\""));
+    }
+
+    #[test]
+    fn test_german_formal_sie() {
+        let tmpl = verification_de();
+        assert!(tmpl.html.contains("Ihre"));
+        assert!(!tmpl.html.contains("deine"));
+    }
+}

@@ -1,0 +1,1644 @@
+{
+  "nav": {
+    "features": "Funktionen",
+    "pricing": "Preise",
+    "healthZones": "Gesundheitszonen",
+    "markers": "Marker",
+    "openSource": "Open Source",
+    "about": "Über uns",
+    "brandFull": "Sovereign Health Intelligence",
+    "brandShort": "SHI",
+    "tryTheApp": "App testen",
+    "toggleMenu": "Menü umschalten",
+    "menu": "Menü"
+  },
+  "footer": {
+    "sections": {
+      "product": {
+        "title": "Produkt",
+        "features": "Funktionen",
+        "pricing": "Preise",
+        "healthZones": "Gesundheitszonen",
+        "markers": "Biomarker"
+      },
+      "company": {
+        "title": "Unternehmen",
+        "about": "Über uns",
+        "partners": "Partner",
+        "contact": "Kontakt",
+        "openSource": "Open Source"
+      },
+      "resources": {
+        "title": "Ressourcen",
+        "learn": "Lernen",
+        "security": "Sicherheit",
+        "gitlab": "GitLab",
+        "referralProgram": "Empfehlungsprogramm"
+      },
+      "legal": {
+        "title": "Rechtliches",
+        "termsOfService": "Nutzungsbedingungen",
+        "privacyPolicy": "Datenschutzerklärung",
+        "impressum": "Impressum"
+      }
+    },
+    "copyright": "© {year} Sovereign Health Intelligence. Alle Rechte vorbehalten.",
+    "donateTitle": "Mit Bitcoin unterstützen",
+    "donateDesc": "Unterstütze Open-Source-Gesundheitstracking über das Lightning Network",
+    "donateButton": "Bitcoin spenden"
+  },
+  "home": {
+    "hero": {
+      "title": "Übernehmen Sie die Kontrolle über Ihre Gesundheitsdaten",
+      "tagline": "Datenschutz an erster Stelle bei der metabolischen Gesundheitserfassung.",
+      "subtitle": "Erfassen Sie über 85 Biomarker. Analysieren Sie Trends mit AI. Selbst hosten oder unsere verschlüsselte Cloud nutzen. Ihre Daten, Ihre Regeln.",
+      "tryTheApp": "App testen",
+      "selfHostForFree": "Kostenlos selbst hosten"
+    },
+    "howItWorks": {
+      "heading": "So funktioniert es",
+      "step1": {
+        "title": "Erfassen",
+        "description": "Erfassen Sie Ihre Biomarker in Sekundenschnelle mit Ihrem Heimgerät oder Laborergebnissen."
+      },
+      "step2": {
+        "title": "Verstehen",
+        "description": "Dr. Alex, Ihr AI-Gesundheitsassistent, erklärt Ihnen Ihre Werte in verständlicher Sprache."
+      },
+      "step3": {
+        "title": "Optimieren",
+        "description": "Vergleichen Sie Ernährungsprotokolle, passen Sie Ihren Ansatz an und beobachten Sie, wie sich Ihre Marker im Laufe der Zeit verbessern."
+      }
+    },
+    "features": {
+      "heading": "Funktionen",
+      "healthMarkers": {
+        "title": "Über 85 Biomarker",
+        "description": "Erfassen Sie Marker in 8 Gesundheitszonen - von Blutzucker bis Hormone. Nutzen Sie Geräte wie Fora 6, Qardio oder jedes Labor."
+      },
+      "drAlex": {
+        "title": "Dr. Alex AI-Assistent",
+        "description": "Sechs spezialisierte Analysemodi einschließlich Trendanalyse, Laborerklärung, Ernährungsberatung und Nahrungsergänzungsmittel-Überprüfung."
+      },
+      "encrypted": {
+        "title": "Verschlüsselt und privat",
+        "description": "AES-256-Verschlüsselung im Ruhezustand. Zero-Knowledge-Design. Selbst wir können Ihre Gesundheitsdaten nicht lesen. Kein Tracking, keine Cookies, keine Analytik."
+      },
+      "dataExport": {
+        "title": "Vollständiger Datenexport",
+        "description": "Laden Sie Ihre gesamte Gesundheitshistorie jederzeit als CSV oder JSON herunter. PDF-Gesundheitsberichte für Ihren Arzt. Ihre Daten, Ihre Wahl."
+      },
+      "medication": {
+        "title": "Medikamentenverfolgung",
+        "description": "Protokollieren Sie Ihre Nahrungsergänzungsmittel und Medikamente. Erhalten Sie Warnungen zu Wechselwirkungen. Sehen Sie, wie sie Ihre Marker im Laufe der Zeit beeinflussen."
+      },
+      "openSource": {
+        "title": "Open Source",
+        "description": "AGPL-3.0-lizenziert. Betreiben Sie es auf Ihrem eigenen Server mit Docker in 5 Minuten. Für immer kostenlos, ohne Einschränkungen."
+      }
+    },
+    "stats": {
+      "markers": "Biomarker",
+      "zones": "Gesundheitszonen",
+      "features": "Funktionen"
+    },
+    "sections": {
+      "viewAll": "Alle anzeigen",
+      "healthZones": "Gesundheitszonen",
+      "markers": "Wichtige Marker",
+      "securityPrivacy": "Sicherheit & Datenschutz",
+      "markersInZone": "Marker",
+      "learnMore": "Mehr erfahren"
+    },
+    "trustBadges": {
+      "aes256": "AES-256 verschlüsselt",
+      "tls13": "TLS 1.3",
+      "gdpr": "DSGVO-konform",
+      "ePrivacy": "ePrivacy-konform",
+      "zeroKnowledge": "Zero-Knowledge",
+      "noTracking": "Kein Tracking",
+      "owasp": "OWASP-sicher",
+      "openSource": "Open Source überprüfbar"
+    },
+    "securityDescriptions": {
+      "aes256": "Alle Gesundheitsdaten werden mit AES-256 verschlüsselt gespeichert, dem gleichen Standard wie bei Banken und Regierungen.",
+      "zeroKnowledge": "Wir können Ihre Gesundheitsdaten nicht lesen. Ihre Messungen werden verschlüsselt, bevor sie unsere Server erreichen.",
+      "gdpr": "Vollständig DSGVO- und ePrivacy-konform. Ihre Daten bleiben unter Ihrer Kontrolle mit vollständigen Export- und Löschrechten.",
+      "noTracking": "Keine Cookies, keine Analytik, keine Tracking-Pixel. Wir überwachen Ihr Verhalten nicht und verkaufen Ihre Daten nicht.",
+      "openSource": "Unser Kern ist AGPL-3.0-lizenziert. Prüfen Sie den Code selbst oder hosten Sie selbst für vollständige Unabhängigkeit.",
+      "tls13": "Alle Daten während der Übertragung sind mit TLS 1.3 geschützt, was eine sichere Kommunikation zwischen Ihnen und unseren Servern gewährleistet."
+    },
+    "demo": {
+      "heading": "Sehen Sie es in Aktion",
+      "description": "Erkunden Sie die vollständige Plattform mit Beispiel-Gesundheitsdaten. Drei Demoprofile zeigen, wie verschiedene Gesundheitsmuster aussehen.",
+      "openTheApp": "App öffnen",
+      "screenshotPlaceholder": "App-Screenshot"
+    },
+    "pricing": {
+      "heading": "Preise",
+      "seeFullComparison": "Vollständigen Vergleich ansehen",
+      "tiers": {
+        "glimpse": {
+          "name": "Glimpse",
+          "price": "Kostenlos",
+          "tagline": "Starten Sie mit den Grundlagen"
+        },
+        "focus": {
+          "name": "Focus",
+          "price": "9,99 €/Monat",
+          "tagline": "Für konsequente Selbstvermesser"
+        },
+        "insight": {
+          "name": "Insight",
+          "price": "24,99 €/Monat",
+          "tagline": "AI-gestützte Gesundheitsanalyse"
+        },
+        "clarity": {
+          "name": "Clarity",
+          "price": "49,99 €/Monat",
+          "tagline": "Vollständige Datensouveränität"
+        },
+        "horizon": {
+          "name": "Horizon",
+          "price": "Individuell",
+          "tagline": "Für professionelle und klinische Nutzung"
+        }
+      }
+    },
+    "founderQuote": {
+      "quote": "Ich habe über 80 Biomarker ein Jahr lang in Excel erfasst, bevor ich das Werkzeug gebaut habe, das ich mir immer gewünscht hatte. Jetzt nutze ich es zweimal pro Woche und es dauert zwei Minuten.",
+      "attribution": "Helmut, Gründer"
+    }
+  },
+  "features": {
+    "hero": {
+      "title": "Alles, was Sie brauchen, um Ihre Gesundheitsdaten selbst zu verwalten",
+      "subtitle": "Von der täglichen Erfassung bis zur AI-gestützten Analyse - jede Funktion wurde mit Blick auf Datenschutz und Klarheit entwickelt."
+    },
+    "badges": {
+      "allPlans": "Alle Tarife",
+      "comingSoon": "Demnächst verfügbar"
+    },
+    "categories": {
+      "trackYourHealth": {
+        "heading": "Ihre Gesundheit erfassen",
+        "recordDailyMeasurements": {
+          "name": "Tägliche Messungen erfassen",
+          "description": "Protokollieren Sie Ihre Biomarker in Sekundenschnelle. Erstellen Sie eine Vorlage für Ihre Routineuntersuchungen, damit Sie nur die Marker sehen, die Ihnen wichtig sind. Ob Sie ein Fora 6, eine Qardio-Smartwaage oder Laborwerte verwenden - alles landet an einem sicheren Ort."
+        },
+        "supportedDevices": {
+          "name": "Unterstützte Geräte",
+          "description": "Funktioniert mit Heimtestgeräten wie dem Fora 6 Multiparameter-Messgerät (Glukose, Ketone, Cholesterin, Harnsäure, Hämoglobin, Hämatokrit), dem Qardio Arm Blutdruckmessgerät, der Qardiobase 2 Smartwaage (Gewicht, Körperfett, Muskelmasse, Wasseranteil, Knochenmasse) und jedem Laboranbieter. Sie können auch eigene Geräte hinzufügen und festlegen, was sie messen."
+        },
+        "measurementTemplates": {
+          "name": "Messvorlagen",
+          "description": "Speichern Sie Ihre Routine als Vorlage. Wählen Sie die Marker aus, die Sie regelmäßig messen, vergeben Sie einen Namen und laden Sie sie beim nächsten Mal mit einem Tippen.",
+          "badge": "Glimpse 1, Focus 3, Insight+ Unbegrenzt"
+        },
+        "calculatedHealthScores": {
+          "name": "Berechnete Gesundheitswerte",
+          "description": "Automatisch aus Ihren Basismessungen berechnet. BMI aus Gewicht und Größe. HOMA-IR aus Glukose und Insulin. GKI aus Glukose und Ketonen. Kein manuelles Rechnen nötig.",
+          "badge": "Glimpse 3, Focus+ Alle 8+"
+        },
+        "bodyComposition": {
+          "name": "Körperzusammensetzung",
+          "description": "Verfolgen Sie Körperfettanteil, Muskelmasse, Wasseranteil und Knochenmasse zusammen mit Ihrem Gewicht.",
+          "badge": "Focus+"
+        },
+        "editAndCorrect": {
+          "name": "Bearbeiten und korrigieren",
+          "description": "Einen Fehler gemacht? Bearbeiten oder löschen Sie jede Messung jederzeit. Volle Kontrolle über jeden Datenpunkt."
+        },
+        "labResultImport": {
+          "name": "Laborergebnis-Import",
+          "description": "Foto oder PDF Ihres Laborbefunds. Automatisch extrahiert, von Ihnen überprüft vor dem Speichern.",
+          "badge": "Insight 3/Monat, Clarity 4, Horizon Unbegrenzt"
+        },
+        "medicationImport": {
+          "name": "Medikamenten-Import",
+          "description": "Foto von Nahrungsergänzungsmittel-Packungen. Automatisch erkannt und protokolliert.",
+          "badge": "Insight 1/Monat, Clarity 2, Horizon Unbegrenzt"
+        }
+      },
+      "understandYourNumbers": {
+        "heading": "Ihre Werte verstehen",
+        "markerDetailPages": {
+          "name": "Marker-Detailseiten",
+          "description": "Jeder Marker hat eine eigene Seite, die erklärt, was er misst und warum er wichtig ist. In verständlicher Sprache geschrieben, die jeder verstehen kann."
+        },
+        "foodRecommendations": {
+          "name": "Ernährungsempfehlungen",
+          "description": "Sehen Sie, welche Lebensmittel zur Verbesserung jedes Markers beitragen können. Von Weidehaltungs-Rindfleisch und Lachs bis hin zu Blaubeeren und dunkler Schokolade, nach Kategorien geordnet mit Erklärungen."
+        },
+        "supplementGuidance": {
+          "name": "Nahrungsergänzungsmittel-Ratgeber",
+          "description": "Evidenzbasierte Empfehlungen für Nahrungsergänzungsmittel zu jedem Marker. Einschließlich typischer Dosierungsbereiche, Einnahmehinweise und wie jedes Ergänzungsmittel Ihre Werte beeinflusst."
+        },
+        "fastingImpact": {
+          "name": "Fastenauswirkung",
+          "description": "22 Marker haben fastenspezifische Referenzbereiche mit Erklärungen. Verstehen Sie, warum Ihr Blutzucker sinkt, Ketone steigen und Harnsäure während des Fastens zunimmt."
+        },
+        "markerRelationships": {
+          "name": "Marker-Zusammenhänge",
+          "description": "Sehen Sie, wie Ihre Marker miteinander zusammenhängen. Über 30 dokumentierte Beziehungen helfen Ihnen, das Gesamtbild zu sehen."
+        },
+        "protocolGuides": {
+          "name": "Protokoll-Leitfäden",
+          "description": "Was passiert mit Ihren Markern bei der Karnivoren-Diät? Wie beeinflusst Keto Ihr Insulin? Sechs Ernährungsprotokolle abgebildet auf über 20 Marker."
+        }
+      },
+      "seeYourProgress": {
+        "heading": "Ihren Fortschritt sehen",
+        "trendCharts": {
+          "name": "Trenddiagramme",
+          "description": "Interaktive Diagramme, die Ihre Markerwerte im Zeitverlauf mit farbigen Referenzbereichsbändern zeigen.",
+          "badge": "Glimpse 90 Tage, Focus+ Unbegrenzt"
+        },
+        "compareProtocols": {
+          "name": "Protokolle vergleichen",
+          "description": "Ernährung umgestellt? Sehen Sie genau, wie Ihre Marker reagiert haben. Vergleich verschiedener Phasen nebeneinander.",
+          "badge": "Focus+"
+        },
+        "aiDashboardInsights": {
+          "name": "AI-Dashboard-Erkenntnisse",
+          "description": "Automatisierte Beobachtungen zu Ihren Trends in verständlicher Sprache.",
+          "badge": "Insight+"
+        },
+        "communityComparison": {
+          "name": "Community-Vergleich",
+          "description": "Sehen Sie, wie Ihre Marker im Vergleich zu anonymisierten, aggregierten Daten ähnlicher Nutzer abschneiden.",
+          "badge": "Clarity+"
+        }
+      },
+      "drAlexAi": {
+        "heading": "Dr. Alex AI-Assistent",
+        "generalHealthQA": {
+          "name": "Allgemeine Gesundheitsfragen",
+          "description": "Stellen Sie Fragen zu Ihren Gesundheitsdaten. Antworten basieren auf Ihren tatsächlichen Werten, nicht auf allgemeinen Internettipps.",
+          "badge": "Glimpse 3/Monat, Focus 10, Insight 30, Clarity+ Unbegrenzt"
+        },
+        "trendAnalysis": {
+          "name": "Trendanalyse",
+          "description": "Ein Tippen und Dr. Alex überprüft Ihre letzten 60 Tage. Was sich verbessert hat, was Aufmerksamkeit braucht, klare nächste Schritte.",
+          "badge": "Glimpse 1/Monat, Focus 3, Insight 10, Clarity+ Unbegrenzt"
+        },
+        "labResultExplanation": {
+          "name": "Laborergebnis-Erklärung",
+          "description": "Gerade Blutwerte zurückbekommen? Dr. Alex geht jeden Marker durch und erklärt Ihnen, was jeder Wert für Sie bedeutet.",
+          "badge": "Glimpse 1/Monat, Focus 3, Insight 10, Clarity+ Unbegrenzt"
+        },
+        "personalizedNutrition": {
+          "name": "Personalisierte Ernährung",
+          "description": "Basierend auf Ihren tatsächlichen Markerwerten und Ihrem Ernährungsprotokoll erhalten Sie spezifische Lebensmittelempfehlungen.",
+          "badge": "Focus 3/Monat, Insight 10, Clarity+ Unbegrenzt"
+        },
+        "supplementReview": {
+          "name": "Nahrungsergänzungsmittel-Überprüfung",
+          "description": "Ihre Nahrungsergänzungsmittel werden mit Ihren Markern abgeglichen. Was wirkt, was fehlt, Warnungen vor Wechselwirkungen.",
+          "badge": "Focus 3/Monat, Insight 10, Clarity+ Unbegrenzt"
+        },
+        "protocolComparison": {
+          "name": "Protokollvergleich",
+          "description": "Denken Sie über eine Ernährungsumstellung nach? Dr. Alex analysiert, wie Ihre Marker bei verschiedenen Protokollen abgeschnitten haben.",
+          "badge": "Insight 5/Monat, Clarity+ Unbegrenzt"
+        }
+      },
+      "medicationsAndSupplements": {
+        "heading": "Medikamente und Nahrungsergänzungsmittel",
+        "trackWhatYouTake": {
+          "name": "Erfassen, was Sie einnehmen",
+          "description": "Protokollieren Sie jedes Nahrungsergänzungsmittel und Medikament mit Dosierung, Häufigkeit und Einnahmezeitpunkt.",
+          "badge": "Glimpse 5, Focus 10, Insight+ Unbegrenzt"
+        },
+        "interactionWarnings": {
+          "name": "Wechselwirkungswarnungen",
+          "description": "Eisen und Zink konkurrieren um die Aufnahme. Unsere Datenbank kennzeichnet Konflikte.",
+          "badge": "Glimpse Basis, Focus+ Vollständig"
+        },
+        "impactOnYourMarkers": {
+          "name": "Auswirkung auf Ihre Marker",
+          "description": "Sehen Sie, welche Nahrungsergänzungsmittel welche Marker im Laufe der Zeit beeinflussen.",
+          "badge": "Focus+"
+        }
+      },
+      "yourDataYourControl": {
+        "heading": "Ihre Daten, Ihre Kontrolle",
+        "fullDataExport": {
+          "name": "Vollständiger Datenexport",
+          "description": "Laden Sie alles als JSON oder CSV herunter. Kein Vendor-Lock-in.",
+          "badge": "Focus+"
+        },
+        "accountDeletion": {
+          "name": "Kontolöschung",
+          "description": "Löschen Sie Ihr Konto und alle Daten. 30 Tage Karenzzeit. DSGVO-konform."
+        },
+        "pdfHealthReport": {
+          "name": "PDF-Gesundheitsbericht",
+          "description": "Formatierte Zusammenfassung für Ihren Arzt.",
+          "badge": "Insight 1/Monat, Clarity 2, Horizon Wöchentlich"
+        }
+      },
+      "securityAndPrivacy": {
+        "heading": "Sicherheit und Datenschutz",
+        "encryptionAtRest": {
+          "name": "Verschlüsselung im Ruhezustand (AES-256-GCM)",
+          "description": "Ihre Gesundheitsdaten werden verschlüsselt gespeichert. Selbst bei einem Servereinbruch bleiben Ihre Daten unlesbar und geschützt."
+        },
+        "encryptionInTransit": {
+          "name": "Verschlüsselung bei Übertragung (TLS 1.3)",
+          "description": "Alle Daten zwischen Ihrem Browser und unseren Servern werden mit dem neuesten TLS-Standard verschlüsselt. Niemand kann Ihre Gesundheitsinformationen abfangen."
+        },
+        "zeroKnowledgeDesign": {
+          "name": "Zero-Knowledge-Design",
+          "description": "Plattform-Administratoren können Ihre Gesundheitsdaten nicht lesen. Selbst bei vollem Datenbankzugriff bleiben Messwerte verschlüsselt und ohne den separaten Verschlüsselungsschlüssel unlesbar."
+        },
+        "twoFactorAuth": {
+          "name": "Zwei-Faktor-Authentifizierung (TOTP)",
+          "description": "Sichern Sie Ihr Konto mit App-basierter 2FA. Selbst bei einem kompromittierten Passwort bleiben Ihre Gesundheitsdaten geschützt.",
+          "badge": "Focus+"
+        },
+        "anonymousAi": {
+          "name": "Anonyme AI",
+          "description": "Ihr Name, Ihre E-Mail-Adresse und persönliche Kennungen werden niemals an AI-Anbieter gesendet. Dr. Alex arbeitet ausschließlich mit anonymisierten Daten, sodass Ihre Identität vollständig von Ihren Gesundheitsfragen getrennt bleibt."
+        },
+        "noTracking": {
+          "name": "Kein Drittanbieter-Tracking",
+          "description": "Keine Analyse-Cookies, keine Tracking-Pixel, keine Datenhändler. Ihre Browsing- und Gesundheitsdaten werden niemals mit Werbetreibenden geteilt."
+        },
+        "gdprEprivacy": {
+          "name": "DSGVO- und ePrivacy-konform",
+          "description": "Volle Einhaltung europäischer Datenschutzstandards. Sie haben jederzeit das Recht auf Zugang, Export und Löschung Ihrer Daten."
+        },
+        "openSourceAuditable": {
+          "name": "Open Source überprüfbar",
+          "description": "Unsere Kerntechnologie ist vollständig überprüfbar unter der AGPL-3.0-Lizenz. Sie müssen unseren Aussagen nicht vertrauen. Sie können unsere Sicherheit selbst verifizieren."
+        }
+      },
+      "comingSoon": {
+        "heading": "Demnächst verfügbar",
+        "symptomJournal": {
+          "name": "Symptomtagebuch",
+          "description": "Protokollieren Sie, wie Sie sich bei jeder Messung fühlen. Erfassen Sie Kopfschmerzen, Krämpfe, Müdigkeit, Gehirnnebel und mehr. Im Laufe der Zeit stellt Dr. Alex Zusammenhänge zwischen Ihren Symptomen und Ihren Blutwerten her."
+        },
+        "foodIntelligence": {
+          "name": "Nahrungsmittel-Intelligenz",
+          "description": "Sehen Sie, was Ihr Körper tatsächlich aufnimmt, nicht nur was auf dem Etikett steht. Kennzeichnet Anti-Nährstoffe wie Oxalate und Phytate, die die Mineralstoffaufnahme blockieren. Klügere Lebensmittelauswahl für Ihr Protokoll."
+        },
+        "allergySensitivityTracker": {
+          "name": "Allergie- und Empfindlichkeits-Tracker",
+          "description": "Erfassen Sie Ihre Allergien und Empfindlichkeiten. Sehen Sie, wie Allergiesaisons und auslösende Lebensmittel mit Ihren Entzündungsmarkern wie hs-CRP korrelieren. Verwandeln Sie Vermutungen in Daten."
+        },
+        "mealAnalysis": {
+          "name": "Mahlzeitenanalyse",
+          "description": "Fotografieren Sie Ihre Mahlzeit und Dr. Alex sagt Ihnen, wie sie zu Ihrem Protokoll passt. Erhalten Sie sofortiges Feedback, ob das Gericht Ihre Ziele unterstützt oder Ihre Blutwerte beeinflussen könnte."
+        }
+      }
+    },
+    "cta": {
+      "title": "Bereit, die Kontrolle zu übernehmen?",
+      "description": "Beginnen Sie mit der Erfassung Ihrer Gesundheitsdaten mit datenschutzorientierten Tools für ernsthafte Selbstverfolger.",
+      "getEarlyAccess": "Pläne ansehen",
+      "seePricing": "Preise ansehen"
+    }
+  },
+  "markerDirectory": {
+    "title": "Biomarker-Verzeichnis",
+    "tagline": "Jeder Biomarker erzählt eine Geschichte. Wir helfen Ihnen, sie zu lesen.",
+    "description": "Durchsuchen Sie alle {count} Biomarker, die von Sovereign Health erfasst werden. Klicken Sie auf einen Biomarker, um Referenzbereiche, Lebensmittelempfehlungen und Nahrungsergänzungsmittel zu sehen.",
+    "searchPlaceholder": "Biomarker suchen...",
+    "allHealthZones": "Alle Gesundheitszonen",
+    "found": "gefunden",
+    "markerSingular": "Biomarker",
+    "markerPlural": "Biomarker",
+    "tableMarker": "Biomarker",
+    "tableHealthZone": "Gesundheitszone",
+    "tableUnit": "Einheit",
+    "tableType": "Typ",
+    "typeCalculated": "Berechnet",
+    "typeHomeDevice": "Heimgerät",
+    "typeLab": "Labor",
+    "noResults": "Keine Marker gefunden, die Ihrer Suche entsprechen.",
+    "clickHint": "Klicken Sie auf einen Biomarker für detaillierte Informationen zu Lebensmitteln, Nahrungsergänzungsmitteln und verwandten Markern. In {appLink} werden alle Erkenntnisse basierend auf Ihrem Ernährungs- und Fastenprotokoll personalisiert.",
+    "theApp": "der App"
+  },
+  "pricing": {
+    "hero": {
+      "title": "Einfache, transparente Preise",
+      "tagline": "Einfache Tarife, die mit Ihrer Gesundheitsreise wachsen.",
+      "subtitle": "Starten Sie kostenlos. Upgraden Sie, wenn Sie mehr brauchen. Jeder Tarif beinhaltet Verschlüsselung, Datenschutz und volle Datenhoheit."
+    },
+    "toggle": {
+      "monthly": "Monatlich",
+      "annual": "Jährlich",
+      "save17": "17 % sparen"
+    },
+    "perMonth": "/Monat",
+    "perYear": "/Jahr",
+    "subscribe": "Abonnieren",
+    "getStartedFree": "Kostenlos starten",
+    "bestValue": "Bestes Preis-Leistungs-Verhältnis",
+    "soon": "Bald",
+    "comingSoon": "Bald",
+    "locked": "Verfügbar ab {tier}",
+    "unlimited": "Unbegrenzt",
+    "days": "Tage",
+    "feature": {
+      "biomarkers": {
+        "label": "Biomarker",
+        "tooltip": "Blut-, Körper- und Lifestyle-Marker verfolgen"
+      },
+      "history": {
+        "label": "Verlauf",
+        "tooltip": "Wie weit zurück du deine Daten sehen kannst"
+      },
+      "calculated": {
+        "label": "Errechnete Marker",
+        "tooltip": "Automatisch berechnete Werte wie TG/HDL, ApoB/ApoA1"
+      },
+      "templates": {
+        "label": "Messvorlagen",
+        "tooltip": "Speichere deine Mess-Routinen"
+      },
+      "medications": {
+        "label": "Einflussfaktoren",
+        "tooltip": "Medikamente und Supplemente verfolgen"
+      },
+      "ai_chats": {
+        "label": "AI-Chats",
+        "tooltip": "Monatliche Gespräche mit Dr. Alex"
+      },
+      "trends": {
+        "label": "Trendanalysen",
+        "tooltip": "KI-gestützte Trenderkennung in deinen Daten"
+      },
+      "lab_explain": {
+        "label": "Labor-Analysen",
+        "tooltip": "Dr. Alex erklärt deine Laborwerte verständlich"
+      },
+      "nutrition": {
+        "label": "Ernährungs-Tipps",
+        "tooltip": "Personalisierte Ernährungsempfehlungen"
+      },
+      "supplement": {
+        "label": "Check Einflussfaktoren",
+        "tooltip": "Prüft ob deine Supplemente deinen Markern helfen"
+      },
+      "csv_export": {
+        "label": "CSV/JSON-Export",
+        "tooltip": "Lade deine Daten in offenen Formaten herunter"
+      },
+      "thresholds": {
+        "label": "Referenzbereich",
+        "tooltip": "Persönliche Grenzwerte pro Marker setzen"
+      },
+      "body_comp": {
+        "label": "Körperanalyse",
+        "tooltip": "Körperfett, Muskelmasse, Wasser verfolgen"
+      },
+      "twofa": {
+        "label": "2FA-Sicherheit",
+        "tooltip": "Zwei-Faktor-Authentifizierung für dein Konto"
+      },
+      "decentralized_auth": {
+        "label": "Dezentrale Authentifizierung",
+        "tooltip": "Authentifiziere dich mit deinem Nostr Secret Key (nsec). Dein Schlüssel bleibt unter deiner Kontrolle und wird niemals auf unseren Servern gespeichert."
+      },
+      "measurements": {
+        "label": "Messungen",
+        "tooltip": "Gesamtanzahl speicherbarer Messungen"
+      },
+      "ai_dashboard": {
+        "label": "AI-Dashboard",
+        "tooltip": "KI-generierte Erkenntnisse auf dem Dashboard"
+      },
+      "pdf_reports": {
+        "label": "PDF-Berichte",
+        "tooltip": "Herunterladbare Gesundheitsberichte"
+      },
+      "lab_import": {
+        "label": "Labor-Import",
+        "tooltip": "Laborergebnisse aus PDF oder Foto importieren"
+      },
+      "med_import": {
+        "label": "Einflussfaktoren-Import",
+        "tooltip": "Medikamentenlisten automatisch importieren"
+      },
+      "protocols": {
+        "label": "Protokollvergleich",
+        "tooltip": "Verschiedene Ernährungs-/Trainingsphasen vergleichen"
+      },
+      "cohort": {
+        "label": "Benchmark",
+        "tooltip": "Vergleiche deine Daten mit anonymen Kohorten"
+      },
+      "api_access": {
+        "label": "API-Zugang",
+        "tooltip": "Programmatischer Zugriff auf deine Daten"
+      },
+      "self_hosted": {
+        "label": "Self-Hosting",
+        "tooltip": "Sovereign Health auf eigenem Server betreiben"
+      },
+      "onboarding": {
+        "label": "Persönliches Onboarding",
+        "tooltip": "1:1 Einrichtung mit unserem Team"
+      },
+      "priority": {
+        "label": "Prioritäts-Support",
+        "tooltip": "Bevorzugte Support-Antwort"
+      },
+      "weekly_pdf": {
+        "label": "Wöchentliche Berichte",
+        "tooltip": "Automatische wöchentliche Gesundheitsberichte"
+      },
+      "unlimited_import": {
+        "label": "Unbegrenzte Importe",
+        "tooltip": "Keine Limits bei Labor-/Einflussfaktoren-Importen"
+      },
+      "tor_support": {
+        "label": "Tor-Browser-Unterstützung",
+        "tooltip": "Greifen Sie anonym über das Tor-Netzwerk auf Ihr Gesundheits-Dashboard zu. Ihre IP-Adresse wird nie preisgegeben."
+      },
+      "start9_package": {
+        "label": "StartOS-Paket",
+        "tooltip": "Ein-Klick-Installation auf Ihrem Start9-Server. Volle Datensouveränität -- Ihre Gesundheitsdaten verlassen nie Ihr Zuhause."
+      }
+    },
+    "learnMoreSecurity": "Mehr über unsere Sicherheitsmaßnahmen erfahren",
+    "viewFullFeatureList": "Vollständigen Feature-Vergleich ansehen",
+    "testModeBanner": "Testmodus - Zahlungen nutzen die Stripe-Testumgebung. Keine echten Belastungen.",
+    "btcNote": "Zahlung mit Bitcoin über das Lightning Network. 5% Rabatt wird automatisch angewendet.",
+    "promoCode": "Promo-Code",
+    "promoPlaceholder": "Promo-Code eingeben",
+    "promoApply": "Einlösen",
+    "paymentOptions": "Zahlungsoptionen",
+    "payCard": "Karte",
+    "payBitcoin": "Bitcoin",
+    "btcDiscount": "-5%",
+    "btcDiscountLabel": "5 % BTC-Rabatt",
+    "promoRemove": "Entfernen",
+    "promoApplied": "angewendet",
+    "promoFor": "für",
+    "promoForMonths": "für {months} Monate, dann {price}/Monat",
+    "promoFirstMonth": "erster Monat, dann {price}/Monat",
+    "loadingFeatures": "Funktionen werden geladen...",
+    "coreTier": "Core",
+    "tiers": {
+      "glimpse": {
+        "name": "Glimpse",
+        "tagline": "Starten Sie Ihre Gesundheitsreise",
+        "monthlyPrice": "Kostenlos",
+        "annualPrice": "Kostenlos",
+        "annualMonthly": "Kostenlos"
+      },
+      "focus": {
+        "name": "Focus",
+        "tagline": "Für engagierte Selbstvermesser",
+        "monthlyPrice": "9,99 €",
+        "annualPrice": "99,90 €",
+        "annualMonthly": "8,33 €"
+      },
+      "insight": {
+        "name": "Insight",
+        "tagline": "Tiefgehendes Verständnis",
+        "monthlyPrice": "24,99 €",
+        "annualPrice": "249,90 €",
+        "annualMonthly": "20,83 €"
+      },
+      "clarity": {
+        "name": "Clarity",
+        "tagline": "Das vollständige Bild",
+        "monthlyPrice": "49,99 €",
+        "annualPrice": "499,90 €",
+        "annualMonthly": "41,66 €"
+      },
+      "horizon": {
+        "name": "Horizon",
+        "tagline": "Maximale Souveränität",
+        "monthlyPrice": "Individuell",
+        "annualPrice": "Individuell",
+        "annualMonthly": "Individuell"
+      }
+    },
+    "allPlansInclude": {
+      "heading": "Alle Tarife beinhalten",
+      "openSourceCore": {
+        "title": "Open Source Kern",
+        "description": "AGPL-3.0-lizenziert. Überprüfen Sie jede Zeile Code."
+      },
+      "aes256Encryption": {
+        "title": "AES-256-Verschlüsselung",
+        "description": "Ihre Gesundheitsdaten - verschlüsselt im Ruhezustand und bei der Übertragung."
+      },
+      "dataPortability": {
+        "title": "Datenportabilität",
+        "description": "Exportieren Sie Ihre Daten jederzeit. Kein Vendor-Lock-in."
+      },
+      "gdprCompliant": {
+        "title": "DSGVO-konform",
+        "description": "Volles Recht auf Löschung und Datenportabilität."
+      },
+      "noTracking": {
+        "title": "Kein Tracking",
+        "description": "Keine Cookies, keine Analyse, kein Fingerprinting. Nie."
+      },
+      "selfHostOption": {
+        "title": "Self-Host Option",
+        "description": "Betreiben Sie Ihre eigene Instanz. Voller Codezugriff unter AGPL-3.0."
+      }
+    },
+    "comparison": {
+      "heading": "Funktionsvergleich",
+      "featureColumn": "Funktion",
+      "rows": {
+        "markers": {
+          "feature": "Marker",
+          "desc": "Anzahl der Biomarker, die Sie erfassen können"
+        },
+        "history": {
+          "feature": "Verlauf",
+          "desc": "Wie weit Ihre Daten zurückreichen"
+        },
+        "calculatedMarkers": {
+          "feature": "Berechnete Marker",
+          "desc": "Automatisch berechnete Werte wie BMI, GKI, HOMA-IR"
+        },
+        "measurementTemplates": {
+          "feature": "Messvorlagen",
+          "desc": "Gespeicherte Routinen für schnelle Erfassung"
+        },
+        "medications": {
+          "feature": "Einflussfaktoren",
+          "desc": "Erfasste Nahrungsergänzungsmittel und Medikamente"
+        },
+        "bodyComposition": {
+          "feature": "Körperzusammensetzung",
+          "desc": "Fett-, Muskel-, Wasser- und Knochenmasseerfassung"
+        },
+        "customThresholds": {
+          "feature": "Referenzbereiche",
+          "desc": "Legen Sie Ihre eigenen Referenzbereiche fest"
+        },
+        "csvJsonExport": {
+          "feature": "CSV/JSON-Export",
+          "desc": "Laden Sie alle Ihre Gesundheitsdaten herunter"
+        },
+        "pdfReports": {
+          "feature": "PDF-Berichte",
+          "desc": "Formatierte Zusammenfassungen für Ihren Arzt"
+        },
+        "twoFA": {
+          "feature": "2FA",
+          "desc": "Zwei-Faktor-Authentifizierung"
+        },
+        "aiDashboardInsights": {
+          "feature": "AI-Dashboard-Erkenntnisse",
+          "desc": "Automatisierte Trendbeobachtungen"
+        },
+        "labResultImport": {
+          "feature": "Laborergebnis-Import",
+          "desc": "Foto/PDF-Autoextraktion"
+        },
+        "medicationImport": {
+          "feature": "Einflussfaktoren-Import",
+          "desc": "Fotobasierte Nahrungsergänzungsmittel-Erfassung"
+        },
+        "cohortComparison": {
+          "feature": "Benchmark",
+          "desc": "Vergleich mit anonymisierten Nutzerdurchschnittswerten"
+        },
+        "aiChats": {
+          "feature": "AI-Chats",
+          "desc": "Fragen an Dr. Alex AI-Assistent"
+        },
+        "trendAnalysis": {
+          "feature": "Trendanalyse",
+          "desc": "AI-Auswertung Ihrer aktuellen Marker"
+        },
+        "labExplanation": {
+          "feature": "Laborerklärung",
+          "desc": "AI-Aufschlüsselung von Laborergebnissen"
+        },
+        "personalizedNutrition": {
+          "feature": "Personalisierte Ernährung",
+          "desc": "Lebensmittelempfehlungen basierend auf Ihren Daten"
+        },
+        "supplementReview": {
+          "feature": "Check Einflussfaktoren",
+          "desc": "AI-Prüfung Ihrer Nahrungsergänzungsmittel"
+        },
+        "protocolComparison": {
+          "feature": "Protokollvergleich",
+          "desc": "Vergleich der Auswirkungen von Ernährungsprotokollen"
+        },
+        "apiAccess": {
+          "feature": "API-Zugang",
+          "desc": "Programmatischer Zugriff auf Ihre Daten"
+        },
+        "selfHostedHybrid": {
+          "feature": "Selbst gehosteter Hybrid",
+          "desc": "Selbst gehostete Instanz mit Cloud-Funktionen synchronisieren"
+        }
+      }
+    },
+    "enterprise": {
+      "heading": "Kliniken und Gesundheitsfachkräfte",
+      "description": "Benötigen Sie Multi-Patienten-Dashboards, Teamkonten oder individuelle Integrationen? Horizon+ wurde für Kliniken, Ernährungsberater und Gesundheitscoaches entwickelt, die Gesundheitsdaten ihrer Klienten verwalten.",
+      "contactUs": "Kontaktieren Sie uns"
+    },
+    "faq": {
+      "heading": "Häufig gestellte Fragen",
+      "items": {
+        "freeTier": {
+          "question": "Ist der kostenlose Tarif wirklich für immer kostenlos?",
+          "answer": "Ja. Glimpse ist kostenlos, ohne Zeitlimit und ohne Kreditkarte. Du erhältst 8 Biomarker, 30 Tage Verlauf, 2 AI-Chats pro Monat und Dr. Alex Chat. Es ist ein vollwertiger Plan, keine Testversion."
+        },
+        "paymentMethods": {
+          "question": "Welche Zahlungsmethoden akzeptiert ihr?",
+          "answer": "Wir akzeptieren Kreditkarten, Debitkarten und SEPA-Lastschrift über Stripe. Alle Preise in EUR. Wir akzeptieren auch Bitcoin (Lightning und On-Chain) über Strike mit 5% Rabatt."
+        },
+        "cancelAnytime": {
+          "question": "Kann ich jederzeit kündigen?",
+          "answer": "Ja. Kündige jederzeit in deinen Kontoeinstellungen. Deine Daten bleiben auf Glimpse-Niveau (kostenlos) zugänglich. Keine Kündigungsgebühren, keine Fragen."
+        },
+        "refundPolicy": {
+          "question": "Was ist eure Rückerstattungsrichtlinie?",
+          "answer": "Volle Rückerstattung innerhalb von 30 Tagen nach deinem ersten bezahlten Abonnement, ohne Fragen. Nach 30 Tagen läuft dein Abo bis zum Ende der Abrechnungsperiode."
+        },
+        "dataOwnership": {
+          "question": "Wem gehören meine Daten?",
+          "answer": "Dir. Immer. Wir verkaufen, teilen oder analysieren deine Gesundheitsdaten niemals für Dritte. Exportiere alles jederzeit (CSV/JSON) und lösche dein Konto dauerhaft. [Unsere Datenschutzerklärung](https://sovereignhealth.io/privacy/)"
+        },
+        "selfHost": {
+          "question": "Kann ich stattdessen selbst hosten?",
+          "answer": "Ja. Der Open-Source-Kern ist kostenlos unter AGPL-3.0. Betreibe ihn mit Docker auf deinem eigenen Server. Der Horizon-Plan bietet zusätzlich eine Hybrid-Option. [Mehr auf unserer Features-Seite](/features/) | [Vollständiger Feature-Vergleich](/feature-details/)"
+        },
+        "dataSecurity": {
+          "question": "Sind meine Daten sicher?",
+          "answer": "Ja. AES-256-Verschlüsselung, Zero-Knowledge-Architektur (selbst wir können deine Daten nicht lesen), TLS 1.3, 2FA (ab Focus), vollständig DSGVO-konform. EU-Datenspeicherung. Kein Tracking, keine Cookies, keine Analytics. [Datenschutzerklärung](https://sovereignhealth.io/privacy/)"
+        },
+        "aiChats": {
+          "question": "Was sind AI-Chats?",
+          "answer": "Gespräche mit Dr. Alex, deinem KI-Gesundheitsassistenten. Frage nach Biomarkern, Trends, Ernährung oder Laborergebnissen. Jeder Plan enthält ein monatliches Chat-Kontingent - du entscheidest, wofür du es nutzt. [Jetzt kostenlos testen](https://app.sovereignhealth.io/signup)"
+        },
+        "quotaRollover": {
+          "question": "Werden monatliche Kontingente übertragen?",
+          "answer": "Nein. AI-Chats, Exporte und Importe werden an deinem Abrechnungsdatum jeden Monat zurückgesetzt. Ungenutztes Kontingent sammelt sich nicht an."
+        },
+        "bitcoinPayment": {
+          "question": "Was ist Bitcoin-Zahlung?",
+          "answer": "Wir akzeptieren Bitcoin über Lightning Network und On-Chain-Zahlungen über Strike. Bitcoin-Zahlungen erhalten 5% Rabatt auf alle Pläne. Zahle in BTC für Prepaid-Zeiträume (monatlich oder jährlich)."
+        }
+      }
+    },
+    "trustBadges": {
+      "aes256": {
+        "label": "AES-256 verschlüsselt",
+        "desc": "Ihre Gesundheitsdaten werden verschlüsselt, bevor sie die Datenbank erreichen"
+      },
+      "tls13": {
+        "label": "TLS 1.3",
+        "desc": "Jede Kommunikation zwischen Ihnen und unseren Servern ist verschlüsselt"
+      },
+      "gdpr": {
+        "label": "DSGVO-konform",
+        "desc": "Vollständiger europäischer Datenschutz, von Anfang an integriert"
+      },
+      "ePrivacy": {
+        "label": "ePrivacy-konform",
+        "desc": "Keine Cookies, keine Tracking-Skripte, kein Datenaustausch mit Dritten"
+      },
+      "zeroKnowledge": {
+        "label": "Zero-Knowledge",
+        "desc": "Selbst wir können Ihre Gesundheitsdaten nicht lesen"
+      },
+      "noTracking": {
+        "label": "Kein Tracking",
+        "desc": "Keine Analytik, keine Pixel, kein Fingerprinting, nichts"
+      },
+      "owasp": {
+        "label": "OWASP-sicher",
+        "desc": "Geschützt gegen die 10 häufigsten Sicherheitsrisiken für Webanwendungen"
+      },
+      "openSource": {
+        "label": "Open Source überprüfbar",
+        "desc": "Jeder kann den Code einsehen und unsere Sicherheitsaussagen verifizieren"
+      }
+    },
+    "cta": {
+      "heading": "Beginnen Sie noch heute mit der Gesundheitserfassung",
+      "description": "Der kostenlose Tarif gehört Ihnen für immer. Keine Kreditkarte, keine Verpflichtung.",
+      "getEarlyAccess": "App testen",
+      "seeAllFeatures": "Alle Funktionen ansehen"
+    }
+  },
+  "featureDetails": {
+    "title": "Feature-Vergleich",
+    "subtitle": "Vergleichen Sie alle 33 Funktionen über alle Tarife hinweg. Nutzen Sie die Suche, um bestimmte Funktionen zu finden, oder fragen Sie Dr. Alex - er kennt jede Funktion und kann Ihnen bei der Wahl des richtigen Tarifs helfen.",
+    "backToPricing": "Zurück zur Preisübersicht",
+    "searchPlaceholder": "Features durchsuchen...",
+    "noResults": "Keine Features entsprechen Ihrer Suche.",
+    "cta": {
+      "tryApp": {
+        "title": "App testen",
+        "description": "Starten Sie kostenlos mit dem Tracking Ihrer Biomarker. Keine Kreditkarte erforderlich.",
+        "button": "Kostenlos registrieren"
+      },
+      "choosePlan": {
+        "title": "Tarif wahlen",
+        "description": "Finden Sie die perfekte Stufe fur Ihre Gesundheitsziele.",
+        "button": "Preise ansehen"
+      },
+      "exploreFeatures": {
+        "title": "Alle Funktionen",
+        "description": "Erfahren Sie mehr daruber, was Sovereign Health fur Sie tun kann.",
+        "button": "Funktionen ansehen"
+      }
+    }
+  },
+  "openSource": {
+    "hero": {
+      "title": "Kostenlos und Open Source",
+      "subtitle": "Betreiben Sie Sovereign Health auf Ihrer eigenen Hardware. Ihr Server, Ihre Daten, Ihre Regeln. Lizenziert unter AGPL-3.0 - für immer kostenlos, ohne Einschränkungen."
+    },
+    "whyOpenSource": {
+      "heading": "Warum Open Source wichtig ist",
+      "dataSovereignty": {
+        "title": "Datensouveränität",
+        "description": "Ihre Gesundheitsdaten liegen auf Ihrem Server. Keine Cloud-Abhängigkeit, kein Zugriff Dritter. Sie kontrollieren die Datenbank, die Backups und wer Zugang hat."
+      },
+      "fullTransparency": {
+        "title": "Vollständige Transparenz",
+        "description": "Jede Zeile Code ist überprüfbar. Keine versteckte Telemetrie, keine geheime Datenerfassung, keine verschleierte Logik. Was Sie sehen, ist das, was läuft."
+      },
+      "zeroTrust": {
+        "title": "Zero-Trust-Architektur",
+        "description": "AES-256-Verschlüsselung im Ruhezustand, TLS 1.3 bei der Übertragung. Selbst die Datenbank speichert verschlüsselte Werte - ein kompromittierter Server gibt nichts preis."
+      },
+      "communityDriven": {
+        "title": "Community-getrieben",
+        "description": "Öffentlich entwickelt mit Community-Input. Funktionswünsche, Fehlermeldungen und Pull Requests sind willkommen. Ihre Stimme prägt die Roadmap."
+      }
+    },
+    "quickStart": {
+      "heading": "Schnellstart",
+      "subtitle": "In unter 5 Minuten einsatzbereit mit Docker Compose.",
+      "dockerNote": "Erfordert Docker und Docker Compose. Siehe README für detaillierte Installationsanweisungen."
+    },
+    "whatYouGet": {
+      "heading": "Was Sie erhalten",
+      "features": [
+        "Über 85 Biomarker in 8 Zonen",
+        "Trendanalyse mit Referenzbereichen",
+        "Fastenprotokoll-Anpassungen",
+        "Medikamenten- und Nahrungsergänzungsmittel-Tracking",
+        "Berechnete Gesundheitswerte",
+        "Vollständiger Datenexport (CSV, JSON)",
+        "AES-256-Verschlüsselung im Ruhezustand",
+        "Dr. Alex AI (eigener API-Schlüssel erforderlich)"
+      ]
+    },
+    "ossVsSaas": {
+      "heading": "OSS vs. SaaS",
+      "subtitle": "Die Open Source Version bietet Ihnen die vollständige Kernplattform. Die SaaS-Version fügt Komfortfunktionen und verwaltete Infrastruktur hinzu.",
+      "columnOss": "OSS",
+      "columnSaas": "SaaS",
+      "saasOnly": "Nur SaaS",
+      "rows": {
+        "selfHosted": {
+          "label": "Selbst gehostet",
+          "oss": "Ja",
+          "saas": "Gehostet auf app.sovereignhealth.io"
+        },
+        "dataLocation": {
+          "label": "Datenspeicherort",
+          "oss": "Ihr Server",
+          "saas": "Verschlüsselte EU-Server"
+        },
+        "tierLimits": {
+          "label": "Tariflimits",
+          "oss": "Keine (unbegrenzt)",
+          "saas": "Kostenlos + kostenpflichtige Tarife"
+        },
+        "drAlexAi": {
+          "label": "Dr. Alex AI",
+          "oss": "Eigener Schlüssel erforderlich",
+          "saas": "Inklusive"
+        },
+        "labResultImport": {
+          "label": "Laborergebnis-Import",
+          "oss": "-",
+          "saas": "Foto/PDF-Autoextraktion"
+        },
+        "medicationImport": {
+          "label": "Einflussfaktoren-Import",
+          "oss": "-",
+          "saas": "Fotobasierte Erfassung"
+        },
+        "pdfHealthReports": {
+          "label": "PDF-Gesundheitsberichte",
+          "oss": "-",
+          "saas": "Formatiert für Ihren Arzt"
+        },
+        "cohortComparison": {
+          "label": "Benchmark",
+          "oss": "-",
+          "saas": "Anonymes Benchmarking"
+        },
+        "aiDashboardInsights": {
+          "label": "AI-Dashboard-Erkenntnisse",
+          "oss": "-",
+          "saas": "Automatisierte Trendanalyse"
+        },
+        "prioritySupport": {
+          "label": "Prioritäts-Support",
+          "oss": "-",
+          "saas": "E-Mail + In-App"
+        },
+        "price": {
+          "label": "Preis",
+          "oss": "Für immer kostenlos",
+          "saas": "Kostenlos + kostenpflichtige Tarife"
+        }
+      }
+    },
+    "builtWith": {
+      "heading": "Entwickelt mit",
+      "rust": {
+        "name": "Rust",
+        "desc": "Backend-API"
+      },
+      "nextjs": {
+        "name": "Next.js",
+        "desc": "Frontend-App"
+      },
+      "postgresql": {
+        "name": "PostgreSQL",
+        "desc": "Datenbank"
+      },
+      "redis": {
+        "name": "Redis",
+        "desc": "Cache & Sitzungen"
+      },
+      "docker": {
+        "name": "Docker",
+        "desc": "Container-basiertes Deployment"
+      },
+      "nginx": {
+        "name": "nginx",
+        "desc": "Reverse Proxy & TLS"
+      }
+    },
+    "contribute": {
+      "heading": "Mitwirken",
+      "description": "Helfen Sie uns, die Zukunft der datenschutzorientierten Gesundheitserfassung zu gestalten. Ob Code, Dokumentation, Übersetzungen oder Fehlermeldungen - jeder Beitrag zählt.",
+      "viewOnGitlab": "Auf GitLab ansehen",
+      "contributingGuide": "Beitragsleitfaden"
+    },
+    "donate": {
+      "heading": "Mit Bitcoin unterstützen",
+      "description": "Sovereign Health ist Open Source und Community-getrieben. Unterstütze die Entwicklung mit einer Bitcoin-Spende über das Lightning Network. Jeder Satoshi hilft uns unabhängig zu bleiben.",
+      "button": "Bitcoin spenden",
+      "lightningNote": "Lightning Network - sofort, niedrige Gebühren"
+    }
+  },
+  "about": {
+    "hero": {
+      "title": "Gebaut von jemandem, der es selbst brauchte"
+    },
+    "story": {
+      "paragraph1": "Mein Name ist Helmut, und in den letzten Jahren war ich auf einer Reise, um die Kontrolle über die Systeme zurückzugewinnen, die mein Leben bestimmen. Es begann mit Geld, als ich 2017 Bitcoin entdeckte und bis 2023 zum Maximalisten wurde. Die Idee, dass ein dezentrales Protokoll das Vertrauen in Banken und Regierungen ersetzen könnte, hat mich tief bewegt und veränderte, wie ich über alles denke.",
+      "paragraph2": "2025 wandte ich die gleiche Philosophie auf meine Gesundheit an und stellte auf Karnivore-Ernährung um. Nicht weil ein YouTube-Influencer mich überzeugt hat, sondern weil ich das Rauschen reduzieren und mich auf das Signal konzentrieren wollte. Nur echte Lebensmittel, keine hochverarbeiteten Zutaten, keine Samenöle. Die Ergebnisse waren bemerkenswert, aber ich wollte mich nicht nur besser fühlen. Ich wollte es messen und mir selbst mit Daten beweisen.",
+      "paragraph3": "Also begann ich, meine Biomarker obsessiv zu erfassen. Zweimal pro Woche, jeden Dienstag- und Freitagmorgen, steche ich mir in den Finger mit einem Fora 6 Gerät und messe Glukose, Ketone, Cholesterin, Harnsäure, Hämoglobin und Hämatokrit. Ich stelle mich auf meine Qardio-Smartwaage für Gewicht und Körperzusammensetzung. Einmal im Jahr lasse ich ein umfassendes Blutbild von einem professionellen Labor erstellen, das über 40 weitere Marker abdeckt, darunter Hormone, Schilddrüse, Leber, Nieren, Vitamine und Entzündung.",
+      "paragraph4": "Ich habe mehrere Gesundheits-Tracking-Apps verschiedener Unternehmen ausprobiert, aber jede einzelne hielt meine Daten in ihrer proprietären Cloud als Geisel. Ich konnte sie nicht ordentlich exportieren, nicht so analysieren, wie ich es wollte, und ihnen sicher nicht meine sensibelsten persönlichen Informationen anvertrauen. Am Ende erfasste ich über 80 Biomarker in Excel, weil ich dort wenigstens souveränen Zugang zu meinen eigenen Gesundheitsdaten hatte.",
+      "paragraph5": "Diese gesamte Reise habe ich in meinem Buch „Brick by Brick“ beschrieben, in dem ich darüber schreibe, wie man Schritt für Schritt die Kontrolle über seine Gesundheit, seine Finanzen und seine Daten zurückgewinnt. Sie können es hier finden:",
+      "paragraph6": "Aus dieser Erfahrung heraus und getrieben von meiner Neugier, mit AI-Tools wie OpenClaw und Claude Code zu bauen, beschloss ich, die App zu erstellen, die ich mir immer gewünscht hatte. Sovereign Health ist die Open Source Version, die jeder kostenlos auf eigener Hardware selbst hosten kann. Ihr Server, Ihre Daten, Ihre Regeln. Sovereign Health Intelligence ist die gehostete Plattform für diejenigen, die Komfort bevorzugen, mit AI-gestützter Analyse, intelligentem Import, Medikamentenverfolgung und Teamfunktionen obendrauf.",
+      "paragraph7": "Die Plattform ist vollständig verschlüsselt, vollständig DSGVO-konform und so konzipiert, dass selbst ich als Betreiber Ihre Gesundheitsdaten nicht lesen kann. Das ist keine Marketingaussage. Es ist eine architektonische Entscheidung, die in den Code eingebaut ist, und die Sie selbst überprüfen können, weil der Quellcode offen ist.",
+      "paragraph8": "Dies ist kein risikokapitalfinanziertes Startup, das Wachstumskennzahlen jagt. Dies ist eine Person, die ein Werkzeug baut, das ein echtes Problem löst, es mit der Welt teilt und eine Premium-Version für diejenigen anbietet, die mehr wollen. Alles dezentralisieren. Verifizieren, nicht vertrauen. Brick by Brick. Oder sollte ich sagen, Blutstropfen für Blutstropfen?"
+    },
+    "values": {
+      "sovereignty": {
+        "title": "Souveränität",
+        "description": "Ihre Daten gehören Ihnen. Punkt. Selbst hosten, exportieren, löschen. Kein Lock-in, keine Geiseln."
+      },
+      "verification": {
+        "title": "Verifizierung",
+        "description": "Nicht vertrauen. Verifizieren. Open Source Code, clientseitige Verschlüsselung, Zero-Knowledge-Architektur."
+      },
+      "simplicity": {
+        "title": "Einfachheit",
+        "description": "Gesundheitserfassung sollte zwei Minuten dauern, nicht zwanzig. Messen, erfassen, verstehen. Das ist alles."
+      }
+    },
+    "book": {
+      "heading": "Das Buch lesen",
+      "description": "„Brick by Brick“ erzählt die vollständige Geschichte, wie man Schritt für Schritt die Kontrolle über seine Gesundheit, seine Finanzen und seine Daten zurückgewinnt.",
+      "cta": "Das Buch auf Amazon kaufen"
+    }
+  },
+  "healthZones": {
+    "hero": {
+      "title": "8 Gesundheitszonen. 85+ Biomarker.",
+      "tagline": "Acht funktionale Zonen. Ein vollständiges Bild.",
+      "subtitle": "Jeder Biomarker gehört zu einer Gesundheitszone. Zonen helfen Ihnen zu verstehen, welche Systeme in Ihrem Körper gut funktionieren und welche Aufmerksamkeit brauchen."
+    },
+    "markersLabel": "{count} Biomarker",
+    "zones": {
+      "energyMetabolic": {
+        "name": "Energie und Stoffwechsel",
+        "description": "Blutzucker, Insulin, Ketone und die Marker, die bestimmen, wie Ihr Körper Energie produziert und nutzt. Unverzichtbar für alle, die Fasten-, Keto- oder Karnivore-Protokolle verfolgen.",
+        "sampleMarkers": [
+          "Glukose",
+          "Insulin",
+          "Ketone",
+          "HbA1c",
+          "HOMA-IR",
+          "GKI"
+        ]
+      },
+      "structural": {
+        "name": "Strukturell",
+        "description": "Körperzusammensetzung, Knochengesundheit und strukturelle Integrität. Verfolgen Sie Gewicht, Körperfett, Muskelmasse, BMI und Taille-zu-Größe-Verhältnis, um zu sehen, wie sich Ihr Körper physisch verändert.",
+        "sampleMarkers": [
+          "Gewicht",
+          "Körperfett %",
+          "Muskelmasse",
+          "BMI",
+          "WHtR",
+          "Knochenmasse"
+        ]
+      },
+      "cardiovascular": {
+        "name": "Kardiovaskulär",
+        "description": "Herz- und Gefäßgesundheit. Cholesterinprofile, Blutdruck, Herzfrequenz und berechnete Verhältnisse wie TG/HDL, die Ihnen ein reales Bild des kardiovaskulären Risikos geben.",
+        "sampleMarkers": [
+          "Gesamtcholesterin",
+          "LDL-C",
+          "HDL-C",
+          "Triglyzeride",
+          "Blutdruck",
+          "Herzfrequenz"
+        ]
+      },
+      "cognitive": {
+        "name": "Kognitiv",
+        "description": "Gehirngesundheit und Nervensystem-Marker. Vitamine, Mineralstoffe und Biomarker, die kognitive Funktion, Stimmung und mentale Klarheit beeinflussen.",
+        "sampleMarkers": [
+          "Vitamin B12",
+          "Folsäure",
+          "Magnesium",
+          "Omega-3-Index"
+        ]
+      },
+      "immune": {
+        "name": "Immunsystem",
+        "description": "Entzündung, weiße Blutkörperchen und Immunfunktion. CRP, BSG und Blutbild-Marker, die zeigen, wie gut Ihr Körper sich verteidigt.",
+        "sampleMarkers": [
+          "CRP",
+          "BSG",
+          "Leukozyten",
+          "Neutrophile",
+          "Lymphozyten",
+          "Harnsäure"
+        ]
+      },
+      "nutritional": {
+        "name": "Ernährungsbedingt",
+        "description": "Vitamine, Mineralstoffe und essenzielle Nährstoffe. Von Eisen und Ferritin bis Vitamin D und Zink - sehen Sie, ob Ihre Ernährung Ihnen gibt, was Sie brauchen.",
+        "sampleMarkers": [
+          "Eisen",
+          "Ferritin",
+          "Vitamin D",
+          "Zink",
+          "Selen",
+          "Kalzium"
+        ]
+      },
+      "hormonal": {
+        "name": "Hormonal",
+        "description": "Schilddrüse, Testosteron, Cortisol und andere Hormone, die alles regulieren - von Energie bis Stimmung. Verfolgen Sie Veränderungen im Laufe der Zeit, um Ihr hormonelles Gleichgewicht zu verstehen.",
+        "sampleMarkers": [
+          "TSH",
+          "Freies T4",
+          "Freies T3",
+          "Testosteron",
+          "Cortisol",
+          "DHEA-S"
+        ]
+      },
+      "detoxification": {
+        "name": "Entgiftung",
+        "description": "Leber- und Nierenfunktionsmarker. ALT, AST, GGT, Kreatinin und eGFR zeigen Ihnen, wie gut Ihre Organe filtern und verarbeiten.",
+        "sampleMarkers": [
+          "ALT",
+          "AST",
+          "GGT",
+          "Kreatinin",
+          "eGFR",
+          "Bilirubin"
+        ]
+      }
+    },
+    "cta": {
+      "heading": "Alle Zonen mit Sovereign Health erfassen",
+      "description": "Beginnen Sie noch heute mit der Erfassung Ihrer Marker. Sehen Sie das vollständige Bild Ihrer Gesundheit über alle Zonen hinweg.",
+      "tryTheApp": "App testen",
+      "selfHostForFree": "Kostenlos selbst hosten"
+    }
+  },
+  "contact": {
+    "hero": {
+      "title": "Kontakt aufnehmen",
+      "tagline": "Haben Sie eine Frage, einen Vorschlag oder eine Partnerschaftsanfrage? Senden Sie uns eine Nachricht."
+    },
+    "form": {
+      "name": "Ihr Name",
+      "email": "E-Mail-Adresse",
+      "subject": "Betreff",
+      "message": "Nachricht",
+      "messagePlaceholder": "Sagen Sie uns, wie wir helfen können...",
+      "submit": "Nachricht senden",
+      "sending": "Wird gesendet...",
+      "success": "Nachricht erfolgreich gesendet! Wir melden uns innerhalb von 48 Stunden.",
+      "errorGeneric": "Etwas ist schiefgelaufen. Bitte versuchen Sie es später erneut.",
+      "errorRateLimit": "Zu viele Einreichungen. Bitte versuchen Sie es später erneut.",
+      "subjects": {
+        "general": "Allgemeine Anfrage",
+        "support": "Technischer Support",
+        "partnership": "Partnerschaftsanfrage",
+        "bug": "Fehlerbericht",
+        "feature": "Funktionswunsch",
+        "security": "Sicherheitsproblem",
+        "billing": "Abrechnungsfrage",
+        "gdpr": "DSGVO-Anfrage"
+      }
+    },
+    "directContact": {
+      "title": "Weitere Kontaktmöglichkeiten",
+      "emailLabel": "Schreiben Sie uns direkt an",
+      "gitlabLabel": "Melden Sie Probleme oder tragen Sie bei auf",
+      "responseTime": "Wir antworten in der Regel innerhalb von 48 Stunden."
+    }
+  },
+  "learn": {
+    "hero": {
+      "title": "Lernen",
+      "subtitle": "Anleitungen und Leitfäden, die Ihnen helfen, das Beste aus Sovereign Health herauszuholen."
+    },
+    "tutorials": {
+      "gettingStarted": {
+        "title": "Erste Schritte",
+        "description": "Richten Sie Ihr Konto ein, verbinden Sie Ihr erstes Gerät und erfassen Sie Ihre erste Messung."
+      },
+      "healthZonesExplained": {
+        "title": "Gesundheitszonen erklärt",
+        "description": "Verstehen Sie die 8 Gesundheitszonen und wie sie Ihre Biomarker organisieren."
+      },
+      "usingDrAlex": {
+        "title": "Dr. Alex verwenden",
+        "description": "Holen Sie das Beste aus Ihrem AI-Gesundheitsassistenten heraus - mit effektiven Fragen und Eingaben."
+      },
+      "selfHostedSetup": {
+        "title": "Selbst gehostete Einrichtung",
+        "description": "Stellen Sie Sovereign Health auf Ihrem eigenen Server mit Docker in unter 5 Minuten bereit."
+      },
+      "customizingThresholds": {
+        "title": "Referenzbereiche anpassen",
+        "description": "Legen Sie Ihre eigenen Referenzbereiche basierend auf Ihren Gesundheitszielen und Ihrem Protokoll fest."
+      }
+    },
+    "videoComingSoon": "Video demnächst verfügbar",
+    "unsupportedProvider": "Nicht unterstützter Videoanbieter",
+    "note": "Videos sind in Produktion. Schauen Sie bald wieder vorbei."
+  },
+  "partners": {
+    "hero": {
+      "title": "Partner werden",
+      "tagline": "Bessere Gesundheitsergebnisse durch bessere Partnerschaften."
+    },
+    "affiliate": {
+      "title": "Werde Empfehlungspartner",
+      "description": "Teile Sovereign Health mit deinem Netzwerk und verdiene 20% Provision auf jedes vermittelte Abonnement. Jeder registrierte Nutzer ist automatisch ein Affiliate. Keine Bewerbung nötig. Ideal für Gesundheits-Podcaster, Ernährungscoaches, Karnivore- und Keto-Community-Leiter und Bitcoin-Befürworter, die den Wert von Datensouveränität verstehen.",
+      "highlights": {
+        "commission": "20% Provision auf erstes Abonnement",
+        "bitcoin": "Bitcoin-Auszahlungen verfügbar (+5% Bonus)",
+        "cookie": "30-Tage-Cookie-Attribution",
+        "dashboard": "Echtzeit-Tracking-Dashboard"
+      },
+      "cta": "Einloggen für deinen Empfehlungslink",
+      "learnMore": "Mehr über das Programm erfahren"
+    },
+    "types": {
+      "healthPractitioners": {
+        "title": "Gesundheitsfachkräfte",
+        "description": "Ihre Patienten verbringen 99 % ihrer Zeit außerhalb Ihrer Praxis. Geben Sie ihnen ein Werkzeug, um Biomarker, Medikamente und Lebensstiländerungen zwischen den Besuchen zu erfassen. Wenn sie zurückkommen, bringen sie echte Daten statt vager Beschreibungen mit. Sovereign Health lässt sich mit jedem Laboranbieter integrieren und unterstützt über 85 Marker. Patienten werden zu aktiven Teilnehmern ihrer Gesundheitsreise, und Sie erhalten bessere Daten. Der Horizon-Tarif bietet Multi-Patienten-Übersicht, damit Sie Trends in Ihrer Praxis beobachten können."
+      },
+      "deviceManufacturers": {
+        "title": "Gerätehersteller",
+        "description": "Ihre Hardware erzeugt wertvolle Gesundheitsdaten. Stellen Sie sicher, dass sie Ihre Kunden auf einer Plattform erreichen, die sie tatsächlich kontrollieren. Sovereign Health unterstützt offene Geräteintegrationen und gibt Nutzern die volle Hoheit über ihre Messwerte. Durch eine Partnerschaft mit uns wird Ihr Gerät Teil eines datenschutzorientierten Ökosystems, das gesundheitsbewusste Nutzer aktiv suchen. Wir kümmern uns um die Software, Sie um die Hardware."
+      },
+      "contentContributors": {
+        "title": "Inhalts- und Wissensmitwirkende",
+        "description": "Unsere Wissensdatenbank deckt über 85 Marker mit verständlichen Beschreibungen, Ernährungsempfehlungen, Nahrungsergänzungsmittel-Ratgebern und Protokollauswirkungen ab. Mediziner, Ernährungsberater und Forscher können dazu beitragen, sie zu verbessern. Alle Beiträge sind Open Source, werden namentlich genannt und helfen Tausenden von Nutzern, ihre Gesundheitsdaten zu verstehen. Wenn Sie Expertise im Bereich metabolischer Gesundheit haben, möchten wir von Ihnen hören."
+      }
+    },
+    "cta": {
+      "prefix": "Interessiert? Kontaktieren Sie uns unter",
+      "linkText": "Kontaktieren Sie uns"
+    }
+  },
+  "impressum": {
+    "title": "Impressum",
+    "legalNotice": "Rechtlicher Hinweis",
+    "serviceProvider": {
+      "heading": "Diensteanbieter",
+      "name": "Sovereign Health Intelligence",
+      "type": "Typ: Einzelunternehmer"
+    },
+    "contact": {
+      "heading": "Kontakt",
+      "emailLabel": "E-Mail:",
+      "emailLinkText": "Kontaktieren Sie uns"
+    },
+    "applicableLaw": {
+      "heading": "Anwendbares Recht",
+      "text": "Auf diese Website und diesen Dienst findet österreichisches Recht Anwendung, insbesondere das österreichische E-Commerce-Gesetz (ECG) und das österreichische Mediengesetz (MedienG)."
+    },
+    "regulatoryAuthority": {
+      "heading": "Aufsichtsbehörde",
+      "text": "Zuständige österreichische Gewerbebehörde."
+    },
+    "registration": {
+      "heading": "Registrierungsdetails",
+      "text": "Vollständige Registrierungsdetails (Firmenbuchnummer, UID-Nummer) werden nach der formellen Firmenregistrierung veröffentlicht."
+    },
+    "disputeResolution": {
+      "heading": "EU-Online-Streitbeilegung",
+      "paragraph1": "Die Europäische Kommission stellt eine Plattform zur Online-Streitbeilegung (OS) für Verbraucher bereit. Diese Plattform ist verfügbar unter:",
+      "paragraph2": "Wenn Sie ein Verbraucher mit Wohnsitz in der Europäischen Union sind, können Sie diese Plattform nutzen, um eine Beschwerde über ein online erworbenes Produkt oder eine Dienstleistung einzureichen. Wir sind bestrebt, etwaige Streitigkeiten durch direkte Kommunikation zu lösen, und werden auf Beschwerden, die über die OS-Plattform eingehen, umgehend reagieren."
+    },
+    "contentResponsibility": {
+      "heading": "Inhaltliche Verantwortung",
+      "text": "Helmut Schindlwick ist als Betreiber dieser Website gemäß § 55 Abs. 2 des Rundfunkstaatsvertrags (RStV) für den Inhalt verantwortlich."
+    }
+  },
+  "markers": {
+    "directory": {
+      "title": "Biomarker-Verzeichnis",
+      "subtitle": "Durchsuchen Sie alle {count} Biomarker, die von Sovereign Health erfasst werden. Klicken Sie auf einen Biomarker, um Referenzbereiche, Ernährungsempfehlungen und Nahrungsergänzungsmittel zu sehen.",
+      "searchPlaceholder": "Biomarker suchen...",
+      "allZones": "Alle Zonen",
+      "resultCount": "{count} Biomarker",
+      "resultCountPlural": "{count} Biomarker",
+      "found": "gefunden",
+      "tableHeaders": {
+        "marker": "Marker",
+        "zone": "Zone",
+        "unit": "Einheit",
+        "type": "Typ",
+        "description": "Beschreibung"
+      },
+      "noResults": "Keine Marker gefunden, die Ihrer Suche entsprechen."
+    },
+    "detail": {
+      "breadcrumbMarkers": "Marker",
+      "notFoundTitle": "Marker nicht gefunden",
+      "backToDirectory": "Zurück zum Marker-Verzeichnis",
+      "aboutThisMarker": "Über diesen Marker",
+      "referenceRanges": "Referenzbereiche",
+      "standardRange": "Standard-Bereich",
+      "fastingRange": "Fasten-Bereich",
+      "rangeLow": "Niedrig",
+      "rangeOptimal": "Optimal",
+      "rangeHigh": "Hoch",
+      "topFoods": "Top-Lebensmittel für {name}",
+      "supplements": "Nahrungsergänzungsmittel für {name}",
+      "relatedMarkers": "Verwandte Marker",
+      "showAll": "Alle {count} Einträge anzeigen",
+      "showLess": "Weniger anzeigen",
+      "personalizedCallout": "Diese Empfehlungen werden in der {appLink} basierend auf Ihrem Ernährungs- und Fastenprotokoll personalisiert.",
+      "sovereignHealthApp": "Sovereign Health App",
+      "ctaTitle": "{name} mit Sovereign Health erfassen",
+      "ctaDescription": "Messungen aufzeichnen, Trends im Zeitverlauf sehen und personalisierte Erkenntnisse von Dr. Alex erhalten.",
+      "tryTheApp": "App testen",
+      "selfHostForFree": "Kostenlos selbst hosten"
+    },
+    "types": {
+      "calculated": "Berechnet",
+      "homeDevice": "Heimgerät",
+      "lab": "Labor"
+    }
+  },
+  "forms": {
+    "earlyAccess": {
+      "placeholder": "sie@beispiel.de",
+      "submitButton": "Benachrichtigen Sie mich",
+      "submitting": "Wird gesendet...",
+      "successTitle": "Sie stehen auf der Liste!",
+      "successMessage": "Wir senden Ihnen eine E-Mail, wenn die Registrierung eröffnet wird.",
+      "errorDefault": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut."
+    },
+    "contact": {
+      "nameLabel": "Name",
+      "namePlaceholder": "Ihr Name",
+      "emailLabel": "E-Mail",
+      "emailPlaceholder": "sie@beispiel.de",
+      "subjectLabel": "Betreff",
+      "subjectPlaceholder": "Betreff auswählen",
+      "subjects": {
+        "generalInquiry": "Allgemeine Anfrage",
+        "bugReport": "Fehlerbericht",
+        "featureRequest": "Funktionswunsch",
+        "partnership": "Partnerschaft",
+        "securityIssue": "Sicherheitsproblem",
+        "other": "Sonstiges"
+      },
+      "messageLabel": "Nachricht",
+      "messagePlaceholder": "Wie können wir Ihnen helfen?",
+      "submitButton": "Nachricht senden",
+      "sending": "Wird gesendet...",
+      "successTitle": "Nachricht gesendet!",
+      "successMessage": "Vielen Dank für Ihre Nachricht. Wir werden uns in Kürze bei Ihnen melden.",
+      "errorDefault": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut."
+    },
+    "partner": {
+      "nameLabel": "Name",
+      "namePlaceholder": "Ihr Name",
+      "emailLabel": "E-Mail",
+      "emailPlaceholder": "sie@beispiel.de",
+      "partnerTypeLabel": "Partnertyp",
+      "partnerTypePlaceholder": "Typ auswählen",
+      "partnerTypes": {
+        "healthPractitioner": "Gesundheitsfachkraft",
+        "deviceManufacturer": "Gerätehersteller",
+        "contentContributor": "Inhaltsmitwirkende/r",
+        "affiliate": "Affiliate",
+        "other": "Sonstiges"
+      },
+      "messageLabel": "Nachricht",
+      "messagePlaceholder": "Erzählen Sie uns von Ihrem Interesse an einer Partnerschaft...",
+      "submitButton": "Nachricht senden",
+      "submitting": "Wird gesendet...",
+      "successTitle": "Vielen Dank!",
+      "successMessage": "Wir werden uns bei Ihnen melden.",
+      "errorDefault": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut."
+    }
+  },
+  "drAlexChat": {
+    "bubbleLabel": "Dr. Alex fragen",
+    "openChat": "Dr. Alex Chat öffnen",
+    "closeChat": "Chat schließen",
+    "headerTitle": "Dr. Alex fragen",
+    "betaBadge": "Beta",
+    "lockedFeatures": {
+      "uploadLabResults": "Meine Laborergebnisse hochladen",
+      "analyzeBloodWork": "Meine Blutwerte analysieren",
+      "trackMedications": "Meine Medikamente erfassen",
+      "tooltip": "Registrieren Sie sich, um diese Funktion freizuschalten.",
+      "viewPricing": "Preise ansehen →"
+    },
+    "availableWithPro": "Verfügbar mit Dr. Alex Pro",
+    "quickQuestionsPrompt": "Fragen Sie mich über Biomarker, Ernährungsprotokolle oder unser Produkt:",
+    "quickQuestions": [
+      "Was ist ApoB und warum ist es wichtig?",
+      "Karnivore vs. Keto - was ist der Unterschied?",
+      "Welcher Tarif passt zu mir?",
+      "Wie funktionieren die Gesundheitszonen?",
+      "Kann ich das selbst hosten?",
+      "Was ist der GKI und warum sollte man ihn erfassen?"
+    ],
+    "upsellMessage": "Möchten Sie personalisierte Gesundheitserkenntnisse?",
+    "upsellLink": "Für Dr. Alex Pro registrieren →",
+    "startNewConversation": "Neues Gespräch starten",
+    "inputPlaceholder": "Geben Sie Ihre Frage ein...",
+    "inputPlaceholderLimitReached": "Starten Sie oben ein neues Gespräch",
+    "sendMessage": "Nachricht senden",
+    "disclaimer": "Allgemeine Gesundheitsinformation, keine medizinische Beratung",
+    "errors": {
+      "default": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut.",
+      "connectionError": "Verbindung zu Dr. Alex konnte nicht hergestellt werden. Bitte überprüfen Sie Ihre Verbindung."
+    }
+  },
+  "common": {
+    "tryTheApp": "App testen",
+    "getEarlyAccess": "Pläne ansehen",
+    "selfHostForFree": "Kostenlos selbst hosten",
+    "contactUs": "Kontaktieren Sie uns",
+    "seePricing": "Preise ansehen",
+    "viewOnGitlab": "Auf GitLab ansehen",
+    "comingSoon": "Demnächst verfügbar",
+    "allPlans": "Alle Tarife",
+    "yes": "Ja",
+    "unlimited": "Unbegrenzt",
+    "free": "Kostenlos",
+    "custom": "Individuell",
+    "seeAllFeatures": "Alle Funktionen ansehen",
+    "openTheApp": "App öffnen"
+  },
+  "privacy": {
+    "note": "Rechtsdokument - nur auf Englisch"
+  },
+  "terms": {
+    "note": "Rechtsdokument - nur auf Englisch"
+  },
+  "security": {
+    "hero": {
+      "title": "Sicherheit & Vertrauen",
+      "tagline": "Transparenz schafft Vertrauen. So schützen wir Ihre Daten."
+    },
+    "intro": {
+      "paragraph1": "Gesundheitsdaten gehören zu den sensibelsten Informationen, die eine Person haben kann. Wo sie gespeichert werden, wer darauf zugreifen kann und wie sie geschützt werden, sind keine Nebensächlichkeiten. Sie sind das Fundament jeder Gesundheitsplattform, die es wert ist, genutzt zu werden.",
+      "paragraph2": "Sovereign Health Intelligence wurde von Anfang an mit einem einzigen architektonischen Prinzip gebaut: Wir sollten Ihre Gesundheitsdaten nicht lesen können, selbst wenn wir es wollten. Das ist kein Marketing-Versprechen. Es ist eine technische Entscheidung, die im Code verankert ist, den Sie selbst überprüfen können, weil der Quellcode offen ist.",
+      "paragraph3": "Diese Seite erklärt unseren Sicherheitsansatz im Detail. Jede hier gemachte Aussage ist im Quellcode überprüfbar."
+    },
+    "principles": {
+      "heading": "Unsere Sicherheitsprinzipien",
+      "dataSovereignty": {
+        "title": "Datensouveränität",
+        "description": "Ihre Daten gehören Ihnen. Exportieren Sie sie jederzeit als JSON oder CSV. Löschen Sie Ihr Konto und alle Daten werden innerhalb von 30 Tagen entfernt. Wir sperren Sie niemals ein."
+      },
+      "openSource": {
+        "title": "Open Source",
+        "description": "Unsere Kerntechnologie ist AGPL-3.0-lizenziert. Jede Zeile Code ist öffentlich überprüfbar. Sie müssen unseren Aussagen nicht vertrauen. Sie können sie verifizieren."
+      },
+      "privacyByDesign": {
+        "title": "Privacy by Design",
+        "description": "Kein Tracking, kein Profiling, keine Verhaltensanalysen. Wir überwachen nicht, wie Sie die Plattform nutzen. Wir erstellen keine Benutzerprofile für irgendeinen Zweck."
+      },
+      "minimalData": {
+        "title": "Minimale Datenerfassung",
+        "description": "Wir erfassen nur das, was für den Dienst benötigt wird: Ihre E-Mail, Ihre Gesundheitsmessungen (verschlüsselt) und Ihre Einstellungen. Nichts weiter."
+      }
+    },
+    "technical": {
+      "heading": "Technische Sicherheit",
+      "aes256": {
+        "title": "AES-256-GCM-Verschlüsselung im Ruhezustand",
+        "description": "Alle Gesundheitsmesswerte werden mit AES-256-GCM verschlüsselt, bevor sie in die Datenbank geschrieben werden. Der Verschlüsselungsschlüssel wird getrennt von der Datenbank gespeichert."
+      },
+      "tls13": {
+        "title": "TLS 1.3-Verschlüsselung bei der Übertragung",
+        "description": "Die gesamte Kommunikation zwischen Ihrem Browser und unseren Servern verwendet TLS 1.3, das neueste Transport-Layer-Security-Protokoll."
+      },
+      "zeroKnowledge": {
+        "title": "Zero-Knowledge-Architektur",
+        "description": "Plattform-Administratoren können Ihre Gesundheitsdaten nicht lesen. Selbst bei vollem Datenbankzugriff bleiben Messwerte verschlüsselt und ohne den separaten Verschlüsselungsschlüssel unlesbar."
+      },
+      "noAnalytics": {
+        "title": "Keine Drittanbieter-Analytik",
+        "description": "Kein Google Analytics, kein Plausible, keine Tracking-Pixel, keine Cookies (außer einem optionalen Empfehlungs-Cookie). Kein Browser-Fingerprinting. Keine Gerätekennungen."
+      },
+      "docker": {
+        "title": "Containerisierte Bereitstellung",
+        "description": "Die Plattform läuft in isolierten Docker-Containern mit minimaler Angriffsfläche. Jeder Dienst (API, Frontend, Datenbank) läuft in einem eigenen Container."
+      },
+      "securityUpdates": {
+        "title": "Regelmäßige Sicherheitsupdates",
+        "description": "Abhängigkeiten werden aktuell gehalten. Das Rust-Backend bietet Speichersicherheitsgarantien. OWASP Top 10-Schutzmaßnahmen sind im gesamten Stack implementiert."
+      }
+    },
+    "compliance": {
+      "heading": "Compliance",
+      "gdpr": {
+        "title": "DSGVO-konform",
+        "description": "Vollständige Einhaltung der EU-Datenschutz-Grundverordnung. Daten werden in der EU (Litauen) gespeichert. Vollständige Datenportabilität und Recht auf Löschung sind in die Plattform integriert."
+      },
+      "austrianEcg": {
+        "title": "Österreichisches ECG / Impressum",
+        "description": "Betrieben nach österreichischem Recht mit vollständiger rechtlicher Offenlegung gemäß dem österreichischen E-Commerce-Gesetz (ECG). Siehe unser Impressum für vollständige Details."
+      },
+      "ageRequirement": {
+        "title": "Mindestalter 18 Jahre",
+        "description": "Die Plattform ist nur für Erwachsene bestimmt. Konten, die von Nutzern unter 18 Jahren erstellt werden, werden bei Entdeckung gelöscht."
+      },
+      "refundPolicy": {
+        "title": "30-Tage-Rückerstattung",
+        "description": "Vollständige Rückerstattung innerhalb von 30 Tagen nach Ihrem ersten kostenpflichtigen Abonnement, ohne Fragen. Danach läuft Ihr Abonnement bis zum Ende des Abrechnungszeitraums."
+      },
+      "dataExport": {
+        "title": "Vollständiger Datenexport",
+        "description": "Laden Sie Ihre gesamte Gesundheitshistorie jederzeit als JSON oder CSV aus der Anwendung herunter. Erstellen Sie PDF-Gesundheitsberichte für Ihren Arzt."
+      },
+      "dataDeletion": {
+        "title": "Datenlöschung auf Anfrage",
+        "description": "Löschen Sie Ihr Konto jederzeit in den Einstellungen. Alle Daten werden innerhalb von 30 Tagen aus der primären Datenbank entfernt. Verschlüsselte Backups werden innerhalb von 90 Tagen bereinigt."
+      }
+    },
+    "payment": {
+      "heading": "Zahlungssicherheit",
+      "stripe": {
+        "title": "Stripe (PCI DSS-konform)",
+        "description": "Kreditkartenzahlungen werden von Stripe, einem PCI DSS Level 1-zertifizierten Zahlungsabwickler, verarbeitet. Wir sehen oder speichern Ihre Kartendaten niemals."
+      },
+      "btcpay": {
+        "title": "BTCPay Server (selbst gehostet)",
+        "description": "Bitcoin-Zahlungen werden über unsere selbst gehostete BTCPay-Server-Instanz abgewickelt. Kein Drittanbieter-Zahlungsabwickler für Kryptowährungszahlungen."
+      },
+      "noPaymentData": {
+        "title": "Keine Zahlungsdaten gespeichert",
+        "description": "Wir speichern keine Kreditkartennummern, CVVs oder Zahlungsdaten auf unseren Servern. Alle Zahlungsdaten werden von Stripe oder BTCPay Server verarbeitet."
+      },
+      "bitcoinDiscount": {
+        "title": "5% Bitcoin-Rabatt",
+        "description": "Zahlen Sie mit Bitcoin für datenschutzfreundliche Zahlungen und erhalten Sie 5% Rabatt. Bitcoin-Zahlungen erfordern keine Weitergabe persönlicher Finanzinformationen."
+      }
+    },
+    "openSource": {
+      "heading": "Open-Source-Verpflichtung",
+      "description": "Unsere Kerntechnologie ist Open Source unter der AGPL-3.0-Lizenz. Backend, Frontend und Datenbankschema sind öffentlich verfügbar. Community-Beiträge sind willkommen. Wir glauben, dass Open Source der einzige Weg ist, echtes Vertrauen in eine Gesundheitsplattform aufzubauen.",
+      "link": "Unsere Open-Source-Projekte ansehen"
+    },
+    "ai": {
+      "heading": "AI & Gesundheitsdaten",
+      "aiAssisted": {
+        "title": "AI-unterstützt, nicht AI-entschieden",
+        "description": "Dr. Alex bietet AI-gestützte Einblicke, um Ihnen zu helfen, Ihre Gesundheitsdaten zu verstehen. Alle Analysen sind informativ. Die AI trifft keine Entscheidungen für Sie."
+      },
+      "noMedicalAdvice": {
+        "title": "Keine medizinische Beratung",
+        "description": "Sovereign Health Intelligence ist kein Medizinprodukt und bietet keine medizinische Beratung. Konsultieren Sie immer Ihren Arzt für medizinische Entscheidungen."
+      },
+      "noAiTraining": {
+        "title": "Ihre Daten trainieren keine AI",
+        "description": "AI-Anfragen werden an Anthropic Claude nur mit anonymisiertem Kontext gesendet. Ihr Name, Ihre E-Mail und identifizierende Informationen werden nie mitgesendet. Ihre Daten werden nicht zum Training von AI-Modellen verwendet."
+      },
+      "noDataSharing": {
+        "title": "Gesundheitsdaten werden nie geteilt oder verkauft",
+        "description": "Ihre Gesundheitsdaten werden nie an Dritte weitergegeben, nie verkauft und nie für Werbung verwendet. Dies ist eine architektonische Kernverpflichtung, keine änderbare Richtlinie."
+      }
+    },
+    "contact": {
+      "heading": "Sicherheitsproblem melden",
+      "description": "Wenn Sie eine Sicherheitslücke entdecken, melden Sie diese bitte verantwortungsvoll. Wir nehmen jeden Bericht ernst und antworten zeitnah.",
+      "cta": "Sicherheitsproblem melden"
+    }
+  },
+  "referral": {
+    "hero": {
+      "title": "Empfehlungsprogramm",
+      "colorSubtitle": "Verdienen Sie, während Sie anderen helfen, ihre Gesundheit in die Hand zu nehmen.",
+      "subtitle": "Teilen Sie Sovereign Health Intelligence mit Freunden und Kollegen. Verdienen Sie 20% Provision auf jedes empfohlene Abonnement."
+    },
+    "howItWorks": {
+      "heading": "So funktioniert's",
+      "step": "Schritt",
+      "steps": {
+        "signUp": {
+          "title": "Registrieren",
+          "description": "Erstellen Sie ein Konto und abonnieren Sie einen beliebigen Plan."
+        },
+        "getLink": {
+          "title": "Link erhalten",
+          "description": "Finden Sie Ihren einzigartigen Empfehlungslink in Ihren Kontoeinstellungen."
+        },
+        "share": {
+          "title": "Teilen",
+          "description": "Teilen Sie Ihren Link mit Freunden, Kollegen oder Ihrer Community."
+        },
+        "earn": {
+          "title": "Verdienen",
+          "description": "Verdienen Sie 20% Provision auf jedes empfohlene Abonnement."
+        }
+      }
+    },
+    "details": {
+      "heading": "Provisionsdetails",
+      "items": {
+        "commission": {
+          "title": "20% Provision",
+          "description": "Verdienen Sie 20% der ersten Abonnementzahlung für jeden empfohlenen Nutzer."
+        },
+        "evaluation": {
+          "title": "30-Tage Evaluierung",
+          "description": "Die Provision wird nach Abschluss der 30-tägigen Evaluierungsphase freigeschaltet."
+        },
+        "payoutOptions": {
+          "title": "EUR oder Bitcoin",
+          "description": "Wählen Sie Ihre Auszahlung in EUR oder Bitcoin. BTC-Auszahlungen erhalten einen zusätzlichen 5% Bonus."
+        },
+        "minimumPayout": {
+          "title": "Mindestauszahlung",
+          "description": "Die Mindestauszahlungsschwelle beträgt EUR 25. Einnahmen sammeln sich bis dahin an."
+        },
+        "payoutSchedule": {
+          "title": "Monatliche Auszahlungen",
+          "description": "Genehmigte Provisionen werden monatlich ausgezahlt."
+        }
+      }
+    },
+    "promoCodes": {
+      "heading": "Promo-Codes & Empfehlungen",
+      "items": [
+        "Promo-Codes geben Käufern einen Rabatt auf ihr Abonnement.",
+        "Promo-Rabatte und Empfehlungsprovisionen funktionieren unabhängig voneinander.",
+        "Die Affiliate-Provision wird auf den rabattierten Preis berechnet."
+      ]
+    },
+    "cta": {
+      "heading": "Loslegen",
+      "description": "Sie haben bereits ein Konto? Sehen Sie Ihr Empfehlungs-Dashboard. Neu hier? Erstellen Sie Ihr Konto und beginnen Sie zu verdienen.",
+      "viewDashboard": "Empfehlungs-Dashboard anzeigen",
+      "createAccount": "Konto erstellen"
+    }
+  }
+}

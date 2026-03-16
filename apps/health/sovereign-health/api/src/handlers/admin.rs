@@ -1,0 +1,459 @@
+// Sovereign Health Intelligence -- AGPL-3.0 -- https://sovereignhealth.io/
+
+use actix_web::{web, HttpResponse};
+use serde::Deserialize;
+use serde_json::json;
+use sqlx::PgPool;
+
+use crate::{error::AppError, middleware::auth::AdminUser};
+
+// ---------------------------------------------------------------------------
+// GET /admin/dashboard
+// ---------------------------------------------------------------------------
+
+pub async fn dashboard(
+    pool: web::Data<PgPool>,
+    _admin: AdminUser,
+) -> Result<HttpResponse, AppError> {
+    use sqlx::Row;
+
+    let total_users: i64 =
+        sqlx::query_scalar("SELECT COUNT(*) FROM users WHERE is_deleted = false")
+            .fetch_one(pool.get_ref())
+            .await
+            .unwrap_or(0);
+
+    let verified_users: i64 = sqlx::query_scalar(
+        "SELECT COUNT(*) FROM users WHERE is_deleted = false AND email_verified = true",
+    )
+    .fetch_one(pool.get_ref())
+    .await
+    .unwrap_or(0);
+
+    let total_measurements: i64 =
+        sqlx::query_scalar("SELECT COUNT(*) FROM measurements WHERE is_deleted = false")
+            .fetch_one(pool.get_ref())
+            .await
+            .unwrap_or(0);
+
+    let active_7d: i64 = sqlx::query_scalar(
+        "SELECT COUNT(DISTINCT user_id) FROM measurements WHERE is_deleted = false AND created_at > NOW() - INTERVAL '7 days'",
+    )
+    .fetch_one(pool.get_ref())
+    .await
+    .unwrap_or(0);
+
+    let active_30d: i64 = sqlx::query_scalar(
+        "SELECT COUNT(DISTINCT user_id) FROM measurements WHERE is_deleted = false AND created_at > NOW() - INTERVAL '30 days'",
+    )
+    .fetch_one(pool.get_ref())
+    .await
+    .unwrap_or(0);
+
+    // Signups in last 7 days
+    let signups_7d: i64 = sqlx::query_scalar(
+        "SELECT COUNT(*) FROM users WHERE created_at > NOW() - INTERVAL '7 days'",
+    )
+    .fetch_one(pool.get_ref())
+    .await
+    .unwrap_or(0);
+
+    // Tier distribution
+    let tier_rows = sqlx::query(
+        r#"SELECT COALESCE(lt.slug, 'glimpse') as tier, COUNT(*) as count
+           FROM users u
+           LEFT JOIN user_licenses ul ON ul.user_id = u.id
+           LEFT JOIN license_tiers lt ON lt.id = ul.tier_id
+           WHERE u.is_deleted = false
+           GROUP BY COALESCE(lt.slug, 'glimpse')
+           ORDER BY count DESC"#,
+    )
+    .fetch_all(pool.get_ref())
+    .await
+    .unwrap_or_default();
+
+    let tiers: Vec<serde_json::Value> = tier_rows
+        .iter()
+        .map(|r| {
+            json!({
+                "tier": r.try_get::<String, _>("tier").unwrap_or_default(),
+                "count": r.try_get::<i64, _>("count").unwrap_or(0),
+            })
+        })
+        .collect();
+
+    // Early access signups
+    let early_access_count: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM early_access_signups")
+        .fetch_one(pool.get_ref())
+        .await
+        .unwrap_or(0);
+
+    Ok(HttpResponse::Ok().json(json!({
+        "data": {
+            "total_users": total_users,
+            "verified_users": verified_users,
+            "total_measurements": total_measurements,
+            "active_7d": active_7d,
+            "active_30d": active_30d,
+            "signups_7d": signups_7d,
+            "early_access_count": early_access_count,
+            "tier_distribution": tiers,
+        },
+        "error": null
+    })))
+}
+
+// ---------------------------------------------------------------------------
+// GET /admin/users
+// ---------------------------------------------------------------------------
+
+#[derive(Deserialize)]
+pub struct UserListQuery {
+    pub page: Option<i64>,
+    pub per_page: Option<i64>,
+    pub search: Option<String>,
+    pub sort: Option<String>,
+    pub order: Option<String>,
+}
+
+pub async fn list_users(
+    pool: web::Data<PgPool>,
+    _admin: AdminUser,
+    query: web::Query<UserListQuery>,
+) -> Result<HttpResponse, AppError> {
+    use sqlx::Row;
+
+    let page = query.page.unwrap_or(1).max(1);
+    let per_page = query.per_page.unwrap_or(25).clamp(1, 100);
+    let offset = (page - 1) * per_page;
+
+    // Validate sort/order to prevent SQL injection - only allow known column names
+    let order_clause = {
+        let sort_col = match query.sort.as_deref() {
+            Some("email") => "u.email",
+            Some("tier") => "tier",
+            Some("created_at") | None => "u.created_at",
+            _ => "u.created_at",
+        };
+        let direction = match query.order.as_deref() {
+            Some("asc") => "ASC",
+            Some("desc") | None => "DESC",
+            _ => "DESC",
+        };
+        format!("{} {}", sort_col, direction)
+    };
+
+    let (rows, total) = if let Some(ref search) = query.search {
+        let pattern = format!("%{}%", search);
+        let total: i64 = sqlx::query_scalar(
+            "SELECT COUNT(*) FROM users WHERE is_deleted = false AND (email ILIKE $1 OR display_name ILIKE $1)",
+        )
+        .bind(&pattern)
+        .fetch_one(pool.get_ref())
+        .await
+        .unwrap_or(0);
+
+        let sql = format!(
+            r#"SELECT u.id, u.email, u.display_name, u.role, u.email_verified,
+                      u.created_at, u.updated_at as last_login_at,
+                      COALESCE(lt.slug, 'glimpse') as tier,
+                      COALESCE(ul.admin_override, false) as admin_override,
+                      ul.admin_override_note, ul.admin_override_by, ul.admin_override_at,
+                      COALESCE(ul.payment_method, 'stripe') as payment_method,
+                      (SELECT COUNT(*) FROM measurements m WHERE m.user_id = u.id AND m.is_deleted = false) as measurement_count
+               FROM users u
+               LEFT JOIN user_licenses ul ON ul.user_id = u.id
+               LEFT JOIN license_tiers lt ON lt.id = ul.tier_id
+               WHERE u.is_deleted = false AND (u.email ILIKE $1 OR u.display_name ILIKE $1)
+               ORDER BY {}
+               LIMIT $2 OFFSET $3"#,
+            order_clause
+        );
+
+        let rows = sqlx::query(&sql)
+            .bind(&pattern)
+            .bind(per_page)
+            .bind(offset)
+            .fetch_all(pool.get_ref())
+            .await?;
+
+        (rows, total)
+    } else {
+        let total: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM users WHERE is_deleted = false")
+            .fetch_one(pool.get_ref())
+            .await
+            .unwrap_or(0);
+
+        let sql = format!(
+            r#"SELECT u.id, u.email, u.display_name, u.role, u.email_verified,
+                      u.created_at, u.updated_at as last_login_at,
+                      COALESCE(lt.slug, 'glimpse') as tier,
+                      COALESCE(ul.admin_override, false) as admin_override,
+                      ul.admin_override_note, ul.admin_override_by, ul.admin_override_at,
+                      COALESCE(ul.payment_method, 'stripe') as payment_method,
+                      (SELECT COUNT(*) FROM measurements m WHERE m.user_id = u.id AND m.is_deleted = false) as measurement_count
+               FROM users u
+               LEFT JOIN user_licenses ul ON ul.user_id = u.id
+               LEFT JOIN license_tiers lt ON lt.id = ul.tier_id
+               WHERE u.is_deleted = false
+               ORDER BY {}
+               LIMIT $1 OFFSET $2"#,
+            order_clause
+        );
+
+        let rows = sqlx::query(&sql)
+            .bind(per_page)
+            .bind(offset)
+            .fetch_all(pool.get_ref())
+            .await?;
+
+        (rows, total)
+    };
+
+    let users: Vec<serde_json::Value> = rows
+        .iter()
+        .map(|r| {
+            json!({
+                "id": r.try_get::<uuid::Uuid, _>("id").unwrap_or_default(),
+                "email": r.try_get::<String, _>("email").unwrap_or_default(),
+                "display_name": r.try_get::<Option<String>, _>("display_name").ok().flatten(),
+                "role": r.try_get::<String, _>("role").unwrap_or_default(),
+                "email_verified": r.try_get::<bool, _>("email_verified").unwrap_or(false),
+                "tier": r.try_get::<String, _>("tier").unwrap_or_default(),
+                "admin_override": r.try_get::<bool, _>("admin_override").unwrap_or(false),
+                "admin_override_note": r.try_get::<Option<String>, _>("admin_override_note").ok().flatten(),
+                "admin_override_by": r.try_get::<Option<uuid::Uuid>, _>("admin_override_by").ok().flatten(),
+                "admin_override_at": r.try_get::<Option<chrono::DateTime<chrono::Utc>>, _>("admin_override_at")
+                    .ok().flatten().map(|d| d.to_rfc3339()),
+                "payment_method": r.try_get::<String, _>("payment_method").unwrap_or_else(|_| "stripe".to_string()),
+                "measurement_count": r.try_get::<i64, _>("measurement_count").unwrap_or(0),
+                "created_at": r.try_get::<chrono::DateTime<chrono::Utc>, _>("created_at")
+                    .unwrap_or_else(|_| chrono::Utc::now()).to_rfc3339(),
+                "last_login_at": r.try_get::<Option<chrono::DateTime<chrono::Utc>>, _>("last_login_at")
+                    .ok().flatten().map(|d| d.to_rfc3339()),
+            })
+        })
+        .collect();
+
+    Ok(HttpResponse::Ok().json(json!({
+        "data": users,
+        "meta": {
+            "page": page,
+            "per_page": per_page,
+            "total": total,
+        },
+        "error": null
+    })))
+}
+
+// ---------------------------------------------------------------------------
+// PUT /admin/users/{id}/role
+// ---------------------------------------------------------------------------
+
+#[derive(Deserialize)]
+pub struct UpdateRoleBody {
+    pub role: String,
+}
+
+pub async fn update_user_role(
+    pool: web::Data<PgPool>,
+    _admin: AdminUser,
+    path: web::Path<uuid::Uuid>,
+    body: web::Json<UpdateRoleBody>,
+) -> Result<HttpResponse, AppError> {
+    let user_id = path.into_inner();
+
+    if !["user", "admin"].contains(&body.role.as_str()) {
+        return Err(AppError::Validation("Invalid role".to_string()));
+    }
+
+    sqlx::query(
+        "UPDATE users SET role = $1, updated_at = NOW() WHERE id = $2 AND is_deleted = false",
+    )
+    .bind(&body.role)
+    .bind(user_id)
+    .execute(pool.get_ref())
+    .await?;
+
+    Ok(HttpResponse::Ok().json(json!({
+        "data": { "message": "Role updated" },
+        "error": null
+    })))
+}
+
+// ---------------------------------------------------------------------------
+// PUT /admin/users/{id}/tier
+// ---------------------------------------------------------------------------
+
+#[derive(Deserialize)]
+pub struct UpdateTierBody {
+    pub tier_slug: String,
+}
+
+pub async fn update_user_tier(
+    pool: web::Data<PgPool>,
+    _admin: AdminUser,
+    path: web::Path<uuid::Uuid>,
+    body: web::Json<UpdateTierBody>,
+) -> Result<HttpResponse, AppError> {
+    let user_id = path.into_inner();
+
+    // Find the tier
+    let tier_id: Option<uuid::Uuid> =
+        sqlx::query_scalar("SELECT id FROM license_tiers WHERE slug = $1")
+            .bind(&body.tier_slug)
+            .fetch_optional(pool.get_ref())
+            .await?;
+
+    let tier_id = tier_id.ok_or(AppError::Validation("Unknown tier".to_string()))?;
+
+    sqlx::query(
+        r#"INSERT INTO user_licenses (user_id, tier_id)
+           VALUES ($1, $2)
+           ON CONFLICT (user_id) DO UPDATE SET tier_id = $2, updated_at = NOW()"#,
+    )
+    .bind(user_id)
+    .bind(tier_id)
+    .execute(pool.get_ref())
+    .await?;
+
+    Ok(HttpResponse::Ok().json(json!({
+        "data": { "message": "Tier updated" },
+        "error": null
+    })))
+}
+
+// ---------------------------------------------------------------------------
+// PUT /admin/users/{id}/license - Apply or remove admin tier override
+// ---------------------------------------------------------------------------
+
+#[derive(Deserialize)]
+pub struct LicenseOverrideRequest {
+    pub tier: Option<String>,
+    pub override_active: bool,
+    pub note: Option<String>,
+}
+
+pub async fn update_user_license(
+    pool: web::Data<PgPool>,
+    admin: AdminUser,
+    path: web::Path<uuid::Uuid>,
+    body: web::Json<LicenseOverrideRequest>,
+) -> Result<HttpResponse, AppError> {
+    use sqlx::Row;
+
+    let user_id = path.into_inner();
+
+    // Verify the target user exists
+    let user_row = sqlx::query("SELECT id, email FROM users WHERE id = $1 AND is_deleted = false")
+        .bind(user_id)
+        .fetch_optional(pool.get_ref())
+        .await?;
+
+    let user_row = user_row.ok_or(AppError::NotFound)?;
+    let user_email: String = user_row.try_get("email").unwrap_or_default();
+
+    // Get previous tier slug
+    let prev_tier: String = sqlx::query_scalar(
+        r#"SELECT COALESCE(lt.slug, 'glimpse')
+           FROM user_licenses ul
+           JOIN license_tiers lt ON lt.id = ul.tier_id
+           WHERE ul.user_id = $1"#,
+    )
+    .bind(user_id)
+    .fetch_optional(pool.get_ref())
+    .await?
+    .unwrap_or_else(|| "glimpse".to_string());
+
+    if body.override_active {
+        // Require tier slug when applying an override
+        let tier_slug = body.tier.as_ref().ok_or(AppError::Validation(
+            "tier is required when override_active is true".to_string(),
+        ))?;
+
+        // Look up the new tier_id
+        let new_tier_id: Option<uuid::Uuid> =
+            sqlx::query_scalar("SELECT id FROM license_tiers WHERE slug = $1")
+                .bind(tier_slug)
+                .fetch_optional(pool.get_ref())
+                .await?;
+
+        let new_tier_id =
+            new_tier_id.ok_or(AppError::Validation(format!("Unknown tier: {}", tier_slug)))?;
+
+        // Upsert user_licenses with override
+        sqlx::query(
+            r#"INSERT INTO user_licenses (user_id, tier_id, admin_override, admin_override_by, admin_override_at, admin_override_note)
+               VALUES ($1, $2, true, $3, NOW(), $4)
+               ON CONFLICT (user_id) DO UPDATE SET
+                tier_id = $2,
+                admin_override = true,
+                admin_override_by = $3,
+                admin_override_at = NOW(),
+                admin_override_note = $4,
+                updated_at = NOW()"#,
+        )
+        .bind(user_id)
+        .bind(new_tier_id)
+        .bind(admin.user_id)
+        .bind(&body.note)
+        .execute(pool.get_ref())
+        .await?;
+
+        tracing::info!(
+            admin_id = %admin.user_id,
+            target_user = %user_id,
+            previous_tier = %prev_tier,
+            new_tier = %tier_slug,
+            "Admin license override applied"
+        );
+
+        Ok(HttpResponse::Ok().json(json!({
+            "data": {
+                "user_id": user_id,
+                "email": user_email,
+                "previous_tier": prev_tier,
+                "new_tier": tier_slug,
+                "admin_override": true,
+                "note": body.note,
+                "changed_by": admin.user_id,
+                "changed_at": chrono::Utc::now().to_rfc3339(),
+            },
+            "error": null
+        })))
+    } else {
+        // Remove override - clear the override flags but keep the current tier
+        sqlx::query(
+            r#"UPDATE user_licenses SET
+                admin_override = false,
+                admin_override_by = NULL,
+                admin_override_at = NULL,
+                admin_override_note = NULL,
+                updated_at = NOW()
+               WHERE user_id = $1"#,
+        )
+        .bind(user_id)
+        .execute(pool.get_ref())
+        .await?;
+
+        tracing::info!(
+            admin_id = %admin.user_id,
+            target_user = %user_id,
+            "Admin license override removed"
+        );
+
+        Ok(HttpResponse::Ok().json(json!({
+            "data": {
+                "user_id": user_id,
+                "email": user_email,
+                "previous_tier": prev_tier,
+                "new_tier": prev_tier,
+                "admin_override": false,
+                "note": null,
+                "changed_by": admin.user_id,
+                "changed_at": chrono::Utc::now().to_rfc3339(),
+            },
+            "error": null
+        })))
+    }
+}

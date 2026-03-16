@@ -1,0 +1,10 @@
+---
+source: tests/integration.rs
+assertion_line: 100
+expression: body
+---
+{
+  "service": "sovereign-health-backend",
+  "status": "ok",
+  "version": "0.19.1-rc1"
+}
