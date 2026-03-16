@@ -1,0 +1,1 @@
+# Sovereign Health (by BrickOS)\n\nPrivacy-first metabolic health tracking.\n\n- **api/** -- Rust backend (Actix-web)\n- **frontend/** -- Next.js 16 app\n- **website/** -- sovereignhealth.io\n- **startos/** -- StartOS package\n- **ops/** -- Deploy scripts, Docker configs\n- **docs/** -- Product documentation

@@ -1,0 +1,39 @@
+name: Bug Report
+description: Report a bug in any BrickOS product
+labels: [bug]
+body:
+  - type: dropdown
+    id: app
+    label: Which product?
+    options:
+      - Sovereign Health Intelligence
+      - BTC Tracker
+      - Tax Exam Trainer
+      - Bitcoin Node Manager
+      - BrickOS Platform
+      - Shared Libraries
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    label: What happened?
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    label: What should have happened?
+  - type: textarea
+    id: steps
+    label: Steps to reproduce
+  - type: dropdown
+    id: priority
+    label: Priority
+    options:
+      - P0 - Critical
+      - P1 - High
+      - P2 - Medium
+      - P3 - Low
+  - type: input
+    id: version
+    label: Version (if known)
+    placeholder: "e.g., 0.19.1-rc1"

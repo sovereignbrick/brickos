@@ -1,0 +1,41 @@
+name: Feature Request
+description: Suggest a new feature
+labels: [feature]
+body:
+  - type: dropdown
+    id: app
+    label: Which product?
+    options:
+      - Sovereign Health Intelligence
+      - BTC Tracker
+      - Tax Exam Trainer
+      - Bitcoin Node Manager
+      - BrickOS Platform
+      - Shared Libraries
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    label: Describe the feature
+    validations:
+      required: true
+  - type: textarea
+    id: use_case
+    label: Who benefits and how?
+  - type: dropdown
+    id: effort
+    label: Estimated effort
+    options:
+      - XS (1 hour)
+      - S (half day)
+      - M (1 day)
+      - L (2-3 days)
+      - XL (1 week+)
+  - type: dropdown
+    id: priority
+    label: Priority
+    options:
+      - P0 - Critical
+      - P1 - High
+      - P2 - Medium
+      - P3 - Low

@@ -1,0 +1,1 @@
+# Shared Rust Crates\n\nLibraries used by all BrickOS applications.\n\n- **brickos-auth** -- JWT + Nostr NIP-98 authentication\n- **brickos-crypto** -- AES-256-GCM encryption, key derivation\n- **brickos-db** -- Database pool helpers, common types\n- **brickos-backup** -- Encrypted backup protocol\n- **brickos-startos** -- StartOS packaging SDK

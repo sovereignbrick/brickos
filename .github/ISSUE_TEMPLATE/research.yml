@@ -1,0 +1,15 @@
+name: Research / Spike
+description: Investigate a technical question or evaluate an approach
+labels: [research]
+body:
+  - type: textarea
+    id: question
+    label: What do we need to learn?
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    label: Why is this important now?
+  - type: textarea
+    id: deliverable
+    label: Expected output (report, prototype, decision)

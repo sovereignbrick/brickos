@@ -1,0 +1,69 @@
+name: CI - Sovereign Health
+on:
+  push:
+    paths: ['apps/health/sovereign-health/**', 'crates/**', 'packages/**']
+    branches: [main, develop]
+  pull_request:
+    paths: ['apps/health/sovereign-health/**', 'crates/**', 'packages/**']
+
+jobs:
+  backend-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with: { components: 'rustfmt, clippy' }
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo fmt --check
+      - run: cargo clippy --all-targets -- -D warnings
+
+  backend-test:
+    runs-on: ubuntu-latest
+    needs: backend-lint
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: sovereign_health
+          POSTGRES_USER: sovereign_health
+          POSTGRES_PASSWORD: test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U sovereign_health"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgres://sovereign_health:test@localhost:5432/sovereign_health
+      JWT_SECRET: ci_test_jwt_secret_32chars_long_x
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo test -p sovereign-health-api
+
+  backend-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo install cargo-audit --quiet
+      - run: cargo audit
+    continue-on-error: true
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/health/sovereign-health/frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+          cache-dependency-path: 'apps/health/sovereign-health/frontend/pnpm-lock.yaml'
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - run: pnpm test

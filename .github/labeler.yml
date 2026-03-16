@@ -1,0 +1,15 @@
+'app:health':
+  - changed-files:
+    - any-glob-to-any-file: 'apps/health/**'
+'app:finance':
+  - changed-files:
+    - any-glob-to-any-file: 'apps/finance/**'
+'app:node':
+  - changed-files:
+    - any-glob-to-any-file: 'apps/node/**'
+'platform':
+  - changed-files:
+    - any-glob-to-any-file: 'platform/**'
+'shared':
+  - changed-files:
+    - any-glob-to-any-file: ['crates/**', 'packages/**']

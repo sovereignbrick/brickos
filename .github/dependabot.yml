@@ -1,0 +1,16 @@
+version: 2
+updates:
+  - package-ecosystem: cargo
+    directory: /
+    schedule:
+      interval: weekly
+    labels: [shared, security]
+  - package-ecosystem: npm
+    directory: /apps/health/sovereign-health/frontend
+    schedule:
+      interval: weekly
+    labels: [app:health]
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly

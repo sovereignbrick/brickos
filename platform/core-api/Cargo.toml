@@ -1,0 +1,11 @@
+[package]
+name = "brickos-core-api"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+brickos-auth.workspace = true
+brickos-crypto.workspace = true
+brickos-db.workspace = true
+actix-web.workspace = true
+tokio.workspace = true

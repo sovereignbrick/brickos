@@ -1,0 +1,35 @@
+[workspace]
+resolver = "2"
+members = [
+    "platform/core-api",
+    "crates/brickos-auth",
+    "crates/brickos-crypto",
+    "crates/brickos-db",
+    "crates/brickos-backup",
+    "crates/brickos-startos",
+    "apps/health/sovereign-health/api",
+    # "apps/finance/btc-tracker/api",
+    # "apps/node/bitcoin-node/api",
+]
+
+[workspace.dependencies]
+actix-web = "4"
+actix-cors = "0.7"
+sqlx = { version = "0.8", features = ["postgres", "runtime-tokio-rustls", "chrono", "macros", "uuid"] }
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tokio = { version = "1", features = ["full"] }
+chrono = { version = "0.4", features = ["serde"] }
+uuid = { version = "1", features = ["v4", "serde"] }
+jsonwebtoken = "9"
+argon2 = { version = "0.5", features = ["std"] }
+aes-gcm = "0.10"
+thiserror = "1"
+anyhow = "1"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+brickos-auth = { path = "crates/brickos-auth" }
+brickos-crypto = { path = "crates/brickos-crypto" }
+brickos-db = { path = "crates/brickos-db" }
+brickos-backup = { path = "crates/brickos-backup" }

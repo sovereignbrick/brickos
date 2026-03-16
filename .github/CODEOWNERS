@@ -1,0 +1,12 @@
+# Default: platform team reviews everything
+*                               @sovereignbrick/platform
+
+# App-specific
+/apps/health/                   @sovereignbrick/health
+/apps/finance/                  @sovereignbrick/finance
+
+# Shared code: platform must review
+/crates/                        @sovereignbrick/platform
+/packages/                      @sovereignbrick/platform
+/platform/                      @sovereignbrick/platform
+/.github/                       @sovereignbrick/owners
