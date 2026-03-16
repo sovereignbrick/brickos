@@ -65,5 +65,5 @@ Open source core with proprietary premium tiers.
 
 ---
 
-*BrickOS
+*BrickOS*
 *Bitcoin introduced Proof of Work. Health needs Proof of Blood.*
