@@ -325,7 +325,7 @@ function MobileMenu({
 }
 
 export function Navbar() {
-  const { user, logout, isDemo, isDemoOnly } = useAuth()
+  const { user, loading, logout, isDemo, isDemoOnly } = useAuth()
   const pathname = usePathname()
   const demoHref = useDemoHref()
   const router = useRouter()
@@ -335,6 +335,12 @@ export function Navbar() {
   const [registrationEnabled, setRegistrationEnabled] = useState(false)
   const [langOpen, setLangOpen] = useState(false)
   const langRef = useRef<HTMLDivElement>(null)
+  const [mounted, setMounted] = useState(false)
+
+  // Prevent hydration mismatch: render a neutral skeleton until client mount
+  // completes and auth state is resolved. Server and client both render the
+  // same static navbar shell, avoiding React error #418.
+  useEffect(() => { setMounted(true) }, [])
 
   useEffect(() => {
     if (!user && !isDemo) {
@@ -394,6 +400,26 @@ export function Navbar() {
       )}
     </div>
   )
+
+  // During SSR and initial hydration, render a static navbar shell.
+  // This prevents hydration mismatch because both server and client
+  // render identical HTML. Auth-aware content appears after mount.
+  if (!mounted || loading) {
+    return (
+      <nav className="border-b bg-background/80 backdrop-blur">
+        <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-2 font-bold tracking-tight">
+            <Image src="/logo.png" alt="SHI" width={28} height={28} className="rounded-sm" />
+            <span className="text-xs sm:text-sm whitespace-nowrap">{APP_NAME}</span>
+          </Link>
+          <div className="flex items-center gap-2">
+            {languageSelector}
+            <div className="w-8 h-8 rounded-full bg-zinc-700 animate-pulse" />
+          </div>
+        </div>
+      </nav>
+    )
+  }
 
   if (!user && !isDemo) {
     return (
