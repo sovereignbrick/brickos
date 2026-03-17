@@ -664,6 +664,30 @@ pub async fn export_json(
     let period = query.period.as_deref().unwrap_or("all");
     let from = period_to_from(period);
 
+    // User info
+    let user_row =
+        sqlx::query("SELECT email, display_name, role, created_at FROM users WHERE id = $1")
+            .bind(auth.user_id)
+            .fetch_optional(pool.get_ref())
+            .await?;
+    let export_email: String = user_row
+        .as_ref()
+        .and_then(|r| r.try_get("email").ok())
+        .unwrap_or_default();
+    let export_display_name: Option<String> = user_row
+        .as_ref()
+        .and_then(|r| r.try_get("display_name").ok())
+        .flatten();
+    let export_role: String = user_row
+        .as_ref()
+        .and_then(|r| r.try_get("role").ok())
+        .unwrap_or_default();
+    let export_created_at: String = user_row
+        .as_ref()
+        .and_then(|r| r.try_get::<chrono::DateTime<Utc>, _>("created_at").ok())
+        .map(|t| t.to_rfc3339())
+        .unwrap_or_default();
+
     // Profile (enhanced: includes country, waist, weight, gender, age)
     let profile_row = sqlx::query(
         "SELECT height_cm, default_waist_cm, default_weight_kg, country_code, gender, age FROM user_profile WHERE user_id = $1",
@@ -978,9 +1002,127 @@ pub async fn export_json(
         }));
     }
 
+    // Templates (GDPR completeness)
+    let template_rows = sqlx::query(
+        "SELECT name, marker_slugs, is_default, defaults, created_at, deleted_at FROM measurement_templates WHERE user_id = $1 ORDER BY created_at",
+    )
+    .bind(auth.user_id)
+    .fetch_all(pool.get_ref())
+    .await
+    .unwrap_or_default();
+    let templates: Vec<serde_json::Value> = template_rows
+        .iter()
+        .map(|r| {
+            json!({
+                "name": r.try_get::<String, _>("name").unwrap_or_default(),
+                "marker_slugs": r.try_get::<Vec<String>, _>("marker_slugs").unwrap_or_default(),
+                "is_default": r.try_get::<bool, _>("is_default").unwrap_or(false),
+                "defaults": r.try_get::<Option<serde_json::Value>, _>("defaults").ok().flatten(),
+                "created_at": r.try_get::<chrono::DateTime<Utc>, _>("created_at").map(|t| t.to_rfc3339()).unwrap_or_default(),
+                "deleted_at": r.try_get::<Option<chrono::DateTime<Utc>>, _>("deleted_at").ok().flatten().map(|t| t.to_rfc3339()),
+            })
+        })
+        .collect();
+
+    // Archived devices (GDPR: include soft-deleted data too)
+    let archived_device_rows = sqlx::query(
+        "SELECT device_name, device_type, markers_measured, created_at, deleted_at FROM devices WHERE user_id = $1 AND is_deleted = true",
+    )
+    .bind(auth.user_id)
+    .fetch_all(pool.get_ref())
+    .await
+    .unwrap_or_default();
+    let archived_devices: Vec<serde_json::Value> = archived_device_rows
+        .iter()
+        .map(|r| {
+            json!({
+                "device_name": r.try_get::<String, _>("device_name").unwrap_or_default(),
+                "device_type": r.try_get::<String, _>("device_type").unwrap_or_default(),
+                "markers_measured": r.try_get::<Vec<String>, _>("markers_measured").unwrap_or_default(),
+                "created_at": r.try_get::<chrono::DateTime<Utc>, _>("created_at").map(|t| t.to_rfc3339()).unwrap_or_default(),
+                "archived_at": r.try_get::<Option<chrono::DateTime<Utc>>, _>("deleted_at").ok().flatten().map(|t| t.to_rfc3339()),
+            })
+        })
+        .collect();
+
+    // Consent settings (GDPR Art. 7)
+    let consent_row = sqlx::query(
+        "SELECT consent_product_updates, consent_newsletter, consent_partner_offers FROM user_profile WHERE user_id = $1",
+    )
+    .bind(auth.user_id)
+    .fetch_optional(pool.get_ref())
+    .await
+    .ok()
+    .flatten();
+    let share_data: Option<bool> =
+        sqlx::query_scalar("SELECT share_anonymous_data FROM user_preferences WHERE user_id = $1")
+            .bind(auth.user_id)
+            .fetch_optional(pool.get_ref())
+            .await
+            .ok()
+            .flatten();
+    let consent = json!({
+        "product_updates": consent_row.as_ref().and_then(|r| r.try_get::<Option<bool>, _>("consent_product_updates").ok().flatten()),
+        "newsletter": consent_row.as_ref().and_then(|r| r.try_get::<Option<bool>, _>("consent_newsletter").ok().flatten()),
+        "partner_offers": consent_row.as_ref().and_then(|r| r.try_get::<Option<bool>, _>("consent_partner_offers").ok().flatten()),
+        "share_anonymous_data": share_data,
+    });
+
+    // License & subscription
+    let license_row = sqlx::query(
+        "SELECT lt.slug, lt.name, ul.created_at, ul.expires_at FROM user_licenses ul JOIN license_tiers lt ON lt.id = ul.tier_id WHERE ul.user_id = $1",
+    )
+    .bind(auth.user_id)
+    .fetch_optional(pool.get_ref())
+    .await
+    .ok()
+    .flatten();
+    let license = license_row.map(|r| {
+        json!({
+            "tier": r.try_get::<String, _>("slug").unwrap_or_default(),
+            "tier_name": r.try_get::<String, _>("name").unwrap_or_default(),
+            "started_at": r.try_get::<chrono::DateTime<Utc>, _>("created_at").map(|t| t.to_rfc3339()).unwrap_or_default(),
+            "expires_at": r.try_get::<Option<chrono::DateTime<Utc>>, _>("expires_at").ok().flatten().map(|t| t.to_rfc3339()),
+        })
+    });
+
+    // MFA status (no secrets — just whether active)
+    let mfa_enabled: bool =
+        sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM user_mfa WHERE user_id = $1)")
+            .bind(auth.user_id)
+            .fetch_one(pool.get_ref())
+            .await
+            .unwrap_or(false);
+
+    // Data access log (who viewed your data)
+    let access_log_rows = sqlx::query(
+        "SELECT accessed_by, action, resource, created_at FROM data_access_log WHERE user_id = $1 ORDER BY created_at DESC LIMIT 100",
+    )
+    .bind(auth.user_id)
+    .fetch_all(pool.get_ref())
+    .await
+    .unwrap_or_default();
+    let access_log: Vec<serde_json::Value> = access_log_rows
+        .iter()
+        .map(|r| {
+            json!({
+                "action": r.try_get::<String, _>("action").unwrap_or_default(),
+                "resource": r.try_get::<String, _>("resource").unwrap_or_default(),
+                "created_at": r.try_get::<chrono::DateTime<Utc>, _>("created_at").map(|t| t.to_rfc3339()).unwrap_or_default(),
+            })
+        })
+        .collect();
+
     let export = json!({
         "exported_at": Utc::now().to_rfc3339(),
-        "version": "1.3",
+        "version": "2.0",
+        "user": {
+            "email": export_email,
+            "display_name": export_display_name,
+            "role": export_role,
+            "created_at": export_created_at,
+            "mfa_enabled": mfa_enabled,
+        },
         "profile": {
             "height_cm": height,
             "default_waist_cm": waist,
@@ -990,13 +1132,19 @@ pub async fn export_json(
             "age": age,
             "diet_protocol": protocol,
         },
+        "consent": consent,
+        "license": license,
+        "preferences": lifestyle_defaults,
         "measurements": measurements,
+        "calculated_markers": custom_ref_ranges, // TODO: rename variable
         "medications": meds,
         "influence_factors": influence_factors,
         "devices": devices,
+        "archived_devices": archived_devices,
+        "templates": templates,
         "custom_reference_ranges": custom_ref_ranges,
-        "lifestyle_defaults": lifestyle_defaults,
         "conversations": conversations,
+        "data_access_log": access_log,
     });
 
     let json_str = serde_json::to_string_pretty(&export).map_err(|_| AppError::Internal)?;
