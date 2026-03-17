@@ -27,6 +27,7 @@ services:
       JWT_SECRET: ${JWT_SECRET_STAGING}
       RUST_LOG: info
       FRONTEND_URL: https://demo.sovereignhealth.io
+      CORS_ORIGINS: https://demo.sovereignhealth.io
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
       ENCRYPTION_KEY: ${ENCRYPTION_KEY_STAGING}
       MAILGUN_API_KEY: ${MAILGUN_API_KEY:-}
