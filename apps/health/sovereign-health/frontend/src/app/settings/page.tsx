@@ -1318,6 +1318,37 @@ function ProfileTab({
                   <p className="text-[11px] text-muted-foreground mt-1 leading-snug">{t(`dietDescs.${lForm.default_diet_protocol}`)}</p>
                 )}
               </FieldWithInfo>
+              <FieldWithInfo label={tCommon('fastingProtocol')} items={['16_8','18_6','20_4','omad','36h','48h','extended'].map(k => ({ name: k === '16_8' || k === 'omad' || k === '36h' || k === '48h' || k === 'extended' ? tFasting(k as '16_8') : tCommon(k as '18_6'), desc: t(`fastingDescs.${k}` as 'fastingDescs.16_8') }))}>
+                <select value={lForm.default_fasting_protocol ?? ''} onChange={e => setLForm({ ...lForm, default_fasting_protocol: e.target.value || null })} className={inp}>
+                  <option value="">{tCommon('none')}</option>
+                  <option value="16_8">{tFasting('16_8')}</option>
+                  <option value="18_6">{tCommon('18_6')}</option>
+                  <option value="20_4">{tCommon('20_4')}</option>
+                  <option value="omad">{tFasting('omad')}</option>
+                  <option value="36h">{tFasting('36h')}</option>
+                  <option value="48h">{tFasting('48h')}</option>
+                  <option value="extended">{tFasting('extended')}</option>
+                </select>
+                {lForm.default_fasting_protocol && (
+                  <p className="text-[11px] text-muted-foreground mt-1 leading-snug">{t(`fastingDescs.${lForm.default_fasting_protocol}`)}</p>
+                )}
+              </FieldWithInfo>
+              <FieldWithInfo label={t('exerciseLevel')} items={['strength','cardio','walking','hiit','rest'].map(k => ({ name: tCommon(k as 'strength'), desc: t(`exerciseDescs.${k}` as 'exerciseDescs.strength') }))}>
+                <select value={lForm.default_exercise ?? ''} onChange={e => setLForm({ ...lForm, default_exercise: e.target.value || null })} className={inp}>
+                  <option value="">{tCommon('none')}</option>
+                  <option value="strength">{tCommon('strength')}</option>
+                  <option value="cardio">{tCommon('cardio')}</option>
+                  <option value="walking">{tCommon('walking')}</option>
+                  <option value="hiit">{tCommon('hiit')}</option>
+                  <option value="rest">{tCommon('rest')}</option>
+                </select>
+                {lForm.default_exercise && (
+                  <p className="text-[11px] text-muted-foreground mt-1 leading-snug">{t(`exerciseDescs.${lForm.default_exercise}`)}</p>
+                )}
+              </FieldWithInfo>
+              <Field label={t('sleepHoursLabel')}>
+                <input type="number" value={lForm.default_sleep_hours ?? ''} onChange={e => setLForm({ ...lForm, default_sleep_hours: e.target.value ? Number(e.target.value) : null })} className={inp} min={0} max={24} step={0.5} />
+              </Field>
               <Field label={t('sleepQualityLabel')}>
                 <select value={lForm.default_sleep_quality ?? ''} onChange={e => setLForm({ ...lForm, default_sleep_quality: e.target.value || null })} className={inp}>
                   <option value="">{tCommon('notSet')}</option>
@@ -1328,6 +1359,23 @@ function ProfileTab({
                 </select>
                 {lForm.default_sleep_quality && (
                   <p className="text-[11px] text-muted-foreground mt-1 leading-snug">{t(`sleepDescs.${lForm.default_sleep_quality}`)}</p>
+                )}
+              </Field>
+              <Field label={t('stressLevelLabel')}>
+                <select
+                  value={lForm.default_stress_level ?? ''}
+                  onChange={e => setLForm({ ...lForm, default_stress_level: e.target.value ? Number(e.target.value) : null })}
+                  className={inp}
+                >
+                  <option value="">{tCommon('notSet')}</option>
+                  <option value="1">{tStress('none')}</option>
+                  <option value="3">{tStress('low')}</option>
+                  <option value="5">{tStress('moderate')}</option>
+                  <option value="7">{tStress('high')}</option>
+                  <option value="9">{tStress('veryHigh')}</option>
+                </select>
+                {lForm.default_stress_level && (
+                  <p className="text-[11px] text-muted-foreground mt-1 leading-snug">{t(`stressDescs.${lForm.default_stress_level}`)}</p>
                 )}
               </Field>
             </div>

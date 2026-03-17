@@ -739,7 +739,7 @@
       "defaultDiet": "Default diet protocol",
       "exerciseLevel": "Exercise",
       "sleepHoursLabel": "Sleep Hours",
-      "sleepQualityLabel": "Sleep Quality (Excellent / Good / Fair / Poor)",
+      "sleepQualityLabel": "Sleep Quality",
       "stressLevelLabel": "Stress Level",
       "changeInProfileTab": "Change it in the Profile tab.",
       "saveProfile": "Save Profile",
