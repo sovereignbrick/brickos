@@ -2,5 +2,11 @@
 name = "brickos-crypto"
 version = "0.1.0"
 edition = "2021"
+description = "BrickOS shared encryption library — AES-256-GCM at-rest encryption"
+license = "AGPL-3.0"
 
 [dependencies]
+aes-gcm = { workspace = true }
+anyhow = { workspace = true }
+base64 = "0.22"
+hex = "0.4"
