@@ -5,4 +5,10 @@
 --
 -- Issue: https://github.com/sovereignbrick/brickos/issues/67
 
-CREATE EXTENSION IF NOT EXISTS pgaudit;
+DO $$
+BEGIN
+  CREATE EXTENSION IF NOT EXISTS pgaudit;
+EXCEPTION WHEN OTHERS THEN
+  RAISE NOTICE 'pgaudit extension not available — skipping (install pgaudit on PostgreSQL for audit logging)';
+END
+$$;
