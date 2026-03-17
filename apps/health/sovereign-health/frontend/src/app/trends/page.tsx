@@ -10,6 +10,7 @@ import { TrendChart } from '@/components/trend-chart'
 import { useDemoProfile } from '@/lib/demo-profile-context'
 import { DEFAULT_RANGES } from '@/lib/status'
 import { Breadcrumb } from '@/components/breadcrumb'
+import { useContent } from '@/lib/content-context'
 
 
 // ── Period selector matching marker detail page ─────────────────────────────
@@ -149,6 +150,7 @@ export default function TrendsPage() {
   const { user, loading, isDemo } = useAuth()
   const { profile } = useDemoProfile()
   const t = useTranslations('trends')
+  const { markers: contentMarkers } = useContent()
   const [markerSlug, setMarkerSlug] = useState('glucose')
   const [secondarySlug, setSecondarySlug] = useState('')
   const [period, setPeriod] = useState<Period>('30d')
@@ -173,7 +175,7 @@ export default function TrendsPage() {
           // Deduplicate from measurements
           const seen = new Map<string, string>()
           for (const m of (res.data ?? [])) {
-            if (!seen.has(m.marker_slug)) seen.set(m.marker_slug, m.marker_name)
+            if (!seen.has(m.marker_slug)) seen.set(m.marker_slug, contentMarkers[m.marker_slug]?.name ?? m.marker_name)
           }
           // Map to zone slugs using DEFAULT_RANGES or just assign unknown
           const markers: GroupedMarker[] = Array.from(seen.entries()).map(([slug, name]) => ({
@@ -195,7 +197,7 @@ export default function TrendsPage() {
           }
           const allMarkers = defs.map(d => ({
             slug: d.marker_slug,
-            name: d.marker_name,
+            name: contentMarkers[d.marker_slug]?.name ?? d.marker_name,
             zone_slug: d.zone_slug ?? guessZone(d.marker_slug),
           }))
           setAvailableMarkers(markersWithData && markersWithData.size > 0 ? allMarkers.filter(m => markersWithData!.has(m.slug)) : allMarkers)
@@ -206,7 +208,7 @@ export default function TrendsPage() {
       }
     }
     fetchMarkers()
-  }, [loading, user, isDemo, profile])
+  }, [loading, user, isDemo, profile, contentMarkers])
 
   // Fetch primary trend
   const fetchTrend = useCallback(async (slug: string, p: Period) => {
