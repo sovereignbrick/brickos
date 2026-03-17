@@ -30,6 +30,7 @@ reqwest = { version = "0.12", default-features = false, features = ["json", "rus
 aes-gcm = "0.10"
 brickos-auth = { path = "../../../../crates/brickos-auth" }
 brickos-crypto = { path = "../../../../crates/brickos-crypto" }
+brickos-db = { path = "../../../../crates/brickos-db" }
 async-trait = "0.1"
 base64 = "0.22"
 hmac = "0.12"

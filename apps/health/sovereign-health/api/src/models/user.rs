@@ -1,41 +1,25 @@
 // Sovereign Health Intelligence -- AGPL-3.0 -- https://sovereignhealth.io/
+//
+// Re-exports core user types from brickos-db.
+// UserResponse is app-specific (includes health profile fields).
+
+// Core types from brickos-db
+pub use brickos_db::models::user::{LoginRequest, RefreshRequest, SignupRequest, User};
+
+// JWT Claims from brickos-auth
+pub use brickos_auth::jwt::Claims;
+
+// Organization types from brickos-db (for future use)
+pub use brickos_db::models::organization::{DataShare, OrgMember, Organization};
+
+// ── Health-specific user response ─────────────────────────────────────────
 
 use chrono::{DateTime, Utc};
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use uuid::Uuid;
 
-#[derive(Debug, Clone, sqlx::FromRow)]
-pub struct User {
-    pub id: Uuid,
-    pub email: String,
-    pub password_hash: String,
-    pub display_name: Option<String>,
-    pub role: String,
-    pub tier: String,
-    pub created_at: DateTime<Utc>,
-}
-
-#[derive(Debug, Deserialize)]
-pub struct SignupRequest {
-    pub email: String,
-    pub password: String,
-    pub display_name: Option<String>,
-    pub tos_accepted: Option<bool>,
-    pub referred_by: Option<String>,
-    pub locale: Option<String>,
-}
-
-#[derive(Debug, Deserialize)]
-pub struct LoginRequest {
-    pub email: String,
-    pub password: String,
-}
-
-#[derive(Debug, Deserialize)]
-pub struct RefreshRequest {
-    pub refresh_token: String,
-}
-
+/// User response with health-specific profile fields.
+/// Extends the platform BaseUserResponse with height, waist, weight, country.
 #[derive(Debug, Serialize)]
 pub struct UserResponse {
     pub id: Uuid,
@@ -44,7 +28,7 @@ pub struct UserResponse {
     pub role: String,
     pub tier: String,
     pub created_at: DateTime<Utc>,
-    // Profile fields (null if profile not yet set)
+    // Health-specific profile fields (null if profile not yet set)
     pub height_cm: Option<f64>,
     pub default_waist_cm: Option<f64>,
     pub default_weight_kg: Option<f64>,
@@ -67,6 +51,3 @@ impl From<User> for UserResponse {
         }
     }
 }
-
-// Re-export Claims from brickos-auth crate
-pub use brickos_auth::jwt::Claims;
