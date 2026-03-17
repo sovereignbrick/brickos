@@ -141,8 +141,8 @@ function SignupContent() {
   const onSubmit = async (data: SignupInput) => {
     try {
       await api.auth.signup({
-        email: data.email,
-        password: data.password,
+        email: data.email.trim(),
+        password: data.password.trim(),
         display_name: data.display_name || undefined,
         tos_accepted: data.tos_accepted,
         referred_by: referralCode.current || undefined,

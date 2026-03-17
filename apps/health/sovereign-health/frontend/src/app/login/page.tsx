@@ -209,7 +209,7 @@ function LoginContent() {
 
   const onSubmit = async (data: LoginInput) => {
     try {
-      const res = await api.auth.login(data)
+      const res = await api.auth.login({ email: data.email.trim(), password: data.password.trim() })
       if (res.data.mfa_required && res.data.mfa_token) {
         setMfaToken(res.data.mfa_token)
         return
