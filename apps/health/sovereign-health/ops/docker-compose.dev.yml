@@ -26,7 +26,9 @@
 
 services:
   postgres:
-    image: postgres:16-alpine
+    build:
+      context: ./postgres
+      dockerfile: Dockerfile
     container_name: sh-postgres
     environment:
       POSTGRES_DB: sovereign_health
@@ -36,6 +38,20 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    command:
+      - "postgres"
+      - "-c"
+      - "shared_preload_libraries=pgaudit"
+      - "-c"
+      - "pgaudit.log=write,ddl"
+      - "-c"
+      - "pgaudit.log_catalog=off"
+      - "-c"
+      - "pgaudit.log_relation=on"
+      - "-c"
+      - "pgaudit.log_statement_once=on"
+      - "-c"
+      - "pgaudit.log_parameter=off"
 
   redis:
     image: redis:7-alpine
