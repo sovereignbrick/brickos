@@ -66,9 +66,8 @@ STAGING_AUTH_USER="${STAGING_AUTH_USER:-admin}"
 STAGING_AUTH_PASS="${STAGING_AUTH_PASS:-}"
 
 # Git branches: Which branch deploys where.
-# Monorepo uses main for both staging and production.
 BRANCH_PROD="main"
-BRANCH_STAGING="main"
+BRANCH_STAGING="develop"
 
 # Cloudflare: Loaded from .env below. Set CF_ZONE_ID and CF_API_TOKEN there.
 
