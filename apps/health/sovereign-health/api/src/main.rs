@@ -76,12 +76,14 @@ async fn main() -> std::io::Result<()> {
     }
 
     // Hard purge cron: permanently delete accounts past 30-day grace period (GDPR-F002)
+    // + contact submission retention cleanup (GDPR-F005, #42)
     {
         let pool_clone = pool.clone();
         tokio::spawn(async move {
             tokio::time::sleep(std::time::Duration::from_secs(120)).await;
             loop {
                 sovereign_health_backend::services::purge::cron_hard_purge(&pool_clone).await;
+                sovereign_health_backend::services::purge::cron_purge_contacts(&pool_clone).await;
                 tokio::time::sleep(std::time::Duration::from_secs(24 * 60 * 60)).await;
             }
         });

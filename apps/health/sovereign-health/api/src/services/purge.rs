@@ -12,6 +12,7 @@
 use sqlx::PgPool;
 
 const GRACE_PERIOD_DAYS: i32 = 30;
+const CONTACT_RETENTION_DAYS: i32 = 90;
 
 /// Run once daily. Finds users past grace period and permanently deletes all their data.
 pub async fn cron_hard_purge(pool: &PgPool) {
@@ -49,6 +50,29 @@ pub async fn cron_hard_purge(pool: &PgPool) {
             Ok(()) => tracing::info!("Hard purge: user {} permanently deleted", user_id),
             Err(e) => tracing::error!("Hard purge: failed to purge user {}: {e}", user_id),
         }
+    }
+}
+
+/// Purge old contact submissions (GDPR Art. 5(1)(e) — storage limitation).
+/// Issue: https://github.com/sovereignbrick/brickos/issues/42
+pub async fn cron_purge_contacts(pool: &PgPool) {
+    let result = sqlx::query(
+        "DELETE FROM contact_submissions WHERE created_at < NOW() - ($1 || ' days')::interval",
+    )
+    .bind(CONTACT_RETENTION_DAYS)
+    .execute(pool)
+    .await;
+
+    match result {
+        Ok(r) if r.rows_affected() > 0 => {
+            tracing::info!(
+                "Contact purge: deleted {} submissions older than {} days",
+                r.rows_affected(),
+                CONTACT_RETENTION_DAYS
+            );
+        }
+        Ok(_) => tracing::debug!("Contact purge: no old submissions to delete"),
+        Err(e) => tracing::warn!("Contact purge: failed: {e}"),
     }
 }
 
