@@ -4,6 +4,18 @@ import { StatusBadge } from '@/components/status-badge'
 import { formatDateTime } from '@/lib/date-format'
 import { useTranslations } from 'next-intl'
 
+// Try to translate a key; fall back to capitalized raw value
+function tryTranslate(t: (key: string) => string, key: string): string {
+  try {
+    const result = t(key)
+    // next-intl returns the key path if missing; detect that
+    if (result === key || result.startsWith('common.')) return key.charAt(0).toUpperCase() + key.slice(1)
+    return result
+  } catch {
+    return key.charAt(0).toUpperCase() + key.slice(1)
+  }
+}
+
 interface PopoverData {
   id?: string
   timestamp: string
@@ -14,6 +26,8 @@ interface PopoverData {
   fasting_protocol?: string | null
   fasting_hours?: number | null
   diet_protocol?: string | null
+  meal_timing_tag?: string
+  lab_name?: string | null
   exercise_activity?: string | null
   sleep_hours?: number | null
   sleep_quality?: string | null
@@ -42,6 +56,7 @@ export function MeasurementPopover({
   const popoverRef = useRef<HTMLDivElement>(null)
   const t = useTranslations('measurements.popover')
   const tCommon = useTranslations('common')
+  const tMealTiming = useTranslations('common.mealTimingLabels')
   const tStress = useTranslations('stressLevel')
 
   const show = useCallback(() => {
@@ -106,12 +121,16 @@ export function MeasurementPopover({
     fields.push({ label: t('device'), value: data.device_name })
   }
 
-  if (data.protocol_tag && data.protocol_tag !== 'standard') {
-    fields.push({ label: t('protocol'), value: data.protocol_tag.charAt(0).toUpperCase() + data.protocol_tag.slice(1) })
+  if (data.lab_name) {
+    fields.push({ label: 'Labor', value: data.lab_name })
+  }
+
+  if (data.meal_timing_tag && data.meal_timing_tag !== 'no_tag' && data.meal_timing_tag !== 'unspecified') {
+    fields.push({ label: t('protocol'), value: tMealTiming(data.meal_timing_tag) })
   }
 
   if (data.fasting_protocol) {
-    fields.push({ label: t('fastingType'), value: data.fasting_protocol.replace(/_/g, ' ') })
+    fields.push({ label: t('fastingType'), value: tryTranslate(tCommon, data.fasting_protocol) })
   }
 
   if (data.fasting_hours != null && data.fasting_hours > 0) {
@@ -119,15 +138,15 @@ export function MeasurementPopover({
   }
 
   if (data.diet_protocol) {
-    fields.push({ label: t('diet'), value: data.diet_protocol.charAt(0).toUpperCase() + data.diet_protocol.slice(1) })
+    fields.push({ label: t('diet'), value: tryTranslate(tCommon, data.diet_protocol) })
   }
 
   if (data.exercise_activity) {
-    fields.push({ label: t('exercise'), value: data.exercise_activity.charAt(0).toUpperCase() + data.exercise_activity.slice(1) })
+    fields.push({ label: t('exercise'), value: tryTranslate(tCommon, data.exercise_activity) })
   }
 
   if (data.sleep_hours != null) {
-    const qual = data.sleep_quality ? ` (${data.sleep_quality})` : ''
+    const qual = data.sleep_quality ? ` (${tryTranslate(tCommon, data.sleep_quality)})` : ''
     fields.push({ label: t('sleep'), value: `${data.sleep_hours}h${qual}` })
   }
 

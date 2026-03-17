@@ -3,6 +3,7 @@
 pub mod affiliate;
 pub mod content;
 pub mod doctor_chat;
+pub mod lab;
 pub mod marker;
 pub mod measurement;
 pub mod user;

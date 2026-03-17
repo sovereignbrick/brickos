@@ -166,6 +166,10 @@ export interface DeviceInfo {
   validation_date: string | null
   validation_notes: string | null
   validation_status: string | null
+  lab_address?: string | null
+  lab_postal_code?: string | null
+  lab_city?: string | null
+  lab_country?: string | null
 }
 
 export interface QuotaResponse {
@@ -228,12 +232,14 @@ export interface MarkerMeasurement {
   fasting_protocol: string | null
   fasting_hours: number | null
   diet_protocol: string | null
+  meal_timing_tag: string
   exercise_activity: string | null
   sleep_hours: number | null
   sleep_quality: string | null
   stress_level: number | null
   lifestyle_note: string | null
   device_name: string | null
+  lab_name: string | null
 }
 
 export interface MarkerContent {
@@ -512,6 +518,10 @@ export interface ImportSession {
   total_count?: number
   lab_date: string | null
   lab_provider: string | null
+  lab_address: string | null
+  lab_postal_code: string | null
+  lab_city: string | null
+  lab_country: string | null
   markers_extracted?: number
   markers_imported?: number
   error_message?: string | null
@@ -544,7 +554,8 @@ export interface ExtractedMedication {
   dosage: string | null
   frequency: string | null
   form: string | null
-  ingredients: Array<{ name: string; amount: string | null; role: string }>
+  ingredients: Array<{ name: string; amount: string | null; unit?: string; role: string; notes?: string }>
+  prescriber?: string | null
 }
 
 export interface MedImportSession {

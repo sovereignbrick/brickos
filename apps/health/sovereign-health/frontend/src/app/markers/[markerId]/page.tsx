@@ -278,6 +278,7 @@ export default function MarkerDetailPage() {
   const demoHref = useDemoHref()
   const t = useTranslations('markers')
   const tCommon = useTranslations('common')
+  const tMealTiming = useTranslations('common.mealTimingLabels')
   const tNav = useTranslations('nav')
 
   const [marker, setMarker] = useState<MarkerDetail | null>(null)
@@ -657,8 +658,8 @@ export default function MarkerDetailPage() {
                     )}
 
                     <span className="hidden sm:inline text-xs text-muted-foreground min-w-[60px] truncate">
-                      {m.protocol_tag && m.protocol_tag !== 'standard'
-                        ? m.protocol_tag.charAt(0).toUpperCase() + m.protocol_tag.slice(1)
+                      {m.meal_timing_tag && m.meal_timing_tag !== 'no_tag' && m.meal_timing_tag !== 'unspecified'
+                        ? tMealTiming(m.meal_timing_tag)
                         : '-'}
                     </span>
 

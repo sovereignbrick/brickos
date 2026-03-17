@@ -119,7 +119,7 @@ async function uploadRequest<T>(path: string, formData: FormData): Promise<T> {
 
 export const api = {
   auth: {
-    signup: (body: { email: string; password: string; display_name?: string; tos_accepted: boolean; referred_by?: string; locale?: string }) =>
+    signup: (body: { email: string; password: string; display_name?: string; tos_accepted: boolean; referred_by?: string; locale?: string; consent_newsletter?: boolean; consent_product_updates?: boolean }) =>
       request<{ data: { message: string } | { user: import('./types').User; token: string; refresh_token: string } }>(
         '/auth/signup', { method: 'POST', body: JSON.stringify(body) }
       ),
@@ -229,6 +229,10 @@ export const api = {
       markers?: string[]
       is_default?: boolean
       notes?: string | null
+      lab_address?: string
+      lab_postal_code?: string
+      lab_city?: string
+      lab_country?: string
     }) =>
       request<{ data: import('./types').DeviceInfo }>('/devices', {
         method: 'POST',
@@ -251,6 +255,16 @@ export const api = {
       request<{ data: Array<{ month: string; count: number }> }>(
         `/devices/${id}/history`
       ),
+  },
+  labs: {
+    list: () =>
+      request<{ data: Array<{ id: string; name: string; address?: string; postal_code?: string; city?: string; country?: string; phone?: string; notes?: string; created_at: string }> }>('/labs'),
+    create: (body: { name: string; address?: string; postal_code?: string; city?: string; country?: string; phone?: string; notes?: string }) =>
+      request<{ data: { id: string } }>('/labs', { method: 'POST', body: JSON.stringify(body) }),
+    update: (id: string, body: Record<string, unknown>) =>
+      request<{ data: string }>(`/labs/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
+    delete: (id: string) =>
+      request<{ data: string }>(`/labs/${id}`, { method: 'DELETE' }),
   },
   demo: {
     zones: (profile?: string) => {
@@ -668,12 +682,12 @@ export const api = {
       files.forEach(file => fd.append('files', file))
       return uploadRequest<{ data: MedImportSession }>('/import/upload-medication', fd)
     },
-    confirm: (sessionId: string, markers: Array<{ marker_slug: string; value: number }>, opts?: { measured_at?: string; protocol_tag?: string; device_id?: string }) =>
+    confirm: (sessionId: string, markers: Array<{ marker_slug: string; value: number }>, opts?: { measured_at?: string; protocol_tag?: string; device_id?: string; lab_id?: string; lab_name?: string; lab_address?: string; lab_postal_code?: string; lab_city?: string; lab_country?: string }) =>
       request<{ data: { session_id: string; measurements_created: number; message: string } }>(`/import/${sessionId}/confirm`, {
         method: 'POST',
         body: JSON.stringify({ session_id: sessionId, markers, ...opts }),
       }),
-    confirmMedications: (sessionId: string, medications: Array<{ name: string; factor_type?: string; dosage?: string; frequency?: string; form?: string; prescriber?: string; ingredients?: Array<{ name: string; amount?: string; role?: string }> }>) =>
+    confirmMedications: (sessionId: string, medications: Array<{ name: string; factor_type?: string; dosage?: string; frequency?: string; form?: string; prescriber?: string; ingredients?: Array<{ name: string; amount?: string; unit?: string; role?: string; notes?: string }> }>) =>
       request<{ data: { session_id: string; influence_factors_created: number; message: string } }>(`/import/${sessionId}/confirm-medications`, {
         method: 'POST',
         body: JSON.stringify({ medications }),

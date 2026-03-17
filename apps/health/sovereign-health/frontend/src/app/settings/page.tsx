@@ -718,6 +718,10 @@ function DeviceModal({ device, markers, onClose, onSaved }: {
   const [saving, setSaving] = useState(false)
   const [validationNotes, setValidationNotes] = useState(device?.validation_notes ?? '')
   const [validationStatus, setValidationStatus] = useState(device?.validation_status ?? '')
+  const [labAddress, setLabAddress] = useState(device?.lab_address ?? '')
+  const [labPostalCode, setLabPostalCode] = useState(device?.lab_postal_code ?? '')
+  const [labCity, setLabCity] = useState(device?.lab_city ?? '')
+  const [labCountry, setLabCountry] = useState(device?.lab_country ?? '')
 
   // Group markers by zone (deduplicate by marker_slug)
   const zoneGroups = useMemo(() => {
@@ -778,8 +782,8 @@ function DeviceModal({ device, markers, onClose, onSaved }: {
       if (isEdit && device) {
         await api.devices.update(device.id, {
           name: name.trim(),
-          manufacturer: manufacturer || null,
-          model: model || null,
+          manufacturer: deviceType !== 'lab' ? (manufacturer || null) : null,
+          model: deviceType !== 'lab' ? (model || null) : null,
           device_type: deviceType,
           markers: [...selectedMarkers],
           is_default: isDefault,
@@ -787,17 +791,25 @@ function DeviceModal({ device, markers, onClose, onSaved }: {
           validation_notes: validationNotes || null,
           validation_status: validationStatus || null,
           validation_date: validationStatus ? new Date().toISOString() : null,
+          lab_address: deviceType === 'lab' ? (labAddress || null) : null,
+          lab_postal_code: deviceType === 'lab' ? (labPostalCode || null) : null,
+          lab_city: deviceType === 'lab' ? (labCity || null) : null,
+          lab_country: deviceType === 'lab' ? (labCountry || null) : null,
         })
         toast.success(tToast('deviceUpdated'))
       } else {
         await api.devices.create({
           name: name.trim(),
-          manufacturer: manufacturer || null,
-          model: model || null,
+          manufacturer: deviceType !== 'lab' ? (manufacturer || null) : undefined,
+          model: deviceType !== 'lab' ? (model || null) : undefined,
           device_type: deviceType,
           markers: [...selectedMarkers],
           is_default: isDefault,
           notes: notes || null,
+          lab_address: deviceType === 'lab' ? (labAddress || undefined) : undefined,
+          lab_postal_code: deviceType === 'lab' ? (labPostalCode || undefined) : undefined,
+          lab_city: deviceType === 'lab' ? (labCity || undefined) : undefined,
+          lab_country: deviceType === 'lab' ? (labCountry || undefined) : undefined,
         })
         toast.success(tToast('deviceAdded'))
       }
@@ -830,35 +842,7 @@ function DeviceModal({ device, markers, onClose, onSaved }: {
             />
           </div>
 
-          {/* Manufacturer */}
-          <div>
-            <label className="text-xs text-muted-foreground block mb-1">{tDev('manufacturerLabel')}</label>
-            <input
-              type="text"
-              value={manufacturer}
-              onChange={e => setManufacturer(e.target.value)}
-              placeholder={tDev('placeholders.manufacturer')}
-              list="mfr-suggestions"
-              className="w-full bg-white/5 border border-zinc-700 rounded-lg px-3 py-2 text-sm"
-            />
-            <datalist id="mfr-suggestions">
-              {MANUFACTURER_SUGGESTIONS.map(s => <option key={s} value={s} />)}
-            </datalist>
-          </div>
-
-          {/* Model */}
-          <div>
-            <label className="text-xs text-muted-foreground block mb-1">{tDev('modelLabel')}</label>
-            <input
-              type="text"
-              value={model}
-              onChange={e => setModel(e.target.value)}
-              placeholder={tDev('placeholders.model')}
-              className="w-full bg-white/5 border border-zinc-700 rounded-lg px-3 py-2 text-sm"
-            />
-          </div>
-
-          {/* Type */}
+          {/* Type — before manufacturer/model so conditional fields appear after */}
           <div>
             <label className="text-xs text-muted-foreground block mb-1">{tDev('typeLabel')} *</label>
             <select
@@ -869,6 +853,84 @@ function DeviceModal({ device, markers, onClose, onSaved }: {
               {DEVICE_TYPE_VALUES.map(v => <option key={v} value={v}>{v === 'other' ? tCommon('other') : tDev(`deviceTypes.${v}` as 'deviceTypes.home')}</option>)}
             </select>
           </div>
+
+          {deviceType === 'lab' ? (
+            <>
+              {/* Lab-specific fields */}
+              <div>
+                <label className="text-xs text-muted-foreground block mb-1">{tDev('labAddress')}</label>
+                <input
+                  type="text"
+                  value={labAddress}
+                  onChange={e => setLabAddress(e.target.value)}
+                  placeholder={tDev('placeholders.labAddress')}
+                  className="w-full bg-white/5 border border-zinc-700 rounded-lg px-3 py-2 text-sm"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs text-muted-foreground block mb-1">{tDev('labPostalCode')}</label>
+                  <input
+                    type="text"
+                    value={labPostalCode}
+                    onChange={e => setLabPostalCode(e.target.value)}
+                    placeholder="12345"
+                    className="w-full bg-white/5 border border-zinc-700 rounded-lg px-3 py-2 text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground block mb-1">{tDev('labCity')}</label>
+                  <input
+                    type="text"
+                    value={labCity}
+                    onChange={e => setLabCity(e.target.value)}
+                    placeholder={tDev('placeholders.labCity')}
+                    className="w-full bg-white/5 border border-zinc-700 rounded-lg px-3 py-2 text-sm"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="text-xs text-muted-foreground block mb-1">{tDev('labCountry')}</label>
+                <input
+                  type="text"
+                  value={labCountry}
+                  onChange={e => setLabCountry(e.target.value)}
+                  placeholder={tDev('placeholders.labCountry')}
+                  className="w-full bg-white/5 border border-zinc-700 rounded-lg px-3 py-2 text-sm"
+                />
+              </div>
+            </>
+          ) : (
+            <>
+              {/* Manufacturer */}
+              <div>
+                <label className="text-xs text-muted-foreground block mb-1">{tDev('manufacturerLabel')}</label>
+                <input
+                  type="text"
+                  value={manufacturer}
+                  onChange={e => setManufacturer(e.target.value)}
+                  placeholder={tDev('placeholders.manufacturer')}
+                  list="mfr-suggestions"
+                  className="w-full bg-white/5 border border-zinc-700 rounded-lg px-3 py-2 text-sm"
+                />
+                <datalist id="mfr-suggestions">
+                  {MANUFACTURER_SUGGESTIONS.map(s => <option key={s} value={s} />)}
+                </datalist>
+              </div>
+
+              {/* Model */}
+              <div>
+                <label className="text-xs text-muted-foreground block mb-1">{tDev('modelLabel')}</label>
+                <input
+                  type="text"
+                  value={model}
+                  onChange={e => setModel(e.target.value)}
+                  placeholder={tDev('placeholders.model')}
+                  className="w-full bg-white/5 border border-zinc-700 rounded-lg px-3 py-2 text-sm"
+                />
+              </div>
+            </>
+          )}
 
           {/* Markers */}
           <div>
@@ -941,8 +1003,8 @@ function DeviceModal({ device, markers, onClose, onSaved }: {
             />
           </div>
 
-          {/* Validation (edit only) */}
-          {isEdit && (
+          {/* Validation (edit only, not for labs) */}
+          {isEdit && deviceType !== 'lab' && (
             <div className="border-t border-zinc-800 pt-4 space-y-3">
               <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">{tDev('validation')}</p>
               <div>
@@ -2133,7 +2195,7 @@ interface StripeInvoice {
 function LicenseTab() {
   const t = useTranslations('settings.license')
   const tCommon = useTranslations('common')
-  const { user, isDemo } = useAuth()
+  const { user, isDemo, refreshUser } = useAuth()
   const [tierInfo, setTierInfo] = useState<{ slug: string; name: string } | null>(null)
   const [paymentSuccess, setPaymentSuccess] = useState(false)
   const [paymentCanceled, setPaymentCanceled] = useState(false)
@@ -2171,6 +2233,7 @@ function LicenseTab() {
     if (data.synced && data.tier_slug) {
       const n = tierNames[data.tier_slug] || data.tier_slug
       setTierInfo({ slug: data.tier_slug, name: n })
+      refreshUser() // update auth context so navbar badge reflects new tier
       if (data.tier_slug && data.billing_interval && data.status && data.current_period_end) {
         setSubscription({
           tier_slug: data.tier_slug,
@@ -2302,6 +2365,7 @@ function LicenseTab() {
         const newName = tierNames[statusRes.data.subscription.tier_slug] || statusRes.data.subscription.tier_slug
         setTierInfo({ slug: statusRes.data.subscription.tier_slug, name: newName })
       }
+      refreshUser()
     } catch (err) {
       toast.error(err instanceof Error ? err.message : t('actionFailed'))
     } finally {
@@ -2468,10 +2532,13 @@ function LicenseTab() {
         <h3 className="font-medium">{t('planActions')}</h3>
         <div className="space-y-4">
           {/* No subscription - show upgrade options */}
-          {!subscription && stripeEnabled && (
-            <a href={`${APP_CONFIG.websiteUrl}/pricing`} target="_blank" rel="noopener noreferrer" className="inline-block px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm rounded-lg transition-colors">
-              {t('upgrade')}
-            </a>
+          {!subscription && slug === 'glimpse' && (
+            <div>
+              <Link href="/checkout" className="inline-block px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm rounded-lg transition-colors">
+                {t('upgrade')}
+              </Link>
+              <p className="text-xs text-muted-foreground mt-1">{t('upgradeDesc')}</p>
+            </div>
           )}
 
           {/* Active subscription actions */}

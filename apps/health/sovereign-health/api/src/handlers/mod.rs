@@ -22,6 +22,7 @@ pub mod export;
 pub mod features;
 pub mod health;
 pub mod import;
+pub mod labs;
 pub mod influence_factors;
 pub mod knowledge;
 pub mod license;

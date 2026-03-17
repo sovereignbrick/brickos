@@ -23,6 +23,7 @@ pub async fn list(
                   d.markers_measured, d.status, d.is_default, d.notes,
                   d.measurement_location, d.calibration_notes, d.known_bias,
                   d.validation_date, d.validation_notes, d.validation_status,
+                  d.lab_address, d.lab_postal_code, d.lab_city, d.lab_country,
                   d.created_at, d.updated_at,
                   COALESCE(mc.cnt, 0) as measurement_count,
                   mc.last_used
@@ -67,6 +68,10 @@ pub async fn list(
                     .ok().flatten().map(|dt| dt.to_rfc3339()),
                 "validation_notes": row.try_get::<Option<String>, _>("validation_notes").ok().flatten(),
                 "validation_status": row.try_get::<Option<String>, _>("validation_status").ok().flatten(),
+                "lab_address": row.try_get::<Option<String>, _>("lab_address").ok().flatten(),
+                "lab_postal_code": row.try_get::<Option<String>, _>("lab_postal_code").ok().flatten(),
+                "lab_city": row.try_get::<Option<String>, _>("lab_city").ok().flatten(),
+                "lab_country": row.try_get::<Option<String>, _>("lab_country").ok().flatten(),
             })
         })
         .collect();
@@ -90,6 +95,10 @@ pub struct CreateDeviceRequest {
     pub markers: Option<Vec<String>>,
     pub is_default: Option<bool>,
     pub notes: Option<String>,
+    pub lab_address: Option<String>,
+    pub lab_postal_code: Option<String>,
+    pub lab_city: Option<String>,
+    pub lab_country: Option<String>,
 }
 
 pub async fn create(
@@ -125,8 +134,9 @@ pub async fn create(
     }
 
     let row = sqlx::query(
-        r#"INSERT INTO devices (user_id, device_name, manufacturer, model, device_type, markers_measured, is_default, notes, status)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'active')
+        r#"INSERT INTO devices (user_id, device_name, manufacturer, model, device_type, markers_measured, is_default, notes, status,
+                                lab_address, lab_postal_code, lab_city, lab_country)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'active', $9, $10, $11, $12)
            RETURNING id"#,
     )
     .bind(auth.user_id)
@@ -137,6 +147,10 @@ pub async fn create(
     .bind(&markers)
     .bind(set_default)
     .bind(&body.notes)
+    .bind(&body.lab_address)
+    .bind(&body.lab_postal_code)
+    .bind(&body.lab_city)
+    .bind(&body.lab_country)
     .fetch_one(pool.get_ref())
     .await?;
 
@@ -175,6 +189,10 @@ pub struct UpdateDeviceRequest {
     pub validation_date: Option<String>,
     pub validation_notes: Option<String>,
     pub validation_status: Option<String>,
+    pub lab_address: Option<String>,
+    pub lab_postal_code: Option<String>,
+    pub lab_city: Option<String>,
+    pub lab_country: Option<String>,
 }
 
 pub async fn update(
@@ -250,6 +268,10 @@ pub async fn update(
     maybe_set!(body.notes, "notes");
     maybe_set!(body.validation_notes, "validation_notes");
     maybe_set!(body.validation_status, "validation_status");
+    maybe_set!(body.lab_address, "lab_address");
+    maybe_set!(body.lab_postal_code, "lab_postal_code");
+    maybe_set!(body.lab_city, "lab_city");
+    maybe_set!(body.lab_country, "lab_country");
 
     // Handle validation_date separately (needs parsing)
     let parsed_validation_date: Option<chrono::DateTime<chrono::Utc>> =
@@ -311,6 +333,18 @@ pub async fn update(
     }
     if body.validation_date.is_some() {
         q = q.bind(parsed_validation_date);
+    }
+    if let Some(ref v) = body.lab_address {
+        q = q.bind(v);
+    }
+    if let Some(ref v) = body.lab_postal_code {
+        q = q.bind(v);
+    }
+    if let Some(ref v) = body.lab_city {
+        q = q.bind(v);
+    }
+    if let Some(ref v) = body.lab_country {
+        q = q.bind(v);
     }
 
     q.execute(pool.get_ref()).await?;

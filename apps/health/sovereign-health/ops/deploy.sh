@@ -307,6 +307,10 @@ deploy_backend() {
     else
         ssh $VPS "cd $VPS_BASE && docker compose -f $compose_file up -d --force-recreate backend && docker image prune -f"
     fi
+    log "Pruning local Docker build cache..."
+    docker builder prune -f --filter "until=24h" >/dev/null 2>&1 || true
+    docker image prune -f >/dev/null 2>&1 || true
+
     log "Backend ($env) deployed."
     report_add "OK" "Backend built, transferred, restarted ($env, tag: $image_tag)"
 }
@@ -361,6 +365,10 @@ deploy_frontend() {
     else
         ssh $VPS "cd $VPS_BASE && docker compose -f $compose_file up -d --force-recreate frontend && docker image prune -f"
     fi
+    log "Pruning local Docker build cache..."
+    docker builder prune -f --filter "until=24h" >/dev/null 2>&1 || true
+    docker image prune -f >/dev/null 2>&1 || true
+
     log "Frontend ($env) deployed."
     report_add "OK" "Frontend built, transferred, restarted ($env, API: $api_url)"
 }

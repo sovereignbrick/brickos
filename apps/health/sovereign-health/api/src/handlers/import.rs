@@ -15,7 +15,7 @@ use crate::{
     error::AppError,
     middleware::auth::AuthenticatedUser,
     services::{
-        doctor_chat::{call_claude_vision, call_claude_vision_multi},
+        doctor_chat::{call_claude_vision, call_claude_vision_multi, compress_image_if_needed},
         marker_matcher, tier,
     },
 };
@@ -145,20 +145,24 @@ pub async fn upload(
 
     let session_id: Uuid = session_row.try_get("id").map_err(|_| AppError::Internal)?;
 
-    // Call AI with file(s)
+    // Compress images before sending to AI (Anthropic 5 MB per-image limit)
     let vision_result = if files.len() == 1 {
-        let file_base64 = BASE64.encode(&files[0].bytes);
+        let (compressed, ct) = compress_image_if_needed(&files[0].bytes, &files[0].content_type);
+        let file_base64 = BASE64.encode(&compressed);
         call_claude_vision(
             &config.anthropic_api_key,
             &file_base64,
-            &files[0].content_type,
+            &ct,
             &import_type,
         )
         .await
     } else {
         let file_data: Vec<(String, String)> = files
             .iter()
-            .map(|f| (BASE64.encode(&f.bytes), f.content_type.clone()))
+            .map(|f| {
+                let (compressed, ct) = compress_image_if_needed(&f.bytes, &f.content_type);
+                (BASE64.encode(&compressed), ct)
+            })
             .collect();
         call_claude_vision_multi(&config.anthropic_api_key, &file_data, &import_type).await
     };
@@ -186,6 +190,10 @@ pub async fn upload(
 
                     let lab_date = extract_field_str(&response.text, "lab_date");
                     let lab_provider = extract_field_str(&response.text, "lab_provider");
+                    let lab_address = extract_field_str(&response.text, "lab_address");
+                    let lab_postal_code = extract_field_str(&response.text, "lab_postal_code");
+                    let lab_city = extract_field_str(&response.text, "lab_city");
+                    let lab_country = extract_field_str(&response.text, "lab_country");
 
                     let markers_count = matched.len() as i32;
 
@@ -235,6 +243,10 @@ pub async fn upload(
                             "total_count": markers_count,
                             "lab_date": lab_date,
                             "lab_provider": lab_provider,
+                            "lab_address": lab_address,
+                            "lab_postal_code": lab_postal_code,
+                            "lab_city": lab_city,
+                            "lab_country": lab_country,
                             "status": "extracted"
                         },
                         "error": null
@@ -294,6 +306,12 @@ pub struct ConfirmRequest {
     pub measured_at: Option<chrono::DateTime<Utc>>,
     pub protocol_tag: Option<String>,
     pub device_id: Option<Uuid>,
+    pub lab_id: Option<Uuid>,
+    pub lab_name: Option<String>,
+    pub lab_address: Option<String>,
+    pub lab_postal_code: Option<String>,
+    pub lab_city: Option<String>,
+    pub lab_country: Option<String>,
 }
 
 #[derive(Deserialize, Serialize)]
@@ -338,6 +356,86 @@ pub async fn confirm(
         .clone()
         .unwrap_or_else(|| "standard".to_string());
 
+    // Resolve lab: use provided lab_id, or create from lab_name if given
+    let lab_id: Option<Uuid> = if body.lab_id.is_some() {
+        body.lab_id
+    } else if let Some(ref lab_name) = body.lab_name {
+        if !lab_name.trim().is_empty() {
+            Some(
+                crate::handlers::labs::find_or_create(
+                    pool.get_ref(),
+                    auth.user_id,
+                    lab_name,
+                    body.lab_address.as_deref(),
+                    body.lab_postal_code.as_deref(),
+                    body.lab_city.as_deref(),
+                    body.lab_country.as_deref(),
+                )
+                .await?,
+            )
+        } else {
+            None
+        }
+    } else {
+        None
+    };
+
+    // Also create/find a lab device so it appears in Settings > Devices
+    let device_id: Option<Uuid> = if let Some(ref lab_name) = body.lab_name {
+        if !lab_name.trim().is_empty() {
+            // Check if a lab device with this name already exists
+            let existing = sqlx::query(
+                "SELECT id FROM devices WHERE user_id = $1 AND device_name = $2 AND device_type = 'lab' AND is_deleted = false",
+            )
+            .bind(auth.user_id)
+            .bind(lab_name.trim())
+            .fetch_optional(pool.get_ref())
+            .await?;
+
+            if let Some(r) = existing {
+                // Update address info on existing lab device
+                sqlx::query(
+                    r#"UPDATE devices SET
+                           lab_address = COALESCE($1, lab_address),
+                           lab_postal_code = COALESCE($2, lab_postal_code),
+                           lab_city = COALESCE($3, lab_city),
+                           lab_country = COALESCE($4, lab_country),
+                           updated_at = NOW()
+                       WHERE id = $5"#,
+                )
+                .bind(&body.lab_address)
+                .bind(&body.lab_postal_code)
+                .bind(&body.lab_city)
+                .bind(&body.lab_country)
+                .bind(r.try_get::<Uuid, _>("id").unwrap_or_default())
+                .execute(pool.get_ref())
+                .await?;
+                Some(r.try_get::<Uuid, _>("id").unwrap_or_default())
+            } else {
+                // Create new lab device
+                let row = sqlx::query(
+                    r#"INSERT INTO devices (user_id, device_name, device_type, status,
+                                           lab_address, lab_postal_code, lab_city, lab_country)
+                       VALUES ($1, $2, 'lab', 'active', $3, $4, $5, $6)
+                       RETURNING id"#,
+                )
+                .bind(auth.user_id)
+                .bind(lab_name.trim())
+                .bind(&body.lab_address)
+                .bind(&body.lab_postal_code)
+                .bind(&body.lab_city)
+                .bind(&body.lab_country)
+                .fetch_one(pool.get_ref())
+                .await?;
+                Some(row.try_get::<Uuid, _>("id").map_err(|_| AppError::Internal)?)
+            }
+        } else {
+            body.device_id
+        }
+    } else {
+        body.device_id
+    };
+
     let mut created_count = 0i32;
 
     for cm in &body.markers {
@@ -371,8 +469,8 @@ pub async fn confirm(
         sqlx::query(
             r#"INSERT INTO measurements (
                 user_id, marker_id, timestamp, value_canonical, unit_canonical, status,
-                protocol_tag, device_id
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)"#,
+                protocol_tag, device_id, lab_id
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)"#,
         )
         .bind(auth.user_id)
         .bind(marker_id)
@@ -381,7 +479,8 @@ pub async fn confirm(
         .bind(&unit_canonical)
         .bind(&status)
         .bind(&protocol_tag)
-        .bind(body.device_id)
+        .bind(device_id)
+        .bind(lab_id)
         .execute(pool.get_ref())
         .await?;
 
@@ -628,20 +727,24 @@ pub async fn upload_medication(
 
     let session_id: Uuid = session_row.try_get("id").map_err(|_| AppError::Internal)?;
 
-    // Call AI with file(s)
+    // Compress images before sending to AI (Anthropic 5 MB per-image limit)
     let vision_result = if files.len() == 1 {
-        let file_base64 = BASE64.encode(&files[0].bytes);
+        let (compressed, ct) = compress_image_if_needed(&files[0].bytes, &files[0].content_type);
+        let file_base64 = BASE64.encode(&compressed);
         call_claude_vision(
             &config.anthropic_api_key,
             &file_base64,
-            &files[0].content_type,
+            &ct,
             "med_import",
         )
         .await
     } else {
         let file_data: Vec<(String, String)> = files
             .iter()
-            .map(|f| (BASE64.encode(&f.bytes), f.content_type.clone()))
+            .map(|f| {
+                let (compressed, ct) = compress_image_if_needed(&f.bytes, &f.content_type);
+                (BASE64.encode(&compressed), ct)
+            })
             .collect();
         call_claude_vision_multi(&config.anthropic_api_key, &file_data, "med_import").await
     };

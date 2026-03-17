@@ -28,6 +28,8 @@ pub struct SignupRequest {
     pub tos_accepted: Option<bool>,
     pub referred_by: Option<String>,
     pub locale: Option<String>,
+    pub consent_newsletter: Option<bool>,
+    pub consent_product_updates: Option<bool>,
 }
 
 /// API request for user login.

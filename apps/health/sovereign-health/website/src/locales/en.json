@@ -132,7 +132,12 @@
       "heading": "See it in action",
       "description": "Explore the full platform with sample health data. Three demo profiles show how different health patterns look.",
       "openTheApp": "Open the App",
-      "screenshotPlaceholder": "App Screenshot"
+      "screenshotPlaceholder": "App Screenshot",
+      "screenshots": {
+        "addDevices": "Add your devices - connect health trackers and lab imports",
+        "drAlexMedication": "Dr. Alex - AI-powered medication import and analysis",
+        "influenceFactors": "Influence factors - track what affects your health markers"
+      }
     },
     "pricing": {
       "heading": "Pricing",

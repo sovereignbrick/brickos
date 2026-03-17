@@ -956,7 +956,8 @@ Rules:
 - If a value is unclear, set confidence below 0.7
 - Do not invent values. If you cannot read it, omit it.
 - If you can detect the lab date, include it as a separate field: "lab_date": "YYYY-MM-DD"
-- If you can detect the lab provider name, include it: "lab_provider": "Name"
+- If you can detect the lab/provider name from the letterhead, include: "lab_provider": "Name"
+- If you can detect the lab address, include: "lab_address": "Street address", "lab_postal_code": "12345", "lab_city": "City", "lab_country": "Country"
 - Return valid JSON only. No markdown, no explanations, just the JSON."#;
 
 const MEDICATION_EXTRACTION_PROMPT: &str = r#"Extract all medications and supplements from this image.
@@ -987,6 +988,74 @@ type must be "medication" or "supplement".
 Each ingredient role must be "active" or "auxiliary".
 If ingredients are not visible, return an empty array for ingredients.
 Return valid JSON only. No markdown, no explanations."#;
+
+/// Anthropic Vision API limit is 5 MB on the base64 string, which equals ~3.75 MB raw.
+/// Compress images that exceed the threshold by progressively reducing JPEG quality.
+/// PDFs are returned unchanged.
+const VISION_IMAGE_MAX_BYTES: usize = 3_500_000; // 3.5 MB raw — stays under 5 MB base64
+
+/// Compress a single image to fit within the Anthropic per-image limit.
+/// Returns (possibly compressed bytes, media_type).
+/// PDFs and already-small images pass through unchanged.
+pub fn compress_image_if_needed(data: &[u8], media_type: &str) -> (Vec<u8>, String) {
+    if media_type == "application/pdf" || data.len() <= VISION_IMAGE_MAX_BYTES {
+        return (data.to_vec(), media_type.to_string());
+    }
+
+    // Try to decode the image
+    let img = match image::load_from_memory(data) {
+        Ok(img) => img,
+        Err(e) => {
+            tracing::warn!("Image decode failed, sending original: {e}");
+            return (data.to_vec(), media_type.to_string());
+        }
+    };
+
+    // Scale down large images — max 2048px on longest side (plenty for text extraction)
+    let img = {
+        let (w, h) = (img.width(), img.height());
+        let max_dim = 2048u32;
+        if w > max_dim || h > max_dim {
+            img.resize(max_dim, max_dim, image::imageops::FilterType::Lanczos3)
+        } else {
+            img
+        }
+    };
+
+    // Encode as JPEG with decreasing quality until under limit
+    for quality in [85u8, 70, 55, 40] {
+        let mut buf = std::io::Cursor::new(Vec::new());
+        let encoder = image::codecs::jpeg::JpegEncoder::new_with_quality(&mut buf, quality);
+        if img.write_with_encoder(encoder).is_ok() {
+            let compressed = buf.into_inner();
+            if compressed.len() <= VISION_IMAGE_MAX_BYTES {
+                tracing::info!(
+                    "Compressed image from {} to {} bytes (q={quality})",
+                    data.len(),
+                    compressed.len()
+                );
+                return (compressed, "image/jpeg".to_string());
+            }
+        }
+    }
+
+    // Last resort: scale down further and use low quality
+    let img = img.resize(1024, 1024, image::imageops::FilterType::Lanczos3);
+    let mut buf = std::io::Cursor::new(Vec::new());
+    let encoder = image::codecs::jpeg::JpegEncoder::new_with_quality(&mut buf, 40);
+    if img.write_with_encoder(encoder).is_ok() {
+        let compressed = buf.into_inner();
+        tracing::info!(
+            "Compressed image (1024px fallback) from {} to {} bytes",
+            data.len(),
+            compressed.len()
+        );
+        return (compressed, "image/jpeg".to_string());
+    }
+
+    // If all else fails, return original
+    (data.to_vec(), media_type.to_string())
+}
 
 pub async fn call_claude_vision(
     api_key: &str,

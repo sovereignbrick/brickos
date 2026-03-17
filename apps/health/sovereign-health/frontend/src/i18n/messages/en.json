@@ -92,6 +92,16 @@
     "keto": "Keto",
     "license": "License",
     "managePayment": "Manage Payment Method",
+    "mealTimingLabels": {
+      "no_tag": "-",
+      "unspecified": "-",
+      "fasting": "Fasting (before eating)",
+      "before": "Before meal",
+      "30m_after": "30 min after meal",
+      "1h_after": "1h after meal",
+      "2h_after": "2h after meal",
+      "3h_after": "3h after meal"
+    },
     "mediterranean": "Mediterranean",
     "monthly": "Monthly",
     "nameLabel": "Name",
@@ -663,6 +673,10 @@
     "addDeviceTitle": "Add Device",
     "manufacturerLabel": "Manufacturer",
     "modelLabel": "Model",
+    "labAddress": "Address",
+    "labPostalCode": "Postal Code",
+    "labCity": "City",
+    "labCountry": "Country",
     "typeLabel": "Type",
     "markersSelected": "Markers ({count} selected)",
     "setAsDefault": "Set as default device",
@@ -686,7 +700,10 @@
       "deviceName": "e.g. Fora 6",
       "manufacturer": "e.g. ForaCare",
       "model": "e.g. Fora 6 Connect",
-      "validationNotes": "e.g. UA agreement within +/-2%"
+      "validationNotes": "e.g. UA agreement within +/-2%",
+      "labAddress": "e.g. Main Street 1",
+      "labCity": "e.g. Berlin",
+      "labCountry": "e.g. DE"
     }
   },
   "settings": {
@@ -859,6 +876,7 @@
       "cancelledMessage": "Your subscription will end on {date}.",
       "viewPricing": "View Pricing",
       "upgrade": "Upgrade",
+      "upgradeDesc": "Choose a paid plan to unlock all features.",
       "paymentSuccessTitle": "Payment successful!",
       "paymentSuccessDesc": "Welcome to {tier}. Your subscription is now active.",
       "paymentCanceled": "Payment was canceled. You can try again anytime.",
@@ -1348,5 +1366,32 @@
     "upgradeNow": "Upgrade now",
     "measurementCapReached": "You've reached your measurement limit ({used}/{limit}). Upgrade to {tier} for more.",
     "of": "of"
+  },
+  "import": {
+    "reviewTitle": "Review Extracted Results",
+    "markersFound": "markers found",
+    "measurementDate": "Measurement Date",
+    "protocol": "Protocol",
+    "labInfo": "Laboratory Information",
+    "labName": "Lab Name",
+    "labNamePlaceholder": "e.g. Synlab, Laboklin",
+    "labAddress": "Address",
+    "labAddressPlaceholder": "Street address",
+    "labPostalCode": "Postal Code",
+    "labCity": "City",
+    "labCityPlaceholder": "City",
+    "labCountry": "Country",
+    "labCountryPlaceholder": "e.g. DE, AT",
+    "matchedMarkers": "Matched Markers",
+    "labNameColumn": "Lab Name",
+    "marker": "Marker",
+    "value": "Value",
+    "unit": "Unit",
+    "confidence": "Confidence",
+    "unmatched": "Unmatched",
+    "unmatchedHint": "these markers could not be mapped",
+    "selectedCount": "{count} marker(s) selected for import",
+    "importing": "Importing...",
+    "importCount": "Import {count} Marker(s)"
   }
 }

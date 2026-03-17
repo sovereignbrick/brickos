@@ -15,6 +15,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { Breadcrumb } from '@/components/breadcrumb'
 import { formatDateTime } from '@/lib/date-format'
 import { useTranslations } from 'next-intl'
+import { useContent } from '@/lib/content-context'
 
 const PER_PAGE = 20
 
@@ -26,6 +27,8 @@ function MeasurementsContent() {
   const t = useTranslations('measurements')
   const tCommon = useTranslations('common')
   const tNav = useTranslations('nav')
+  const tMealTiming = useTranslations('common.mealTimingLabels')
+  const { markers: contentMarkers } = useContent()
   const [measurements, setMeasurements] = useState<Measurement[]>([])
   const [page, setPage] = useState(1)
   const [total, setTotal] = useState(0)
@@ -334,9 +337,9 @@ function MeasurementsContent() {
                 {isDemo ? (
                   <div className="rounded-xl border p-3 flex items-center justify-between cursor-pointer hover:bg-white/[0.03] transition-colors">
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{m.marker_name}</p>
+                      <p className="text-sm font-medium truncate">{contentMarkers[m.marker_slug]?.name ?? m.marker_name}</p>
                       <p className="text-xs text-muted-foreground">
-                        {formatDateTime(m.timestamp, user?.country_code)} · <span className="capitalize">{m.protocol_tag}</span>
+                        {formatDateTime(m.timestamp, user?.country_code)} · <span>{m.meal_timing_tag && m.meal_timing_tag !== 'no_tag' && m.meal_timing_tag !== 'unspecified' ? tMealTiming(m.meal_timing_tag) : '-'}</span>
                       </p>
                     </div>
                     <div className="flex items-center gap-3 ml-3 shrink-0">
@@ -350,9 +353,9 @@ function MeasurementsContent() {
                     className="rounded-xl border p-3 flex items-center justify-between hover:bg-white/5 transition-colors block"
                   >
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{m.marker_name}</p>
+                      <p className="text-sm font-medium truncate">{contentMarkers[m.marker_slug]?.name ?? m.marker_name}</p>
                       <p className="text-xs text-muted-foreground">
-                        {formatDateTime(m.timestamp, user?.country_code)} · <span className="capitalize">{m.protocol_tag}</span>
+                        {formatDateTime(m.timestamp, user?.country_code)} · <span>{m.meal_timing_tag && m.meal_timing_tag !== 'no_tag' && m.meal_timing_tag !== 'unspecified' ? tMealTiming(m.meal_timing_tag) : '-'}</span>
                       </p>
                     </div>
                     <div className="flex items-center gap-3 ml-3 shrink-0">

@@ -126,7 +126,9 @@ pub async fn detail(
     auth: AuthenticatedUser,
     path: web::Path<String>,
     enc: web::Data<crate::services::encryption::Encryptor>,
+    req: HttpRequest,
 ) -> Result<HttpResponse, AppError> {
+    let locale = resolve_locale_from_req(&req);
     let marker_slug = path.into_inner();
     use sqlx::Row;
 
@@ -159,8 +161,8 @@ pub async fn detail(
             fetch_latest_measurement(&pool, auth.user_id, marker_id, &unit, enc.get_ref()).await?;
 
         // Description
-        let description = fetch_description(&pool, &marker_slug, "en").await?;
-        let fasting_explanation = fetch_fasting_explanation(&pool, &marker_slug, "en").await?;
+        let description = fetch_description(&pool, &marker_slug, &locale).await?;
+        let fasting_explanation = fetch_fasting_explanation(&pool, &marker_slug, &locale).await?;
 
         return Ok(HttpResponse::Ok().json(json!({
             "data": {
@@ -245,9 +247,9 @@ pub async fn detail(
         });
 
         // Description
-        let description = fetch_description(pool.get_ref(), &marker_slug, "en").await?;
+        let description = fetch_description(pool.get_ref(), &marker_slug, &locale).await?;
         let fasting_explanation =
-            fetch_fasting_explanation(pool.get_ref(), &marker_slug, "en").await?;
+            fetch_fasting_explanation(pool.get_ref(), &marker_slug, &locale).await?;
 
         // Base markers for calculated marker links
         let base_markers: Vec<String> = row
@@ -306,12 +308,14 @@ pub async fn marker_measurements(
                m.id, m.value_canonical as value, m.unit_canonical,
                m.timestamp, m.status, m.protocol_tag,
                m.fasting_protocol, m.fasting_hours, m.diet_protocol,
+               m.meal_timing_tag,
                m.exercise_activity, m.sleep_hours, m.sleep_quality,
                m.stress_level, m.lifestyle_note,
-               d.device_name
+               d.device_name, l.name as lab_name
            FROM measurements m
            JOIN markers mk ON mk.id = m.marker_id
            LEFT JOIN devices d ON d.id = m.device_id
+           LEFT JOIN labs l ON l.id = m.lab_id
            WHERE m.user_id = $1 AND mk.marker_slug = $2 AND m.is_deleted = false
            ORDER BY m.timestamp DESC
            LIMIT $3"#,
@@ -336,12 +340,14 @@ pub async fn marker_measurements(
                 "fasting_protocol":  r.try_get::<Option<String>, _>("fasting_protocol").unwrap_or(None),
                 "fasting_hours":     r.try_get::<Option<i32>, _>("fasting_hours").unwrap_or(None),
                 "diet_protocol":     r.try_get::<Option<String>, _>("diet_protocol").unwrap_or(None),
+                "meal_timing_tag":   r.try_get::<String, _>("meal_timing_tag").unwrap_or_else(|_| "unspecified".to_string()),
                 "exercise_activity": r.try_get::<Option<String>, _>("exercise_activity").unwrap_or(None),
                 "sleep_hours":       r.try_get::<Option<f64>, _>("sleep_hours").unwrap_or(None),
                 "sleep_quality":     r.try_get::<Option<String>, _>("sleep_quality").unwrap_or(None),
                 "stress_level":      r.try_get::<Option<i32>, _>("stress_level").unwrap_or(None),
                 "lifestyle_note":    enc.decrypt_opt(r.try_get::<Option<String>, _>("lifestyle_note").unwrap_or(None)),
                 "device_name":       r.try_get::<Option<String>, _>("device_name").unwrap_or(None),
+                "lab_name":          r.try_get::<Option<String>, _>("lab_name").unwrap_or(None),
             })
         })
         .collect();
@@ -748,6 +754,7 @@ pub async fn demo_marker_measurements(
             r#"SELECT m.id, m.value_canonical as value, m.unit_canonical,
                       m.timestamp, m.status, m.protocol_tag,
                       m.fasting_protocol, m.fasting_hours, m.diet_protocol,
+                      m.meal_timing_tag,
                       m.exercise_activity, m.sleep_hours, m.sleep_quality,
                       m.stress_level, m.lifestyle_note,
                       d.device_name
@@ -776,6 +783,7 @@ pub async fn demo_marker_measurements(
                 "fasting_protocol":  r.try_get::<Option<String>, _>("fasting_protocol").unwrap_or(None),
                 "fasting_hours":     r.try_get::<Option<i32>, _>("fasting_hours").unwrap_or(None),
                 "diet_protocol":     r.try_get::<Option<String>, _>("diet_protocol").unwrap_or(None),
+                "meal_timing_tag":   r.try_get::<String, _>("meal_timing_tag").unwrap_or_else(|_| "unspecified".to_string()),
                 "exercise_activity": r.try_get::<Option<String>, _>("exercise_activity").unwrap_or(None),
                 "sleep_hours":       r.try_get::<Option<f64>, _>("sleep_hours").unwrap_or(None),
                 "sleep_quality":     r.try_get::<Option<String>, _>("sleep_quality").unwrap_or(None),

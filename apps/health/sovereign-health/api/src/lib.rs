@@ -258,6 +258,13 @@ pub fn configure_routes(cfg: &mut actix_web::web::ServiceConfig) {
                 actix_web::web::get().to(handlers::devices::history),
             ),
     )
+    .service(
+        actix_web::web::scope("/labs")
+            .route("", actix_web::web::get().to(handlers::labs::list))
+            .route("", actix_web::web::post().to(handlers::labs::create))
+            .route("/{id}", actix_web::web::put().to(handlers::labs::update))
+            .route("/{id}", actix_web::web::delete().to(handlers::labs::delete)),
+    )
     .route(
         "/calculated-markers",
         actix_web::web::get().to(handlers::trends::calculated_markers),

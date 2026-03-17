@@ -1,6 +1,6 @@
 // Sovereign Health Intelligence -- AGPL-3.0 -- https://sovereignhealth.io/
 
-use actix_web::{web, HttpResponse};
+use actix_web::{web, HttpRequest, HttpResponse};
 use serde_json::json;
 use sqlx::PgPool;
 
@@ -10,20 +10,33 @@ use crate::{
     models::zone::{MarkerLatest, StatusSummary, ZoneDetail, ZoneSummary},
 };
 
+fn resolve_locale(req: &HttpRequest) -> String {
+    let al = req
+        .headers()
+        .get("Accept-Language")
+        .and_then(|v| v.to_str().ok())
+        .unwrap_or("en");
+    if al.contains("de") { "de".into() } else { "en".into() }
+}
+
 pub async fn list(
     pool: web::Data<PgPool>,
     auth: AuthenticatedUser,
     _enc: web::Data<crate::services::encryption::Encryptor>,
+    req: HttpRequest,
 ) -> Result<HttpResponse, AppError> {
+    let locale = resolve_locale(&req);
     let rows = sqlx::query(
         r#"SELECT
-            z.zone_slug, z.zone_name, z.zone_icon, z.zone_color, z.display_order,
+            z.zone_slug, COALESCE(zt.name, z.zone_name) as zone_name,
+            z.zone_icon, z.zone_color, z.display_order,
             COUNT(DISTINCT zm.marker_slug) as marker_count,
             COUNT(DISTINCT CASE WHEN latest.value IS NOT NULL THEN zm.marker_slug END) as markers_with_data,
             COUNT(DISTINCT CASE WHEN latest.status = 'green'  THEN zm.marker_slug END) as green_count,
             COUNT(DISTINCT CASE WHEN latest.status = 'orange' THEN zm.marker_slug END) as orange_count,
             COUNT(DISTINCT CASE WHEN latest.status = 'red'    THEN zm.marker_slug END) as red_count
         FROM zones z
+        LEFT JOIN zone_translations zt ON zt.zone_id = z.id AND zt.locale = $2
         LEFT JOIN zone_markers zm ON zm.zone_slug = z.zone_slug
         LEFT JOIN markers mk ON mk.marker_slug = zm.marker_slug
         LEFT JOIN LATERAL (
@@ -32,10 +45,11 @@ pub async fn list(
             ORDER BY timestamp DESC
             LIMIT 1
         ) latest ON mk.id IS NOT NULL
-        GROUP BY z.zone_slug, z.zone_name, z.zone_icon, z.zone_color, z.display_order
+        GROUP BY z.zone_slug, zt.name, z.zone_name, z.zone_icon, z.zone_color, z.display_order
         ORDER BY z.display_order"#,
     )
     .bind(auth.user_id)
+    .bind(&locale)
     .fetch_all(pool.get_ref())
     .await?;
 
@@ -69,14 +83,21 @@ pub async fn detail(
     auth: AuthenticatedUser,
     path: web::Path<String>,
     enc: web::Data<crate::services::encryption::Encryptor>,
+    req: HttpRequest,
 ) -> Result<HttpResponse, AppError> {
+    let locale = resolve_locale(&req);
     let zone_slug = path.into_inner();
 
-    // Fetch zone
+    // Fetch zone with translated name
     let zone_row = sqlx::query(
-        "SELECT zone_slug, zone_name, zone_icon, zone_color FROM zones WHERE zone_slug = $1",
+        r#"SELECT z.zone_slug, COALESCE(zt.name, z.zone_name) as zone_name,
+                  z.zone_icon, z.zone_color
+           FROM zones z
+           LEFT JOIN zone_translations zt ON zt.zone_id = z.id AND zt.locale = $2
+           WHERE z.zone_slug = $1"#,
     )
     .bind(&zone_slug)
+    .bind(&locale)
     .fetch_optional(pool.get_ref())
     .await?
     .ok_or(AppError::NotFound)?;
@@ -89,10 +110,13 @@ pub async fn detail(
     // Fetch standard markers linked to this zone via zone_markers
     let marker_rows = sqlx::query(
         r#"SELECT
-            zm.marker_slug, zm.marker_type, mk.marker_name, mk.unit_canonical, mk.source_type,
+            zm.marker_slug, zm.marker_type,
+            COALESCE(mt.name, mk.marker_name) as marker_name,
+            mk.unit_canonical, mk.source_type,
             m.latest_value, m.status, m.measured_at, m.device_name
         FROM zone_markers zm
         JOIN markers mk ON mk.marker_slug = zm.marker_slug
+        LEFT JOIN marker_translations mt ON mt.marker_id = mk.id AND mt.locale = $3
         LEFT JOIN LATERAL (
             SELECT ms.value_canonical as latest_value, ms.status, ms.timestamp as measured_at,
                    dv.device_name
@@ -107,6 +131,7 @@ pub async fn detail(
     )
     .bind(&zone_slug)
     .bind(auth.user_id)
+    .bind(&locale)
     .fetch_all(pool.get_ref())
     .await?;
 
@@ -134,10 +159,13 @@ pub async fn detail(
     // Fetch calculated markers linked to this zone
     let calc_rows = sqlx::query(
         r#"SELECT
-            zm.marker_slug, cm.marker_name, cm.source_type, zm.display_order,
+            zm.marker_slug,
+            COALESCE(mt.name, cm.marker_name) as marker_name,
+            cm.source_type, zm.display_order,
             cv.value, cv.status, cv.measured_at
         FROM zone_markers zm
         JOIN calculated_markers cm ON cm.marker_slug = zm.marker_slug
+        LEFT JOIN marker_translations mt ON mt.marker_id = cm.id AND mt.locale = $3
         LEFT JOIN LATERAL (
             SELECT cmv.value::float8 as value, cmv.status, cmv.measured_at
             FROM calculated_marker_values cmv
@@ -151,6 +179,7 @@ pub async fn detail(
     )
     .bind(&zone_slug)
     .bind(auth.user_id)
+    .bind(&locale)
     .fetch_all(pool.get_ref())
     .await?;
 

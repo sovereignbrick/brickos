@@ -822,7 +822,7 @@ export default function NewMeasurementPage() {
           </div>
 
           {/* Session overrides — single compact row */}
-          <div className="grid grid-cols-5 gap-2">
+          <div className="grid gap-2" style={{ gridTemplateColumns: protocol === 'fasting' ? '2fr 0.8fr 1fr 1fr 1.2fr' : '2fr 0.8fr 1fr 1fr' }}>
             <div>
               <label className="text-[10px] text-muted-foreground block mb-0.5">{t('lifestyle.mealTiming')}</label>
               <select

@@ -2,9 +2,25 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { SITE_CONFIG } from "@/lib/config";
 import { useI18n } from "@/lib/i18n";
+import { ScreenshotLightbox } from "@/components/screenshot-lightbox";
 import markersData from "../../data/markers.json";
+
+const APP_SCREENSHOTS = [
+  { base: "/screenshots/01-add-your-devices", key: "addDevices" },
+  { base: "/screenshots/02-dr-alex-medication-import", key: "drAlexMedication" },
+  { base: "/screenshots/03-your-influence-factors", key: "influenceFactors" },
+] as const;
+
+function screenshotSrc(base: string, locale: string): string {
+  // Use locale-specific image if available (e.g. -DE.png), fallback to -EN.png
+  if (locale !== "en") {
+    return `${base}-${locale.toUpperCase()}.png`;
+  }
+  return `${base}-EN.png`;
+}
 
 const featureKeys = [
   { key: "healthMarkers", color: "#f59e0b" },
@@ -70,6 +86,7 @@ interface StatsData {
 export default function Home() {
   const { t, locale } = useI18n();
   const [stats, setStats] = useState<StatsData | null>(null);
+  const [lightbox, setLightbox] = useState<string | null>(null);
 
   useEffect(() => {
     fetch(`${SITE_CONFIG.apiUrl}/api/features/stats`)
@@ -131,6 +148,58 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Demo Preview — App Screenshots */}
+      <section className="px-6 py-10">
+        <div className="mx-auto max-w-7xl text-center">
+          <h2 className="text-3xl font-bold">{t('home.demo.heading')}</h2>
+          <p className="mx-auto mt-3 max-w-2xl text-[var(--muted)]">
+            {t('home.demo.description')}
+          </p>
+          <div className="mt-8 grid gap-5 sm:grid-cols-3">
+            {APP_SCREENSHOTS.map((shot) => {
+              const src = screenshotSrc(shot.base, locale);
+              const caption = t(`home.demo.screenshots.${shot.key}` as any) || shot.key;
+              return (
+                <button
+                  key={shot.key}
+                  onClick={() => setLightbox(src)}
+                  className="group overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--card)] transition-transform hover:scale-[1.02] text-left"
+                >
+                  <div className="relative">
+                    <Image
+                      src={src}
+                      alt={caption}
+                      width={640}
+                      height={400}
+                      className="aspect-[8/5] w-full object-cover"
+                      onError={(e) => {
+                        const img = e.currentTarget;
+                        const enFallback = img.src.replace(/-[A-Z]{2}\.png/, "-EN.png");
+                        if (img.src !== enFallback) img.src = enFallback;
+                      }}
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition-colors group-hover:bg-black/20">
+                      <svg className="h-10 w-10 text-white opacity-0 transition-opacity group-hover:opacity-80" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                        <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7" />
+                      </svg>
+                    </div>
+                  </div>
+                  <p className="px-4 py-3 text-sm text-[var(--muted)]">{caption}</p>
+                </button>
+              );
+            })}
+          </div>
+          <div className="mt-6">
+            <a
+              href={SITE_CONFIG.demoUrl}
+              className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-blue-700"
+            >
+              {t('home.demo.openTheApp')}
+            </a>
+          </div>
+        </div>
+      </section>
+
       {/* How It Works */}
       <section className="px-6 py-10">
         <div className="mx-auto max-w-7xl">
@@ -148,6 +217,37 @@ export default function Home() {
                 <p className="mt-2 text-[var(--muted)]">{t(`home.howItWorks.${step.key}.description`)}</p>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Pricing Summary */}
+      <section className="px-6 py-10">
+        <div className="mx-auto max-w-7xl">
+          <h2 className="text-center text-3xl font-bold">{t('home.pricing.heading')}</h2>
+          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+            {tierKeys.map((tier) => (
+              <div
+                key={tier.key}
+                className={`rounded-xl border p-5 text-center ${
+                  tier.highlighted
+                    ? "border-blue-600 bg-[var(--card)]"
+                    : "border-[var(--border)] bg-[var(--card)]"
+                }`}
+              >
+                <h3 className="text-lg font-semibold">{t(`home.pricing.tiers.${tier.key}.name`)}</h3>
+                <p className="mt-2 text-xl font-bold">{t(`home.pricing.tiers.${tier.key}.price`)}</p>
+                <p className="mt-1 text-sm text-[var(--muted)]">{t(`home.pricing.tiers.${tier.key}.tagline`)}</p>
+              </div>
+            ))}
+          </div>
+          <div className="mt-6 text-center">
+            <a
+              href="/pricing/"
+              className="text-sm font-medium text-[var(--accent)] transition-colors hover:text-[var(--accent-hover)]"
+            >
+              {t('home.pricing.seeFullComparison')}
+            </a>
           </div>
         </div>
       </section>
@@ -287,65 +387,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Demo Preview */}
-      <section className="px-6 py-10">
-        <div className="mx-auto max-w-7xl text-center">
-          <h2 className="text-3xl font-bold">{t('home.demo.heading')}</h2>
-          <p className="mx-auto mt-3 max-w-2xl text-[var(--muted)]">
-            {t('home.demo.description')}
-          </p>
-          <div className="mt-6">
-            <a
-              href={SITE_CONFIG.demoUrl}
-              className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-blue-700"
-            >
-              {t('home.demo.openTheApp')}
-            </a>
-          </div>
-          <div className="mt-8 grid gap-5 sm:grid-cols-3">
-            {[1, 2, 3].map((i) => (
-              <div
-                key={i}
-                className="flex h-48 items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--card)]"
-              >
-                <span className="text-sm text-[var(--muted)]">{t('home.demo.screenshotPlaceholder')}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Pricing Summary */}
-      <section className="px-6 py-10">
-        <div className="mx-auto max-w-7xl">
-          <h2 className="text-center text-3xl font-bold">{t('home.pricing.heading')}</h2>
-          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-            {tierKeys.map((tier) => (
-              <div
-                key={tier.key}
-                className={`rounded-xl border p-5 text-center ${
-                  tier.highlighted
-                    ? "border-blue-600 bg-[var(--card)]"
-                    : "border-[var(--border)] bg-[var(--card)]"
-                }`}
-              >
-                <h3 className="text-lg font-semibold">{t(`home.pricing.tiers.${tier.key}.name`)}</h3>
-                <p className="mt-2 text-xl font-bold">{t(`home.pricing.tiers.${tier.key}.price`)}</p>
-                <p className="mt-1 text-sm text-[var(--muted)]">{t(`home.pricing.tiers.${tier.key}.tagline`)}</p>
-              </div>
-            ))}
-          </div>
-          <div className="mt-6 text-center">
-            <a
-              href="/pricing/"
-              className="text-sm font-medium text-[var(--accent)] transition-colors hover:text-[var(--accent-hover)]"
-            >
-              {t('home.pricing.seeFullComparison')}
-            </a>
-          </div>
-        </div>
-      </section>
-
       {/* Founder Quote */}
       <section className="px-6 py-10">
         <div className="mx-auto max-w-3xl text-center">
@@ -355,6 +396,14 @@ export default function Home() {
           <p className="mt-4 font-semibold">{t('home.founderQuote.attribution')}</p>
         </div>
       </section>
+
+      {lightbox && (
+        <ScreenshotLightbox
+          src={lightbox}
+          alt=""
+          onClose={() => setLightbox(null)}
+        />
+      )}
     </div>
   );
 }

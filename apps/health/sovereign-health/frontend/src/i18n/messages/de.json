@@ -92,6 +92,16 @@
     "keto": "Keto",
     "license": "Lizenz",
     "managePayment": "Zahlungsmethode verwalten",
+    "mealTimingLabels": {
+      "no_tag": "-",
+      "unspecified": "-",
+      "fasting": "Nüchtern (vor dem Essen)",
+      "before": "Vor der Mahlzeit",
+      "30m_after": "30 Min. nach Mahlzeit",
+      "1h_after": "1 Std. nach Mahlzeit",
+      "2h_after": "2 Std. nach Mahlzeit",
+      "3h_after": "3 Std. nach Mahlzeit"
+    },
     "mediterranean": "Mediterran",
     "monthly": "Monatlich",
     "nameLabel": "Name",
@@ -663,6 +673,10 @@
     "addDeviceTitle": "Gerät hinzufügen",
     "manufacturerLabel": "Hersteller",
     "modelLabel": "Modell",
+    "labAddress": "Adresse",
+    "labPostalCode": "PLZ",
+    "labCity": "Stadt",
+    "labCountry": "Land",
     "typeLabel": "Typ",
     "markersSelected": "Marker ({count} ausgewählt)",
     "setAsDefault": "Als Standardgerät festlegen",
@@ -686,7 +700,10 @@
       "deviceName": "z.B. Fora 6",
       "manufacturer": "z.B. ForaCare",
       "model": "z.B. Fora 6 Connect",
-      "validationNotes": "z.B. HA-Übereinstimmung innerhalb +/-2%"
+      "validationNotes": "z.B. HA-Übereinstimmung innerhalb +/-2%",
+      "labAddress": "z.B. Hauptstraße 1",
+      "labCity": "z.B. Berlin",
+      "labCountry": "z.B. DE"
     }
   },
   "settings": {
@@ -859,6 +876,7 @@
       "cancelledMessage": "Dein Abo endet am {date}.",
       "viewPricing": "Preise ansehen",
       "upgrade": "Upgrade",
+      "upgradeDesc": "Wähle einen kostenpflichtigen Plan, um alle Funktionen freizuschalten.",
       "paymentSuccessTitle": "Zahlung erfolgreich!",
       "paymentSuccessDesc": "Willkommen bei {tier}. Dein Abonnement ist jetzt aktiv.",
       "paymentCanceled": "Zahlung wurde abgebrochen. Du kannst es jederzeit erneut versuchen.",
@@ -1348,5 +1366,32 @@
     "upgradeNow": "Jetzt upgraden",
     "measurementCapReached": "Du hast dein Messlimit erreicht ({used}/{limit}). Upgrade auf {tier} für mehr.",
     "of": "von"
+  },
+  "import": {
+    "reviewTitle": "Extrahierte Ergebnisse prüfen",
+    "markersFound": "Marker gefunden",
+    "measurementDate": "Messdatum",
+    "protocol": "Protokoll",
+    "labInfo": "Laborinformationen",
+    "labName": "Laborname",
+    "labNamePlaceholder": "z.B. Synlab, Laboklin",
+    "labAddress": "Adresse",
+    "labAddressPlaceholder": "Straßenadresse",
+    "labPostalCode": "PLZ",
+    "labCity": "Stadt",
+    "labCityPlaceholder": "Stadt",
+    "labCountry": "Land",
+    "labCountryPlaceholder": "z.B. DE, AT",
+    "matchedMarkers": "Zugeordnete Marker",
+    "labNameColumn": "Laborname",
+    "marker": "Marker",
+    "value": "Wert",
+    "unit": "Einheit",
+    "confidence": "Konfidenz",
+    "unmatched": "Nicht zugeordnet",
+    "unmatchedHint": "Diese Marker konnten nicht zugeordnet werden",
+    "selectedCount": "{count} Marker zum Import ausgewählt",
+    "importing": "Importiere...",
+    "importCount": "{count} Marker importieren"
   }
 }

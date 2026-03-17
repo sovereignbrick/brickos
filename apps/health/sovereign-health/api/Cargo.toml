@@ -35,6 +35,7 @@ brickos-billing = { path = "../../../../crates/brickos-billing" }
 brickos-email = { path = "../../../../crates/brickos-email" }
 async-trait = "0.1"
 base64 = "0.22"
+image = { version = "0.25", default-features = false, features = ["jpeg", "png", "webp"] }
 hmac = "0.12"
 totp-rs = { version = "5", features = ["gen_secret", "otpauth"] }
 qrcode = { version = "0.14", default-features = false, features = ["svg"] }

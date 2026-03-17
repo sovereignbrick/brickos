@@ -4,7 +4,7 @@
 
 services:
   backend:
-    image: registry.gitlab.com/sovereign-health/core-backend:latest
+    image: sovereign-health-backend:latest
     ports:
       - "127.0.0.1:8080:8080"
     volumes:
@@ -42,7 +42,7 @@ services:
     restart: unless-stopped
 
   frontend:
-    image: registry.gitlab.com/sovereign-health/core-frontend:latest
+    image: sovereign-health-frontend:latest
     ports:
       - "127.0.0.1:3000:3000"
     environment:

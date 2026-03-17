@@ -326,8 +326,12 @@ pub async fn signup(
         .execute(pool.get_ref())
         .await;
 
-    let _ = sqlx::query("INSERT INTO user_profile (user_id) VALUES ($1)")
+    let _ = sqlx::query(
+        "INSERT INTO user_profile (user_id, consent_newsletter, consent_product_updates) \
+         VALUES ($1, $2, $3)")
         .bind(user_id)
+        .bind(body.consent_newsletter.unwrap_or(false))
+        .bind(body.consent_product_updates.unwrap_or(true))
         .execute(pool.get_ref())
         .await;
 

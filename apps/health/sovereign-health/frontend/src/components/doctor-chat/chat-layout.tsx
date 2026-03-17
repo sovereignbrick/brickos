@@ -165,7 +165,7 @@ export function ChatLayout() {
     }
   }
 
-  const handleImportConfirm = async (markers: Array<{ marker_slug: string; value: number }>, opts: { measured_at?: string; protocol_tag?: string }) => {
+  const handleImportConfirm = async (markers: Array<{ marker_slug: string; value: number }>, opts: { measured_at?: string; protocol_tag?: string; lab_name?: string; lab_address?: string; lab_postal_code?: string; lab_city?: string; lab_country?: string }) => {
     if (!importSession) return
     setImportLoading(true)
     try {

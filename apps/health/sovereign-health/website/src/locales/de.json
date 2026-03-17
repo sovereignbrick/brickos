@@ -132,7 +132,12 @@
       "heading": "Sehen Sie es in Aktion",
       "description": "Erkunden Sie die vollständige Plattform mit Beispiel-Gesundheitsdaten. Drei Demoprofile zeigen, wie verschiedene Gesundheitsmuster aussehen.",
       "openTheApp": "App öffnen",
-      "screenshotPlaceholder": "App-Screenshot"
+      "screenshotPlaceholder": "App-Screenshot",
+      "screenshots": {
+        "addDevices": "Geräte hinzufügen - verbinden Sie Gesundheitstracker und Laborimporte",
+        "drAlexMedication": "Dr. Alex - KI-gestützter Medikamentenimport und Analyse",
+        "influenceFactors": "Einflussfaktoren - verfolgen Sie, was Ihre Gesundheitsmarker beeinflusst"
+      }
     },
     "pricing": {
       "heading": "Preise",

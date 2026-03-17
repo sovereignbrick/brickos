@@ -147,6 +147,8 @@ function SignupContent() {
         tos_accepted: data.tos_accepted,
         referred_by: referralCode.current || undefined,
         locale: contentLocale,
+        consent_newsletter: data.consent_newsletter,
+        consent_product_updates: data.consent_product_updates,
       })
       // Clear referral cookie after successful registration
       Cookies.remove('sh_ref')
@@ -459,7 +461,14 @@ function SignupContent() {
               </span>
             </label>
             {errors.age_confirmed && <p className="text-xs text-red-400">{errors.age_confirmed.message}</p>}
-            {/* Newsletter/product update consent - disabled until issue #28 is implemented */}
+            <label className="flex items-start gap-2 cursor-pointer">
+              <input type="checkbox" {...register('consent_product_updates')} className="mt-0.5 rounded" defaultChecked />
+              <span className="text-xs text-muted-foreground">{ts('productUpdates')}</span>
+            </label>
+            <label className="flex items-start gap-2 cursor-pointer">
+              <input type="checkbox" {...register('consent_newsletter')} className="mt-0.5 rounded" />
+              <span className="text-xs text-muted-foreground">{ts('newsletter')}</span>
+            </label>
           </div>
           <button
             type="submit"
