@@ -12,6 +12,24 @@ pub struct AuthenticatedUser {
     pub tier: String,
 }
 
+impl AuthenticatedUser {
+    /// Set the RLS session variable on a pool connection.
+    /// Uses set_config with is_local=false to set for the full session/connection.
+    /// The connection pool resets state between uses.
+    ///
+    /// Call this at the start of handlers that query RLS-protected tables.
+    /// Handlers that DON'T call this will get 0 rows from RLS tables
+    /// (defense-in-depth: data is hidden, not exposed).
+    pub async fn set_rls(&self, pool: &sqlx::PgPool) -> Result<(), AppError> {
+        sqlx::query("SELECT set_config('app.current_user_id', $1, false)")
+            .bind(self.user_id.to_string())
+            .execute(pool)
+            .await
+            .map_err(|_| AppError::Internal)?;
+        Ok(())
+    }
+}
+
 impl FromRequest for AuthenticatedUser {
     type Error = AppError;
     type Future = Ready<Result<Self, Self::Error>>;

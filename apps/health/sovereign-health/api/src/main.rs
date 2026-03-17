@@ -240,6 +240,7 @@ async fn main() -> std::io::Result<()> {
 
         let mut app = App::new()
             .wrap(cors)
+            .wrap(sovereign_health_backend::middleware::rls::RlsMiddleware)
             .app_data(json_cfg)
             .app_data(payload_cfg)
             .app_data(web::Data::new(pool.clone()))
