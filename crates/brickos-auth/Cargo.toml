@@ -2,5 +2,17 @@
 name = "brickos-auth"
 version = "0.1.0"
 edition = "2021"
+description = "BrickOS shared authentication library — JWT, Argon2, MFA, token utilities"
+license = "AGPL-3.0"
 
 [dependencies]
+anyhow = { workspace = true }
+chrono = { workspace = true }
+jsonwebtoken = { workspace = true }
+argon2 = { workspace = true }
+serde = { workspace = true }
+sha2 = "0.10"
+hex = "0.4"
+rand = "0.8"
+totp-rs = { version = "5", features = ["gen_secret", "otpauth"] }
+qrcode = { version = "0.14", default-features = false, features = ["svg"] }

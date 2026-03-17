@@ -68,11 +68,5 @@ impl From<User> for UserResponse {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct Claims {
-    pub sub: String,
-    pub role: String,
-    pub tier: String,
-    pub exp: i64,
-    pub iat: i64,
-}
+// Re-export Claims from brickos-auth crate
+pub use brickos_auth::jwt::Claims;
