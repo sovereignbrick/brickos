@@ -946,9 +946,11 @@ pub async fn export_json(
         let messages: Vec<serde_json::Value> = msg_rows
             .iter()
             .map(|m| {
+                let content_raw: String = m.try_get("content").unwrap_or_default();
+                let content = enc.decrypt(&content_raw).unwrap_or(content_raw);
                 json!({
                     "role": m.try_get::<String, _>("role").unwrap_or_default(),
-                    "content": m.try_get::<String, _>("content").unwrap_or_default(),
+                    "content": content,
                     "tokens_used": m.try_get::<Option<i32>, _>("tokens_used").ok().flatten(),
                     "created_at": m.try_get::<chrono::DateTime<Utc>, _>("created_at")
                         .map(|t| t.to_rfc3339())

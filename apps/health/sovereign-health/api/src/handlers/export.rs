@@ -334,7 +334,8 @@ pub async fn export_csv(
             let conv_created: chrono::DateTime<Utc> =
                 row.try_get("conv_created").unwrap_or_else(|_| Utc::now());
             let role: String = row.try_get("role").unwrap_or_default();
-            let content: String = row.try_get("content").unwrap_or_default();
+            let content_raw: String = row.try_get("content").unwrap_or_default();
+            let content: String = enc.decrypt(&content_raw).unwrap_or(content_raw);
             let msg_created: chrono::DateTime<Utc> =
                 row.try_get("msg_created").unwrap_or_else(|_| Utc::now());
 

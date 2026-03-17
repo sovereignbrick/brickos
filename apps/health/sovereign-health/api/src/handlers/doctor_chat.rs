@@ -108,13 +108,14 @@ pub async fn chat(
     .fetch_all(pool.get_ref())
     .await?;
 
-    // Reverse so oldest-first for Claude
+    // Reverse so oldest-first for Claude. Decrypt messages stored encrypted.
     let history: Vec<AnthropicMessage> = history_rows
         .into_iter()
         .rev()
         .filter_map(|r| {
             let role: String = r.try_get("role").ok()?;
-            let content: String = r.try_get("content").ok()?;
+            let content_raw: String = r.try_get("content").ok()?;
+            let content = enc.decrypt(&content_raw).unwrap_or(content_raw);
             // skip system messages
             if role == "system" {
                 None
@@ -147,23 +148,25 @@ pub async fn chat(
     )
     .await;
 
-    // 6. Store user message
+    // 6. Store user message (encrypted at rest)
+    let encrypted_question = enc.encrypt(&question);
     sqlx::query(
         "INSERT INTO doctor_chat_messages (conversation_id, role, content) VALUES ($1, 'user', $2)",
     )
     .bind(conversation_id)
-    .bind(&question)
+    .bind(&encrypted_question)
     .execute(pool.get_ref())
     .await?;
 
-    // 7. Store assistant response
+    // 7. Store assistant response (encrypted at rest)
+    let encrypted_response = enc.encrypt(&claude_resp.text);
     let msg_row = sqlx::query(
         r#"INSERT INTO doctor_chat_messages (conversation_id, role, content, tokens_used)
            VALUES ($1, 'assistant', $2, $3)
            RETURNING id"#,
     )
     .bind(conversation_id)
-    .bind(&claude_resp.text)
+    .bind(&encrypted_response)
     .bind(claude_resp.total_tokens)
     .fetch_one(pool.get_ref())
     .await?;
@@ -250,6 +253,7 @@ pub async fn get_conversation(
     pool: web::Data<PgPool>,
     auth: AuthenticatedUser,
     path: web::Path<Uuid>,
+    enc: web::Data<crate::services::encryption::Encryptor>,
 ) -> Result<HttpResponse, AppError> {
     let conversation_id = path.into_inner();
 
@@ -274,13 +278,16 @@ pub async fn get_conversation(
 
     let messages: Vec<Message> = msg_rows
         .iter()
-        .map(|r| Message {
-            id: r.try_get("id").unwrap_or_default(),
-            conversation_id: r.try_get("conversation_id").unwrap_or_default(),
-            role: r.try_get("role").unwrap_or_default(),
-            content: r.try_get("content").unwrap_or_default(),
-            tokens_used: r.try_get("tokens_used").ok().flatten(),
-            created_at: r.try_get("created_at").unwrap_or_else(|_| Utc::now()),
+        .map(|r| {
+            let content_raw: String = r.try_get("content").unwrap_or_default();
+            Message {
+                id: r.try_get("id").unwrap_or_default(),
+                conversation_id: r.try_get("conversation_id").unwrap_or_default(),
+                role: r.try_get("role").unwrap_or_default(),
+                content: enc.decrypt(&content_raw).unwrap_or(content_raw),
+                tokens_used: r.try_get("tokens_used").ok().flatten(),
+                created_at: r.try_get("created_at").unwrap_or_else(|_| Utc::now()),
+            }
         })
         .collect();
 
