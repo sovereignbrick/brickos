@@ -761,7 +761,20 @@ export default function NewMeasurementPage() {
               </select>
             </div>
             <div>
-              <label className="text-[10px] text-muted-foreground block mb-0.5">{t('template')}</label>
+              <div className="flex items-center justify-between mb-0.5">
+                <label className="text-[10px] text-muted-foreground">{t('template')}</label>
+                {!selectedDeviceId && (
+                  <div className="flex items-center gap-2">
+                    {activeTemplate && isTemplateModified && (
+                      <button type="button" onClick={saveTemplate} className="text-[10px] text-blue-400 hover:text-blue-300 transition-colors whitespace-nowrap">{t('saveTemplate')}</button>
+                    )}
+                    <button type="button" onClick={saveAsTemplate} className="text-[10px] text-blue-400 hover:text-blue-300 transition-colors whitespace-nowrap">{t('saveAs')}</button>
+                    {activeTemplate && (
+                      <button type="button" onClick={deleteTemplate} className="text-[10px] text-red-400 hover:text-red-300 transition-colors whitespace-nowrap">{tCommon('delete')}</button>
+                    )}
+                  </div>
+                )}
+              </div>
               <select
                 value={activeTemplate}
                 disabled={!!selectedDeviceId}
@@ -785,17 +798,6 @@ export default function NewMeasurementPage() {
                   </option>
                 ))}
               </select>
-              {!selectedDeviceId && (
-                <div className="flex items-center gap-3 mt-1">
-                  {activeTemplate && isTemplateModified && (
-                    <button type="button" onClick={saveTemplate} className="text-[10px] text-blue-400 hover:text-blue-300 transition-colors whitespace-nowrap">{t('saveTemplate')}</button>
-                  )}
-                  <button type="button" onClick={saveAsTemplate} className="text-[10px] text-blue-400 hover:text-blue-300 transition-colors whitespace-nowrap">{t('saveAs')}</button>
-                  {activeTemplate && (
-                    <button type="button" onClick={deleteTemplate} className="text-[10px] text-red-400 hover:text-red-300 transition-colors whitespace-nowrap">{tCommon('delete')}</button>
-                  )}
-                </div>
-              )}
             </div>
           </div>
         </div>
