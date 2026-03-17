@@ -61,8 +61,8 @@ services:
 
   backend:
     build:
-      context: ../api
-      dockerfile: Dockerfile
+      context: ../../../..
+      dockerfile: apps/health/sovereign-health/api/Dockerfile
     container_name: sh-backend
     ports:
       - "8080:8080"

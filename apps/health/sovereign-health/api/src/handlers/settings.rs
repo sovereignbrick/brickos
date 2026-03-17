@@ -1240,7 +1240,7 @@ pub async fn get_consent(
 pub async fn update_consent(
     pool: web::Data<PgPool>,
     auth: AuthenticatedUser,
-    email_provider: web::Data<std::sync::Arc<dyn crate::services::email::EmailProvider>>,
+    email_provider: web::Data<std::sync::Arc<dyn brickos_email::EmailProvider>>,
     body: web::Json<serde_json::Value>,
 ) -> Result<HttpResponse, AppError> {
     let product_updates = body.get("product_updates").and_then(|v| v.as_bool());

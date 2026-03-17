@@ -1,5 +1,6 @@
 .PHONY: ci test test-smoke test-integration test-property test-e2e test-all \
         test-db test-auth test-measurements test-tiers test-doctor-chat \
+        test-platform test-crates \
         snapshot-review bench audit lint fmt clean run hooks help
 
 # ---------------------------------------------------------------------------
@@ -58,7 +59,7 @@ test-e2e:
 # ---------------------------------------------------------------------------
 
 ## Run all DB-dependent test suites
-test-db: test-auth test-measurements test-tiers test-doctor-chat
+test-db: test-auth test-measurements test-tiers test-doctor-chat test-platform test-crud
 	@echo "--- All DB tests passed ---"
 
 test-auth:
@@ -72,6 +73,18 @@ test-tiers:
 
 test-doctor-chat:
 	cargo test --test doctor_chat_test -- --nocapture
+
+## CRUD lifecycle tests (create/read/update/delete user + data + RLS + constraints)
+test-crud:
+	cargo test --test crud_test -- --nocapture
+
+## Platform extraction tests (brickos crates + RLS + pgaudit + DB roles)
+test-platform:
+	cargo test --test platform_test -- --nocapture
+
+## Crate-level unit tests (brickos-auth, brickos-crypto, brickos-billing, brickos-email, brickos-db)
+test-crates:
+	cargo test -p brickos-auth -p brickos-crypto -p brickos-billing -p brickos-email -p brickos-db -- --nocapture
 
 # ---------------------------------------------------------------------------
 # Snapshot management (insta)
@@ -138,6 +151,8 @@ help:
 	@echo "  lint            fmt check + clippy"
 	@echo "  fmt             Auto-format code"
 	@echo "  test            smoke + integration (no DB)"
-	@echo "  test-db         auth + measurements + tiers + doctor-chat (needs DB)"
+	@echo "  test-db         auth + measurements + tiers + doctor-chat + platform (needs DB)"
+	@echo "  test-platform   Platform extraction: RLS, DB roles, pgaudit, crate integration"
+	@echo "  test-crates     Unit tests for all brickos-* crates"
 	@echo "  test-all        Everything (lint + test + property + DB tests)"
 	@echo "  audit           Security audit (cargo audit)"

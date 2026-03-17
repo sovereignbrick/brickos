@@ -1,9 +1,8 @@
 ---
-source: tests/integration.rs
-assertion_line: 108
+source: apps/health/sovereign-health/api/tests/integration.rs
 expression: body
 ---
 {
   "message": "Hello from sovereign-health-backend!",
-  "version": "0.19.1-rc1"
+  "version": "0.20.0-rc2"
 }

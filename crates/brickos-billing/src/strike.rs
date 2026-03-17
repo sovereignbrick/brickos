@@ -1,4 +1,4 @@
-// Sovereign Health Intelligence -- AGPL-3.0 -- https://sovereignhealth.io/
+// BrickOS — Strike BTC Payment Service
 
 use anyhow::{anyhow, Result};
 use hmac::{Hmac, Mac};

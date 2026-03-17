@@ -42,7 +42,13 @@ pub struct DataShare {
 }
 
 /// Supported organization roles.
-pub const ORG_ROLES: &[&str] = &["owner", "practitioner", "assistant", "billing_admin", "patient"];
+pub const ORG_ROLES: &[&str] = &[
+    "owner",
+    "practitioner",
+    "assistant",
+    "billing_admin",
+    "patient",
+];
 
 /// Supported data share scopes.
 pub const SHARE_SCOPES: &[&str] = &[

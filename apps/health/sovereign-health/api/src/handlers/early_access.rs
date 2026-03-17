@@ -5,8 +5,9 @@ use serde::Deserialize;
 use serde_json::json;
 use std::sync::Arc;
 
+use brickos_email::EmailProvider;
+
 use crate::error::AppError;
-use crate::services::email::EmailProvider;
 
 #[derive(Deserialize)]
 pub struct EarlyAccessRequest {

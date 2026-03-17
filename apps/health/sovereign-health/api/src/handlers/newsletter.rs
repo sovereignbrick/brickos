@@ -8,9 +8,10 @@ use sqlx::{PgPool, Row};
 use std::sync::Arc;
 use uuid::Uuid;
 
+use brickos_email::EmailProvider;
+
 use crate::error::AppError;
 use crate::middleware::auth::AdminUser;
-use crate::services::email::EmailProvider;
 
 // ---------------------------------------------------------------------------
 // Helpers

@@ -7,15 +7,12 @@
 #![allow(dead_code)]
 
 use actix_web::{dev::ServiceResponse, test::TestRequest, web, App};
+use brickos_email::{EmailProvider, LogProvider};
 use sovereign_health_backend::{
     config::Config,
     configure_routes,
     handlers::public_chat::*,
-    services::{
-        email::{EmailProvider, LogProvider},
-        encryption::Encryptor,
-        rate_limit::AuthRateLimiters,
-    },
+    services::{encryption::Encryptor, rate_limit::AuthRateLimiters},
 };
 use sqlx::PgPool;
 use std::sync::Arc;

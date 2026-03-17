@@ -3,7 +3,7 @@
 use async_trait::async_trait;
 
 use super::gateway::{GatewayId, PaymentCurrency, PaymentGateway};
-use crate::services::stripe::StripeService;
+use brickos_billing::stripe::StripeService;
 
 /// Stripe gateway wrapper implementing the PaymentGateway trait.
 /// The actual Stripe service methods are still accessible via `service()`.

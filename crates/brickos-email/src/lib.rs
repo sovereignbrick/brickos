@@ -1,4 +1,4 @@
-// Sovereign Health Intelligence -- AGPL-3.0 -- https://sovereignhealth.io/
+// BrickOS — Shared Email Library
 
 use anyhow::Result;
 use async_trait::async_trait;

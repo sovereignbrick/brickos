@@ -8,11 +8,12 @@ use sqlx::{PgPool, Row};
 use std::sync::Arc;
 use uuid::Uuid;
 
+use brickos_billing::stripe::StripeService;
+use brickos_email::EmailProvider;
+
 use crate::{
     config::Config,
     middleware::auth::{AdminUser, AuthenticatedUser},
-    services::email::EmailProvider,
-    services::stripe::StripeService,
 };
 
 // ---------------------------------------------------------------------------

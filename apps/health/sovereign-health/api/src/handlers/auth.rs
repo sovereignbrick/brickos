@@ -9,6 +9,8 @@ use uuid::Uuid;
 
 use std::sync::Arc;
 
+use brickos_email::EmailProvider;
+
 use crate::{
     config::Config,
     error::AppError,
@@ -18,7 +20,6 @@ use crate::{
         create_jwt, generate_refresh_token, generate_verification_token, hash_password,
         hash_refresh_token, validate_email, validate_password, verify_password,
     },
-    services::email::EmailProvider,
     services::rate_limit::AuthRateLimiters,
 };
 

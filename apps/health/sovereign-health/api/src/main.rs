@@ -112,8 +112,7 @@ async fn main() -> std::io::Result<()> {
     }
     let encryptor_data = web::Data::new(encryptor);
 
-    let email_provider =
-        sovereign_health_backend::services::email::create_email_provider(!config.is_oss());
+    let email_provider = brickos_email::create_email_provider(!config.is_oss());
     let email_data = web::Data::new(email_provider);
 
     let rate_limiters = web::Data::new(
@@ -121,30 +120,28 @@ async fn main() -> std::io::Result<()> {
     );
 
     // Stripe service (optional)
-    let stripe_data: Option<web::Data<sovereign_health_backend::services::stripe::StripeService>> =
-        if config.is_oss() {
-            tracing::info!("Stripe: DISABLED (OSS mode)");
-            None
-        } else if let Some(ref stripe_config) = config.stripe {
-            tracing::info!("Stripe: ENABLED");
-            Some(web::Data::new(
-                sovereign_health_backend::services::stripe::StripeService::new(stripe_config),
-            ))
-        } else {
-            tracing::info!("Stripe: DISABLED (no secret key)");
-            None
-        };
+    let stripe_data: Option<web::Data<brickos_billing::stripe::StripeService>> = if config.is_oss()
+    {
+        tracing::info!("Stripe: DISABLED (OSS mode)");
+        None
+    } else if let Some(ref stripe_config) = config.stripe {
+        tracing::info!("Stripe: ENABLED");
+        Some(web::Data::new(brickos_billing::stripe::StripeService::new(
+            stripe_config,
+        )))
+    } else {
+        tracing::info!("Stripe: DISABLED (no secret key)");
+        None
+    };
 
     // Strike service (optional - Bitcoin payments)
-    let strike_data: Option<web::Data<sovereign_health_backend::services::strike::StrikeService>> =
+    let strike_data: Option<web::Data<brickos_billing::strike::StrikeService>> =
         if let Some(ref api_key) = config.strike_api_key {
             tracing::info!("Strike (Bitcoin): ENABLED");
-            Some(web::Data::new(
-                sovereign_health_backend::services::strike::StrikeService::new(
-                    api_key.clone(),
-                    config.strike_webhook_secret.clone(),
-                ),
-            ))
+            Some(web::Data::new(brickos_billing::strike::StrikeService::new(
+                api_key.clone(),
+                config.strike_webhook_secret.clone(),
+            )))
         } else {
             tracing::info!("Strike (Bitcoin): DISABLED (STRIKE_API_KEY not set)");
             None

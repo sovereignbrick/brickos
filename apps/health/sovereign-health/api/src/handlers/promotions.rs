@@ -7,7 +7,9 @@ use serde_json::json;
 use sqlx::{PgPool, Row};
 use uuid::Uuid;
 
-use crate::{error::AppError, middleware::auth::AdminUser, services::stripe::StripeService};
+use brickos_billing::stripe::StripeService;
+
+use crate::{error::AppError, middleware::auth::AdminUser};
 
 // ---------------------------------------------------------------------------
 // Public: POST /promotions/validate

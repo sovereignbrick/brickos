@@ -5,7 +5,7 @@ use serde::Deserialize;
 use serde_json::json;
 use uuid::Uuid;
 
-use crate::services::strike::{CreateInvoiceRequest, InvoiceAmount, StrikeService};
+use brickos_billing::strike::{CreateInvoiceRequest, InvoiceAmount, StrikeService};
 
 #[derive(Deserialize)]
 pub struct DonationRequest {

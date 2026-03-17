@@ -6,6 +6,8 @@ members = [
     "crates/brickos-crypto",
     "crates/brickos-db",
     "crates/brickos-backup",
+    "crates/brickos-email",
+    "crates/brickos-billing",
     "crates/brickos-startos",
     "apps/health/sovereign-health/api",
     # "apps/finance/btc-tracker/api",
@@ -33,3 +35,5 @@ brickos-auth = { path = "crates/brickos-auth" }
 brickos-crypto = { path = "crates/brickos-crypto" }
 brickos-db = { path = "crates/brickos-db" }
 brickos-backup = { path = "crates/brickos-backup" }
+brickos-email = { path = "crates/brickos-email" }
+brickos-billing = { path = "crates/brickos-billing" }

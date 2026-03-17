@@ -7,10 +7,9 @@ use serde_json::json;
 use sqlx::{PgPool, Row};
 use uuid::Uuid;
 
-use crate::{
-    middleware::auth::AuthenticatedUser,
-    services::strike::{CreateInvoiceRequest, InvoiceAmount, StrikeService},
-};
+use brickos_billing::strike::{CreateInvoiceRequest, InvoiceAmount, StrikeService};
+
+use crate::middleware::auth::AuthenticatedUser;
 
 // ---------------------------------------------------------------------------
 // Constants

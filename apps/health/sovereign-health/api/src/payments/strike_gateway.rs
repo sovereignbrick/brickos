@@ -3,7 +3,7 @@
 use async_trait::async_trait;
 
 use super::gateway::{GatewayId, PaymentCurrency, PaymentGateway};
-use crate::services::strike::StrikeService;
+use brickos_billing::strike::StrikeService;
 
 /// Strike (Bitcoin) gateway wrapper implementing the PaymentGateway trait.
 /// The actual Strike service methods are still accessible via `service()`.

@@ -1,6 +1,6 @@
 [package]
 name = "sovereign-health-backend"
-version = "0.19.1-rc1"
+version = "0.20.0-rc2"
 edition = "2021"
 
 [dependencies]
@@ -31,10 +31,11 @@ aes-gcm = "0.10"
 brickos-auth = { path = "../../../../crates/brickos-auth" }
 brickos-crypto = { path = "../../../../crates/brickos-crypto" }
 brickos-db = { path = "../../../../crates/brickos-db" }
+brickos-billing = { path = "../../../../crates/brickos-billing" }
+brickos-email = { path = "../../../../crates/brickos-email" }
 async-trait = "0.1"
 base64 = "0.22"
 hmac = "0.12"
-lettre = { version = "0.11", default-features = false, features = ["tokio1-rustls-tls", "smtp-transport", "builder"] }
 totp-rs = { version = "5", features = ["gen_secret", "otpauth"] }
 qrcode = { version = "0.14", default-features = false, features = ["svg"] }
 genpdf = { version = "0.2", features = ["images"] }

@@ -6,9 +6,10 @@ use serde_json::json;
 use sha2::{Digest, Sha256};
 use std::sync::Arc;
 
+use brickos_email::EmailProvider;
+
 use crate::error::AppError;
 use crate::handlers::admin_settings::get_setting_string;
-use crate::services::email::EmailProvider;
 
 #[derive(Deserialize)]
 pub struct ContactRequest {

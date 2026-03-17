@@ -1,0 +1,15 @@
+[package]
+name = "brickos-email"
+version = "0.1.0"
+edition = "2021"
+description = "BrickOS shared email library — EmailProvider trait + Mailgun, Log implementations"
+license = "AGPL-3.0"
+
+[dependencies]
+anyhow = { workspace = true }
+async-trait = "0.1"
+reqwest = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+serde_json = { workspace = true }
+lettre = { version = "0.11", default-features = false, features = ["tokio1-rustls-tls", "smtp-transport", "builder"] }

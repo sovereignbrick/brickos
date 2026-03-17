@@ -9,9 +9,10 @@ use serde::Deserialize;
 use serde_json::json;
 use sqlx::PgPool;
 
+use brickos_email::EmailProvider;
+
 use crate::error::AppError;
 use crate::middleware::auth::AuthenticatedUser;
-use crate::services::email::EmailProvider;
 use crate::services::segments::get_users_by_segments;
 use crate::templates::emails;
 

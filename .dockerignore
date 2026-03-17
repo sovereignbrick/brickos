@@ -1,0 +1,12 @@
+target
+node_modules
+.git
+*.md
+.env*
+docs
+load-tests
+tests
+**/*.snap
+**/fuzz
+**/.next
+**/out

@@ -561,10 +561,38 @@ dependencies = [
 [[package]]
 name = "brickos-auth"
 version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "argon2",
+ "chrono",
+ "hex",
+ "jsonwebtoken",
+ "qrcode",
+ "rand 0.8.5",
+ "serde",
+ "sha2",
+ "totp-rs",
+]
 
 [[package]]
 name = "brickos-backup"
 version = "0.1.0"
+
+[[package]]
+name = "brickos-billing"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "hex",
+ "hmac",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "sha2",
+ "tracing",
+ "uuid",
+]
 
 [[package]]
 name = "brickos-core-api"
@@ -580,10 +608,35 @@ dependencies = [
 [[package]]
 name = "brickos-crypto"
 version = "0.1.0"
+dependencies = [
+ "aes-gcm",
+ "anyhow",
+ "base64",
+ "hex",
+]
 
 [[package]]
 name = "brickos-db"
 version = "0.1.0"
+dependencies = [
+ "chrono",
+ "serde",
+ "sqlx",
+ "uuid",
+]
+
+[[package]]
+name = "brickos-email"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "lettre",
+ "reqwest",
+ "serde_json",
+ "tokio",
+ "tracing",
+]
 
 [[package]]
 name = "brickos-startos"
@@ -3542,7 +3595,7 @@ dependencies = [
 
 [[package]]
 name = "sovereign-health-backend"
-version = "0.19.1-rc1"
+version = "0.20.0-rc2"
 dependencies = [
  "actix-cors",
  "actix-governor",
@@ -3553,6 +3606,11 @@ dependencies = [
  "argon2",
  "async-trait",
  "base64",
+ "brickos-auth",
+ "brickos-billing",
+ "brickos-crypto",
+ "brickos-db",
+ "brickos-email",
  "chrono",
  "criterion",
  "dotenvy",
@@ -3562,7 +3620,6 @@ dependencies = [
  "hmac",
  "insta",
  "jsonwebtoken",
- "lettre",
  "proptest",
  "qrcode",
  "rand 0.8.5",
