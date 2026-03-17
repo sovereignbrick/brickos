@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { SITE_CONFIG } from "@/lib/config";
 import { useI18n } from "@/lib/i18n";
 import { ScreenshotLightbox } from "@/components/screenshot-lightbox";
@@ -161,12 +160,13 @@ export default function Home() {
               const caption = t(`home.demo.screenshots.${shot.key}` as any) || shot.key;
               return (
                 <button
-                  key={shot.key}
+                  key={`${shot.key}-${locale}`}
                   onClick={() => setLightbox(src)}
                   className="group overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--card)] transition-transform hover:scale-[1.02] text-left"
                 >
                   <div className="relative">
-                    <Image
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
                       src={src}
                       alt={caption}
                       width={640}
