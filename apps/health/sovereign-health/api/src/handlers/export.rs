@@ -302,6 +302,54 @@ pub async fn export_csv(
         }
     }
 
+    // Doctor Chat conversations (GDPR Art.15/20 portability - GDPR-F001)
+    let chat_rows = sqlx::query(
+        r#"SELECT c.title, c.agent_type, c.created_at as conv_created,
+            msg.role, msg.content, msg.created_at as msg_created
+        FROM doctor_chat_conversations c
+        JOIN doctor_chat_messages msg ON msg.conversation_id = c.id
+        WHERE c.user_id = $1
+        ORDER BY c.created_at ASC, msg.created_at ASC"#,
+    )
+    .bind(auth.user_id)
+    .fetch_all(pool.get_ref())
+    .await
+    .unwrap_or_default();
+
+    if !chat_rows.is_empty() {
+        csv.push_str("\n\nDOCTOR CHAT CONVERSATIONS\n");
+        csv.push_str("conversation_title,agent_type,conversation_date,role,message,message_date\n");
+
+        let escape_csv_chat = |s: &str| -> String {
+            if s.contains(',') || s.contains('"') || s.contains('\n') {
+                format!("\"{}\"", s.replace('"', "\"\""))
+            } else {
+                s.to_string()
+            }
+        };
+
+        for row in &chat_rows {
+            let title: String = row.try_get("title").unwrap_or_default();
+            let agent_type: String = row.try_get("agent_type").unwrap_or_default();
+            let conv_created: chrono::DateTime<Utc> =
+                row.try_get("conv_created").unwrap_or_else(|_| Utc::now());
+            let role: String = row.try_get("role").unwrap_or_default();
+            let content: String = row.try_get("content").unwrap_or_default();
+            let msg_created: chrono::DateTime<Utc> =
+                row.try_get("msg_created").unwrap_or_else(|_| Utc::now());
+
+            csv.push_str(&format!(
+                "{},{},{},{},{},{}\n",
+                escape_csv_chat(&title),
+                escape_csv_chat(&agent_type),
+                conv_created.format("%Y-%m-%d %H:%M:%S"),
+                role,
+                escape_csv_chat(&content),
+                msg_created.format("%Y-%m-%d %H:%M:%S"),
+            ));
+        }
+    }
+
     let has_filters = effective_from.is_some()
         || effective_to.is_some()
         || query.markers.is_some()

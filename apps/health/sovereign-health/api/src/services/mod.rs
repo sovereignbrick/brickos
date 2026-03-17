@@ -11,6 +11,7 @@ pub mod marker_matcher;
 pub mod measurement;
 pub mod mfa;
 pub mod pdf_report;
+pub mod purge;
 pub mod rate_limit;
 pub mod reference;
 pub mod segments;

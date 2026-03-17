@@ -67,11 +67,21 @@ async fn main() -> std::io::Result<()> {
     {
         let pool_clone = pool.clone();
         tokio::spawn(async move {
-            // Wait 60s after startup before first run
             tokio::time::sleep(std::time::Duration::from_secs(60)).await;
             loop {
                 sovereign_health_backend::handlers::affiliate::cron_auto_approve(&pool_clone).await;
-                // Run once every 24 hours
+                tokio::time::sleep(std::time::Duration::from_secs(24 * 60 * 60)).await;
+            }
+        });
+    }
+
+    // Hard purge cron: permanently delete accounts past 30-day grace period (GDPR-F002)
+    {
+        let pool_clone = pool.clone();
+        tokio::spawn(async move {
+            tokio::time::sleep(std::time::Duration::from_secs(120)).await;
+            loop {
+                sovereign_health_backend::services::purge::cron_hard_purge(&pool_clone).await;
                 tokio::time::sleep(std::time::Duration::from_secs(24 * 60 * 60)).await;
             }
         });
