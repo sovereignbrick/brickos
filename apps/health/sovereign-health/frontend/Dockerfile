@@ -22,8 +22,10 @@ ENV NEXT_TELEMETRY_DISABLED=1
 # NEXT_PUBLIC_* vars are baked at build time — pass via --build-arg
 ARG NEXT_PUBLIC_API_URL=https://api.sovereignhealth.io
 ARG NEXT_PUBLIC_APP_NAME=Sovereign Health Intelligence
+ARG NEXT_PUBLIC_DEMO_HOSTNAME=demo.sovereignhealth.io
 ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
 ENV NEXT_PUBLIC_APP_NAME=${NEXT_PUBLIC_APP_NAME}
+ENV NEXT_PUBLIC_DEMO_HOSTNAME=${NEXT_PUBLIC_DEMO_HOSTNAME}
 RUN pnpm build
 
 # ── Runtime stage ──────────────────────────────────────────────────────────────

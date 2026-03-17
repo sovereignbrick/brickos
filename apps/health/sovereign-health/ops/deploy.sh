@@ -339,9 +339,17 @@ deploy_frontend() {
 
     # NEXT_PUBLIC_API_URL is baked at build time. This is why we need
     # separate Docker images for staging vs production.
+    # For staging: override DEMO_HOSTNAME so demo.sovereignhealth.io
+    # doesn't trigger demo-only mode (staging needs full auth).
+    local demo_host_arg=""
+    if [ "$env" = "staging" ]; then
+        demo_host_arg="--build-arg NEXT_PUBLIC_DEMO_HOSTNAME=public-demo.sovereignhealth.io"
+    fi
+
     docker build \
         --build-arg NEXT_PUBLIC_API_URL="$api_url" \
         --build-arg NEXT_PUBLIC_ENVIRONMENT="$env" \
+        $demo_host_arg \
         -t "${FRONTEND_IMAGE}:${image_tag}" .
 
     log "Transferring frontend to VPS..."
