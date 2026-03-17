@@ -295,8 +295,8 @@ deploy_backend() {
     ensure_branch "$branch" "$PROJECT_ROOT" "brickos"
 
     log "Building backend ($env)..."
-    cd "$APP_ROOT/api"
-    docker build -t "${BACKEND_IMAGE}:${image_tag}" .
+    cd "$PROJECT_ROOT"
+    docker build -f apps/health/sovereign-health/api/Dockerfile -t "${BACKEND_IMAGE}:${image_tag}" .
 
     log "Transferring backend to VPS..."
     docker save "${BACKEND_IMAGE}:${image_tag}" | ssh $VPS "docker load"
