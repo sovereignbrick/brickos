@@ -1948,7 +1948,7 @@ function DataPrivacyTab({ shareAnonymousData, onToggle }: { shareAnonymousData: 
     try {
       await api.settings.deleteAccount()
       logout()
-      router.push('/login')
+      router.push('/')
     } catch (e: unknown) {
       toast.error(e instanceof Error ? e.message : t('deleteFailed'))
       setDeleting(false)
