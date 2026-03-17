@@ -362,6 +362,15 @@ pub async fn export_csv(
     let today = Utc::now().format("%Y-%m-%d").to_string();
     let suffix = if has_filters { "-filtered" } else { "" };
 
+    // Log data access (GDPR audit trail)
+    crate::services::access_log::log_self_access(
+        pool.get_ref(),
+        auth.user_id,
+        "export_csv",
+        "measurements",
+    )
+    .await;
+
     // Record export history
     let size = csv.len() as i32;
     let period_label = query.period.as_deref().unwrap_or("all");

@@ -1,5 +1,6 @@
 // Sovereign Health Intelligence -- AGPL-3.0 -- https://sovereignhealth.io/
 
+pub mod access_log;
 pub mod ai_usage;
 pub mod auth;
 pub mod calculated;

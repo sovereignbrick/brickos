@@ -652,6 +652,15 @@ pub async fn export_json(
     // Tier check
     tier::check_feature(pool.get_ref(), auth.user_id, "json_export").await?;
 
+    // Log data access (GDPR audit trail)
+    crate::services::access_log::log_self_access(
+        pool.get_ref(),
+        auth.user_id,
+        "export_json",
+        "measurements",
+    )
+    .await;
+
     let period = query.period.as_deref().unwrap_or("all");
     let from = period_to_from(period);
 
