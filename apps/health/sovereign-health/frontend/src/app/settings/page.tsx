@@ -1177,50 +1177,58 @@ function ProfileTab({
       <div className="border border-zinc-800 rounded-lg p-4 space-y-3">
         <h3 className="text-sm font-medium">{t('bodyMeasurements')}</h3>
         <p className="text-xs text-muted-foreground">{t('bodyMeasurementsDesc')}</p>
-        <div className="flex gap-3">
-          <div className="w-16 shrink-0">
-            <Field label={t('age')}>
-              <input type="number" value={form.age ?? ''} onChange={e => setForm({ ...form, age: e.target.value ? Number(e.target.value) : null })} className={inp} min={1} max={99} />
-            </Field>
+        <div className="grid grid-cols-4 gap-3">
+          <div>
+            <div className="flex items-center gap-1 mb-1">
+              <span className="text-sm text-muted-foreground">{t('age')}</span>
+              <InfoTooltip>{t('ageTooltip')}</InfoTooltip>
+            </div>
+            <input type="number" value={form.age ?? ''} onChange={e => setForm({ ...form, age: e.target.value ? Number(e.target.value) : null })} className={"w-16 " + inp} min={1} max={99} />
           </div>
-          <div className="flex-1">
-            <Field label={t('height')}>
-              <div className="flex gap-1">
-                <input type="number" value={displayHeight ?? ''} onChange={e => {
-                  const v = e.target.value ? Number(e.target.value) : null
-                  setForm({ ...form, height_cm: heightUnit === 'ft-in' && v ? Math.round(v * 2.54 * 10) / 10 : v })
-                }} className={"flex-1 min-w-0 " + inp} step={0.1} />
-                <select value={heightUnit} onChange={e => setHeightUnit(e.target.value as 'cm' | 'ft-in')} className="w-14 rounded-lg border border-zinc-700 bg-zinc-900 px-1 py-1.5 text-xs text-foreground">
-                  <option value="cm">cm</option><option value="ft-in">in</option>
-                </select>
-              </div>
-            </Field>
+          <div>
+            <div className="flex items-center gap-1 mb-1">
+              <span className="text-sm text-muted-foreground">{t('height')}</span>
+              <InfoTooltip>{t('heightTooltip')}</InfoTooltip>
+            </div>
+            <div className="flex gap-1">
+              <input type="number" value={displayHeight ?? ''} onChange={e => {
+                const v = e.target.value ? Number(e.target.value) : null
+                setForm({ ...form, height_cm: heightUnit === 'ft-in' && v ? Math.round(v * 2.54 * 10) / 10 : v })
+              }} className={"w-16 " + inp} step={0.1} />
+              <select value={heightUnit} onChange={e => setHeightUnit(e.target.value as 'cm' | 'ft-in')} className="w-14 rounded-lg border border-zinc-700 bg-zinc-900 px-1 py-1.5 text-xs text-foreground">
+                <option value="cm">cm</option><option value="ft-in">in</option>
+              </select>
+            </div>
           </div>
-          <div className="flex-1">
-            <Field label={t('waist')}>
-              <div className="flex gap-1">
-                <input type="number" value={displayWaist ?? ''} onChange={e => {
-                  const v = e.target.value ? Number(e.target.value) : null
-                  setForm({ ...form, default_waist_cm: waistUnit === 'inches' && v ? Math.round(v * 2.54 * 10) / 10 : v })
-                }} className={"flex-1 min-w-0 " + inp} step={0.1} />
-                <select value={waistUnit} onChange={e => setWaistUnit(e.target.value as 'cm' | 'inches')} className="w-14 rounded-lg border border-zinc-700 bg-zinc-900 px-1 py-1.5 text-xs text-foreground">
-                  <option value="cm">cm</option><option value="inches">in</option>
-                </select>
-              </div>
-            </Field>
+          <div>
+            <div className="flex items-center gap-1 mb-1">
+              <span className="text-sm text-muted-foreground">{t('waist')}</span>
+              <InfoTooltip>{t('waistTooltip')}</InfoTooltip>
+            </div>
+            <div className="flex gap-1">
+              <input type="number" value={displayWaist ?? ''} onChange={e => {
+                const v = e.target.value ? Number(e.target.value) : null
+                setForm({ ...form, default_waist_cm: waistUnit === 'inches' && v ? Math.round(v * 2.54 * 10) / 10 : v })
+              }} className={"w-20 " + inp} step={0.1} />
+              <select value={waistUnit} onChange={e => setWaistUnit(e.target.value as 'cm' | 'inches')} className="w-14 rounded-lg border border-zinc-700 bg-zinc-900 px-1 py-1.5 text-xs text-foreground">
+                <option value="cm">cm</option><option value="inches">in</option>
+              </select>
+            </div>
           </div>
-          <div className="flex-1">
-            <Field label={t('weight')}>
-              <div className="flex gap-1">
-                <input type="number" value={displayWeight ?? ''} onChange={e => {
-                  const v = e.target.value ? Number(e.target.value) : null
-                  setForm({ ...form, default_weight_kg: weightUnit === 'lbs' && v ? Math.round(v / 2.205 * 10) / 10 : v })
-                }} className={"flex-1 min-w-0 " + inp} step={0.1} />
-                <select value={weightUnit} onChange={e => setWeightUnit(e.target.value as 'kg' | 'lbs')} className="w-14 rounded-lg border border-zinc-700 bg-zinc-900 px-1 py-1.5 text-xs text-foreground">
-                  <option value="kg">kg</option><option value="lbs">lbs</option>
-                </select>
-              </div>
-            </Field>
+          <div>
+            <div className="flex items-center gap-1 mb-1">
+              <span className="text-sm text-muted-foreground">{t('weight')}</span>
+              <InfoTooltip>{t('weightTooltip')}</InfoTooltip>
+            </div>
+            <div className="flex gap-1">
+              <input type="number" value={displayWeight ?? ''} onChange={e => {
+                const v = e.target.value ? Number(e.target.value) : null
+                setForm({ ...form, default_weight_kg: weightUnit === 'lbs' && v ? Math.round(v / 2.205 * 10) / 10 : v })
+              }} className={"w-16 " + inp} step={0.1} />
+              <select value={weightUnit} onChange={e => setWeightUnit(e.target.value as 'kg' | 'lbs')} className="w-14 rounded-lg border border-zinc-700 bg-zinc-900 px-1 py-1.5 text-xs text-foreground">
+                <option value="kg">kg</option><option value="lbs">lbs</option>
+              </select>
+            </div>
           </div>
         </div>
       </div>
