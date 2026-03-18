@@ -330,7 +330,7 @@ function LoginContent() {
           </p>
         )}
 
-        <div className="mt-6 rounded-xl border border-zinc-800 bg-zinc-900/50 p-4 text-center">
+        <div className="mt-6 rounded-xl border border-border bg-muted/50 p-4 text-center">
           <p className="text-sm text-muted-foreground mb-2">
             {t('demoExplore')}
           </p>

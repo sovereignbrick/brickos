@@ -87,10 +87,10 @@ function RangeBar({ range, value }: { range: MarkerReferenceRange; value: number
             className="absolute -top-5 flex flex-col items-center"
             style={{ left: `${pinPct}%`, transform: 'translateX(-50%)' }}
           >
-            <span className="text-[11px] font-bold text-white bg-muted border border-zinc-600 px-1.5 py-0.5 rounded-full whitespace-nowrap shadow">
+            <span className="text-[11px] font-bold text-foreground bg-muted border border-border px-1.5 py-0.5 rounded-full whitespace-nowrap shadow">
               {value} {range.unit}
             </span>
-            <span className="w-0 h-0 border-l-[3px] border-r-[3px] border-t-[3px] border-transparent border-t-zinc-600" />
+            <span className="w-0 h-0 border-l-[3px] border-r-[3px] border-t-[3px] border-transparent border-t-border" />
           </div>
         </div>
       )}
@@ -115,10 +115,10 @@ function RangeBar({ range, value }: { range: MarkerReferenceRange; value: number
 
 function SourceBadge({ sourceType, deviceName, t }: { sourceType: string; deviceName?: string | null; t: (key: string) => string }) {
   const map: Record<string, { cls: string; fallbackKey: string }> = {
-    home:       { cls: 'bg-blue-900/50 text-blue-300 border-blue-700', fallbackKey: 'homeDevice' },
-    lab:        { cls: 'bg-purple-900/50 text-purple-300 border-purple-700', fallbackKey: 'labTest' },
-    calculated: { cls: 'bg-amber-900/50 text-amber-300 border-amber-700', fallbackKey: 'calculated' },
-    hybrid:     { cls: 'bg-teal-900/50 text-teal-300 border-teal-700', fallbackKey: 'labAndHome' },
+    home:       { cls: 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 border-blue-300 dark:border-blue-700', fallbackKey: 'homeDevice' },
+    lab:        { cls: 'bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300 border-purple-300 dark:border-purple-700', fallbackKey: 'labTest' },
+    calculated: { cls: 'bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-700', fallbackKey: 'calculated' },
+    hybrid:     { cls: 'bg-teal-100 dark:bg-teal-900/50 text-teal-700 dark:text-teal-300 border-teal-300 dark:border-teal-700', fallbackKey: 'labAndHome' },
   }
   const entry = map[sourceType] ?? { cls: 'bg-muted text-muted-foreground border-zinc-600', fallbackKey: '' }
   const label = deviceName ?? (entry.fallbackKey ? t(entry.fallbackKey) : sourceType)
