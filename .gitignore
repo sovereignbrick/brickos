@@ -30,3 +30,5 @@ build/
 *.tar
 *.gz
 api/.env
+tsconfig.tsbuildinfo
+*.snap.new
