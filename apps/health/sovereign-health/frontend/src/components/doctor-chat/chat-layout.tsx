@@ -107,7 +107,18 @@ export function ChatLayout() {
       await fetchConversations()
     } catch (err) {
       setMessages((prev) => prev.filter((m) => m.id !== tempUserMsg.id))
-      const errorMsg = err instanceof Error ? err.message : tChat('errorServer')
+      const rawMsg = err instanceof Error ? err.message : ''
+      // Map known backend errors to i18n keys
+      let errorMsg: string
+      if (rawMsg.includes('overloaded') || rawMsg.includes('temporarily')) {
+        errorMsg = tChat('errorOverloaded')
+      } else if (rawMsg.includes('rate') || rawMsg.includes('Too many')) {
+        errorMsg = tChat('errorRateLimited')
+      } else if (rawMsg.includes('Upstream') || rawMsg.includes('upstream')) {
+        errorMsg = tChat('errorUpstream')
+      } else {
+        errorMsg = rawMsg || tChat('errorServer')
+      }
       setChatError(errorMsg)
     } finally {
       setIsLoading(false)

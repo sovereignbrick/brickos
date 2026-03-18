@@ -1010,6 +1010,18 @@ pub async fn login(
         .execute(pool.get_ref())
         .await?;
 
+    // Audit log: successful login
+    crate::services::audit::log(
+        pool.get_ref(),
+        Some(user.id),
+        "auth.login_success",
+        Some("user"),
+        Some(user.id),
+        Some(&ip),
+        None,
+    )
+    .await;
+
     // Update engagement segment (non-blocking)
     {
         let pool_ref = pool.get_ref().clone();

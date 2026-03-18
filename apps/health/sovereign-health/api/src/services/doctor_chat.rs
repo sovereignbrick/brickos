@@ -878,7 +878,10 @@ pub async fn call_claude(
         messages,
     };
 
-    let client = reqwest::Client::new();
+    let client = reqwest::Client::builder()
+        .timeout(std::time::Duration::from_secs(30))
+        .build()
+        .unwrap_or_else(|_| reqwest::Client::new());
     let resp = client
         .post(crate::config::Config::anthropic_api_url_static())
         .header("x-api-key", api_key)
@@ -898,9 +901,15 @@ pub async fn call_claude(
     let status = resp.status();
     if !status.is_success() {
         let body = resp.text().await.unwrap_or_default();
-        tracing::error!("Anthropic API error {}: {}", status, body);
+        tracing::error!("Anthropic API error {} (chat): {}", status, body);
         if status == 401 || status == 403 {
             return Err(AppError::MissingApiKey);
+        }
+        if status.as_u16() == 529 || status.as_u16() == 503 {
+            return Err(AppError::ServiceOverloaded);
+        }
+        if status.as_u16() == 429 {
+            return Err(AppError::RateLimited);
         }
         return Err(AppError::UpstreamError);
     }

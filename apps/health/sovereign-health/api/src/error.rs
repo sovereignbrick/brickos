@@ -33,6 +33,12 @@ pub enum AppError {
     #[error("Upstream AI service error")]
     UpstreamError,
 
+    #[error("Service is temporarily overloaded — please try again in a moment")]
+    ServiceOverloaded,
+
+    #[error("Too many requests — please wait a moment and try again")]
+    RateLimited,
+
     #[error("Upgrade required")]
     UpgradeRequired(Box<crate::services::tier::TierError>),
 
@@ -86,6 +92,16 @@ impl ResponseError for AppError {
             AppError::UpstreamError => (
                 actix_web::http::StatusCode::BAD_GATEWAY,
                 "upstream_error",
+                self.to_string(),
+            ),
+            AppError::ServiceOverloaded => (
+                actix_web::http::StatusCode::SERVICE_UNAVAILABLE,
+                "service_overloaded",
+                self.to_string(),
+            ),
+            AppError::RateLimited => (
+                actix_web::http::StatusCode::TOO_MANY_REQUESTS,
+                "rate_limited",
                 self.to_string(),
             ),
             AppError::Forbidden => (

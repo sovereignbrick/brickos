@@ -129,13 +129,32 @@ pub async fn chat(
     let health_context = build_health_context(pool.get_ref(), auth.user_id, enc.get_ref()).await?;
 
     // 5. Call Claude
-    let claude_resp = call_claude(
+    let claude_resp = match call_claude(
         &config.anthropic_api_key,
         &health_context,
         &question,
         history,
     )
-    .await?;
+    .await
+    {
+        Ok(resp) => resp,
+        Err(e) => {
+            crate::services::audit::log(
+                pool.get_ref(),
+                Some(auth.user_id),
+                "chat.error",
+                Some("doctor_chat"),
+                None,
+                None,
+                Some(serde_json::json!({
+                    "error": e.to_string(),
+                    "agent_type": agent_type,
+                })),
+            )
+            .await;
+            return Err(e);
+        }
+    };
 
     // 5b. Log AI usage
     let _ = crate::services::ai_usage::log_usage(

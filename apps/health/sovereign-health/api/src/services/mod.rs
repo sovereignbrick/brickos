@@ -2,6 +2,7 @@
 
 pub mod access_log;
 pub mod ai_usage;
+pub mod audit;
 pub mod auth;
 pub mod calculated;
 pub mod content;
