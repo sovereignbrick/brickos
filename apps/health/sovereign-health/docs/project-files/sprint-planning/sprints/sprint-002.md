@@ -14,11 +14,12 @@ Sprint 001 delivered RC1–RC3 with platform extraction, security hardening, and
 
 | # | Title | Points | Area | Milestone |
 |---|-------|--------|------|-----------|
+| — | RC4 testing: deploy to staging, run manual checklist, file new issues | 3 | All | Release Workflow |
 | [#117](https://github.com/sovereignbrick/brickos/issues/117) | fix: Stripe upgrade button missing on Settings → License tab | 3 | Frontend | Platform Extraction |
 | [#118](https://github.com/sovereignbrick/brickos/issues/118) | feat: billing address section in Settings for tax compliance | 5 | Frontend | Platform Extraction |
 | [#119](https://github.com/sovereignbrick/brickos/issues/119) | fix: signup form doesn't send consent to API | 2 | Frontend | UI: Privacy & Security |
 | [#120](https://github.com/sovereignbrick/brickos/issues/120) | fix: deploy.sh image tag mismatch with prod compose | 2 | Ops | Release Workflow |
-| **Subtotal** | | **12 pts** | | |
+| **Subtotal** | | **15 pts** (+ RC4 issues TBD) | | |
 
 ## Phase 2 — Release Automation (quick wins from retro)
 
@@ -52,16 +53,20 @@ Sprint 001 delivered RC1–RC3 with platform extraction, security hardening, and
 
 | Metric | Value |
 |---|---|
-| Phase 1 (blockers) | 12 pts |
+| Phase 1 (blockers) | 15 pts + RC4 issues TBD |
 | Phase 2 (automation) | 9 pts |
 | Phase 3 (hardening) | 13 pts |
 | Phase 4 (go-live) | 5 pts |
-| **Total planned** | **39 pts** |
+| **Total planned** | **42 pts** + RC4 issues TBD |
 | Sprint 001 velocity | ~44 pts completed |
 
 ## Execution Order
 
 ```
+Day 1 (2026-03-19):
+  RC4 testing session         → deploy staging, run checklist, file new issues
+  Fix RC4 issues              → triage and resolve blockers found
+
 Week 1 (Phase 1 + 2):
   #120 deploy.sh fix          → unblocks all deploys
   #123 insta CI check         → 15 min, prevents snapshot drift
