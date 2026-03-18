@@ -15,11 +15,25 @@ Sprint 001 delivered RC1–RC3 with platform extraction, security hardening, and
 | # | Title | Points | Area | Milestone |
 |---|-------|--------|------|-----------|
 | — | RC4 testing: deploy to staging, run manual checklist, file new issues | 3 | All | Release Workflow |
-| [#117](https://github.com/sovereignbrick/brickos/issues/117) | fix: Stripe upgrade button missing on Settings → License tab | 3 | Frontend | Platform Extraction |
+| [#129](https://github.com/sovereignbrick/brickos/issues/129) | fix: dashboard swipable tiles white-on-white in light theme | 2 | Frontend | UX & Onboarding |
+| [#130](https://github.com/sovereignbrick/brickos/issues/130) | fix: zone detail marker tiles missing hover animation | 1 | Frontend | UX & Onboarding |
+| [#131](https://github.com/sovereignbrick/brickos/issues/131) | fix: marker reference bar — circle marker, tooltip, red zones | 5 | Frontend | Health Intelligence Graph |
+| [#132](https://github.com/sovereignbrick/brickos/issues/132) | feat: audit marker abbreviations & enrich from open databases (LOINC) | 5 | API + Data | Health Intelligence Graph |
+| [#133](https://github.com/sovereignbrick/brickos/issues/133) | fix: lab import misidentifies markers from screenshots — improve AI extraction | 5 | API + Frontend | AI & Smart Features |
+| [#134](https://github.com/sovereignbrick/brickos/issues/134) | fix: move info tooltip icon to left after marker abbreviation | 1 | Frontend | UX & Onboarding |
+| [#135](https://github.com/sovereignbrick/brickos/issues/135) | fix: sleep quality label, lifestyle tooltips, React hydration #418 | 3 | Frontend | UX & Onboarding |
+| [#136](https://github.com/sovereignbrick/brickos/issues/136) | fix: device Standard badge not theme-aware in light mode | 1 | Frontend | UX & Onboarding |
+| [#137](https://github.com/sovereignbrick/brickos/issues/137) | feat: thresholds table — abbreviation, richer tooltip, zebra rows, better search | 5 | Frontend | UX & Onboarding |
+| [#138](https://github.com/sovereignbrick/brickos/issues/138) | fix: influence factors form — Name field too wide, labels misaligned | 2 | Frontend | UX & Onboarding |
+| [#140](https://github.com/sovereignbrick/brickos/issues/140) | fix: React hydration #418 on multiple pages + billing/sync failing | 3 | Frontend | Infrastructure & Chores |
+| [#141](https://github.com/sovereignbrick/brickos/issues/141) | fix: affiliate referral link not working — auto-generate code on signup | 5 | API + Frontend | Horizon Tier Features |
+| [#142](https://github.com/sovereignbrick/brickos/issues/142) | feat: hierarchical affiliate commissions — assess & add parent_referrer_id | 3 | API + Data | Horizon Tier Features |
+| [#143](https://github.com/sovereignbrick/brickos/issues/143) | fix: admin panel — light theme audit, hide app navbar, readability | 8 | Frontend | UX & Onboarding |
+| [#117](https://github.com/sovereignbrick/brickos/issues/117) / [#139](https://github.com/sovereignbrick/brickos/issues/139) | fix: Stripe upgrade button + plan management on License tab | 3 | Frontend | Platform Extraction |
 | [#118](https://github.com/sovereignbrick/brickos/issues/118) | feat: billing address section in Settings for tax compliance | 5 | Frontend | Platform Extraction |
 | [#119](https://github.com/sovereignbrick/brickos/issues/119) | fix: signup form doesn't send consent to API | 2 | Frontend | UI: Privacy & Security |
 | [#120](https://github.com/sovereignbrick/brickos/issues/120) | fix: deploy.sh image tag mismatch with prod compose | 2 | Ops | Release Workflow |
-| **Subtotal** | | **15 pts** (+ RC4 issues TBD) | | |
+| **Subtotal** | | **64 pts** (+ RC4 issues TBD) | | |
 
 ## Phase 2 — Release Automation (quick wins from retro)
 
