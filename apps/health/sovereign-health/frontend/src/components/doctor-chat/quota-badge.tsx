@@ -23,7 +23,7 @@ export function QuotaBadge({ remaining, limit, resetsAt, tier }: QuotaBadgeProps
 
   if (tier && UNLIMITED_TIERS.includes(tier)) {
     return (
-      <span className="text-xs text-white/40">
+      <span className="text-xs text-muted-foreground">
         {t('unlimited')}
       </span>
     )
@@ -34,7 +34,7 @@ export function QuotaBadge({ remaining, limit, resetsAt, tier }: QuotaBadgeProps
       ? 'text-red-400'
       : remaining === 1
         ? 'text-orange-400'
-        : 'text-white/60'
+        : 'text-muted-foreground'
 
   const suggestion = tier ? UPGRADE_SUGGESTIONS[tier] : null
 
@@ -43,7 +43,7 @@ export function QuotaBadge({ remaining, limit, resetsAt, tier }: QuotaBadgeProps
       <span className={`text-xs ${colorClass}`}>
         {t('questionsRemaining', { remaining: String(remaining), limit: String(limit) })}
         {resetsAt && remaining === 0 && (
-          <span className="ml-1 text-white/40">
+          <span className="ml-1 text-muted-foreground">
             · {t('resets', { date: new Date(resetsAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) })}
           </span>
         )}

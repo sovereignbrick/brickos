@@ -1208,27 +1208,24 @@ pub async fn get_consent(
     use sqlx::Row;
 
     let row = sqlx::query(
-        "SELECT consent_product_updates, consent_newsletter, consent_partner_offers \
+        "SELECT consent_newsletter, consent_partner_offers \
          FROM user_profile WHERE user_id = $1",
     )
     .bind(auth.user_id)
     .fetch_optional(pool.get_ref())
     .await?;
 
-    let (product_updates, newsletter, partner_offers) = match row {
+    let (newsletter, partner_offers) = match row {
         Some(r) => (
-            r.try_get::<bool, _>("consent_product_updates")
-                .unwrap_or(true),
             r.try_get::<bool, _>("consent_newsletter").unwrap_or(false),
             r.try_get::<bool, _>("consent_partner_offers")
                 .unwrap_or(false),
         ),
-        None => (true, false, false),
+        None => (false, false),
     };
 
     Ok(HttpResponse::Ok().json(json!({
         "data": {
-            "product_updates": product_updates,
             "newsletter": newsletter,
             "partner_offers": partner_offers,
         },
@@ -1243,11 +1240,10 @@ pub async fn update_consent(
     email_provider: web::Data<std::sync::Arc<dyn brickos_email::EmailProvider>>,
     body: web::Json<serde_json::Value>,
 ) -> Result<HttpResponse, AppError> {
-    let product_updates = body.get("product_updates").and_then(|v| v.as_bool());
     let newsletter = body.get("newsletter").and_then(|v| v.as_bool());
     let partner_offers = body.get("partner_offers").and_then(|v| v.as_bool());
 
-    if product_updates.is_none() && newsletter.is_none() && partner_offers.is_none() {
+    if newsletter.is_none() && partner_offers.is_none() {
         return Err(AppError::Validation(
             "At least one consent field required".to_string(),
         ));
@@ -1257,10 +1253,6 @@ pub async fn update_consent(
     let mut sets = Vec::new();
     let mut idx = 2; // $1 = user_id
 
-    if product_updates.is_some() {
-        sets.push(format!("consent_product_updates = ${idx}"));
-        idx += 1;
-    }
     if newsletter.is_some() {
         sets.push(format!("consent_newsletter = ${idx}"));
         idx += 1;
@@ -1277,9 +1269,6 @@ pub async fn update_consent(
     );
 
     let mut q = sqlx::query(&sql).bind(auth.user_id);
-    if let Some(v) = product_updates {
-        q = q.bind(v);
-    }
     if let Some(v) = newsletter {
         q = q.bind(v);
     }
@@ -1293,13 +1282,6 @@ pub async fn update_consent(
     let mut add_tags = Vec::new();
     let mut remove_tags = Vec::new();
 
-    if let Some(v) = product_updates {
-        if v {
-            add_tags.push("consent:product_updates".to_string());
-        } else {
-            remove_tags.push("consent:product_updates".to_string());
-        }
-    }
     if let Some(v) = newsletter {
         if v {
             add_tags.push("consent:newsletter".to_string());

@@ -1,4 +1,4 @@
-# Production — VPS deployment via GitLab Container Registry images.
+# Production — VPS deployment with locally-built Docker images transferred via ssh.
 # Requires: .env file with DB_PASSWORD and JWT_SECRET set.
 # Usage: docker compose -f docker-compose.prod.yml up -d
 
@@ -53,13 +53,27 @@ services:
   # Staging containers are in docker-compose.staging.yml (separate DB, Redis, ports).
 
   db:
-    image: postgres:16-alpine
+    image: sovereign-health-postgres:latest
     volumes:
       - pgdata:/var/lib/postgresql/data
     environment:
       POSTGRES_DB: sovereign_health
       POSTGRES_USER: sovereign_health
       POSTGRES_PASSWORD: ${DB_PASSWORD}
+    command:
+      - "postgres"
+      - "-c"
+      - "shared_preload_libraries=pgaudit"
+      - "-c"
+      - "pgaudit.log=write,ddl"
+      - "-c"
+      - "pgaudit.log_catalog=off"
+      - "-c"
+      - "pgaudit.log_relation=on"
+      - "-c"
+      - "pgaudit.log_statement_once=on"
+      - "-c"
+      - "pgaudit.log_parameter=off"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U sovereign_health"]
       interval: 5s

@@ -13,6 +13,7 @@ import { useTranslations } from 'next-intl'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { useContent } from '@/lib/content-context'
 import { locales, localeNames } from '@/i18n/config'
+import { COUNTRIES, detectCountryFromLocale } from '@/lib/countries'
 
 function PasswordStrength({ password }: { password: string }) {
   const t = useTranslations('auth.signup.strength')
@@ -109,8 +110,8 @@ function SignupContent() {
   const { register, handleSubmit, watch, formState: { errors, isSubmitting } } = useForm<SignupInput>({
     resolver: standardSchemaResolver(signupSchema),
     defaultValues: {
-      consent_product_updates: true,
       consent_newsletter: false,
+      country: detectCountryFromLocale(),
     },
   })
 
@@ -148,7 +149,7 @@ function SignupContent() {
         referred_by: referralCode.current || undefined,
         locale: contentLocale,
         consent_newsletter: data.consent_newsletter,
-        consent_product_updates: data.consent_product_updates,
+        country: data.country || undefined,
       })
       // Clear referral cookie after successful registration
       Cookies.remove('sh_ref')
@@ -191,12 +192,12 @@ function SignupContent() {
               const params = new URLSearchParams({ tier, interval: interval || 'monthly' })
               if (promo) params.set('promo', promo)
               if (method && method !== 'card') params.set('method', method)
-              router.push(`/checkout?${params.toString()}`)
+              router.replace(`/checkout?${params.toString()}`)
               return
             }
           }
         } catch {}
-        router.push('/dashboard')
+        router.replace('/dashboard')
       } else if (res.data.mfa_required) {
         router.push('/login')
       }
@@ -439,6 +440,21 @@ function SignupContent() {
             />
             {errors.display_name && <p className="text-xs text-red-400 mt-1">{errors.display_name.message}</p>}
           </div>
+          <div>
+            <label className="text-sm font-medium block mb-1.5">{ts('country')}</label>
+            <select
+              {...register('country')}
+              className="w-full bg-background border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors"
+            >
+              <option value="">{ts('selectCountry')}</option>
+              {COUNTRIES.map(c => (
+                <option key={c.code} value={c.code}>
+                  {contentLocale === 'de' ? c.name.de : c.name.en}
+                </option>
+              ))}
+            </select>
+            {errors.country && <p className="text-xs text-red-400 mt-1">{errors.country.message}</p>}
+          </div>
           <div className="space-y-3 pt-2">
             <label className="flex items-start gap-2 cursor-pointer">
               <input type="checkbox" {...register('tos_accepted')} className="mt-0.5 rounded" />
@@ -461,10 +477,6 @@ function SignupContent() {
               </span>
             </label>
             {errors.age_confirmed && <p className="text-xs text-red-400">{errors.age_confirmed.message}</p>}
-            <label className="flex items-start gap-2 cursor-pointer">
-              <input type="checkbox" {...register('consent_product_updates')} className="mt-0.5 rounded" defaultChecked />
-              <span className="text-xs text-muted-foreground">{ts('productUpdates')}</span>
-            </label>
             <label className="flex items-start gap-2 cursor-pointer">
               <input type="checkbox" {...register('consent_newsletter')} className="mt-0.5 rounded" />
               <span className="text-xs text-muted-foreground">{ts('newsletter')}</span>

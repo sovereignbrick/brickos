@@ -65,7 +65,7 @@ export function ConversationList({ conversations, activeId, onSelect, onNewChat,
 
   return (
     <div className="flex flex-col h-full">
-      <div className="p-3 border-b border-white/10 space-y-2">
+      <div className="p-3 border-b border-border space-y-2">
         <button
           onClick={onNewChat}
           className="w-full text-sm font-medium px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white transition-colors"
@@ -73,7 +73,7 @@ export function ConversationList({ conversations, activeId, onSelect, onNewChat,
           + {t('newConversation')}
         </button>
         <div className="relative">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute left-2.5 top-1/2 -translate-y-1/2 text-white/30">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground">
             <circle cx="11" cy="11" r="8" />
             <path d="m21 21-4.3-4.3" />
           </svg>
@@ -82,13 +82,13 @@ export function ConversationList({ conversations, activeId, onSelect, onNewChat,
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder={t('searchChats')}
-            className="w-full bg-white/[0.05] border border-white/10 rounded-lg pl-8 pr-3 py-1.5 text-xs text-white placeholder:text-white/30 focus:outline-none focus:ring-1 focus:ring-blue-500/50 focus:border-white/20 transition-colors"
+            className="w-full bg-accent border border-border rounded-lg pl-8 pr-3 py-1.5 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-blue-500/50 focus:border-border transition-colors"
           />
         </div>
       </div>
       <div className="flex-1 overflow-y-auto p-2 space-y-1">
         {filtered.length === 0 && (
-          <p className="text-xs text-white/30 text-center py-4 px-2">
+          <p className="text-xs text-muted-foreground text-center py-4 px-2">
             {t('noHistory')}
           </p>
         )}
@@ -98,8 +98,8 @@ export function ConversationList({ conversations, activeId, onSelect, onNewChat,
             onClick={() => { if (editingId !== conv.id) onSelect(conv.id) }}
             className={`w-full text-left px-3 py-2.5 rounded-lg transition-colors cursor-pointer group ${
               activeId === conv.id
-                ? 'bg-white/10 text-white/90'
-                : 'text-white/60 hover:bg-white/[0.05] hover:text-white/80'
+                ? 'bg-accent text-foreground'
+                : 'text-muted-foreground hover:bg-accent hover:text-foreground'
             }`}
           >
             {editingId === conv.id ? (
@@ -113,7 +113,7 @@ export function ConversationList({ conversations, activeId, onSelect, onNewChat,
                     if (e.key === 'Enter') confirmEditing()
                     if (e.key === 'Escape') cancelEditing()
                   }}
-                  className="flex-1 min-w-0 bg-white/10 border border-white/20 rounded px-1.5 py-0.5 text-xs text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="flex-1 min-w-0 bg-accent border border-border rounded px-1.5 py-0.5 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-blue-500"
                   maxLength={200}
                 />
                 <button
@@ -124,7 +124,7 @@ export function ConversationList({ conversations, activeId, onSelect, onNewChat,
                 </button>
                 <button
                   onClick={(e) => { e.stopPropagation(); cancelEditing() }}
-                  className="text-white/40 hover:text-white/60 p-0.5"
+                  className="text-muted-foreground hover:text-foreground p-0.5"
                 >
                   <X size={12} />
                 </button>
@@ -139,17 +139,18 @@ export function ConversationList({ conversations, activeId, onSelect, onNewChat,
                     {onRename && (
                       <button
                         onClick={(e) => startEditing(conv, e)}
-                        className="opacity-0 group-hover:opacity-100 text-white/30 hover:text-white/60 transition-opacity p-0.5"
+                        className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-foreground transition-opacity p-0.5"
+                        aria-label={t('renameConversation')}
                       >
                         <Pencil size={10} />
                       </button>
                     )}
-                    <span className="text-xs text-white/30">
+                    <span className="text-xs text-muted-foreground">
                       {conv.message_count}
                     </span>
                   </div>
                 </div>
-                <span className="text-xs text-white/30 mt-0.5 block">
+                <span className="text-xs text-muted-foreground mt-0.5 block">
                   {formatDate(conv.updated_at)}
                 </span>
               </>

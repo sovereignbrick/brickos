@@ -269,7 +269,6 @@ pub async fn email_stats(
     let consent_row = sqlx::query(
         r#"SELECT
             COUNT(*) as total_users,
-            COUNT(*) FILTER (WHERE consent_product_updates = true) as product_updates,
             COUNT(*) FILTER (WHERE consent_newsletter = true) as newsletter,
             COUNT(*) FILTER (WHERE consent_partner_offers = true) as partner_offers,
             COUNT(*) FILTER (WHERE mailgun_synced = true) as mailgun_synced
@@ -295,7 +294,6 @@ pub async fn email_stats(
             },
             "consent": {
                 "total_users": consent_row.try_get::<i64, _>("total_users").unwrap_or(0),
-                "product_updates": consent_row.try_get::<i64, _>("product_updates").unwrap_or(0),
                 "newsletter": consent_row.try_get::<i64, _>("newsletter").unwrap_or(0),
                 "partner_offers": consent_row.try_get::<i64, _>("partner_offers").unwrap_or(0),
                 "mailgun_synced": consent_row.try_get::<i64, _>("mailgun_synced").unwrap_or(0),

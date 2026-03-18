@@ -246,12 +246,12 @@ export default function AffiliatePage() {
             <div className="flex-1 space-y-2">
               <h2 className="text-sm font-medium text-muted-foreground">{t('referralLink')}</h2>
               <div className="flex items-center gap-2">
-                <div className="flex-1 bg-white/5 border rounded-lg px-3 py-2.5 text-sm font-mono truncate select-all">
+                <div className="flex-1 bg-accent border rounded-lg px-3 py-2.5 text-sm font-mono truncate select-all">
                   {referralLink}
                 </div>
                 <button
                   onClick={handleCopy}
-                  className="flex items-center justify-center w-10 h-10 rounded-lg border bg-white/5 hover:bg-white/10 transition-colors shrink-0"
+                  className="flex items-center justify-center w-10 h-10 rounded-lg border bg-accent hover:bg-accent transition-colors shrink-0"
                   title={tCommon('copyToClipboard')}
                 >
                   {copied ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
@@ -259,7 +259,7 @@ export default function AffiliatePage() {
               </div>
               <p className="text-xs text-muted-foreground">{t('shareDescription')}</p>
 
-              <div className="pt-3 border-t border-zinc-800 space-y-1">
+              <div className="pt-3 border-t border-border space-y-1">
                 <p className="text-xs font-medium text-muted-foreground">{t('paymentTerms')}</p>
                 <ul className="text-xs text-muted-foreground/70 space-y-0.5 list-disc list-inside">
                   <li>{t('paymentThreshold')}</li>
@@ -301,7 +301,7 @@ export default function AffiliatePage() {
                 </div>
                 <button
                   onClick={downloadQR}
-                  className="text-xs text-muted-foreground hover:text-white flex items-center gap-1 mt-1 transition-colors"
+                  className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 mt-1 transition-colors"
                 >
                   <Download className="w-3 h-3" />
                   {t('downloadQR')}
@@ -353,18 +353,18 @@ export default function AffiliatePage() {
         <div>
           <h3 className="text-sm font-medium text-muted-foreground mb-3">{t('transactionHistory')}</h3>
           {conversions.length === 0 ? (
-            <div className="border border-zinc-800 rounded-lg p-6 text-center">
+            <div className="border border-border rounded-lg p-6 text-center">
               <p className="text-sm text-muted-foreground/50">{t('noTransactions')}</p>
             </div>
           ) : (
-            <div className="border border-zinc-800 rounded-lg overflow-hidden">
+            <div className="border border-border rounded-lg overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
-                  <thead className="bg-zinc-900/50 border-b border-zinc-800">
+                  <thead className="bg-muted/50 border-b border-border">
                     <tr>
                       <th
                         onClick={() => toggleSort('date')}
-                        className="text-left px-3 py-2.5 text-xs text-muted-foreground font-medium cursor-pointer hover:text-white select-none"
+                        className="text-left px-3 py-2.5 text-xs text-muted-foreground font-medium cursor-pointer hover:text-foreground select-none"
                       >
                         {t('colDate')} <SortIcon active={sortField === 'date'} order={sortOrder} />
                       </th>
@@ -373,19 +373,19 @@ export default function AffiliatePage() {
                       </th>
                       <th
                         onClick={() => toggleSort('amount')}
-                        className="text-right px-3 py-2.5 text-xs text-muted-foreground font-medium cursor-pointer hover:text-white select-none"
+                        className="text-right px-3 py-2.5 text-xs text-muted-foreground font-medium cursor-pointer hover:text-foreground select-none"
                       >
                         {t('colAmount')} <SortIcon active={sortField === 'amount'} order={sortOrder} />
                       </th>
                       <th
                         onClick={() => toggleSort('method')}
-                        className="text-center px-3 py-2.5 text-xs text-muted-foreground font-medium cursor-pointer hover:text-white select-none"
+                        className="text-center px-3 py-2.5 text-xs text-muted-foreground font-medium cursor-pointer hover:text-foreground select-none"
                       >
                         {t('colMethod')} <SortIcon active={sortField === 'method'} order={sortOrder} />
                       </th>
                       <th
                         onClick={() => toggleSort('status')}
-                        className="text-center px-3 py-2.5 text-xs text-muted-foreground font-medium cursor-pointer hover:text-white select-none"
+                        className="text-center px-3 py-2.5 text-xs text-muted-foreground font-medium cursor-pointer hover:text-foreground select-none"
                       >
                         {t('colStatus')} <SortIcon active={sortField === 'status'} order={sortOrder} />
                       </th>
@@ -395,7 +395,7 @@ export default function AffiliatePage() {
                     {conversions.map((c, i) => {
                       const sc = statusConfig[c.status] || statusConfig.pending
                       return (
-                        <tr key={c.id} className={`border-b border-zinc-800/50 ${i % 2 === 0 ? 'bg-transparent' : 'bg-white/[0.02]'}`}>
+                        <tr key={c.id} className={`border-b border-border/50 ${i % 2 === 0 ? 'bg-transparent' : 'bg-accent/30'}`}>
                           <td className="px-3 py-2.5 text-xs">
                             {new Date(c.created_at).toLocaleDateString(dateLocale, {
                               day: '2-digit', month: '2-digit', year: 'numeric',
@@ -430,20 +430,20 @@ export default function AffiliatePage() {
               </div>
 
               {conversionsTotal > perPage && (
-                <div className="flex items-center justify-between px-3 py-2 border-t border-zinc-800 text-xs text-muted-foreground">
+                <div className="flex items-center justify-between px-3 py-2 border-t border-border text-xs text-muted-foreground">
                   <span>{t('showing', { from: (conversionsPage - 1) * perPage + 1, to: Math.min(conversionsPage * perPage, conversionsTotal), total: conversionsTotal })}</span>
                   <div className="flex gap-2">
                     <button
                       onClick={() => { const p = conversionsPage - 1; loadConversions(p, sortField, sortOrder) }}
                       disabled={conversionsPage === 1}
-                      className="px-2 py-1 rounded bg-zinc-800 hover:bg-zinc-700 disabled:opacity-30 transition-colors"
+                      className="px-2 py-1 rounded bg-muted hover:bg-accent disabled:opacity-30 transition-colors"
                     >
                       ←
                     </button>
                     <button
                       onClick={() => { const p = conversionsPage + 1; loadConversions(p, sortField, sortOrder) }}
                       disabled={conversionsPage * perPage >= conversionsTotal}
-                      className="px-2 py-1 rounded bg-zinc-800 hover:bg-zinc-700 disabled:opacity-30 transition-colors"
+                      className="px-2 py-1 rounded bg-muted hover:bg-accent disabled:opacity-30 transition-colors"
                     >
                       →
                     </button>
@@ -455,14 +455,14 @@ export default function AffiliatePage() {
         </div>
 
         {/* Section 6: Payout Settings */}
-        <div className="rounded-xl border border-zinc-800 p-4 space-y-4">
+        <div className="rounded-xl border border-border p-4 space-y-4">
           <h3 className="text-sm font-medium">{t('payoutSettings')}</h3>
           <div>
             <label className="text-sm font-medium block mb-1.5">{t('payoutMethod')}</label>
             <select
               value={payoutMethod}
               onChange={e => setPayoutMethod(e.target.value)}
-              className="w-full bg-zinc-900 border border-zinc-700 text-white rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 [&>option]:bg-zinc-900 [&>option]:text-white"
+              className="w-full bg-background border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
             >
               <option value="btc_onchain">{t('btcOnchain')}</option>
               <option value="bank">{t('bankTransfer')}</option>
@@ -477,7 +477,7 @@ export default function AffiliatePage() {
                 value={btcAddress}
                 onChange={e => setBtcAddress(e.target.value)}
                 placeholder="bc1q..."
-                className="w-full bg-white/5 border rounded-lg px-3 py-2.5 text-sm font-mono focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full bg-accent border rounded-lg px-3 py-2.5 text-sm font-mono focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
               {payoutSettings?.btc_address && btcAddress === payoutSettings.btc_address && (
                 <p className="text-xs text-muted-foreground mt-1">
@@ -518,18 +518,18 @@ function StatCard({ label, value }: { label: string; value: string | number }) {
 
 function EurTile({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg border border-blue-800/50 bg-blue-950/20 p-4 text-center">
-      <p className="text-xl font-bold text-blue-100">{value}</p>
-      <p className="text-xs text-blue-400 mt-1">{label}</p>
+    <div className="rounded-lg border border-blue-300 dark:border-blue-800/50 bg-blue-50 dark:bg-blue-950/20 p-4 text-center">
+      <p className="text-xl font-bold text-blue-700 dark:text-blue-100">{value}</p>
+      <p className="text-xs text-blue-500 dark:text-blue-400 mt-1">{label}</p>
     </div>
   )
 }
 
 function BtcTile({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg border border-orange-800/50 bg-orange-950/20 p-4 text-center">
-      <p className="text-xl font-bold text-orange-100">{value}</p>
-      <p className="text-xs text-orange-400 mt-1">{label}</p>
+    <div className="rounded-lg border border-orange-300 dark:border-orange-800/50 bg-orange-50 dark:bg-orange-950/20 p-4 text-center">
+      <p className="text-xl font-bold text-orange-700 dark:text-orange-100">{value}</p>
+      <p className="text-xs text-orange-500 dark:text-orange-400 mt-1">{label}</p>
     </div>
   )
 }

@@ -74,12 +74,12 @@ export function AgentGrid({ onSelectAgent, onFileUpload, recentConversations, on
         <div className="text-center space-y-1">
           <div className="flex items-center justify-center gap-2">
             <span className="text-2xl">🩺</span>
-            <h2 className="text-lg font-semibold text-white">{t('title')}</h2>
+            <h2 className="text-lg font-semibold text-foreground">{t('title')}</h2>
           </div>
-          <p className="text-xs text-white/50 max-w-sm mx-auto">
+          <p className="text-xs text-muted-foreground max-w-sm mx-auto">
             {t('welcomeShort')}
           </p>
-          <p className="text-[11px] text-white/30 max-w-md mx-auto mt-2">
+          <p className="text-[11px] text-muted-foreground max-w-md mx-auto mt-2">
             {t('guidance')}
           </p>
         </div>
@@ -98,10 +98,10 @@ export function AgentGrid({ onSelectAgent, onFileUpload, recentConversations, on
               >
                 <div className="flex items-center gap-2 mb-1">
                   <span className="text-base">{agent.icon}</span>
-                  <span className="text-xs font-medium text-white truncate">{t(agent.titleKey)}</span>
-                  {!allowed && <span className="text-[9px] bg-white/10 text-white/50 px-1 py-0.5 rounded ml-auto shrink-0">🔒</span>}
+                  <span className="text-xs font-medium text-foreground truncate">{t(agent.titleKey)}</span>
+                  {!allowed && <span className="text-[9px] bg-accent text-muted-foreground px-1 py-0.5 rounded ml-auto shrink-0">🔒</span>}
                 </div>
-                <div className="text-[10px] text-white/40 line-clamp-1">
+                <div className="text-[10px] text-muted-foreground line-clamp-1">
                   {allowed ? t(agent.descKey) : t('unlockWith', { tier: getMinTierLabel(agent.minTier) })}
                 </div>
               </button>
@@ -111,7 +111,7 @@ export function AgentGrid({ onSelectAgent, onFileUpload, recentConversations, on
 
         {/* Smart Import - compact */}
         <div>
-          <h3 className="text-[10px] font-medium text-white/30 uppercase tracking-wider mb-2">{t('smartImport')}</h3>
+          <h3 className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-2">{t('smartImport')}</h3>
           <div className="grid grid-cols-3 gap-2">
             {IMPORT_ACTIONS.map((action) => (
               <MultiFileUploadCard
@@ -126,24 +126,24 @@ export function AgentGrid({ onSelectAgent, onFileUpload, recentConversations, on
         {/* Recent conversations */}
         {recentConversations.length > 0 && (
           <div>
-            <h3 className="text-[10px] font-medium text-white/30 uppercase tracking-wider mb-2">{t('recentConversations')}</h3>
+            <h3 className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-2">{t('recentConversations')}</h3>
             <div className="space-y-0.5">
               {recentConversations.map((conv) => (
                 <button
                   key={conv.id}
                   onClick={() => onSelectConversation(conv.id)}
-                  className="w-full text-left px-3 py-2 rounded-lg text-white/60 hover:bg-white/[0.05] hover:text-white/80 transition-colors"
+                  className="w-full text-left px-3 py-2 rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground/80 transition-colors"
                 >
                   <div className="flex items-center gap-2">
                     {conv.agent_type && conv.agent_type !== 'general' && (
-                      <span className="text-[10px] font-medium bg-white/10 text-white/40 px-1.5 py-0.5 rounded">
+                      <span className="text-[10px] font-medium bg-accent text-muted-foreground px-1.5 py-0.5 rounded">
                         {t(AGENT_LABEL_KEYS[conv.agent_type] ?? 'labelGeneral')}
                       </span>
                     )}
                     <span className="text-xs font-medium truncate flex-1">
                       {conv.title ?? t('newConversation')}
                     </span>
-                    <span className="text-xs text-white/30 shrink-0">
+                    <span className="text-xs text-muted-foreground shrink-0">
                       {formatDate(conv.updated_at)}
                     </span>
                   </div>
@@ -232,9 +232,9 @@ function MultiFileUploadCard({ action, onUpload }: { action: typeof IMPORT_ACTIO
         >
           <div className="flex items-center gap-2 mb-1">
             <span className="text-base">{action.icon}</span>
-            <span className="text-xs font-medium text-white truncate">{t(action.titleKey)}</span>
+            <span className="text-xs font-medium text-foreground truncate">{t(action.titleKey)}</span>
           </div>
-          <div className="text-[10px] text-white/40 line-clamp-1">{t(action.descKey)}</div>
+          <div className="text-[10px] text-muted-foreground line-clamp-1">{t(action.descKey)}</div>
         </button>
       </div>
     )
@@ -245,9 +245,9 @@ function MultiFileUploadCard({ action, onUpload }: { action: typeof IMPORT_ACTIO
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <span className="text-lg">{action.icon}</span>
-          <span className="text-sm font-medium text-white">{t(action.titleKey)}</span>
+          <span className="text-sm font-medium text-foreground">{t(action.titleKey)}</span>
         </div>
-        <span className="text-xs text-white/40">
+        <span className="text-xs text-muted-foreground">
           {t('filesCount', { count: String(selectedFiles.length), max: String(MAX_FILES) })}
         </span>
       </div>
@@ -260,7 +260,7 @@ function MultiFileUploadCard({ action, onUpload }: { action: typeof IMPORT_ACTIO
           <button
             type="button"
             onClick={() => inputRef.current?.click()}
-            className="w-20 h-20 rounded-lg border border-dashed border-white/20 flex flex-col items-center justify-center text-white/40 hover:text-white/60 hover:border-white/40 transition-colors"
+            className="w-20 h-20 rounded-lg border border-dashed border-border flex flex-col items-center justify-center text-muted-foreground hover:text-muted-foreground hover:border-border transition-colors"
           >
             <span className="text-lg">+</span>
             <span className="text-[10px]">{t('addFile')}</span>
@@ -288,12 +288,12 @@ function MultiFileUploadCard({ action, onUpload }: { action: typeof IMPORT_ACTIO
         </button>
         <button
           onClick={() => setSelectedFiles([])}
-          className="text-sm text-white/40 hover:text-white/60 px-3 py-2 transition-colors"
+          className="text-sm text-muted-foreground hover:text-muted-foreground px-3 py-2 transition-colors"
         >
           {t('cancel')}
         </button>
       </div>
-      <p className="text-[10px] text-white/30 mt-2">{t('fileFormats')}</p>
+      <p className="text-[10px] text-muted-foreground mt-2">{t('fileFormats')}</p>
     </div>
   )
 }
@@ -314,22 +314,22 @@ function FilePreview({ file, onRemove }: { file: File; onRemove: () => void }) {
     : `${Math.round(file.size / 1024)}KB`
 
   return (
-    <div className="relative w-20 h-20 rounded-lg border border-white/10 bg-white/5 overflow-hidden group">
+    <div className="relative w-20 h-20 rounded-lg border border-border bg-accent/50 overflow-hidden group">
       {preview ? (
         <img src={preview} alt={file.name} className="w-full h-full object-cover" />
       ) : (
         <div className="w-full h-full flex flex-col items-center justify-center">
           <span className="text-lg">📄</span>
-          <span className="text-[8px] text-white/40 truncate max-w-[72px] px-1">{file.name}</span>
+          <span className="text-[8px] text-muted-foreground truncate max-w-[72px] px-1">{file.name}</span>
         </div>
       )}
       <button
         onClick={onRemove}
-        className="absolute top-0.5 right-0.5 w-5 h-5 rounded-full bg-black/60 text-white/80 hover:bg-red-600 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+        className="absolute top-0.5 right-0.5 w-5 h-5 rounded-full bg-black/60 text-foreground/80 hover:bg-red-600 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
       >
         ×
       </button>
-      <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-[8px] text-white/60 text-center py-0.5">
+      <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-[8px] text-muted-foreground text-center py-0.5">
         {sizeStr}
       </div>
     </div>

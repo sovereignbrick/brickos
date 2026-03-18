@@ -87,7 +87,7 @@ function RangeBar({ range, value }: { range: MarkerReferenceRange; value: number
             className="absolute -top-5 flex flex-col items-center"
             style={{ left: `${pinPct}%`, transform: 'translateX(-50%)' }}
           >
-            <span className="text-[11px] font-bold text-white bg-zinc-800 border border-zinc-600 px-1.5 py-0.5 rounded-full whitespace-nowrap shadow">
+            <span className="text-[11px] font-bold text-white bg-muted border border-zinc-600 px-1.5 py-0.5 rounded-full whitespace-nowrap shadow">
               {value} {range.unit}
             </span>
             <span className="w-0 h-0 border-l-[3px] border-r-[3px] border-t-[3px] border-transparent border-t-zinc-600" />
@@ -120,7 +120,7 @@ function SourceBadge({ sourceType, deviceName, t }: { sourceType: string; device
     calculated: { cls: 'bg-amber-900/50 text-amber-300 border-amber-700', fallbackKey: 'calculated' },
     hybrid:     { cls: 'bg-teal-900/50 text-teal-300 border-teal-700', fallbackKey: 'labAndHome' },
   }
-  const entry = map[sourceType] ?? { cls: 'bg-zinc-800 text-zinc-400 border-zinc-600', fallbackKey: '' }
+  const entry = map[sourceType] ?? { cls: 'bg-muted text-muted-foreground border-zinc-600', fallbackKey: '' }
   const label = deviceName ?? (entry.fallbackKey ? t(entry.fallbackKey) : sourceType)
   const isClickable = sourceType === 'home' || sourceType === 'lab' || sourceType === 'hybrid'
   if (isClickable) {
@@ -476,7 +476,7 @@ export default function MarkerDetailPage() {
                 <Link
                   key={z.slug}
                   href={demoHref(`/zones/${z.slug}`)}
-                  className="text-xs border border-zinc-700 bg-zinc-800/50 hover:bg-zinc-700/50 transition-colors px-2 py-0.5 rounded-full"
+                  className="text-xs border border-border bg-muted/50 hover:bg-accent transition-colors px-2 py-0.5 rounded-full"
                 >
                   {z.icon} {z.name}
                 </Link>
@@ -500,7 +500,7 @@ export default function MarkerDetailPage() {
                       {descLines.join(' ')}
                     </p>
                     {formulaLine && (
-                      <div className="border border-dashed border-zinc-700 rounded-lg px-3 py-2 space-y-1">
+                      <div className="border border-dashed border-border rounded-lg px-3 py-2 space-y-1">
                         <p className="text-xs">
                           <span className="text-amber-400 font-medium">{t('formula')}:</span>{' '}
                           <span className="text-foreground font-mono text-xs">{formulaLine.replace('Formula: ', '')}</span>
@@ -534,7 +534,7 @@ export default function MarkerDetailPage() {
 
           {/* Formula fallback for calculated markers without description */}
           {!marker.description && marker.is_calculated && marker.formula && (
-            <p className="text-xs text-muted-foreground border border-dashed border-zinc-700 rounded-lg px-3 py-2">
+            <p className="text-xs text-muted-foreground border border-dashed border-border rounded-lg px-3 py-2">
               <span className="text-amber-400 font-medium">{t('formula')}:</span> {marker.formula}
             </p>
           )}
@@ -568,7 +568,7 @@ export default function MarkerDetailPage() {
               )}
             </div>
           ) : (
-            <div className="rounded-xl border border-dashed border-zinc-700 px-4 py-3 text-center">
+            <div className="rounded-xl border border-dashed border-border px-4 py-3 text-center">
               <p className="text-sm text-muted-foreground">{t('noUniversalRange')}</p>
             </div>
           )}
@@ -586,7 +586,7 @@ export default function MarkerDetailPage() {
                   className={`text-xs px-2.5 py-1 rounded-lg transition-colors ${
                     period === p
                       ? 'bg-blue-600 text-white'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-zinc-800'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-accent'
                   }`}
                 >
                   {p.toUpperCase()}
@@ -621,7 +621,7 @@ export default function MarkerDetailPage() {
           {measurements.length === 0 ? (
             <p className="text-sm text-muted-foreground py-4 text-center">{t('noMeasurementsYet')}</p>
           ) : (
-            <div className="divide-y divide-zinc-800">
+            <div className="divide-y divide-border">
               {measurements.map(m => (
                 <MeasurementPopover
                   key={m.id}
@@ -687,7 +687,7 @@ export default function MarkerDetailPage() {
             </div>
           )}
 
-          <div className="pt-1 border-t border-zinc-800">
+          <div className="pt-1 border-t border-border">
             <Link
               href={`/measurements?marker=${markerId}`}
               className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
@@ -701,7 +701,7 @@ export default function MarkerDetailPage() {
         {(() => {
           const carouselCards = content.filter(c => c.content_type !== 'how_to_stay_in_range')
           if (carouselCards.length === 0) return null
-          const cfg = CONTENT_CARD_CONFIG[carouselCards[carouselIdx]?.content_type] ?? { icon: '📌', bg: 'from-zinc-900 to-zinc-800' }
+          const cfg = CONTENT_CARD_CONFIG[carouselCards[carouselIdx]?.content_type] ?? { icon: '📌', bg: 'from-card to-muted' }
           const card = carouselCards[carouselIdx]
           return (
             <div
@@ -721,12 +721,12 @@ export default function MarkerDetailPage() {
               </div>
               {/* Navigation dots */}
               {carouselCards.length > 1 && (
-                <div className="flex items-center justify-center gap-2 py-3 border-t border-zinc-800">
+                <div className="flex items-center justify-center gap-2 py-3 border-t border-border">
                   {carouselCards.map((_, i) => (
                     <button
                       key={i}
                       onClick={() => setCarouselIdx(i)}
-                      className={`rounded-full transition-all ${i === carouselIdx ? 'w-4 h-2 bg-blue-500' : 'w-2 h-2 bg-zinc-600 hover:bg-zinc-400'}`}
+                      className={`rounded-full transition-all ${i === carouselIdx ? 'w-4 h-2 bg-blue-500' : 'w-2 h-2 bg-muted-foreground hover:bg-zinc-400'}`}
                     />
                   ))}
                 </div>
@@ -767,7 +767,7 @@ export default function MarkerDetailPage() {
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {group.items.map(f => (
-                    <div key={f.id} className="flex items-start gap-3 rounded-xl border border-zinc-800 bg-zinc-900/50 px-3 py-2.5 group/food relative">
+                    <div key={f.id} className="flex items-start gap-3 rounded-xl border border-border bg-card/50 px-3 py-2.5 group/food relative">
                       <span className="text-xl shrink-0 mt-0.5">{foodEmoji(f.food_category)}</span>
                       <div className="min-w-0">
                         <p className="text-sm font-medium">{f.food_name}</p>
@@ -789,7 +789,7 @@ export default function MarkerDetailPage() {
             <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">{t('supplementsFor', { name: marker.name })}</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {supplements.map(s => (
-                <div key={s.id} className="flex items-start gap-3 rounded-xl border border-zinc-800 bg-zinc-900/50 px-3 py-2.5">
+                <div key={s.id} className="flex items-start gap-3 rounded-xl border border-border bg-card/50 px-3 py-2.5">
                   <span className="text-xl shrink-0">💊</span>
                   <div className="min-w-0">
                     <p className="text-sm font-medium">{s.supplement_name}</p>

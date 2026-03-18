@@ -35,6 +35,7 @@ impl StripeService {
         email: &str,
         name: Option<&str>,
         user_id: Uuid,
+        country: Option<&str>,
     ) -> Result<String> {
         let mut params = vec![
             ("email".to_string(), email.to_string()),
@@ -42,6 +43,9 @@ impl StripeService {
         ];
         if let Some(n) = name {
             params.push(("name".to_string(), n.to_string()));
+        }
+        if let Some(c) = country {
+            params.push(("address[country]".to_string(), c.to_string()));
         }
 
         let res = self
@@ -57,6 +61,28 @@ impl StripeService {
             .as_str()
             .map(|s| s.to_string())
             .ok_or_else(|| anyhow!("Stripe create_customer: no id in response: {}", body))
+    }
+
+    /// Update a Stripe customer (e.g., when country changes)
+    pub async fn update_customer(
+        &self,
+        customer_id: &str,
+        params: &[(String, String)],
+    ) -> Result<()> {
+        let res = self
+            .http
+            .post(format!("{}/customers/{}", STRIPE_API, customer_id))
+            .basic_auth(&self.secret_key, Option::<&str>::None)
+            .form(params)
+            .send()
+            .await?;
+
+        let status = res.status();
+        if !status.is_success() {
+            let body: serde_json::Value = res.json().await?;
+            return Err(anyhow!("Stripe update_customer: {}", body));
+        }
+        Ok(())
     }
 
     /// Create a Checkout Session, returns the session URL
@@ -98,7 +124,7 @@ impl StripeService {
             ("cancel_url", cancel_url.to_string()),
             ("payment_method_types[0]", "card".to_string()),
             ("billing_address_collection", "auto".to_string()),
-            ("tax_id_collection[enabled]", "true".to_string()),
+            ("automatic_tax[enabled]", "true".to_string()),
             ("customer_update[name]", "auto".to_string()),
             ("customer_update[address]", "auto".to_string()),
         ];

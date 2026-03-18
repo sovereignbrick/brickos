@@ -45,6 +45,11 @@ function CheckoutContent() {
   // Payment method
   const [paymentMethod, setPaymentMethod] = useState<'card' | 'btc'>(method === 'btc' ? 'btc' : 'card')
 
+  // Customer type (tax compliance)
+  const [customerType, setCustomerType] = useState<'private' | 'organization'>('private')
+  const [companyName, setCompanyName] = useState('')
+  const [vatId, setVatId] = useState('')
+
   // ALL useEffects BEFORE any conditional returns (React rules of hooks)
 
   // Auth redirect - must be a hook, not after conditional return
@@ -122,7 +127,14 @@ function CheckoutContent() {
     sessionStorage.removeItem('sh_pending_checkout')
 
     try {
-      const res = await api.billing.checkout(tier, interval, promoValid ? promoCode.trim() : undefined)
+      const res = await api.billing.checkout(
+        tier,
+        interval,
+        promoValid ? promoCode.trim() : undefined,
+        customerType,
+        customerType === 'organization' ? companyName.trim() || undefined : undefined,
+        customerType === 'organization' ? vatId.trim() || undefined : undefined,
+      )
       if (res.data.checkout_url) {
         window.location.href = res.data.checkout_url
       } else {
@@ -137,7 +149,7 @@ function CheckoutContent() {
       calledRef.current = false
       setCheckingOut(false)
     }
-  }, [tier, interval, promoCode, promoValid, t])
+  }, [tier, interval, promoCode, promoValid, customerType, companyName, vatId, t])
 
   // --- Conditional returns AFTER all hooks ---
 
@@ -183,7 +195,7 @@ function CheckoutContent() {
           <h1 className="text-2xl font-bold">{t('title')}</h1>
         </div>
 
-        <div className="rounded-xl border border-[var(--border)] bg-zinc-900/50 p-6 space-y-5">
+        <div className="rounded-xl border border-[var(--border)] bg-card/50 p-6 space-y-5">
           {/* Plan summary */}
           <div>
             <div className="flex justify-between text-sm">
@@ -210,8 +222,58 @@ function CheckoutContent() {
             </div>
           </div>
 
+          {/* Customer type */}
+          <div className="border-t border-border pt-4">
+            <p className="text-sm font-medium mb-2">{t('customerType')}</p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setCustomerType('private')}
+                className={`flex-1 px-3 py-2 rounded-lg text-sm border transition-colors ${
+                  customerType === 'private'
+                    ? 'border-blue-500 bg-blue-500/10 text-blue-400'
+                    : 'border-border text-muted-foreground hover:border-border'
+                }`}
+              >
+                {t('private')}
+              </button>
+              <button
+                onClick={() => setCustomerType('organization')}
+                className={`flex-1 px-3 py-2 rounded-lg text-sm border transition-colors ${
+                  customerType === 'organization'
+                    ? 'border-blue-500 bg-blue-500/10 text-blue-400'
+                    : 'border-border text-muted-foreground hover:border-border'
+                }`}
+              >
+                {t('organization')}
+              </button>
+            </div>
+            {customerType === 'organization' && (
+              <div className="mt-3 space-y-3">
+                <div>
+                  <label className="text-xs text-muted-foreground block mb-1">{t('companyName')}</label>
+                  <input
+                    type="text"
+                    value={companyName}
+                    onChange={e => setCompanyName(e.target.value)}
+                    className="w-full bg-accent border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground block mb-1">{t('vatId')} ({tCommon('optional')})</label>
+                  <input
+                    type="text"
+                    value={vatId}
+                    onChange={e => setVatId(e.target.value)}
+                    placeholder="DE123456789"
+                    className="w-full bg-accent border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+
           {/* Payment method */}
-          <div className="border-t border-zinc-800 pt-4">
+          <div className="border-t border-border pt-4">
             <p className="text-sm font-medium mb-2">{tCommon('paymentMethod')}</p>
             <div className="flex gap-2">
               <button
@@ -219,7 +281,7 @@ function CheckoutContent() {
                 className={`flex-1 px-3 py-2 rounded-lg text-sm border transition-colors ${
                   paymentMethod === 'card'
                     ? 'border-blue-500 bg-blue-500/10 text-blue-400'
-                    : 'border-zinc-700 text-muted-foreground hover:border-zinc-500'
+                    : 'border-border text-muted-foreground hover:border-border'
                 }`}
               >
                 {t('payCard')}
@@ -229,7 +291,7 @@ function CheckoutContent() {
                 className={`flex-1 px-3 py-2 rounded-lg text-sm border transition-colors ${
                   paymentMethod === 'btc'
                     ? 'border-amber-500 bg-amber-500/10 text-amber-400'
-                    : 'border-zinc-700 text-muted-foreground hover:border-zinc-500'
+                    : 'border-border text-muted-foreground hover:border-border'
                 }`}
               >
                 {t('payBtc')}
@@ -238,7 +300,7 @@ function CheckoutContent() {
           </div>
 
           {/* Promo code */}
-          <div className="border-t border-zinc-800 pt-4">
+          <div className="border-t border-border pt-4">
             <p className="text-sm font-medium mb-2">{t('promoLabel')}</p>
             <div className="flex gap-2">
               <input
@@ -253,12 +315,12 @@ function CheckoutContent() {
                   }
                 }}
                 placeholder={t('promoPlaceholder')}
-                className="flex-1 bg-white/5 border border-zinc-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="flex-1 bg-accent border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
               <button
                 onClick={() => validatePromo(promoCode)}
                 disabled={validatingPromo || !promoCode.trim()}
-                className="px-3 py-2 bg-zinc-800 hover:bg-zinc-700 disabled:opacity-50 text-sm rounded-lg transition-colors"
+                className="px-3 py-2 bg-muted hover:bg-accent disabled:opacity-50 text-sm rounded-lg transition-colors"
               >
                 {validatingPromo ? '...' : t('promoApply')}
               </button>
@@ -276,7 +338,7 @@ function CheckoutContent() {
           </div>
 
           {/* Action */}
-          <div className="border-t border-zinc-800 pt-4">
+          <div className="border-t border-border pt-4">
             {paymentMethod === 'btc' ? (
               <div className="text-center py-2">
                 <a

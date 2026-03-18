@@ -43,7 +43,7 @@ export default function DoctorChatPage() {
             </Link>
             <Link
               href="/login"
-              className="bg-white/10 hover:bg-white/15 text-white font-medium px-6 py-3 rounded-xl transition-colors inline-block"
+              className="bg-accent hover:bg-accent/80 text-foreground font-medium px-6 py-3 rounded-xl transition-colors inline-block"
             >
               {tNav('login')}
             </Link>

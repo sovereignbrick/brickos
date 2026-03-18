@@ -10,6 +10,7 @@ import { useAuth } from '@/lib/auth-context'
 import { useDemoProfile, DEMO_PROFILES, getProfileLabel } from '@/lib/demo-profile-context'
 import { InfoCarousel, CarouselCard } from '@/components/info-carousel'
 import { UsageWidget } from '@/components/usage-widget'
+import { OnboardingChecklist } from '@/components/onboarding-checklist'
 import { useTranslations } from 'next-intl'
 
 function useCarouselCards(): CarouselCard[] {
@@ -65,7 +66,7 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen">
       <Navbar />
-      <main className="max-w-5xl mx-auto px-4 py-8 pb-8">
+      <main id="main-content" className="max-w-5xl mx-auto px-4 py-8 pb-8">
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-xl font-bold">{t('title')}</h1>
@@ -85,9 +86,12 @@ export default function DashboardPage() {
           )}
         </div>
 
+        {/* Onboarding checklist (authenticated non-demo users only) */}
+        {!isDemo && user && <OnboardingChecklist />}
+
         {/* Welcome block + profile selector (demo only) */}
         {isDemo && (
-          <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-6 mb-6 text-center space-y-4">
+          <div className="rounded-2xl border border-border bg-card/60 p-6 mb-6 text-center space-y-4">
             <p className="text-base text-foreground/90 max-w-xl mx-auto leading-relaxed">
               {t('demoWelcome')}
             </p>
@@ -101,8 +105,8 @@ export default function DashboardPage() {
                     onClick={() => setProfile(p.slug)}
                     className={`rounded-xl border-2 p-3 text-left transition-all ${
                       profile === p.slug
-                        ? 'border-current bg-white/5'
-                        : 'border-zinc-800 hover:border-zinc-600'
+                        ? 'border-current bg-accent'
+                        : 'border-border hover:border-border'
                     }`}
                     style={{ borderColor: profile === p.slug ? p.color : undefined }}
                   >

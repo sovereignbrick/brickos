@@ -9,6 +9,14 @@ import { InfoTooltip, highlightedTiers } from "@/components/feature-comparison-t
 
 const tierKeys = ["glimpse", "focus", "insight", "clarity", "horizon"] as const;
 
+const tierColors: Record<string, { border: string; text: string; bg: string; button: string; buttonHover: string }> = {
+  glimpse:  { border: 'border-t-zinc-500',    text: 'text-zinc-400',    bg: 'bg-zinc-600',    button: 'bg-zinc-600',    buttonHover: 'hover:bg-zinc-500' },
+  focus:    { border: 'border-t-emerald-500',  text: 'text-emerald-400', bg: 'bg-emerald-600', button: 'bg-emerald-600', buttonHover: 'hover:bg-emerald-500' },
+  insight:  { border: 'border-t-purple-500',   text: 'text-purple-400',  bg: 'bg-purple-600',  button: 'bg-purple-600',  buttonHover: 'hover:bg-purple-500' },
+  clarity:  { border: 'border-t-amber-500',    text: 'text-amber-400',   bg: 'bg-amber-600',   button: 'bg-amber-600',   buttonHover: 'hover:bg-amber-500' },
+  horizon:  { border: 'border-t-rose-500',     text: 'text-rose-400',    bg: 'bg-rose-600',    button: 'bg-rose-600',    buttonHover: 'hover:bg-rose-500' },
+};
+
 const faqKeys = [
   "freeTier",
   "paymentMethods",
@@ -586,22 +594,23 @@ function PricingPage() {
             const annualMonthly = t(`pricing.tiers.${tierKey}.annualMonthly`);
             const featureRows = tierFeatureMap[tierKey] || [];
             const inheritsFrom = tierInheritsFrom[tierKey];
+            const colors = tierColors[tierKey];
 
             return (
               <div
                 key={tierKey}
-                className={`flex flex-col rounded-xl border p-5 ${
+                className={`flex flex-col rounded-xl border border-t-4 p-5 ${colors.border} ${
                   highlighted
-                    ? "border-blue-600 bg-[var(--card)]"
+                    ? "border-x-blue-600 border-b-blue-600 bg-[var(--card)]"
                     : "border-[var(--border)] bg-[var(--card)]"
                 }`}
               >
                 {highlighted && (
-                  <span className="mb-3 inline-block self-start rounded-full bg-blue-600 px-3 py-1 text-xs font-semibold text-white">
+                  <span className={`mb-3 inline-block self-start rounded-full ${colors.bg} px-3 py-1 text-xs font-semibold text-white`}>
                     {t("pricing.bestValue")}
                   </span>
                 )}
-                <h3 className="text-xl font-bold">{name}</h3>
+                <h3 className={`text-xl font-bold ${colors.text}`}>{name}</h3>
                 <p className="mt-1 text-sm text-[var(--muted)]">{tagline}</p>
                 <div className="mt-3">
                   {getDisplayPrice(tierKey, monthlyPrice, annualMonthly)}
@@ -630,9 +639,7 @@ function PricingPage() {
                           ? `${SITE_CONFIG.appUrl}/signup${locale !== 'en' ? `?lang=${locale}` : ''}`
                           : `${SITE_CONFIG.appUrl}/signup?tier=${tierKey}&interval=${annual ? 'annual' : 'monthly'}${promo ? `&promo=${promo.code}` : ''}${locale !== 'en' ? `&lang=${locale}` : ''}`
                       }
-                      className={`mt-6 block w-full rounded-lg px-4 py-2.5 text-center text-sm font-semibold text-white transition-colors ${
-                        highlighted ? 'bg-blue-600 hover:bg-blue-700' : 'bg-zinc-700 hover:bg-zinc-600'
-                      }`}
+                      className={`mt-6 block w-full rounded-lg px-4 py-2.5 text-center text-sm font-semibold text-white transition-colors ${colors.button} ${colors.buttonHover}`}
                     >
                       {isCustom ? t("pricing.enterprise.contactUs") : isFree ? t("pricing.getStartedFree") : t("pricing.subscribe")}
                     </a>

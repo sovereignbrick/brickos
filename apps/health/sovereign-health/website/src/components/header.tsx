@@ -52,7 +52,7 @@ function LanguageSelector() {
         </svg>
       </button>
       {open && (
-        <div className="absolute right-0 top-8 w-32 rounded-xl border border-border bg-zinc-900 shadow-xl py-1 z-50">
+        <div className="absolute right-0 top-8 w-32 rounded-xl border border-border bg-[var(--card)] shadow-xl py-1 z-50">
           {locales.map((loc) => (
             <button
               key={loc}
@@ -179,12 +179,12 @@ export function Header() {
         />
       )}
       <nav
-        className={`fixed top-0 right-0 bottom-0 w-72 max-w-[85vw] bg-zinc-950 border-l border-zinc-800 z-[70] lg:hidden transition-transform duration-300 ease-in-out ${
+        className={`fixed top-0 right-0 bottom-0 w-72 max-w-[85vw] bg-[var(--background)] border-l border-[var(--border)] z-[70] lg:hidden transition-transform duration-300 ease-in-out ${
           menuOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-4 h-16 border-b border-zinc-800">
+        <div className="flex items-center justify-between px-4 h-16 border-b border-[var(--border)]">
           <span className="text-sm font-semibold text-foreground">
             {t("nav.menu")}
           </span>
@@ -228,7 +228,7 @@ export function Header() {
         </div>
 
         {/* CTA at bottom */}
-        <div className="absolute bottom-0 left-0 right-0 border-t border-zinc-800 px-4 py-4">
+        <div className="absolute bottom-0 left-0 right-0 border-t border-[var(--border)] px-4 py-4">
           <a
             href={SITE_CONFIG.appUrl}
             className="block rounded-lg bg-blue-600 px-4 py-3 text-center text-sm font-medium text-white hover:bg-blue-500 transition-colors"

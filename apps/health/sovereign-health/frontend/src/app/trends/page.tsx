@@ -94,41 +94,41 @@ function MarkerSelector({
       <label className="text-xs text-muted-foreground block mb-1">{label}</label>
       <button
         onClick={() => setOpen(o => !o)}
-        className="bg-white/5 border rounded-lg px-3 py-2 text-sm text-left min-w-[180px] flex items-center justify-between gap-2 hover:bg-white/8 transition-colors"
+        className="bg-accent border rounded-lg px-3 py-2 text-sm text-left min-w-[180px] flex items-center justify-between gap-2 hover:bg-white/8 transition-colors"
       >
         <span className="truncate">{value ? selectedName : tCommon('none')}</span>
         <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 5l3 3 3-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
       </button>
       {open && (
-        <div className="absolute z-50 top-full mt-1 left-0 w-72 max-h-80 overflow-y-auto rounded-xl border bg-zinc-900 shadow-xl">
-          <div className="sticky top-0 bg-zinc-900 p-2 border-b border-zinc-800">
+        <div className="absolute z-50 top-full mt-1 left-0 w-72 max-h-80 overflow-y-auto rounded-xl border bg-popover shadow-xl">
+          <div className="sticky top-0 bg-popover p-2 border-b border-border">
             <input
               type="text"
               placeholder={tCommon('searchMarkers')}
               value={search}
               onChange={e => setSearch(e.target.value)}
-              className="w-full bg-white/5 border rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="w-full bg-accent border rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
               autoFocus
             />
           </div>
           {allowEmpty && (
             <button
               onClick={() => { onChange(''); setOpen(false); setSearch('') }}
-              className={`w-full text-left px-3 py-2 text-sm hover:bg-white/5 transition-colors ${!value ? 'text-blue-400' : 'text-muted-foreground'}`}
+              className={`w-full text-left px-3 py-2 text-sm hover:bg-accent transition-colors ${!value ? 'text-blue-400' : 'text-muted-foreground'}`}
             >
               {t('noneCompare')}
             </button>
           )}
           {grouped.map(zone => (
             <div key={zone.slug}>
-              <div className="px-3 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider bg-zinc-800/50 sticky">
+              <div className="px-3 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider bg-muted/50 sticky">
                 {zone.icon} {tZones(zone.nameKey)} ({zone.markers.length})
               </div>
               {zone.markers.map((m, idx) => (
                 <button
                   key={`${m.slug}-${idx}`}
                   onClick={() => { onChange(m.slug); setOpen(false); setSearch('') }}
-                  className={`w-full text-left px-6 py-2 text-sm hover:bg-white/5 transition-colors ${m.slug === value ? 'text-blue-400 bg-blue-600/10' : ''}`}
+                  className={`w-full text-left px-6 py-2 text-sm hover:bg-accent transition-colors ${m.slug === value ? 'text-blue-400 bg-blue-600/10' : ''}`}
                 >
                   {m.name}
                 </button>
@@ -315,7 +315,7 @@ export default function TrendsPage() {
                   className={`text-xs px-2.5 py-2 rounded-lg transition-colors ${
                     period === p
                       ? 'bg-blue-600 text-white'
-                      : 'bg-white/5 text-muted-foreground hover:text-foreground hover:bg-white/10'
+                      : 'bg-accent text-muted-foreground hover:text-foreground hover:bg-white/10'
                   }`}
                 >
                   {p.toUpperCase()}

@@ -143,6 +143,7 @@
     "settings": "Settings",
     "billing": "Billing",
     "signOut": "Sign out",
+    "theme": "Toggle theme",
     "logIn": "Log In",
     "register": "Register",
     "login": "Login",
@@ -226,7 +227,7 @@
       "agreeTerms": "I agree to the <terms>Terms of Service</terms> and <privacy>Privacy Policy</privacy>",
       "ageConfirm": "I confirm that I am at least 18 years old",
       "productUpdates": "Send me product updates and feature announcements",
-      "newsletter": "Send me the monthly newsletter",
+      "newsletter": "Subscribe to newsletter",
       "createButton": "Create Account",
       "creating": "Creating account...",
       "checkEmail": "Check your email",
@@ -237,7 +238,9 @@
       "iveVerified": "I've verified my email",
       "registrationClosed": "Registration is opening soon. Join the waitlist to be notified.",
       "joinButton": "Join",
-      "onList": "You are on the list. We will be in touch."
+      "onList": "You are on the list. We will be in touch.",
+      "country": "Country",
+      "selectCountry": "Select your country"
     },
     "forgotPasswordPage": {
       "title": "Reset your password",
@@ -277,6 +280,25 @@
       "welcomeBack": "Welcome back, {name}!",
       "welcomeNew": "Welcome, {name}! Start by adding your first measurement.",
       "forgotPasswordFailed": "Something went wrong. Please try again."
+    }
+  },
+  "onboarding": {
+    "title": "Getting Started",
+    "progress": "{completed} of {total} complete",
+    "dismiss": "Dismiss",
+    "steps": {
+      "profile": "Set up your profile",
+      "profileDesc": "Enter your gender, height, and weight so we can calculate personalized reference ranges for your markers.",
+      "device": "Add a device",
+      "deviceDesc": "Register the lab or device you use for blood tests. This links your measurements to the correct marker set.",
+      "measurement": "Record your first measurement",
+      "measurementDesc": "Enter your first blood test results. This is the foundation for all your health tracking and insights.",
+      "marker": "Explore a marker",
+      "markerDesc": "Tap on any biomarker to see your values, reference ranges, and what the marker means for your health.",
+      "trends": "View your trends",
+      "trendsDesc": "See how your markers change over time. Compare periods and spot patterns in your health data.",
+      "doctor": "Ask Dr. Alex",
+      "doctorDesc": "Our AI health assistant analyzes your data and answers questions about your biomarkers and results."
     }
   },
   "dashboard": {
@@ -1223,6 +1245,7 @@
     "importTrackDesc": "Photo your med bottles/boxes",
     "recentConversations": "Recent Conversations",
     "newConversation": "New conversation",
+    "renameConversation": "Rename conversation",
     "uploadAnalyze": "Upload & Analyze",
     "cancel": "Cancel",
     "addFile": "Add file",
@@ -1323,7 +1346,12 @@
     "promoInvalid": "Invalid promo code",
     "promoExpired": "This promo code has expired",
     "promoNotApplicable": "This code does not apply to the selected plan",
-    "proceedToPayment": "Proceed to payment"
+    "proceedToPayment": "Proceed to payment",
+    "customerType": "Customer type",
+    "private": "Private",
+    "organization": "Organization",
+    "companyName": "Company name",
+    "vatId": "VAT ID"
   },
   "admin": {
     "unlimitedPlaceholder": "Unlimited",

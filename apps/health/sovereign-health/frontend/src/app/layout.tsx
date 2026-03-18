@@ -30,9 +30,11 @@ import './globals.css'
 import { AuthProvider } from '@/lib/auth-context'
 import { ContentProvider } from '@/lib/content-context'
 import { DemoProfileProvider } from '@/lib/demo-profile-context'
+import { ThemeProvider } from '@/lib/theme-context'
 import { CanonicalMeta } from '@/components/canonical-meta'
 import { Toaster } from 'sonner'
 import { APP_NAME } from '@/lib/mode'
+import { OnboardingTracker } from '@/components/onboarding-tracker'
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -81,31 +83,36 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const messages = await getMessages()
 
   return (
-    <html lang={locale} className="dark">
+    <html lang={locale} className="dark" suppressHydrationWarning>
       <head>
         <Suspense>
           <CanonicalMeta />
         </Suspense>
+        <script dangerouslySetInnerHTML={{ __html: `try{var t=localStorage.getItem('sh_theme');if(t==='light')document.documentElement.classList.remove('dark')}catch(e){}` }} />
       </head>
       <body className="antialiased">
+        <a href="#main-content" className="skip-to-content">Skip to content</a>
         <NextIntlClientProvider locale={locale} messages={messages}>
-          <AuthProvider>
-            <ContentProvider initialLocale={locale}>
-              <Suspense>
-                <DemoProfileProvider>
-                  {process.env.NEXT_PUBLIC_ENVIRONMENT === 'staging' && (
-                    <div className="fixed top-0 left-0 z-[9999] pointer-events-none">
-                      <div className="bg-orange-500 text-black text-[10px] font-bold px-8 py-0.5 -rotate-45 -translate-x-[30%] translate-y-[40%]">
-                        STAGING
+          <ThemeProvider>
+            <AuthProvider>
+              <ContentProvider initialLocale={locale}>
+                <Suspense>
+                  <DemoProfileProvider>
+                    {process.env.NEXT_PUBLIC_ENVIRONMENT === 'staging' && (
+                      <div className="fixed top-0 left-0 z-[9999] pointer-events-none">
+                        <div className="bg-orange-500 text-black text-[10px] font-bold px-8 py-0.5 -rotate-45 -translate-x-[30%] translate-y-[40%]">
+                          STAGING
+                        </div>
                       </div>
-                    </div>
-                  )}
-                  {children}
-                  <Toaster theme="dark" position="top-right" richColors offset="64px" duration={4000} visibleToasts={3} />
-                </DemoProfileProvider>
-              </Suspense>
-            </ContentProvider>
-          </AuthProvider>
+                    )}
+                    <OnboardingTracker />
+                    {children}
+                    <Toaster position="top-right" richColors offset="64px" duration={4000} visibleToasts={3} />
+                  </DemoProfileProvider>
+                </Suspense>
+              </ContentProvider>
+            </AuthProvider>
+          </ThemeProvider>
         </NextIntlClientProvider>
       </body>
     </html>

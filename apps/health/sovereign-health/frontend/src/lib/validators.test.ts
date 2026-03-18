@@ -7,6 +7,7 @@ describe('signupSchema', () => {
     email: 'test@example.com',
     password: 'SecurePass1',
     confirm_password: 'SecurePass1',
+    country: 'DE',
     tos_accepted: true,
     age_confirmed: true,
   }

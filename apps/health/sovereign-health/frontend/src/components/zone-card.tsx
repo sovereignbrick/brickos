@@ -26,7 +26,7 @@ export function ZoneCard({ zone }: { zone: Zone }) {
   return (
     <Link
       href={demoHref(`/zones/${zone.zone_slug}`)}
-      className="block rounded-2xl border p-5 hover:bg-white/5 transition-colors"
+      className="block rounded-2xl border p-5 hover:bg-accent transition-colors"
       style={{ borderColor: zone.zone_color + '44' }}
     >
       <div className="flex items-start justify-between mb-3">

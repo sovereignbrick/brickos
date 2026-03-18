@@ -9,6 +9,7 @@
 #   bash ops/deploy.sh staging backend       # Only staging backend
 #   bash ops/deploy.sh staging frontend      # Only staging frontend
 #   bash ops/deploy.sh staging website       # Only staging website
+#   bash ops/deploy.sh staging postgres      # Build & transfer pgaudit postgres image
 #   bash ops/deploy.sh production --confirm  # Deploy main -> app.* (requires --confirm)
 #   bash ops/deploy.sh production backend --confirm
 #   bash ops/deploy.sh git                   # Push all repos to GitLab
@@ -23,7 +24,7 @@ set -e
 # ══════════════════════════════════════════════════════════════════════════════
 
 # Version: Update this before each release. Used in Docker image tags.
-VERSION="0.20.0-rc2"
+VERSION="0.20.0-rc3"
 
 # Local project root: BrickOS monorepo.
 PROJECT_ROOT="/home/dev-comp/projects/brickos"
@@ -46,6 +47,7 @@ COMPOSE_STAGING="docker-compose.staging.yml"
 # Docker image names: Used for build, save, and transfer.
 BACKEND_IMAGE="sovereign-health-backend"
 FRONTEND_IMAGE="sovereign-health-frontend"
+POSTGRES_IMAGE="sovereign-health-postgres"
 
 # API URLs: Baked into frontend at build time (NEXT_PUBLIC_* vars).
 # These CANNOT be changed after the Docker image is built.
@@ -372,6 +374,31 @@ deploy_frontend() {
     report_add "OK" "Frontend built, transferred, restarted ($env, API: $api_url)"
 }
 
+# ── Postgres (pgaudit) ────────────────────────────────────────────────────────
+# Builds the custom PostgreSQL image with pgaudit extension and transfers
+# it to the VPS. Does NOT restart the DB container automatically —
+# DB migration requires pg_dump/pg_restore for in-place upgrades.
+# Use 'deploy.sh staging postgres' to build and transfer.
+# Then manually: ssh VPS "cd /opt/sovereign-health && docker compose -f <file> up -d --force-recreate db"
+
+deploy_postgres() {
+    local env="$1"
+
+    log "Building postgres with pgaudit..."
+    cd "$APP_ROOT/ops"
+    docker build -f postgres/Dockerfile -t "${POSTGRES_IMAGE}:latest" postgres/
+
+    log "Transferring postgres image to VPS..."
+    docker save "${POSTGRES_IMAGE}:latest" | ssh $VPS "docker load"
+
+    log "Pruning local Docker build cache..."
+    docker builder prune -f --filter "until=24h" >/dev/null 2>&1 || true
+    docker image prune -f >/dev/null 2>&1 || true
+
+    log "Postgres image ($env) transferred. Restart DB manually after pg_dump/pg_restore."
+    report_add "OK" "Postgres image built and transferred (tag: latest)"
+}
+
 # ── Website (static) ─────────────────────────────────────────────────────────
 # Builds the static marketing website with 'pnpm build' and rsyncs
 # the output to the VPS. No Docker needed -- nginx serves it directly.
@@ -419,7 +446,7 @@ deploy_website() {
 
 cloudflare_purge() {
     if [ -z "$CF_ZONE_ID" ] || [ -z "$CF_API_TOKEN" ]; then
-        warn "CF_ZONE_ID or CF_API_TOKEN not set in core-backend/.env -- skipping Cloudflare purge"
+        warn "CF_ZONE_ID or CF_API_TOKEN not set in api/.env -- skipping Cloudflare purge"
         warn "Purge manually: Cloudflare > sovereignhealth.io > Caching > Purge Everything"
         return
     fi
@@ -591,12 +618,13 @@ case "$ENV" in
             backend)  deploy_backend staging ;;
             frontend) deploy_frontend staging ;;
             website)  deploy_website staging ;;
+            postgres) deploy_postgres staging ;;
             all)
                 deploy_backend staging
                 deploy_frontend staging
                 deploy_website staging
                 ;;
-            *) fail "Unknown component: $COMPONENT. Use: backend, frontend, website, or all." ;;
+            *) fail "Unknown component: $COMPONENT. Use: backend, frontend, website, postgres, or all." ;;
         esac
         verify staging
         ;;
@@ -622,12 +650,13 @@ case "$ENV" in
             backend)  deploy_backend production ;;
             frontend) deploy_frontend production ;;
             website)  deploy_website production ;;
+            postgres) deploy_postgres production ;;
             all)
                 deploy_backend production
                 deploy_frontend production
                 deploy_website production
                 ;;
-            *) fail "Unknown component: $COMPONENT. Use: backend, frontend, website, or all." ;;
+            *) fail "Unknown component: $COMPONENT. Use: backend, frontend, website, postgres, or all." ;;
         esac
         verify production
         ;;

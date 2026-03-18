@@ -81,7 +81,7 @@ function MarkerInfoTooltip({ slug }: { slug: string }) {
       {show && typeof document !== 'undefined' && createPortal(
         <div
           style={{ position: 'fixed', left: pos.x, top: pos.y, transform: 'translateY(-50%)', zIndex: 9999 }}
-          className="max-w-xs bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-xs text-zinc-200 shadow-xl pointer-events-none"
+          className="max-w-xs bg-muted border border-border rounded-lg px-3 py-2 text-xs text-zinc-200 shadow-xl pointer-events-none"
         >
           <div className="space-y-1">
             <div className="font-medium">{cm?.name ?? slug}</div>
@@ -121,7 +121,7 @@ function ZoneIconTooltip({ name, icon, color }: { name: string; icon: string; co
       {show && typeof document !== 'undefined' && createPortal(
         <div
           style={{ position: 'fixed', left: pos.x, top: pos.y - 6, transform: 'translate(-50%, -100%)', zIndex: 9999 }}
-          className="bg-zinc-800 border border-zinc-700 rounded-lg px-2.5 py-1.5 text-xs text-zinc-200 shadow-xl pointer-events-none whitespace-nowrap"
+          className="bg-muted border border-border rounded-lg px-2.5 py-1.5 text-xs text-zinc-200 shadow-xl pointer-events-none whitespace-nowrap"
         >
           {icon} {name}
         </div>,
@@ -174,7 +174,7 @@ function MarkerRow({ marker, value, displayUnit, badge, onChange, onRemove, zone
           if (fixed !== el.value) el.value = fixed
         }}
         onChange={e => onChange(marker.marker_slug, e.target.value.replace(',', '.'))}
-        className="w-20 shrink-0 bg-white/5 border rounded-lg px-2.5 py-1.5 text-sm text-center focus:outline-none focus:ring-1 focus:ring-blue-500"
+        className="w-20 shrink-0 bg-accent border rounded-lg px-2.5 py-1.5 text-sm text-center focus:outline-none focus:ring-1 focus:ring-blue-500"
       />
       <span className="text-xs text-muted-foreground w-16 shrink-0 text-right">{displayUnit}</span>
       <div className="w-5 shrink-0 flex justify-center">
@@ -750,7 +750,7 @@ export default function NewMeasurementPage() {
                     setTemplateOriginalSlugs(null)
                   }
                 }}
-                className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-2 py-1 text-xs text-white [&>option]:bg-zinc-900 [&>option]:text-white"
+                className="w-full bg-popover border border-border rounded-lg px-2 py-1 text-xs text-white [&>option]:bg-popover [&>option]:text-white"
               >
                 <option value="">{t('noDevice')}</option>
                 {devices.map(d => (
@@ -789,7 +789,7 @@ export default function NewMeasurementPage() {
                     if (tpl) applyTemplate(tpl)
                   }
                 }}
-                className={`w-full bg-zinc-900 border border-zinc-700 rounded-lg px-2 py-1 text-xs text-white [&>option]:bg-zinc-900 [&>option]:text-white ${selectedDeviceId ? 'opacity-40 cursor-not-allowed' : ''}`}
+                className={`w-full bg-popover border border-border rounded-lg px-2 py-1 text-xs text-white [&>option]:bg-popover [&>option]:text-white ${selectedDeviceId ? 'opacity-40 cursor-not-allowed' : ''}`}
               >
                 <option value="">{t('noTemplate')}</option>
                 {templates.map(tp => (
@@ -830,7 +830,7 @@ export default function NewMeasurementPage() {
               <select
                 value={mealTiming}
                 onChange={e => setMealTiming(e.target.value)}
-                className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-2 py-1 text-xs text-white [&>option]:bg-zinc-900 [&>option]:text-white"
+                className="w-full bg-popover border border-border rounded-lg px-2 py-1 text-xs text-white [&>option]:bg-popover [&>option]:text-white"
               >
                 <option value="no_tag">{t('mealTiming.noTag')}</option>
                 <option value="fasting">{t('mealTiming.fasting')}</option>
@@ -854,7 +854,7 @@ export default function NewMeasurementPage() {
                 }}
                 onChange={e => setSleepHours(e.target.value.replace(',', '.'))}
                 placeholder="-"
-                className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-2 py-1 text-xs text-white text-center"
+                className="w-full bg-popover border border-border rounded-lg px-2 py-1 text-xs text-white text-center"
               />
             </div>
             <div>
@@ -862,7 +862,7 @@ export default function NewMeasurementPage() {
               <select
                 value={sleepQuality}
                 onChange={e => setSleepQuality(e.target.value)}
-                className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-2 py-1 text-xs text-white [&>option]:bg-zinc-900 [&>option]:text-white"
+                className="w-full bg-popover border border-border rounded-lg px-2 py-1 text-xs text-white [&>option]:bg-popover [&>option]:text-white"
               >
                 <option value="">-</option>
                 <option value="poor">{tSleepQuality('poor')}</option>
@@ -876,7 +876,7 @@ export default function NewMeasurementPage() {
               <select
                 value={stressLevel}
                 onChange={e => setStressLevel(e.target.value)}
-                className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-2 py-1 text-xs text-white [&>option]:bg-zinc-900 [&>option]:text-white"
+                className="w-full bg-popover border border-border rounded-lg px-2 py-1 text-xs text-white [&>option]:bg-popover [&>option]:text-white"
               >
                 {STRESS_OPTIONS.map(o => (
                   <option key={o.value} value={o.value}>{tStressLevel(o.key)}</option>
@@ -890,7 +890,7 @@ export default function NewMeasurementPage() {
                   value={fastStart}
                   onChange={setFastStart}
                   countryCode={user?.country_code}
-                  className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-2 py-1 text-xs text-white"
+                  className="w-full bg-popover border border-border rounded-lg px-2 py-1 text-xs text-white"
                 />
               </div>
             )}
@@ -903,7 +903,7 @@ export default function NewMeasurementPage() {
               value={note}
               onChange={e => setNote(e.target.value.slice(0, 300))}
               rows={2}
-              className="w-full bg-white/5 border rounded-lg px-3 py-2 text-sm resize-none"
+              className="w-full bg-accent border rounded-lg px-3 py-2 text-sm resize-none"
               placeholder={t('lifestyle.notePlaceholder')}
             />
             <p className="text-xs text-muted-foreground text-right">{t('lifestyle.charCount', { chars: note.length })}</p>
@@ -912,7 +912,7 @@ export default function NewMeasurementPage() {
 
         {/* ── "My Markers" section ─────────────────────────────────── */}
         <div className="rounded-xl border mb-4">
-          <div className="px-4 py-3 border-b border-zinc-800 flex items-center justify-between">
+          <div className="px-4 py-3 border-b border-border flex items-center justify-between">
             <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">{t('myMarkers')}</span>
             {activeSlugs.size > 0 && (
               <span className="text-xs text-muted-foreground">
@@ -928,7 +928,7 @@ export default function NewMeasurementPage() {
                 value={markerFilter}
                 onChange={e => setMarkerFilter(e.target.value)}
                 placeholder={tCommon('searchMarkers')}
-                className="w-full bg-white/5 border rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full bg-accent border rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
             </div>
           )}
@@ -942,7 +942,7 @@ export default function NewMeasurementPage() {
               <p className="text-muted-foreground text-sm">{t('noMatchingMarkers', { filter: markerFilter })}</p>
             </div>
           ) : (
-            <div className="px-4 py-2 divide-y divide-zinc-800/50">
+            <div className="px-4 py-2 divide-y divide-border">
               {visibleMarkers.map((marker, index) => {
                 const displayUnit = getDisplayUnit(marker.marker_slug, marker.unit_canonical, units)
                 const badge = getDeviceBadge(marker.marker_slug, devices)
@@ -978,7 +978,7 @@ export default function NewMeasurementPage() {
 
         {/* Submit button — above Add Markers for daily workflow */}
         {isDemo && !user && (
-          <div className="rounded-xl border border-dashed border-zinc-700 p-4 mb-4 text-center">
+          <div className="rounded-xl border border-dashed border-border p-4 mb-4 text-center">
             <p className="text-sm text-muted-foreground">{t('loginToRecord')}</p>
           </div>
         )}
@@ -993,7 +993,7 @@ export default function NewMeasurementPage() {
 
         {/* ── "Add Markers" browser section (hidden when a device is selected) */}
         {!selectedDeviceId && <div className="rounded-xl border mb-4">
-          <div className="px-4 py-3 border-b border-zinc-800">
+          <div className="px-4 py-3 border-b border-border">
             <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">{t('addMarkerSection')}</span>
           </div>
 
@@ -1003,7 +1003,7 @@ export default function NewMeasurementPage() {
               value={addMarkerSearch}
               onChange={e => { setAddMarkerSearch(e.target.value); setAddMarkerPage(0) }}
               placeholder={t('searchPlaceholder')}
-              className="w-full bg-white/5 border rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="w-full bg-accent border rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
             />
           </div>
 
@@ -1034,7 +1034,7 @@ export default function NewMeasurementPage() {
                       className={`w-full px-3 py-2 text-left flex items-center gap-2 text-sm rounded-lg transition-colors ${
                         isActive
                           ? 'opacity-40 cursor-default'
-                          : 'hover:bg-white/5 cursor-pointer'
+                          : 'hover:bg-accent cursor-pointer'
                       }`}
                     >
                       {isActive ? (
@@ -1066,7 +1066,7 @@ export default function NewMeasurementPage() {
 
           {/* Pagination */}
           {totalAddPages > 1 && (
-            <div className="px-4 py-2 border-t border-zinc-800 flex items-center justify-between">
+            <div className="px-4 py-2 border-t border-border flex items-center justify-between">
               <span className="text-xs text-muted-foreground">
                 {t('markersPerPage', {
                   from: addMarkerPage * MARKERS_PER_PAGE + 1,
@@ -1079,7 +1079,7 @@ export default function NewMeasurementPage() {
                   type="button"
                   onClick={() => setAddMarkerPage(p => Math.max(0, p - 1))}
                   disabled={addMarkerPage === 0}
-                  className="px-2 py-1 text-xs rounded hover:bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed"
+                  className="px-2 py-1 text-xs rounded hover:bg-accent disabled:opacity-30 disabled:cursor-not-allowed"
                 >
                   ←
                 </button>
@@ -1090,7 +1090,7 @@ export default function NewMeasurementPage() {
                   type="button"
                   onClick={() => setAddMarkerPage(p => Math.min(totalAddPages - 1, p + 1))}
                   disabled={addMarkerPage >= totalAddPages - 1}
-                  className="px-2 py-1 text-xs rounded hover:bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed"
+                  className="px-2 py-1 text-xs rounded hover:bg-accent disabled:opacity-30 disabled:cursor-not-allowed"
                 >
                   →
                 </button>

@@ -68,8 +68,8 @@ export function ImportReview({ session, onConfirm, onCancel, isLoading }: Import
 
   const selectedCount = Object.values(selected).filter(Boolean).length
 
-  const inputCls = "bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-1.5 text-sm text-white"
-  const selectCls = "bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-1.5 text-sm text-white [&>option]:bg-zinc-900 [&>option]:text-white"
+  const inputCls = "bg-card border border-border rounded-lg px-3 py-1.5 text-sm text-foreground"
+  const selectCls = "bg-card border border-border rounded-lg px-3 py-1.5 text-sm text-foreground [&>option]:bg-card [&>option]:text-foreground"
 
   return (
     <div className="flex-1 overflow-y-auto">
@@ -77,12 +77,12 @@ export function ImportReview({ session, onConfirm, onCancel, isLoading }: Import
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-semibold text-white">{t('reviewTitle')}</h2>
-            <p className="text-sm text-white/50 mt-1">
+            <h2 className="text-lg font-semibold text-foreground">{t('reviewTitle')}</h2>
+            <p className="text-sm text-muted-foreground mt-1">
               {session.file_name}  - {session.total_count ?? matchedMarkers.length + unmatchedMarkers.length} {t('markersFound')}
             </p>
           </div>
-          <button onClick={onCancel} className="text-sm text-white/40 hover:text-white/60">
+          <button onClick={onCancel} className="text-sm text-muted-foreground hover:text-foreground">
             {tCommon('cancel')}
           </button>
         </div>
@@ -90,7 +90,7 @@ export function ImportReview({ session, onConfirm, onCancel, isLoading }: Import
         {/* Measurement info row */}
         <div className="flex gap-4 flex-wrap">
           <div>
-            <label className="text-xs text-white/40 block mb-1">{t('measurementDate')}</label>
+            <label className="text-xs text-muted-foreground block mb-1">{t('measurementDate')}</label>
             <input
               type="date"
               value={measuredAt}
@@ -99,7 +99,7 @@ export function ImportReview({ session, onConfirm, onCancel, isLoading }: Import
             />
           </div>
           <div>
-            <label className="text-xs text-white/40 block mb-1">{t('protocol')}</label>
+            <label className="text-xs text-muted-foreground block mb-1">{t('protocol')}</label>
             <select
               value={protocolTag}
               onChange={e => setProtocolTag(e.target.value)}
@@ -115,11 +115,11 @@ export function ImportReview({ session, onConfirm, onCancel, isLoading }: Import
         </div>
 
         {/* Lab info — editable fields */}
-        <div className="rounded-xl border border-zinc-700 p-4 space-y-3">
-          <h3 className="text-xs font-semibold text-white/40 uppercase tracking-wider">{t('labInfo')}</h3>
+        <div className="rounded-xl border border-border p-4 space-y-3">
+          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t('labInfo')}</h3>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-xs text-white/40 block mb-1">{t('labName')}</label>
+              <label className="text-xs text-muted-foreground block mb-1">{t('labName')}</label>
               <input
                 type="text"
                 value={labName}
@@ -129,7 +129,7 @@ export function ImportReview({ session, onConfirm, onCancel, isLoading }: Import
               />
             </div>
             <div>
-              <label className="text-xs text-white/40 block mb-1">{t('labAddress')}</label>
+              <label className="text-xs text-muted-foreground block mb-1">{t('labAddress')}</label>
               <input
                 type="text"
                 value={labAddress}
@@ -139,7 +139,7 @@ export function ImportReview({ session, onConfirm, onCancel, isLoading }: Import
               />
             </div>
             <div>
-              <label className="text-xs text-white/40 block mb-1">{t('labPostalCode')}</label>
+              <label className="text-xs text-muted-foreground block mb-1">{t('labPostalCode')}</label>
               <input
                 type="text"
                 value={labPostalCode}
@@ -149,7 +149,7 @@ export function ImportReview({ session, onConfirm, onCancel, isLoading }: Import
               />
             </div>
             <div>
-              <label className="text-xs text-white/40 block mb-1">{t('labCity')}</label>
+              <label className="text-xs text-muted-foreground block mb-1">{t('labCity')}</label>
               <input
                 type="text"
                 value={labCity}
@@ -159,7 +159,7 @@ export function ImportReview({ session, onConfirm, onCancel, isLoading }: Import
               />
             </div>
             <div>
-              <label className="text-xs text-white/40 block mb-1">{t('labCountry')}</label>
+              <label className="text-xs text-muted-foreground block mb-1">{t('labCountry')}</label>
               <input
                 type="text"
                 value={labCountry}
@@ -174,13 +174,13 @@ export function ImportReview({ session, onConfirm, onCancel, isLoading }: Import
         {/* Matched markers table */}
         {matchedMarkers.length > 0 && (
           <div>
-            <h3 className="text-sm font-medium text-white/60 mb-2">
+            <h3 className="text-sm font-medium text-muted-foreground mb-2">
               {t('matchedMarkers')} ({matchedMarkers.length})
             </h3>
-            <div className="border border-white/10 rounded-xl overflow-hidden">
+            <div className="border border-border rounded-xl overflow-hidden">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="bg-white/[0.03] text-white/40 text-xs">
+                  <tr className="bg-accent text-muted-foreground text-xs">
                     <th className="py-2 px-3 text-left w-8">
                       <input
                         type="checkbox"
@@ -203,7 +203,7 @@ export function ImportReview({ session, onConfirm, onCancel, isLoading }: Import
                 </thead>
                 <tbody>
                   {matchedMarkers.map((m, i) => (
-                    <tr key={i} className={`border-t border-white/5 ${!selected[m.matched_marker!] ? 'opacity-40' : ''}`}>
+                    <tr key={i} className={`border-t border-border ${!selected[m.matched_marker!] ? 'opacity-40' : ''}`}>
                       <td className="py-2 px-3">
                         <input
                           type="checkbox"
@@ -212,18 +212,18 @@ export function ImportReview({ session, onConfirm, onCancel, isLoading }: Import
                           className="rounded"
                         />
                       </td>
-                      <td className="py-2 px-3 text-white/50">{m.original_name}</td>
-                      <td className="py-2 px-3 text-white font-medium">{m.matched_marker}</td>
+                      <td className="py-2 px-3 text-muted-foreground">{m.original_name}</td>
+                      <td className="py-2 px-3 text-foreground font-medium">{m.matched_marker}</td>
                       <td className="py-2 px-3 text-right">
                         <input
                           type="number"
                           step="0.01"
                           value={values[m.matched_marker!] ?? m.value_converted ?? m.value_original}
                           onChange={e => setValues(prev => ({ ...prev, [m.matched_marker!]: parseFloat(e.target.value) || 0 }))}
-                          className="w-20 text-right bg-white/[0.05] border border-white/10 rounded px-2 py-1 text-white text-sm"
+                          className="w-20 text-right bg-accent border border-border rounded px-2 py-1 text-foreground text-sm"
                         />
                       </td>
-                      <td className="py-2 px-3 text-white/50">{m.unit_converted || m.unit_original}</td>
+                      <td className="py-2 px-3 text-muted-foreground">{m.unit_converted || m.unit_original}</td>
                       <td className="py-2 px-3 text-center">
                         <span className={`text-xs px-1.5 py-0.5 rounded ${
                           m.match_confidence === 'high' ? 'bg-green-500/20 text-green-400' :
@@ -244,17 +244,17 @@ export function ImportReview({ session, onConfirm, onCancel, isLoading }: Import
         {/* Unmatched markers */}
         {unmatchedMarkers.length > 0 && (
           <div>
-            <h3 className="text-sm font-medium text-white/30 mb-2">
+            <h3 className="text-sm font-medium text-muted-foreground mb-2">
               {t('unmatched')} ({unmatchedMarkers.length}) - {t('unmatchedHint')}
             </h3>
-            <div className="border border-white/5 rounded-xl overflow-hidden opacity-50">
+            <div className="border border-border rounded-xl overflow-hidden opacity-50">
               <table className="w-full text-sm">
                 <tbody>
                   {unmatchedMarkers.map((m, i) => (
-                    <tr key={i} className="border-t border-white/5 first:border-t-0">
-                      <td className="py-2 px-3 text-white/30">{m.original_name}</td>
-                      <td className="py-2 px-3 text-right text-white/30">{m.value_original}</td>
-                      <td className="py-2 px-3 text-white/20">{m.unit_original}</td>
+                    <tr key={i} className="border-t border-border first:border-t-0">
+                      <td className="py-2 px-3 text-muted-foreground">{m.original_name}</td>
+                      <td className="py-2 px-3 text-right text-muted-foreground">{m.value_original}</td>
+                      <td className="py-2 px-3 text-muted-foreground">{m.unit_original}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -264,14 +264,14 @@ export function ImportReview({ session, onConfirm, onCancel, isLoading }: Import
         )}
 
         {/* Actions */}
-        <div className="flex items-center justify-between pt-4 border-t border-white/10">
-          <p className="text-sm text-white/40">
+        <div className="flex items-center justify-between pt-4 border-t border-border">
+          <p className="text-sm text-muted-foreground">
             {t('selectedCount', { count: selectedCount })}
           </p>
           <div className="flex gap-3">
             <button
               onClick={onCancel}
-              className="px-4 py-2 text-sm text-white/60 hover:text-white border border-white/10 rounded-lg transition-colors"
+              className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground border border-border rounded-lg transition-colors"
             >
               {tCommon('cancel')}
             </button>

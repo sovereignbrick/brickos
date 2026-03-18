@@ -222,7 +222,7 @@ function MeasurementsContent() {
                 type="date"
                 value={fromDate}
                 onChange={e => { setFromDate(e.target.value); resetPage() }}
-                className="w-full bg-white/5 border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full bg-accent border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
             </div>
             <div>
@@ -231,7 +231,7 @@ function MeasurementsContent() {
                 type="date"
                 value={toDate}
                 onChange={e => { setToDate(e.target.value); resetPage() }}
-                className="w-full bg-white/5 border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full bg-accent border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
             </div>
             <div>
@@ -239,7 +239,7 @@ function MeasurementsContent() {
               <select
                 value={selectedDevice}
                 onChange={e => { setSelectedDevice(e.target.value); resetPage() }}
-                className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-blue-500 [&>option]:bg-zinc-900 [&>option]:text-white"
+                className="w-full bg-popover border border-border rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-blue-500 [&>option]:bg-popover [&>option]:text-white"
               >
                 <option value="">{t('allDevices')}</option>
                 {filters?.devices.map(d => (
@@ -268,7 +268,7 @@ function MeasurementsContent() {
               <select
                 value={selectedProtocol}
                 onChange={e => { setSelectedProtocol(e.target.value); resetPage() }}
-                className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-blue-500 [&>option]:bg-zinc-900 [&>option]:text-white"
+                className="w-full bg-popover border border-border rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-blue-500 [&>option]:bg-popover [&>option]:text-white"
               >
                 <option value="">{t('allProtocols')}</option>
                 {filters?.protocols.map(p => (
@@ -297,7 +297,7 @@ function MeasurementsContent() {
               )}
               <button
                 onClick={handleExport}
-                className="flex items-center gap-1.5 bg-white/5 hover:bg-white/10 border rounded-lg px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                className="flex items-center gap-1.5 bg-accent hover:bg-white/10 border rounded-lg px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
               >
                 <Download size={12} />
                 {hasActiveFilters ? t('exportCsv', { count: total }) : t('exportAll')}
@@ -350,7 +350,7 @@ function MeasurementsContent() {
                 ) : (
                   <Link
                     href={`/measurements/${m.id}`}
-                    className="rounded-xl border p-3 flex items-center justify-between hover:bg-white/5 transition-colors block"
+                    className="rounded-xl border p-3 flex items-center justify-between hover:bg-accent transition-colors block"
                   >
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium truncate">{contentMarkers[m.marker_slug]?.name ?? m.marker_name}</p>
@@ -375,7 +375,7 @@ function MeasurementsContent() {
             <button
               onClick={() => setPage(p => Math.max(1, p - 1))}
               disabled={page === 1}
-              className="px-3 py-1.5 rounded-lg text-sm bg-white/5 text-muted-foreground hover:bg-white/10 disabled:opacity-40 transition-colors"
+              className="px-3 py-1.5 rounded-lg text-sm bg-accent text-muted-foreground hover:bg-white/10 disabled:opacity-40 transition-colors"
             >
               {tCommon('prev')}
             </button>
@@ -385,7 +385,7 @@ function MeasurementsContent() {
             <button
               onClick={() => setPage(p => Math.min(totalPages, p + 1))}
               disabled={page === totalPages}
-              className="px-3 py-1.5 rounded-lg text-sm bg-white/5 text-muted-foreground hover:bg-white/10 disabled:opacity-40 transition-colors"
+              className="px-3 py-1.5 rounded-lg text-sm bg-accent text-muted-foreground hover:bg-white/10 disabled:opacity-40 transition-colors"
             >
               {tCommon('next')}
             </button>
@@ -443,20 +443,20 @@ function MarkerMultiSelect({
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="w-full bg-white/5 border rounded-lg px-3 py-2 text-sm text-left focus:outline-none focus:ring-1 focus:ring-blue-500 flex items-center justify-between"
+        className="w-full bg-accent border rounded-lg px-3 py-2 text-sm text-left focus:outline-none focus:ring-1 focus:ring-blue-500 flex items-center justify-between"
       >
         <span className="truncate">{label}</span>
         <span className="text-muted-foreground ml-1 text-xs">{open ? '\u25B2' : '\u25BC'}</span>
       </button>
       {open && (
-        <div className="absolute z-50 mt-1 w-full bg-zinc-900 border border-zinc-700 rounded-lg shadow-xl max-h-60 overflow-hidden">
-          <div className="p-2 border-b border-zinc-800">
+        <div className="absolute z-50 mt-1 w-full bg-popover border border-border rounded-lg shadow-xl max-h-60 overflow-hidden">
+          <div className="p-2 border-b border-border">
             <input
               type="text"
               placeholder={tCommon('searchMarkers')}
               value={search}
               onChange={e => setSearch(e.target.value)}
-              className="w-full bg-white/5 border rounded px-2 py-1 text-sm focus:outline-none"
+              className="w-full bg-accent border rounded px-2 py-1 text-sm focus:outline-none"
               autoFocus
             />
           </div>
@@ -466,10 +466,10 @@ function MarkerMultiSelect({
                 key={o.slug}
                 type="button"
                 onClick={() => onToggle(o.slug)}
-                className="w-full px-3 py-1.5 text-left text-sm hover:bg-white/5 flex items-center gap-2"
+                className="w-full px-3 py-1.5 text-left text-sm hover:bg-accent flex items-center gap-2"
               >
                 <span className={`w-3.5 h-3.5 rounded border flex items-center justify-center text-[10px] shrink-0 ${
-                  selected.includes(o.slug) ? 'bg-blue-600 border-blue-600 text-white' : 'border-zinc-600'
+                  selected.includes(o.slug) ? 'bg-blue-600 border-blue-600 text-white' : 'border-border'
                 }`}>
                   {selected.includes(o.slug) && '\u2713'}
                 </span>

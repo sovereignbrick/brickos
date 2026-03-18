@@ -214,6 +214,122 @@ curl https://api-demo.sovereignhealth.io/health
 
 ---
 
+## Theme Color Audit (Automated)
+
+Scans all `.tsx` files for hardcoded dark-mode colors that break light theme. **Must pass with 0 critical violations before release.**
+
+### How to run
+
+```bash
+cd apps/health/sovereign-health/frontend
+
+# Quick check (exit code 1 = violations found)
+bash scripts/check-theme-colors.sh
+
+# Show file:line locations for each violation
+bash scripts/check-theme-colors.sh --fix
+
+# JSON output (for CI integration)
+bash scripts/check-theme-colors.sh --json
+```
+
+### What it checks
+
+| Severity | Pattern | Replacement |
+|----------|---------|-------------|
+| Critical | `bg-zinc-900` | `bg-card` or `bg-popover` |
+| Critical | `bg-zinc-800` | `bg-muted` |
+| Critical | `border-zinc-800`, `border-zinc-700` | `border-border` |
+| Critical | `hover:bg-zinc-700`, `hover:bg-zinc-800` | `hover:bg-accent` |
+| Warning | `bg-white/5`, `bg-white/10`, `bg-white/[0.0*]` | `bg-accent` variants |
+| Warning | `border-white/10`, `border-white/5` | `border-border` |
+| Warning | `text-zinc-100`, `text-zinc-400` | `text-foreground`, `text-muted-foreground` |
+| Warning | `text-white` (without colored bg) | `text-foreground` |
+
+### THEME-01: Zero critical violations
+
+| Step | Expected |
+|---|---|
+| 1. Run `bash scripts/check-theme-colors.sh` | Exit code 0, "PASS" or "WARN" |
+| 2. If WARN, review warnings manually | Some may be intentional (tier badges, QR codes) |
+| 3. If FAIL, fix all critical violations | Replace hardcoded colors with theme tokens |
+
+### THEME-02: Visual verification (both themes)
+
+| Step | Expected |
+|---|---|
+| 1. Set theme to **light** (user menu → Toggle theme) | All pages readable |
+| 2. Check: Dashboard, Settings, Doctor Chat, Trends, Measurements, Affiliate | No white-on-white or dark-on-dark text |
+| 3. Check: Dropdowns, modals, tooltips, sidebar | Background follows theme |
+| 4. Set theme to **dark** | All pages readable |
+| 5. Repeat checks in dark mode | No regressions from light theme fixes |
+
+---
+
+## Lighthouse Accessibility & Performance Audit
+
+Run a Lighthouse audit on key pages before each release. Target: **90+ on Accessibility**.
+
+### How to run (Chrome DevTools)
+
+1. Open the target page in Chrome
+2. Press `F12` → **Lighthouse** tab
+3. Select categories: **Accessibility**, **Performance**, **Best Practices**
+4. Device: **Desktop** (repeat with **Mobile** for responsive check)
+5. Click **Analyze page load**
+
+### How to run (CLI — headless, for CI)
+
+```bash
+# Install
+npm install -g lighthouse
+
+# Run against local dev
+lighthouse http://localhost:3000/dashboard --output=json --output=html \
+  --output-path=./lighthouse-report --chrome-flags="--headless --no-sandbox"
+
+# Run against staging
+lighthouse https://demo.sovereignhealth.io/dashboard --output=json --output=html \
+  --output-path=./lighthouse-staging --chrome-flags="--headless --no-sandbox"
+```
+
+### Alternative: axe DevTools (deeper WCAG checks)
+
+1. Install "axe DevTools" Chrome extension
+2. Open page → `F12` → **axe DevTools** tab → **Scan ALL of my page**
+3. Filter by WCAG 2.1 AA violations
+
+### Pages to audit
+
+| # | Page | Route | Min Accessibility Score |
+|---|------|-------|------------------------|
+| 1 | Login | /login | 90+ |
+| 2 | Signup | /signup | 90+ |
+| 3 | Dashboard | /dashboard | 90+ |
+| 4 | Settings | /settings | 90+ |
+| 5 | Doctor Chat | /doctor-chat | 90+ |
+| 6 | Trends | /trends | 90+ |
+| 7 | Marker detail | /markers/glucose | 90+ |
+| 8 | Measurements | /measurements/new | 90+ |
+
+### LH-01: Accessibility score
+
+| Step | Expected |
+|---|---|
+| 1. Run Lighthouse on /dashboard (Desktop) | Accessibility score >= 90 |
+| 2. Run Lighthouse on /login (Desktop) | Accessibility score >= 90 |
+| 3. Run Lighthouse on /signup (Desktop) | Accessibility score >= 90 |
+| 4. Check "Contrast" section | No failing contrast ratios |
+| 5. Check "Navigation" section | Skip-to-content link present, all elements keyboard-focusable |
+
+### LH-02: Known console errors
+
+| Error | Severity | Status |
+|---|---|---|
+| React error #418 (hydration mismatch) | Low | Known — theme script removes `dark` class before React hydrates. No visual impact. Fix tracked in backlog. |
+
+---
+
 ## Regression Tests (Quick Smoke)
 
 | # | Test | Route | Expected |
@@ -226,3 +342,6 @@ curl https://api-demo.sovereignhealth.io/health
 | 6 | Dr. Chat | /doctor-chat | Chat loads, file upload works |
 | 7 | Trends | /trends | Chart renders |
 | 8 | Measurements list | /measurements | Translated marker names |
+| 9 | Lighthouse accessibility | /dashboard | Score >= 90 |
+| 10 | Theme color audit | `scripts/check-theme-colors.sh` | 0 critical violations |
+| 11 | Light theme visual check | Toggle theme, check all pages | All text readable |

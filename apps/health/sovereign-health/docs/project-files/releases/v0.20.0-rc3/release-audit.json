@@ -1,0 +1,45 @@
+{
+  "audit_version": "4.0",
+  "audit_date": "2026-03-18",
+  "previous_audit": "2026-03-17 (v0.20.0-rc2)",
+  "auditor": "Claude Code (automated)",
+  "target_version": "v0.20.0-rc3",
+  "repository": "github.com/sovereignbrick/brickos",
+  "environment": "localhost (dev)",
+  "summary": {
+    "total_checks": 6,
+    "passed": 6,
+    "failed": 0,
+    "backend_tests": 267,
+    "frontend_tests": 192,
+    "theme_violations": 0,
+    "lighthouse_accessibility": 96,
+    "security_advisories": 0,
+    "security_warnings": 6
+  },
+  "checks": [
+    { "name": "cargo test", "status": "pass", "details": "267 tests passed" },
+    { "name": "cargo fmt + clippy", "status": "pass", "details": "0 warnings" },
+    { "name": "pnpm test", "status": "pass", "details": "192 tests, 12 files" },
+    { "name": "theme-colors.sh", "status": "pass", "details": "0 critical violations" },
+    { "name": "lighthouse", "status": "pass", "details": "96% accessibility" },
+    { "name": "cargo audit", "status": "pass", "details": "6 allowed warnings (unmaintained deps in genpdf, no CVEs)" }
+  ],
+  "issues_closed": ["#19", "#84"],
+  "issues_created": ["#101", "#102", "#103", "#104", "#105", "#106"],
+  "migrations": [
+    "20260318000091_tax_compliance_billing_tables.sql",
+    "20260318000092_drop_consent_product_updates.sql"
+  ],
+  "files_changed_estimate": 156,
+  "key_changes": [
+    "Onboarding checklist with global tracker (#19)",
+    "Dark/light theme toggle with full light theme support (#84)",
+    "Learn page infrastructure (#22, content pending #101)",
+    "WCAG 2.1 AA accessibility (#99)",
+    "Removed consent_product_updates from signup/DB/backend",
+    "Tier-specific colors on pricing pages",
+    "Theme audit script for CI",
+    "Affiliate page light theme support"
+  ]
+}

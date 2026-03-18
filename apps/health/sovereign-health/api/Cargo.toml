@@ -1,6 +1,6 @@
 [package]
 name = "sovereign-health-backend"
-version = "0.20.0-rc2"
+version = "0.20.0-rc3"
 edition = "2021"
 
 [dependencies]

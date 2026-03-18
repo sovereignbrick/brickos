@@ -1,12 +1,12 @@
 // Sovereign Health Intelligence — AGPL-3.0 — https://sovereignhealth.io/
 //
-// Dark theme consistency tests — catches white backgrounds on selects,
-// missing border colors, and hardcoded light-theme colors.
+// Theme consistency tests — catches missing background classes on selects
+// and hardcoded light-theme colors that break dark mode.
 //
 // These tests exist because:
-// - The "Typ" select dropdown had a white background on dark theme
+// - Select dropdowns need explicit background classes (theme-aware or dark)
+// - globals.css provides fallback colors for native select/option elements
 // - Inputs had inconsistent border styles (some `border` without color)
-// - Select <option> elements need explicit bg-zinc-900 for dark mode
 
 import { readFileSync, readdirSync, statSync } from 'fs'
 import { join } from 'path'
@@ -37,7 +37,7 @@ const tsxFiles = findTsxFiles(join(SRC_DIR, 'app')).concat(findTsxFiles(join(SRC
 // ---------------------------------------------------------------------------
 
 describe('dark theme: select elements', () => {
-  test('all <select> elements have dark background', () => {
+  test('all <select> elements have themed background', () => {
     const violations: string[] = []
 
     for (const file of tsxFiles) {
@@ -50,10 +50,11 @@ describe('dark theme: select elements', () => {
           const hasClass = line.match(/className="([^"]*)"/)
           if (hasClass) {
             const cls = hasClass[1]
-            // Must have dark bg — either bg-zinc-900, bg-zinc-800, or bg-white/5
-            if (!cls.match(/bg-zinc-[89]00|bg-white\/5/)) {
+            // Must have a background class — theme-aware (bg-background, bg-card, bg-popover, bg-muted, bg-accent)
+            // or legacy dark (bg-zinc-*, bg-white/)
+            if (!cls.match(/bg-(background|card|popover|muted|accent|zinc-[89]00|white\/)/)) {
               const rel = file.replace(SRC_DIR, 'src')
-              violations.push(`${rel}:${i + 1} — select missing dark bg: "${cls.slice(0, 60)}..."`)
+              violations.push(`${rel}:${i + 1} — select missing bg class: "${cls.slice(0, 60)}..."`)
             }
           }
         }
@@ -62,7 +63,7 @@ describe('dark theme: select elements', () => {
 
     if (violations.length > 0) {
       throw new Error(
-        `${violations.length} <select> elements without dark background:\n${violations.join('\n')}`
+        `${violations.length} <select> elements without background class:\n${violations.join('\n')}`
       )
     }
   })

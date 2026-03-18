@@ -107,7 +107,7 @@ export default function OpenSourcePage() {
           <p className="mb-4 text-center text-sm text-[var(--muted)]">
             {t('openSource.quickStart.subtitle')}
           </p>
-          <div className="overflow-x-auto rounded-lg bg-zinc-900 p-6">
+          <div className="overflow-x-auto rounded-lg bg-[var(--card)] p-6">
             <pre className="text-sm leading-relaxed text-[var(--foreground)]">
               <code>{`git clone ${GITHUB_REPO}.git
 cd core-backend

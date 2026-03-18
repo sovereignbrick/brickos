@@ -11,6 +11,7 @@ import { APP_NAME, IS_OSS } from '@/lib/mode'
 import { api } from '@/lib/api'
 import { useTranslations } from 'next-intl'
 import { useContent } from '@/lib/content-context'
+import { useTheme } from '@/lib/theme-context'
 import { locales, localeNames, type Locale } from '@/i18n/config'
 
 type NavItem = { href: string; labelKey: string }
@@ -35,6 +36,7 @@ function UserMenu({ user, logout }: { user: { email: string; display_name: strin
   const ref = useRef<HTMLDivElement>(null)
   const t = useTranslations('nav')
   const tTiers = useTranslations('tiers')
+  const { theme, toggleTheme } = useTheme()
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -67,8 +69,8 @@ function UserMenu({ user, logout }: { user: { email: string; display_name: strin
         {initials || '?'}
       </button>
       {open && (
-        <div className="absolute right-0 top-10 w-48 rounded-xl border bg-zinc-900 shadow-xl py-1 z-50">
-          <div className="px-3 py-2 border-b border-zinc-800">
+        <div className="absolute right-0 top-10 w-48 rounded-xl border bg-popover shadow-xl py-1 z-50">
+          <div className="px-3 py-2 border-b border-border">
             <div className="flex items-center gap-2">
               <p className="text-sm font-medium truncate">{user?.display_name ?? 'User'}</p>
               <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold text-white ${tierColors[tierSlug] || 'bg-zinc-600'}`}>
@@ -80,14 +82,14 @@ function UserMenu({ user, logout }: { user: { email: string; display_name: strin
           <Link
             href="/settings"
             onClick={() => setOpen(false)}
-            className="block w-full text-left px-3 py-2 text-sm text-muted-foreground hover:bg-white/5 hover:text-foreground transition-colors"
+            className="block w-full text-left px-3 py-2 text-sm text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
           >
             {t('settings')}
           </Link>
           <Link
             href="/affiliate"
             onClick={() => setOpen(false)}
-            className="block w-full text-left px-3 py-2 text-sm text-muted-foreground hover:bg-white/5 hover:text-foreground transition-colors"
+            className="block w-full text-left px-3 py-2 text-sm text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
           >
             {t('affiliate')}
           </Link>
@@ -95,15 +97,26 @@ function UserMenu({ user, logout }: { user: { email: string; display_name: strin
             <Link
               href="/admin"
               onClick={() => setOpen(false)}
-              className="block w-full text-left px-3 py-2 text-sm text-amber-400 hover:bg-white/5 hover:text-amber-300 transition-colors"
+              className="block w-full text-left px-3 py-2 text-sm text-amber-400 hover:bg-accent hover:text-amber-300 transition-colors"
             >
               {t('admin')}
             </Link>
           )}
-          <div className="border-t border-zinc-800 my-1" />
+          <button
+            onClick={toggleTheme}
+            className="w-full text-left px-3 py-2 text-sm text-muted-foreground hover:bg-accent hover:text-foreground transition-colors flex items-center gap-2"
+          >
+            {theme === 'dark' ? (
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+            ) : (
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+            )}
+            {t('theme')}
+          </button>
+          <div className="border-t border-border my-1" />
           <button
             onClick={() => { setOpen(false); logout() }}
-            className="w-full text-left px-3 py-2 text-sm text-red-400 hover:bg-white/5 hover:text-red-300 transition-colors"
+            className="w-full text-left px-3 py-2 text-sm text-red-400 hover:bg-accent hover:text-red-300 transition-colors"
           >
             {t('signOut')}
           </button>
@@ -225,13 +238,13 @@ function MobileMenu({
             aria-modal="true"
             aria-label={t('navMenuLabel')}
             onKeyDown={handleKeyDown}
-            className={`fixed top-0 right-0 bottom-0 w-72 max-w-[85vw] bg-zinc-900 border-l border-zinc-800 z-[70] sm:hidden transition-transform duration-300 ease-in-out ${
+            className={`fixed top-0 right-0 bottom-0 w-72 max-w-[85vw] bg-popover border-l border-border z-[70] sm:hidden transition-transform duration-300 ease-in-out ${
               open ? 'translate-x-0' : 'translate-x-full'
             }`}
             style={{ paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)' }}
           >
             {/* Header */}
-            <div className="flex items-center justify-between px-4 h-14 border-b border-zinc-800">
+            <div className="flex items-center justify-between px-4 h-14 border-b border-border">
               <span className="text-sm font-semibold">{t('menu')}</span>
               <button
                 onClick={() => setOpen(false)}
@@ -255,7 +268,7 @@ function MobileMenu({
                   className={`block px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
                     pathname.startsWith(href)
                       ? 'bg-white/10 text-foreground'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-white/5'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-accent'
                   }`}
                 >
                   {t(labelKey)}
@@ -269,7 +282,7 @@ function MobileMenu({
                     className={`block px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
                       pathname.startsWith('/affiliate')
                         ? 'bg-white/10 text-foreground'
-                        : 'text-muted-foreground hover:text-foreground hover:bg-white/5'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-accent'
                     }`}
                   >
                     {t('affiliate')}
@@ -280,7 +293,7 @@ function MobileMenu({
                     className={`block px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
                       pathname.startsWith('/settings')
                         ? 'bg-white/10 text-foreground'
-                        : 'text-muted-foreground hover:text-foreground hover:bg-white/5'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-accent'
                     }`}
                   >
                     {t('settings')}
@@ -290,7 +303,7 @@ function MobileMenu({
             </nav>
 
             {/* User info & actions */}
-            <div className="absolute bottom-0 left-0 right-0 border-t border-zinc-800 px-4 py-4" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 16px)' }}>
+            <div className="absolute bottom-0 left-0 right-0 border-t border-border px-4 py-4" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 16px)' }}>
               {isDemo ? (
                 !isDemoOnly && (
                   <Link
@@ -373,7 +386,7 @@ export function Navbar() {
     <div className="relative" ref={langRef}>
       <button
         onClick={() => setLangOpen(o => !o)}
-        className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs text-muted-foreground hover:text-foreground hover:bg-white/5 transition-colors"
+        className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
         aria-label={tCommon('changeLanguage')}
       >
         {contentLocale.toUpperCase()}
@@ -382,15 +395,15 @@ export function Navbar() {
         </svg>
       </button>
       {langOpen && (
-        <div className="absolute right-0 top-8 w-32 rounded-xl border bg-zinc-900 shadow-xl py-1 z-50">
+        <div className="absolute right-0 top-8 w-32 rounded-xl border bg-popover shadow-xl py-1 z-50">
           {locales.map(loc => (
             <button
               key={loc}
               onClick={() => handleLocaleSwitch(loc)}
               className={`block w-full text-left px-3 py-2 text-sm transition-colors ${
                 contentLocale === loc
-                  ? 'text-foreground bg-white/5'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-white/5'
+                  ? 'text-foreground bg-accent'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-accent'
               }`}
             >
               {localeNames[loc]}
@@ -414,7 +427,7 @@ export function Navbar() {
           </Link>
           <div className="flex items-center gap-2">
             {languageSelector}
-            <div className="w-8 h-8 rounded-full bg-zinc-700 animate-pulse" />
+            <div className="w-8 h-8 rounded-full bg-muted animate-pulse" />
           </div>
         </div>
       </nav>
@@ -470,7 +483,7 @@ export function Navbar() {
               className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${
                 pathname.startsWith(href)
                   ? 'bg-white/10 text-foreground'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-white/5'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-accent'
               }`}
             >
               {t(labelKey)}

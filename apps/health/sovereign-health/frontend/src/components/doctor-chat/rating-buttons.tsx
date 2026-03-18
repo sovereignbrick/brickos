@@ -27,7 +27,7 @@ export function RatingButtons({ messageId, onRate }: RatingButtonsProps) {
 
   if (rated) {
     return (
-      <span className="text-xs text-white/30 mt-2 inline-block">
+      <span className="text-xs text-muted-foreground mt-2 inline-block">
         {t('thanksFeedback')}
       </span>
     )
@@ -38,16 +38,18 @@ export function RatingButtons({ messageId, onRate }: RatingButtonsProps) {
       <button
         onClick={() => handleRate('helpful')}
         disabled={loading}
-        className="text-xs px-2 py-0.5 rounded hover:bg-white/10 text-white/30 hover:text-white/60 transition-colors disabled:opacity-50"
+        className="text-xs px-2 py-0.5 rounded hover:bg-accent text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
         title={t('helpful')}
+        aria-label={t('helpful')}
       >
         👍
       </button>
       <button
         onClick={() => handleRate('not_helpful')}
         disabled={loading}
-        className="text-xs px-2 py-0.5 rounded hover:bg-white/10 text-white/30 hover:text-white/60 transition-colors disabled:opacity-50"
+        className="text-xs px-2 py-0.5 rounded hover:bg-accent text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
         title={t('notHelpful')}
+        aria-label={t('notHelpful')}
       >
         👎
       </button>

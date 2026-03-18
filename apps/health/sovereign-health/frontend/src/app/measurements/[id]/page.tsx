@@ -133,7 +133,7 @@ export default function MeasurementDetailPage() {
             className={`flex-1 rounded-xl py-2.5 text-sm font-medium transition-colors ${
               confirmDelete
                 ? 'bg-red-600 hover:bg-red-500 text-white'
-                : 'bg-white/5 text-red-400 hover:bg-red-500/10 border border-red-500/30'
+                : 'bg-accent text-red-400 hover:bg-red-500/10 border border-red-500/30'
             } disabled:opacity-50`}
           >
             {deleting ? 'Deleting...' : confirmDelete ? `Confirm: Delete from ${new Date(measurement.timestamp).toLocaleDateString()}?` : 'Delete'}

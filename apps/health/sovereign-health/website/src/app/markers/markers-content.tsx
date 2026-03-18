@@ -91,7 +91,7 @@ function MarkerTooltip({ text }: { text: string }) {
       {visible && (
         <span
           ref={tooltipRef}
-          className="fixed z-50 rounded-lg border border-zinc-700 bg-zinc-800 shadow-xl text-xs text-[var(--foreground)] leading-relaxed"
+          className="fixed z-50 rounded-lg border border-[var(--border)] bg-[var(--card)] shadow-xl text-xs text-[var(--foreground)] leading-relaxed"
           style={{
             top: position.top,
             left: position.left,

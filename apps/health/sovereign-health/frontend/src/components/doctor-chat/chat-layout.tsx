@@ -213,7 +213,7 @@ export function ChatLayout() {
       {sidebarOpen && (
         <div className="fixed inset-0 z-40 md:hidden" onClick={() => setSidebarOpen(false)}>
           <div className="absolute inset-0 bg-black/50" />
-          <div className="relative w-[280px] h-full bg-zinc-900 border-r border-white/10" onClick={e => e.stopPropagation()}>
+          <div className="relative w-[280px] h-full bg-popover border-r border-border" onClick={e => e.stopPropagation()}>
             <ConversationList
               conversations={conversations}
               activeId={activeConversationId}
@@ -226,7 +226,7 @@ export function ChatLayout() {
       )}
 
       {/* Desktop sidebar */}
-      <div className="w-[280px] hidden md:flex flex-col border-r border-white/10 bg-white/[0.02]">
+      <div className="w-[280px] hidden md:flex flex-col border-r border-border bg-accent">
         <ConversationList
           conversations={conversations}
           activeId={activeConversationId}
@@ -239,18 +239,18 @@ export function ChatLayout() {
       {/* Main chat area */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top bar */}
-        <div className="flex items-center justify-between px-4 py-2 border-b border-white/10 shrink-0">
+        <div className="flex items-center justify-between px-4 py-2 border-b border-border shrink-0">
           <div className="flex items-center gap-2">
             <button
               onClick={() => setSidebarOpen(true)}
-              className="md:hidden text-white/60 hover:text-white p-1"
+              className="md:hidden text-muted-foreground hover:text-foreground p-1"
               aria-label={tChat('openConversations')}
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M3 12h18M3 6h18M3 18h18" />
               </svg>
             </button>
-            <h1 className="text-sm font-medium text-white/60">
+            <h1 className="text-sm font-medium text-muted-foreground">
               {messages.length === 0 ? tChat('headerHome') : tChat('headerChat')}
             </h1>
           </div>
@@ -258,7 +258,7 @@ export function ChatLayout() {
             {activeConversationId && (
               <button
                 onClick={handleNewChat}
-                className="text-xs text-white/30 hover:text-white/60 transition-colors px-2 py-1"
+                className="text-xs text-muted-foreground hover:text-foreground transition-colors px-2 py-1"
                 title={tChat('clearConversation')}
               >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -281,7 +281,7 @@ export function ChatLayout() {
             <div className="flex-1 flex items-center justify-center">
               <div className="text-center space-y-3">
                 <div className="text-3xl animate-pulse">🔬</div>
-                <p className="text-sm text-white/60">{tChat('analyzingDocument')}</p>
+                <p className="text-sm text-muted-foreground">{tChat('analyzingDocument')}</p>
               </div>
             </div>
           ) : medImportSession ? (

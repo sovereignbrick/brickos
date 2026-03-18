@@ -154,12 +154,11 @@ pub async fn get_users_by_segments(
     let consent_type = filters
         .get("consent")
         .and_then(|v| v.as_str())
-        .unwrap_or("product_updates");
+        .unwrap_or("newsletter");
 
     let consent_col = match consent_type {
-        "newsletter" => "up.consent_newsletter",
         "partner_offers" => "up.consent_partner_offers",
-        _ => "up.consent_product_updates",
+        _ => "up.consent_newsletter",
     };
 
     let where_clause = if conditions.is_empty() {

@@ -55,8 +55,8 @@ export function ChatInput({ onSend, onFileUpload, disabled, quotaExhausted: rawQ
 
   if (quotaExhausted) {
     return (
-      <div className="px-4 py-3 border-t border-white/10 flex items-center justify-between">
-        <p className="text-sm text-white/40">
+      <div className="px-4 py-3 border-t border-border flex items-center justify-between">
+        <p className="text-sm text-muted-foreground">
           {t('quotaExhausted')}
         </p>
         <a
@@ -72,10 +72,10 @@ export function ChatInput({ onSend, onFileUpload, disabled, quotaExhausted: rawQ
   }
 
   return (
-    <div className="px-4 py-3 border-t border-white/10">
+    <div className="px-4 py-3 border-t border-border">
       <div className="flex gap-2 items-end">
         {onFileUpload && (
-          <label className="shrink-0 p-3 text-white/40 hover:text-white/70 cursor-pointer transition-colors" title={t('uploadTitle')}>
+          <label className="shrink-0 p-3 text-muted-foreground hover:text-muted-foreground cursor-pointer transition-colors" title={t('uploadTitle')}>
             <input
               type="file"
               accept="image/jpeg,image/png,image/webp,application/pdf"
@@ -102,7 +102,7 @@ export function ChatInput({ onSend, onFileUpload, disabled, quotaExhausted: rawQ
             placeholder={t('placeholder')}
             disabled={disabled}
             rows={1}
-            className="w-full resize-none bg-white/[0.05] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-white/20 focus:bg-white/[0.07] transition-all disabled:opacity-50"
+            className="w-full resize-none bg-accent/60 border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-border focus:bg-accent transition-all disabled:opacity-50"
             style={{ minHeight: '48px', maxHeight: '112px' }}
           />
           {value.length > WARN_CHARS && (
@@ -121,7 +121,7 @@ export function ChatInput({ onSend, onFileUpload, disabled, quotaExhausted: rawQ
           {t('send')}
         </button>
       </div>
-      <p className="text-xs text-white/20 mt-2">
+      <p className="text-xs text-muted-foreground mt-2">
         {t('newlineHint')}
       </p>
     </div>

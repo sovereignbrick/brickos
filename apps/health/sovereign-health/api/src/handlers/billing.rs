@@ -25,6 +25,9 @@ pub struct CheckoutRequest {
     pub tier: String,
     pub interval: String,
     pub promo_code: Option<String>,
+    pub customer_type: Option<String>,
+    pub company_name: Option<String>,
+    pub vat_id: Option<String>,
 }
 
 #[derive(Deserialize)]
@@ -86,6 +89,55 @@ pub async fn checkout(
                 "error": { "code": "INVALID_PLAN", "message": "Invalid tier or billing interval." }
             })),
         };
+
+    // Store billing fields (customer_type, company_name, vat_id) in user_profile
+    let customer_type = body.customer_type.as_deref().unwrap_or("private");
+    if customer_type != "private" && customer_type != "organization" {
+        return HttpResponse::BadRequest().json(json!({
+            "data": null,
+            "error": { "code": "INVALID_CUSTOMER_TYPE", "message": "customer_type must be 'private' or 'organization'." }
+        }));
+    }
+
+    let _ = sqlx::query(
+        "UPDATE user_profile SET customer_type = $1, company_name = $2, vat_id = $3 WHERE user_id = $4",
+    )
+    .bind(customer_type)
+    .bind(body.company_name.as_deref())
+    .bind(body.vat_id.as_deref())
+    .bind(user.user_id)
+    .execute(pool.get_ref())
+    .await;
+
+    // If organization with VAT ID, store in customer_tax_ids
+    if customer_type == "organization" {
+        if let Some(ref vat_id) = body.vat_id {
+            let vat_id = vat_id.trim();
+            if !vat_id.is_empty() {
+                let tax_type = if vat_id.len() >= 2 {
+                    let prefix = vat_id[..2].to_uppercase();
+                    if prefix.chars().all(|c| c.is_ascii_uppercase()) {
+                        format!("{}_vat", prefix.to_lowercase())
+                    } else {
+                        "eu_vat".to_string()
+                    }
+                } else {
+                    "eu_vat".to_string()
+                };
+
+                let _ = sqlx::query(
+                    r#"INSERT INTO customer_tax_ids (user_id, tax_type, tax_value, verification_status)
+                       VALUES ($1, $2, $3, 'pending')
+                       ON CONFLICT (stripe_tax_id) DO NOTHING"#,
+                )
+                .bind(user.user_id)
+                .bind(&tax_type)
+                .bind(vat_id)
+                .execute(pool.get_ref())
+                .await;
+            }
+        }
+    }
 
     // Get or create Stripe customer
     let customer_id = match get_or_create_customer(&pool, &stripe, user.user_id).await {
@@ -1447,6 +1499,175 @@ async fn handle_invoice_payment(
     .execute(pool)
     .await?;
 
+    // Mirror invoice locally for billing data sovereignty
+    if result == "succeeded" {
+        if let Some(uid) = user_id {
+            let subtotal = invoice["subtotal"].as_i64().unwrap_or(0) as i32;
+            let tax = invoice["tax"].as_i64().unwrap_or(0) as i32;
+            let discount_amounts = invoice["total_discount_amounts"].as_array();
+            let discount = discount_amounts
+                .and_then(|arr| arr.first())
+                .and_then(|d| d["amount"].as_i64())
+                .unwrap_or(0) as i32;
+            let total = invoice["total"].as_i64().unwrap_or(0) as i32;
+            let amount_paid = invoice["amount_paid"].as_i64().unwrap_or(0) as i32;
+            let amount_due = invoice["amount_due"].as_i64().unwrap_or(0) as i32;
+            let currency = invoice["currency"].as_str().unwrap_or("eur");
+            let status_str = invoice["status"].as_str().unwrap_or("paid");
+
+            // Extract tax details from total_tax_amounts
+            let tax_amounts = invoice["total_tax_amounts"].as_array();
+            let tax_rate_pct: Option<f64> = tax_amounts
+                .and_then(|arr| arr.first())
+                .and_then(|t| t["tax_rate"].as_str())
+                .and_then(|_| {
+                    tax_amounts
+                        .and_then(|arr| arr.first())
+                        .and_then(|t| t["amount"].as_i64())
+                        .map(|_| {
+                            // Stripe provides percentage in effective_percentage or via tax_rate object
+                            invoice["total_tax_amounts"][0]["tax_rate"]
+                                .as_str()
+                                .map(|_| 0.0)
+                                .unwrap_or(0.0)
+                        })
+                });
+
+            // Billing snapshot from user_profile
+            let profile = sqlx::query(
+                "SELECT customer_type, company_name, vat_id, country_code FROM user_profile WHERE user_id = $1"
+            )
+            .bind(uid)
+            .fetch_optional(pool)
+            .await?;
+
+            let (cust_type, cust_company, cust_vat, cust_country) = if let Some(ref p) = profile {
+                (
+                    p.try_get::<String, _>("customer_type").ok(),
+                    p.try_get::<Option<String>, _>("company_name").ok().flatten(),
+                    p.try_get::<Option<String>, _>("vat_id").ok().flatten(),
+                    p.try_get::<Option<String>, _>("country_code").ok().flatten(),
+                )
+            } else {
+                (None, None, None, None)
+            };
+
+            let customer_email = get_user_email(pool, uid).await.ok();
+            let customer_name: Option<String> =
+                sqlx::query_scalar("SELECT display_name FROM users WHERE id = $1")
+                    .bind(uid)
+                    .fetch_optional(pool)
+                    .await?
+                    .flatten();
+
+            // Period
+            let period_start = invoice["lines"]["data"][0]["period"]["start"]
+                .as_i64()
+                .and_then(|t| chrono::DateTime::from_timestamp(t, 0));
+            let period_end = invoice["lines"]["data"][0]["period"]["end"]
+                .as_i64()
+                .and_then(|t| chrono::DateTime::from_timestamp(t, 0));
+
+            // Billing interval from subscription metadata or tier_slug
+            let billing_interval: Option<String> = invoice["lines"]["data"][0]["metadata"]["interval"]
+                .as_str()
+                .map(|s| s.to_string())
+                .or_else(|| {
+                    // Infer from period length
+                    if let (Some(s), Some(e)) = (period_start, period_end) {
+                        let days = (e - s).num_days();
+                        if days > 60 { Some("annual".to_string()) } else { Some("monthly".to_string()) }
+                    } else {
+                        None
+                    }
+                });
+
+            let _ = sqlx::query(
+                r#"INSERT INTO invoices
+                   (user_id, stripe_invoice_id, stripe_customer_id, invoice_number,
+                    status, currency, subtotal_cents, tax_cents, discount_cents,
+                    total_cents, amount_paid_cents, amount_due_cents,
+                    tax_rate_percent, customer_email, customer_name,
+                    customer_type, customer_company, customer_vat_id, customer_country,
+                    period_start, period_end, hosted_invoice_url, invoice_pdf_url,
+                    tier_slug, billing_interval, paid_at)
+                   VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12,
+                           $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, NOW())
+                   ON CONFLICT (stripe_invoice_id) DO NOTHING"#,
+            )
+            .bind(uid)
+            .bind(&stripe_invoice_id)
+            .bind(customer_id)
+            .bind(&invoice_number)
+            .bind(status_str)
+            .bind(currency)
+            .bind(subtotal)
+            .bind(tax)
+            .bind(discount)
+            .bind(total)
+            .bind(amount_paid)
+            .bind(amount_due)
+            .bind(tax_rate_pct)
+            .bind(&customer_email)
+            .bind(&customer_name)
+            .bind(&cust_type)
+            .bind(&cust_company)
+            .bind(&cust_vat)
+            .bind(&cust_country)
+            .bind(period_start)
+            .bind(period_end)
+            .bind(&invoice_hosted_url)
+            .bind(&invoice_pdf_url)
+            .bind(&tier_slug)
+            .bind(&billing_interval)
+            .execute(pool)
+            .await;
+
+            // Mirror line items
+            if let Some(lines) = invoice["lines"]["data"].as_array() {
+                for line in lines {
+                    let line_id = line["id"].as_str().unwrap_or("").to_string();
+                    let description = line["description"].as_str().map(|s| s.to_string());
+                    let line_amount = line["amount"].as_i64().unwrap_or(0) as i32;
+                    let quantity = line["quantity"].as_i64().unwrap_or(1) as i32;
+                    let unit_amount = line["unit_amount_excluding_tax"]
+                        .as_str()
+                        .and_then(|s| s.parse::<i32>().ok())
+                        .or_else(|| line["price"]["unit_amount"].as_i64().map(|a| a as i32));
+                    let price_id = line["price"]["id"].as_str().map(|s| s.to_string());
+                    let lp_start = line["period"]["start"]
+                        .as_i64()
+                        .and_then(|t| chrono::DateTime::from_timestamp(t, 0));
+                    let lp_end = line["period"]["end"]
+                        .as_i64()
+                        .and_then(|t| chrono::DateTime::from_timestamp(t, 0));
+                    let proration = line["proration"].as_bool().unwrap_or(false);
+
+                    let _ = sqlx::query(
+                        r#"INSERT INTO invoice_line_items
+                           (invoice_id, stripe_line_item_id, description, amount_cents,
+                            quantity, unit_amount_cents, price_id, period_start, period_end, proration)
+                           SELECT id, $2, $3, $4, $5, $6, $7, $8, $9, $10
+                           FROM invoices WHERE stripe_invoice_id = $1
+                           LIMIT 1"#,
+                    )
+                    .bind(&stripe_invoice_id)
+                    .bind(&line_id)
+                    .bind(&description)
+                    .bind(line_amount)
+                    .bind(quantity)
+                    .bind(unit_amount)
+                    .bind(&price_id)
+                    .bind(lp_start)
+                    .bind(lp_end)
+                    .bind(proration)
+                    .execute(pool)
+                    .await;
+                }
+            }
+        }
+    }
+
     Ok(())
 }
 
@@ -1909,9 +2130,17 @@ async fn get_or_create_customer(
     let email: String = row.try_get("email")?;
     let name: Option<String> = row.try_get("display_name").ok().flatten();
 
-    // Create Stripe customer
+    // Get country_code from user_profile
+    let country: Option<String> =
+        sqlx::query_scalar("SELECT country_code FROM user_profile WHERE user_id = $1")
+            .bind(user_id)
+            .fetch_optional(pool)
+            .await?
+            .flatten();
+
+    // Create Stripe customer with country
     let customer_id = stripe
-        .create_customer(&email, name.as_deref(), user_id)
+        .create_customer(&email, name.as_deref(), user_id, country.as_deref())
         .await?;
 
     // Store in users table

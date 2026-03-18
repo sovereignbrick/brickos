@@ -69,11 +69,11 @@ const securityTiles = [
 ];
 
 const tierKeys = [
-  { key: "glimpse", highlighted: false },
-  { key: "focus", highlighted: true },
-  { key: "insight", highlighted: false },
-  { key: "clarity", highlighted: false },
-  { key: "horizon", highlighted: false },
+  { key: "glimpse", highlighted: false, border: "border-t-zinc-500", text: "text-zinc-400" },
+  { key: "focus", highlighted: true, border: "border-t-emerald-500", text: "text-emerald-400" },
+  { key: "insight", highlighted: false, border: "border-t-purple-500", text: "text-purple-400" },
+  { key: "clarity", highlighted: false, border: "border-t-amber-500", text: "text-amber-400" },
+  { key: "horizon", highlighted: false, border: "border-t-rose-500", text: "text-rose-400" },
 ];
 
 interface StatsData {
@@ -229,13 +229,13 @@ export default function Home() {
             {tierKeys.map((tier) => (
               <div
                 key={tier.key}
-                className={`rounded-xl border p-5 text-center ${
+                className={`rounded-xl border border-t-4 p-5 text-center ${tier.border} ${
                   tier.highlighted
-                    ? "border-blue-600 bg-[var(--card)]"
+                    ? "border-x-blue-600 border-b-blue-600 bg-[var(--card)]"
                     : "border-[var(--border)] bg-[var(--card)]"
                 }`}
               >
-                <h3 className="text-lg font-semibold">{t(`home.pricing.tiers.${tier.key}.name`)}</h3>
+                <h3 className={`text-lg font-semibold ${tier.text}`}>{t(`home.pricing.tiers.${tier.key}.name`)}</h3>
                 <p className="mt-2 text-xl font-bold">{t(`home.pricing.tiers.${tier.key}.price`)}</p>
                 <p className="mt-1 text-sm text-[var(--muted)]">{t(`home.pricing.tiers.${tier.key}.tagline`)}</p>
               </div>

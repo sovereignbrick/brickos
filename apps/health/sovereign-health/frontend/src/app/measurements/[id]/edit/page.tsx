@@ -208,7 +208,7 @@ export default function EditMeasurementPage() {
                 <select
                   value={deviceId}
                   onChange={e => { setDeviceId(e.target.value); markDirty() }}
-                  className="bg-zinc-900 border border-zinc-700 rounded-lg px-2.5 py-1.5 text-sm w-full text-white [&>option]:bg-zinc-900 [&>option]:text-white"
+                  className="bg-popover border border-border rounded-lg px-2.5 py-1.5 text-sm w-full text-white [&>option]:bg-popover [&>option]:text-white"
                 >
                   <option value="">{t('manualEntry')}</option>
                   {devices.map(d => (
@@ -266,7 +266,7 @@ export default function EditMeasurementPage() {
                   }}
                   onChange={e => { setSleepHours(e.target.value.replace(',', '.')); markDirty() }}
                   placeholder="-"
-                  className="w-full bg-white/5 border rounded-lg px-2.5 py-1.5 text-sm"
+                  className="w-full bg-accent border rounded-lg px-2.5 py-1.5 text-sm"
                 />
               </div>
               <div>
@@ -274,7 +274,7 @@ export default function EditMeasurementPage() {
                 <select
                   value={sleepQuality}
                   onChange={e => { setSleepQuality(e.target.value); markDirty() }}
-                  className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-2.5 py-1.5 text-sm text-white [&>option]:bg-zinc-900 [&>option]:text-white"
+                  className="w-full bg-popover border border-border rounded-lg px-2.5 py-1.5 text-sm text-white [&>option]:bg-popover [&>option]:text-white"
                 >
                   <option value="">-</option>
                   <option value="poor">{tSleepQuality('poor')}</option>
@@ -288,7 +288,7 @@ export default function EditMeasurementPage() {
                 <select
                   value={stressLevel}
                   onChange={e => { setStressLevel(e.target.value); markDirty() }}
-                  className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-2.5 py-1.5 text-sm text-white [&>option]:bg-zinc-900 [&>option]:text-white"
+                  className="w-full bg-popover border border-border rounded-lg px-2.5 py-1.5 text-sm text-white [&>option]:bg-popover [&>option]:text-white"
                 >
                   {STRESS_OPTIONS.map(o => (
                     <option key={o.value} value={o.value}>{tStressLevel(o.key)}</option>
@@ -302,7 +302,7 @@ export default function EditMeasurementPage() {
                     value={fastStart}
                     onChange={v => { setFastStart(v); markDirty() }}
                     countryCode={user?.country_code}
-                    className="w-full bg-white/5 border rounded-lg px-2.5 py-1.5 text-sm"
+                    className="w-full bg-accent border rounded-lg px-2.5 py-1.5 text-sm"
                   />
                 </div>
               )}
@@ -316,7 +316,7 @@ export default function EditMeasurementPage() {
               value={note}
               onChange={e => { setNote(e.target.value.slice(0, 300)); markDirty() }}
               rows={2}
-              className="w-full bg-white/5 border rounded-lg px-3 py-2 text-sm resize-none"
+              className="w-full bg-accent border rounded-lg px-3 py-2 text-sm resize-none"
               placeholder={t('lifestyle.notePlaceholder')}
             />
             <p className="text-xs text-muted-foreground text-right">{t('lifestyle.charCount', { chars: note.length })}</p>
@@ -325,7 +325,7 @@ export default function EditMeasurementPage() {
 
         {/* ── Row 3: Marker value ──────────────────────────────────── */}
         <div className="rounded-xl border mb-4">
-          <div className="px-4 py-3 border-b border-zinc-800">
+          <div className="px-4 py-3 border-b border-border">
             <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
               {t('recordedValues')}
             </span>
@@ -343,7 +343,7 @@ export default function EditMeasurementPage() {
                   if (fixed !== el.value) el.value = fixed
                 }}
                 onChange={e => { setValue(e.target.value.replace(',', '.')); markDirty() }}
-                className="w-24 bg-white/5 border rounded-lg px-2.5 py-1.5 text-sm text-center font-bold focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-24 bg-accent border rounded-lg px-2.5 py-1.5 text-sm text-center font-bold focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
               <span className="text-xs text-muted-foreground w-16 shrink-0 text-right">{measurement.unit}</span>
               <div className="w-6 shrink-0 flex justify-center">
@@ -389,7 +389,7 @@ export default function EditMeasurementPage() {
             className={`w-full rounded-xl py-2.5 text-sm font-medium transition-colors ${
               confirmDelete
                 ? 'bg-red-600 hover:bg-red-500 text-white'
-                : 'bg-white/5 text-red-400 hover:bg-red-500/10 border border-red-500/30'
+                : 'bg-accent text-red-400 hover:bg-red-500/10 border border-red-500/30'
             } disabled:opacity-50`}
           >
             {deleting ? t('deleting') : confirmDelete

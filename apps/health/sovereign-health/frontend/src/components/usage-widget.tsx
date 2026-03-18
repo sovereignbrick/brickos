@@ -53,7 +53,7 @@ function ProgressRow({
           {used} {t('of')} {limit}
         </span>
       </div>
-      <div className="h-2 w-full rounded-full bg-zinc-800 overflow-hidden">
+      <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
         <div
           className={`h-full rounded-full transition-all ${color}`}
           style={{ width: `${ratio * 100}%` }}
@@ -142,7 +142,7 @@ export function UsageWidget() {
   const upgrade = nextUpgradeTier(data.tier)
 
   return (
-    <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-5 space-y-4">
+    <div className="rounded-2xl border border-border bg-card/60 p-5 space-y-4">
       <h3 className="text-sm font-semibold">{t('title')}</h3>
 
       <ProgressRow

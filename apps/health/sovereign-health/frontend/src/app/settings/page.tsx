@@ -292,7 +292,7 @@ function MarkerInfoButton({ marker }: { marker: MarkerWithZone }) {
       />
       {show && pos && createPortal(
         <div
-          className="fixed bg-zinc-900 border border-zinc-700 rounded-lg shadow-xl p-3 text-xs"
+          className="fixed bg-card border border-border rounded-lg shadow-xl p-3 text-xs"
           style={{ top: pos.top, left: pos.left, zIndex: 9999, maxWidth: 320, whiteSpace: 'normal', wordWrap: 'break-word' }}
         >
           <p className="font-medium text-foreground">{displayName}</p>
@@ -397,7 +397,7 @@ function SettingsContent() {
           </span>
         </div>
 
-        <div className="flex flex-wrap gap-1 mb-0 border-b border-zinc-800 pb-0">
+        <div className="flex flex-wrap gap-1 mb-0 border-b border-border pb-0">
           {TABS.map(tb => {
             const tabLabelMap: Record<Tab, string> = {
               'Profile': t('tabs.profile'),
@@ -539,7 +539,7 @@ function DevicesTab({ markers }: { markers: MarkerWithZone[] }) {
       </div>
 
       {personalDevices.length === 0 && labDevices.length === 0 && (
-        <div className="border border-dashed border-zinc-700 rounded-xl p-8 text-center">
+        <div className="border border-dashed border-border rounded-xl p-8 text-center">
           <p className="text-muted-foreground text-sm mb-2">{tDev('noDevicesTitle')}</p>
           <p className="text-muted-foreground text-xs">{tDev('noDevicesDesc')}</p>
         </div>
@@ -585,7 +585,7 @@ function DevicesTab({ markers }: { markers: MarkerWithZone[] }) {
         {tDev('addDevice')}
       </button>
 
-      <div className="border border-zinc-800 rounded-lg p-3 mt-4">
+      <div className="border border-border rounded-lg p-3 mt-4">
         <p className="text-xs text-muted-foreground">
           {tDev('tipText')}
         </p>
@@ -594,13 +594,13 @@ function DevicesTab({ markers }: { markers: MarkerWithZone[] }) {
       {/* Delete confirmation */}
       {deleteConfirm && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-          <div className="bg-zinc-900 border border-zinc-700 rounded-xl p-6 max-w-sm w-full">
+          <div className="bg-card border border-border rounded-xl p-6 max-w-sm w-full">
             <h3 className="font-semibold mb-2">{tDev('archiveTitle')}</h3>
             <p className="text-sm text-muted-foreground mb-4">
               {tDev('archiveWarning', { name: devices.find(d => d.id === deleteConfirm)?.device_name ?? '' })}
             </p>
             <div className="flex gap-2 justify-end">
-              <button onClick={() => setDeleteConfirm(null)} className="text-sm px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 transition-colors">
+              <button onClick={() => setDeleteConfirm(null)} className="text-sm px-3 py-1.5 rounded-lg bg-muted hover:bg-accent transition-colors">
                 {tCommon('cancel')}
               </button>
               <button onClick={() => handleArchive(deleteConfirm)} className="text-sm px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-500 text-white transition-colors">
@@ -644,7 +644,7 @@ function DeviceCard({ device, markers, onEdit, onDelete, onSetDefault }: {
     .join(', ')
 
   return (
-    <div className="border border-zinc-800 rounded-xl p-4">
+    <div className="border border-border rounded-xl p-4">
       <div className="flex items-start justify-between gap-2 mb-2">
         <div className="flex items-center gap-2 flex-wrap">
           <span className="font-medium">{device.device_name}</span>
@@ -823,8 +823,8 @@ function DeviceModal({ device, markers, onClose, onSaved }: {
 
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-      <div className="bg-zinc-900 border border-zinc-700 rounded-xl w-full max-w-lg max-h-[90vh] flex flex-col">
-        <div className="p-4 border-b border-zinc-800 flex items-center justify-between">
+      <div className="bg-card border border-border rounded-xl w-full max-w-lg max-h-[90vh] flex flex-col">
+        <div className="p-4 border-b border-border flex items-center justify-between">
           <h3 className="font-semibold">{isEdit ? tDev('editDevice') : tDev('addDeviceTitle')}</h3>
           <button onClick={onClose} className="text-muted-foreground hover:text-foreground">x</button>
         </div>
@@ -838,7 +838,7 @@ function DeviceModal({ device, markers, onClose, onSaved }: {
               value={name}
               onChange={e => setName(e.target.value)}
               placeholder={tDev('placeholders.deviceName')}
-              className="w-full bg-white/5 border border-zinc-700 rounded-lg px-3 py-2 text-sm"
+              className="w-full bg-accent border border-border rounded-lg px-3 py-2 text-sm"
             />
           </div>
 
@@ -848,7 +848,7 @@ function DeviceModal({ device, markers, onClose, onSaved }: {
             <select
               value={deviceType}
               onChange={e => setDeviceType(e.target.value)}
-              className="w-full bg-zinc-900 text-zinc-100 border border-zinc-700 rounded-lg px-3 py-2 text-sm [&>option]:bg-zinc-900 [&>option]:text-zinc-100"
+              className="w-full bg-card text-foreground border border-border rounded-lg px-3 py-2 text-sm [&>option]:bg-card [&>option]:text-foreground"
             >
               {DEVICE_TYPE_VALUES.map(v => <option key={v} value={v}>{v === 'other' ? tCommon('other') : tDev(`deviceTypes.${v}` as 'deviceTypes.home')}</option>)}
             </select>
@@ -864,7 +864,7 @@ function DeviceModal({ device, markers, onClose, onSaved }: {
                   value={labAddress}
                   onChange={e => setLabAddress(e.target.value)}
                   placeholder={tDev('placeholders.labAddress')}
-                  className="w-full bg-white/5 border border-zinc-700 rounded-lg px-3 py-2 text-sm"
+                  className="w-full bg-accent border border-border rounded-lg px-3 py-2 text-sm"
                 />
               </div>
               <div className="grid grid-cols-2 gap-3">
@@ -875,7 +875,7 @@ function DeviceModal({ device, markers, onClose, onSaved }: {
                     value={labPostalCode}
                     onChange={e => setLabPostalCode(e.target.value)}
                     placeholder="12345"
-                    className="w-full bg-white/5 border border-zinc-700 rounded-lg px-3 py-2 text-sm"
+                    className="w-full bg-accent border border-border rounded-lg px-3 py-2 text-sm"
                   />
                 </div>
                 <div>
@@ -885,7 +885,7 @@ function DeviceModal({ device, markers, onClose, onSaved }: {
                     value={labCity}
                     onChange={e => setLabCity(e.target.value)}
                     placeholder={tDev('placeholders.labCity')}
-                    className="w-full bg-white/5 border border-zinc-700 rounded-lg px-3 py-2 text-sm"
+                    className="w-full bg-accent border border-border rounded-lg px-3 py-2 text-sm"
                   />
                 </div>
               </div>
@@ -896,7 +896,7 @@ function DeviceModal({ device, markers, onClose, onSaved }: {
                   value={labCountry}
                   onChange={e => setLabCountry(e.target.value)}
                   placeholder={tDev('placeholders.labCountry')}
-                  className="w-full bg-white/5 border border-zinc-700 rounded-lg px-3 py-2 text-sm"
+                  className="w-full bg-accent border border-border rounded-lg px-3 py-2 text-sm"
                 />
               </div>
             </>
@@ -911,7 +911,7 @@ function DeviceModal({ device, markers, onClose, onSaved }: {
                   onChange={e => setManufacturer(e.target.value)}
                   placeholder={tDev('placeholders.manufacturer')}
                   list="mfr-suggestions"
-                  className="w-full bg-white/5 border border-zinc-700 rounded-lg px-3 py-2 text-sm"
+                  className="w-full bg-accent border border-border rounded-lg px-3 py-2 text-sm"
                 />
                 <datalist id="mfr-suggestions">
                   {MANUFACTURER_SUGGESTIONS.map(s => <option key={s} value={s} />)}
@@ -926,7 +926,7 @@ function DeviceModal({ device, markers, onClose, onSaved }: {
                   value={model}
                   onChange={e => setModel(e.target.value)}
                   placeholder={tDev('placeholders.model')}
-                  className="w-full bg-white/5 border border-zinc-700 rounded-lg px-3 py-2 text-sm"
+                  className="w-full bg-accent border border-border rounded-lg px-3 py-2 text-sm"
                 />
               </div>
             </>
@@ -942,13 +942,13 @@ function DeviceModal({ device, markers, onClose, onSaved }: {
               value={markerSearch}
               onChange={e => setMarkerSearch(e.target.value)}
               placeholder={tCommon('searchMarkers')}
-              className="w-full bg-white/5 border rounded-lg px-3 py-2 text-sm mb-2"
+              className="w-full bg-accent border rounded-lg px-3 py-2 text-sm mb-2"
             />
-            <div className="max-h-48 overflow-y-auto border border-zinc-800 rounded-lg">
+            <div className="max-h-48 overflow-y-auto border border-border rounded-lg">
               {filteredZoneGroups.map(([slug, group]) => (
                 <div key={slug}>
                   <div
-                    className="px-3 py-1.5 text-xs font-medium sticky top-0 bg-zinc-900 border-b border-zinc-800 flex items-center gap-1"
+                    className="px-3 py-1.5 text-xs font-medium sticky top-0 bg-card border-b border-border flex items-center gap-1"
                     style={{ color: group.color }}
                   >
                     <span>{group.icon}</span> {group.name}
@@ -956,7 +956,7 @@ function DeviceModal({ device, markers, onClose, onSaved }: {
                   {group.markers.map((m, idx) => (
                     <label
                       key={`${m.marker_slug}-${idx}`}
-                      className="flex items-center gap-2 px-3 py-1.5 hover:bg-white/5 cursor-pointer text-sm"
+                      className="flex items-center gap-2 px-3 py-1.5 hover:bg-accent cursor-pointer text-sm"
                     >
                       <input
                         type="checkbox"
@@ -999,20 +999,20 @@ function DeviceModal({ device, markers, onClose, onSaved }: {
               onChange={e => setNotes(e.target.value)}
               placeholder={tDev('placeholders.notes')}
               rows={2}
-              className="w-full bg-white/5 border border-zinc-700 rounded-lg px-3 py-2 text-sm resize-none"
+              className="w-full bg-accent border border-border rounded-lg px-3 py-2 text-sm resize-none"
             />
           </div>
 
           {/* Validation (edit only, not for labs) */}
           {isEdit && deviceType !== 'lab' && (
-            <div className="border-t border-zinc-800 pt-4 space-y-3">
+            <div className="border-t border-border pt-4 space-y-3">
               <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">{tDev('validation')}</p>
               <div>
                 <label className="text-xs text-muted-foreground block mb-1">{tDev('statusLabel')}</label>
                 <select
                   value={validationStatus}
                   onChange={e => setValidationStatus(e.target.value)}
-                  className="w-full bg-zinc-900 text-zinc-100 border border-zinc-700 rounded-lg px-3 py-2 text-sm [&>option]:bg-zinc-900 [&>option]:text-zinc-100"
+                  className="w-full bg-card text-foreground border border-border rounded-lg px-3 py-2 text-sm [&>option]:bg-card [&>option]:text-foreground"
                 >
                   <option value="">{tDev('notValidated')}</option>
                   <option value="validated">{tDev('validated')}</option>
@@ -1027,15 +1027,15 @@ function DeviceModal({ device, markers, onClose, onSaved }: {
                   value={validationNotes}
                   onChange={e => setValidationNotes(e.target.value)}
                   placeholder={tDev('placeholders.validationNotes')}
-                  className="w-full bg-white/5 border border-zinc-700 rounded-lg px-3 py-2 text-sm"
+                  className="w-full bg-accent border border-border rounded-lg px-3 py-2 text-sm"
                 />
               </div>
             </div>
           )}
         </div>
 
-        <div className="p-4 border-t border-zinc-800 flex gap-2 justify-end">
-          <button onClick={onClose} className="text-sm px-4 py-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 transition-colors">
+        <div className="p-4 border-t border-border flex gap-2 justify-end">
+          <button onClick={onClose} className="text-sm px-4 py-2 rounded-lg bg-muted hover:bg-accent transition-colors">
             {tCommon('cancel')}
           </button>
           <button
@@ -1174,8 +1174,8 @@ function ProfileTab({
     }
   }
 
-  const inp = "w-full rounded-lg border border-zinc-700 bg-zinc-900 px-2.5 py-1.5 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-blue-500"
-  const ro = "w-full rounded-lg border border-zinc-700 bg-zinc-800 px-2.5 py-1.5 text-sm text-muted-foreground cursor-not-allowed"
+  const inp = "w-full rounded-lg border border-border bg-card px-2.5 py-1.5 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-blue-500"
+  const ro = "w-full rounded-lg border border-border bg-muted px-2.5 py-1.5 text-sm text-muted-foreground cursor-not-allowed"
 
   return (
     <div className="space-y-4">
@@ -1229,14 +1229,14 @@ function ProfileTab({
           </select>
         </Field>
         <div className="flex items-end">
-          <button onClick={resetToCountryDefaults} className="text-xs text-muted-foreground hover:text-foreground border border-zinc-700 px-2.5 py-1.5 rounded-lg transition-colors">
+          <button onClick={resetToCountryDefaults} className="text-xs text-muted-foreground hover:text-foreground border border-border px-2.5 py-1.5 rounded-lg transition-colors">
             {t('resetDefaults')}
           </button>
         </div>
       </div>
 
       {/* Body Measurements */}
-      <div className="border border-zinc-800 rounded-lg p-4 space-y-3">
+      <div className="border border-border rounded-lg p-4 space-y-3">
         <h3 className="text-sm font-medium">{t('bodyMeasurements')}</h3>
         <p className="text-xs text-muted-foreground">{t('bodyMeasurementsDesc')}</p>
         <div className="grid grid-cols-4 gap-3">
@@ -1257,7 +1257,7 @@ function ProfileTab({
                 const v = e.target.value ? Number(e.target.value) : null
                 setForm({ ...form, height_cm: heightUnit === 'ft-in' && v ? Math.round(v * 2.54 * 10) / 10 : v })
               }} className={"w-16 " + inp} step={0.1} />
-              <select value={heightUnit} onChange={e => setHeightUnit(e.target.value as 'cm' | 'ft-in')} className="w-14 rounded-lg border border-zinc-700 bg-zinc-900 px-1 py-1.5 text-xs text-foreground">
+              <select value={heightUnit} onChange={e => setHeightUnit(e.target.value as 'cm' | 'ft-in')} className="w-14 rounded-lg border border-border bg-card px-1 py-1.5 text-xs text-foreground">
                 <option value="cm">cm</option><option value="ft-in">in</option>
               </select>
             </div>
@@ -1272,7 +1272,7 @@ function ProfileTab({
                 const v = e.target.value ? Number(e.target.value) : null
                 setForm({ ...form, default_waist_cm: waistUnit === 'inches' && v ? Math.round(v * 2.54 * 10) / 10 : v })
               }} className={"w-20 " + inp} step={0.1} />
-              <select value={waistUnit} onChange={e => setWaistUnit(e.target.value as 'cm' | 'inches')} className="w-14 rounded-lg border border-zinc-700 bg-zinc-900 px-1 py-1.5 text-xs text-foreground">
+              <select value={waistUnit} onChange={e => setWaistUnit(e.target.value as 'cm' | 'inches')} className="w-14 rounded-lg border border-border bg-card px-1 py-1.5 text-xs text-foreground">
                 <option value="cm">cm</option><option value="inches">in</option>
               </select>
             </div>
@@ -1287,7 +1287,7 @@ function ProfileTab({
                 const v = e.target.value ? Number(e.target.value) : null
                 setForm({ ...form, default_weight_kg: weightUnit === 'lbs' && v ? Math.round(v / 2.205 * 10) / 10 : v })
               }} className={"w-16 " + inp} step={0.1} />
-              <select value={weightUnit} onChange={e => setWeightUnit(e.target.value as 'kg' | 'lbs')} className="w-14 rounded-lg border border-zinc-700 bg-zinc-900 px-1 py-1.5 text-xs text-foreground">
+              <select value={weightUnit} onChange={e => setWeightUnit(e.target.value as 'kg' | 'lbs')} className="w-14 rounded-lg border border-border bg-card px-1 py-1.5 text-xs text-foreground">
                 <option value="kg">kg</option><option value="lbs">lbs</option>
               </select>
             </div>
@@ -1296,7 +1296,7 @@ function ProfileTab({
       </div>
 
       {/* Lifestyle Defaults */}
-      <div className="border border-zinc-800 rounded-lg p-4 space-y-3">
+      <div className="border border-border rounded-lg p-4 space-y-3">
         <div>
           <h3 className="text-sm font-medium">{t('lifestyleDefaults')}</h3>
           <p className="text-xs text-muted-foreground mt-1">{t('lifestyleDefaultsDesc')}</p>
@@ -1746,12 +1746,12 @@ function ThresholdsTab({
       )}
 
       {/* Filter */}
-      <input type="text" placeholder={t('filterPlaceholder')} value={filter} onChange={e => setFilter(e.target.value)} className="w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-blue-500" />
+      <input type="text" placeholder={t('filterPlaceholder')} value={filter} onChange={e => setFilter(e.target.value)} className="w-full rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-blue-500" />
 
       {/* Column headers */}
-      <div className="border border-zinc-800 rounded-lg overflow-hidden sticky-col-table scroll-hide">
+      <div className="border border-border rounded-lg overflow-hidden sticky-col-table scroll-hide">
         <div className="min-w-[640px]">
-          <div className="grid grid-cols-[minmax(120px,1fr)_72px_68px_68px_68px_68px_46px] gap-1 px-3 py-2 bg-zinc-800 text-[10px] text-muted-foreground font-medium leading-tight">
+          <div className="grid grid-cols-[minmax(120px,1fr)_72px_68px_68px_68px_68px_46px] gap-1 px-3 py-2 bg-muted text-[10px] text-muted-foreground font-medium leading-tight">
             <span>{t('colMarker')}</span>
             <span className="text-center">{t('colUnit')}</span>
             <span className="text-center text-green-400">{t('colOptimalMin')}</span>
@@ -1773,7 +1773,7 @@ function ThresholdsTab({
 
             return (
               <div key={zone.slug}>
-                <button onClick={() => toggleZone(zone.slug)} className="w-full flex items-center justify-between px-3 py-2 bg-white/[0.05] text-sm font-medium hover:bg-white/[0.08] transition-colors" title={collapsed ? t('expand') : t('collapse')}>
+                <button onClick={() => toggleZone(zone.slug)} className="w-full flex items-center justify-between px-3 py-2 bg-accent text-sm font-medium hover:bg-white/[0.08] transition-colors" title={collapsed ? t('expand') : t('collapse')}>
                   <span>{zone.icon} {translateZoneName(zone.name)} ({filtered.length})</span>
                   <span className="text-muted-foreground w-5 h-5 flex items-center justify-center">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`transition-transform ${collapsed ? '' : 'rotate-180'}`}><path d="m6 9 6 6 6-6"/></svg>
@@ -1792,7 +1792,7 @@ function ThresholdsTab({
                   return (
                     <div
                       key={`${m.marker_slug}-${idx}`}
-                      className={`grid grid-cols-[minmax(120px,1fr)_72px_68px_68px_68px_68px_46px] gap-1 px-3 py-1 border-t border-zinc-800/50 items-center ${idx % 2 === 1 ? 'bg-white/[0.02]' : ''}`}
+                      className={`grid grid-cols-[minmax(120px,1fr)_72px_68px_68px_68px_68px_46px] gap-1 px-3 py-1 border-t border-border/50 items-center ${idx % 2 === 1 ? 'bg-white/[0.02]' : ''}`}
                     >
                       <span className="text-sm min-w-0">
                         <MarkerNameLink marker={m} />
@@ -1803,7 +1803,7 @@ function ThresholdsTab({
                           <select
                             value={currentUnit}
                             onChange={e => handleUnitChange(m, e.target.value)}
-                            className="bg-zinc-900 border border-zinc-700 rounded px-1 h-8 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-blue-500 w-full"
+                            className="bg-card border border-border rounded px-1 h-8 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-blue-500 w-full"
                           >
                             {unitInfo.options.map(u => <option key={u} value={u}>{u}</option>)}
                           </select>
@@ -1819,7 +1819,7 @@ function ThresholdsTab({
                                 return next
                               })
                             }}
-                            className="bg-zinc-900 border border-zinc-700 rounded px-1 h-8 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-blue-500 w-full"
+                            className="bg-card border border-border rounded px-1 h-8 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-blue-500 w-full"
                           >
                             <option value={m.unit_canonical}>{m.unit_canonical}</option>
                             {altUnits.map(a => <option key={a.unit} value={a.unit}>{a.unit}</option>)}
@@ -1885,7 +1885,7 @@ function ThresholdInput({ value, onBlur, onChange, ring }: {
         setLocal(normalized)
         onBlur(normalized)
       }}
-      className={`w-full h-8 bg-zinc-900 border border-zinc-700 rounded px-1.5 text-sm text-center focus:outline-none focus:ring-1 ${ringColor}`}
+      className={`w-full h-8 bg-card border border-border rounded px-1.5 text-sm text-center focus:outline-none focus:ring-1 ${ringColor}`}
     />
   )
 }
@@ -2019,7 +2019,7 @@ function DataPrivacyTab({ shareAnonymousData, onToggle }: { shareAnonymousData: 
 
   return (
     <div className="space-y-8">
-      <div className="border border-zinc-800 rounded-lg p-6 space-y-3">
+      <div className="border border-border rounded-lg p-6 space-y-3">
         <div className="flex items-center justify-between">
           <div>
             <h3 className="font-medium">{t('anonymousDataTitle')}</h3>
@@ -2040,7 +2040,7 @@ function DataPrivacyTab({ shareAnonymousData, onToggle }: { shareAnonymousData: 
       </div>
 
       {/* Health Reports */}
-      <div className="border border-zinc-800 rounded-lg p-6 space-y-4">
+      <div className="border border-border rounded-lg p-6 space-y-4">
         <h3 className="font-medium">{t('healthReports')}</h3>
         <p className="text-sm text-muted-foreground">{t('healthReportsDesc')}</p>
 
@@ -2049,7 +2049,7 @@ function DataPrivacyTab({ shareAnonymousData, onToggle }: { shareAnonymousData: 
           <select
             value={reportPeriod}
             onChange={e => setReportPeriod(e.target.value)}
-            className="bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-1.5 text-sm"
+            className="bg-card border border-border rounded-lg px-3 py-1.5 text-sm"
           >
             <option value="7d">{t('last7d')}</option>
             <option value="30d">{t('last30d')}</option>
@@ -2072,14 +2072,14 @@ function DataPrivacyTab({ shareAnonymousData, onToggle }: { shareAnonymousData: 
           <button
             onClick={handleExportCsv}
             disabled={exportingCsv}
-            className="border border-zinc-700 hover:bg-white/5 text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+            className="border border-border hover:bg-accent text-sm font-medium px-4 py-2 rounded-lg transition-colors"
           >
             {exportingCsv ? t('exporting') : tCommon('exportCsv')}
           </button>
           <button
             onClick={handleExportJson}
             disabled={exportingJson}
-            className="border border-zinc-700 hover:bg-white/5 text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+            className="border border-border hover:bg-accent text-sm font-medium px-4 py-2 rounded-lg transition-colors"
           >
             {exportingJson ? t('exporting') : t('exportJson')}
           </button>
@@ -2118,7 +2118,7 @@ function DataPrivacyTab({ shareAnonymousData, onToggle }: { shareAnonymousData: 
         )}
       </div>
 
-      <div className="border border-zinc-800 rounded-lg p-6 space-y-3">
+      <div className="border border-border rounded-lg p-6 space-y-3">
         <h3 className="font-medium">{t('exportAllTitle')}</h3>
         <p className="text-sm text-muted-foreground">{t('exportAllDesc')}</p>
         <button onClick={handleExport} disabled={exporting} className="bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
@@ -2136,7 +2136,7 @@ function DataPrivacyTab({ shareAnonymousData, onToggle }: { shareAnonymousData: 
             <p className="text-sm text-red-300 font-medium">{t('confirmDeletePrompt')}</p>
             <div className="flex gap-3">
               <button onClick={handleDelete} disabled={deleting} className="px-4 py-2 rounded-lg text-sm bg-red-600 text-white hover:bg-red-500 transition-colors">{deleting ? t('deleting') : t('confirmDeleteButton')}</button>
-              <button onClick={() => setConfirmDelete(false)} className="border border-zinc-700 text-muted-foreground hover:text-foreground hover:bg-white/5 text-sm font-medium px-4 py-2 rounded-lg transition-colors">Cancel</button>
+              <button onClick={() => setConfirmDelete(false)} className="border border-border text-muted-foreground hover:text-foreground hover:bg-accent text-sm font-medium px-4 py-2 rounded-lg transition-colors">Cancel</button>
             </div>
           </div>
         )}
@@ -2391,7 +2391,7 @@ function LicenseTab() {
   if (IS_OSS) {
     return (
       <div className="space-y-6">
-        <div className="border border-zinc-800 rounded-lg p-6 space-y-4">
+        <div className="border border-border rounded-lg p-6 space-y-4">
           <div>
             <p className="text-sm text-muted-foreground">{tCommon('currentPlan')}</p>
             <p className="text-lg font-semibold flex items-center gap-2">
@@ -2408,7 +2408,7 @@ function LicenseTab() {
   if (isDemo) {
     return (
       <div className="space-y-6">
-        <div className="border border-zinc-800 rounded-lg p-6 space-y-4">
+        <div className="border border-border rounded-lg p-6 space-y-4">
           <div>
             <p className="text-sm text-muted-foreground">{t('demoProfilePlan')}</p>
             <p className="text-lg font-semibold">{tierInfo?.name || 'Clarity'}</p>
@@ -2448,14 +2448,14 @@ function LicenseTab() {
         </div>
       )}
       {paymentCanceled && (
-        <div className="bg-zinc-800/50 border border-zinc-700 rounded-lg p-4 flex items-center gap-3">
-          <span className="text-zinc-400 text-lg">&#8505;</span>
+        <div className="bg-muted/50 border border-border rounded-lg p-4 flex items-center gap-3">
+          <span className="text-muted-foreground text-lg">&#8505;</span>
           <p className="text-sm text-zinc-300">{t('paymentCanceled')}</p>
         </div>
       )}
 
       {/* Current plan info - renders immediately from user data */}
-      <div className="border border-zinc-800 rounded-lg p-6 space-y-5">
+      <div className="border border-border rounded-lg p-6 space-y-5">
         <h3 className="font-medium">{tCommon('currentPlan')}</h3>
         <div className="grid grid-cols-2 gap-4">
           <div>
@@ -2471,7 +2471,7 @@ function LicenseTab() {
                 <p className="text-sm text-muted-foreground">{tCommon('status')}</p>
                 <p className={`text-lg font-semibold ${
                   subscription.status === 'active' && !subscription.cancel_at_period_end ? 'text-green-400'
-                  : subscription.status === 'past_due' ? 'text-yellow-400' : 'text-zinc-400'
+                  : subscription.status === 'past_due' ? 'text-yellow-400' : 'text-muted-foreground'
                 }`}>
                   {subscription.cancel_at_period_end
                     ? t('cancellingOn', { date: formatDate(subscription.current_period_end) })
@@ -2493,10 +2493,10 @@ function LicenseTab() {
 
       {/* Payment Method - with Manage button */}
       {hasPaidPlan && (
-        <div className="border border-zinc-800 rounded-lg p-6 space-y-3">
+        <div className="border border-border rounded-lg p-6 space-y-3">
           <h3 className="font-medium">{t('paymentMethodTitle')}</h3>
           {billingLoading ? (
-            <div className="h-5 w-48 bg-zinc-800 rounded animate-pulse" />
+            <div className="h-5 w-48 bg-muted rounded animate-pulse" />
           ) : cardInfo ? (
             <div className="flex items-center gap-3">
               <span className="text-sm font-medium capitalize">
@@ -2517,7 +2517,7 @@ function LicenseTab() {
               <button
                 onClick={handlePortal}
                 disabled={portalLoading}
-                className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 disabled:opacity-50 text-sm rounded-lg transition-colors"
+                className="px-4 py-2 bg-muted hover:bg-accent disabled:opacity-50 text-sm rounded-lg transition-colors"
               >
                 {portalLoading ? '...' : tCommon('managePayment')}
               </button>
@@ -2528,13 +2528,13 @@ function LicenseTab() {
       )}
 
       {/* Plan actions */}
-      <div className="border border-zinc-800 rounded-lg p-6 space-y-4">
+      <div className="border border-border rounded-lg p-6 space-y-4">
         <h3 className="font-medium">{t('planActions')}</h3>
         <div className="space-y-4">
           {/* No subscription - show upgrade options */}
           {!subscription && slug === 'glimpse' && (
             <div>
-              <Link href="/checkout" className="inline-block px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm rounded-lg transition-colors">
+              <Link href="/checkout?tier=focus&interval=monthly" className="inline-block px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm rounded-lg transition-colors">
                 {t('upgrade')}
               </Link>
               <p className="text-xs text-muted-foreground mt-1">{t('upgradeDesc')}</p>
@@ -2545,7 +2545,7 @@ function LicenseTab() {
           {subscription && !subscription.cancel_at_period_end && (
             <>
               <div>
-                <button onClick={() => setShowChangePlan(true)} className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-sm rounded-lg transition-colors">
+                <button onClick={() => setShowChangePlan(true)} className="px-4 py-2 bg-muted hover:bg-accent text-sm rounded-lg transition-colors">
                   {tCommon('changePlan')}
                 </button>
                 <p className="text-xs text-muted-foreground mt-1">{t('changePlanDesc')}</p>
@@ -2554,7 +2554,7 @@ function LicenseTab() {
                 <button
                   onClick={handleChangeInterval}
                   disabled={changingInterval}
-                  className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 disabled:opacity-50 text-sm rounded-lg transition-colors"
+                  className="px-4 py-2 bg-muted hover:bg-accent disabled:opacity-50 text-sm rounded-lg transition-colors"
                 >
                   {changingInterval ? '...' : isAnnual ? t('switchToMonthly') : t('switchToYearly')}
                 </button>
@@ -2582,7 +2582,7 @@ function LicenseTab() {
 
         {/* Cancel section */}
         {subscription && (
-          <div className="border-t border-zinc-800 pt-4">
+          <div className="border-t border-border pt-4">
             {subscription.cancel_at_period_end ? (
               <p className="text-sm text-muted-foreground">
                 {t('endingOn', { date: formatDate(subscription.current_period_end) })}
@@ -2608,7 +2608,7 @@ function LicenseTab() {
 
       {/* Payment History - Stripe invoices + DB invoices */}
       {hasPaidPlan && (
-        <div className="border border-zinc-800 rounded-lg p-6">
+        <div className="border border-border rounded-lg p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-medium">{t('invoicesTitle')}</h3>
             {stripeEnabled && subscription && (
@@ -2624,7 +2624,7 @@ function LicenseTab() {
           {billingLoading ? (
             <div className="space-y-3">
               {[1, 2].map(i => (
-                <div key={i} className="h-5 bg-zinc-800 rounded animate-pulse" />
+                <div key={i} className="h-5 bg-muted rounded animate-pulse" />
               ))}
             </div>
           ) : allInvoices.length > 0 ? (
@@ -2688,7 +2688,7 @@ function LicenseTab() {
       {/* Change Plan Modal */}
       {showChangePlan && subscription && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-          <div className="bg-zinc-900 border border-zinc-700 rounded-xl p-6 max-w-md w-full space-y-4">
+          <div className="bg-card border border-border rounded-xl p-6 max-w-md w-full space-y-4">
             <h2 className="text-lg font-semibold">{tCommon('changePlanTitle')}</h2>
             <p className="text-sm text-muted-foreground">
               {tCommon('currentPlanLabel', {
@@ -2713,7 +2713,7 @@ function LicenseTab() {
                     key={tier}
                     onClick={() => handleChangePlan(tier)}
                     disabled={changingPlan}
-                    className="w-full flex items-center justify-between px-4 py-3 rounded-lg border border-zinc-700 hover:border-zinc-500 disabled:opacity-50 transition-colors"
+                    className="w-full flex items-center justify-between px-4 py-3 rounded-lg border border-border hover:border-zinc-500 disabled:opacity-50 transition-colors"
                   >
                     <span className="font-medium">{tierNames[tier]}</span>
                     <span className="text-sm text-muted-foreground">{price}</span>
@@ -2722,7 +2722,7 @@ function LicenseTab() {
               })}
               <button
                 disabled
-                className="w-full flex items-center justify-between px-4 py-3 rounded-lg border border-zinc-700 opacity-60"
+                className="w-full flex items-center justify-between px-4 py-3 rounded-lg border border-border opacity-60"
               >
                 <span className="font-medium">Horizon</span>
                 <span className="text-sm text-muted-foreground">{tCommon('contactForPlan')}</span>
@@ -2736,7 +2736,7 @@ function LicenseTab() {
 
             <button
               onClick={() => setShowChangePlan(false)}
-              className="w-full px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-sm rounded-lg transition-colors"
+              className="w-full px-4 py-2 bg-muted hover:bg-accent text-sm rounded-lg transition-colors"
             >
               {tCommon('cancel')}
             </button>
@@ -2747,7 +2747,7 @@ function LicenseTab() {
       {/* Cancel confirmation modal */}
       {showCancelModal && subscription && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-          <div className="bg-zinc-900 border border-zinc-700 rounded-xl p-6 max-w-md w-full space-y-4">
+          <div className="bg-card border border-border rounded-xl p-6 max-w-md w-full space-y-4">
             <h2 className="text-lg font-semibold">{t('cancelConfirmTitle')}</h2>
             <p className="text-sm text-muted-foreground">
               {t('cancelConfirmText', {
@@ -2761,7 +2761,7 @@ function LicenseTab() {
               <select
                 value={cancelReason}
                 onChange={e => setCancelReason(e.target.value)}
-                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm"
+                className="w-full bg-muted border border-border rounded-lg px-3 py-2 text-sm"
               >
                 <option value="">-</option>
                 <option value="too_expensive">{tCommon('reasonTooExpensive')}</option>
@@ -2775,7 +2775,7 @@ function LicenseTab() {
             <div className="flex gap-3 pt-2">
               <button
                 onClick={() => { setShowCancelModal(false); setCancelReason('') }}
-                className="flex-1 px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-sm rounded-lg transition-colors"
+                className="flex-1 px-4 py-2 bg-muted hover:bg-accent text-sm rounded-lg transition-colors"
               >
                 {tCommon('keepPlan')}
               </button>
@@ -2931,7 +2931,7 @@ function SecurityTab() {
   if (isDemo) {
     return (
       <div className="space-y-6">
-        <div className="border border-zinc-800 rounded-lg p-6">
+        <div className="border border-border rounded-lg p-6">
           <p className="text-sm text-muted-foreground">Security settings are not available in demo mode.</p>
         </div>
       </div>
@@ -2942,23 +2942,23 @@ function SecurityTab() {
   if (setupStep === 'recovery' && recoveryCodes.length > 0) {
     return (
       <div className="space-y-6">
-        <div className="border border-zinc-800 rounded-lg p-6 space-y-4">
+        <div className="border border-border rounded-lg p-6 space-y-4">
           <h3 className="font-medium">{t('recoveryCodes')}</h3>
           <p className="text-sm text-muted-foreground">
             {t('recoveryCodesDesc')}
           </p>
           <div className="grid grid-cols-2 gap-2">
             {recoveryCodes.map((code, i) => (
-              <div key={i} className="bg-zinc-900 border border-zinc-800 rounded px-3 py-2 text-sm font-mono text-center">
+              <div key={i} className="bg-card border border-border rounded px-3 py-2 text-sm font-mono text-center">
                 {code}
               </div>
             ))}
           </div>
           <div className="flex gap-3">
-            <button onClick={copyRecoveryCodes} className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-sm rounded-lg transition-colors">
+            <button onClick={copyRecoveryCodes} className="px-4 py-2 bg-muted hover:bg-accent text-sm rounded-lg transition-colors">
               {t('copyAll')}
             </button>
-            <button onClick={downloadRecoveryCodes} className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-sm rounded-lg transition-colors">
+            <button onClick={downloadRecoveryCodes} className="px-4 py-2 bg-muted hover:bg-accent text-sm rounded-lg transition-colors">
               {t('downloadCodes')}
             </button>
           </div>
@@ -2982,7 +2982,7 @@ function SecurityTab() {
   if (setupStep === 'qr' && setupData) {
     return (
       <div className="space-y-6">
-        <div className="border border-zinc-800 rounded-lg p-6 space-y-4">
+        <div className="border border-border rounded-lg p-6 space-y-4">
           <h3 className="font-medium">{t('setupMfa')}</h3>
           <p className="text-sm text-muted-foreground">
             {t('scanQr')}
@@ -2990,7 +2990,7 @@ function SecurityTab() {
           <div className="flex justify-center bg-white rounded-lg p-4 max-w-[240px] mx-auto" dangerouslySetInnerHTML={{ __html: setupData.qr_svg }} />
           <div className="text-center">
             <p className="text-xs text-muted-foreground mb-1">{t('manualEntry')}</p>
-            <p className="font-mono text-sm bg-zinc-900 border border-zinc-800 rounded px-3 py-2 select-all break-all">
+            <p className="font-mono text-sm bg-card border border-border rounded px-3 py-2 select-all break-all">
               {setupData.secret_base32}
             </p>
           </div>
@@ -3005,7 +3005,7 @@ function SecurityTab() {
               value={setupCode}
               onChange={e => setSetupCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
               placeholder="000000"
-              className="w-full bg-white/5 border rounded-lg px-3 py-3 text-xl font-mono text-center tracking-[0.5em] focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="w-full bg-accent border rounded-lg px-3 py-3 text-xl font-mono text-center tracking-[0.5em] focus:outline-none focus:ring-1 focus:ring-blue-500"
               autoFocus
             />
           </div>
@@ -3019,7 +3019,7 @@ function SecurityTab() {
             </button>
             <button
               onClick={() => { setSetupStep('idle'); setSetupData(null); setSetupCode('') }}
-              className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-sm rounded-lg transition-colors"
+              className="px-4 py-2 bg-muted hover:bg-accent text-sm rounded-lg transition-colors"
             >
               Cancel
             </button>
@@ -3032,7 +3032,7 @@ function SecurityTab() {
   return (
     <div className="space-y-6">
       {/* Two-Factor Authentication */}
-      <div className="border border-zinc-800 rounded-lg p-6 space-y-4">
+      <div className="border border-border rounded-lg p-6 space-y-4">
         <h3 className="font-medium">{t('twoFactor')}</h3>
         {mfaEnabled ? (
           <>
@@ -3047,7 +3047,7 @@ function SecurityTab() {
             <div className="flex flex-wrap gap-3">
               <button
                 onClick={() => setShowRegen(true)}
-                className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-sm rounded-lg transition-colors"
+                className="px-4 py-2 bg-muted hover:bg-accent text-sm rounded-lg transition-colors"
               >
                 {t('regenerate')}
               </button>
@@ -3077,7 +3077,7 @@ function SecurityTab() {
       {/* Disable MFA modal */}
       {showDisable && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-          <div className="bg-zinc-900 border border-zinc-700 rounded-xl p-6 max-w-md w-full space-y-4">
+          <div className="bg-card border border-border rounded-xl p-6 max-w-md w-full space-y-4">
             <h2 className="text-lg font-semibold">Disable Two-Factor Authentication?</h2>
             <p className="text-sm text-muted-foreground">
               This will remove the extra security from your account.
@@ -3090,13 +3090,13 @@ function SecurityTab() {
               value={disableCode}
               onChange={e => setDisableCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
               placeholder="000000"
-              className="w-full bg-white/5 border rounded-lg px-3 py-2.5 text-sm font-mono text-center tracking-widest focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="w-full bg-accent border rounded-lg px-3 py-2.5 text-sm font-mono text-center tracking-widest focus:outline-none focus:ring-1 focus:ring-blue-500"
               autoFocus
             />
             <div className="flex gap-3 pt-2">
               <button
                 onClick={() => { setShowDisable(false); setDisableCode('') }}
-                className="flex-1 px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-sm rounded-lg transition-colors"
+                className="flex-1 px-4 py-2 bg-muted hover:bg-accent text-sm rounded-lg transition-colors"
               >
                 Cancel
               </button>
@@ -3115,7 +3115,7 @@ function SecurityTab() {
       {/* Regenerate recovery codes modal */}
       {showRegen && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-          <div className="bg-zinc-900 border border-zinc-700 rounded-xl p-6 max-w-md w-full space-y-4">
+          <div className="bg-card border border-border rounded-xl p-6 max-w-md w-full space-y-4">
             <h2 className="text-lg font-semibold">Regenerate Recovery Codes</h2>
             <p className="text-sm text-muted-foreground">
               Enter your current authenticator code to generate new recovery codes.
@@ -3128,13 +3128,13 @@ function SecurityTab() {
               value={regenCode}
               onChange={e => setRegenCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
               placeholder="000000"
-              className="w-full bg-white/5 border rounded-lg px-3 py-2.5 text-sm font-mono text-center tracking-widest focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="w-full bg-accent border rounded-lg px-3 py-2.5 text-sm font-mono text-center tracking-widest focus:outline-none focus:ring-1 focus:ring-blue-500"
               autoFocus
             />
             <div className="flex gap-3 pt-2">
               <button
                 onClick={() => { setShowRegen(false); setRegenCode('') }}
-                className="flex-1 px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-sm rounded-lg transition-colors"
+                className="flex-1 px-4 py-2 bg-muted hover:bg-accent text-sm rounded-lg transition-colors"
               >
                 Cancel
               </button>
@@ -3151,18 +3151,18 @@ function SecurityTab() {
       )}
 
       {/* Change Password */}
-      <div className="border border-zinc-800 rounded-lg p-6 space-y-4">
+      <div className="border border-border rounded-lg p-6 space-y-4">
         <h3 className="font-medium">{t('changePassword')}</h3>
         <div className="space-y-3 max-w-md">
           <div>
             <label className="text-sm text-muted-foreground block mb-1">{t('currentPassword')}</label>
             <input type="password" value={currentPw} onChange={e => setCurrentPw(e.target.value)}
-              className="w-full bg-white/5 border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500" />
+              className="w-full bg-accent border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500" />
           </div>
           <div>
             <label className="text-sm text-muted-foreground block mb-1">{tCommon('newPassword')}</label>
             <input type="password" value={newPw} onChange={e => setNewPw(e.target.value)}
-              className="w-full bg-white/5 border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500" />
+              className="w-full bg-accent border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500" />
             {newPw.length > 0 && newPw.length < 8 && (
               <p className="text-xs text-yellow-400 mt-1">{t('security.passwordTooShort')}</p>
             )}
@@ -3170,7 +3170,7 @@ function SecurityTab() {
           <div>
             <label className="text-sm text-muted-foreground block mb-1">{t('confirmNewPassword')}</label>
             <input type="password" value={confirmPw} onChange={e => setConfirmPw(e.target.value)}
-              className="w-full bg-white/5 border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500" />
+              className="w-full bg-accent border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500" />
             {confirmPw.length > 0 && newPw !== confirmPw && (
               <p className="text-xs text-red-400 mt-1">{t('security.passwordMismatch')}</p>
             )}
@@ -3181,7 +3181,7 @@ function SecurityTab() {
               <input type="text" inputMode="numeric" maxLength={6} value={pwMfaCode}
                 onChange={e => setPwMfaCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
                 placeholder="000000"
-                className="w-full bg-white/5 border rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-1 focus:ring-blue-500" />
+                className="w-full bg-accent border rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-1 focus:ring-blue-500" />
             </div>
           )}
           <button
@@ -3239,7 +3239,7 @@ function FieldWithInfo({ label, items, children }: { label: string; items: { nam
         </div>
         {show && pos && createPortal(
           <div
-            className="fixed bg-zinc-900 border border-zinc-700 rounded-lg shadow-xl p-3 text-xs"
+            className="fixed bg-card border border-border rounded-lg shadow-xl p-3 text-xs"
             style={{ top: pos.top, left: pos.left, zIndex: 9999, maxWidth: 320 }}
             onMouseEnter={() => { if (timerRef.current) clearTimeout(timerRef.current) }}
             onMouseLeave={onLeave}

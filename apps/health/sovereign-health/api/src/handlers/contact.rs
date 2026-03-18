@@ -61,6 +61,7 @@ pub async fn submit(
     body: web::Json<ContactRequest>,
     pool: web::Data<sqlx::PgPool>,
     email_provider: web::Data<Arc<dyn EmailProvider>>,
+    enc: web::Data<crate::services::encryption::Encryptor>,
 ) -> Result<HttpResponse, AppError> {
     let name = body.name.trim().to_string();
     let email = body.email.trim().to_lowercase();
@@ -108,12 +109,16 @@ pub async fn submit(
         })));
     }
 
-    // Store in database
+    // Encrypt PII before storing (GDPR Art. 32 — security of processing)
+    let encrypted_name = enc.encrypt(&name);
+    let encrypted_email = enc.encrypt(&email);
+
+    // Store in database with encrypted name/email
     sqlx::query(
         "INSERT INTO contact_submissions (name, email, subject, message, ip_hash) VALUES ($1, $2, $3, $4, $5)",
     )
-    .bind(&name)
-    .bind(&email)
+    .bind(&encrypted_name)
+    .bind(&encrypted_email)
     .bind(&subject)
     .bind(&message)
     .bind(&ip_hash)
@@ -173,7 +178,7 @@ pub async fn submit(
         }
     });
 
-    tracing::info!(email = %email, subject = %subject, "Contact form submission received");
+    tracing::info!(subject = %subject, "Contact form submission received");
 
     Ok(HttpResponse::Ok().json(json!({
         "data": {"message": "Your message has been sent successfully. We'll get back to you soon."},

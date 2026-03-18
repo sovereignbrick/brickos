@@ -229,6 +229,16 @@ pub async fn signup(
         ));
     }
 
+    // Validate country code (optional, 2-letter ISO 3166-1 alpha-2)
+    let country_code: Option<String> = body.country.as_ref().and_then(|c| {
+        let c = c.trim().to_uppercase();
+        if c.len() == 2 && c.chars().all(|ch| ch.is_ascii_uppercase()) {
+            Some(c)
+        } else {
+            None
+        }
+    });
+
     // Hash password
     let password_hash = hash_password(&body.password)?;
 
@@ -327,11 +337,11 @@ pub async fn signup(
         .await;
 
     let _ = sqlx::query(
-        "INSERT INTO user_profile (user_id, consent_newsletter, consent_product_updates) \
+        "INSERT INTO user_profile (user_id, consent_newsletter, country_code) \
          VALUES ($1, $2, $3)")
         .bind(user_id)
         .bind(body.consent_newsletter.unwrap_or(false))
-        .bind(body.consent_product_updates.unwrap_or(true))
+        .bind(&country_code)
         .execute(pool.get_ref())
         .await;
 
@@ -563,7 +573,6 @@ pub async fn verify_email(
             let tags = vec![
                 "source:app".to_string(),
                 "tier:glimpse".to_string(),
-                "consent:product_updates".to_string(),
             ];
             if let Err(e) = provider.add_to_list(&addr, "", &tags).await {
                 tracing::warn!(user_id = %uid, "Mailgun list sync failed: {e}");

@@ -119,7 +119,7 @@ async function uploadRequest<T>(path: string, formData: FormData): Promise<T> {
 
 export const api = {
   auth: {
-    signup: (body: { email: string; password: string; display_name?: string; tos_accepted: boolean; referred_by?: string; locale?: string; consent_newsletter?: boolean; consent_product_updates?: boolean }) =>
+    signup: (body: { email: string; password: string; display_name?: string; tos_accepted: boolean; referred_by?: string; locale?: string; consent_newsletter?: boolean; consent_product_updates?: boolean; country?: string }) =>
       request<{ data: { message: string } | { user: import('./types').User; token: string; refresh_token: string } }>(
         '/auth/signup', { method: 'POST', body: JSON.stringify(body) }
       ),
@@ -502,9 +502,9 @@ export const api = {
       '/auth/change-password', { method: 'POST', body: JSON.stringify({ current_password, new_password, mfa_code }) }
     ),
   billing: {
-    checkout: (tier: string, interval: string, promo_code?: string) =>
+    checkout: (tier: string, interval: string, promo_code?: string, customer_type?: string, company_name?: string, vat_id?: string) =>
       request<{ data: { checkout_url: string } }>(
-        '/billing/checkout', { method: 'POST', body: JSON.stringify({ tier, interval, promo_code: promo_code || undefined }) }
+        '/billing/checkout', { method: 'POST', body: JSON.stringify({ tier, interval, promo_code: promo_code || undefined, customer_type: customer_type || undefined, company_name: company_name || undefined, vat_id: vat_id || undefined }) }
       ),
     portal: () =>
       request<{ data: { portal_url: string } }>('/billing/portal'),

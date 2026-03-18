@@ -72,7 +72,7 @@ services:
   # Separate Postgres instance for staging. Uses its own volume so
   # staging data is completely isolated from production.
   db:
-    image: postgres:16-alpine
+    image: sovereign-health-postgres:latest
     container_name: sh-staging-db
     volumes:
       - pgdata-staging:/var/lib/postgresql/data
@@ -80,6 +80,20 @@ services:
       POSTGRES_DB: sovereign_health_staging
       POSTGRES_USER: sovereign_health
       POSTGRES_PASSWORD: ${DB_PASSWORD_STAGING}
+    command:
+      - "postgres"
+      - "-c"
+      - "shared_preload_libraries=pgaudit"
+      - "-c"
+      - "pgaudit.log=write,ddl"
+      - "-c"
+      - "pgaudit.log_catalog=off"
+      - "-c"
+      - "pgaudit.log_relation=on"
+      - "-c"
+      - "pgaudit.log_statement_once=on"
+      - "-c"
+      - "pgaudit.log_parameter=off"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U sovereign_health"]
       interval: 5s

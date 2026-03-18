@@ -1047,7 +1047,7 @@ pub async fn export_json(
 
     // Consent settings (GDPR Art. 7)
     let consent_row = sqlx::query(
-        "SELECT consent_product_updates, consent_newsletter, consent_partner_offers FROM user_profile WHERE user_id = $1",
+        "SELECT consent_newsletter, consent_partner_offers FROM user_profile WHERE user_id = $1",
     )
     .bind(auth.user_id)
     .fetch_optional(pool.get_ref())
@@ -1062,7 +1062,6 @@ pub async fn export_json(
             .ok()
             .flatten();
     let consent = json!({
-        "product_updates": consent_row.as_ref().and_then(|r| r.try_get::<Option<bool>, _>("consent_product_updates").ok().flatten()),
         "newsletter": consent_row.as_ref().and_then(|r| r.try_get::<Option<bool>, _>("consent_newsletter").ok().flatten()),
         "partner_offers": consent_row.as_ref().and_then(|r| r.try_get::<Option<bool>, _>("consent_partner_offers").ok().flatten()),
         "share_anonymous_data": share_data,

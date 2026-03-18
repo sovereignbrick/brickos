@@ -160,7 +160,7 @@ export default function ZoneDetailPage() {
                 <Link
                   key={`${marker.marker_slug}-${index}`}
                   href={demoHref(`/markers/${marker.marker_slug}`)}
-                  className={`rounded-xl border p-4 flex items-center justify-between hover:border-zinc-600 hover:bg-zinc-900/50 transition-colors block ${!hasData ? 'opacity-60' : ''}`}
+                  className={`rounded-xl border p-4 flex items-center justify-between hover:border-border hover:bg-card/50 transition-colors block ${!hasData ? 'opacity-60' : ''}`}
                 >
                   <div>
                     <div className="flex items-center gap-2">
@@ -172,7 +172,7 @@ export default function ZoneDetailPage() {
                       ) : sourceLabel ? (
                         <span
                           onClick={(e) => { e.preventDefault(); e.stopPropagation(); window.location.href = '/settings?tab=devices' }}
-                          className="text-[10px] px-1.5 py-0.5 rounded border border-zinc-700 text-muted-foreground hover:text-foreground hover:border-zinc-500 cursor-pointer transition-colors"
+                          className="text-[10px] px-1.5 py-0.5 rounded border border-border text-muted-foreground hover:text-foreground hover:border-zinc-500 cursor-pointer transition-colors"
                           title={`View ${sourceLabel} in device settings`}
                         >{sourceLabel}</span>
                       ) : null}

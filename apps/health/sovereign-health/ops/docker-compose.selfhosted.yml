@@ -7,7 +7,7 @@
 services:
   backend:
     build:
-      context: ../core-backend
+      context: ../api
       dockerfile: Dockerfile
     ports:
       - "127.0.0.1:8080:8080"
@@ -24,7 +24,7 @@ services:
 
   frontend:
     build:
-      context: ../core-frontend
+      context: ../frontend
       dockerfile: Dockerfile
     ports:
       - "127.0.0.1:3000:3000"
@@ -34,13 +34,29 @@ services:
     restart: unless-stopped
 
   db:
-    image: postgres:16-alpine
+    build:
+      context: ./postgres
+      dockerfile: Dockerfile
     volumes:
       - pgdata:/var/lib/postgresql/data
     environment:
       POSTGRES_DB: sovereign_health
       POSTGRES_USER: sovereign_health
       POSTGRES_PASSWORD: ${DB_PASSWORD}
+    command:
+      - "postgres"
+      - "-c"
+      - "shared_preload_libraries=pgaudit"
+      - "-c"
+      - "pgaudit.log=write,ddl"
+      - "-c"
+      - "pgaudit.log_catalog=off"
+      - "-c"
+      - "pgaudit.log_relation=on"
+      - "-c"
+      - "pgaudit.log_statement_once=on"
+      - "-c"
+      - "pgaudit.log_parameter=off"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U sovereign_health"]
       interval: 5s

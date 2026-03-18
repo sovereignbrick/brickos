@@ -143,6 +143,7 @@
     "settings": "Einstellungen",
     "billing": "Abrechnung",
     "signOut": "Abmelden",
+    "theme": "Design wechseln",
     "logIn": "Anmelden",
     "register": "Registrieren",
     "login": "Anmelden",
@@ -226,7 +227,7 @@
       "agreeTerms": "Ich stimme den <terms>Nutzungsbedingungen</terms> und der <privacy>Datenschutzrichtlinie</privacy> zu",
       "ageConfirm": "Ich bestätige, dass ich mindestens 18 Jahre alt bin",
       "productUpdates": "Produktupdates und Funktionsankündigungen per E-Mail erhalten",
-      "newsletter": "Monatlichen Newsletter erhalten",
+      "newsletter": "Newsletter erhalten",
       "createButton": "Konto erstellen",
       "creating": "Konto wird erstellt...",
       "checkEmail": "Prüfe dein Postfach",
@@ -237,7 +238,9 @@
       "iveVerified": "Ich habe meine E-Mail bestätigt",
       "registrationClosed": "Die Registrierung öffnet bald. Tritt der Warteliste bei, um benachrichtigt zu werden.",
       "joinButton": "Beitreten",
-      "onList": "Du stehst auf der Liste. Wir melden uns."
+      "onList": "Du stehst auf der Liste. Wir melden uns.",
+      "country": "Land",
+      "selectCountry": "Wähle dein Land"
     },
     "forgotPasswordPage": {
       "title": "Passwort zurücksetzen",
@@ -277,6 +280,25 @@
       "welcomeBack": "Willkommen zurück, {name}!",
       "welcomeNew": "Willkommen, {name}! Beginne mit deiner ersten Messung.",
       "forgotPasswordFailed": "Etwas ist schiefgelaufen. Bitte versuche es erneut."
+    }
+  },
+  "onboarding": {
+    "title": "Erste Schritte",
+    "progress": "{completed} von {total} erledigt",
+    "dismiss": "Ausblenden",
+    "steps": {
+      "profile": "Profil einrichten",
+      "profileDesc": "Gib Geschlecht, Größe und Gewicht ein, damit wir personalisierte Referenzbereiche für deine Marker berechnen können.",
+      "device": "Gerät hinzufügen",
+      "deviceDesc": "Registriere das Labor oder Gerät, das du für Bluttests verwendest. So werden deine Messungen den richtigen Markern zugeordnet.",
+      "measurement": "Erste Messung erfassen",
+      "measurementDesc": "Trage deine ersten Bluttestergebnisse ein. Das ist die Grundlage für dein gesamtes Gesundheitstracking.",
+      "marker": "Marker erkunden",
+      "markerDesc": "Tippe auf einen Biomarker, um deine Werte, Referenzbereiche und die Bedeutung des Markers zu sehen.",
+      "trends": "Trends ansehen",
+      "trendsDesc": "Sieh, wie sich deine Marker über die Zeit verändern. Vergleiche Zeiträume und erkenne Muster.",
+      "doctor": "Dr. Alex fragen",
+      "doctorDesc": "Unser KI-Gesundheitsassistent analysiert deine Daten und beantwortet Fragen zu deinen Biomarkern und Ergebnissen."
     }
   },
   "dashboard": {
@@ -1223,6 +1245,7 @@
     "importTrackDesc": "Fotografiere deine Einflussfaktor-Packungen",
     "recentConversations": "Letzte Gespräche",
     "newConversation": "Neues Gespräch",
+    "renameConversation": "Gespräch umbenennen",
     "uploadAnalyze": "Hochladen & Analysieren",
     "cancel": "Abbrechen",
     "addFile": "Datei",
@@ -1323,7 +1346,12 @@
     "promoInvalid": "Ungültiger Aktionscode",
     "promoExpired": "Dieser Aktionscode ist abgelaufen",
     "promoNotApplicable": "Dieser Code gilt nicht für den gewählten Plan",
-    "proceedToPayment": "Weiter zur Zahlung"
+    "proceedToPayment": "Weiter zur Zahlung",
+    "customerType": "Kundentyp",
+    "private": "Privat",
+    "organization": "Unternehmen",
+    "companyName": "Firmenname",
+    "vatId": "USt-IdNr."
   },
   "admin": {
     "unlimitedPlaceholder": "Unbegrenzt",

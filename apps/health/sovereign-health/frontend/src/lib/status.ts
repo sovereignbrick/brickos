@@ -2,7 +2,7 @@
 
 export type Status = 'green' | 'orange' | 'red' | null
 
-interface Range {
+export interface Range {
   orange_min: number | null
   green_min: number | null
   green_max: number | null

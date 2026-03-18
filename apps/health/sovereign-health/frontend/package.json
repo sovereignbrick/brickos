@@ -1,6 +1,6 @@
 {
   "name": "sovereign-health-frontend",
-  "version": "0.20.0-rc2",
+  "version": "0.20.0-rc3",
   "private": true,
   "scripts": {
     "dev": "next dev",

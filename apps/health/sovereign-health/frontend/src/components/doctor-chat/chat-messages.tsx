@@ -21,9 +21,9 @@ interface ChatMessagesProps {
 function DateSeparator({ label }: { label: string }) {
   return (
     <div className="flex items-center gap-3 px-4 py-3">
-      <div className="flex-1 h-px bg-white/10" />
-      <span className="text-xs text-white/30 font-medium">{label}</span>
-      <div className="flex-1 h-px bg-white/10" />
+      <div className="flex-1 h-px bg-accent" />
+      <span className="text-xs text-muted-foreground font-medium">{label}</span>
+      <div className="flex-1 h-px bg-accent" />
     </div>
   )
 }
@@ -123,8 +123,8 @@ export function ChatMessages({ messages, conversationId, isLoading, onRate, erro
       <div className="overflow-y-auto flex-1 py-4">
         <div className="flex flex-col items-center justify-center min-h-full px-4 py-6">
           <div className="text-center mb-6">
-            <h2 className="text-lg font-semibold text-white mb-1">{t('welcomeTitle')}</h2>
-            <p className="text-xs text-white/40 max-w-md mx-auto">{t('welcomeDesc')}</p>
+            <h2 className="text-lg font-semibold text-foreground mb-1">{t('welcomeTitle')}</h2>
+            <p className="text-xs text-muted-foreground max-w-md mx-auto">{t('welcomeDesc')}</p>
           </div>
 
           {onSendPrompt && (
@@ -132,7 +132,7 @@ export function ChatMessages({ messages, conversationId, isLoading, onRate, erro
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {PROMPT_SECTIONS.map((section, sIdx) => (
                   <div key={section.sectionKey}>
-                    <p className="text-[10px] text-white/30 uppercase tracking-wider font-semibold mb-2">
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold mb-2">
                       {t(section.sectionKey)}
                     </p>
                     <div className="space-y-1.5">
@@ -145,8 +145,8 @@ export function ChatMessages({ messages, conversationId, isLoading, onRate, erro
                             disabled={!unlocked}
                             className={`w-full flex items-center gap-2.5 text-left text-xs rounded-lg border px-3 py-2.5 transition-all ${
                               unlocked
-                                ? 'bg-white/[0.04] hover:bg-white/[0.08] text-white/80 hover:text-white border-white/10 hover:border-white/20 cursor-pointer'
-                                : 'bg-white/[0.02] text-white/30 border-white/5 cursor-not-allowed'
+                                ? 'bg-accent/50 hover:bg-accent text-foreground/80 hover:text-foreground border-border hover:border-border cursor-pointer'
+                                : 'bg-accent/30 text-muted-foreground border-border cursor-not-allowed'
                             }`}
                             style={{
                               borderLeftWidth: '3px',
@@ -158,7 +158,7 @@ export function ChatMessages({ messages, conversationId, isLoading, onRate, erro
                             <span className="text-sm shrink-0">{prompt.icon}</span>
                             <span className="flex-1 truncate">{t(prompt.key)}</span>
                             {!unlocked && (
-                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-white/20">
+                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-muted-foreground">
                                 <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
                                 <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                               </svg>
@@ -173,14 +173,14 @@ export function ChatMessages({ messages, conversationId, isLoading, onRate, erro
 
               {/* Smart import actions */}
               {onFileUpload && (
-                <div className="mt-6 pt-4 border-t border-white/5">
-                  <p className="text-[10px] text-white/30 uppercase tracking-wider font-semibold mb-2">
+                <div className="mt-6 pt-4 border-t border-border">
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold mb-2">
                     {t('smartImport')}
                   </p>
                   <div className="flex flex-wrap gap-2">
                     <button
                       onClick={handleLabUpload}
-                      className="flex items-center gap-2 text-xs bg-white/[0.04] hover:bg-white/[0.08] text-white/70 hover:text-white px-3 py-2 rounded-lg border border-white/10 hover:border-white/20 transition-colors"
+                      className="flex items-center gap-2 text-xs bg-accent/50 hover:bg-accent text-muted-foreground hover:text-foreground px-3 py-2 rounded-lg border border-border hover:border-border transition-colors"
                     >
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
@@ -192,7 +192,7 @@ export function ChatMessages({ messages, conversationId, isLoading, onRate, erro
                     </button>
                     <button
                       onClick={handleMedUpload}
-                      className="flex items-center gap-2 text-xs bg-white/[0.04] hover:bg-white/[0.08] text-white/70 hover:text-white px-3 py-2 rounded-lg border border-white/10 hover:border-white/20 transition-colors"
+                      className="flex items-center gap-2 text-xs bg-accent/50 hover:bg-accent text-muted-foreground hover:text-foreground px-3 py-2 rounded-lg border border-border hover:border-border transition-colors"
                     >
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M9 2h6l3 7H6L9 2z" />
@@ -244,7 +244,7 @@ export function ChatMessages({ messages, conversationId, isLoading, onRate, erro
               {onRetry && (
                 <button
                   onClick={onRetry}
-                  className="mt-2 text-xs bg-white/10 hover:bg-white/15 text-white/70 px-3 py-1.5 rounded-lg transition-colors"
+                  className="mt-2 text-xs bg-accent hover:bg-accent text-muted-foreground px-3 py-1.5 rounded-lg transition-colors"
                 >
                   {t('tryAgain')}
                 </button>
