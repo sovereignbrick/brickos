@@ -29,7 +29,7 @@ export function InfoTooltip({ children }: { children: ReactNode }) {
       {show && typeof document !== 'undefined' && createPortal(
         <div
           style={{ position: 'fixed', left: pos.x, top: pos.y, transform: 'translateY(-50%)', zIndex: 9999 }}
-          className="max-w-xs bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-xs text-zinc-200 shadow-xl pointer-events-none"
+          className="max-w-xs bg-card border border-border rounded-lg px-3 py-2 text-xs text-foreground shadow-xl pointer-events-none"
         >
           {children}
         </div>,
@@ -54,7 +54,7 @@ export function MarkerInfoTooltip({ slug, markers, allMarkers }: {
       <div className="space-y-1">
         <div className="font-medium">{cm?.name ?? slug}</div>
         {markerData?.abbreviation && (
-          <div className="text-zinc-400">{markerData.abbreviation}</div>
+          <div className="text-muted-foreground">{markerData.abbreviation}</div>
         )}
         <div>{desc}</div>
       </div>

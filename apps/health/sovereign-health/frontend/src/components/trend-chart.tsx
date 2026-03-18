@@ -209,7 +209,7 @@ export function TrendChart({
                 type="checkbox"
                 checked={showStandardRange}
                 onChange={e => setShowStandardRange(e.target.checked)}
-                className="w-3.5 h-3.5 rounded border-zinc-600 bg-zinc-800 checked:bg-emerald-500 checked:border-emerald-500 accent-emerald-500"
+                className="w-3.5 h-3.5 rounded border-border bg-muted checked:bg-emerald-500 checked:border-emerald-500 accent-emerald-500"
               />
               <span className="text-xs text-muted-foreground">{t('standardRange')}</span>
             </label>
@@ -220,7 +220,7 @@ export function TrendChart({
                 type="checkbox"
                 checked={showFastingRange}
                 onChange={e => setShowFastingRange(e.target.checked)}
-                className="w-3.5 h-3.5 rounded border-zinc-600 bg-zinc-800 checked:bg-blue-500 checked:border-blue-500 accent-blue-500"
+                className="w-3.5 h-3.5 rounded border-border bg-muted checked:bg-blue-500 checked:border-blue-500 accent-blue-500"
               />
               <span className="text-xs text-muted-foreground">{t('fastingRange')}</span>
             </label>
@@ -238,7 +238,7 @@ export function TrendChart({
             }
           }}
         >
-          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+          <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border, rgba(255,255,255,0.06))" />
           <XAxis
             dataKey="date"
             tick={{ fill: '#71717a', fontSize: 11 }}
@@ -268,8 +268,8 @@ export function TrendChart({
             />
           )}
           <Tooltip
-            contentStyle={{ background: '#1a1a2e', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8 }}
-            labelStyle={{ color: '#a1a1aa' }}
+            contentStyle={{ background: 'var(--color-card, #1a1a2e)', border: '1px solid var(--color-border, rgba(255,255,255,0.1))', borderRadius: 8, color: 'var(--color-foreground, #fff)' }}
+            labelStyle={{ color: 'var(--color-muted-foreground, #a1a1aa)' }}
             formatter={(val: unknown, name: unknown) => {
               const n = String(name ?? '')
               const u = n === 'secondary' ? (secondaryUnit ?? '') : unit
@@ -358,10 +358,10 @@ export function TrendChart({
 
       {/* Clickable data point detail popover */}
       {activePoint && (
-        <div className="absolute top-2 right-2 z-10 bg-zinc-900 border border-zinc-700 rounded-xl p-3 shadow-xl max-w-[220px]">
+        <div className="absolute top-2 right-2 z-10 bg-card border border-border rounded-xl p-3 shadow-xl max-w-[220px]">
           <button
             onClick={() => setActivePoint(null)}
-            className="absolute top-1.5 right-2 text-muted-foreground hover:text-white text-xs"
+            className="absolute top-1.5 right-2 text-muted-foreground hover:text-foreground text-xs"
           >
             x
           </button>

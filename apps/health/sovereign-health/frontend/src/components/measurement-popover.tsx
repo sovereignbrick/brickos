@@ -178,7 +178,7 @@ export function MeasurementPopover({
           ref={popoverRef}
           onMouseEnter={cancelHide}
           onMouseLeave={hide}
-          className={`absolute z-50 w-[300px] max-w-[90vw] rounded-xl border border-zinc-700 bg-zinc-900 shadow-xl p-3 animate-in fade-in duration-150 ${
+          className={`absolute z-50 w-[300px] max-w-[90vw] rounded-xl border border-border bg-card shadow-xl p-3 animate-in fade-in duration-150 ${
             above
               ? 'bottom-full mb-2 left-1/2 -translate-x-1/2'
               : 'top-full mt-2 left-1/2 -translate-x-1/2'
@@ -187,12 +187,12 @@ export function MeasurementPopover({
           <div
             className={`absolute left-1/2 -translate-x-1/2 w-0 h-0 ${
               above
-                ? 'top-full border-l-[6px] border-r-[6px] border-t-[6px] border-transparent border-t-zinc-700'
-                : 'bottom-full border-l-[6px] border-r-[6px] border-b-[6px] border-transparent border-b-zinc-700'
+                ? 'top-full border-l-[6px] border-r-[6px] border-t-[6px] border-transparent border-t-border'
+                : 'bottom-full border-l-[6px] border-r-[6px] border-b-[6px] border-transparent border-b-border'
             }`}
           />
 
-          <div className="flex items-center gap-2 mb-2 pb-2 border-b border-zinc-800">
+          <div className="flex items-center gap-2 mb-2 pb-2 border-b border-border">
             <span className="text-lg font-bold tabular-nums">{data.value}</span>
             <span className="text-xs text-muted-foreground">{data.unit}</span>
             <StatusBadge status={data.status as 'green' | 'orange' | 'red' | null} />
