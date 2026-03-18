@@ -34,9 +34,11 @@ export function OnboardingTracker() {
     const isMarkerPage = pathname.startsWith('/markers/') || pathname.startsWith('/zones/')
     let matchedKey = manualMappings[pathname] || (isMarkerPage ? 'marker' : null)
 
-    // /settings only counts as 'device' if tab=devices
-    if (pathname === '/settings' && searchParams.get('tab') === 'devices') {
-      matchedKey = 'device'
+    // /settings tab tracking
+    if (pathname === '/settings') {
+      const tab = searchParams.get('tab')
+      if (tab === 'devices') matchedKey = 'device'
+      if (tab === 'profile' || !tab) matchedKey = 'profile'
     }
 
     if (matchedKey) {

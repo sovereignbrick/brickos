@@ -72,7 +72,7 @@ export function OnboardingChecklist() {
         {
           key: 'profile',
           icon: '👤',
-          completed: hasProfile,
+          completed: hasProfile || manual['profile'] || false,
           href: '/settings?tab=profile',
           number: 1,
         },
@@ -125,12 +125,17 @@ export function OnboardingChecklist() {
     checkProgress()
   }, [checkProgress])
 
-  // Re-check progress every time the dashboard mounts or gains focus
+  // Re-check progress every time the dashboard mounts, gains focus, or becomes visible
   // (manual steps are tracked globally by OnboardingTracker in root layout)
   useEffect(() => {
     const onFocus = () => checkProgress()
+    const onVisible = () => { if (document.visibilityState === 'visible') checkProgress() }
     window.addEventListener('focus', onFocus)
-    return () => window.removeEventListener('focus', onFocus)
+    document.addEventListener('visibilitychange', onVisible)
+    return () => {
+      window.removeEventListener('focus', onFocus)
+      document.removeEventListener('visibilitychange', onVisible)
+    }
   }, [checkProgress])
 
   if (isDemo || !user || dismissed || loading || steps.length === 0) return null

@@ -25,9 +25,9 @@ const UNIT_KEYS = ['mg', 'g', 'mcg', 'ml', 'iu', 'pct', 'mmol', 'noUnit']
 function SourceBadge({ source }: { source: string }) {
   const tMeds = useTranslations('medications')
   const colorMap: Record<string, string> = {
-    manual: 'bg-zinc-700 text-zinc-300',
-    ai_import: 'bg-blue-900/50 text-blue-400',
-    photo: 'bg-purple-900/50 text-purple-400',
+    manual: 'bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300',
+    ai_import: 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-400',
+    photo: 'bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-400',
   }
   const labelMap: Record<string, string> = {
     manual: 'source.manual',
@@ -47,13 +47,13 @@ function TypeBadge({ factorType }: { factorType: string }) {
   const tMeds = useTranslations('medications')
   if (factorType === 'supplement') {
     return (
-      <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-emerald-900/50 text-emerald-400">
+      <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-400">
         {'\uD83C\uDF3F'} {tMeds('typeSupplement')}
       </span>
     )
   }
   return (
-    <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-purple-900/50 text-purple-400">
+    <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-400">
       {'\uD83D\uDC8A'} {tMeds('typeMedication')}
     </span>
   )
@@ -122,8 +122,8 @@ function InfluenceFactorCard({
   return (
     <div className={`border rounded-lg p-4 ${
       factor.factor_type === 'supplement'
-        ? 'border-emerald-800/60'
-        : 'border-purple-800/60'
+        ? 'border-emerald-300 dark:border-emerald-800/60'
+        : 'border-purple-300 dark:border-purple-800/60'
     }`}>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
@@ -218,7 +218,7 @@ function FieldTooltip({ text }: { text: string }) {
         </svg>
       </button>
       {show && (
-        <span className="absolute bottom-full left-0 mb-1 px-2.5 py-1.5 rounded bg-zinc-800 border border-zinc-700 text-[11px] leading-snug text-zinc-300 z-50 w-[280px]" style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+        <span className="absolute bottom-full left-0 mb-1 px-2.5 py-1.5 rounded bg-card border border-border text-[11px] leading-snug text-foreground z-50 w-[280px] shadow-lg" style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
           {text}
         </span>
       )}
@@ -290,10 +290,10 @@ function InfluenceFactorForm({
 
   const isSup = form.factor_type === 'supplement'
   const fieldBorder = isSup ? 'border-emerald-800 focus:border-emerald-500' : 'border-purple-800 focus:border-purple-500'
-  const fieldClass = `w-full bg-zinc-900 border rounded-lg px-3 py-2 text-sm focus:outline-none ${fieldBorder}`
+  const fieldClass = `w-full bg-white dark:bg-zinc-900 border rounded-lg px-3 py-2 text-sm focus:outline-none ${fieldBorder}`
 
   return (
-    <form onSubmit={handleSubmit} className={`rounded-lg p-4 bg-zinc-900/50 space-y-4 border ${isSup ? 'border-emerald-800/50' : 'border-purple-800/50'}`}>
+    <form onSubmit={handleSubmit} className={`rounded-lg p-4 bg-muted/50 space-y-4 border ${isSup ? 'border-emerald-300 dark:border-emerald-800/50' : 'border-purple-300 dark:border-purple-800/50'}`}>
       <h3 className="text-sm font-semibold">
         {isEdit ? tMeds('editTitle') : tMeds('addTitle')}
       </h3>
@@ -307,8 +307,8 @@ function InfluenceFactorForm({
             onClick={() => setForm(prev => ({ ...prev, factor_type: 'medication' }))}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg border text-sm transition-colors ${
               form.factor_type === 'medication'
-                ? 'border-purple-500 bg-purple-900/30 text-purple-300'
-                : 'border-zinc-700 bg-zinc-900 text-muted-foreground hover:border-zinc-600'
+                ? 'border-purple-500 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300'
+                : 'border-border bg-white dark:bg-zinc-900 text-muted-foreground hover:border-zinc-400 dark:hover:border-zinc-600'
             }`}
           >
             {'\uD83D\uDC8A'} {tMeds('typeMedication')}
@@ -318,8 +318,8 @@ function InfluenceFactorForm({
             onClick={() => setForm(prev => ({ ...prev, factor_type: 'supplement' }))}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg border text-sm transition-colors ${
               form.factor_type === 'supplement'
-                ? 'border-emerald-500 bg-emerald-900/30 text-emerald-300'
-                : 'border-zinc-700 bg-zinc-900 text-muted-foreground hover:border-zinc-600'
+                ? 'border-emerald-500 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300'
+                : 'border-border bg-white dark:bg-zinc-900 text-muted-foreground hover:border-zinc-400 dark:hover:border-zinc-600'
             }`}
           >
             {'\uD83C\uDF3F'} {tMeds('typeSupplement')}
@@ -456,7 +456,7 @@ function InfluenceFactorForm({
                   type="text"
                   value={ing.name}
                   onChange={e => updateIngredient(idx, 'name', e.target.value)}
-                  className="flex-1 bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-1.5 text-sm focus:border-zinc-500 focus:outline-none"
+                  className="flex-1 bg-white dark:bg-zinc-900 border border-border rounded-lg px-3 py-1.5 text-sm focus:border-zinc-500 focus:outline-none"
                   placeholder={tMeds('placeholders.ingredientName')}
                 />
                 <input
@@ -466,7 +466,7 @@ function InfluenceFactorForm({
                     const unit = (ing.amount || '').match(/\s*(mg|g|µg|mcg|ml|IU|IE|%|mmol)$/i)?.[1] || ''
                     updateIngredient(idx, 'amount', unit ? `${e.target.value} ${unit}` : e.target.value)
                   }}
-                  className="w-20 bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-1.5 text-sm focus:border-zinc-500 focus:outline-none"
+                  className="w-20 bg-white dark:bg-zinc-900 border border-border rounded-lg px-3 py-1.5 text-sm focus:border-zinc-500 focus:outline-none"
                   placeholder={tMeds('placeholders.ingredientAmount')}
                 />
                 <select
@@ -476,7 +476,7 @@ function InfluenceFactorForm({
                     const unitLabel = e.target.value === 'noUnit' ? '' : tMeds(`units.${e.target.value}` as 'units.mg')
                     updateIngredient(idx, 'amount', unitLabel ? `${numPart} ${unitLabel}`.trim() : numPart)
                   }}
-                  className="w-20 bg-zinc-900 border border-zinc-700 rounded-lg px-2 py-1.5 text-sm focus:border-zinc-500 focus:outline-none"
+                  className="w-20 bg-white dark:bg-zinc-900 border border-border rounded-lg px-2 py-1.5 text-sm focus:border-zinc-500 focus:outline-none"
                 >
                   {UNIT_KEYS.map(u => (
                     <option key={u} value={u}>{tMeds(`units.${u}` as 'units.mg')}</option>
@@ -485,7 +485,7 @@ function InfluenceFactorForm({
                 <select
                   value={ing.role}
                   onChange={e => updateIngredient(idx, 'role', e.target.value)}
-                  className="w-36 bg-zinc-900 border border-zinc-700 rounded-lg px-2 py-1.5 text-sm focus:border-zinc-500 focus:outline-none"
+                  className="w-36 bg-white dark:bg-zinc-900 border border-border rounded-lg px-2 py-1.5 text-sm focus:border-zinc-500 focus:outline-none"
                 >
                   <option value="active">{tMeds('roleActive')}</option>
                   <option value="auxiliary">{tMeds('roleAuxiliary')}</option>
@@ -504,7 +504,7 @@ function InfluenceFactorForm({
                 type="text"
                 value={ing.notes || ''}
                 onChange={e => updateIngredient(idx, 'notes', e.target.value)}
-                className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-1 text-[11px] text-zinc-400 italic focus:border-zinc-500 focus:outline-none ml-6"
+                className="w-full bg-white dark:bg-zinc-900 border border-border rounded-lg px-3 py-1 text-[11px] text-zinc-400 italic focus:border-zinc-500 focus:outline-none ml-6"
                 placeholder={tMeds('ingredientNotes')}
               />
               </div>
@@ -570,7 +570,7 @@ function InfluenceFactorSection({
         {icon} {title} ({items.length})
       </h3>
       {items.length === 0 && (
-        <p className="text-xs text-muted-foreground/60 italic py-4 text-center border border-dashed border-zinc-800 rounded-lg">
+        <p className="text-xs text-muted-foreground/60 italic py-4 text-center border border-dashed border-border rounded-lg">
           {tMeds('noItemsInCategory')}
         </p>
       )}
@@ -748,13 +748,13 @@ export function MedicationsTab() {
 
       {/* Dr. Alex tip */}
       {!tipDismissed && (
-        <div className="flex items-start gap-3 rounded-lg bg-blue-950/30 border border-blue-800/30 px-4 py-3">
-          <span className="text-blue-400 mt-0.5 shrink-0">
+        <div className="flex items-start gap-3 rounded-lg bg-blue-100 dark:bg-blue-950/30 border border-blue-300 dark:border-blue-800/30 px-4 py-3">
+          <span className="text-blue-600 dark:text-blue-400 mt-0.5 shrink-0">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="12" r="10" /><path d="M12 16v-4" /><path d="M12 8h.01" />
             </svg>
           </span>
-          <p className="text-xs text-blue-300/80 flex-1">
+          <p className="text-xs text-blue-700 dark:text-blue-300/80 flex-1">
             {tMeds.rich('tipText', {
               drAlex: (chunks) => (
                 <Link href="/doctor-chat" className="text-blue-400 hover:text-blue-300 font-medium underline underline-offset-2">
@@ -765,7 +765,7 @@ export function MedicationsTab() {
           </p>
           <button
             onClick={() => { setTipDismissed(true); localStorage.setItem('sh_med_tip_dismissed', '1') }}
-            className="text-blue-400/40 hover:text-blue-400/80 shrink-0 mt-0.5"
+            className="text-blue-400/60 dark:text-blue-400/40 hover:text-blue-600 dark:hover:text-blue-400/80 shrink-0 mt-0.5"
             aria-label={tCommon('dismiss')}
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -787,7 +787,7 @@ export function MedicationsTab() {
 
       {/* Active items grouped by type */}
       {activeFactors.length === 0 && !showForm ? (
-        <div className="border border-zinc-800 rounded-lg p-8 text-center">
+        <div className="border border-border rounded-lg p-8 text-center">
           <p className="text-muted-foreground text-sm">{tMeds('noActive')}</p>
           <p className="text-xs text-muted-foreground mt-1">
             {tMeds('noActiveHint')}

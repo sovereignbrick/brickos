@@ -166,7 +166,7 @@ export default function ZoneDetailPage() {
                     <div className="flex items-center gap-2">
                       <p className="text-sm font-semibold">{marker.marker_name}</p>
                       {isCalc ? (
-                        <span className="text-[10px] px-1.5 py-0.5 rounded border border-indigo-700 bg-indigo-900/40 text-indigo-300 font-medium">
+                        <span className="text-[10px] px-1.5 py-0.5 rounded border border-indigo-300 dark:border-indigo-700 bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-medium">
                           📐 {tZones('calculated')}
                         </span>
                       ) : sourceLabel ? (
