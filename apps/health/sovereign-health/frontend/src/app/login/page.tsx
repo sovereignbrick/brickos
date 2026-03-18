@@ -271,8 +271,9 @@ function LoginContent() {
         </div>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div>
-            <label className="text-sm font-medium block mb-1.5">{tCommon('email')}</label>
+            <label htmlFor="login-email" className="text-sm font-medium block mb-1.5">{tCommon('email')}</label>
             <input
+              id="login-email"
               type="email"
               {...register('email')}
               className="w-full bg-white/5 border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors"
@@ -282,12 +283,13 @@ function LoginContent() {
           </div>
           <div>
             <div className="flex items-center justify-between mb-1.5">
-              <label className="text-sm font-medium">{t('password')}</label>
+              <label htmlFor="login-password" className="text-sm font-medium">{t('password')}</label>
               <Link href="/forgot-password" className="text-xs text-blue-400 hover:text-blue-300">
                 {t('forgotPassword')}
               </Link>
             </div>
             <input
+              id="login-password"
               type="password"
               {...register('password')}
               className="w-full bg-white/5 border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors"

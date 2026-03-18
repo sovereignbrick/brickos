@@ -75,7 +75,7 @@ export function ChatInput({ onSend, onFileUpload, disabled, quotaExhausted: rawQ
     <div className="px-4 py-3 border-t border-border">
       <div className="flex gap-2 items-end">
         {onFileUpload && (
-          <label className="shrink-0 p-3 text-muted-foreground hover:text-muted-foreground cursor-pointer transition-colors" title={t('uploadTitle')}>
+          <label className="shrink-0 p-3 text-muted-foreground hover:text-muted-foreground cursor-pointer transition-colors" title={t('uploadTitle')} aria-label={t('uploadTitle')}>
             <input
               type="file"
               accept="image/jpeg,image/png,image/webp,application/pdf"

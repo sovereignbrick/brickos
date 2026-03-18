@@ -382,8 +382,9 @@ function SignupContent() {
         </div>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div>
-            <label className="text-sm font-medium block mb-1.5">{tCommon('email')}</label>
+            <label htmlFor="signup-email" className="text-sm font-medium block mb-1.5">{tCommon('email')}</label>
             <input
+              id="signup-email"
               type="email"
               {...register('email')}
               className="w-full bg-white/5 border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors"
@@ -392,9 +393,10 @@ function SignupContent() {
             {errors.email && <p className="text-xs text-red-400 mt-1">{errors.email.message}</p>}
           </div>
           <div>
-            <label className="text-sm font-medium block mb-1.5">{t('password')}</label>
+            <label htmlFor="signup-password" className="text-sm font-medium block mb-1.5">{t('password')}</label>
             <div className="relative">
               <input
+                id="signup-password"
                 type={showPassword ? 'text' : 'password'}
                 {...register('password')}
                 className="w-full bg-white/5 border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors pr-16"
@@ -412,9 +414,10 @@ function SignupContent() {
             <PasswordStrength password={password} />
           </div>
           <div>
-            <label className="text-sm font-medium block mb-1.5">{ts('confirmPassword')}</label>
+            <label htmlFor="signup-confirm-password" className="text-sm font-medium block mb-1.5">{ts('confirmPassword')}</label>
             <div className="relative">
               <input
+                id="signup-confirm-password"
                 type={showConfirm ? 'text' : 'password'}
                 {...register('confirm_password')}
                 className="w-full bg-white/5 border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors pr-16"
@@ -431,8 +434,9 @@ function SignupContent() {
             {errors.confirm_password && <p className="text-xs text-red-400 mt-1">{errors.confirm_password.message}</p>}
           </div>
           <div>
-            <label className="text-sm font-medium block mb-1.5">{ts('displayName')}</label>
+            <label htmlFor="signup-display-name" className="text-sm font-medium block mb-1.5">{ts('displayName')}</label>
             <input
+              id="signup-display-name"
               type="text"
               {...register('display_name')}
               className="w-full bg-white/5 border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors"
@@ -441,8 +445,9 @@ function SignupContent() {
             {errors.display_name && <p className="text-xs text-red-400 mt-1">{errors.display_name.message}</p>}
           </div>
           <div>
-            <label className="text-sm font-medium block mb-1.5">{ts('country')}</label>
+            <label htmlFor="signup-country" className="text-sm font-medium block mb-1.5">{ts('country')}</label>
             <select
+              id="signup-country"
               {...register('country')}
               className="w-full bg-background border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors"
             >
