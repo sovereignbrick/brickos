@@ -967,6 +967,18 @@ Rules:
 - If you can detect the lab date, include it as a separate field: "lab_date": "YYYY-MM-DD"
 - If you can detect the lab/provider name from the letterhead, include: "lab_provider": "Name"
 - If you can detect the lab address, include: "lab_address": "Street address", "lab_postal_code": "12345", "lab_city": "City", "lab_country": "Country"
+- IMPORTANT: Always use the full marker name in marker_name, not the abbreviation. Common abbreviation mappings:
+  BG/BZ/GLU = Glucose (NOT SHBG), HB/HGB = Hemoglobin, HCT/HKT = Hematocrit,
+  TC/TCH/CHOL = Total Cholesterol, TG/TRIG = Triglycerides, UA/HS = Uric Acid,
+  KB/BHB = Ketones, CREA/KREA = Creatinine, ALB = Albumin, FE = Iron,
+  PLT/THRO = Platelets, LEUK/WBC = White Blood Cells, ERY/RBC = Red Blood Cells,
+  TSH = Thyroid Stimulating Hormone, fT3 = Free T3, fT4 = Free T4,
+  GOT/AST = AST, GPT/ALT = ALT, GGT = GGT, AP/ALP = Alkaline Phosphatase,
+  BILI = Bilirubin, TP = Total Protein, Na = Sodium, K = Potassium,
+  Ca = Calcium, Mg = Magnesium, PO4 = Phosphate, CRP/hsCRP = C-Reactive Protein,
+  LDL = LDL Cholesterol, HDL = HDL Cholesterol, HbA1c = Hemoglobin A1c,
+  FERR = Ferritin, TSAT = Transferrin Saturation, VitD/25OHD = Vitamin D
+- If the source appears to be a summary table or screenshot (not a full lab report), match abbreviations against the list above
 - Return valid JSON only. No markdown, no explanations, just the JSON."#;
 
 const MEDICATION_EXTRACTION_PROMPT: &str = r#"Extract all medications and supplements from this image.

@@ -22,36 +22,50 @@ import { useMemo } from 'react'
 // ── Reference Range Bar ───────────────────────────────────────────────────────
 
 function RangeBar({ range, value }: { range: MarkerReferenceRange; value: number | null }) {
+  const [showTooltip, setShowTooltip] = useState(false)
   const { yellow_low_min, yellow_low_max, green_min, green_max, yellow_high_min, yellow_high_max } = range
 
   // If no green bounds, nothing to draw
   if (green_min == null && green_max == null) return null
 
-  // Build display domain
-  const lo = yellow_low_min ?? (green_min != null ? green_min * 0.6 : 0)
-  const hi = yellow_high_max ?? (green_max != null ? green_max * 1.4 : 1)
+  // Build display domain — extend 10% beyond outer boundaries for red zones
+  const outerLo = yellow_low_min ?? green_min ?? 0
+  const outerHi = yellow_high_max ?? green_max ?? 1
+  const padding = (outerHi - outerLo) * 0.12
+  const lo = outerLo - padding
+  const hi = outerHi + padding
   const span = hi - lo || 1
   const pct = (v: number) => Math.max(0, Math.min(100, ((v - lo) / span) * 100))
 
   // Segments: [redL, yellowL, green, yellowH, redR]
   const segments: { color: string; bg: string; from: number; to: number }[] = []
 
-  const redL = yellow_low_min != null ? pct(yellow_low_min) : 0
-  const yllL = yellow_low_max != null ? pct(yellow_low_max) : redL
-  const grnL = green_min != null ? pct(green_min) : yllL
+  const yllL = yellow_low_min != null ? pct(yellow_low_min) : 0
+  const grnL = green_min != null ? pct(green_min) : (yellow_low_max != null ? pct(yellow_low_max) : yllL)
   const grnR = green_max != null ? pct(green_max) : 100
-  const yllR = yellow_high_min != null ? pct(yellow_high_min) : grnR
-  const redR = yellow_high_max != null ? pct(yellow_high_max) : grnR
+  const yllR = yellow_high_max != null ? pct(yellow_high_max) : grnR
 
-  if (yellow_low_min != null && redL > 0)       segments.push({ color: 'red',    bg: 'bg-red-500',    from: 0,    to: redL })
-  if (yllL > redL)                               segments.push({ color: 'yellow', bg: 'bg-amber-400',  from: redL, to: yllL })
-  segments.push(                                               { color: 'green',  bg: 'bg-emerald-500',from: grnL, to: grnR })
-  if (redR > grnR)                               segments.push({ color: 'yellow', bg: 'bg-amber-400',  from: grnR, to: redR })
-  if (redR < 100)                                segments.push({ color: 'red',    bg: 'bg-red-500',    from: redR, to: 100 })
+  // Red low zone
+  if (yllL > 0) segments.push({ color: 'red', bg: 'bg-red-500/70', from: 0, to: yllL })
+  // Yellow low zone
+  if (grnL > yllL) segments.push({ color: 'yellow', bg: 'bg-amber-400/80', from: yllL, to: grnL })
+  // Green optimal zone
+  segments.push({ color: 'green', bg: 'bg-emerald-500', from: grnL, to: grnR })
+  // Yellow high zone
+  if (yllR > grnR) segments.push({ color: 'yellow', bg: 'bg-amber-400/80', from: grnR, to: yllR })
+  // Red high zone
+  if (yllR < 100) segments.push({ color: 'red', bg: 'bg-red-500/70', from: yllR, to: 100 })
 
   const pinPct = value != null ? pct(value) : null
+  const pinColor = value != null && green_min != null && green_max != null
+    ? (value >= green_min && value <= green_max
+      ? '#4ade80'
+      : ((yellow_low_min != null && value >= yellow_low_min && value < green_min) || (yellow_high_max != null && value > green_max && value <= yellow_high_max))
+        ? '#fbbf24'
+        : '#ef4444')
+    : '#ffffff'
 
-  // Boundary labels: show lo, green_min, green_max, hi
+  // Boundary labels
   const labels: { pct: number; val: number }[] = []
   if (yellow_low_min != null) labels.push({ pct: pct(yellow_low_min), val: yellow_low_min })
   if (green_min != null)      labels.push({ pct: pct(green_min),      val: green_min })
@@ -60,47 +74,46 @@ function RangeBar({ range, value }: { range: MarkerReferenceRange; value: number
 
   return (
     <div className="w-full select-none">
-      {/* Bar */}
-      <div className="relative h-5 rounded-full overflow-hidden flex" style={{ minHeight: 20 }}>
+      {/* Bar with circle marker */}
+      <div className="relative h-6 rounded-full overflow-hidden flex" style={{ minHeight: 24 }}>
         {segments.map((seg, i) => (
           <div
             key={i}
-            className={`${seg.bg} h-full opacity-80`}
+            className={`${seg.bg} h-full`}
             style={{ width: `${seg.to - seg.from}%`, flexShrink: 0 }}
           />
         ))}
-        {/* Value pin */}
-        {pinPct != null && (
+        {/* Circle marker */}
+        {pinPct != null && value != null && (
           <div
-            className="absolute top-0 bottom-0 flex flex-col items-center"
-            style={{ left: `${pinPct}%`, transform: 'translateX(-50%)' }}
+            className="absolute top-1/2 -translate-y-1/2 group cursor-pointer"
+            style={{ left: `${pinPct}%`, transform: `translateX(-50%) translateY(-50%)` }}
+            onMouseEnter={() => setShowTooltip(true)}
+            onMouseLeave={() => setShowTooltip(false)}
           >
-            <div className="w-0.5 h-full bg-white opacity-90" />
+            <div
+              className="w-5 h-5 rounded-full border-[2.5px] border-white shadow-md transition-transform hover:scale-125"
+              style={{ backgroundColor: pinColor }}
+            />
+            {/* Tooltip on hover */}
+            {showTooltip && (
+              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 pointer-events-none z-10">
+                <span className="text-[11px] font-bold text-foreground bg-card border border-border px-2 py-1 rounded-lg whitespace-nowrap shadow-lg block">
+                  {value} {range.unit}
+                </span>
+                <span className="w-0 h-0 border-l-[4px] border-r-[4px] border-t-[4px] border-transparent border-t-border block mx-auto" />
+              </div>
+            )}
           </div>
         )}
       </div>
-
-      {/* Pin label above bar */}
-      {pinPct != null && value != null && (
-        <div className="relative h-5 -mt-7 pointer-events-none">
-          <div
-            className="absolute -top-5 flex flex-col items-center"
-            style={{ left: `${pinPct}%`, transform: 'translateX(-50%)' }}
-          >
-            <span className="text-[11px] font-bold text-foreground bg-muted border border-border px-1.5 py-0.5 rounded-full whitespace-nowrap shadow">
-              {value} {range.unit}
-            </span>
-            <span className="w-0 h-0 border-l-[3px] border-r-[3px] border-t-[3px] border-transparent border-t-border" />
-          </div>
-        </div>
-      )}
 
       {/* Boundary labels */}
       <div className="relative mt-2 h-4">
         {labels.map((lb, i) => (
           <span
             key={i}
-            className="absolute text-xs text-muted-foreground"
+            className="absolute text-[10px] text-muted-foreground"
             style={{ left: `${lb.pct}%`, transform: 'translateX(-50%)' }}
           >
             {lb.val}

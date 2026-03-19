@@ -280,7 +280,7 @@ function MarkerInfoButton({ marker }: { marker: MarkerWithZone }) {
     <div className="relative inline-flex" ref={ref} onMouseEnter={onEnter} onMouseLeave={onLeave}>
       <Link
         href={`/markers/${marker.marker_slug}`}
-        className="text-blue-400/60 hover:text-blue-400 transition-colors shrink-0"
+        className="text-blue-500 dark:text-blue-400/60 hover:text-blue-600 dark:hover:text-blue-400 transition-colors shrink-0"
         onClick={e => e.stopPropagation()}
       >
         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
@@ -313,9 +313,11 @@ function MarkerInfoButton({ marker }: { marker: MarkerWithZone }) {
 function MarkerNameLink({ marker }: { marker: MarkerWithZone }) {
   const { markers: contentMarkers } = useContent()
   const translatedName = contentMarkers[marker.marker_slug]?.name ?? marker.display_name ?? marker.marker_name
+  const abbr = marker.abbreviation
   return (
     <span className="flex items-center gap-1 min-w-0">
       <span className="truncate">{translatedName}</span>
+      {abbr && <span className="text-[10px] text-muted-foreground shrink-0">({abbr})</span>}
       <MarkerInfoButton marker={marker} />
     </span>
   )
@@ -1767,6 +1769,8 @@ function ThresholdsTab({
                 || (m.display_name?.toLowerCase().includes(filterLower))
                 || (m.abbreviation?.toLowerCase().includes(filterLower))
                 || (contentMarkers[m.marker_slug]?.name?.toLowerCase().includes(filterLower))
+                || (contentMarkers[m.marker_slug]?.description?.toLowerCase().includes(filterLower))
+                || (contentMarkers[m.marker_slug]?.tooltip?.toLowerCase().includes(filterLower))
             )
             if (filtered.length === 0) return null
             const collapsed = collapsedZones.has(zone.slug)
@@ -1792,7 +1796,7 @@ function ThresholdsTab({
                   return (
                     <div
                       key={`${m.marker_slug}-${idx}`}
-                      className={`grid grid-cols-[minmax(120px,1fr)_72px_68px_68px_68px_68px_46px] gap-1 px-3 py-1 border-t border-border/50 items-center ${idx % 2 === 1 ? 'bg-white/[0.02]' : ''}`}
+                      className={`grid grid-cols-[minmax(120px,1fr)_72px_68px_68px_68px_68px_46px] gap-1 px-3 py-1 border-t border-border/50 items-center ${idx % 2 === 1 ? 'bg-muted/30' : ''}`}
                     >
                       <span className="text-sm min-w-0">
                         <MarkerNameLink marker={m} />

@@ -16,6 +16,8 @@ fn alias_map() -> &'static HashMap<&'static str, &'static str> {
             "glucose, serum",
             "blood sugar",
             "glu",
+            "bg",
+            "glc",
             "glukose",
             "blutzucker",
             "glucose nuchtern",
@@ -70,6 +72,7 @@ fn alias_map() -> &'static HashMap<&'static str, &'static str> {
             "cholesterol, total",
             "chol",
             "tc",
+            "tch",
             "cholesterin",
             "cholesterin gesamt",
             "gesamtcholesterin",
@@ -388,15 +391,32 @@ pub fn match_marker(ai_name: &str) -> Option<&'static str> {
     let normalized = ai_name.trim().to_lowercase();
     let map = alias_map();
 
-    // 1. Exact match
+    // 1. Exact match — always preferred
     if let Some(slug) = map.get(normalized.as_str()) {
         return Some(slug);
     }
 
-    // 2. Substring match: check if any alias is contained in the name or vice versa
+    // 2. The normalized name contains a known alias (e.g., "fasting glucose level" contains "glucose")
+    //    Prefer longer alias matches to avoid false positives.
+    let mut best: Option<(&str, usize)> = None;
     for (alias, slug) in map.iter() {
-        if normalized.contains(alias) || alias.contains(normalized.as_str()) {
-            return Some(slug);
+        if alias.len() >= 3 && normalized.contains(alias) {
+            if best.is_none() || alias.len() > best.unwrap().1 {
+                best = Some((slug, alias.len()));
+            }
+        }
+    }
+    if let Some((slug, _)) = best {
+        return Some(slug);
+    }
+
+    // 3. A known alias contains the normalized name — only if input is long enough
+    //    to avoid short abbreviations matching unrelated markers (e.g., "bg" in "shbg").
+    if normalized.len() >= 4 {
+        for (alias, slug) in map.iter() {
+            if alias.contains(normalized.as_str()) {
+                return Some(slug);
+            }
         }
     }
 
@@ -502,6 +522,21 @@ mod tests {
             match_marker("Cholesterin gesamt"),
             Some("total_cholesterol")
         );
+    }
+
+    #[test]
+    fn test_abbreviation_priority() {
+        // BG must resolve to glucose, NOT shbg
+        assert_eq!(match_marker("BG"), Some("glucose"));
+        assert_eq!(match_marker("bg"), Some("glucose"));
+        // TCH must resolve to total_cholesterol
+        assert_eq!(match_marker("TCH"), Some("total_cholesterol"));
+        // HB must resolve to hemoglobin
+        assert_eq!(match_marker("HB"), Some("hemoglobin"));
+        // HCT must resolve to hematocrit
+        assert_eq!(match_marker("HCT"), Some("hematocrit"));
+        // SHBG still works
+        assert_eq!(match_marker("SHBG"), Some("shbg"));
     }
 
     #[test]
