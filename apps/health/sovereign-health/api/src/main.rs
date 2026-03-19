@@ -39,6 +39,16 @@ async fn main() -> std::io::Result<()> {
         .json()
         .init();
 
+    // Initialize Sentry error tracking (only if SENTRY_DSN is set)
+    let _sentry_guard = std::env::var("SENTRY_DSN").ok().filter(|s| !s.is_empty()).map(|dsn| {
+        sentry::init((dsn, sentry::ClientOptions {
+            release: Some(sovereign_health_backend::VERSION.into()),
+            environment: Some(std::env::var("SHI_MODE").unwrap_or_else(|_| "development".to_string()).into()),
+            traces_sample_rate: 0.1,
+            ..Default::default()
+        }))
+    });
+
     let config =
         sovereign_health_backend::config::Config::from_env().expect("Failed to load config");
 
@@ -238,6 +248,7 @@ async fn main() -> std::io::Result<()> {
         let payload_cfg = web::PayloadConfig::default().limit(35 * 1024 * 1024); // 35MB max payload
 
         let mut app = App::new()
+            .wrap(sentry_actix::Sentry::new())
             .wrap(cors)
             .wrap(sovereign_health_backend::middleware::rls::RlsMiddleware)
             .app_data(json_cfg)

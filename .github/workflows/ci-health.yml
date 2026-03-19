@@ -26,7 +26,7 @@ jobs:
     name: cargo fmt
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@stable
         with: { components: rustfmt }
       - run: cargo fmt --check -p sovereign-health-backend
@@ -35,7 +35,7 @@ jobs:
     name: cargo clippy
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@stable
         with: { components: clippy }
       - uses: Swatinem/rust-cache@v2
@@ -47,7 +47,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [lint-fmt, lint-clippy]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - run: cargo test -p sovereign-health-backend --test smoke -- --nocapture
@@ -60,7 +60,7 @@ jobs:
     env:
       INSTA_UPDATE: 'no'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - run: cargo install cargo-insta --quiet
@@ -74,7 +74,7 @@ jobs:
     env:
       INSTA_UPDATE: 'no'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - run: cargo test -p sovereign-health-backend --test integration -- --nocapture
@@ -101,7 +101,7 @@ jobs:
       DATABASE_URL: postgres://sovereign_health:dev_password_only@localhost:5432/sovereign_health
       JWT_SECRET: ci_test_jwt_secret_32chars_long_x
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - run: cargo test -p sovereign-health-backend --test auth_test -- --nocapture
@@ -127,7 +127,7 @@ jobs:
       DATABASE_URL: postgres://sovereign_health:dev_password_only@localhost:5432/sovereign_health
       JWT_SECRET: ci_test_jwt_secret_32chars_long_x
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - run: cargo test -p sovereign-health-backend --test measurement_test -- --nocapture
@@ -153,7 +153,7 @@ jobs:
       DATABASE_URL: postgres://sovereign_health:dev_password_only@localhost:5432/sovereign_health
       JWT_SECRET: ci_test_jwt_secret_32chars_long_x
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - run: cargo test -p sovereign-health-backend --test tier_test -- --nocapture
@@ -179,7 +179,7 @@ jobs:
       DATABASE_URL: postgres://sovereign_health:dev_password_only@localhost:5432/sovereign_health
       JWT_SECRET: ci_test_jwt_secret_32chars_long_x
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - run: cargo test -p sovereign-health-backend --test doctor_chat_test -- --nocapture
@@ -206,7 +206,7 @@ jobs:
       DATABASE_URL: postgres://sovereign_health:dev_password_only@localhost:5432/sovereign_health
       JWT_SECRET: ci_test_jwt_secret_32chars_long_x
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - run: cargo test -p sovereign-health-backend --test platform_test -- --nocapture
@@ -217,7 +217,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [lint-fmt, lint-clippy]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - run: cargo test -p brickos-auth -p brickos-crypto -p brickos-billing -p brickos-email -p brickos-db -- --nocapture
@@ -230,7 +230,7 @@ jobs:
     env:
       PROPTEST_CASES: '1000'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - run: cargo test -p sovereign-health-backend --test property -- --nocapture
@@ -240,7 +240,7 @@ jobs:
     name: cargo audit
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@stable
       - run: cargo install cargo-audit --quiet
       - run: cargo audit
@@ -251,11 +251,11 @@ jobs:
     name: frontend build + test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: pnpm/action-setup@v4
         with:
           version: 10
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: '22'
       - run: cd apps/health/sovereign-health/frontend && pnpm install

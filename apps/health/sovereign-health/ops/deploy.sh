@@ -295,6 +295,9 @@ deploy_backend() {
     # Verify we're on the correct branch.
     ensure_branch "$branch" "$PROJECT_ROOT" "brickos"
 
+    # Save current image for rollback before overwriting
+    save_rollback_state "$env" "backend" "$BACKEND_IMAGE" "$image_tag"
+
     log "Building backend ($env)..."
     cd "$PROJECT_ROOT"
     docker build -f apps/health/sovereign-health/api/Dockerfile -t "${BACKEND_IMAGE}:${image_tag}" .
@@ -343,6 +346,9 @@ deploy_frontend() {
     fi
 
     ensure_branch "$branch" "$PROJECT_ROOT" "brickos"
+
+    # Save current image for rollback before overwriting
+    save_rollback_state "$env" "frontend" "$FRONTEND_IMAGE" "$image_tag"
 
     log "Building frontend ($env) with API_URL=$api_url..."
     cd "$APP_ROOT/frontend"
@@ -472,6 +478,86 @@ cloudflare_purge() {
         echo "  Response: $response"
         report_add "FAIL" "Cloudflare cache purge failed"
     fi
+}
+
+# ── Rollback support ──────────────────────────────────────────────────────────
+# Before each deploy, saves the current image ID so we can restore it.
+# Rollback files stored on VPS at /opt/sovereign-health/.rollback/
+
+save_rollback_state() {
+    local env="$1" component="$2"
+    local image_name="$3" image_tag="$4"
+    local rollback_dir="$VPS_BASE/.rollback"
+
+    ssh $VPS "mkdir -p $rollback_dir && \
+        docker inspect --format='{{.Id}}' ${image_name}:${image_tag} 2>/dev/null > $rollback_dir/${component}_${env}_previous_id && \
+        docker tag ${image_name}:${image_tag} ${image_name}:${env}-rollback 2>/dev/null || true" 2>/dev/null
+}
+
+rollback() {
+    local env="$1"
+    local component="${2:-all}"
+
+    if [ "$env" != "staging" ] && [ "$env" != "production" ]; then
+        fail "Usage: bash ops/deploy.sh rollback <staging|production> [backend|frontend|all]"
+    fi
+
+    local compose_file
+    if [ "$env" = "staging" ]; then
+        compose_file="$COMPOSE_STAGING"
+    else
+        compose_file="$COMPOSE_PROD"
+    fi
+
+    warn "Rolling back $component on $env..."
+
+    do_rollback() {
+        local comp="$1" image="$2" tag="$3"
+        local rollback_tag="${tag}-rollback"
+
+        # Check if rollback image exists
+        local exists
+        exists=$(ssh $VPS "docker image inspect ${image}:${rollback_tag} > /dev/null 2>&1 && echo yes || echo no")
+        if [ "$exists" != "yes" ]; then
+            warn "No rollback image found for ${image}:${rollback_tag} — skipping $comp"
+            report_add "SKIP" "Rollback $comp: no previous image found"
+            return
+        fi
+
+        log "Restoring ${image}:${rollback_tag} → ${image}:${tag}..."
+        ssh $VPS "docker tag ${image}:${rollback_tag} ${image}:${tag}"
+        report_add "OK" "Rollback $comp: restored previous image"
+    }
+
+    local image_tag
+    if [ "$env" = "staging" ]; then
+        image_tag="staging"
+    else
+        image_tag="latest"
+    fi
+
+    case "$component" in
+        backend)
+            do_rollback backend "$BACKEND_IMAGE" "$image_tag"
+            ;;
+        frontend)
+            do_rollback frontend "$FRONTEND_IMAGE" "$image_tag"
+            ;;
+        all)
+            do_rollback backend "$BACKEND_IMAGE" "$image_tag"
+            do_rollback frontend "$FRONTEND_IMAGE" "$image_tag"
+            ;;
+        *) fail "Unknown component: $component" ;;
+    esac
+
+    log "Restarting containers ($env)..."
+    if [ "$env" = "staging" ]; then
+        ssh $VPS "cd $VPS_BASE && docker compose -f $compose_file --env-file .env.staging -p sh-staging up -d --force-recreate $( [ "$component" = "all" ] && echo "backend frontend" || echo "$component" )"
+    else
+        ssh $VPS "cd $VPS_BASE && docker compose -f $compose_file up -d --force-recreate $( [ "$component" = "all" ] && echo "backend frontend" || echo "$component" )"
+    fi
+
+    verify "$env"
 }
 
 # ── Database backup (staging only) ────────────────────────────────────────────
@@ -722,6 +808,13 @@ case "$ENV" in
         show_status
         ;;
 
+    # ── Rollback ────────────────────────────────────────────────────────
+    # Usage: deploy.sh rollback staging [backend|frontend|all]
+    # Restores the previous Docker images and restarts containers.
+    rollback)
+        rollback "$COMPONENT" "${CONFIRM:-all}"
+        ;;
+
     # ── Reset staging DB ──────────────────────────────────────────────────
     # Wipes the staging database. Use when data is stale or broken.
     staging-reset-db)
@@ -743,6 +836,7 @@ case "$ENV" in
         echo "  all                  Everything (default)"
         echo ""
         echo "Other commands:"
+        echo "  rollback <env> [component]  Restore previous Docker images"
         echo "  git                  Push all repos to GitLab"
         echo "  promote              Merge develop -> main (does not deploy)"
         echo "  status               Show VPS container status"

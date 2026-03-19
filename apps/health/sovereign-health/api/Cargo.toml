@@ -24,8 +24,10 @@ actix-multipart = "0.7"
 futures-util = "0.3"
 actix-governor = "0.5"
 tracing = "0.1"
-tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+tracing-subscriber = { version = "0.3.23", features = ["env-filter", "json"] }
 tracing-actix-web = "0.7"
+sentry = { version = "0.35", default-features = false, features = ["reqwest", "rustls", "tracing", "backtrace", "contexts", "panic"] }
+sentry-actix = "0.35"
 reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
 aes-gcm = "0.10"
 brickos-auth = { path = "../../../../crates/brickos-auth" }
