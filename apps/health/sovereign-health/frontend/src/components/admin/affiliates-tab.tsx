@@ -70,14 +70,14 @@ export function AffiliatesTab() {
 
   return (
     <div className="space-y-4">
-      <div className="flex gap-1 border-b border-zinc-800">
+      <div className="flex gap-1 border-b border-border">
         {SUB_TABS.map(t => (
           <button
             key={t.key}
             onClick={() => setSubTab(t.key)}
             className={`px-3 py-1.5 text-xs font-medium border-b-2 transition-colors ${
               subTab === t.key
-                ? 'border-blue-500 text-white'
+                ? 'border-blue-500 text-foreground'
                 : 'border-transparent text-muted-foreground hover:text-foreground'
             }`}
           >
@@ -125,7 +125,7 @@ function OverviewSubTab() {
     <div className="space-y-6">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {cards.map(c => (
-          <div key={c.label} className="border border-zinc-800 rounded-lg p-4">
+          <div key={c.label} className="border border-border rounded-lg p-4">
             <p className="text-xs text-muted-foreground">{c.label}</p>
             <p className="text-2xl font-bold mt-1">{c.value}</p>
           </div>
@@ -140,7 +140,7 @@ function OverviewSubTab() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-zinc-800 text-left text-muted-foreground">
+                <tr className="border-b border-border text-left text-muted-foreground">
                   <th className="py-2 pr-4">#</th>
                   <th className="py-2 pr-4">Code</th>
                   <th className="py-2 pr-4 text-right">Conversions</th>
@@ -150,7 +150,7 @@ function OverviewSubTab() {
               </thead>
               <tbody>
                 {affiliates.map((a, i) => (
-                  <tr key={a.affiliate_code} className="border-b border-zinc-800/50">
+                  <tr key={a.affiliate_code} className="border-b border-border/50">
                     <td className="py-2 pr-4 text-muted-foreground">{i + 1}</td>
                     <td className="py-2 pr-4 font-mono text-xs">{a.affiliate_code}</td>
                     <td className="py-2 pr-4 text-right">{a.total_conversions}</td>
@@ -272,7 +272,7 @@ function QueueSubTab({ onCountChange }: { onCountChange: (count: number) => void
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-zinc-800 text-left text-muted-foreground">
+            <tr className="border-b border-border text-left text-muted-foreground">
               <th className="py-2 pr-4">Code</th>
               <th className="py-2 pr-4 text-right">Commission</th>
               <th className="py-2 pr-4">Eval Ended</th>
@@ -282,7 +282,7 @@ function QueueSubTab({ onCountChange }: { onCountChange: (count: number) => void
           </thead>
           <tbody>
             {queue.map(item => (
-              <tr key={item.conversion_id} className="border-b border-zinc-800/50">
+              <tr key={item.conversion_id} className="border-b border-border/50">
                 <td className="py-2 pr-4 font-mono text-xs">{item.affiliate_code}</td>
                 <td className="py-2 pr-4 text-right">
                   {item.commission_amount_cents != null ? formatCents(item.commission_amount_cents) : '-'}
@@ -302,7 +302,7 @@ function QueueSubTab({ onCountChange }: { onCountChange: (count: number) => void
                           value={rejectReason}
                           onChange={e => setRejectReason(e.target.value)}
                           placeholder={t('rejectReasonPlaceholder')}
-                          className="bg-zinc-900 border border-zinc-700 rounded px-2 py-1 text-xs w-32"
+                          className="bg-card border border-border rounded px-2 py-1 text-xs w-32"
                         />
                       )}
                       <button
@@ -434,7 +434,7 @@ function PayoutsSubTab() {
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-zinc-800 text-left text-muted-foreground">
+              <tr className="border-b border-border text-left text-muted-foreground">
                 <th className="py-2 pr-4">Code</th>
                 <th className="py-2 pr-4 text-right">Amount</th>
                 <th className="py-2 pr-4">Method</th>
@@ -446,7 +446,7 @@ function PayoutsSubTab() {
             </thead>
             <tbody>
               {payouts.map(p => (
-                <tr key={p.id} className="border-b border-zinc-800/50">
+                <tr key={p.id} className="border-b border-border/50">
                   <td className="py-2 pr-4 font-mono text-xs">{p.affiliate_code}</td>
                   <td className="py-2 pr-4 text-right">
                     {p.amount_cents != null ? formatCents(p.amount_cents) : '-'}
@@ -476,7 +476,7 @@ function PayoutsSubTab() {
                             value={payoutRef}
                             onChange={e => setPayoutRef(e.target.value)}
                             placeholder="TX hash / ref"
-                            className="bg-zinc-900 border border-zinc-700 rounded px-2 py-1 text-xs w-32"
+                            className="bg-card border border-border rounded px-2 py-1 text-xs w-32"
                           />
                           <button
                             onClick={() => handleMarkPaid(p.id)}

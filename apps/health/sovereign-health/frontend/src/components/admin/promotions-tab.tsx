@@ -62,7 +62,7 @@ const STATUS_COLORS: Record<string, string> = {
   active: 'bg-emerald-900/50 text-emerald-400',
   expiring_soon: 'bg-yellow-900/50 text-yellow-400',
   expired: 'bg-red-900/50 text-red-400',
-  disabled: 'bg-zinc-800 text-zinc-500',
+  disabled: 'bg-muted text-muted-foreground',
 }
 
 function formatDiscount(type: string, value: number, currency: string): string {
@@ -233,7 +233,7 @@ export function PromotionsTab() {
   }, [form.discount_value, form.discount_type, showCreate])
 
   if (loading) {
-    return <div className="p-6 text-center text-white/40">Loading promotions...</div>
+    return <div className="p-6 text-center text-muted-foreground">Loading promotions...</div>
   }
 
   return (
@@ -250,44 +250,44 @@ export function PromotionsTab() {
 
       {/* Create Form */}
       {showCreate && (
-        <div className="border border-white/10 rounded-xl p-6 space-y-4 bg-white/[0.02]">
+        <div className="border border-border rounded-xl p-6 space-y-4 bg-muted/50">
           <h3 className="font-medium">Create Promotion</h3>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="text-xs text-white/50 block mb-1">Code</label>
+              <label className="text-xs text-muted-foreground block mb-1">Code</label>
               <input
                 value={form.code}
                 onChange={e => setForm({ ...form, code: e.target.value.toUpperCase() })}
                 placeholder="BTCPRAGUE50"
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full bg-muted border border-border rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
             </div>
             <div>
-              <label className="text-xs text-white/50 block mb-1">Name</label>
+              <label className="text-xs text-muted-foreground block mb-1">Name</label>
               <input
                 value={form.name}
                 onChange={e => setForm({ ...form, name: e.target.value })}
                 placeholder="BTC Prague 2026 Launch"
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full bg-muted border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-3 gap-4">
             <div>
-              <label className="text-xs text-white/50 block mb-1">Discount Type</label>
+              <label className="text-xs text-muted-foreground block mb-1">Discount Type</label>
               <select
                 value={form.discount_type}
                 onChange={e => setForm({ ...form, discount_type: e.target.value as 'percent_off' | 'amount_off' })}
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full bg-muted border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
               >
                 <option value="percent_off">Percentage</option>
                 <option value="amount_off">Fixed Amount (€)</option>
               </select>
             </div>
             <div>
-              <label className="text-xs text-white/50 block mb-1">
+              <label className="text-xs text-muted-foreground block mb-1">
                 Value {form.discount_type === 'percent_off' ? '(%)' : '(€)'}
               </label>
               <input
@@ -295,15 +295,15 @@ export function PromotionsTab() {
                 value={form.discount_value}
                 onChange={e => setForm({ ...form, discount_value: e.target.value })}
                 placeholder={form.discount_type === 'percent_off' ? '50' : '10.00'}
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full bg-muted border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
             </div>
             <div>
-              <label className="text-xs text-white/50 block mb-1">Duration</label>
+              <label className="text-xs text-muted-foreground block mb-1">Duration</label>
               <select
                 value={form.duration}
                 onChange={e => setForm({ ...form, duration: e.target.value as 'once' | 'repeating' | 'forever' })}
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full bg-muted border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
               >
                 <option value="once">One-time</option>
                 <option value="repeating">Repeating (months)</option>
@@ -314,18 +314,18 @@ export function PromotionsTab() {
 
           {form.duration === 'repeating' && (
             <div className="max-w-[200px]">
-              <label className="text-xs text-white/50 block mb-1">Duration (months)</label>
+              <label className="text-xs text-muted-foreground block mb-1">Duration (months)</label>
               <input
                 type="number"
                 value={form.duration_months}
                 onChange={e => setForm({ ...form, duration_months: e.target.value })}
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full bg-muted border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
             </div>
           )}
 
           <div>
-            <label className="text-xs text-white/50 block mb-2">Applicable Tiers</label>
+            <label className="text-xs text-muted-foreground block mb-2">Applicable Tiers</label>
             <div className="flex flex-wrap gap-2">
               {TIERS.map(t => (
                 <button
@@ -340,7 +340,7 @@ export function PromotionsTab() {
                   className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
                     form.applicable_tiers.includes(t)
                       ? 'bg-blue-600/30 border-blue-500/50 text-blue-400'
-                      : 'bg-white/5 border-white/10 text-white/40'
+                      : 'bg-muted border-border text-muted-foreground'
                   }`}
                 >
                   {t.charAt(0).toUpperCase() + t.slice(1)}
@@ -351,47 +351,47 @@ export function PromotionsTab() {
 
           <div className="grid grid-cols-3 gap-4">
             <div>
-              <label className="text-xs text-white/50 block mb-1">Max Redemptions</label>
+              <label className="text-xs text-muted-foreground block mb-1">Max Redemptions</label>
               <input
                 type="number"
                 value={form.max_redemptions}
                 onChange={e => setForm({ ...form, max_redemptions: e.target.value })}
                 placeholder={t('unlimitedPlaceholder')}
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full bg-muted border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
             </div>
             <div>
-              <label className="text-xs text-white/50 block mb-1">Start Date</label>
+              <label className="text-xs text-muted-foreground block mb-1">Start Date</label>
               <input
                 type="date"
                 value={form.starts_at}
                 onChange={e => setForm({ ...form, starts_at: e.target.value })}
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full bg-muted border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
             </div>
             <div>
-              <label className="text-xs text-white/50 block mb-1">Expiry Date</label>
+              <label className="text-xs text-muted-foreground block mb-1">Expiry Date</label>
               <input
                 type="date"
                 value={form.expires_at}
                 onChange={e => setForm({ ...form, expires_at: e.target.value })}
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full bg-muted border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
             </div>
           </div>
 
           {/* Price Preview */}
           {previewPrices() && (
-            <div className="border border-white/10 rounded-lg p-4 bg-white/[0.02]">
-              <p className="text-xs text-white/50 mb-2">Price Preview</p>
+            <div className="border border-border rounded-lg p-4 bg-muted/50">
+              <p className="text-xs text-muted-foreground mb-2">Price Preview</p>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 {previewPrices()?.map(p => (
                   <div key={p.tier} className="text-sm">
-                    <span className="text-white/60 capitalize">{p.tier}: </span>
-                    <span className="text-white/30 line-through">€{p.original.toFixed(2)}</span>
+                    <span className="text-muted-foreground capitalize">{p.tier}: </span>
+                    <span className="text-muted-foreground/60 line-through">€{p.original.toFixed(2)}</span>
                     {' '}
                     <span className="text-emerald-400 font-medium">€{p.discounted.toFixed(2)}</span>
-                    <span className="text-white/30">/mo</span>
+                    <span className="text-muted-foreground/60">/mo</span>
                   </div>
                 ))}
               </div>
@@ -400,10 +400,10 @@ export function PromotionsTab() {
 
           {/* Revenue Impact Preview (server-side) */}
           {form.discount_type === 'percent_off' && revenuePreview && (
-            <div className="border border-white/10 rounded-lg p-4 bg-white/[0.02] space-y-3">
-              <p className="text-xs text-white/50 font-medium">Revenue Impact Preview</p>
+            <div className="border border-border rounded-lg p-4 bg-muted/50 space-y-3">
+              <p className="text-xs text-muted-foreground font-medium">Revenue Impact Preview</p>
               {previewLoading ? (
-                <p className="text-xs text-white/30">Calculating...</p>
+                <p className="text-xs text-muted-foreground/60">Calculating...</p>
               ) : (
                 <>
                   {revenuePreview.warnings.length > 0 && (
@@ -416,17 +416,17 @@ export function PromotionsTab() {
                   <div className="space-y-2">
                     {revenuePreview.tiers.map(t => (
                       <div key={t.tier} className="grid grid-cols-5 gap-2 text-xs items-center">
-                        <span className="text-white/60 capitalize font-medium">{t.tier}</span>
-                        <span className="text-white/40">
+                        <span className="text-muted-foreground capitalize font-medium">{t.tier}</span>
+                        <span className="text-muted-foreground">
                           Card: €{(t.monthly.scenarios.card_no_affiliate.net / 100).toFixed(2)} ({t.monthly.scenarios.card_no_affiliate.net_pct}%)
                         </span>
-                        <span className="text-white/40">
+                        <span className="text-muted-foreground">
                           Card+Aff: €{(t.monthly.scenarios.card_with_affiliate.net / 100).toFixed(2)} ({t.monthly.scenarios.card_with_affiliate.net_pct}%)
                         </span>
-                        <span className="text-white/40">
-                          BTC: €{(t.monthly.scenarios.btc_no_affiliate.net / 100).toFixed(2)} ({t.monthly.scenarios.btc_no_affiliate.net_pct}%)
+                        <span className="text-muted-foreground">
+                          BTC:€{(t.monthly.scenarios.btc_no_affiliate.net / 100).toFixed(2)} ({t.monthly.scenarios.btc_no_affiliate.net_pct}%)
                         </span>
-                        <span className={`${t.monthly.scenarios.btc_with_affiliate.net_pct < 50 ? 'text-red-400' : 'text-white/40'}`}>
+                        <span className={`${t.monthly.scenarios.btc_with_affiliate.net_pct < 50 ? 'text-red-400' : 'text-muted-foreground'}`}>
                           BTC+Aff: €{(t.monthly.scenarios.btc_with_affiliate.net / 100).toFixed(2)} ({t.monthly.scenarios.btc_with_affiliate.net_pct}%)
                         </span>
                       </div>
@@ -449,12 +449,12 @@ export function PromotionsTab() {
 
       {/* Promotions List */}
       {promotions.length === 0 ? (
-        <p className="text-white/40 text-sm text-center py-8">No promotions yet. Create your first one.</p>
+        <p className="text-muted-foreground text-sm text-center py-8">No promotions yet. Create your first one.</p>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-white/10 text-white/50 text-left">
+              <tr className="border-b border-border text-muted-foreground text-left">
                 <th className="pb-2 pr-4 font-medium">Code</th>
                 <th className="pb-2 pr-4 font-medium">Discount</th>
                 <th className="pb-2 pr-4 font-medium">Duration</th>
@@ -467,10 +467,10 @@ export function PromotionsTab() {
             <tbody>
               {promotions.map(p => (
                 <Fragment key={p.id}>
-                  <tr className="border-b border-white/5 hover:bg-white/[0.02]">
+                  <tr className="border-b border-border/50 hover:bg-accent">
                     <td className="py-3 pr-4">
-                      <span className="font-mono font-medium text-white">{p.code}</span>
-                      <span className="block text-xs text-white/30 mt-0.5">{p.name}</span>
+                      <span className="font-mono font-medium text-foreground">{p.code}</span>
+                      <span className="block text-xs text-muted-foreground/60 mt-0.5">{p.name}</span>
                     </td>
                     <td className="py-3 pr-4">{formatDiscount(p.discount_type, p.discount_value, p.currency)}</td>
                     <td className="py-3 pr-4">{formatDuration(p.duration, p.duration_months)}</td>
@@ -482,7 +482,7 @@ export function PromotionsTab() {
                         {p.redemption_count}/{p.max_redemptions ?? '∞'}
                       </button>
                     </td>
-                    <td className="py-3 pr-4 text-white/50">
+                    <td className="py-3 pr-4 text-muted-foreground">
                       {p.expires_at ? new Date(p.expires_at).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' }) : '-'}
                     </td>
                     <td className="py-3 pr-4">
@@ -505,15 +505,15 @@ export function PromotionsTab() {
                   </tr>
                   {selectedPromo === p.id && (
                     <tr>
-                      <td colSpan={7} className="py-3 px-4 bg-white/[0.02]">
+                      <td colSpan={7} className="py-3 px-4 bg-muted/50">
                         {redemptionLoading ? (
-                          <p className="text-white/40 text-xs">Loading...</p>
+                          <p className="text-muted-foreground text-xs">Loading...</p>
                         ) : redemptions.length === 0 ? (
-                          <p className="text-white/40 text-xs">No redemptions yet</p>
+                          <p className="text-muted-foreground text-xs">No redemptions yet</p>
                         ) : (
                           <table className="w-full text-xs">
                             <thead>
-                              <tr className="text-white/40">
+                              <tr className="text-muted-foreground">
                                 <th className="text-left pb-1">User</th>
                                 <th className="text-left pb-1">Tier</th>
                                 <th className="text-left pb-1">Redeemed</th>
@@ -521,7 +521,7 @@ export function PromotionsTab() {
                             </thead>
                             <tbody>
                               {redemptions.map(r => (
-                                <tr key={r.id} className="text-white/60">
+                                <tr key={r.id} className="text-muted-foreground">
                                   <td className="py-1">{r.email || r.user_id}</td>
                                   <td className="py-1 capitalize">{r.tier || '-'}</td>
                                   <td className="py-1">{new Date(r.redeemed_at).toLocaleString()}</td>

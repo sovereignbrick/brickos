@@ -79,7 +79,7 @@ export function NewsletterTab() {
     }
   }
 
-  if (loading) return <p className="text-white/40 text-sm">Loading...</p>
+  if (loading) return <p className="text-muted-foreground text-sm">Loading...</p>
 
   const totalPages = meta ? Math.ceil(meta.total / meta.per_page) : 1
 
@@ -87,20 +87,20 @@ export function NewsletterTab() {
     <div className="space-y-6">
       {/* Stats */}
       <div className="grid grid-cols-4 gap-4">
-        <div className="border border-white/10 rounded-lg p-4">
-          <p className="text-xs text-white/40">Total</p>
+        <div className="border border-border rounded-lg p-4">
+          <p className="text-xs text-muted-foreground">Total</p>
           <p className="text-2xl font-bold mt-1">{meta?.total ?? 0}</p>
         </div>
-        <div className="border border-white/10 rounded-lg p-4">
-          <p className="text-xs text-white/40">Confirmed</p>
+        <div className="border border-border rounded-lg p-4">
+          <p className="text-xs text-muted-foreground">Confirmed</p>
           <p className="text-2xl font-bold mt-1 text-green-400">{meta?.subscribed ?? 0}</p>
         </div>
-        <div className="border border-white/10 rounded-lg p-4">
-          <p className="text-xs text-white/40">Pending</p>
+        <div className="border border-border rounded-lg p-4">
+          <p className="text-xs text-muted-foreground">Pending</p>
           <p className="text-2xl font-bold mt-1 text-yellow-400">{meta?.pending ?? 0}</p>
         </div>
-        <div className="border border-white/10 rounded-lg p-4">
-          <p className="text-xs text-white/40">Unsubscribed</p>
+        <div className="border border-border rounded-lg p-4">
+          <p className="text-xs text-muted-foreground">Unsubscribed</p>
           <p className="text-2xl font-bold mt-1 text-red-400">{meta?.unsubscribed ?? 0}</p>
         </div>
       </div>
@@ -110,7 +110,7 @@ export function NewsletterTab() {
         <button
           onClick={handleExport}
           disabled={exporting}
-          className="text-sm bg-white/5 border border-white/10 rounded-lg px-4 py-2 hover:bg-white/10 transition-colors disabled:opacity-50"
+          className="text-sm bg-muted border border-border rounded-lg px-4 py-2 hover:bg-accent transition-colors disabled:opacity-50"
         >
           {exporting ? 'Exporting...' : 'Export CSV'}
         </button>
@@ -125,12 +125,12 @@ export function NewsletterTab() {
 
       {/* Table */}
       {subscribers.length === 0 ? (
-        <p className="text-white/40 text-sm text-center py-8">No subscribers yet.</p>
+        <p className="text-muted-foreground text-sm text-center py-8">No subscribers yet.</p>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-white/10 text-white/50 text-left">
+              <tr className="border-b border-border text-muted-foreground text-left">
                 <th className="pb-2 pr-4 font-medium">Email</th>
                 <th className="pb-2 pr-4 font-medium">Source</th>
                 <th className="pb-2 pr-4 font-medium">Status</th>
@@ -140,9 +140,9 @@ export function NewsletterTab() {
             </thead>
             <tbody>
               {subscribers.map(s => (
-                <tr key={s.id} className="border-b border-white/5 hover:bg-white/[0.02]">
+                <tr key={s.id} className="border-b border-border/50 hover:bg-accent">
                   <td className="py-2.5 pr-4 font-mono text-xs">{s.email}</td>
-                  <td className="py-2.5 pr-4 text-white/50">{s.source}</td>
+                  <td className="py-2.5 pr-4 text-muted-foreground">{s.source}</td>
                   <td className="py-2.5 pr-4">
                     {!s.subscribed ? (
                       <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-red-900/50 text-red-400">Unsubscribed</span>
@@ -156,10 +156,10 @@ export function NewsletterTab() {
                     {s.mailgun_synced ? (
                       <span className="text-green-400 text-xs">Synced</span>
                     ) : (
-                      <span className="text-white/30 text-xs">-</span>
+                      <span className="text-muted-foreground/60 text-xs">-</span>
                     )}
                   </td>
-                  <td className="py-2.5 text-white/50 text-xs">
+                  <td className="py-2.5 text-muted-foreground text-xs">
                     {new Date(s.created_at).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })}
                   </td>
                 </tr>
@@ -175,17 +175,17 @@ export function NewsletterTab() {
           <button
             onClick={() => setPage(p => Math.max(1, p - 1))}
             disabled={page === 1}
-            className="text-sm px-3 py-1 rounded border border-white/10 disabled:opacity-30 hover:bg-white/5 transition-colors"
+            className="text-sm px-3 py-1 rounded border border-border disabled:opacity-30 hover:bg-muted transition-colors"
           >
             Previous
           </button>
-          <span className="text-sm text-white/50">
+          <span className="text-sm text-muted-foreground">
             {page} / {totalPages}
           </span>
           <button
             onClick={() => setPage(p => Math.min(totalPages, p + 1))}
             disabled={page >= totalPages}
-            className="text-sm px-3 py-1 rounded border border-white/10 disabled:opacity-30 hover:bg-white/5 transition-colors"
+            className="text-sm px-3 py-1 rounded border border-border disabled:opacity-30 hover:bg-muted transition-colors"
           >
             Next
           </button>

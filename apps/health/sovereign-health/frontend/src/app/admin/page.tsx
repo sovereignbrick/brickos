@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
 import { api } from '@/lib/api'
 import { toast } from '@/lib/toast'
-import { Navbar } from '@/components/layout/navbar'
+
 import { Footer } from '@/components/layout/footer'
 import { Breadcrumb } from '@/components/breadcrumb'
 import { UsersTab } from '@/components/admin/users-tab'
@@ -75,7 +75,7 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
-      <Navbar />
+
       <div className="flex-1 flex">
         {/* Mobile sidebar toggle */}
         <button
@@ -89,7 +89,7 @@ export default function AdminPage() {
         {/* Sidebar */}
         <aside className={`
           fixed lg:sticky top-0 lg:top-auto left-0 z-40 h-full lg:h-auto
-          w-56 border-r border-zinc-800 bg-zinc-950 lg:bg-transparent shrink-0
+          w-56 border-r border-border bg-card lg:bg-transparent shrink-0
           transition-transform lg:transition-none
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         `}>
@@ -105,7 +105,7 @@ export default function AdminPage() {
                   className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${
                     tab === key
                       ? 'bg-blue-600/10 text-blue-400 font-medium'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-white/5'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-accent'
                   }`}
                 >
                   <span className="text-base w-5 text-center">{TAB_ICONS[key]}</span>
@@ -189,7 +189,7 @@ function DashboardTab() {
     <div className="space-y-6">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {cards.map(c => (
-          <div key={c.label} className="border border-zinc-800 rounded-lg p-4">
+          <div key={c.label} className="border border-border rounded-lg p-4">
             <p className="text-xs text-muted-foreground">{c.label}</p>
             <p className="text-2xl font-bold mt-1">{c.value.toLocaleString()}</p>
           </div>
@@ -197,7 +197,7 @@ function DashboardTab() {
       </div>
 
       {stats.tier_distribution.length > 0 && (
-        <div className="border border-zinc-800 rounded-lg p-4">
+        <div className="border border-border rounded-lg p-4">
           <h3 className="text-sm font-medium mb-3">Tier Distribution</h3>
           <div className="space-y-2">
             {stats.tier_distribution.map(t => {
@@ -205,7 +205,7 @@ function DashboardTab() {
               return (
                 <div key={t.tier} className="flex items-center gap-3">
                   <span className="text-sm w-20 capitalize">{t.tier}</span>
-                  <div className="flex-1 bg-zinc-800 rounded-full h-3">
+                  <div className="flex-1 bg-muted rounded-full h-3">
                     <div
                       className="bg-blue-600 h-3 rounded-full transition-all"
                       style={{ width: `${pct}%` }}
@@ -223,7 +223,7 @@ function DashboardTab() {
 
       {/* Translation Status Widget */}
       {translationStatus.length > 0 && (
-        <div className="border border-zinc-800 rounded-lg p-4">
+        <div className="border border-border rounded-lg p-4">
           <h3 className="text-sm font-medium mb-3">Translation Status</h3>
           <div className="space-y-3">
             {translationStatus.map(ts => (
@@ -234,7 +234,7 @@ function DashboardTab() {
                     {ts.translated} / {ts.total} ({ts.percentage.toFixed(0)}%)
                   </span>
                 </div>
-                <div className="bg-zinc-800 rounded-full h-2">
+                <div className="bg-muted rounded-full h-2">
                   <div
                     className={`h-2 rounded-full transition-all ${ts.percentage === 100 ? 'bg-emerald-500' : ts.percentage >= 80 ? 'bg-amber-500' : 'bg-red-500'}`}
                     style={{ width: `${ts.percentage}%` }}
@@ -375,14 +375,14 @@ function ContentTab() {
   return (
     <div className="space-y-4">
       {/* Sub-tabs */}
-      <div className="flex gap-1 border-b border-zinc-800">
+      <div className="flex gap-1 border-b border-border">
         {CONTENT_TABLES.map(t => (
           <button
             key={t}
             onClick={() => { setSubTab(t); setSearch('') }}
             className={`px-3 py-1.5 text-xs font-medium border-b-2 transition-colors ${
               subTab === t
-                ? 'border-blue-500 text-white'
+                ? 'border-blue-500 text-foreground'
                 : 'border-transparent text-muted-foreground hover:text-foreground'
             }`}
           >
@@ -397,7 +397,7 @@ function ContentTab() {
         value={search}
         onChange={e => setSearch(e.target.value)}
         placeholder={`Search ${TABLE_LABELS[subTab].toLowerCase()}...`}
-        className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm"
+        className="w-full bg-card border border-border rounded-lg px-3 py-2 text-sm"
       />
 
       <p className="text-xs text-muted-foreground">
@@ -415,11 +415,11 @@ function ContentTab() {
             const deStatus = getTranslationStatus(item, 'de')
 
             return (
-              <div key={id} className="border border-zinc-800 rounded-lg overflow-hidden">
+              <div key={id} className="border border-border rounded-lg overflow-hidden">
                 {/* Row header */}
                 <button
                   onClick={() => expandItem(item)}
-                  className="w-full px-4 py-3 flex items-center justify-between hover:bg-zinc-800/30 transition-colors text-left"
+                  className="w-full px-4 py-3 flex items-center justify-between hover:bg-accent transition-colors text-left"
                 >
                   <div>
                     <p className="text-sm font-semibold">{getItemLabel(item)}</p>
@@ -434,7 +434,7 @@ function ContentTab() {
 
                 {/* Expanded editor */}
                 {isExpanded && (
-                  <div className="border-t border-zinc-800 px-4 py-4 bg-zinc-900/50">
+                  <div className="border-t border-border px-4 py-4 bg-muted/50">
                     {/* Locale tabs */}
                     <div className="flex gap-2 mb-4">
                       {['en', 'de'].map(loc => {
@@ -446,7 +446,7 @@ function ContentTab() {
                             className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
                               editLocale === loc
                                 ? 'bg-blue-600 text-white'
-                                : 'bg-zinc-800 text-muted-foreground hover:text-foreground'
+                                : 'bg-muted text-muted-foreground hover:text-foreground'
                             }`}
                           >
                             {loc.toUpperCase()}
@@ -476,7 +476,7 @@ function ContentTab() {
                             <textarea
                               value={editFields[field] || ''}
                               onChange={e => setEditFields({ ...editFields, [field]: e.target.value })}
-                              className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm min-h-[80px]"
+                              className="w-full bg-card border border-border rounded-lg px-3 py-2 text-sm min-h-[80px]"
                               rows={3}
                             />
                           ) : (
@@ -484,7 +484,7 @@ function ContentTab() {
                               type="text"
                               value={editFields[field] || ''}
                               onChange={e => setEditFields({ ...editFields, [field]: e.target.value })}
-                              className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm"
+                              className="w-full bg-card border border-border rounded-lg px-3 py-2 text-sm"
                             />
                           )}
                         </div>
@@ -551,7 +551,7 @@ function WebsiteTab() {
 
   return (
     <div className="space-y-6">
-      <div className="border border-zinc-800 rounded-lg p-6">
+      <div className="border border-border rounded-lg p-6">
         <h3 className="text-sm font-semibold mb-1">Publish Website</h3>
         <p className="text-xs text-muted-foreground mb-4 max-w-lg">
           Rebuild and deploy the public website (sovereignhealth.io). This applies any content, pricing, or i18n changes. Takes about 30-60 seconds.
@@ -577,7 +577,7 @@ function WebsiteTab() {
         )}
       </div>
 
-      <div className="border border-zinc-800 rounded-lg p-6">
+      <div className="border border-border rounded-lg p-6">
         <h3 className="text-sm font-semibold mb-1">Cloudflare Cache</h3>
         <p className="text-xs text-muted-foreground mb-3">
           After publishing, you may need to purge the Cloudflare cache for changes to appear immediately.

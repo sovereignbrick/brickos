@@ -51,7 +51,7 @@ function formatDateRange(start: string, end: string): string {
 
 function StatCard({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
-    <div className="border border-zinc-800 rounded-lg p-4">
+    <div className="border border-border rounded-lg p-4">
       <p className="text-xs text-muted-foreground">{label}</p>
       <p className="text-2xl font-bold mt-1">{value}</p>
       {sub && <p className="text-xs text-muted-foreground mt-1">{sub}</p>}
@@ -101,7 +101,7 @@ export function AiUsageTab() {
               className={`px-3 py-1.5 text-xs font-medium rounded transition-colors capitalize ${
                 period === p
                   ? 'bg-blue-600 text-white'
-                  : 'bg-zinc-800 text-muted-foreground hover:text-foreground'
+                  : 'bg-accent text-muted-foreground hover:text-foreground'
               }`}
             >
               {p}
@@ -154,14 +154,14 @@ export function AiUsageTab() {
           </div>
 
           {/* By User table */}
-          <div className="border border-zinc-800 rounded-lg overflow-hidden">
-            <div className="px-4 py-3 border-b border-zinc-800 flex items-center justify-between">
+          <div className="border border-border rounded-lg overflow-hidden">
+            <div className="px-4 py-3 border-b border-border flex items-center justify-between">
               <h3 className="text-sm font-medium">By User</h3>
               <div className="flex gap-1">
                 <button
                   onClick={() => setSortBy('cost_eur')}
                   className={`text-[10px] px-2 py-0.5 rounded ${
-                    sortBy === 'cost_eur' ? 'bg-blue-600 text-white' : 'bg-zinc-800 text-muted-foreground'
+                    sortBy === 'cost_eur' ? 'bg-blue-600 text-white' : 'bg-accent text-muted-foreground'
                   }`}
                 >
                   Sort: Cost
@@ -169,7 +169,7 @@ export function AiUsageTab() {
                 <button
                   onClick={() => setSortBy('calls')}
                   className={`text-[10px] px-2 py-0.5 rounded ${
-                    sortBy === 'calls' ? 'bg-blue-600 text-white' : 'bg-zinc-800 text-muted-foreground'
+                    sortBy === 'calls' ? 'bg-blue-600 text-white' : 'bg-accent text-muted-foreground'
                   }`}
                 >
                   Sort: Calls
@@ -185,7 +185,7 @@ export function AiUsageTab() {
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-zinc-800 text-left text-muted-foreground text-xs">
+                    <tr className="border-b border-border text-left text-muted-foreground text-xs">
                       <th className="py-2 px-4">User</th>
                       <th className="py-2 px-4">Tier</th>
                       <th className="py-2 px-4 text-right">Calls</th>
@@ -195,7 +195,7 @@ export function AiUsageTab() {
                   </thead>
                   <tbody>
                     {sortedUsers.map((u, i) => (
-                      <tr key={u.user_id || i} className="border-b border-zinc-800/50 hover:bg-zinc-800/20">
+                      <tr key={u.user_id || i} className="border-b border-border/50 hover:bg-accent">
                         <td className="py-2 px-4">
                           <div>
                             <p className="text-xs font-mono">{u.email}</p>
@@ -205,7 +205,7 @@ export function AiUsageTab() {
                           </div>
                         </td>
                         <td className="py-2 px-4">
-                          <span className="text-xs capitalize bg-zinc-800 px-1.5 py-0.5 rounded">
+                          <span className="text-xs capitalize bg-accent px-1.5 py-0.5 rounded">
                             {u.tier}
                           </span>
                         </td>
@@ -228,14 +228,14 @@ export function AiUsageTab() {
 
           {/* By Model table */}
           {data.by_model.length > 0 && (
-            <div className="border border-zinc-800 rounded-lg overflow-hidden">
-              <div className="px-4 py-3 border-b border-zinc-800">
+            <div className="border border-border rounded-lg overflow-hidden">
+              <div className="px-4 py-3 border-b border-border">
                 <h3 className="text-sm font-medium">By Model</h3>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-zinc-800 text-left text-muted-foreground text-xs">
+                    <tr className="border-b border-border text-left text-muted-foreground text-xs">
                       <th className="py-2 px-4">Model</th>
                       <th className="py-2 px-4 text-right">Calls</th>
                       <th className="py-2 px-4 text-right">Tokens (In/Out)</th>
@@ -244,7 +244,7 @@ export function AiUsageTab() {
                   </thead>
                   <tbody>
                     {data.by_model.map(m => (
-                      <tr key={m.model} className="border-b border-zinc-800/50">
+                      <tr key={m.model} className="border-b border-border/50">
                         <td className="py-2 px-4 text-xs font-mono">{m.model}</td>
                         <td className="py-2 px-4 text-right text-xs">{formatNumber(m.calls)}</td>
                         <td className="py-2 px-4 text-right text-xs text-muted-foreground">
@@ -261,14 +261,14 @@ export function AiUsageTab() {
 
           {/* By Type table */}
           {data.by_type.length > 0 && (
-            <div className="border border-zinc-800 rounded-lg overflow-hidden">
-              <div className="px-4 py-3 border-b border-zinc-800">
+            <div className="border border-border rounded-lg overflow-hidden">
+              <div className="px-4 py-3 border-b border-border">
                 <h3 className="text-sm font-medium">By Session Type</h3>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-zinc-800 text-left text-muted-foreground text-xs">
+                    <tr className="border-b border-border text-left text-muted-foreground text-xs">
                       <th className="py-2 px-4">Type</th>
                       <th className="py-2 px-4 text-right">Calls</th>
                       <th className="py-2 px-4 text-right">Cost</th>
@@ -276,7 +276,7 @@ export function AiUsageTab() {
                   </thead>
                   <tbody>
                     {data.by_type.map(t => (
-                      <tr key={t.session_type} className="border-b border-zinc-800/50">
+                      <tr key={t.session_type} className="border-b border-border/50">
                         <td className="py-2 px-4 text-xs capitalize">{t.session_type.replace(/_/g, ' ')}</td>
                         <td className="py-2 px-4 text-right text-xs">{formatNumber(t.calls)}</td>
                         <td className="py-2 px-4 text-right text-xs font-medium">{formatEur(t.cost_eur)}</td>

@@ -74,11 +74,11 @@ function SettingRow({ setting, onUpdate }: { setting: AppSetting; onUpdate: (key
   // Boolean toggle
   if (typeof val === 'boolean') {
     return (
-      <div className="flex items-center justify-between py-3 px-4 border-b border-zinc-800/50 last:border-0">
+      <div className="flex items-center justify-between py-3 px-4 border-b border-border/50 last:border-0">
         <div className="flex-1 min-w-0 mr-4">
           <p className="text-sm font-medium">{settingLabel(setting.key)}</p>
           {setting.description && <p className="text-xs text-muted-foreground mt-0.5">{setting.description}</p>}
-          {setting.updated_at && <p className="text-xs text-zinc-600 mt-0.5">Updated {formatDate(setting.updated_at)}</p>}
+          {setting.updated_at && <p className="text-xs text-muted-foreground mt-0.5">Updated {formatDate(setting.updated_at)}</p>}
         </div>
         <div className="flex items-center gap-2">
           {confirmKey === setting.key && (
@@ -105,7 +105,7 @@ function SettingRow({ setting, onUpdate }: { setting: AppSetting; onUpdate: (key
               onClick={() => save(!val)}
               disabled={saving}
               className={`relative w-11 h-6 rounded-full transition-colors ${
-                val ? 'bg-emerald-600' : 'bg-zinc-700'
+                val ? 'bg-emerald-600' : 'bg-accent'
               }`}
             >
               <span
@@ -173,11 +173,11 @@ function NumberSetting({ setting, onUpdate }: { setting: AppSetting; onUpdate: (
   }
 
   return (
-    <div className="flex items-center justify-between py-3 px-4 border-b border-zinc-800/50 last:border-0">
+    <div className="flex items-center justify-between py-3 px-4 border-b border-border/50 last:border-0">
       <div className="flex-1 min-w-0 mr-4">
         <p className="text-sm font-medium">{settingLabel(setting.key)}</p>
         {setting.description && <p className="text-xs text-muted-foreground mt-0.5">{setting.description}</p>}
-        {setting.updated_at && <p className="text-xs text-zinc-600 mt-0.5">Updated {formatDate(setting.updated_at)}</p>}
+        {setting.updated_at && <p className="text-xs text-muted-foreground mt-0.5">Updated {formatDate(setting.updated_at)}</p>}
       </div>
       <div className="flex items-center gap-2">
         {saved && <span className="text-xs text-emerald-400">Saved</span>}
@@ -186,7 +186,7 @@ function NumberSetting({ setting, onUpdate }: { setting: AppSetting; onUpdate: (
           value={localVal}
           onChange={e => setLocalVal(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && changed && save()}
-          className="w-24 bg-zinc-900 border border-zinc-700 rounded px-2 py-1 text-sm text-right"
+          className="w-24 bg-card border border-border rounded px-2 py-1 text-sm text-right"
         />
         {changed && (
           <button
@@ -222,11 +222,11 @@ function StringSetting({ setting, onUpdate }: { setting: AppSetting; onUpdate: (
   }
 
   return (
-    <div className="flex items-center justify-between py-3 px-4 border-b border-zinc-800/50 last:border-0">
+    <div className="flex items-center justify-between py-3 px-4 border-b border-border/50 last:border-0">
       <div className="flex-1 min-w-0 mr-4">
         <p className="text-sm font-medium">{settingLabel(setting.key)}</p>
         {setting.description && <p className="text-xs text-muted-foreground mt-0.5">{setting.description}</p>}
-        {setting.updated_at && <p className="text-xs text-zinc-600 mt-0.5">Updated {formatDate(setting.updated_at)}</p>}
+        {setting.updated_at && <p className="text-xs text-muted-foreground mt-0.5">Updated {formatDate(setting.updated_at)}</p>}
       </div>
       <div className="flex items-center gap-2">
         {saved && <span className="text-xs text-emerald-400">Saved</span>}
@@ -235,7 +235,7 @@ function StringSetting({ setting, onUpdate }: { setting: AppSetting; onUpdate: (
           value={localVal}
           onChange={e => setLocalVal(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && changed && save()}
-          className="w-56 bg-zinc-900 border border-zinc-700 rounded px-2 py-1 text-sm"
+          className="w-56 bg-card border border-border rounded px-2 py-1 text-sm"
         />
         {changed && (
           <button
@@ -274,11 +274,11 @@ function ArraySetting({ setting, onUpdate }: { setting: AppSetting; onUpdate: (k
   }
 
   return (
-    <div className="flex items-center justify-between py-3 px-4 border-b border-zinc-800/50 last:border-0">
+    <div className="flex items-center justify-between py-3 px-4 border-b border-border/50 last:border-0">
       <div className="flex-1 min-w-0 mr-4">
         <p className="text-sm font-medium">{settingLabel(setting.key)}</p>
         {setting.description && <p className="text-xs text-muted-foreground mt-0.5">{setting.description}</p>}
-        {setting.updated_at && <p className="text-xs text-zinc-600 mt-0.5">Updated {formatDate(setting.updated_at)}</p>}
+        {setting.updated_at && <p className="text-xs text-muted-foreground mt-0.5">Updated {formatDate(setting.updated_at)}</p>}
       </div>
       <div className="flex items-center gap-2">
         {saved && <span className="text-xs text-emerald-400">Saved</span>}
@@ -288,7 +288,7 @@ function ArraySetting({ setting, onUpdate }: { setting: AppSetting; onUpdate: (k
           onChange={e => setLocalVal(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && changed && save()}
           placeholder="comma-separated"
-          className="w-64 bg-zinc-900 border border-zinc-700 rounded px-2 py-1 text-sm font-mono"
+          className="w-64 bg-card border border-border rounded px-2 py-1 text-sm font-mono"
         />
         {changed && (
           <button
@@ -331,7 +331,7 @@ function ObjectSetting({ setting, onUpdate }: { setting: AppSetting; onUpdate: (
   }
 
   return (
-    <div className="py-3 px-4 border-b border-zinc-800/50 last:border-0">
+    <div className="py-3 px-4 border-b border-border/50 last:border-0">
       <div className="flex items-center justify-between mb-2">
         <div>
           <p className="text-sm font-medium">{settingLabel(setting.key)}</p>
@@ -358,12 +358,12 @@ function ObjectSetting({ setting, onUpdate }: { setting: AppSetting; onUpdate: (
               type="number"
               value={String(v)}
               onChange={e => updateField(k, e.target.value)}
-              className="w-full bg-zinc-900 border border-zinc-700 rounded px-2 py-1 text-sm mt-0.5"
+              className="w-full bg-card border border-border rounded px-2 py-1 text-sm mt-0.5"
             />
           </div>
         ))}
       </div>
-      {setting.updated_at && <p className="text-xs text-zinc-600 mt-1">Updated {formatDate(setting.updated_at)}</p>}
+      {setting.updated_at && <p className="text-xs text-muted-foreground mt-1">Updated {formatDate(setting.updated_at)}</p>}
     </div>
   )
 }
@@ -413,14 +413,14 @@ export function SettingsTab() {
   return (
     <div className="space-y-4">
       {/* Category tabs */}
-      <div className="flex gap-1 border-b border-zinc-800 overflow-x-auto">
+      <div className="flex gap-1 border-b border-border overflow-x-auto">
         {categories.map(cat => (
           <button
             key={cat}
             onClick={() => setActiveCategory(cat)}
             className={`px-3 py-1.5 text-xs font-medium border-b-2 transition-colors whitespace-nowrap ${
               activeCategory === cat
-                ? 'border-blue-500 text-white'
+                ? 'border-blue-500 text-foreground'
                 : 'border-transparent text-muted-foreground hover:text-foreground'
             }`}
           >
@@ -430,7 +430,7 @@ export function SettingsTab() {
       </div>
 
       {/* Settings list */}
-      <div className="border border-zinc-800 rounded-lg overflow-hidden">
+      <div className="border border-border rounded-lg overflow-hidden">
         {(settings[activeCategory] || []).map(s => (
           <SettingRow key={s.key} setting={s} onUpdate={handleUpdate} />
         ))}

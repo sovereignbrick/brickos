@@ -148,7 +148,7 @@ export function ContentStringsTab() {
   return (
     <div className="space-y-4">
       {/* Section sub-tabs */}
-      <div className="flex gap-1 border-b border-zinc-800">
+      <div className="flex gap-1 border-b border-border">
         {SECTIONS.map((s) => (
           <button
             key={s}
@@ -158,7 +158,7 @@ export function ContentStringsTab() {
             }}
             className={`px-3 py-1.5 text-xs font-medium border-b-2 transition-colors capitalize ${
               section === s
-                ? 'border-blue-500 text-white'
+                ? 'border-blue-500 text-foreground'
                 : 'border-transparent text-muted-foreground hover:text-foreground'
             }`}
           >
@@ -174,7 +174,7 @@ export function ContentStringsTab() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder={`Search ${section} strings...`}
-          className="flex-1 bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm"
+          className="flex-1 bg-card border border-border rounded-lg px-3 py-2 text-sm"
         />
         <button
           onClick={() => setShowAdd(true)}
@@ -184,7 +184,7 @@ export function ContentStringsTab() {
         </button>
         <button
           onClick={exportJson}
-          className="bg-zinc-700 hover:bg-zinc-600 text-white text-sm px-3 py-2 rounded-lg transition-colors whitespace-nowrap"
+          className="bg-accent hover:bg-accent text-foreground text-sm px-3 py-2 rounded-lg transition-colors whitespace-nowrap"
         >
           Export JSON
         </button>
@@ -197,7 +197,7 @@ export function ContentStringsTab() {
 
       {/* Add new string form */}
       {showAdd && (
-        <div className="border border-zinc-700 rounded-lg p-4 bg-zinc-900/50 space-y-3">
+        <div className="border border-border rounded-lg p-4 bg-muted/50 space-y-3">
           <h3 className="text-sm font-medium">Add New String</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
@@ -207,7 +207,7 @@ export function ContentStringsTab() {
                 value={newKey}
                 onChange={(e) => setNewKey(e.target.value)}
                 placeholder="e.g. common.newString"
-                className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm"
+                className="w-full bg-card border border-border rounded-lg px-3 py-2 text-sm"
               />
             </div>
             <div>
@@ -217,7 +217,7 @@ export function ContentStringsTab() {
                 value={newDesc}
                 onChange={(e) => setNewDesc(e.target.value)}
                 placeholder={t('optionalContextPlaceholder')}
-                className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm"
+                className="w-full bg-card border border-border rounded-lg px-3 py-2 text-sm"
               />
             </div>
             <div>
@@ -225,7 +225,7 @@ export function ContentStringsTab() {
               <textarea
                 value={newEn}
                 onChange={(e) => setNewEn(e.target.value)}
-                className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm min-h-[60px]"
+                className="w-full bg-card border border-border rounded-lg px-3 py-2 text-sm min-h-[60px]"
                 rows={2}
               />
             </div>
@@ -234,7 +234,7 @@ export function ContentStringsTab() {
               <textarea
                 value={newDe}
                 onChange={(e) => setNewDe(e.target.value)}
-                className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm min-h-[60px]"
+                className="w-full bg-card border border-border rounded-lg px-3 py-2 text-sm min-h-[60px]"
                 rows={2}
               />
             </div>
@@ -267,10 +267,10 @@ export function ContentStringsTab() {
             const missingDe = !item.value_de || item.value_de.trim() === ''
 
             return (
-              <div key={item.id} className="border border-zinc-800 rounded-lg overflow-hidden">
+              <div key={item.id} className="border border-border rounded-lg overflow-hidden">
                 <button
                   onClick={() => expandItem(item)}
-                  className="w-full px-4 py-2.5 flex items-center justify-between hover:bg-zinc-800/30 transition-colors text-left gap-4"
+                  className="w-full px-4 py-2.5 flex items-center justify-between hover:bg-accent transition-colors text-left gap-4"
                 >
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-mono text-blue-400 truncate">{item.key}</p>
@@ -294,7 +294,7 @@ export function ContentStringsTab() {
                 </button>
 
                 {isExpanded && (
-                  <div className="border-t border-zinc-800 px-4 py-4 bg-zinc-900/50 space-y-3">
+                  <div className="border-t border-border px-4 py-4 bg-muted/50 space-y-3">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-xs text-muted-foreground mb-1">
@@ -303,7 +303,7 @@ export function ContentStringsTab() {
                         <textarea
                           value={editEn}
                           onChange={(e) => setEditEn(e.target.value)}
-                          className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm min-h-[80px]"
+                          className="w-full bg-card border border-border rounded-lg px-3 py-2 text-sm min-h-[80px]"
                           rows={3}
                         />
                       </div>
@@ -319,7 +319,7 @@ export function ContentStringsTab() {
                         <textarea
                           value={editDe}
                           onChange={(e) => setEditDe(e.target.value)}
-                          className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm min-h-[80px]"
+                          className="w-full bg-card border border-border rounded-lg px-3 py-2 text-sm min-h-[80px]"
                           rows={3}
                         />
                       </div>

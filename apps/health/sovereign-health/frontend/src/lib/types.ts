@@ -294,6 +294,15 @@ export interface UserProfile {
   default_waist_cm: number | null
   default_weight_kg: number | null
   country_code: string | null
+  customer_type: string | null
+  company_name: string | null
+  vat_id: string | null
+  billing_address_line1: string | null
+  billing_address_line2: string | null
+  billing_address_city: string | null
+  billing_address_postal_code: string | null
+  billing_address_state: string | null
+  billing_address_country: string | null
 }
 
 export interface UnitPreferences {

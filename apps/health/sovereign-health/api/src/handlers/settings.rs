@@ -19,9 +19,12 @@ pub async fn get_settings(
 ) -> Result<HttpResponse, AppError> {
     use sqlx::Row;
 
-    // Fetch profile + country_code
+    // Fetch profile + country_code + billing fields
     let profile_row = sqlx::query(
-        "SELECT gender, age, height_cm, default_waist_cm, default_weight_kg, country_code \
+        "SELECT gender, age, height_cm, default_waist_cm, default_weight_kg, country_code, \
+         customer_type, company_name, vat_id, \
+         billing_address_line1, billing_address_line2, billing_address_city, \
+         billing_address_postal_code, billing_address_state, billing_address_country \
          FROM user_profile WHERE user_id = $1",
     )
     .bind(auth.user_id)
@@ -36,6 +39,15 @@ pub async fn get_settings(
             "default_waist_cm": row.try_get::<Option<String>, _>("default_waist_cm").ok().flatten().map(|v| enc.decrypt_f64(&v)),
             "default_weight_kg": row.try_get::<Option<String>, _>("default_weight_kg").ok().flatten().map(|v| enc.decrypt_f64(&v)),
             "country_code": row.try_get::<Option<String>, _>("country_code").ok().flatten(),
+            "customer_type": row.try_get::<Option<String>, _>("customer_type").ok().flatten(),
+            "company_name": row.try_get::<Option<String>, _>("company_name").ok().flatten(),
+            "vat_id": row.try_get::<Option<String>, _>("vat_id").ok().flatten(),
+            "billing_address_line1": row.try_get::<Option<String>, _>("billing_address_line1").ok().flatten(),
+            "billing_address_line2": row.try_get::<Option<String>, _>("billing_address_line2").ok().flatten(),
+            "billing_address_city": row.try_get::<Option<String>, _>("billing_address_city").ok().flatten(),
+            "billing_address_postal_code": row.try_get::<Option<String>, _>("billing_address_postal_code").ok().flatten(),
+            "billing_address_state": row.try_get::<Option<String>, _>("billing_address_state").ok().flatten(),
+            "billing_address_country": row.try_get::<Option<String>, _>("billing_address_country").ok().flatten(),
         }),
         None => json!({
             "gender": null,
@@ -44,6 +56,15 @@ pub async fn get_settings(
             "default_waist_cm": null,
             "default_weight_kg": null,
             "country_code": null,
+            "customer_type": "private",
+            "company_name": null,
+            "vat_id": null,
+            "billing_address_line1": null,
+            "billing_address_line2": null,
+            "billing_address_city": null,
+            "billing_address_postal_code": null,
+            "billing_address_state": null,
+            "billing_address_country": null,
         }),
     };
 
@@ -315,6 +336,15 @@ pub async fn get_settings(
                 "default_waist_cm": profile["default_waist_cm"],
                 "default_weight_kg": profile["default_weight_kg"],
                 "country_code": profile["country_code"],
+                "customer_type": profile["customer_type"],
+                "company_name": profile["company_name"],
+                "vat_id": profile["vat_id"],
+                "billing_address_line1": profile["billing_address_line1"],
+                "billing_address_line2": profile["billing_address_line2"],
+                "billing_address_city": profile["billing_address_city"],
+                "billing_address_postal_code": profile["billing_address_postal_code"],
+                "billing_address_state": profile["billing_address_state"],
+                "billing_address_country": profile["billing_address_country"],
             },
             "units": units,
             "lifestyle_defaults": lifestyle,
@@ -338,6 +368,16 @@ pub struct ProfileUpdate {
     pub default_weight_kg: Option<f64>,
     pub country_code: Option<String>,
     pub locale: Option<String>,
+    // Billing fields
+    pub customer_type: Option<String>,
+    pub company_name: Option<String>,
+    pub vat_id: Option<String>,
+    pub billing_address_line1: Option<String>,
+    pub billing_address_line2: Option<String>,
+    pub billing_address_city: Option<String>,
+    pub billing_address_postal_code: Option<String>,
+    pub billing_address_state: Option<String>,
+    pub billing_address_country: Option<String>,
 }
 
 /// PUT /settings/profile
@@ -461,6 +501,15 @@ pub async fn update_profile(
          default_waist_cm = COALESCE($4, default_waist_cm), \
          default_weight_kg = COALESCE($5, default_weight_kg), \
          country_code = COALESCE($6, country_code), \
+         customer_type = COALESCE($8, customer_type), \
+         company_name = COALESCE($9, company_name), \
+         vat_id = COALESCE($10, vat_id), \
+         billing_address_line1 = COALESCE($11, billing_address_line1), \
+         billing_address_line2 = COALESCE($12, billing_address_line2), \
+         billing_address_city = COALESCE($13, billing_address_city), \
+         billing_address_postal_code = COALESCE($14, billing_address_postal_code), \
+         billing_address_state = COALESCE($15, billing_address_state), \
+         billing_address_country = COALESCE($16, billing_address_country), \
          updated_at = now() \
          WHERE user_id = $7",
     )
@@ -471,6 +520,15 @@ pub async fn update_profile(
     .bind(&weight_enc)
     .bind(&body.country_code)
     .bind(auth.user_id)
+    .bind(&body.customer_type)
+    .bind(&body.company_name)
+    .bind(&body.vat_id)
+    .bind(&body.billing_address_line1)
+    .bind(&body.billing_address_line2)
+    .bind(&body.billing_address_city)
+    .bind(&body.billing_address_postal_code)
+    .bind(&body.billing_address_state)
+    .bind(&body.billing_address_country)
     .execute(pool.get_ref())
     .await?;
 

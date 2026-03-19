@@ -59,22 +59,22 @@ export function ContentWebTab() {
   }
 
   if (loading) {
-    return <div className="text-white/40 text-sm">Loading web content...</div>
+    return <div className="text-muted-foreground text-sm">Loading web content...</div>
   }
 
   return (
     <div className="flex gap-4 h-[calc(100vh-16rem)]">
       {/* Left: Page list */}
-      <div className="w-48 shrink-0 border-r border-white/10 pr-4 space-y-1">
-        <div className="text-xs text-white/30 uppercase tracking-wider mb-2 font-medium">Pages</div>
+      <div className="w-48 shrink-0 border-r border-border pr-4 space-y-1">
+        <div className="text-xs text-muted-foreground/60 uppercase tracking-wider mb-2 font-medium">Pages</div>
         {pages.map(page => (
           <button
             key={page.id}
             onClick={() => setSelectedPageId(page.id)}
             className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
               selectedPageId === page.id
-                ? 'bg-white/10 text-white'
-                : 'text-white/50 hover:bg-white/[0.05] hover:text-white/70'
+                ? 'bg-accent text-foreground'
+                : 'text-muted-foreground hover:bg-accent hover:text-foreground'
             }`}
           >
             {page.title}
@@ -88,7 +88,7 @@ export function ContentWebTab() {
           <div className="space-y-4">
             {/* Page header + locale tabs */}
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-medium text-white">{selectedPage.title}</h3>
+              <h3 className="text-lg font-medium text-foreground">{selectedPage.title}</h3>
               <div className="flex items-center gap-1">
                 {LOCALES.map(locale => (
                   <button
@@ -97,7 +97,7 @@ export function ContentWebTab() {
                     className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
                       selectedLocale === locale
                         ? 'bg-blue-600 text-white'
-                        : 'bg-white/5 text-white/40 hover:bg-white/10'
+                        : 'bg-muted text-muted-foreground hover:bg-accent'
                     }`}
                   >
                     {locale.toUpperCase()}
@@ -120,34 +120,34 @@ export function ContentWebTab() {
 
             {/* Add section */}
             {addingSection ? (
-              <div className="flex items-center gap-2 p-3 border border-white/10 rounded-lg">
+              <div className="flex items-center gap-2 p-3 border border-border rounded-lg">
                 <input
                   type="text"
                   value={newSectionKey}
                   onChange={e => setNewSectionKey(e.target.value)}
                   placeholder="section_key"
-                  className="flex-1 bg-white/5 border border-white/10 rounded px-3 py-1.5 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-white/20"
+                  className="flex-1 bg-muted border border-border rounded px-3 py-1.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-ring"
                   onKeyDown={e => e.key === 'Enter' && handleAddSection()}
                   autoFocus
                 />
                 <button onClick={handleAddSection} className="text-xs bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded transition-colors">
                   Add
                 </button>
-                <button onClick={() => { setAddingSection(false); setNewSectionKey('') }} className="text-xs text-white/40 hover:text-white/60">
+                <button onClick={() => { setAddingSection(false); setNewSectionKey('') }} className="text-xs text-muted-foreground hover:text-foreground">
                   Cancel
                 </button>
               </div>
             ) : (
               <button
                 onClick={() => setAddingSection(true)}
-                className="text-xs text-white/40 hover:text-white/60 transition-colors"
+                className="text-xs text-muted-foreground hover:text-foreground transition-colors"
               >
                 + Add Section
               </button>
             )}
           </div>
         ) : (
-          <div className="text-white/30 text-sm">Select a page to edit</div>
+          <div className="text-muted-foreground/60 text-sm">Select a page to edit</div>
         )}
       </div>
     </div>
@@ -188,17 +188,17 @@ function SectionEditor({ section, locale, onDelete }: { section: WebSection; loc
   const isLong = value.length > 80 || currentValue.length > 80
 
   return (
-    <div className={`p-3 border rounded-lg ${isMissing ? 'border-amber-500/30 bg-amber-500/5' : 'border-white/10'}`}>
+    <div className={`p-3 border rounded-lg ${isMissing ? 'border-amber-500/30 bg-amber-500/5' : 'border-border'}`}>
       <div className="flex items-center justify-between mb-1.5">
         <div className="flex items-center gap-2">
-          <span className="text-xs font-mono text-white/40">{section.key}</span>
-          <span className="text-[10px] text-white/20 bg-white/5 px-1.5 py-0.5 rounded">{section.section_type}</span>
+          <span className="text-xs font-mono text-muted-foreground">{section.key}</span>
+          <span className="text-[10px] text-muted-foreground/40 bg-muted px-1.5 py-0.5 rounded">{section.section_type}</span>
           {isMissing && <span className="text-[10px] text-amber-400">missing</span>}
           {saving && <span className="text-[10px] text-blue-400">saving...</span>}
         </div>
         <button
           onClick={onDelete}
-          className="text-[10px] text-white/20 hover:text-red-400 transition-colors"
+          className="text-[10px] text-muted-foreground/40 hover:text-red-400 transition-colors"
           title={t('deleteSection')}
         >
           delete
@@ -209,7 +209,7 @@ function SectionEditor({ section, locale, onDelete }: { section: WebSection; loc
           value={value}
           onChange={e => handleChange(e.target.value)}
           rows={3}
-          className="w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-white/20 resize-y"
+          className="w-full bg-muted border border-border rounded px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-ring resize-y"
           placeholder={`Enter ${locale.toUpperCase()} text...`}
         />
       ) : (
@@ -217,7 +217,7 @@ function SectionEditor({ section, locale, onDelete }: { section: WebSection; loc
           type="text"
           value={value}
           onChange={e => handleChange(e.target.value)}
-          className="w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-white/20"
+          className="w-full bg-muted border border-border rounded px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-ring"
           placeholder={`Enter ${locale.toUpperCase()} text...`}
         />
       )}

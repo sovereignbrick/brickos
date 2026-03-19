@@ -2196,6 +2196,124 @@ interface StripeInvoice {
   hosted_invoice_url: string
 }
 
+function BillingAddressSection() {
+  const t = useTranslations('settings.license')
+  const tCommon = useTranslations('common')
+  const { user } = useAuth()
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
+  const [form, setForm] = useState({
+    customer_type: 'private',
+    company_name: '',
+    vat_id: '',
+    billing_address_line1: '',
+    billing_address_line2: '',
+    billing_address_city: '',
+    billing_address_postal_code: '',
+    billing_address_state: '',
+    billing_address_country: '',
+  })
+  const [loaded, setLoaded] = useState(false)
+
+  useEffect(() => {
+    if (loaded) return
+    api.settings.get().then(res => {
+      const p = res.data?.profile
+      if (p) {
+        setForm({
+          customer_type: p.customer_type || 'private',
+          company_name: p.company_name || '',
+          vat_id: p.vat_id || '',
+          billing_address_line1: p.billing_address_line1 || '',
+          billing_address_line2: p.billing_address_line2 || '',
+          billing_address_city: p.billing_address_city || '',
+          billing_address_postal_code: p.billing_address_postal_code || '',
+          billing_address_state: p.billing_address_state || '',
+          billing_address_country: p.billing_address_country || '',
+        })
+      }
+      setLoaded(true)
+    }).catch(() => setLoaded(true))
+  }, [loaded])
+
+  const handleSave = async () => {
+    setSaving(true)
+    try {
+      await api.settings.updateProfile(form)
+      setSaved(true)
+      setTimeout(() => setSaved(false), 3000)
+    } catch {
+      toast.error(t('actionFailed'))
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const inp = 'w-full bg-card border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-blue-500'
+
+  return (
+    <div className="border border-border rounded-lg p-6 space-y-4">
+      <div>
+        <h3 className="font-medium">{t('billingAddressTitle')}</h3>
+        <p className="text-xs text-muted-foreground mt-1">{t('billingAddressDesc')}</p>
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="text-xs text-muted-foreground block mb-1">{t('customerType')}</label>
+          <select value={form.customer_type} onChange={e => setForm({ ...form, customer_type: e.target.value })} className={inp}>
+            <option value="private">{t('customerPrivate')}</option>
+            <option value="organization">{t('customerOrganization')}</option>
+          </select>
+        </div>
+        {form.customer_type === 'organization' && (
+          <>
+            <div>
+              <label className="text-xs text-muted-foreground block mb-1">{t('companyName')}</label>
+              <input type="text" value={form.company_name} onChange={e => setForm({ ...form, company_name: e.target.value })} className={inp} />
+            </div>
+            <div>
+              <label className="text-xs text-muted-foreground block mb-1">{t('vatId')}</label>
+              <input type="text" value={form.vat_id} onChange={e => setForm({ ...form, vat_id: e.target.value })} className={inp} placeholder="DE123456789" />
+            </div>
+          </>
+        )}
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div className="col-span-2">
+          <label className="text-xs text-muted-foreground block mb-1">{t('addressLine1')}</label>
+          <input type="text" value={form.billing_address_line1} onChange={e => setForm({ ...form, billing_address_line1: e.target.value })} className={inp} />
+        </div>
+        <div className="col-span-2">
+          <label className="text-xs text-muted-foreground block mb-1">{t('addressLine2')}</label>
+          <input type="text" value={form.billing_address_line2} onChange={e => setForm({ ...form, billing_address_line2: e.target.value })} className={inp} />
+        </div>
+        <div>
+          <label className="text-xs text-muted-foreground block mb-1">{t('city')}</label>
+          <input type="text" value={form.billing_address_city} onChange={e => setForm({ ...form, billing_address_city: e.target.value })} className={inp} />
+        </div>
+        <div>
+          <label className="text-xs text-muted-foreground block mb-1">{t('postalCode')}</label>
+          <input type="text" value={form.billing_address_postal_code} onChange={e => setForm({ ...form, billing_address_postal_code: e.target.value })} className={inp} />
+        </div>
+        <div>
+          <label className="text-xs text-muted-foreground block mb-1">{t('state')}</label>
+          <input type="text" value={form.billing_address_state} onChange={e => setForm({ ...form, billing_address_state: e.target.value })} className={inp} />
+        </div>
+        <div>
+          <label className="text-xs text-muted-foreground block mb-1">{t('billingCountry')}</label>
+          <input type="text" value={form.billing_address_country} onChange={e => setForm({ ...form, billing_address_country: e.target.value })} className={inp} placeholder="DE" maxLength={2} />
+        </div>
+      </div>
+      <div className="flex items-center gap-3">
+        <button onClick={handleSave} disabled={saving} className="px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors">
+          {saving ? '...' : t('saveBillingAddress')}
+        </button>
+        {saved && <span className="text-green-400 text-sm">{t('billingAddressSaved')}</span>}
+      </div>
+    </div>
+  )
+}
+
 function LicenseTab() {
   const t = useTranslations('settings.license')
   const tCommon = useTranslations('common')
@@ -2493,6 +2611,16 @@ function LicenseTab() {
             <p className="font-medium">{user?.created_at ? formatDate(user.created_at) : 'N/A'}</p>
           </div>
         </div>
+        {!subscription && (slug === 'glimpse' || slug === 'core') && (
+          <div className="flex items-center gap-3 pt-2">
+            <Link href="/checkout?tier=focus&interval=monthly" className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium rounded-lg transition-colors">
+              {t('upgrade')}
+            </Link>
+            <a href={`${APP_CONFIG.websiteUrl}/pricing`} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-400 hover:text-blue-300">
+              {t('viewPricing')}
+            </a>
+          </div>
+        )}
       </div>
 
       {/* Payment Method - with Manage button */}
@@ -2535,25 +2663,28 @@ function LicenseTab() {
       <div className="border border-border rounded-lg p-6 space-y-4">
         <h3 className="font-medium">{t('planActions')}</h3>
         <div className="space-y-4">
-          {/* No subscription - show upgrade options */}
-          {!subscription && slug === 'glimpse' && (
-            <div>
-              <Link href="/checkout?tier=focus&interval=monthly" className="inline-block px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm rounded-lg transition-colors">
-                {t('upgrade')}
+          {/* No subscription - show upgrade options for free tiers */}
+          {!subscription && (slug === 'glimpse' || slug === 'core') && (
+            <div className="space-y-3">
+              <Link href="/checkout?tier=focus&interval=monthly" className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium rounded-lg transition-colors">
+                {t('upgrade')} → Focus
               </Link>
-              <p className="text-xs text-muted-foreground mt-1">{t('upgradeDesc')}</p>
+              <p className="text-xs text-muted-foreground">{t('upgradeDesc')}</p>
+            </div>
+          )}
+          {/* Paid subscription on non-top tier - show upgrade */}
+          {subscription && !subscription.cancel_at_period_end && slug !== 'horizon' && slug !== 'clarity' && (
+            <div>
+              <button onClick={() => setShowChangePlan(true)} className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium rounded-lg transition-colors">
+                {tCommon('changePlan')}
+              </button>
+              <p className="text-xs text-muted-foreground mt-1">{t('changePlanDesc')}</p>
             </div>
           )}
 
           {/* Active subscription actions */}
           {subscription && !subscription.cancel_at_period_end && (
             <>
-              <div>
-                <button onClick={() => setShowChangePlan(true)} className="px-4 py-2 bg-muted hover:bg-accent text-sm rounded-lg transition-colors">
-                  {tCommon('changePlan')}
-                </button>
-                <p className="text-xs text-muted-foreground mt-1">{t('changePlanDesc')}</p>
-              </div>
               <div>
                 <button
                   onClick={handleChangeInterval}
@@ -2609,6 +2740,9 @@ function LicenseTab() {
           {t('viewPricing')}
         </a>
       </div>
+
+      {/* Billing Address */}
+      <BillingAddressSection />
 
       {/* Payment History - Stripe invoices + DB invoices */}
       {hasPaidPlan && (

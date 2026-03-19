@@ -77,20 +77,20 @@ export function PaymentGatewaysTab() {
     }
   }
 
-  if (loading) return <p className="text-white/40 text-sm">Loading...</p>
+  if (loading) return <p className="text-muted-foreground text-sm">Loading...</p>
 
   return (
     <div className="space-y-6">
       {/* Summary */}
       <div className="grid grid-cols-2 gap-4">
-        <div className="border border-white/10 rounded-lg p-4">
-          <p className="text-xs text-white/40">Fiat Payments (EUR)</p>
+        <div className="border border-border rounded-lg p-4">
+          <p className="text-xs text-muted-foreground">Fiat Payments (EUR)</p>
           <p className="text-lg font-semibold mt-1">
             {gateways.find(g => g.is_active_fiat)?.id || 'None'}
           </p>
         </div>
-        <div className="border border-white/10 rounded-lg p-4">
-          <p className="text-xs text-white/40">Bitcoin Payments</p>
+        <div className="border border-border rounded-lg p-4">
+          <p className="text-xs text-muted-foreground">Bitcoin Payments</p>
           <p className="text-lg font-semibold mt-1">
             {gateways.find(g => g.is_active_btc)?.id || 'None'}
           </p>
@@ -102,13 +102,13 @@ export function PaymentGatewaysTab() {
         <div
           key={gw.id}
           className={`border rounded-lg p-5 space-y-3 ${
-            gw.enabled ? 'border-white/10' : 'border-white/5 opacity-60'
+            gw.enabled ? 'border-border' : 'border-border opacity-60'
           }`}
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <span className={`inline-block w-2 h-2 rounded-full ${
-                gw.config_valid && gw.enabled ? 'bg-green-400' : gw.enabled ? 'bg-yellow-400' : 'bg-zinc-600'
+                gw.config_valid && gw.enabled ? 'bg-green-400' : gw.enabled ? 'bg-yellow-400' : 'bg-accent'
               }`} />
               <span className="font-semibold text-sm">
                 {GATEWAY_LABELS[gw.id] || gw.id}
@@ -120,7 +120,7 @@ export function PaymentGatewaysTab() {
                 <span className="text-xs text-yellow-400">Not verified</span>
               )}
               {!gw.enabled && (
-                <span className="text-xs text-zinc-500">Disabled</span>
+                <span className="text-xs text-muted-foreground">Disabled</span>
               )}
             </div>
             <div className="flex items-center gap-2">
@@ -146,7 +146,7 @@ export function PaymentGatewaysTab() {
 
           <div className="grid grid-cols-3 gap-4 text-xs">
             <div>
-              <span className="text-white/40">Fiat: </span>
+              <span className="text-muted-foreground">Fiat: </span>
               {gw.is_active_fiat ? (
                 <span className="text-green-400">Active</span>
               ) : gw.enabled ? (
@@ -157,11 +157,11 @@ export function PaymentGatewaysTab() {
                   Activate
                 </button>
               ) : (
-                <span className="text-zinc-600">-</span>
+                <span className="text-muted-foreground">-</span>
               )}
             </div>
             <div>
-              <span className="text-white/40">BTC: </span>
+              <span className="text-muted-foreground">BTC: </span>
               {gw.is_active_btc ? (
                 <span className="text-green-400">Active</span>
               ) : gw.enabled ? (
@@ -172,19 +172,19 @@ export function PaymentGatewaysTab() {
                   Activate
                 </button>
               ) : (
-                <span className="text-zinc-600">-</span>
+                <span className="text-muted-foreground">-</span>
               )}
             </div>
             <div>
-              <span className="text-white/40">Failures: </span>
-              <span className={gw.failure_count > 0 ? 'text-red-400' : 'text-white/60'}>
+              <span className="text-muted-foreground">Failures: </span>
+              <span className={gw.failure_count > 0 ? 'text-red-400' : 'text-muted-foreground'}>
                 {gw.failure_count}
               </span>
             </div>
           </div>
 
           {(gw.last_success || gw.last_failure) && (
-            <div className="text-[11px] text-white/30">
+            <div className="text-[11px] text-muted-foreground/60">
               {gw.last_success && (
                 <span>Last success: {new Date(gw.last_success).toLocaleString()}</span>
               )}
@@ -198,7 +198,7 @@ export function PaymentGatewaysTab() {
       ))}
 
       {gateways.length === 0 && (
-        <p className="text-white/40 text-sm">No payment gateways configured.</p>
+        <p className="text-muted-foreground text-sm">No payment gateways configured.</p>
       )}
     </div>
   )
