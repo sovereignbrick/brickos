@@ -421,6 +421,217 @@ Week 1 (Phase 3):
 - [ ] Analysis tab has at least 2 new visualization types
 - [ ] Playwright E2E covers: login → add measurement → view trend
 
+## Phase 4 — Production Database Cleanup (2 pts)
+
+Production DB audit (2026-03-19) revealed stale data, demo remnants, and unused tables that should be cleaned before real customers generate significant data.
+
+### Production DB snapshot (2026-03-19)
+
+| Table | Total rows | Demo rows | Real rows | Notes |
+|-------|-----------|-----------|-----------|-------|
+| `users` | 14 | 1 | 13 | Demo user: `00000000-...-000000000001` |
+| `measurements` | 1,228 | 1,222 | **6** | 99.5% is demo data |
+| `calculated_marker_values` | 80 | 69 | 11 | |
+| `devices` | 13 | 5 | 8 | |
+| `refresh_tokens` | 85 | — | 85 | 15 expired |
+| `email_verifications` | 15 | — | 15 | All 15 expired |
+| `ai_usage_log` | 57 | — | 57 | No retention policy |
+| `audit_log` | 1 | — | 1 | Nearly empty (instrumentation gap) |
+| `data_access_log` | 0 | — | 0 | Completely empty |
+| `health_check` | 0 | — | 0 | Unused table |
+| `import_sessions` | 14 | — | 14 | |
+| `payment_events` | 11 | — | 11 | |
+| `contact_submissions` | 2 | — | 2 | |
+
+---
+
+### P4-1: Remove demo data from production (1 pt)
+
+**Problem:** 99.5% of production measurements are demo data. This skews any analytics, inflates backup sizes, and could confuse real users if demo data ever leaks into queries. The demo user (`demo@sovereignhealth.io`, UUID `00000000-0000-0000-0000-000000000001`) should not exist in production — demo mode is served by staging.
+
+**Data to remove:**
+- ~1,222 demo measurements (`WHERE is_demo = true`)
+- ~69 demo calculated_marker_values (`WHERE is_demo = true`)
+- 5 demo devices (`WHERE user_id = '00000000-...-000000000001'`)
+- Demo user profile, preferences, and user record
+
+**Cleanup SQL (run on production after backup):**
+```sql
+-- Step 1: Remove demo measurement data
+DELETE FROM calculated_marker_values WHERE is_demo = true;
+DELETE FROM measurements WHERE is_demo = true;
+
+-- Step 2: Remove demo devices
+DELETE FROM devices WHERE user_id = '00000000-0000-0000-0000-000000000001';
+
+-- Step 3: Remove demo user profile and preferences
+DELETE FROM user_preferences WHERE user_id = '00000000-0000-0000-0000-000000000001';
+DELETE FROM user_profile WHERE user_id = '00000000-0000-0000-0000-000000000001';
+
+-- Step 4: Remove demo user (CASCADE handles remaining FKs)
+DELETE FROM users WHERE id = '00000000-0000-0000-0000-000000000001';
+```
+
+**Pre-requisite:** Take a staging DB backup before running. Verify demo endpoints on staging still work (demo data is served from staging DB, not production).
+
+---
+
+### P4-2: Purge expired tokens and stale data, add retention policies (1 pt)
+
+**Problem:** Several tables accumulate stale records with no automatic cleanup:
+
+| Table | Stale records | Action |
+|-------|--------------|--------|
+| `refresh_tokens` | 15 expired (of 85 total) | Delete where `expires_at < now()` |
+| `email_verifications` | 15 expired (all of them) | Delete where `expires_at < now()` |
+| `ai_usage_log` | 57 records, no retention | Add 180-day retention |
+| `data_access_log` | 0 now, will grow | Add 365-day retention (GDPR compliance) |
+| `payment_events` | 11 records, no retention | Add 730-day retention (tax/accounting) |
+| `health_check` | 0 rows, unused table | Drop table |
+
+**Cleanup SQL (immediate):**
+```sql
+-- Purge expired tokens and verifications
+DELETE FROM refresh_tokens WHERE expires_at < now();
+DELETE FROM email_verifications WHERE expires_at < now();
+
+-- Drop unused health_check table
+DROP TABLE IF EXISTS health_check;
+```
+
+**Retention migration** (`20260320000101_retention_policies.sql`):
+```sql
+-- Add a periodic cleanup function (called by backend on startup or cron)
+-- ai_usage_log: 180 days
+-- data_access_log: 365 days
+-- payment_events: 730 days (2 years for tax)
+-- refresh_tokens: auto-purge expired
+-- email_verifications: auto-purge expired
+
+-- Store retention config in app_settings
+INSERT INTO app_settings (key, value) VALUES
+  ('retention_ai_usage_days', '180'),
+  ('retention_data_access_days', '365'),
+  ('retention_payment_events_days', '730')
+ON CONFLICT (key) DO NOTHING;
+```
+
+**Deliverable:** Add a `cleanup_stale_data()` function to the backend startup (or a daily cron) that purges expired tokens, expired verifications, and records older than their retention window.
+
+---
+
+### Unused tables inventory (no action this sprint — document only)
+
+These tables exist in production but are either empty or not referenced by current handler code. They belong to planned-but-not-yet-implemented features and should **not** be dropped yet:
+
+**Future features (keep):**
+| Table | Rows | Purpose |
+|-------|------|---------|
+| `organizations`, `org_members`, `app_roles` | 14, 14, 1 | Multi-user / team features (auto-created per user) |
+| `data_shares` | 0 | Doctor-patient data sharing |
+| `email_campaigns`, `email_sends` | 0, 0 | Marketing email infrastructure |
+| `user_segments` | 0 | User segmentation for campaigns |
+| `anonymous_cohort_stats` | 0 | Population-level health comparisons |
+| `btc_payments` | 0 | Bitcoin payment support (Strike integration) |
+| `customer_tax_ids` | 0 | Tax ID verification (EU VAT) |
+| `payment_methods_cache` | 0 | Stripe payment method caching |
+| `invoice_line_items` | 0 | Detailed invoice breakdown |
+| `marker_tests` | 0 | Marker-to-lab-test mapping |
+| `doctor_chat_quota` | 4 | Chat rate limiting (superseded by `chat_agent_quota`?) |
+
+**Genuinely unused (candidates for Sprint 004 cleanup):**
+| Table | Rows | Notes |
+|-------|------|-------|
+| `health_check` | 0 | Vestigial from initial template — safe to drop |
+| `content_audit_log` | 5 | Unclear purpose, overlaps with `audit_log` |
+| `ui_strings`, `ui_string_translations` | 34, ? | Not used by handlers — i18n is in frontend JSON files |
+
+---
+
+## Velocity
+
+| Metric | Value |
+|---|---|
+| Phase 1 (deploy fixes) | 8 pts |
+| Phase 1b (data integrity) | 7 pts |
+| Phase 2 (deps & hygiene) | 10 pts |
+| Phase 3 (product quality) | 19 pts |
+| Phase 4 (DB cleanup) | 2 pts |
+| **Total planned** | **46 pts** |
+| **Unplanned buffer (20%)** | 9 pts |
+| Sprint 002 velocity | ~91 pts (2 days, exceptional) |
+| Sprint 001 velocity | ~44 pts (8 days) |
+
+## Execution Order
+
+```
+Day 1 (2026-03-20):
+  Phase 1: Deploy pipeline fixes
+    P1-1 bump-version.sh           → 30 min, prevents version drift
+    P1-2 Compose files in repo     → 30 min, prevents VPS drift
+    P1-3 Post-deploy image ID      → 15 min, catches stale container
+    P1-4 CF credentials            → 10 min, enables auto cache purge
+    P1-5 COALESCE audit            → 1 hr, prevents silent data loss
+                                     (priority: settings.rs user_preferences)
+
+  Phase 1b: Data integrity hardening (CRITICAL — before live customers)
+    P1-7 FK constraint migration   → 30 min, prevents orphaned records
+    P1-8 Soft delete standardize   → 20 min, GDPR query consistency
+    P1-9 Missing indexes           → 15 min, prevents slow queries at scale
+    P1-6 Audit log instrumentation → 2-3 hrs, adds events to all handlers
+
+  Phase 4: Production DB cleanup (run after Phase 1b deploy)
+    P4-1 Remove demo data          → 15 min, clears 99.5% of measurements
+    P4-2 Purge stale + retention   → 30 min, expired tokens/verifications + retention config
+
+  Phase 2: Dependabot batch
+    P2-6 thiserror 1→2             → most impactful, do first
+    P2-4 rand 0.8→0.9             → second most breaking
+    P2-3 actix-governor 0.5→0.10  → third
+    P2-5 criterion 0.5→0.8        → bench only
+    P2-1 @base-ui/react           → minor, quick
+    P2-2 @types/node              → dev dep, quick
+    P2-7 crash-report cleanup     → 5 min
+    → Full CI run after all merges
+
+Week 1 (Phase 3):
+  P3-1 Analysis tab (#116)        → major feature work
+  P3-2 E2E tests (Playwright)     → critical path coverage
+  P3-3 Release notes generation   → nice-to-have if time permits
+```
+
+## Definition of Done for Sprint 003
+
+### Phase 1 — Deploy Pipeline
+- [ ] `bump-version.sh` exists and updates all 7 files + Cargo.lock
+- [ ] Production compose file is deployed by deploy.sh (scp before docker compose up)
+- [ ] Post-deploy verification checks container image SHA
+- [ ] Cloudflare cache purge works automatically on production deploy
+- [ ] `user_preferences` COALESCE handlers have INSERT ON CONFLICT guards
+
+### Phase 1b — Data Integrity (critical pre-live-data)
+- [ ] Audit logging instrumented in all handlers (auth, measurements, settings, billing, import, export, purge, admin)
+- [ ] Admin audit page shows events on staging after testing
+- [ ] FK constraints fixed: `refunds.user_id`, `influence_factors ON DELETE CASCADE`, `measurements.lab_id ON DELETE SET NULL`
+- [ ] Soft delete standardized: `deleted_at` column on devices, organizations; `is_deleted`+`deleted_at` on influence_factors
+- [ ] Missing indexes added: `calculated_marker_values` composite, `audit_log.created_at`, `reference_ranges` composite
+
+### Phase 4 — Production DB Cleanup
+- [ ] Demo user and all demo data removed from production
+- [ ] Expired refresh tokens and email verifications purged
+- [ ] `health_check` table dropped
+- [ ] Retention policies configured for `ai_usage_log`, `data_access_log`, `payment_events`
+- [ ] Stale data cleanup runs automatically (startup or cron)
+
+### Phase 2 — Dependencies
+- [ ] All 6 Dependabot PRs merged or closed with reason
+- [ ] CI green on develop after dep updates
+- [ ] Crash-report files removed and pattern gitignored
+
+### Phase 3 — Product Quality
+- [ ] Analysis tab has at least 2 new visualization types
+- [ ] Playwright E2E covers: login → add measurement → view trend
+
 ## Backlog (Sprint 004 candidates)
 
 | # | Title | Points | Milestone |
@@ -430,11 +641,16 @@ Week 1 (Phase 3):
 | — | feat: mobile-responsive PWA improvements | 5 | UX & Onboarding |
 | — | feat: multi-language expansion (FR, ES) | 5 | Internationalization |
 | — | feat: doctor-patient data sharing portal | 8 | Health Intelligence |
+| — | chore: drop unused tables (`content_audit_log`, `ui_strings`, `ui_string_translations`) | 1 | Hygiene |
+| — | chore: evaluate `doctor_chat_quota` vs `chat_agent_quota` overlap | 1 | Hygiene |
 
 ## Notes / Decisions
 
-- Sprint 003 has a **20% unplanned buffer** (7 pts) based on Sprint 002 retro lesson. Issues found during the sprint consume this buffer before expanding scope.
+- Sprint 003 has a **20% unplanned buffer** (9 pts) based on Sprint 002 retro lesson. Issues found during the sprint consume this buffer before expanding scope.
 - Phase 1 is all retro action items — non-negotiable before feature work.
+- Phase 1b and Phase 4 are critical pre-live-data tasks. Must complete before marketing push.
+- Phase 4 DB cleanup runs on production **after** Phase 1b migrations are deployed (the new indexes and FK constraints should be in place first).
+- Demo data removal must be preceded by a production DB backup (`deploy.sh` already backs up staging; manually backup prod first).
 - Dependabot PRs should be merged in dependency order: `thiserror` first (most pervasive), then `rand`, then `actix-governor`, then the rest. Full CI run after all merges.
 - E2E tests (P3-2) are a stretch goal — if they don't fit, they carry to Sprint 004.
 - Sprint 002 retro is at `retrospectives/2026-03-19_sprint-002-retro.md`.
