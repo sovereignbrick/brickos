@@ -109,6 +109,135 @@ The remaining 9 unguarded handlers update records by primary key (`WHERE id = $N
 
 ---
 
+## Phase 1b — Data Integrity Hardening (pre-live-data critical)
+
+### P1-6: Instrument audit logging across all handlers (3 pts)
+
+**Problem:** The audit system (`audit_log` and `data_access_log` tables) exists but only 3 locations actually write events: login success, chat errors, and purge operations. The admin audit page shows empty tables because almost nothing is instrumented. When real customers use the system, we need a complete audit trail for compliance (GDPR Art. 30), dispute resolution, and security monitoring.
+
+**Missing audit coverage:**
+
+| Handler | Events to log | Priority |
+|---------|--------------|----------|
+| `auth.rs` | `auth.signup`, `auth.logout`, `auth.password_reset`, `auth.mfa_enabled`, `auth.mfa_disabled` | Critical |
+| `measurements.rs` | `measurement.created`, `measurement.updated`, `measurement.deleted` | Critical |
+| `settings.rs` | `profile.updated`, `preferences.updated`, `billing_address.updated` | High |
+| `billing.rs` | `subscription.created`, `subscription.canceled`, `payment.succeeded`, `payment.failed` | Critical |
+| `import.rs` | `lab_import.started`, `lab_import.completed`, `lab_import.failed` | High |
+| `devices.rs` | `device.created`, `device.updated`, `device.deleted` | Medium |
+| `labs.rs` | `lab.created`, `lab.updated`, `lab.deleted` | Medium |
+| `influence_factors.rs` | `factor.created`, `factor.updated`, `factor.deleted` | Medium |
+| `export.rs` | `data.exported` (GDPR data portability) | Critical |
+| `purge.rs` | `account.purge_requested`, `account.purged` | Critical |
+| `admin_*.rs` | `admin.tier_override`, `admin.whitelist_change`, `admin.settings_change` | High |
+| `doctor_chat.rs` | `chat.conversation_started`, `chat.message_sent` | Medium |
+
+**Deliverable:** Add `audit::log()` calls to all handlers listed above. Each call should include:
+- `user_id` (from `AuthenticatedUser`)
+- `action` (e.g. `"measurement.created"`)
+- `resource_type` (e.g. `"measurement"`)
+- `resource_id` (the entity UUID)
+- `ip_address` (from request)
+- `metadata` (JSONB with relevant context, e.g. `{"marker_slug": "glucose", "value": 5.2}`)
+
+Fire-and-forget pattern (existing `audit::log()` already swallows errors). No performance impact on the request path.
+
+---
+
+### P1-7: Migration — fix FK constraints and ON DELETE policies (2 pts)
+
+**Problem:** Several tables have missing or incorrect foreign key constraints that will cause problems with live customer data:
+
+**Issues to fix:**
+
+| Table.Column | Current State | Fix | Why |
+|---|---|---|---|
+| `refunds.user_id` | NOT NULL, **no FK** | Add FK to `users(id) ON DELETE RESTRICT` | Prevents orphaned refund records; refunds must be preserved for accounting |
+| `influence_factors.user_id` | FK to `users(id)`, **no ON DELETE** (defaults to RESTRICT) | Change to `ON DELETE CASCADE` | User deletion fails if they have influence factors; purge.rs handles this but direct DB ops would break |
+| `measurements.lab_id` | FK to `labs(id)`, **no ON DELETE** (defaults to RESTRICT) | Change to `ON DELETE SET NULL` | Lab deletion blocked by linked measurements; SET NULL preserves measurement data |
+
+**Migration file:** `20260320000098_fix_fk_constraints.sql`
+
+```sql
+-- Fix refunds: add missing FK
+ALTER TABLE refunds
+  ADD CONSTRAINT fk_refunds_user_id
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE RESTRICT;
+
+-- Fix influence_factors: allow user cascade delete
+ALTER TABLE influence_factors
+  DROP CONSTRAINT IF EXISTS influence_factors_user_id_fkey,
+  ADD CONSTRAINT influence_factors_user_id_fkey
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE;
+
+-- Fix measurements.lab_id: allow lab deletion
+ALTER TABLE measurements
+  DROP CONSTRAINT IF EXISTS measurements_lab_id_fkey,
+  ADD CONSTRAINT measurements_lab_id_fkey
+  FOREIGN KEY (lab_id) REFERENCES labs(id) ON DELETE SET NULL;
+```
+
+**Validation:** Run migration on staging, then test: delete a lab → verify linked measurements retain data with `lab_id = NULL`. Test user purge with influence factors.
+
+---
+
+### P1-8: Migration — standardize soft delete pattern (1 pt)
+
+**Problem:** Soft delete is implemented inconsistently across tables. When we have live data, GDPR queries (`"show me everything about user X"`, `"when was this deleted?"`) need a uniform pattern.
+
+| Table | Current | Fix |
+|---|---|---|
+| `devices` | `is_deleted BOOLEAN` only | Add `deleted_at TIMESTAMPTZ` |
+| `organizations` | `is_deleted BOOLEAN` only | Add `deleted_at TIMESTAMPTZ` |
+| `influence_factors` | Uses `is_active` (inverted logic) | Add `is_deleted BOOLEAN DEFAULT false` + `deleted_at TIMESTAMPTZ` |
+
+**Migration file:** `20260320000099_standardize_soft_delete.sql`
+
+```sql
+-- devices: add deleted_at timestamp
+ALTER TABLE devices ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ;
+
+-- organizations: add deleted_at timestamp
+ALTER TABLE organizations ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ;
+
+-- influence_factors: add standard soft delete columns
+ALTER TABLE influence_factors ADD COLUMN IF NOT EXISTS is_deleted BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE influence_factors ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ;
+```
+
+**Note:** `influence_factors.is_active` is kept for backwards compatibility (it has different semantics — a factor can be inactive but not deleted). The new `is_deleted`/`deleted_at` columns handle actual deletion.
+
+**Validation:** Verify existing queries still work. Update handlers that set `is_deleted` on devices/organizations to also set `deleted_at = NOW()`.
+
+---
+
+### P1-9: Migration — add missing indexes for scale (1 pt)
+
+**Problem:** Several tables lack indexes that will cause slow queries as data grows. With 100+ users and thousands of measurements, these become noticeable.
+
+**Migration file:** `20260320000100_add_missing_indexes.sql`
+
+```sql
+-- calculated_marker_values: composite index for trend queries
+-- Current: only idx_cmv_user_id on (user_id)
+-- Needed: queries filter by user + marker + order by time
+CREATE INDEX IF NOT EXISTS idx_cmv_user_marker_measured
+  ON calculated_marker_values(user_id, calculated_marker_id, measured_at DESC);
+
+-- audit_log: index for admin page pagination (ORDER BY created_at DESC)
+CREATE INDEX IF NOT EXISTS idx_audit_log_created_at
+  ON audit_log(created_at DESC);
+
+-- reference_ranges: composite index for user custom ranges lookup
+CREATE INDEX IF NOT EXISTS idx_reference_ranges_user_marker
+  ON reference_ranges(user_id, marker_id)
+  WHERE user_id IS NOT NULL;
+```
+
+**Validation:** Run `EXPLAIN ANALYZE` on staging for trend queries and audit log pagination before/after.
+
+---
+
 ## Phase 2 — Dependabot & Hygiene
 
 ### P2-1: bump @base-ui/react 1.2.0 → 1.3.0 ([#37](https://github.com/sovereignbrick/brickos/issues/37)) (1 pt)
@@ -225,10 +354,11 @@ The remaining 9 unguarded handlers update records by primary key (`WHERE id = $N
 | Metric | Value |
 |---|---|
 | Phase 1 (deploy fixes) | 8 pts |
+| Phase 1b (data integrity) | 7 pts |
 | Phase 2 (deps & hygiene) | 10 pts |
 | Phase 3 (product quality) | 19 pts |
-| **Total planned** | **37 pts** |
-| **Unplanned buffer (20%)** | 7 pts |
+| **Total planned** | **44 pts** |
+| **Unplanned buffer (20%)** | 9 pts |
 | Sprint 002 velocity | ~91 pts (2 days, exceptional) |
 | Sprint 001 velocity | ~44 pts (8 days) |
 
@@ -243,6 +373,12 @@ Day 1 (2026-03-20):
     P1-4 CF credentials            → 10 min, enables auto cache purge
     P1-5 COALESCE audit            → 1 hr, prevents silent data loss
                                      (priority: settings.rs user_preferences)
+
+  Phase 1b: Data integrity hardening (CRITICAL — before live customers)
+    P1-7 FK constraint migration   → 30 min, prevents orphaned records
+    P1-8 Soft delete standardize   → 20 min, GDPR query consistency
+    P1-9 Missing indexes           → 15 min, prevents slow queries at scale
+    P1-6 Audit log instrumentation → 2-3 hrs, adds events to all handlers
 
   Phase 2: Dependabot batch
     P2-6 thiserror 1→2             → most impactful, do first
@@ -262,14 +398,26 @@ Week 1 (Phase 3):
 
 ## Definition of Done for Sprint 003
 
+### Phase 1 — Deploy Pipeline
 - [ ] `bump-version.sh` exists and updates all 7 files + Cargo.lock
 - [ ] Production compose file is deployed by deploy.sh (scp before docker compose up)
 - [ ] Post-deploy verification checks container image SHA
 - [ ] Cloudflare cache purge works automatically on production deploy
 - [ ] `user_preferences` COALESCE handlers have INSERT ON CONFLICT guards
+
+### Phase 1b — Data Integrity (critical pre-live-data)
+- [ ] Audit logging instrumented in all handlers (auth, measurements, settings, billing, import, export, purge, admin)
+- [ ] Admin audit page shows events on staging after testing
+- [ ] FK constraints fixed: `refunds.user_id`, `influence_factors ON DELETE CASCADE`, `measurements.lab_id ON DELETE SET NULL`
+- [ ] Soft delete standardized: `deleted_at` column on devices, organizations; `is_deleted`+`deleted_at` on influence_factors
+- [ ] Missing indexes added: `calculated_marker_values` composite, `audit_log.created_at`, `reference_ranges` composite
+
+### Phase 2 — Dependencies
 - [ ] All 6 Dependabot PRs merged or closed with reason
 - [ ] CI green on develop after dep updates
 - [ ] Crash-report files removed and pattern gitignored
+
+### Phase 3 — Product Quality
 - [ ] Analysis tab has at least 2 new visualization types
 - [ ] Playwright E2E covers: login → add measurement → view trend
 
