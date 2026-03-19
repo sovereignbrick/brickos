@@ -9,7 +9,7 @@ import { useContent } from '@/lib/content-context'
 interface ImportReviewProps {
   session: ImportSession
   onConfirm: (markers: Array<{ marker_slug: string; value: number }>, opts: {
-    measured_at?: string; protocol_tag?: string;
+    measured_at?: string; protocol_tag?: string; meal_timing_tag?: string;
     lab_name?: string; lab_address?: string; lab_postal_code?: string; lab_city?: string; lab_country?: string
   }) => void
   onCancel: () => void
@@ -70,7 +70,7 @@ export function ImportReview({ session, onConfirm, onCancel, isLoading }: Import
   })
 
   const [measuredAt, setMeasuredAt] = useState(session.lab_date || '')
-  const [protocolTag, setProtocolTag] = useState('standard')
+  const [mealTiming, setMealTiming] = useState('no_tag')
 
   // Lab fields — pre-filled from AI extraction
   const [labName, setLabName] = useState(session.lab_provider || '')
@@ -79,7 +79,10 @@ export function ImportReview({ session, onConfirm, onCancel, isLoading }: Import
   const [labCity, setLabCity] = useState(session.lab_city || '')
   const [labCountry, setLabCountry] = useState(session.lab_country || '')
 
+  const labNameMissing = !labName.trim()
+
   const handleConfirm = () => {
+    if (labNameMissing) return
     const markers = matchedMarkers
       .filter(m => m.matched_marker && selected[m.matched_marker])
       .map(m => ({
@@ -88,8 +91,9 @@ export function ImportReview({ session, onConfirm, onCancel, isLoading }: Import
       }))
     onConfirm(markers, {
       measured_at: measuredAt ? new Date(measuredAt + 'T08:00:00Z').toISOString() : undefined,
-      protocol_tag: protocolTag,
-      lab_name: labName.trim() || undefined,
+      protocol_tag: 'standard',
+      meal_timing_tag: mealTiming !== 'no_tag' ? mealTiming : undefined,
+      lab_name: labName.trim(),
       lab_address: labAddress.trim() || undefined,
       lab_postal_code: labPostalCode.trim() || undefined,
       lab_city: labCity.trim() || undefined,
@@ -130,17 +134,19 @@ export function ImportReview({ session, onConfirm, onCancel, isLoading }: Import
             />
           </div>
           <div>
-            <label className="text-xs text-muted-foreground block mb-1">{t('protocol')}</label>
+            <label className="text-xs text-muted-foreground block mb-1">{t('mealTiming')}</label>
             <select
-              value={protocolTag}
-              onChange={e => setProtocolTag(e.target.value)}
+              value={mealTiming}
+              onChange={e => setMealTiming(e.target.value)}
               className={selectCls}
             >
-              <option value="standard">Standard</option>
-              <option value="fasting_16_8">Fasting 16:8</option>
-              <option value="fasting_omad">OMAD</option>
-              <option value="fasting_48h">48h Fast</option>
-              <option value="fasting_extended">Extended Fast</option>
+              <option value="no_tag">{t('mealTimingNoTag')}</option>
+              <option value="fasting">{t('mealTimingFasting')}</option>
+              <option value="before">{t('mealTimingBefore')}</option>
+              <option value="30m_after">{t('mealTiming30mAfter')}</option>
+              <option value="1h_after">{t('mealTiming1hAfter')}</option>
+              <option value="2h_after">{t('mealTiming2hAfter')}</option>
+              <option value="3h_after">{t('mealTiming3hAfter')}</option>
             </select>
           </div>
         </div>
@@ -150,13 +156,13 @@ export function ImportReview({ session, onConfirm, onCancel, isLoading }: Import
           <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t('labInfo')}</h3>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-xs text-muted-foreground block mb-1">{t('labName')}</label>
+              <label className={`text-xs block mb-1 ${labNameMissing ? 'text-red-500 font-medium' : 'text-muted-foreground'}`}>{t('labName')} *</label>
               <input
                 type="text"
                 value={labName}
                 onChange={e => setLabName(e.target.value)}
                 placeholder={t('labNamePlaceholder')}
-                className={`${inputCls} w-full`}
+                className={`${inputCls} w-full ${labNameMissing ? 'border-red-500 ring-1 ring-red-500' : ''}`}
               />
             </div>
             <div>
@@ -225,7 +231,6 @@ export function ImportReview({ session, onConfirm, onCancel, isLoading }: Import
                         className="rounded"
                       />
                     </th>
-                    <th className="py-2 px-3 text-left">{t('labNameColumn')}</th>
                     <th className="py-2 px-3 text-left">{t('marker')}</th>
                     <th className="py-2 px-3 text-left">Abbr</th>
                     <th className="py-2 px-3 text-right">{t('value')}</th>
@@ -244,7 +249,6 @@ export function ImportReview({ session, onConfirm, onCancel, isLoading }: Import
                           className="rounded"
                         />
                       </td>
-                      <td className="py-2 px-3 text-muted-foreground">{m.original_name}</td>
                       <td className="py-2 px-3 text-foreground font-medium">
                         <span className="inline-flex items-center">
                           {contentMarkers[m.matched_marker!]?.name ?? m.matched_marker}
@@ -315,7 +319,7 @@ export function ImportReview({ session, onConfirm, onCancel, isLoading }: Import
             </button>
             <button
               onClick={handleConfirm}
-              disabled={selectedCount === 0 || isLoading}
+              disabled={selectedCount === 0 || isLoading || labNameMissing}
               className="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             >
               {isLoading ? t('importing') : t('importCount', { count: selectedCount })}
