@@ -530,67 +530,77 @@ function DevicesTab({ markers }: { markers: MarkerWithZone[] }) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold">{tDev('title')}</h2>
-        <button
-          onClick={() => { setEditDevice(null); setShowModal(true) }}
-          className="bg-blue-600 hover:bg-blue-500 text-white text-sm px-3 py-1.5 rounded-lg transition-colors"
-        >
-          {tDev('addDevice')}
-        </button>
-      </div>
-
-      {personalDevices.length === 0 && labDevices.length === 0 && (
-        <div className="border border-dashed border-border rounded-xl p-8 text-center">
-          <p className="text-muted-foreground text-sm mb-2">{tDev('noDevicesTitle')}</p>
-          <p className="text-muted-foreground text-xs">{tDev('noDevicesDesc')}</p>
-        </div>
-      )}
-
-      {personalDevices.length > 0 && (
+      {/* Two-column layout: Devices | Labs */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Devices column */}
         <div className="space-y-3">
-          {personalDevices.map(d => (
-            <DeviceCard
-              key={d.id}
-              device={d}
-              markers={markers}
-              onEdit={() => { setEditDevice(d); setShowModal(true) }}
-              onDelete={() => setDeleteConfirm(d.id)}
-              onSetDefault={() => handleSetDefault(d.id)}
-            />
-          ))}
-        </div>
-      )}
-
-      {labDevices.length > 0 && (
-        <>
-          <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mt-6">{tDev('labProviders')}</h3>
-          <div className="space-y-3">
-            {labDevices.map(d => (
-              <DeviceCard
-                key={d.id}
-                device={d}
-                markers={markers}
-                onEdit={() => { setEditDevice(d); setShowModal(true) }}
-                onDelete={() => setDeleteConfirm(d.id)}
-                onSetDefault={() => handleSetDefault(d.id)}
-              />
-            ))}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1.5">
+              <h2 className="text-lg font-semibold text-blue-600 dark:text-blue-400">{tDev('title')}</h2>
+              <InfoTooltip>{tDev('deviceTooltip')}</InfoTooltip>
+            </div>
+            <button
+              onClick={() => { setEditDevice(null); setShowModal(true) }}
+              className="bg-blue-600 hover:bg-blue-500 text-white text-xs px-3 py-1.5 rounded-lg transition-colors"
+            >
+              {tDev('addDevice')}
+            </button>
           </div>
-        </>
-      )}
+          {personalDevices.length === 0 ? (
+            <div className="border border-dashed border-blue-200 dark:border-blue-900 rounded-xl p-6 text-center">
+              <p className="text-muted-foreground text-sm">{tDev('noDevicesTitle')}</p>
+              <p className="text-muted-foreground text-xs mt-1">{tDev('noDevicesDesc')}</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {personalDevices.map(d => (
+                <DeviceCard
+                  key={d.id}
+                  device={d}
+                  markers={markers}
+                  onEdit={() => { setEditDevice(d); setShowModal(true) }}
+                  onDelete={() => setDeleteConfirm(d.id)}
+                  onSetDefault={() => handleSetDefault(d.id)}
+                />
+              ))}
+            </div>
+          )}
+        </div>
 
-      <button
-        onClick={() => { setEditDevice(null); setShowModal(true) }}
-        className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
-      >
-        {tDev('addDevice')}
-      </button>
-
-      <div className="border border-border rounded-lg p-3 mt-4">
-        <p className="text-xs text-muted-foreground">
-          {tDev('tipText')}
-        </p>
+        {/* Labs column */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1.5">
+              <h2 className="text-lg font-semibold text-purple-600 dark:text-purple-400">{tDev('yourLabs')}</h2>
+              <InfoTooltip>{tDev('labTooltip')}</InfoTooltip>
+            </div>
+            <button
+              onClick={() => { setEditDevice(null); setShowModal(true) }}
+              className="bg-purple-600 hover:bg-purple-500 text-white text-xs px-3 py-1.5 rounded-lg transition-colors"
+            >
+              {tDev('addLab')}
+            </button>
+          </div>
+          {labDevices.length === 0 ? (
+            <div className="border border-dashed border-purple-200 dark:border-purple-900 rounded-xl p-6 text-center">
+              <p className="text-muted-foreground text-sm">{tDev('noDevicesTitle')}</p>
+              <p className="text-muted-foreground text-xs mt-1">{tDev('labTooltip')}</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {labDevices.map(d => (
+                <DeviceCard
+                  key={d.id}
+                  device={d}
+                  markers={markers}
+                  onEdit={() => { setEditDevice(d); setShowModal(true) }}
+                  onDelete={() => setDeleteConfirm(d.id)}
+                  onSetDefault={() => handleSetDefault(d.id)}
+                />
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Delete confirmation */}
