@@ -2600,6 +2600,7 @@ function LicenseTab() {
 
   return (
     <div className="space-y-6">
+      {/* Two-column layout for plan + billing */}
       {paymentSuccess && (
         <div className="bg-green-900/30 border border-green-700 rounded-lg p-4 flex items-center gap-3">
           <span className="text-green-400 text-lg">&#10003;</span>
@@ -2616,6 +2617,9 @@ function LicenseTab() {
         </div>
       )}
 
+      {/* Two-column: Plan info left, Billing address right */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="space-y-6">
       {/* Current plan info - renders immediately from user data */}
       <div className="border border-border rounded-lg p-6 space-y-5">
         <h3 className="font-medium">{tCommon('currentPlan')}</h3>
@@ -2781,10 +2785,12 @@ function LicenseTab() {
         </a>
       </div>
 
-      {/* Billing Address */}
+      </div>
+      {/* Right column: Billing Address */}
       <BillingAddressSection />
+      </div>
 
-      {/* Payment History - Stripe invoices + DB invoices */}
+      {/* Payment History - Stripe invoices + DB invoices (full width) */}
       {hasPaidPlan && (
         <div className="border border-border rounded-lg p-6">
           <div className="flex items-center justify-between mb-4">
