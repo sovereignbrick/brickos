@@ -852,7 +852,7 @@ function DeviceModal({ device, markers, initialType, onClose, onSaved }: {
               type="text"
               value={name}
               onChange={e => setName(e.target.value)}
-              placeholder={tDev('placeholders.deviceName')}
+              placeholder={deviceType === 'lab' ? tDev('placeholders.labName') : tDev('placeholders.deviceName')}
               className="w-full bg-accent border border-border rounded-lg px-3 py-2 text-sm"
             />
           </div>
@@ -980,13 +980,15 @@ function DeviceModal({ device, markers, initialType, onClose, onSaved }: {
                         onChange={() => toggleMarker(m.marker_slug)}
                         className="rounded"
                       />
-                      <span className="flex-1 min-w-0 truncate">
-                        {contentMarkers[m.marker_slug]?.name ?? m.display_name ?? m.marker_name}
+                      <span className="flex-1 min-w-0 flex items-center gap-1">
+                        <span className="truncate">
+                          {contentMarkers[m.marker_slug]?.name ?? m.display_name ?? m.marker_name}
+                        </span>
                         {m.abbreviation && (
-                          <span className="text-muted-foreground ml-1">({m.abbreviation})</span>
+                          <span className="text-muted-foreground shrink-0">({m.abbreviation})</span>
                         )}
+                        <MarkerInfoTooltip slug={m.marker_slug} markers={contentMarkers} allMarkers={markers} />
                       </span>
-                      <MarkerInfoTooltip slug={m.marker_slug} markers={contentMarkers} allMarkers={markers} />
                       <span className="text-xs text-muted-foreground shrink-0">{m.unit_canonical}</span>
                     </label>
                   ))}

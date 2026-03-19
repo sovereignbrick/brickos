@@ -725,6 +725,7 @@
     },
     "placeholders": {
       "notes": "z.B. Linker Mittelfinger, Linker Arm",
+      "labName": "z.B. Synlab, Laboklin",
       "labNotes": "z.B. Routineuntersuchung, Facharztüberweisung",
       "deviceName": "z.B. Fora 6",
       "manufacturer": "z.B. ForaCare",
