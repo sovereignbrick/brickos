@@ -147,7 +147,7 @@ function MarkerRow({ marker, value, displayUnit, badge, onChange, onRemove, zone
   return (
     <div className="flex items-center gap-2 py-1.5">
       <div className="flex-1 min-w-0 flex items-center gap-1.5">
-        <span className="text-sm truncate" title={name}>
+        <span className="text-sm truncate">
           {name}
         </span>
         {marker.abbreviation && (
@@ -156,7 +156,7 @@ function MarkerRow({ marker, value, displayUnit, badge, onChange, onRemove, zone
         <MarkerInfoTooltip slug={marker.marker_slug} />
         <span className="flex-1" />
         {badge && (
-          <span className="text-[10px] text-blue-400/80 bg-blue-500/10 border border-blue-500/20 px-1.5 py-0.5 rounded shrink-0 hidden sm:inline-block">
+          <span className="text-[10px] text-blue-400/80 bg-blue-500/10 border border-blue-500/20 px-1.5 py-0.5 rounded shrink-0 hidden sm:inline-block" title={badge}>
             {badge}
           </span>
         )}
