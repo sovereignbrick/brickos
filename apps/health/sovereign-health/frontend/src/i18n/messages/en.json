@@ -936,6 +936,7 @@
       "billingAddressTitle": "Billing Address",
       "billingAddressDesc": "Required for tax compliance on invoices.",
       "customerType": "Customer Type",
+      "customerTypeInfo": "Private customers receive invoices with standard VAT. Organizations can provide a VAT ID for reverse charge / tax-exempt billing.",
       "customerPrivate": "Private",
       "customerOrganization": "Organization",
       "companyName": "Company Name",

@@ -936,6 +936,7 @@
       "billingAddressTitle": "Rechnungsadresse",
       "billingAddressDesc": "Erforderlich für die steuerliche Compliance auf Rechnungen.",
       "customerType": "Kundentyp",
+      "customerTypeInfo": "Privatkunden erhalten Rechnungen mit Standard-USt. Unternehmen können eine USt-IdNr. für das Reverse-Charge-Verfahren angeben.",
       "customerPrivate": "Privat",
       "customerOrganization": "Unternehmen",
       "companyName": "Firmenname",

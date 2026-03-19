@@ -16,6 +16,7 @@ import type {
   LifestyleDefaults, MarkerWithZone, CalculatedMarkerDef, DeviceInfo,
 } from '@/lib/types'
 import { COUNTRIES } from './countries'
+import { COUNTRIES as BILINGUAL_COUNTRIES } from '@/lib/countries'
 import { Breadcrumb } from '@/components/breadcrumb'
 import { IS_OSS } from '@/lib/mode'
 import { MedicationsTab } from '@/components/settings/medications-tab'
@@ -2224,6 +2225,7 @@ function BillingAddressSection() {
   const t = useTranslations('settings.license')
   const tCommon = useTranslations('common')
   const { user } = useAuth()
+  const { locale } = useContent()
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [form, setForm] = useState({
@@ -2273,6 +2275,8 @@ function BillingAddressSection() {
     }
   }
 
+  const countryLang = (locale === 'de' ? 'de' : 'en') as 'en' | 'de'
+
   const inp = 'w-full bg-card border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-blue-500'
 
   return (
@@ -2281,58 +2285,70 @@ function BillingAddressSection() {
         <h3 className="font-medium">{t('billingAddressTitle')}</h3>
         <p className="text-xs text-muted-foreground mt-1">{t('billingAddressDesc')}</p>
       </div>
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="text-xs text-muted-foreground block mb-1">{t('customerType')}</label>
-          <select value={form.customer_type} onChange={e => setForm({ ...form, customer_type: e.target.value })} className={inp}>
-            <option value="private">{t('customerPrivate')}</option>
-            <option value="organization">{t('customerOrganization')}</option>
-          </select>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Left column */}
+        <div className="space-y-4">
+          <div>
+            <label className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
+              {t('customerType')}
+              <InfoTooltip>{t('customerTypeInfo')}</InfoTooltip>
+            </label>
+            <select value={form.customer_type} onChange={e => setForm({ ...form, customer_type: e.target.value })} className={inp}>
+              <option value="private">{t('customerPrivate')}</option>
+              <option value="organization">{t('customerOrganization')}</option>
+            </select>
+          </div>
+          {form.customer_type === 'organization' && (
+            <>
+              <div>
+                <label className="text-xs text-muted-foreground block mb-1">{t('companyName')}</label>
+                <input type="text" value={form.company_name} onChange={e => setForm({ ...form, company_name: e.target.value })} className={inp} />
+              </div>
+              <div>
+                <label className="text-xs text-muted-foreground block mb-1">{t('vatId')}</label>
+                <input type="text" value={form.vat_id} onChange={e => setForm({ ...form, vat_id: e.target.value })} className={inp} placeholder="DE123456789" />
+              </div>
+            </>
+          )}
+          <div>
+            <label className="text-xs text-muted-foreground block mb-1">{t('addressLine1')}</label>
+            <input type="text" value={form.billing_address_line1} onChange={e => setForm({ ...form, billing_address_line1: e.target.value })} className={inp} />
+          </div>
+          <div>
+            <label className="text-xs text-muted-foreground block mb-1">{t('addressLine2')}</label>
+            <input type="text" value={form.billing_address_line2} onChange={e => setForm({ ...form, billing_address_line2: e.target.value })} className={inp} />
+          </div>
         </div>
-        {form.customer_type === 'organization' && (
-          <>
-            <div>
-              <label className="text-xs text-muted-foreground block mb-1">{t('companyName')}</label>
-              <input type="text" value={form.company_name} onChange={e => setForm({ ...form, company_name: e.target.value })} className={inp} />
-            </div>
-            <div>
-              <label className="text-xs text-muted-foreground block mb-1">{t('vatId')}</label>
-              <input type="text" value={form.vat_id} onChange={e => setForm({ ...form, vat_id: e.target.value })} className={inp} placeholder="DE123456789" />
-            </div>
-          </>
-        )}
-      </div>
-      <div className="grid grid-cols-2 gap-4">
-        <div className="col-span-2">
-          <label className="text-xs text-muted-foreground block mb-1">{t('addressLine1')}</label>
-          <input type="text" value={form.billing_address_line1} onChange={e => setForm({ ...form, billing_address_line1: e.target.value })} className={inp} />
+        {/* Right column */}
+        <div className="space-y-4">
+          <div>
+            <label className="text-xs text-muted-foreground block mb-1">{t('city')}</label>
+            <input type="text" value={form.billing_address_city} onChange={e => setForm({ ...form, billing_address_city: e.target.value })} className={inp} />
+          </div>
+          <div>
+            <label className="text-xs text-muted-foreground block mb-1">{t('postalCode')}</label>
+            <input type="text" value={form.billing_address_postal_code} onChange={e => setForm({ ...form, billing_address_postal_code: e.target.value })} className={inp} />
+          </div>
+          <div>
+            <label className="text-xs text-muted-foreground block mb-1">{t('state')}</label>
+            <input type="text" value={form.billing_address_state} onChange={e => setForm({ ...form, billing_address_state: e.target.value })} className={inp} />
+          </div>
+          <div>
+            <label className="text-xs text-muted-foreground block mb-1">{t('billingCountry')}</label>
+            <select value={form.billing_address_country} onChange={e => setForm({ ...form, billing_address_country: e.target.value })} className={inp}>
+              <option value="">—</option>
+              {BILINGUAL_COUNTRIES.map(c => (
+                <option key={c.code} value={c.code}>{c.name[countryLang]}</option>
+              ))}
+            </select>
+          </div>
+          <div className="flex items-center gap-3 pt-2">
+            <button onClick={handleSave} disabled={saving} className="px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors">
+              {saving ? '...' : t('saveBillingAddress')}
+            </button>
+            {saved && <span className="text-green-400 text-sm">{t('billingAddressSaved')}</span>}
+          </div>
         </div>
-        <div className="col-span-2">
-          <label className="text-xs text-muted-foreground block mb-1">{t('addressLine2')}</label>
-          <input type="text" value={form.billing_address_line2} onChange={e => setForm({ ...form, billing_address_line2: e.target.value })} className={inp} />
-        </div>
-        <div>
-          <label className="text-xs text-muted-foreground block mb-1">{t('city')}</label>
-          <input type="text" value={form.billing_address_city} onChange={e => setForm({ ...form, billing_address_city: e.target.value })} className={inp} />
-        </div>
-        <div>
-          <label className="text-xs text-muted-foreground block mb-1">{t('postalCode')}</label>
-          <input type="text" value={form.billing_address_postal_code} onChange={e => setForm({ ...form, billing_address_postal_code: e.target.value })} className={inp} />
-        </div>
-        <div>
-          <label className="text-xs text-muted-foreground block mb-1">{t('state')}</label>
-          <input type="text" value={form.billing_address_state} onChange={e => setForm({ ...form, billing_address_state: e.target.value })} className={inp} />
-        </div>
-        <div>
-          <label className="text-xs text-muted-foreground block mb-1">{t('billingCountry')}</label>
-          <input type="text" value={form.billing_address_country} onChange={e => setForm({ ...form, billing_address_country: e.target.value })} className={inp} placeholder="DE" maxLength={2} />
-        </div>
-      </div>
-      <div className="flex items-center gap-3">
-        <button onClick={handleSave} disabled={saving} className="px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors">
-          {saving ? '...' : t('saveBillingAddress')}
-        </button>
-        {saved && <span className="text-green-400 text-sm">{t('billingAddressSaved')}</span>}
       </div>
     </div>
   )
@@ -2635,7 +2651,7 @@ function LicenseTab() {
             <p className="font-medium">{user?.created_at ? formatDate(user.created_at) : 'N/A'}</p>
           </div>
         </div>
-        {!subscription && (slug === 'glimpse' || slug === 'core') && (
+        {!subscription && slug !== 'horizon' && (
           <div className="flex items-center gap-3 pt-2">
             <Link href="/checkout?tier=focus&interval=monthly" className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium rounded-lg transition-colors">
               {t('upgrade')}
@@ -2687,8 +2703,8 @@ function LicenseTab() {
       <div className="border border-border rounded-lg p-6 space-y-4">
         <h3 className="font-medium">{t('planActions')}</h3>
         <div className="space-y-4">
-          {/* No subscription - show upgrade options for free tiers */}
-          {!subscription && (slug === 'glimpse' || slug === 'core') && (
+          {/* No subscription - show upgrade options */}
+          {!subscription && slug !== 'horizon' && (
             <div className="space-y-3">
               <Link href="/checkout?tier=focus&interval=monthly" className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium rounded-lg transition-colors">
                 {t('upgrade')} → Focus
