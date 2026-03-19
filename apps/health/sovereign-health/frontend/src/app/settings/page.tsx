@@ -658,18 +658,18 @@ function DeviceCard({ device, markers, onEdit, onDelete, onSetDefault }: {
     .join(', ')
 
   return (
-    <div className="border border-border rounded-xl p-4">
+    <div className={`border rounded-xl p-4 ${device.device_type === 'lab' ? 'border-purple-300 dark:border-purple-800' : 'border-blue-300 dark:border-blue-800'}`}>
       <div className="flex items-start justify-between gap-2 mb-2">
         <div className="flex items-center gap-2 flex-wrap">
           <span className="font-medium">{device.device_name}</span>
-          {device.is_default && (
+          {device.is_default && device.device_type !== 'lab' && (
             <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-600/20 text-blue-700 dark:text-blue-400 border border-blue-300 dark:border-blue-800 font-medium">
               {tDev('default')}
             </span>
           )}
         </div>
         <div className="flex items-center gap-1 shrink-0">
-          {!device.is_default && (
+          {!device.is_default && device.device_type !== 'lab' && (
             <button onClick={onSetDefault} className="text-xs text-muted-foreground hover:text-foreground transition-colors px-2 py-1">
               {tDev('setDefault')}
             </button>
@@ -688,7 +688,7 @@ function DeviceCard({ device, markers, onEdit, onDelete, onSetDefault }: {
           {device.manufacturer && ' | '}
           {device.device_type === 'other' ? tCommon('other') : (tDev(`deviceTypes.${device.device_type}` as 'deviceTypes.home') || device.device_type)}
         </p>
-        {device.markers_measured.length > 0 && (
+        {device.device_type !== 'lab' && device.markers_measured.length > 0 && (
           <p>{tDev('measures', { markers: markerNames })}</p>
         )}
         <p>
@@ -840,7 +840,7 @@ function DeviceModal({ device, markers, initialType, onClose, onSaved }: {
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
       <div className="bg-card border border-border rounded-xl w-full max-w-lg max-h-[90vh] flex flex-col">
         <div className="p-4 border-b border-border flex items-center justify-between">
-          <h3 className="font-semibold">{isEdit ? (deviceType === 'lab' ? tDev('editLab') : tDev('editDevice')) : tDev('addDeviceTitle')}</h3>
+          <h3 className="font-semibold">{isEdit ? (deviceType === 'lab' ? tDev('editLab') : tDev('editDevice')) : (deviceType === 'lab' ? tDev('addLabTitle') : tDev('addDeviceTitle'))}</h3>
           <button onClick={onClose} className="text-muted-foreground hover:text-foreground">x</button>
         </div>
 
@@ -1061,7 +1061,7 @@ function DeviceModal({ device, markers, initialType, onClose, onSaved }: {
             disabled={saving || !name.trim()}
             className="text-sm px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white transition-colors"
           >
-            {saving ? tCommon('saving') : isEdit ? tDev('saveChanges') : tDev('addDeviceTitle')}
+            {saving ? tCommon('saving') : isEdit ? tDev('saveChanges') : (deviceType === 'lab' ? tDev('addLabTitle') : tDev('addDeviceTitle'))}
           </button>
         </div>
       </div>

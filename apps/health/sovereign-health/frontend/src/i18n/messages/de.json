@@ -678,6 +678,7 @@
     "yourLabs": "Deine Labore",
     "addDevice": "+ Gerät hinzufügen",
     "addLab": "+ Labor hinzufügen",
+    "addLabTitle": "Labor hinzufügen",
     "noDevicesTitle": "Noch keine Geräte hinzugefügt.",
     "noDevicesDesc": "Füge deine Messgeräte hinzu, um die Dateneingabe zu beschleunigen.",
     "labProviders": "Laboranbieter",

@@ -678,6 +678,7 @@
     "yourLabs": "Your Labs",
     "addDevice": "+ Add Device",
     "addLab": "+ Add Lab",
+    "addLabTitle": "Add Lab",
     "noDevicesTitle": "No devices added yet.",
     "noDevicesDesc": "Add your measurement devices to speed up data entry.",
     "labProviders": "Lab Providers",
