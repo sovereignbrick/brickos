@@ -131,6 +131,35 @@ function ZoneIconTooltip({ name, icon, color }: { name: string; icon: string; co
   )
 }
 
+function BadgeTooltip({ label, className, style }: { label: string; className: string; style?: React.CSSProperties }) {
+  const [show, setShow] = useState(false)
+  const [pos, setPos] = useState({ x: 0, y: 0 })
+  const ref = useRef<HTMLSpanElement>(null)
+
+  return (
+    <>
+      <span
+        ref={ref}
+        onMouseEnter={() => { if (ref.current) { const r = ref.current.getBoundingClientRect(); setPos({ x: r.left + r.width / 2, y: r.top }); } setShow(true); }}
+        onMouseLeave={() => setShow(false)}
+        className={className}
+        style={style}
+      >
+        {label}
+      </span>
+      {show && typeof document !== 'undefined' && createPortal(
+        <div
+          style={{ position: 'fixed', left: pos.x, top: pos.y - 6, transform: 'translate(-50%, -100%)', zIndex: 9999 }}
+          className="bg-card border border-border rounded-lg px-2.5 py-1.5 text-xs text-foreground shadow-xl pointer-events-none whitespace-nowrap"
+        >
+          {label}
+        </div>,
+        document.body,
+      )}
+    </>
+  )
+}
+
 function MarkerRow({ marker, value, displayUnit, badge, onChange, onRemove, zoneBadge }: {
   marker: MarkerWithZone
   value: string
@@ -156,9 +185,10 @@ function MarkerRow({ marker, value, displayUnit, badge, onChange, onRemove, zone
         <MarkerInfoTooltip slug={marker.marker_slug} />
         <span className="flex-1" />
         {badge && (
-          <span className="text-[10px] text-blue-400/80 bg-blue-500/10 border border-blue-500/20 px-1.5 py-0.5 rounded shrink-0 hidden sm:inline-block" title={badge}>
-            {badge}
-          </span>
+          <BadgeTooltip
+            label={badge}
+            className="text-[10px] text-blue-400/80 bg-blue-500/10 border border-blue-500/20 px-1.5 py-0.5 rounded shrink-0 hidden sm:inline-block cursor-help"
+          />
         )}
         {zoneBadge && (
           <ZoneIconTooltip name={zoneBadge.name} icon={zoneBadge.icon} color={zoneBadge.color} />
