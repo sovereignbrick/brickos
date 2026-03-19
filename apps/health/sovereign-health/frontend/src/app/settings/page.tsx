@@ -1351,7 +1351,7 @@ function ProfileTab({
               <FieldWithInfo label={t('sleepHoursLabel')} items={[{ name: t('sleepHoursLabel'), desc: t('sleepHoursInfo') }]}>
                 <input type="number" value={lForm.default_sleep_hours ?? ''} onChange={e => setLForm({ ...lForm, default_sleep_hours: e.target.value ? Number(e.target.value) : null })} className={inp} min={0} max={24} step={0.5} />
               </FieldWithInfo>
-              <FieldWithInfo label={t('sleepQualityLabel')} items={['excellent','good','fair','poor'].map(k => ({ name: k === 'good' || k === 'fair' ? tCommon(k as 'good') : tSleep(k as 'excellent'), desc: t(`sleepDescs.${k}` as 'sleepDescs.excellent') }))}>
+              <FieldWithInfo label={t('sleepQualityLabel')} items={[{ name: t('sleepQualityLabel'), desc: t('sleepQualityInfo') }]}>
                 <select value={lForm.default_sleep_quality ?? ''} onChange={e => setLForm({ ...lForm, default_sleep_quality: e.target.value || null })} className={inp}>
                   <option value="">{tCommon('notSet')}</option>
                   <option value="excellent">{tSleep('excellent')}</option>
