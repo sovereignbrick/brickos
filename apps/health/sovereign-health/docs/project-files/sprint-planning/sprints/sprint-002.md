@@ -1,7 +1,7 @@
 # Sprint 002 — Launch & Automate
 
-**Started:** 2026-03-19
-**Completed:** ongoing
+**Started:** 2026-03-18
+**Completed:** 2026-03-19
 **Goal:** Close all launch blockers (billing UI, deploy alignment), automate the release workflow, merge Dependabot updates, and promote v0.20.0 to production.
 
 ## Context
@@ -100,17 +100,17 @@ Week 2 (Phase 3 + 4):
 
 ## Definition of Done for Go-Live (#121)
 
-- [ ] All Phase 1 issues closed (billing UI complete)
-- [ ] CI pipeline includes snapshot check (#123)
-- [ ] Auto-deploy to staging working (#122)
-- [ ] Post-deploy smoke test passes (#124)
-- [ ] Staging DB backup runs before migration (#127)
-- [ ] Dependabot updates merged and CI green (#128)
-- [ ] Manual testing checklist passed on staging (RC4)
-- [ ] Rollback mechanism available (#125)
-- [ ] Error alerting active (#126)
-- [ ] Production env vars configured (Stripe, Mailgun, encryption key, Cloudflare)
-- [ ] `bash ops/deploy.sh production --confirm` succeeds
+- [x] All Phase 1 issues closed (billing UI complete)
+- [x] CI pipeline includes snapshot check (#123)
+- [x] Auto-deploy to staging working (#122)
+- [x] Post-deploy smoke test passes (#124)
+- [x] Staging DB backup runs before migration (#127)
+- [x] Dependabot updates merged and CI green (#128)
+- [x] Manual testing checklist passed on staging (RC4)
+- [x] Rollback mechanism available (#125)
+- [x] Error alerting active (#126)
+- [x] Production env vars configured (Stripe, Mailgun, encryption key, Cloudflare)
+- [x] `bash ops/deploy.sh production --confirm` succeeds — v0.20.0 deployed 2026-03-19
 
 ## Backlog (Sprint 003 candidates)
 
