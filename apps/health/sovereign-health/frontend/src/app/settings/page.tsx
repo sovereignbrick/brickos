@@ -651,7 +651,7 @@ function DeviceCard({ device, markers, onEdit, onDelete, onSetDefault }: {
         <div className="flex items-center gap-2 flex-wrap">
           <span className="font-medium">{device.device_name}</span>
           {device.is_default && (
-            <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-600/20 text-blue-400 border border-blue-800 font-medium">
+            <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-600/20 text-blue-700 dark:text-blue-400 border border-blue-300 dark:border-blue-800 font-medium">
               {tDev('default')}
             </span>
           )}
