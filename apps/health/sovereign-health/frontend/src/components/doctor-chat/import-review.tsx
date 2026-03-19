@@ -232,7 +232,7 @@ export function ImportReview({ session, onConfirm, onCancel, isLoading }: Import
                       />
                     </th>
                     <th className="py-2 px-3 text-left">{t('marker')}</th>
-                    <th className="py-2 px-3 text-left">Abbr</th>
+                    <th className="py-2 px-3 text-left">{t('abbreviation')}</th>
                     <th className="py-2 px-3 text-right">{t('value')}</th>
                     <th className="py-2 px-3 text-left">{t('unit')}</th>
                     <th className="py-2 px-3 text-center">{t('confidence')}</th>

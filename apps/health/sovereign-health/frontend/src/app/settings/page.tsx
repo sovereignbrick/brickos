@@ -827,7 +827,7 @@ function DeviceModal({ device, markers, onClose, onSaved }: {
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
       <div className="bg-card border border-border rounded-xl w-full max-w-lg max-h-[90vh] flex flex-col">
         <div className="p-4 border-b border-border flex items-center justify-between">
-          <h3 className="font-semibold">{isEdit ? tDev('editDevice') : tDev('addDeviceTitle')}</h3>
+          <h3 className="font-semibold">{isEdit ? (deviceType === 'lab' ? tDev('editLab') : tDev('editDevice')) : tDev('addDeviceTitle')}</h3>
           <button onClick={onClose} className="text-muted-foreground hover:text-foreground">x</button>
         </div>
 
@@ -850,7 +850,8 @@ function DeviceModal({ device, markers, onClose, onSaved }: {
             <select
               value={deviceType}
               onChange={e => setDeviceType(e.target.value)}
-              className="w-full bg-card text-foreground border border-border rounded-lg px-3 py-2 text-sm [&>option]:bg-card [&>option]:text-foreground"
+              disabled={isEdit && deviceType === 'lab'}
+              className={`w-full bg-card text-foreground border border-border rounded-lg px-3 py-2 text-sm [&>option]:bg-card [&>option]:text-foreground ${isEdit && deviceType === 'lab' ? 'opacity-60 cursor-not-allowed' : ''}`}
             >
               {DEVICE_TYPE_VALUES.map(v => <option key={v} value={v}>{v === 'other' ? tCommon('other') : tDev(`deviceTypes.${v}` as 'deviceTypes.home')}</option>)}
             </select>
@@ -981,17 +982,19 @@ function DeviceModal({ device, markers, onClose, onSaved }: {
             </div>
           </div>
 
-          {/* Default */}
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={isDefault}
-              onChange={e => setIsDefault(e.target.checked)}
-              className="rounded"
-            />
-            <span className="text-sm">{tDev('setAsDefault')}</span>
-            <InfoTooltip>{tDev('setAsDefaultTooltip')}</InfoTooltip>
-          </label>
+          {/* Default — hide for lab devices */}
+          {deviceType !== 'lab' && (
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={isDefault}
+                onChange={e => setIsDefault(e.target.checked)}
+                className="rounded"
+              />
+              <span className="text-sm">{tDev('setAsDefault')}</span>
+              <InfoTooltip>{tDev('setAsDefaultTooltip')}</InfoTooltip>
+            </label>
+          )}
 
           {/* Notes */}
           <div>
@@ -999,7 +1002,7 @@ function DeviceModal({ device, markers, onClose, onSaved }: {
             <textarea
               value={notes}
               onChange={e => setNotes(e.target.value)}
-              placeholder={tDev('placeholders.notes')}
+              placeholder={deviceType === 'lab' ? tDev('placeholders.labNotes') : tDev('placeholders.notes')}
               rows={2}
               className="w-full bg-accent border border-border rounded-lg px-3 py-2 text-sm resize-none"
             />

@@ -693,6 +693,7 @@
     "notes": "Notes: {notes}",
     "validatedOn": "Validated on {date}",
     "editDevice": "Edit Device",
+    "editLab": "Edit Lab",
     "addDeviceTitle": "Add Device",
     "manufacturerLabel": "Manufacturer",
     "modelLabel": "Model",
@@ -720,6 +721,7 @@
     },
     "placeholders": {
       "notes": "e.g. Left middle finger, Left arm",
+      "labNotes": "e.g. Regular checkup, specialist referral",
       "deviceName": "e.g. Fora 6",
       "manufacturer": "e.g. ForaCare",
       "model": "e.g. Fora 6 Connect",
@@ -1443,6 +1445,7 @@
     "matchedMarkers": "Matched Markers",
     "labNameColumn": "Lab Name",
     "marker": "Marker",
+    "abbreviation": "Abbreviation",
     "value": "Value",
     "unit": "Unit",
     "confidence": "Confidence",
