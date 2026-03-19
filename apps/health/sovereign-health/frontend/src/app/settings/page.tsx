@@ -491,6 +491,7 @@ function DevicesTab({ markers }: { markers: MarkerWithZone[] }) {
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
   const [editDevice, setEditDevice] = useState<DeviceInfo | null>(null)
+  const [initialDeviceType, setInitialDeviceType] = useState<string | null>(null)
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
 
   const load = useCallback(() => {
@@ -540,7 +541,7 @@ function DevicesTab({ markers }: { markers: MarkerWithZone[] }) {
               <InfoTooltip>{tDev('deviceTooltip')}</InfoTooltip>
             </div>
             <button
-              onClick={() => { setEditDevice(null); setShowModal(true) }}
+              onClick={() => { setEditDevice(null); setInitialDeviceType(null); setShowModal(true) }}
               className="bg-blue-600 hover:bg-blue-500 text-white text-xs px-3 py-1.5 rounded-lg transition-colors"
             >
               {tDev('addDevice')}
@@ -558,7 +559,7 @@ function DevicesTab({ markers }: { markers: MarkerWithZone[] }) {
                   key={d.id}
                   device={d}
                   markers={markers}
-                  onEdit={() => { setEditDevice(d); setShowModal(true) }}
+                  onEdit={() => { setEditDevice(d); setInitialDeviceType(null); setShowModal(true) }}
                   onDelete={() => setDeleteConfirm(d.id)}
                   onSetDefault={() => handleSetDefault(d.id)}
                 />
@@ -575,7 +576,7 @@ function DevicesTab({ markers }: { markers: MarkerWithZone[] }) {
               <InfoTooltip>{tDev('labTooltip')}</InfoTooltip>
             </div>
             <button
-              onClick={() => { setEditDevice(null); setShowModal(true) }}
+              onClick={() => { setEditDevice(null); setInitialDeviceType('lab'); setShowModal(true) }}
               className="bg-purple-600 hover:bg-purple-500 text-white text-xs px-3 py-1.5 rounded-lg transition-colors"
             >
               {tDev('addLab')}
@@ -628,6 +629,7 @@ function DevicesTab({ markers }: { markers: MarkerWithZone[] }) {
         <DeviceModal
           device={editDevice}
           markers={markers}
+          initialType={initialDeviceType}
           onClose={() => { setShowModal(false); setEditDevice(null) }}
           onSaved={() => { setShowModal(false); setEditDevice(null); load() }}
         />
@@ -705,9 +707,10 @@ function DeviceCard({ device, markers, onEdit, onDelete, onSetDefault }: {
   )
 }
 
-function DeviceModal({ device, markers, onClose, onSaved }: {
+function DeviceModal({ device, markers, initialType, onClose, onSaved }: {
   device: DeviceInfo | null
   markers: MarkerWithZone[]
+  initialType?: string | null
   onClose: () => void
   onSaved: () => void
 }) {
@@ -720,7 +723,7 @@ function DeviceModal({ device, markers, onClose, onSaved }: {
   const [name, setName] = useState(device?.device_name ?? '')
   const [manufacturer, setManufacturer] = useState(device?.manufacturer ?? '')
   const [model, setModel] = useState(device?.model ?? '')
-  const [deviceType, setDeviceType] = useState(device?.device_type ?? 'home')
+  const [deviceType, setDeviceType] = useState(device?.device_type ?? initialType ?? 'home')
   const [selectedMarkers, setSelectedMarkers] = useState<Set<string>>(
     new Set(device?.markers_measured ?? [])
   )
