@@ -382,6 +382,88 @@ fn alias_map() -> &'static HashMap<&'static str, &'static str> {
         ] {
             m.insert(a, "waist_circumference");
         }
+        // ── MCV ──
+        for a in ["mcv", "mean corpuscular volume", "mittleres zellvolumen", "mittleres korpuskularvolumen"] {
+            m.insert(a, "mcv");
+        }
+        // ── MCH ──
+        for a in ["mch", "mean corpuscular hemoglobin", "mittleres zellhämoglobin", "mittleres zellhamoglobin"] {
+            m.insert(a, "mch");
+        }
+        // ── MCHC ──
+        for a in ["mchc", "mean corpuscular hb concentration", "mittlere hämoglobinkonzentration", "mittlere hamoglobinkonzentration"] {
+            m.insert(a, "mchc");
+        }
+        // ── RDW ──
+        for a in ["rdw", "red cell distribution width", "erythrozytenverteilungsbreite", "evb"] {
+            m.insert(a, "rdw");
+        }
+        // ── Neutrophils ──
+        for a in [
+            "neutrophils", "neutrophils %", "neutrophils pct", "neut", "neut%",
+            "segmentkernige", "segmentkernige %", "neutrophile", "neutrophile granulozyten",
+            "segmentkernige granulozyten",
+        ] {
+            m.insert(a, "neutrophils_pct");
+        }
+        for a in [
+            "neutrophils abs", "neutrophils absolute", "segmentkernige absolut",
+            "segmentkernige, absolut", "neutrophile absolut", "neut#",
+        ] {
+            m.insert(a, "neutrophils_abs");
+        }
+        // ── Lymphocytes ──
+        for a in [
+            "lymphocytes", "lymphocytes %", "lymphocytes pct", "lymph", "lymph%",
+            "lymphozyten", "lymphozyten %",
+        ] {
+            m.insert(a, "lymphocytes_pct");
+        }
+        for a in [
+            "lymphocytes abs", "lymphocytes absolute", "lymphozyten absolut",
+            "lymphozyten, absolut", "lymph#",
+        ] {
+            m.insert(a, "lymphocytes_abs");
+        }
+        // ── Monocytes ──
+        for a in [
+            "monocytes", "monocytes %", "monocytes pct", "mono", "mono%",
+            "monozyten", "monozyten %",
+        ] {
+            m.insert(a, "monocytes_pct");
+        }
+        for a in [
+            "monocytes abs", "monocytes absolute", "monozyten absolut",
+            "monozyten, absolut", "mono#",
+        ] {
+            m.insert(a, "monocytes_abs");
+        }
+        // ── Eosinophils ──
+        for a in [
+            "eosinophils", "eosinophils %", "eosinophils pct", "eos", "eos%",
+            "eosinophile", "eosinophile %",
+        ] {
+            m.insert(a, "eosinophils_pct");
+        }
+        for a in [
+            "eosinophils abs", "eosinophils absolute", "eosinophile absolut",
+            "eosinophile, absolut", "eos#",
+        ] {
+            m.insert(a, "eosinophils_abs");
+        }
+        // ── Basophils ──
+        for a in [
+            "basophils", "basophils %", "basophils pct", "baso", "baso%",
+            "basophile", "basophile %",
+        ] {
+            m.insert(a, "basophils_pct");
+        }
+        for a in [
+            "basophils abs", "basophils absolute", "basophile absolut",
+            "basophile, absolut", "baso#",
+        ] {
+            m.insert(a, "basophils_abs");
+        }
         m
     })
 }
