@@ -863,8 +863,8 @@ function DeviceModal({ device, markers, initialType, onClose, onSaved }: {
             <select
               value={deviceType}
               onChange={e => setDeviceType(e.target.value)}
-              disabled={isEdit && deviceType === 'lab'}
-              className={`w-full bg-card text-foreground border border-border rounded-lg px-3 py-2 text-sm [&>option]:bg-card [&>option]:text-foreground ${isEdit && deviceType === 'lab' ? 'opacity-60 cursor-not-allowed' : ''}`}
+              disabled={deviceType === 'lab'}
+              className={`w-full bg-card text-foreground border border-border rounded-lg px-3 py-2 text-sm [&>option]:bg-card [&>option]:text-foreground ${deviceType === 'lab' ? 'opacity-60 cursor-not-allowed' : ''}`}
             >
               {DEVICE_TYPE_VALUES.map(v => <option key={v} value={v}>{v === 'other' ? tCommon('other') : tDev(`deviceTypes.${v}` as 'deviceTypes.home')}</option>)}
             </select>
