@@ -763,7 +763,7 @@
       "exerciseLevel": "Bewegung",
       "sleepHoursLabel": "Schlafstunden",
       "sleepHoursInfo": "Schlafstunden vor dieser Messung. Schlafdauer beeinflusst Glukose, Cortisol und Erholungsmarker.",
-      "sleepQualityLabel": "Schlafqualität",
+      "sleepQualityTitle": "Schlafqualität",
       "sleepQualityInfo": "Subjektive Schlafqualität. Schlechter Schlaf kann Entzündungsmarker erhöhen und die Insulinempfindlichkeit verringern.",
       "stressLevelLabel": "Stresslevel",
       "stressLevelInfo": "Wahrgenommenes Stresslevel. Chronischer Stress erhöht Cortisol und beeinflusst Stoffwechsel- und Immunmarker.",

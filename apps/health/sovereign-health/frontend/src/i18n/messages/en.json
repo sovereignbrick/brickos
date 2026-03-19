@@ -763,7 +763,7 @@
       "exerciseLevel": "Exercise",
       "sleepHoursLabel": "Sleep Hours",
       "sleepHoursInfo": "Hours of sleep before this measurement. Sleep duration affects glucose, cortisol, and recovery markers.",
-      "sleepQualityLabel": "Sleep Quality",
+      "sleepQualityTitle": "Sleep Quality",
       "sleepQualityInfo": "Subjective sleep quality. Poor sleep can elevate inflammation markers and reduce insulin sensitivity.",
       "stressLevelLabel": "Stress Level",
       "stressLevelInfo": "Perceived stress level. Chronic stress elevates cortisol and affects metabolic and immune markers.",

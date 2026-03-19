@@ -1357,7 +1357,7 @@ function ProfileTab({
               </div>
               <div className="space-y-1.5">
                 <div className="flex items-center gap-1">
-                  <label className="text-sm text-muted-foreground">{t('sleepQualityLabel')}</label>
+                  <label className="text-sm text-muted-foreground">{t('sleepQualityTitle')}</label>
                   <InfoTooltip>{t('sleepQualityInfo')}</InfoTooltip>
                 </div>
                 <select value={lForm.default_sleep_quality ?? ''} onChange={e => setLForm({ ...lForm, default_sleep_quality: e.target.value || null })} className={inp}>
