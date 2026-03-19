@@ -45,10 +45,23 @@ function CheckoutContent() {
   // Payment method
   const [paymentMethod, setPaymentMethod] = useState<'card' | 'btc'>(method === 'btc' ? 'btc' : 'card')
 
-  // Customer type (tax compliance)
+  // Customer type (tax compliance) — pre-filled from user profile
   const [customerType, setCustomerType] = useState<'private' | 'organization'>('private')
   const [companyName, setCompanyName] = useState('')
   const [vatId, setVatId] = useState('')
+
+  // Pre-fill customer type from user profile settings
+  useEffect(() => {
+    if (!user) return
+    api.settings.get().then(res => {
+      const p = res.data?.profile
+      if (p?.customer_type === 'organization') {
+        setCustomerType('organization')
+        if (p.company_name) setCompanyName(p.company_name)
+        if (p.vat_id) setVatId(p.vat_id)
+      }
+    }).catch(() => {})
+  }, [user])
 
   // ALL useEffects BEFORE any conditional returns (React rules of hooks)
 
@@ -372,7 +385,7 @@ function CheckoutContent() {
         </div>
 
         <p className="text-center text-sm text-muted-foreground mt-4">
-          <Link href="/billing" className="hover:text-foreground transition-colors">
+          <Link href="/settings?tab=license" className="hover:text-foreground transition-colors">
             {t('backToBilling')}
           </Link>
         </p>

@@ -2617,8 +2617,10 @@ function LicenseTab() {
         </div>
       )}
 
-      {/* Two-column: Plan info left, Billing address right */}
+      {/* Two-column: Billing left, Plan right */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {/* Left column: Billing Address */}
+      <BillingAddressSection />
       <div className="space-y-6">
       {/* Current plan info - renders immediately from user data */}
       <div className="border border-border rounded-lg p-6 space-y-5">
@@ -2628,7 +2630,8 @@ function LicenseTab() {
             <p className="text-sm text-muted-foreground">{t('plan')}</p>
             <p className="text-lg font-semibold flex items-center gap-2">
               <span className={`px-2 py-0.5 rounded text-xs font-bold text-white ${color}`}>{name}</span>
-              {name} {subscription ? `(${isAnnual ? tCommon('annual') : tCommon('monthly')})` : `(${tCommon('free')})`}
+              {subscription && `(${isAnnual ? tCommon('annual') : tCommon('monthly')})`}
+              <InfoTooltip>{t(`tierInfo_${slug}`)}</InfoTooltip>
             </p>
           </div>
           {subscription && (
@@ -2703,56 +2706,41 @@ function LicenseTab() {
         </div>
       )}
 
-      {/* Plan actions */}
+      {/* Subscription management (only for active subscriptions) */}
+      {subscription && (
       <div className="border border-border rounded-lg p-6 space-y-4">
-        <h3 className="font-medium">{t('planActions')}</h3>
         <div className="space-y-4">
-          {/* No subscription - show upgrade options */}
-          {!subscription && slug !== 'horizon' && (
-            <div className="space-y-3">
-              <Link href="/checkout?tier=focus&interval=monthly" className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium rounded-lg transition-colors">
-                {t('upgrade')} → Focus
-              </Link>
-              <p className="text-xs text-muted-foreground">{t('upgradeDesc')}</p>
-            </div>
-          )}
-          {/* Paid subscription on non-top tier - show upgrade */}
-          {subscription && !subscription.cancel_at_period_end && slug !== 'horizon' && slug !== 'clarity' && (
+          {/* Change plan */}
+          {!subscription.cancel_at_period_end && slug !== 'horizon' && slug !== 'clarity' && (
             <div>
               <button onClick={() => setShowChangePlan(true)} className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium rounded-lg transition-colors">
                 {tCommon('changePlan')}
               </button>
-              <p className="text-xs text-muted-foreground mt-1">{t('changePlanDesc')}</p>
             </div>
           )}
 
-          {/* Active subscription actions */}
-          {subscription && !subscription.cancel_at_period_end && (
-            <>
-              <div>
-                <button
-                  onClick={handleChangeInterval}
-                  disabled={changingInterval}
-                  className="px-4 py-2 bg-muted hover:bg-accent disabled:opacity-50 text-sm rounded-lg transition-colors"
-                >
-                  {changingInterval ? '...' : isAnnual ? t('switchToMonthly') : t('switchToYearly')}
-                </button>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {isAnnual ? t('switchMonthlyDesc') : t('switchYearlyDesc')}
-                </p>
-              </div>
-            </>
+          {/* Switch interval */}
+          {!subscription.cancel_at_period_end && (
+            <div>
+              <button
+                onClick={handleChangeInterval}
+                disabled={changingInterval}
+                className="px-4 py-2 bg-muted hover:bg-accent disabled:opacity-50 text-sm rounded-lg transition-colors"
+              >
+                {changingInterval ? '...' : isAnnual ? t('switchToMonthly') : t('switchToYearly')}
+              </button>
+            </div>
           )}
 
           {/* Cancelled - show reactivate */}
-          {subscription?.cancel_at_period_end && (
+          {subscription.cancel_at_period_end && (
             <button onClick={handleReactivate} disabled={reactivating} className="px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-sm rounded-lg transition-colors">
               {reactivating ? tCommon('reactivating') : t('reactivateSubscription')}
             </button>
           )}
 
-          {/* Past due - update payment */}
-          {subscription?.status === 'past_due' && stripeEnabled && (
+          {/* Past due */}
+          {subscription.status === 'past_due' && stripeEnabled && (
             <button onClick={handlePortal} disabled={portalLoading} className="px-4 py-2 bg-yellow-600 hover:bg-yellow-500 disabled:opacity-50 text-white text-sm rounded-lg transition-colors">
               {portalLoading ? '...' : t('updatePaymentMethod')}
             </button>
@@ -2760,34 +2748,24 @@ function LicenseTab() {
         </div>
 
         {/* Cancel section */}
-        {subscription && (
-          <div className="border-t border-border pt-4">
-            {subscription.cancel_at_period_end ? (
-              <p className="text-sm text-muted-foreground">
-                {t('endingOn', { date: formatDate(subscription.current_period_end) })}
-              </p>
-            ) : (
-              <div>
-                <button
-                  onClick={() => setShowCancelModal(true)}
-                  className="text-sm text-red-400 hover:text-red-300 transition-colors"
-                >
-                  {t('cancelSubscription')}
-                </button>
-                <p className="text-xs text-muted-foreground mt-1">{t('cancelDesc')}</p>
-              </div>
-            )}
-          </div>
-        )}
-
-        <a href={`${APP_CONFIG.websiteUrl}/pricing`} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-400 hover:text-blue-300">
-          {t('viewPricing')}
-        </a>
+        <div className="border-t border-border pt-4">
+          {subscription.cancel_at_period_end ? (
+            <p className="text-sm text-muted-foreground">
+              {t('endingOn', { date: formatDate(subscription.current_period_end) })}
+            </p>
+          ) : (
+            <button
+              onClick={() => setShowCancelModal(true)}
+              className="text-sm text-red-400 hover:text-red-300 transition-colors"
+            >
+              {t('cancelSubscription')}
+            </button>
+          )}
+        </div>
       </div>
+      )}
 
       </div>
-      {/* Right column: Billing Address */}
-      <BillingAddressSection />
       </div>
 
       {/* Payment History - Stripe invoices + DB invoices (full width) */}
