@@ -74,30 +74,33 @@ function RangeBar({ range, value }: { range: MarkerReferenceRange; value: number
 
   return (
     <div className="w-full select-none">
-      {/* Bar with circle marker */}
-      <div className="relative h-6 rounded-full overflow-hidden flex" style={{ minHeight: 24 }}>
-        {segments.map((seg, i) => (
-          <div
-            key={i}
-            className={`${seg.bg} h-full`}
-            style={{ width: `${seg.to - seg.from}%`, flexShrink: 0 }}
-          />
-        ))}
-        {/* Circle marker */}
+      {/* Bar + marker wrapper — no overflow-hidden so circle isn't clipped */}
+      <div className="relative py-3">
+        {/* Color bar */}
+        <div className="h-5 rounded-full overflow-hidden flex">
+          {segments.map((seg, i) => (
+            <div
+              key={i}
+              className={`${seg.bg} h-full`}
+              style={{ width: `${seg.to - seg.from}%`, flexShrink: 0 }}
+            />
+          ))}
+        </div>
+        {/* Circle marker — positioned on top of bar, not inside overflow-hidden */}
         {pinPct != null && value != null && (
           <div
-            className="absolute top-1/2 -translate-y-1/2 group cursor-pointer"
-            style={{ left: `${pinPct}%`, transform: `translateX(-50%) translateY(-50%)` }}
+            className="absolute top-1/2 cursor-pointer z-10"
+            style={{ left: `${pinPct}%`, transform: 'translate(-50%, -50%)' }}
             onMouseEnter={() => setShowTooltip(true)}
             onMouseLeave={() => setShowTooltip(false)}
           >
             <div
-              className="w-5 h-5 rounded-full border-[2.5px] border-white shadow-md transition-transform hover:scale-125"
-              style={{ backgroundColor: pinColor }}
+              className="w-6 h-6 rounded-full border-[3px] border-white dark:border-zinc-200 shadow-lg transition-transform hover:scale-110"
+              style={{ backgroundColor: pinColor, boxShadow: '0 0 0 1px rgba(0,0,0,0.15), 0 2px 6px rgba(0,0,0,0.2)' }}
             />
-            {/* Tooltip on hover */}
+            {/* Tooltip */}
             {showTooltip && (
-              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 pointer-events-none z-10">
+              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 pointer-events-none z-20">
                 <span className="text-[11px] font-bold text-foreground bg-card border border-border px-2 py-1 rounded-lg whitespace-nowrap shadow-lg block">
                   {value} {range.unit}
                 </span>
@@ -109,7 +112,7 @@ function RangeBar({ range, value }: { range: MarkerReferenceRange; value: number
       </div>
 
       {/* Boundary labels */}
-      <div className="relative mt-2 h-4">
+      <div className="relative h-4">
         {labels.map((lb, i) => (
           <span
             key={i}
