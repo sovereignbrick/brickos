@@ -229,6 +229,45 @@ pub async fn get_setting_i64(pool: &PgPool, key: &str, default: i64) -> i64 {
     val.as_i64().unwrap_or(default)
 }
 
+// ---------------------------------------------------------------------------
+// Public: info bar config (no auth required)
+// ---------------------------------------------------------------------------
+
+pub async fn public_infobar(
+    pool: web::Data<PgPool>,
+    query: web::Query<std::collections::HashMap<String, String>>,
+) -> HttpResponse {
+    let target = query.get("target").map(|s| s.as_str()).unwrap_or("app");
+    let prefix = if target == "web" { "web_infobar" } else { "app_infobar" };
+
+    let enabled = get_setting_bool(pool.get_ref(), &format!("{prefix}_enabled"), false).await;
+
+    if !enabled {
+        return HttpResponse::Ok().json(json!({
+            "data": { "enabled": false },
+            "error": null
+        }));
+    }
+
+    let message = get_setting_string(pool.get_ref(), &format!("{prefix}_message"), "").await;
+    let color = get_setting_string(pool.get_ref(), &format!("{prefix}_color"), "blue").await;
+    let button = get_setting_bool(pool.get_ref(), &format!("{prefix}_button"), false).await;
+    let button_text = get_setting_string(pool.get_ref(), &format!("{prefix}_button_text"), "").await;
+    let button_url = get_setting_string(pool.get_ref(), &format!("{prefix}_button_url"), "").await;
+
+    HttpResponse::Ok().json(json!({
+        "data": {
+            "enabled": true,
+            "message": message,
+            "color": color,
+            "button": button,
+            "button_text": button_text,
+            "button_url": button_url,
+        },
+        "error": null
+    }))
+}
+
 /// Normalize an IP address for comparison:
 /// - Strip IPv6-mapped IPv4 prefix (`::ffff:`)
 /// - Strip port suffix (e.g., `1.2.3.4:8080` → `1.2.3.4`)

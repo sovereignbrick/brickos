@@ -28,6 +28,7 @@ import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { HealthCoachChat } from "@/components/health-coach-chat";
 import { ReferralRedirect } from "@/components/referral-redirect";
+import { InfoBar } from "@/components/info-bar";
 import { I18nProvider } from "@/lib/i18n";
 
 export const metadata: Metadata = {
@@ -110,6 +111,7 @@ export default function RootLayout({
       <body className="min-h-screen bg-background text-foreground antialiased">
         <I18nProvider>
           <ReferralRedirect />
+          <InfoBar />
           <Header />
           <main className="min-h-[calc(100vh-8rem)]">{children}</main>
           <Footer />

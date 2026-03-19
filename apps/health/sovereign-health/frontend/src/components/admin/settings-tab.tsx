@@ -13,10 +13,12 @@ interface AppSetting {
   updated_by: string | null
 }
 
-const CATEGORY_ORDER = ['access', 'health_coach', 'dr_alex', 'integrations', 'content', 'affiliate', 'notifications', 'security', 'promo']
+const CATEGORY_ORDER = ['access', 'infobar_app', 'infobar_web', 'health_coach', 'dr_alex', 'integrations', 'content', 'affiliate', 'notifications', 'security', 'promo']
 
 const CATEGORY_LABELS: Record<string, string> = {
   access: 'Access Control',
+  infobar_app: 'Info Bar (App)',
+  infobar_web: 'Info Bar (Homepage)',
   health_coach: 'Health Coach (Website)',
   dr_alex: 'Dr. Alex (App)',
   integrations: 'Integrations',

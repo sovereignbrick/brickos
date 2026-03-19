@@ -108,6 +108,11 @@ pub fn configure_routes(cfg: &mut actix_web::web::ServiceConfig) {
         "/api/tiers/features",
         actix_web::web::get().to(handlers::license::tiers_features),
     )
+    // Info bar config (public — no auth)
+    .route(
+        "/api/config/infobar",
+        actix_web::web::get().to(handlers::admin_settings::public_infobar),
+    )
     // Donation routes (public — no auth)
     .service(
         actix_web::web::scope("/donate")
