@@ -487,6 +487,22 @@ pub async fn confirm(
         created_count += 1;
     }
 
+    // Update lab device markers_measured — add imported marker slugs
+    if let Some(dev_id) = device_id {
+        let imported_slugs: Vec<&str> = body.markers.iter().map(|m| m.marker_slug.as_str()).collect();
+        sqlx::query(
+            r#"UPDATE devices SET markers_measured = (
+                SELECT ARRAY(SELECT DISTINCT unnest(COALESCE(markers_measured, '{}') || $1::text[]))
+            ), updated_at = NOW()
+            WHERE id = $2"#,
+        )
+        .bind(&imported_slugs)
+        .bind(dev_id)
+        .execute(pool.get_ref())
+        .await
+        .ok();
+    }
+
     // Update session
     sqlx::query(
         r#"UPDATE import_sessions
