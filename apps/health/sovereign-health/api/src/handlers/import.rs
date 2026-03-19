@@ -1078,6 +1078,7 @@ async fn match_extracted_markers(
     pool: &PgPool,
     markers: &[serde_json::Value],
 ) -> Vec<serde_json::Value> {
+    use sqlx::Row;
     let mut matched = Vec::new();
 
     for m in markers {
@@ -1094,16 +1095,22 @@ async fn match_extracted_markers(
         let slug = marker_matcher::match_marker(ai_name);
 
         if let Some(slug) = slug {
-            // Look up canonical unit from DB
-            let canonical_unit: Option<String> =
-                sqlx::query_scalar("SELECT unit_canonical FROM markers WHERE marker_slug = $1")
-                    .bind(slug)
-                    .fetch_optional(pool)
-                    .await
-                    .ok()
-                    .flatten();
+            // Look up canonical unit + abbreviation from DB
+            let marker_row = sqlx::query(
+                "SELECT unit_canonical, abbreviation FROM markers WHERE marker_slug = $1"
+            )
+                .bind(slug)
+                .fetch_optional(pool)
+                .await
+                .ok()
+                .flatten();
 
-            let canonical_unit_str = canonical_unit.unwrap_or_default();
+            let canonical_unit_str = marker_row.as_ref()
+                .and_then(|r| r.try_get::<String, _>("unit_canonical").ok())
+                .unwrap_or_default();
+            let abbreviation: Option<String> = marker_row.as_ref()
+                .and_then(|r| r.try_get::<Option<String>, _>("abbreviation").ok())
+                .flatten();
 
             // Try unit conversion
             let (converted_value, converted_unit) = marker_matcher::convert_unit(slug, value, unit)
@@ -1121,6 +1128,7 @@ async fn match_extracted_markers(
             matched.push(json!({
                 "original_name": ai_name,
                 "matched_marker": slug,
+                "abbreviation": abbreviation,
                 "match_confidence": match_confidence,
                 "value_original": value,
                 "unit_original": unit,

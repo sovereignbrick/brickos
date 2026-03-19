@@ -1,8 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { ImportSession } from '@/lib/types'
 import { useTranslations } from 'next-intl'
+import { useContent } from '@/lib/content-context'
 
 interface ImportReviewProps {
   session: ImportSession
@@ -14,9 +16,38 @@ interface ImportReviewProps {
   isLoading: boolean
 }
 
+function MarkerTooltip({ slug }: { slug: string }) {
+  const { markers } = useContent()
+  const desc = markers[slug]?.description
+  const [show, setShow] = useState(false)
+  const [pos, setPos] = useState({ x: 0, y: 0 })
+  const ref = useRef<HTMLSpanElement>(null)
+  if (!desc) return null
+  return (
+    <>
+      <span
+        ref={ref}
+        onMouseEnter={() => { if (ref.current) { const r = ref.current.getBoundingClientRect(); setPos({ x: r.right + 8, y: r.top + r.height / 2 }) } setShow(true) }}
+        onMouseLeave={() => setShow(false)}
+        className="text-blue-500 dark:text-muted-foreground/50 hover:text-blue-600 dark:hover:text-muted-foreground cursor-help shrink-0 text-xs ml-1"
+      >
+        ⓘ
+      </span>
+      {show && typeof document !== 'undefined' && createPortal(
+        <div style={{ position: 'fixed', left: pos.x, top: pos.y, transform: 'translateY(-50%)', zIndex: 9999 }} className="max-w-xs bg-card border border-border rounded-lg px-3 py-2 text-xs text-foreground shadow-xl pointer-events-none">
+          <div className="font-medium mb-1">{markers[slug]?.name ?? slug}</div>
+          <div>{desc}</div>
+        </div>,
+        document.body
+      )}
+    </>
+  )
+}
+
 export function ImportReview({ session, onConfirm, onCancel, isLoading }: ImportReviewProps) {
   const t = useTranslations('import')
   const tCommon = useTranslations('common')
+  const { markers: contentMarkers } = useContent()
   const matchedMarkers = (session.extracted || []).filter(m => m.matched_marker)
   const unmatchedMarkers = (session.extracted || []).filter(m => !m.matched_marker)
 
@@ -196,6 +227,7 @@ export function ImportReview({ session, onConfirm, onCancel, isLoading }: Import
                     </th>
                     <th className="py-2 px-3 text-left">{t('labNameColumn')}</th>
                     <th className="py-2 px-3 text-left">{t('marker')}</th>
+                    <th className="py-2 px-3 text-left">Abbr</th>
                     <th className="py-2 px-3 text-right">{t('value')}</th>
                     <th className="py-2 px-3 text-left">{t('unit')}</th>
                     <th className="py-2 px-3 text-center">{t('confidence')}</th>
@@ -213,7 +245,13 @@ export function ImportReview({ session, onConfirm, onCancel, isLoading }: Import
                         />
                       </td>
                       <td className="py-2 px-3 text-muted-foreground">{m.original_name}</td>
-                      <td className="py-2 px-3 text-foreground font-medium">{m.matched_marker}</td>
+                      <td className="py-2 px-3 text-foreground font-medium">
+                        <span className="inline-flex items-center">
+                          {contentMarkers[m.matched_marker!]?.name ?? m.matched_marker}
+                          <MarkerTooltip slug={m.matched_marker!} />
+                        </span>
+                      </td>
+                      <td className="py-2 px-3 text-muted-foreground text-xs">{(m as unknown as Record<string, string>).abbreviation || '—'}</td>
                       <td className="py-2 px-3 text-right">
                         <input
                           type="number"
