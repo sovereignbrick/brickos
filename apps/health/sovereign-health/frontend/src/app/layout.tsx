@@ -35,6 +35,7 @@ import { CanonicalMeta } from '@/components/canonical-meta'
 import { Toaster } from 'sonner'
 import { APP_NAME } from '@/lib/mode'
 import { OnboardingTracker } from '@/components/onboarding-tracker'
+import { ReferralTracker } from '@/components/referral-tracker'
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -106,6 +107,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                       </div>
                     )}
                     <OnboardingTracker />
+                    <ReferralTracker />
                     {children}
                     <Toaster position="top-right" richColors offset="64px" duration={4000} visibleToasts={3} />
                   </DemoProfileProvider>

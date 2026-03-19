@@ -126,10 +126,22 @@ pub async fn me(
     .await?
     .ok_or(AppError::NotFound)?;
 
-    let affiliate_code: String = row
+    let affiliate_code: String = match row
         .try_get::<Option<String>, _>("affiliate_code")
         .map_err(|_| AppError::Internal)?
-        .ok_or(AppError::Internal)?;
+    {
+        Some(code) => code,
+        None => {
+            // Auto-generate missing affiliate code on first access
+            let code = generate_affiliate_code(pool.get_ref()).await?;
+            let _ = sqlx::query("UPDATE users SET affiliate_code = $1 WHERE id = $2")
+                .bind(&code)
+                .bind(auth.user_id)
+                .execute(pool.get_ref())
+                .await;
+            code
+        }
+    };
 
     let affiliate_settings: Option<serde_json::Value> = row
         .try_get::<Option<serde_json::Value>, _>("affiliate_settings")
@@ -885,9 +897,47 @@ pub async fn create_affiliate_conversion(pool: &PgPool, user_id: Uuid, order_amo
         return;
     }
 
-    // 20% commission
-    let commission_cents = (order_amount_cents as f64 * 0.20) as i32;
+    // Fetch configurable commission rate (default 20% = 2000 bps)
+    let direct_rate_bps: i32 = sqlx::query_scalar(
+        "SELECT rate_bps FROM affiliate_commission_rates WHERE level = 1",
+    )
+    .fetch_optional(pool)
+    .await
+    .ok()
+    .flatten()
+    .unwrap_or(2000);
+
+    let commission_cents = (order_amount_cents as f64 * (direct_rate_bps as f64 / 10000.0)) as i32;
     let evaluation_ends_at = chrono::Utc::now() + chrono::Duration::days(30);
+
+    // Check for parent referrer (hierarchical commission)
+    let parent_info: Option<(String,)> = sqlx::query_as(
+        "SELECT grandparent.affiliate_code \
+         FROM users u \
+         JOIN users referrer ON u.referred_by = referrer.affiliate_code \
+         JOIN users grandparent ON referrer.referred_by = grandparent.affiliate_code \
+         WHERE u.id = $1 AND referrer.referred_by IS NOT NULL",
+    )
+    .bind(user_id)
+    .fetch_optional(pool)
+    .await
+    .ok()
+    .flatten();
+
+    let (parent_affiliate_code, parent_commission_cents) = if let Some((parent_code,)) = parent_info {
+        let parent_rate_bps: i32 = sqlx::query_scalar(
+            "SELECT rate_bps FROM affiliate_commission_rates WHERE level = 2",
+        )
+        .fetch_optional(pool)
+        .await
+        .ok()
+        .flatten()
+        .unwrap_or(200);
+        let parent_cents = (order_amount_cents as f64 * (parent_rate_bps as f64 / 10000.0)) as i32;
+        (Some(parent_code), parent_cents)
+    } else {
+        (None, 0)
+    };
 
     // Snapshot the affiliate's current payout method
     let payout_method_snapshot = sqlx::query_scalar::<_, Option<serde_json::Value>>(
@@ -927,8 +977,9 @@ pub async fn create_affiliate_conversion(pool: &PgPool, user_id: Uuid, order_amo
     let _ = sqlx::query(
         r#"INSERT INTO affiliate_conversions
            (affiliate_code, referred_user_id, commission_amount_cents, commission_btc_sats,
-            btc_eur_rate, rate_locked_at, payout_method_snapshot, status, evaluation_ends_at)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, 'pending', $8)"#,
+            btc_eur_rate, rate_locked_at, payout_method_snapshot, status, evaluation_ends_at,
+            parent_affiliate_code, parent_commission_cents)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, 'pending', $8, $9, $10)"#,
     )
     .bind(&affiliate_code)
     .bind(user_id)
@@ -938,6 +989,8 @@ pub async fn create_affiliate_conversion(pool: &PgPool, user_id: Uuid, order_amo
     .bind(rate_locked_at)
     .bind(&payout_method_snapshot)
     .bind(evaluation_ends_at)
+    .bind(&parent_affiliate_code)
+    .bind(parent_commission_cents)
     .execute(pool)
     .await;
 

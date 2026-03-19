@@ -285,11 +285,14 @@ pub async fn signup(
     // Generate affiliate code for new user
     match crate::handlers::affiliate::generate_affiliate_code(pool.get_ref()).await {
         Ok(code) => {
-            let _ = sqlx::query("UPDATE users SET affiliate_code = $1 WHERE id = $2")
+            if let Err(e) = sqlx::query("UPDATE users SET affiliate_code = $1 WHERE id = $2")
                 .bind(&code)
                 .bind(user_id)
                 .execute(pool.get_ref())
-                .await;
+                .await
+            {
+                tracing::warn!("Failed to store affiliate code for user {}: {:?}", user_id, e);
+            }
         }
         Err(e) => {
             tracing::warn!(
@@ -315,11 +318,27 @@ pub async fn signup(
             .unwrap_or(false);
 
             if referrer_exists {
+                // Store direct referrer code
                 let _ = sqlx::query("UPDATE users SET referred_by = $1 WHERE id = $2")
                     .bind(&referral_code)
                     .bind(user_id)
                     .execute(pool.get_ref())
                     .await;
+
+                // Set parent_referrer_id (grandparent in referral chain)
+                // If the referrer was themselves referred, capture the chain
+                let _ = sqlx::query(
+                    "UPDATE users SET parent_referrer_id = grandparent.id \
+                     FROM users referrer \
+                     JOIN users grandparent ON referrer.referred_by = grandparent.affiliate_code \
+                     WHERE users.id = $1 \
+                       AND referrer.affiliate_code = $2 \
+                       AND referrer.referred_by IS NOT NULL",
+                )
+                .bind(user_id)
+                .bind(&referral_code)
+                .execute(pool.get_ref())
+                .await;
             }
         }
     }
