@@ -1348,10 +1348,18 @@ function ProfileTab({
                   <p className="text-[11px] text-muted-foreground mt-1 leading-snug">{t(`exerciseDescs.${lForm.default_exercise}`)}</p>
                 )}
               </FieldWithInfo>
-              <FieldWithInfo label={t('sleepHoursLabel')} items={[{ name: t('sleepHoursLabel'), desc: t('sleepHoursInfo') }]}>
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-1">
+                  <label className="text-sm text-muted-foreground">{t('sleepHoursLabel')}</label>
+                  <InfoTooltip>{t('sleepHoursInfo')}</InfoTooltip>
+                </div>
                 <input type="number" value={lForm.default_sleep_hours ?? ''} onChange={e => setLForm({ ...lForm, default_sleep_hours: e.target.value ? Number(e.target.value) : null })} className={inp} min={0} max={24} step={0.5} />
-              </FieldWithInfo>
-              <FieldWithInfo label={t('sleepQualityLabel')} items={[{ name: t('sleepQualityLabel'), desc: t('sleepQualityInfo') }]}>
+              </div>
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-1">
+                  <label className="text-sm text-muted-foreground">{t('sleepQualityLabel')}</label>
+                  <InfoTooltip>{t('sleepQualityInfo')}</InfoTooltip>
+                </div>
                 <select value={lForm.default_sleep_quality ?? ''} onChange={e => setLForm({ ...lForm, default_sleep_quality: e.target.value || null })} className={inp}>
                   <option value="">{tCommon('notSet')}</option>
                   <option value="excellent">{tSleep('excellent')}</option>
@@ -1359,11 +1367,12 @@ function ProfileTab({
                   <option value="fair">{tCommon('fair')}</option>
                   <option value="poor">{tSleep('poor')}</option>
                 </select>
-                {lForm.default_sleep_quality && (
-                  <p className="text-[11px] text-muted-foreground mt-1 leading-snug">{t(`sleepDescs.${lForm.default_sleep_quality}`)}</p>
-                )}
-              </FieldWithInfo>
-              <FieldWithInfo label={t('stressLevelLabel')} items={[{name:tStress('none'),desc:t('stressDescs.1' as 'stressDescs.1')},{name:tStress('low'),desc:t('stressDescs.3' as 'stressDescs.1')},{name:tStress('moderate'),desc:t('stressDescs.5' as 'stressDescs.1')},{name:tStress('high'),desc:t('stressDescs.7' as 'stressDescs.1')},{name:tStress('veryHigh'),desc:t('stressDescs.9' as 'stressDescs.1')}]}>
+              </div>
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-1">
+                  <label className="text-sm text-muted-foreground">{t('stressLevelLabel')}</label>
+                  <InfoTooltip>{t('stressLevelInfo')}</InfoTooltip>
+                </div>
                 <select
                   value={lForm.default_stress_level ?? ''}
                   onChange={e => setLForm({ ...lForm, default_stress_level: e.target.value ? Number(e.target.value) : null })}
@@ -1376,10 +1385,7 @@ function ProfileTab({
                   <option value="7">{tStress('high')}</option>
                   <option value="9">{tStress('veryHigh')}</option>
                 </select>
-                {lForm.default_stress_level && (
-                  <p className="text-[11px] text-muted-foreground mt-1 leading-snug">{t(`stressDescs.${lForm.default_stress_level}`)}</p>
-                )}
-              </FieldWithInfo>
+              </div>
             </div>
       </div>
 
