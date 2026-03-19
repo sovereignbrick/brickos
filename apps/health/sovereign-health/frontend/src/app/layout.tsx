@@ -109,7 +109,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                     <OnboardingTracker />
                     <ReferralTracker />
                     {children}
-                    <Toaster position="top-center" richColors offset="170px" duration={2500} visibleToasts={2} />
+                    <Toaster position="top-center" richColors offset="16px" duration={2500} visibleToasts={2} />
                   </DemoProfileProvider>
                 </Suspense>
               </ContentProvider>

@@ -2227,7 +2227,6 @@ function BillingAddressSection() {
   const { user } = useAuth()
   const { locale } = useContent()
   const [saving, setSaving] = useState(false)
-  const [saved, setSaved] = useState(false)
   const [form, setForm] = useState({
     customer_type: 'private',
     company_name: '',
@@ -2266,8 +2265,7 @@ function BillingAddressSection() {
     setSaving(true)
     try {
       await api.settings.updateProfile(form)
-      setSaved(true)
-      setTimeout(() => setSaved(false), 3000)
+      toast.success(t('billingAddressSaved'))
     } catch {
       toast.error(t('actionFailed'))
     } finally {
@@ -2346,7 +2344,6 @@ function BillingAddressSection() {
             <button onClick={handleSave} disabled={saving} className="px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors">
               {saving ? '...' : t('saveBillingAddress')}
             </button>
-            {saved && <span className="text-green-400 text-sm">{t('billingAddressSaved')}</span>}
           </div>
         </div>
       </div>
