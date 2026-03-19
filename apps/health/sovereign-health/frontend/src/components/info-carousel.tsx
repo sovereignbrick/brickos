@@ -100,11 +100,11 @@ export function InfoCarousel({ cards, autoRotateMs = 8000 }: InfoCarouselProps) 
           <Link
             key={i}
             href={demoHref(card.link)}
-            className="shrink-0 snap-center group block rounded-xl border border-white/8 bg-white/[0.03] p-5 transition-all duration-200 hover:scale-[1.02] hover:shadow-lg hover:shadow-black/20 hover:border-white/15 hover:bg-white/[0.05] w-[85vw] sm:w-[280px]"
+            className="shrink-0 snap-center group block rounded-xl border border-border bg-card/50 p-5 transition-all duration-200 hover:scale-[1.02] hover:shadow-lg hover:shadow-black/20 hover:border-border/80 hover:bg-card w-[85vw] sm:w-[280px]"
           >
             <span className="text-2xl block mb-2">{card.icon}</span>
-            <h3 className="text-base font-bold text-white mb-1">{card.title}</h3>
-            <p className="text-sm text-white/50 leading-snug line-clamp-2">{card.description}</p>
+            <h3 className="text-base font-bold text-foreground mb-1">{card.title}</h3>
+            <p className="text-sm text-muted-foreground leading-snug line-clamp-2">{card.description}</p>
           </Link>
         ))}
         {/* Right padding spacer for mobile centering */}
@@ -114,14 +114,14 @@ export function InfoCarousel({ cards, autoRotateMs = 8000 }: InfoCarouselProps) 
       {/* Arrow buttons (desktop only) */}
       <button
         onClick={goPrev}
-        className="hidden sm:flex absolute left-0 top-1/2 -translate-y-1/2 -translate-x-3 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 items-center justify-center text-white/60 hover:text-white transition-all"
+        className="hidden sm:flex absolute left-0 top-1/2 -translate-y-1/2 -translate-x-3 w-8 h-8 rounded-full bg-muted hover:bg-accent items-center justify-center text-muted-foreground hover:text-foreground transition-all"
         aria-label={t('previousSlide')}
       >
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 12L6 8l4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
       </button>
       <button
         onClick={goNext}
-        className="hidden sm:flex absolute right-0 top-1/2 -translate-y-1/2 translate-x-3 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 items-center justify-center text-white/60 hover:text-white transition-all"
+        className="hidden sm:flex absolute right-0 top-1/2 -translate-y-1/2 translate-x-3 w-8 h-8 rounded-full bg-muted hover:bg-accent items-center justify-center text-muted-foreground hover:text-foreground transition-all"
         aria-label={t('nextSlide')}
       >
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
@@ -134,7 +134,7 @@ export function InfoCarousel({ cards, autoRotateMs = 8000 }: InfoCarouselProps) 
             key={i}
             onClick={() => goTo(i)}
             className={`w-1.5 h-1.5 rounded-full transition-all duration-200 ${
-              i === activeIndex ? 'bg-white/60 w-3' : 'bg-white/20 hover:bg-white/30'
+              i === activeIndex ? 'bg-foreground/60 w-3' : 'bg-foreground/20 hover:bg-foreground/30'
             }`}
             aria-label={`Go to card ${i + 1}`}
           />

@@ -160,7 +160,7 @@ export default function ZoneDetailPage() {
                 <Link
                   key={`${marker.marker_slug}-${index}`}
                   href={demoHref(`/markers/${marker.marker_slug}`)}
-                  className={`rounded-xl border p-4 flex items-center justify-between hover:border-border hover:bg-card/50 transition-colors block ${!hasData ? 'opacity-60' : ''}`}
+                  className={`rounded-xl border p-4 flex items-center justify-between hover:border-border hover:bg-muted/50 hover:scale-[1.01] transition-all duration-150 block ${!hasData ? 'opacity-60' : ''}`}
                 >
                   <div>
                     <div className="flex items-center gap-2">

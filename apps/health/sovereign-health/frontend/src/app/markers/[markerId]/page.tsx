@@ -120,7 +120,7 @@ function SourceBadge({ sourceType, deviceName, t }: { sourceType: string; device
     calculated: { cls: 'bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-700', fallbackKey: 'calculated' },
     hybrid:     { cls: 'bg-teal-100 dark:bg-teal-900/50 text-teal-700 dark:text-teal-300 border-teal-300 dark:border-teal-700', fallbackKey: 'labAndHome' },
   }
-  const entry = map[sourceType] ?? { cls: 'bg-muted text-muted-foreground border-zinc-600', fallbackKey: '' }
+  const entry = map[sourceType] ?? { cls: 'bg-muted text-muted-foreground border-border', fallbackKey: '' }
   const label = deviceName ?? (entry.fallbackKey ? t(entry.fallbackKey) : sourceType)
   const isClickable = sourceType === 'home' || sourceType === 'lab' || sourceType === 'hybrid'
   if (isClickable) {

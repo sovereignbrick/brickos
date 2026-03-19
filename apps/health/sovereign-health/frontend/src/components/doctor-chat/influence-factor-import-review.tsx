@@ -356,7 +356,7 @@ export function InfluenceFactorImportReview({
                                     updateIngredient(medIdx, ingIdx, { name: e.target.value })
                                   }
                                   placeholder={t('placeholders.ingredientName')}
-                                  className="flex-1 bg-[var(--background)] border border-[var(--border)] rounded px-2 py-1 text-xs text-[var(--foreground)]"
+                                  className="w-40 min-w-0 bg-[var(--background)] border border-[var(--border)] rounded px-2 py-1 text-xs text-[var(--foreground)]"
                                 />
                                 <input
                                   type="text"

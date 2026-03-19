@@ -81,7 +81,7 @@ function MarkerInfoTooltip({ slug }: { slug: string }) {
       {show && typeof document !== 'undefined' && createPortal(
         <div
           style={{ position: 'fixed', left: pos.x, top: pos.y, transform: 'translateY(-50%)', zIndex: 9999 }}
-          className="max-w-xs bg-muted border border-border rounded-lg px-3 py-2 text-xs text-zinc-200 shadow-xl pointer-events-none"
+          className="max-w-xs bg-card border border-border rounded-lg px-3 py-2 text-xs text-foreground shadow-xl pointer-events-none"
         >
           <div className="space-y-1">
             <div className="font-medium">{cm?.name ?? slug}</div>
@@ -121,7 +121,7 @@ function ZoneIconTooltip({ name, icon, color }: { name: string; icon: string; co
       {show && typeof document !== 'undefined' && createPortal(
         <div
           style={{ position: 'fixed', left: pos.x, top: pos.y - 6, transform: 'translate(-50%, -100%)', zIndex: 9999 }}
-          className="bg-muted border border-border rounded-lg px-2.5 py-1.5 text-xs text-zinc-200 shadow-xl pointer-events-none whitespace-nowrap"
+          className="bg-card border border-border rounded-lg px-2.5 py-1.5 text-xs text-foreground shadow-xl pointer-events-none whitespace-nowrap"
         >
           {icon} {name}
         </div>,
@@ -154,6 +154,7 @@ function MarkerRow({ marker, value, displayUnit, badge, onChange, onRemove, zone
           <span className="text-xs text-muted-foreground shrink-0">({marker.abbreviation})</span>
         )}
         <MarkerInfoTooltip slug={marker.marker_slug} />
+        <span className="flex-1" />
         {badge && (
           <span className="text-[10px] text-blue-400/80 bg-blue-500/10 border border-blue-500/20 px-1.5 py-0.5 rounded shrink-0 hidden sm:inline-block">
             {badge}

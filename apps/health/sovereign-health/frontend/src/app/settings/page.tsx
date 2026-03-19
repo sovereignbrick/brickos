@@ -290,7 +290,7 @@ function MarkerInfoButton({ marker }: { marker: MarkerWithZone }) {
         onClick={onTap}
         aria-label={displayName}
       />
-      {show && pos && createPortal(
+      {show && pos && typeof document !== 'undefined' && createPortal(
         <div
           className="fixed bg-card border border-border rounded-lg shadow-xl p-3 text-xs"
           style={{ top: pos.top, left: pos.left, zIndex: 9999, maxWidth: 320, whiteSpace: 'normal', wordWrap: 'break-word' }}
@@ -1346,10 +1346,10 @@ function ProfileTab({
                   <p className="text-[11px] text-muted-foreground mt-1 leading-snug">{t(`exerciseDescs.${lForm.default_exercise}`)}</p>
                 )}
               </FieldWithInfo>
-              <Field label={t('sleepHoursLabel')}>
+              <FieldWithInfo label={t('sleepHoursLabel')} items={[{ name: t('sleepHoursLabel'), desc: t('sleepHoursInfo') }]}>
                 <input type="number" value={lForm.default_sleep_hours ?? ''} onChange={e => setLForm({ ...lForm, default_sleep_hours: e.target.value ? Number(e.target.value) : null })} className={inp} min={0} max={24} step={0.5} />
-              </Field>
-              <Field label={t('sleepQualityLabel')}>
+              </FieldWithInfo>
+              <FieldWithInfo label={t('sleepQualityLabel')} items={['excellent','good','fair','poor'].map(k => ({ name: k === 'good' || k === 'fair' ? tCommon(k as 'good') : tSleep(k as 'excellent'), desc: t(`sleepDescs.${k}` as 'sleepDescs.excellent') }))}>
                 <select value={lForm.default_sleep_quality ?? ''} onChange={e => setLForm({ ...lForm, default_sleep_quality: e.target.value || null })} className={inp}>
                   <option value="">{tCommon('notSet')}</option>
                   <option value="excellent">{tSleep('excellent')}</option>
@@ -1360,8 +1360,8 @@ function ProfileTab({
                 {lForm.default_sleep_quality && (
                   <p className="text-[11px] text-muted-foreground mt-1 leading-snug">{t(`sleepDescs.${lForm.default_sleep_quality}`)}</p>
                 )}
-              </Field>
-              <Field label={t('stressLevelLabel')}>
+              </FieldWithInfo>
+              <FieldWithInfo label={t('stressLevelLabel')} items={[{name:tStress('none'),desc:t('stressDescs.1' as 'stressDescs.1')},{name:tStress('low'),desc:t('stressDescs.3' as 'stressDescs.1')},{name:tStress('moderate'),desc:t('stressDescs.5' as 'stressDescs.1')},{name:tStress('high'),desc:t('stressDescs.7' as 'stressDescs.1')},{name:tStress('veryHigh'),desc:t('stressDescs.9' as 'stressDescs.1')}]}>
                 <select
                   value={lForm.default_stress_level ?? ''}
                   onChange={e => setLForm({ ...lForm, default_stress_level: e.target.value ? Number(e.target.value) : null })}
@@ -1377,7 +1377,7 @@ function ProfileTab({
                 {lForm.default_stress_level && (
                   <p className="text-[11px] text-muted-foreground mt-1 leading-snug">{t(`stressDescs.${lForm.default_stress_level}`)}</p>
                 )}
-              </Field>
+              </FieldWithInfo>
             </div>
       </div>
 
@@ -3237,7 +3237,7 @@ function FieldWithInfo({ label, items, children }: { label: string; items: { nam
         <div ref={ref} onMouseEnter={onEnter} onMouseLeave={onLeave} className="inline-flex">
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground/60 hover:text-muted-foreground cursor-help transition-colors"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
         </div>
-        {show && pos && createPortal(
+        {show && pos && typeof document !== 'undefined' && createPortal(
           <div
             className="fixed bg-card border border-border rounded-lg shadow-xl p-3 text-xs"
             style={{ top: pos.top, left: pos.left, zIndex: 9999, maxWidth: 320 }}
