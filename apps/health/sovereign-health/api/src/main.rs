@@ -40,14 +40,24 @@ async fn main() -> std::io::Result<()> {
         .init();
 
     // Initialize Sentry error tracking (only if SENTRY_DSN is set)
-    let _sentry_guard = std::env::var("SENTRY_DSN").ok().filter(|s| !s.is_empty()).map(|dsn| {
-        sentry::init((dsn, sentry::ClientOptions {
-            release: Some(sovereign_health_backend::VERSION.into()),
-            environment: Some(std::env::var("SHI_MODE").unwrap_or_else(|_| "development".to_string()).into()),
-            traces_sample_rate: 0.1,
-            ..Default::default()
-        }))
-    });
+    let _sentry_guard = std::env::var("SENTRY_DSN")
+        .ok()
+        .filter(|s| !s.is_empty())
+        .map(|dsn| {
+            sentry::init((
+                dsn,
+                sentry::ClientOptions {
+                    release: Some(sovereign_health_backend::VERSION.into()),
+                    environment: Some(
+                        std::env::var("SHI_MODE")
+                            .unwrap_or_else(|_| "development".to_string())
+                            .into(),
+                    ),
+                    traces_sample_rate: 0.1,
+                    ..Default::default()
+                },
+            ))
+        });
 
     let config =
         sovereign_health_backend::config::Config::from_env().expect("Failed to load config");

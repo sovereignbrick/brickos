@@ -16,7 +16,11 @@ fn resolve_locale(req: &HttpRequest) -> String {
         .get("Accept-Language")
         .and_then(|v| v.to_str().ok())
         .unwrap_or("en");
-    if al.contains("de") { "de".into() } else { "en".into() }
+    if al.contains("de") {
+        "de".into()
+    } else {
+        "en".into()
+    }
 }
 
 pub async fn list(

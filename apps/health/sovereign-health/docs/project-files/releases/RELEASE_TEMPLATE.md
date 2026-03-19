@@ -16,7 +16,7 @@
 
 # Release Template — Sovereign Health Intelligence
 
-**This document defines the release workflow and artifact requirements for every RC/release.**
+**This document defines the release workflow and artifact requirements for every release.**
 
 ---
 
@@ -48,31 +48,44 @@ cargo audit
 
 ### Phase 2: Version bump (localhost)
 
-Bump VERSION in these 5 files:
-- `ops/deploy.sh` — `VERSION="X.Y.Z-rcN"`
-- `api/src/lib.rs` — `pub const VERSION: &str = "X.Y.Z-rcN";`
-- `api/Cargo.toml` — `version = "X.Y.Z-rcN"`
-- `frontend/package.json` — `"version": "X.Y.Z-rcN"`
-- `website/package.json` — `"version": "X.Y.Z-rcN"`
+Use the bump script to update all version files at once:
+```bash
+bash apps/health/sovereign-health/ops/bump-version.sh X.Y.Z
+```
+
+This updates 7 files automatically:
+- `ops/deploy.sh` — `VERSION="X.Y.Z"`
+- `api/src/lib.rs` — `pub const VERSION: &str = "X.Y.Z";`
+- `api/Cargo.toml` — `version = "X.Y.Z"`
+- `frontend/package.json` — `"version": "X.Y.Z"`
+- `website/package.json` — `"version": "X.Y.Z"`
+- `api/tests/snapshots/integration__health_snapshot.snap`
+- `api/tests/snapshots/integration__hello_snapshot.snap`
+- `Cargo.lock` (regenerated)
+
+**Versioning strategy:**
+- **Minor bump** (0.21.0 → 0.22.0): sprint releases with new features, migrations, or significant changes
+- **Patch bump** (0.21.0 → 0.21.1): bug fixes, small improvements, dependency updates
+- No RC tags — every version is a full release. Deploy to staging first, verify, then promote to production.
 
 ### Phase 3: Generate release artifacts & commit (localhost — no push)
 
 **All release artifacts go into a single directory:**
-`docs/project-files/releases/vX.Y.Z-rcN/`
+`docs/project-files/releases/vX.Y.Z/`
 
 Generate these 4 files:
 
 | # | File | Description |
 |---|------|-------------|
 | 1 | `release-audit.json` | Automated check results from Phase 1 (tests, lint, theme, lighthouse, cargo audit, issues closed/created, migrations, key changes) |
-| 2 | `RELEASE_vX.Y.Z-rcN.md` | Release notes — summary, key changes by category (features/fixes/backend/ops/docs), migrations table, issues, pre-deployment audit table, known issues, files changed |
-| 3 | `YYYY-MM-DD_testing-report_vX.Y.Z-rcN.md` | Full testing report — test pyramid, backend/frontend suite results, RC-specific change coverage, theme audit, security audit, docker build status, environment |
-| 4 | `YYYY-MM-DD_manual-testing-checklist_vX.Y.Z-rcN.md` | Manual testing checklist — RC-specific tests for new features, regression tests carried from previous RC, post-deploy infrastructure checks, sign-off table |
+| 2 | `RELEASE_vX.Y.Z.md` | Release notes — summary, key changes by category (features/fixes/backend/ops/docs), migrations table, issues, pre-deployment audit table, known issues, files changed |
+| 3 | `YYYY-MM-DD_testing-report_vX.Y.Z.md` | Full testing report — test pyramid, backend/frontend suite results, change coverage, theme audit, security audit, docker build status, environment |
+| 4 | `YYYY-MM-DD_manual-testing-checklist_vX.Y.Z.md` | Manual testing checklist — tests for new features, regression tests, post-deploy infrastructure checks, sign-off table |
 
 Then commit to `develop` (local only, no push to GitHub):
 ```bash
 git add <files>
-git commit -m "release: vX.Y.Z-rcN — summary"
+git commit -m "release: vX.Y.Z — summary"
 ```
 
 ### Phase 4: Deploy to staging (localhost → VPS)
@@ -92,11 +105,11 @@ Builds Docker images locally → transfers to VPS via SSH → restarts container
 5. Migrations applied: verify new tables/columns exist in staging DB
 6. Login works: demo@sovereignhealth.io / Demo2026!
 
-### Phase 6: RC testing (manual, staging)
+### Phase 6: Manual testing (staging)
 
 Walk through the manual testing checklist generated in Phase 3. Test on staging environment.
 
-### Phase 7: Promote to production (when RC is approved)
+### Phase 7: Promote to production (when staging is verified)
 
 ```bash
 # Merge develop → main
@@ -109,7 +122,7 @@ bash apps/health/sovereign-health/ops/deploy.sh production --confirm
 git push origin develop main
 
 # Tag
-git tag -a vX.Y.Z-rcN -m "Sovereign Health Intelligence vX.Y.Z-rcN"
+git tag -a vX.Y.Z -m "Sovereign Health Intelligence vX.Y.Z"
 git push origin --tags
 ```
 
@@ -125,7 +138,7 @@ git push origin --tags
   "audit_date": "YYYY-MM-DD",
   "previous_audit": "YYYY-MM-DD (vPREVIOUS)",
   "auditor": "Claude Code (automated)",
-  "target_version": "vX.Y.Z-rcN",
+  "target_version": "vX.Y.Z",
   "repository": "github.com/sovereignbrick/brickos",
   "environment": "localhost (dev)",
   "summary": {
@@ -155,7 +168,7 @@ git push origin --tags
 }
 ```
 
-### RELEASE_vX.Y.Z-rcN.md
+### RELEASE_vX.Y.Z.md
 
 Sections: Summary, Key Changes (Features / Fixes / Backend / Ops / Documentation), Database Migrations table, Issues (closed/created), Pre-deployment Audit table, Known Issues, Files Changed.
 
@@ -180,7 +193,7 @@ Sections: RC-Specific Tests (grouped by feature with checkboxes), Regression Tes
  BLOOD · BIOMARKERS · INSIGHT
 
  [File-specific subtitle]
- Version: X.Y.Z-rcN — YYYY-MM-DD
+ Version: X.Y.Z — YYYY-MM-DD
 
  https://sovereignhealth.io/
  AGPL-3.0 — https://github.com/sovereignbrick/brickos

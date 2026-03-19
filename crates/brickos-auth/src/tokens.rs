@@ -6,7 +6,7 @@ use sha2::{Digest, Sha256};
 /// Generate a crypto-random refresh token (32 bytes, hex encoded).
 pub fn generate_refresh_token() -> String {
     let mut bytes = [0u8; 32];
-    rand::thread_rng().fill_bytes(&mut bytes);
+    rand::rng().fill_bytes(&mut bytes);
     hex::encode(bytes)
 }
 
@@ -20,7 +20,7 @@ pub fn hash_refresh_token(token: &str) -> String {
 /// Generate a crypto-random verification token (32 bytes, hex encoded = 64 chars).
 pub fn generate_verification_token() -> String {
     let mut bytes = [0u8; 32];
-    rand::thread_rng().fill_bytes(&mut bytes);
+    rand::rng().fill_bytes(&mut bytes);
     hex::encode(bytes)
 }
 

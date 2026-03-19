@@ -149,13 +149,7 @@ pub async fn upload(
     let vision_result = if files.len() == 1 {
         let (compressed, ct) = compress_image_if_needed(&files[0].bytes, &files[0].content_type);
         let file_base64 = BASE64.encode(&compressed);
-        call_claude_vision(
-            &config.anthropic_api_key,
-            &file_base64,
-            &ct,
-            &import_type,
-        )
-        .await
+        call_claude_vision(&config.anthropic_api_key, &file_base64, &ct, &import_type).await
     } else {
         let file_data: Vec<(String, String)> = files
             .iter()
@@ -427,7 +421,10 @@ pub async fn confirm(
                 .bind(&body.lab_country)
                 .fetch_one(pool.get_ref())
                 .await?;
-                Some(row.try_get::<Uuid, _>("id").map_err(|_| AppError::Internal)?)
+                Some(
+                    row.try_get::<Uuid, _>("id")
+                        .map_err(|_| AppError::Internal)?,
+                )
             }
         } else {
             body.device_id
@@ -489,7 +486,11 @@ pub async fn confirm(
 
     // Update lab device markers_measured — add imported marker slugs
     if let Some(dev_id) = device_id {
-        let imported_slugs: Vec<&str> = body.markers.iter().map(|m| m.marker_slug.as_str()).collect();
+        let imported_slugs: Vec<&str> = body
+            .markers
+            .iter()
+            .map(|m| m.marker_slug.as_str())
+            .collect();
         sqlx::query(
             r#"UPDATE devices SET markers_measured = (
                 SELECT ARRAY(SELECT DISTINCT unnest(COALESCE(markers_measured, '{}') || $1::text[]))
@@ -747,13 +748,7 @@ pub async fn upload_medication(
     let vision_result = if files.len() == 1 {
         let (compressed, ct) = compress_image_if_needed(&files[0].bytes, &files[0].content_type);
         let file_base64 = BASE64.encode(&compressed);
-        call_claude_vision(
-            &config.anthropic_api_key,
-            &file_base64,
-            &ct,
-            "med_import",
-        )
-        .await
+        call_claude_vision(&config.anthropic_api_key, &file_base64, &ct, "med_import").await
     } else {
         let file_data: Vec<(String, String)> = files
             .iter()
@@ -1113,18 +1108,20 @@ async fn match_extracted_markers(
         if let Some(slug) = slug {
             // Look up canonical unit + abbreviation from DB
             let marker_row = sqlx::query(
-                "SELECT unit_canonical, abbreviation FROM markers WHERE marker_slug = $1"
+                "SELECT unit_canonical, abbreviation FROM markers WHERE marker_slug = $1",
             )
-                .bind(slug)
-                .fetch_optional(pool)
-                .await
-                .ok()
-                .flatten();
+            .bind(slug)
+            .fetch_optional(pool)
+            .await
+            .ok()
+            .flatten();
 
-            let canonical_unit_str = marker_row.as_ref()
+            let canonical_unit_str = marker_row
+                .as_ref()
                 .and_then(|r| r.try_get::<String, _>("unit_canonical").ok())
                 .unwrap_or_default();
-            let abbreviation: Option<String> = marker_row.as_ref()
+            let abbreviation: Option<String> = marker_row
+                .as_ref()
                 .and_then(|r| r.try_get::<Option<String>, _>("abbreviation").ok())
                 .flatten();
 

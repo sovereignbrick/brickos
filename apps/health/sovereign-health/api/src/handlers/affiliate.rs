@@ -836,13 +836,12 @@ fn eur_cents_to_sats(eur_cents: i32, btc_eur_rate: f64) -> i64 {
 
 pub async fn generate_affiliate_code(pool: &PgPool) -> Result<String, AppError> {
     use rand::Rng;
-
     let charset: &[u8] = b"abcdefghijklmnopqrstuvwxyz0123456789";
 
     for _ in 0..10 {
         let code: String = (0..8)
             .map(|_| {
-                let idx = rand::thread_rng().gen_range(0..charset.len());
+                let idx = rand::rng().random_range(0..charset.len());
                 charset[idx] as char
             })
             .collect();
@@ -899,14 +898,13 @@ pub async fn create_affiliate_conversion(pool: &PgPool, user_id: Uuid, order_amo
     }
 
     // Fetch configurable commission rate (default 20% = 2000 bps)
-    let direct_rate_bps: i32 = sqlx::query_scalar(
-        "SELECT rate_bps FROM affiliate_commission_rates WHERE level = 1",
-    )
-    .fetch_optional(pool)
-    .await
-    .ok()
-    .flatten()
-    .unwrap_or(2000);
+    let direct_rate_bps: i32 =
+        sqlx::query_scalar("SELECT rate_bps FROM affiliate_commission_rates WHERE level = 1")
+            .fetch_optional(pool)
+            .await
+            .ok()
+            .flatten()
+            .unwrap_or(2000);
 
     let commission_cents = (order_amount_cents as f64 * (direct_rate_bps as f64 / 10000.0)) as i32;
     let evaluation_ends_at = chrono::Utc::now() + chrono::Duration::days(30);
@@ -925,15 +923,15 @@ pub async fn create_affiliate_conversion(pool: &PgPool, user_id: Uuid, order_amo
     .ok()
     .flatten();
 
-    let (parent_affiliate_code, parent_commission_cents) = if let Some((parent_code,)) = parent_info {
-        let parent_rate_bps: i32 = sqlx::query_scalar(
-            "SELECT rate_bps FROM affiliate_commission_rates WHERE level = 2",
-        )
-        .fetch_optional(pool)
-        .await
-        .ok()
-        .flatten()
-        .unwrap_or(200);
+    let (parent_affiliate_code, parent_commission_cents) = if let Some((parent_code,)) = parent_info
+    {
+        let parent_rate_bps: i32 =
+            sqlx::query_scalar("SELECT rate_bps FROM affiliate_commission_rates WHERE level = 2")
+                .fetch_optional(pool)
+                .await
+                .ok()
+                .flatten()
+                .unwrap_or(200);
         let parent_cents = (order_amount_cents as f64 * (parent_rate_bps as f64 / 10000.0)) as i32;
         (Some(parent_code), parent_cents)
     } else {

@@ -238,7 +238,11 @@ pub async fn public_infobar(
     query: web::Query<std::collections::HashMap<String, String>>,
 ) -> HttpResponse {
     let target = query.get("target").map(|s| s.as_str()).unwrap_or("app");
-    let prefix = if target == "web" { "web_infobar" } else { "app_infobar" };
+    let prefix = if target == "web" {
+        "web_infobar"
+    } else {
+        "app_infobar"
+    };
 
     let enabled = get_setting_bool(pool.get_ref(), &format!("{prefix}_enabled"), false).await;
 
@@ -252,7 +256,8 @@ pub async fn public_infobar(
     let message = get_setting_string(pool.get_ref(), &format!("{prefix}_message"), "").await;
     let color = get_setting_string(pool.get_ref(), &format!("{prefix}_color"), "blue").await;
     let button = get_setting_bool(pool.get_ref(), &format!("{prefix}_button"), false).await;
-    let button_text = get_setting_string(pool.get_ref(), &format!("{prefix}_button_text"), "").await;
+    let button_text =
+        get_setting_string(pool.get_ref(), &format!("{prefix}_button_text"), "").await;
     let button_url = get_setting_string(pool.get_ref(), &format!("{prefix}_button_url"), "").await;
 
     HttpResponse::Ok().json(json!({

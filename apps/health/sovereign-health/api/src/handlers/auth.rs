@@ -291,7 +291,11 @@ pub async fn signup(
                 .execute(pool.get_ref())
                 .await
             {
-                tracing::warn!("Failed to store affiliate code for user {}: {:?}", user_id, e);
+                tracing::warn!(
+                    "Failed to store affiliate code for user {}: {:?}",
+                    user_id,
+                    e
+                );
             }
         }
         Err(e) => {
@@ -357,12 +361,13 @@ pub async fn signup(
 
     let _ = sqlx::query(
         "INSERT INTO user_profile (user_id, consent_newsletter, country_code) \
-         VALUES ($1, $2, $3)")
-        .bind(user_id)
-        .bind(body.consent_newsletter.unwrap_or(false))
-        .bind(&country_code)
-        .execute(pool.get_ref())
-        .await;
+         VALUES ($1, $2, $3)",
+    )
+    .bind(user_id)
+    .bind(body.consent_newsletter.unwrap_or(false))
+    .bind(&country_code)
+    .execute(pool.get_ref())
+    .await;
 
     // Assign tier: Glimpse for SaaS, Core for OSS
     let tier_slug = if is_oss { "core" } else { "glimpse" };
@@ -589,10 +594,7 @@ pub async fn verify_email(
         let uid = user_id;
         let addr = email_addr.clone();
         tokio::spawn(async move {
-            let tags = vec![
-                "source:app".to_string(),
-                "tier:glimpse".to_string(),
-            ];
+            let tags = vec!["source:app".to_string(), "tier:glimpse".to_string()];
             if let Err(e) = provider.add_to_list(&addr, "", &tags).await {
                 tracing::warn!(user_id = %uid, "Mailgun list sync failed: {e}");
             }

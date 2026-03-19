@@ -1544,9 +1544,13 @@ async fn handle_invoice_payment(
             let (cust_type, cust_company, cust_vat, cust_country) = if let Some(ref p) = profile {
                 (
                     p.try_get::<String, _>("customer_type").ok(),
-                    p.try_get::<Option<String>, _>("company_name").ok().flatten(),
+                    p.try_get::<Option<String>, _>("company_name")
+                        .ok()
+                        .flatten(),
                     p.try_get::<Option<String>, _>("vat_id").ok().flatten(),
-                    p.try_get::<Option<String>, _>("country_code").ok().flatten(),
+                    p.try_get::<Option<String>, _>("country_code")
+                        .ok()
+                        .flatten(),
                 )
             } else {
                 (None, None, None, None)
@@ -1569,14 +1573,19 @@ async fn handle_invoice_payment(
                 .and_then(|t| chrono::DateTime::from_timestamp(t, 0));
 
             // Billing interval from subscription metadata or tier_slug
-            let billing_interval: Option<String> = invoice["lines"]["data"][0]["metadata"]["interval"]
+            let billing_interval: Option<String> = invoice["lines"]["data"][0]["metadata"]
+                ["interval"]
                 .as_str()
                 .map(|s| s.to_string())
                 .or_else(|| {
                     // Infer from period length
                     if let (Some(s), Some(e)) = (period_start, period_end) {
                         let days = (e - s).num_days();
-                        if days > 60 { Some("annual".to_string()) } else { Some("monthly".to_string()) }
+                        if days > 60 {
+                            Some("annual".to_string())
+                        } else {
+                            Some("monthly".to_string())
+                        }
                     } else {
                         None
                     }

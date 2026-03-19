@@ -1,7 +1,7 @@
 # Project Documentation Guide — Sovereign Health Intelligence
 
 **Audience:** New team members, contributors, and AI assistants
-**Last updated:** 2026-03-18
+**Last updated:** 2026-03-20
 
 ---
 
@@ -28,25 +28,20 @@ docs/project-files/
 ├── adr/                             ← architecture decision records
 │   └── 000-TEMPLATE.md
 ├── releases/                        ← release audit artifacts (per version)
-│   ├── v0.20.0-rc1/
-│   │   ├── release-audit.json       ← machine-readable audit results
-│   │   ├── gdpr-audit.json          ← GDPR compliance data
-│   │   ├── gdpr-audit-report.md     ← human-readable GDPR report
-│   │   ├── testing-report.md        ← test results snapshot
-│   │   ├── tier-matrix-audit.md     ← license tier feature audit
-│   │   ├── user-role-model-report.md
-│   │   └── RELEASE_TEMPLATE.md      ← reusable prompt for generating release artifacts
-│   ├── v1.0.0-rc1/
-│   └── v1.0.0-rc2/
-└── reports/                         ← per-RC testing and QA reports
-    ├── v0.20.0-rc1/
-    │   ├── RELEASE_v0.20.0-rc1.md   ← release notes
-    │   ├── 2026-03-16_testing_report_v0.20.0-rc1.md
-    │   └── 2026-03-16_gdpr-audit-report_v0.20.0-rc1.md
-    └── v0.20.0-rc2/
-        ├── RELEASE_v0.20.0-rc2.md
-        ├── 2026-03-17_testing-report_v0.20.0-rc2.md
-        └── 2026-03-17_manual-testing-checklist_v0.20.0-rc2.md
+│   ├── RELEASE_TEMPLATE.md          ← workflow + artifact templates
+│   ├── v0.20.0-rc3/                 ← legacy RC format (pre-0.21.0)
+│   │   ├── release-audit.json
+│   │   ├── RELEASE_v0.20.0-rc3.md
+│   │   ├── testing-report.md
+│   │   └── manual-testing-checklist.md
+│   └── v0.21.0/                     ← current format: full releases, no RCs
+│       ├── release-audit.json
+│       ├── RELEASE_v0.21.0.md
+│       ├── 2026-03-20_testing-report_v0.21.0.md
+│       └── 2026-03-20_manual-testing-checklist_v0.21.0.md
+└── reports/                         ← standalone reports (weekly, audits, etc.)
+    ├── YYYY-MM-DD_weekly-project-summary.md  ← Fridays only
+    └── YYYY-MM-DD_topic-report.md
 ```
 
 ---
@@ -144,41 +139,40 @@ docs/project-files/
 
 **What it is:** Versioned folders containing the audit trail for each release. These are the formal records generated during the release process.
 
-**Contents per version folder:**
-- **`release-audit.json`** — Machine-readable audit: total checks, pass/fail counts, severity breakdown, test counts. Used for tracking quality trends across releases.
-- **`release-audit.md`** — Human-readable security and quality audit (when generated): executive summary, critical/high/medium/low findings, and their fixes.
-- **`gdpr-audit.json` / `gdpr-audit-report.md`** — GDPR Article 30 compliance records: processing activities, legal bases, sub-processors, data subject rights. Required for EU data protection compliance.
-- **`testing-report.md`** — Test pyramid snapshot: unit, integration, property, DB, and E2E test results.
-- **`tier-matrix-audit.md`** — Verifies that license tier features (Free, Focus, Focus+, Horizon) are correctly gated.
-- **`user-role-model-report.md`** — Documents the user/admin/demo role permissions model.
-- **`RELEASE_TEMPLATE.md`** — A reusable prompt template: paste version parameters, hand to Claude Code, and it generates all release artifacts (release notes, CHANGELOG, GDPR record, security report, version bumps, git tag, deploy commands, smoke test checklist).
+**Versioning strategy (since v0.21.0):**
+- **No RC tags.** Every version is a full release (e.g., `v0.21.0`, not `v0.21.0-rc1`).
+- **Minor bump** (0.21.0 → 0.22.0): sprint releases with new features, migrations, or significant changes.
+- **Patch bump** (0.21.0 → 0.21.1): bug fixes, small improvements, dependency updates.
+- Deploy to staging first, verify, then promote to production.
+
+**Contents per version folder (4 required artifacts):**
+- **`release-audit.json`** — Machine-readable audit: total checks, pass/fail counts, test counts, migrations, key changes.
+- **`RELEASE_vX.Y.Z.md`** — Release notes: summary, key changes by category, migrations, issues, audit table, known issues.
+- **`YYYY-MM-DD_testing-report_vX.Y.Z.md`** — Test results: backend/frontend suites, change coverage, theme/security audits, docker build status.
+- **`YYYY-MM-DD_manual-testing-checklist_vX.Y.Z.md`** — Manual QA checklist: feature tests, regression tests, post-deploy infra checks, sign-off table.
 
 **How to use:**
-1. When preparing a release, create a new version folder (e.g., `v0.21.0-rc1/`)
-2. Copy `RELEASE_TEMPLATE.md` from a previous release, update the parameters
-3. Run the template through Claude Code to generate all artifacts
-4. Review the generated audit results, fix any failures, re-run until clean
-5. The completed artifacts serve as the release's permanent audit trail
+1. When preparing a release, create a new version folder (e.g., `v0.21.0/`)
+2. Follow `RELEASE_TEMPLATE.md` for the full deployment workflow (Phases 1–7)
+3. Generate the 4 artifacts, review, fix any failures
+4. The completed artifacts serve as the release's permanent audit trail
 
 ---
 
-### `reports/` — Per-RC Testing and QA Reports
+### `reports/` — Standalone Reports
 
-**What it is:** Detailed testing reports and release notes for each release candidate (RC). While `releases/` holds formal audit artifacts, `reports/` holds the narrative: what was tested, what passed, what was manually verified.
+**What it is:** Standalone reports that are not tied to a specific release version. Release-specific testing reports and checklists now live in `releases/vX.Y.Z/` alongside the other release artifacts.
 
-**Naming convention:** Files are prefixed with the date: `YYYY-MM-DD_description_version.md`
+**Naming convention:** Files are prefixed with the date: `YYYY-MM-DD_description.md`
 
-**Typical contents:**
-- **`RELEASE_vX.Y.Z-rcN.md`** — Full release notes: what's new, what was fixed, infrastructure changes, migration list.
-- **`YYYY-MM-DD_testing-report_vX.Y.Z-rcN.md`** — Automated test results: test counts, pass rates, test pyramid visualization, per-suite breakdown.
-- **`YYYY-MM-DD_manual-testing-checklist_vX.Y.Z-rcN.md`** — Manual QA checklist: browser testing, mobile responsiveness, i18n verification, payment flows.
-- **`YYYY-MM-DD_gdpr-audit-report_vX.Y.Z-rcN.md`** — GDPR compliance check for that specific RC.
+**Report types:**
+- **`YYYY-MM-DD_weekly-project-summary.md`** — Weekly project summary. **Generated on Fridays only.** Covers what was shipped, what's in progress, blockers, and next week's priorities.
+- **`YYYY-MM-DD_topic-report.md`** — Ad-hoc reports on specific topics (architecture reviews, value propositions, installation guides, etc.)
 
 **How to use:**
-1. After building an RC, run automated tests and generate the testing report
-2. Walk through the manual testing checklist on staging
-3. Document any issues found and their fixes
-4. These reports are referenced in the sprint summary when closing a sprint
+1. Weekly summaries are generated every Friday as part of the end-of-week routine
+2. Topic reports are created as needed when a deep-dive or audit is warranted
+3. Reports are referenced from sprint notes when relevant
 
 ---
 
@@ -208,18 +202,16 @@ docs/project-files/
 1. Check sprint-planning/sprints/sprint-NNN.md
    → Are all blockers resolved? What's the velocity?
 
-2. Create releases/vX.Y.Z-rcN/ folder
-   → Copy and fill in RELEASE_TEMPLATE.md with version parameters
-   → Generate audit artifacts (release-audit.json, gdpr-audit, etc.)
+2. Run pre-deployment checks (Phase 1 in RELEASE_TEMPLATE.md)
+   → cargo test, fmt, clippy, pnpm lint/test, theme audit, cargo audit
 
-3. Create reports/vX.Y.Z-rcN/ folder
-   → Run tests → write testing report
-   → Walk manual checklist → write manual testing report
-   → Generate release notes (RELEASE_vX.Y.Z-rcN.md)
+3. Bump version: bash ops/bump-version.sh X.Y.Z
 
-4. Fix any audit failures, re-generate until clean
+4. Create releases/vX.Y.Z/ folder with 4 required artifacts:
+   → release-audit.json, RELEASE_vX.Y.Z.md,
+   → testing-report, manual-testing-checklist
 
-5. Deploy using ops/deploy.sh, run smoke tests
+5. Commit, deploy to staging, verify, promote to production
 ```
 
 ### Scenario 3: Onboarding a new team member
@@ -266,7 +258,7 @@ docs/project-files/
 - Templates are always `000-TEMPLATE.md`
 - Numbered documents use zero-padded sequential IDs: `001-`, `002-`, ...
 - Reports use date prefixes: `YYYY-MM-DD_description.md`
-- Release folders use semver: `vX.Y.Z-rcN/`
+- Release folders use semver: `vX.Y.Z/`
 - All names are `kebab-case` (lowercase, hyphens)
 
 ### Writing Style
@@ -297,7 +289,7 @@ docs/project-files/
 
 - **Sprints** reference **design docs** for planned features
 - **Design docs** reference **ADRs** for architectural decisions
-- **Releases** and **reports** are generated at the end of a sprint when cutting an RC
+- **Releases** are generated at the end of a sprint when cutting a version
 - **ADRs** are referenced from anywhere — design docs, sprint notes, code comments
 
 ### AI-Assisted Workflow
@@ -310,7 +302,7 @@ These docs are specifically structured for AI pair programming with Claude Code:
 | `adr/` | Understands *why* things are built a certain way, avoids contradicting past decisions |
 | `sprint-planning/` | Knows what was recently shipped, what's in progress, what's blocked |
 | `releases/` | Uses `RELEASE_TEMPLATE.md` to generate complete release artifact sets |
-| `reports/` | Generates testing reports and manual checklists automatically |
+| `reports/` | Generates weekly summaries (Fridays) and ad-hoc topic reports |
 
 The brainstorming workflow for complex features:
 1. Create a design doc with initial thoughts
@@ -330,7 +322,7 @@ The brainstorming workflow for complex features:
 | Set up the GitHub project board | `sprint-planning/GITHUB_PROJECT_SETUP.md` |
 | Read or write a feature spec | `design/NNN-feature.md` |
 | Record an architecture decision | `adr/NNN-decision.md` |
-| Prepare a release | `releases/vX.Y.Z-rcN/RELEASE_TEMPLATE.md` |
-| Check test results for an RC | `reports/vX.Y.Z-rcN/` |
+| Prepare a release | `releases/RELEASE_TEMPLATE.md` |
+| Check test results for a release | `releases/vX.Y.Z/` |
 | Find old pre-monorepo specs | `design/old-design/old specs/` |
 | Start a new document from template | Copy `000-TEMPLATE.md` from the relevant folder |

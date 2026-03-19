@@ -24,7 +24,7 @@ set -e
 # ══════════════════════════════════════════════════════════════════════════════
 
 # Version: Update this before each release. Used in Docker image tags.
-VERSION="0.20.0"
+VERSION="0.21.0"
 
 # Local project root: BrickOS monorepo.
 PROJECT_ROOT="/home/dev-comp/projects/brickos"

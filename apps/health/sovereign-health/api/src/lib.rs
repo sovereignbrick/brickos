@@ -35,7 +35,7 @@ pub mod payments;
 pub mod services;
 pub mod templates;
 
-pub const VERSION: &str = "0.20.0";
+pub const VERSION: &str = "0.21.0";
 pub const SERVICE_NAME: &str = "sovereign-health-backend";
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -67,7 +67,7 @@ pub fn configure_routes(cfg: &mut actix_web::web::ServiceConfig) {
         .and_then(|v| v.parse().ok())
         .unwrap_or(5u32);
     let auth_governor = GovernorConfigBuilder::default()
-        .per_second(per_second)
+        .seconds_per_request(per_second)
         .burst_size(burst_size)
         .finish()
         .expect("invalid governor config");
@@ -694,10 +694,22 @@ pub fn configure_routes(cfg: &mut actix_web::web::ServiceConfig) {
                 actix_web::web::post().to(handlers::newsletter::admin_sync),
             )
             // Audit log endpoints
-            .route("/audit/access-logs", actix_web::web::get().to(handlers::admin_audit::access_logs))
-            .route("/audit/events", actix_web::web::get().to(handlers::admin_audit::event_logs))
-            .route("/audit/stats", actix_web::web::get().to(handlers::admin_audit::audit_stats))
-            .route("/audit/purge", actix_web::web::delete().to(handlers::admin_audit::purge_logs))
+            .route(
+                "/audit/access-logs",
+                actix_web::web::get().to(handlers::admin_audit::access_logs),
+            )
+            .route(
+                "/audit/events",
+                actix_web::web::get().to(handlers::admin_audit::event_logs),
+            )
+            .route(
+                "/audit/stats",
+                actix_web::web::get().to(handlers::admin_audit::audit_stats),
+            )
+            .route(
+                "/audit/purge",
+                actix_web::web::delete().to(handlers::admin_audit::purge_logs),
+            )
             .route(
                 "/content/web-pages",
                 actix_web::web::get().to(handlers::web_content::admin_list_web_pages),

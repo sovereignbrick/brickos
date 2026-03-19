@@ -494,12 +494,10 @@ pub async fn update_profile(
     let weight_enc = body.default_weight_kg.map(|v| enc.encrypt_f64(v));
 
     // Ensure profile row exists (no-op if already present)
-    sqlx::query(
-        "INSERT INTO user_profile (user_id) VALUES ($1) ON CONFLICT DO NOTHING",
-    )
-    .bind(auth.user_id)
-    .execute(pool.get_ref())
-    .await?;
+    sqlx::query("INSERT INTO user_profile (user_id) VALUES ($1) ON CONFLICT DO NOTHING")
+        .bind(auth.user_id)
+        .execute(pool.get_ref())
+        .await?;
 
     sqlx::query(
         "UPDATE user_profile SET \

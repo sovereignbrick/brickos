@@ -6,7 +6,7 @@ use totp_rs::{Algorithm, Secret, TOTP};
 /// Generate a 20-byte crypto-random secret, returned as base32.
 pub fn generate_totp_secret() -> String {
     let mut bytes = [0u8; 20];
-    rand::thread_rng().fill_bytes(&mut bytes);
+    rand::rng().fill_bytes(&mut bytes);
     Secret::Raw(bytes.to_vec()).to_encoded().to_string()
 }
 
@@ -53,7 +53,7 @@ pub fn generate_recovery_codes() -> Vec<String> {
     let mut codes = Vec::with_capacity(8);
     for _ in 0..8 {
         let mut bytes = [0u8; 8];
-        rand::thread_rng().fill_bytes(&mut bytes);
+        rand::rng().fill_bytes(&mut bytes);
         let code: String = bytes
             .iter()
             .map(|b| charset[(*b as usize) % charset.len()] as char)

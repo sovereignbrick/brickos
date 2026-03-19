@@ -7,8 +7,8 @@ use serde::Deserialize;
 use serde_json::json;
 use sqlx::PgPool;
 
-use crate::middleware::auth::AuthenticatedUser;
 use crate::error::AppError;
+use crate::middleware::auth::AuthenticatedUser;
 
 #[derive(Deserialize)]
 pub struct AuditQuery {
@@ -49,7 +49,11 @@ pub async fn access_logs(
         Some("user") => "u.email",
         _ => "dal.created_at",
     };
-    let sort_dir = if query.order.as_deref() == Some("asc") { "ASC" } else { "DESC" };
+    let sort_dir = if query.order.as_deref() == Some("asc") {
+        "ASC"
+    } else {
+        "DESC"
+    };
 
     let rows = sqlx::query(&format!(
         "WITH filtered AS ( \
@@ -78,7 +82,10 @@ pub async fn access_logs(
     .fetch_all(pool.get_ref())
     .await?;
 
-    let total: i64 = rows.first().and_then(|r| r.try_get("total_count").ok()).unwrap_or(0);
+    let total: i64 = rows
+        .first()
+        .and_then(|r| r.try_get("total_count").ok())
+        .unwrap_or(0);
 
     let entries: Vec<serde_json::Value> = rows.iter().map(|r| {
         json!({
@@ -122,7 +129,11 @@ pub async fn event_logs(
         Some("user") => "u.email",
         _ => "al.created_at",
     };
-    let sort_dir = if query.order.as_deref() == Some("asc") { "ASC" } else { "DESC" };
+    let sort_dir = if query.order.as_deref() == Some("asc") {
+        "ASC"
+    } else {
+        "DESC"
+    };
 
     let rows = sqlx::query(&format!(
         "WITH filtered AS ( \
@@ -149,20 +160,26 @@ pub async fn event_logs(
     .fetch_all(pool.get_ref())
     .await?;
 
-    let total: i64 = rows.first().and_then(|r| r.try_get("total_count").ok()).unwrap_or(0);
+    let total: i64 = rows
+        .first()
+        .and_then(|r| r.try_get("total_count").ok())
+        .unwrap_or(0);
 
-    let entries: Vec<serde_json::Value> = rows.iter().map(|r| {
-        json!({
-            "id": r.try_get::<uuid::Uuid, _>("id").ok(),
-            "user_email": r.try_get::<Option<String>, _>("user_email").ok().flatten(),
-            "action": r.try_get::<String, _>("action").unwrap_or_default(),
-            "resource_type": r.try_get::<Option<String>, _>("resource_type").ok().flatten(),
-            "resource_id": r.try_get::<Option<uuid::Uuid>, _>("resource_id").ok().flatten(),
-            "ip_address": r.try_get::<Option<String>, _>("ip_address").ok().flatten(),
-            "metadata": r.try_get::<Option<serde_json::Value>, _>("metadata").ok().flatten(),
-            "created_at": r.try_get::<chrono::DateTime<chrono::Utc>, _>("created_at").ok(),
+    let entries: Vec<serde_json::Value> = rows
+        .iter()
+        .map(|r| {
+            json!({
+                "id": r.try_get::<uuid::Uuid, _>("id").ok(),
+                "user_email": r.try_get::<Option<String>, _>("user_email").ok().flatten(),
+                "action": r.try_get::<String, _>("action").unwrap_or_default(),
+                "resource_type": r.try_get::<Option<String>, _>("resource_type").ok().flatten(),
+                "resource_id": r.try_get::<Option<uuid::Uuid>, _>("resource_id").ok().flatten(),
+                "ip_address": r.try_get::<Option<String>, _>("ip_address").ok().flatten(),
+                "metadata": r.try_get::<Option<serde_json::Value>, _>("metadata").ok().flatten(),
+                "created_at": r.try_get::<chrono::DateTime<chrono::Utc>, _>("created_at").ok(),
+            })
         })
-    }).collect();
+        .collect();
 
     Ok(HttpResponse::Ok().json(json!({
         "data": { "entries": entries, "total": total, "page": page, "per_page": per_page },
@@ -175,28 +192,39 @@ pub async fn audit_stats(
     pool: web::Data<PgPool>,
     auth: AuthenticatedUser,
 ) -> Result<HttpResponse, AppError> {
-    use sqlx::Row;
-
     if auth.role != "admin" {
         return Err(AppError::Forbidden);
     }
 
     let access_count: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM data_access_log")
-        .fetch_one(pool.get_ref()).await.unwrap_or(0);
+        .fetch_one(pool.get_ref())
+        .await
+        .unwrap_or(0);
     let event_count: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM audit_log")
-        .fetch_one(pool.get_ref()).await.unwrap_or(0);
+        .fetch_one(pool.get_ref())
+        .await
+        .unwrap_or(0);
 
-    let access_oldest: Option<chrono::DateTime<chrono::Utc>> = sqlx::query_scalar(
-        "SELECT MIN(created_at) FROM data_access_log"
-    ).fetch_one(pool.get_ref()).await.ok().flatten();
+    let access_oldest: Option<chrono::DateTime<chrono::Utc>> =
+        sqlx::query_scalar("SELECT MIN(created_at) FROM data_access_log")
+            .fetch_one(pool.get_ref())
+            .await
+            .ok()
+            .flatten();
 
-    let event_oldest: Option<chrono::DateTime<chrono::Utc>> = sqlx::query_scalar(
-        "SELECT MIN(created_at) FROM audit_log"
-    ).fetch_one(pool.get_ref()).await.ok().flatten();
+    let event_oldest: Option<chrono::DateTime<chrono::Utc>> =
+        sqlx::query_scalar("SELECT MIN(created_at) FROM audit_log")
+            .fetch_one(pool.get_ref())
+            .await
+            .ok()
+            .flatten();
 
     let retention_days = crate::handlers::admin_settings::get_setting_i64(
-        pool.get_ref(), "audit_retention_days", 90
-    ).await;
+        pool.get_ref(),
+        "audit_retention_days",
+        90,
+    )
+    .await;
 
     Ok(HttpResponse::Ok().json(json!({
         "data": {
@@ -216,8 +244,6 @@ pub async fn purge_logs(
     auth: AuthenticatedUser,
     query: web::Query<PurgeQuery>,
 ) -> Result<HttpResponse, AppError> {
-    use sqlx::Row;
-
     if auth.role != "admin" {
         return Err(AppError::Forbidden);
     }

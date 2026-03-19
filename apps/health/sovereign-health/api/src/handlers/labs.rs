@@ -26,7 +26,10 @@ pub async fn list(
     let labs: Vec<Lab> = rows
         .iter()
         .map(|r| Lab {
-            id: r.try_get::<Uuid, _>("id").map(|u| u.to_string()).unwrap_or_default(),
+            id: r
+                .try_get::<Uuid, _>("id")
+                .map(|u| u.to_string())
+                .unwrap_or_default(),
             name: r.try_get("name").unwrap_or_default(),
             address: r.try_get("address").ok().flatten(),
             postal_code: r.try_get("postal_code").ok().flatten(),
@@ -34,8 +37,10 @@ pub async fn list(
             country: r.try_get("country").ok().flatten(),
             phone: r.try_get("phone").ok().flatten(),
             notes: r.try_get("notes").ok().flatten(),
-            created_at: r.try_get::<chrono::DateTime<chrono::Utc>, _>("created_at")
-                .map(|t| t.to_rfc3339()).unwrap_or_default(),
+            created_at: r
+                .try_get::<chrono::DateTime<chrono::Utc>, _>("created_at")
+                .map(|t| t.to_rfc3339())
+                .unwrap_or_default(),
         })
         .collect();
 
