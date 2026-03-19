@@ -693,6 +693,11 @@ pub fn configure_routes(cfg: &mut actix_web::web::ServiceConfig) {
                 "/newsletter/sync",
                 actix_web::web::post().to(handlers::newsletter::admin_sync),
             )
+            // Audit log endpoints
+            .route("/audit/access-logs", actix_web::web::get().to(handlers::admin_audit::access_logs))
+            .route("/audit/events", actix_web::web::get().to(handlers::admin_audit::event_logs))
+            .route("/audit/stats", actix_web::web::get().to(handlers::admin_audit::audit_stats))
+            .route("/audit/purge", actix_web::web::delete().to(handlers::admin_audit::purge_logs))
             .route(
                 "/content/web-pages",
                 actix_web::web::get().to(handlers::web_content::admin_list_web_pages),

@@ -11,6 +11,7 @@ import { Breadcrumb } from '@/components/breadcrumb'
 import { UsersTab } from '@/components/admin/users-tab'
 import { ContentWebTab } from '@/components/admin/content-web-tab'
 import { AiUsageTab } from '@/components/admin/ai-usage-tab'
+import { AuditLogsTab } from '@/components/admin/audit-logs-tab'
 import { PromotionsTab } from '@/components/admin/promotions-tab'
 import { AffiliatesTab } from '@/components/admin/affiliates-tab'
 import { SettingsTab } from '@/components/admin/settings-tab'
@@ -22,7 +23,7 @@ import { useTranslations } from 'next-intl'
 const SIDEBAR_KEYS = [
   'dashboard', 'users', 'settings', 'payments', 'promotions', 'affiliates',
   'content-app', 'content-web', 'content-strings', 'newsletter', 'ai-usage',
-  'website',
+  'audit-logs', 'website',
 ] as const
 
 type TabKey = (typeof SIDEBAR_KEYS)[number]
@@ -39,6 +40,7 @@ const TAB_ICONS: Record<TabKey, string> = {
   'content-strings': '\u{1F524}',
   newsletter: '\u{1F4E7}',
   'ai-usage': '\u{1F916}',
+  'audit-logs': '\u{1F50D}',
   website: '\u{1F30D}',
 }
 
@@ -54,6 +56,7 @@ const TAB_I18N_KEYS: Record<TabKey, string> = {
   'content-strings': 'contentStrings',
   newsletter: 'newsletter',
   'ai-usage': 'aiUsage',
+  'audit-logs': 'auditLogs',
   website: 'website',
 }
 
@@ -142,6 +145,7 @@ export default function AdminPage() {
           {tab === 'affiliates' && <AffiliatesTab />}
           {tab === 'payments' && <PaymentGatewaysTab />}
           {tab === 'ai-usage' && <AiUsageTab />}
+          {tab === 'audit-logs' && <AuditLogsTab />}
           {tab === 'settings' && <SettingsTab />}
           {tab === 'website' && <WebsiteTab />}
         </main>

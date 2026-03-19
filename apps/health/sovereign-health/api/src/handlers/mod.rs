@@ -2,6 +2,7 @@
 
 pub mod admin;
 pub mod admin_ai_usage;
+pub mod admin_audit;
 pub mod admin_content;
 pub mod admin_email;
 pub mod admin_publish;
