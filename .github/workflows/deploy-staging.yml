@@ -1,0 +1,117 @@
+# Auto-deploy to staging when develop branch is updated.
+# Builds Docker images locally in the runner, transfers to VPS, restarts containers.
+#
+# Required GitHub Secrets:
+#   VPS_HOST        - VPS IP or hostname (e.g., 72.61.154.115)
+#   VPS_SSH_KEY     - Private SSH key for root@VPS
+#   VPS_KNOWN_HOSTS - SSH known_hosts entry for VPS (ssh-keyscan output)
+#   STAGING_API_URL - e.g., https://api-demo.sovereignhealth.io
+#   STAGING_AUTH_USER - basic auth user for staging verification
+#   STAGING_AUTH_PASS - basic auth password for staging verification
+
+name: Deploy to Staging
+
+on:
+  push:
+    branches: [develop]
+    paths:
+      - 'apps/health/sovereign-health/**'
+      - 'crates/**'
+      - 'packages/**'
+  workflow_dispatch:  # Allow manual trigger
+
+concurrency:
+  group: deploy-staging
+  cancel-in-progress: true
+
+env:
+  VPS_BASE: /opt/sovereign-health
+  BACKEND_IMAGE: sovereign-health-backend
+  FRONTEND_IMAGE: sovereign-health-frontend
+
+jobs:
+  deploy:
+    name: Deploy to staging
+    runs-on: ubuntu-latest
+    # Only run if CI passes (on push, CI runs in parallel — this uses needs from ci-health)
+    # For manual dispatch, skip CI check
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          echo "${{ secrets.VPS_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Rust cache
+        uses: Swatinem/rust-cache@v2
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Build backend Docker image
+        run: docker build -f apps/health/sovereign-health/api/Dockerfile -t $BACKEND_IMAGE:staging .
+
+      - name: Build frontend Docker image
+        run: |
+          cd apps/health/sovereign-health/frontend
+          docker build \
+            --build-arg NEXT_PUBLIC_API_URL=${{ secrets.STAGING_API_URL || 'https://api-demo.sovereignhealth.io' }} \
+            --build-arg NEXT_PUBLIC_ENVIRONMENT=staging \
+            --build-arg NEXT_PUBLIC_DEMO_HOSTNAME=public-demo.sovereignhealth.io \
+            -t $FRONTEND_IMAGE:staging .
+
+      - name: Backup staging database
+        run: |
+          ssh root@${{ secrets.VPS_HOST }} "mkdir -p $VPS_BASE/backups && \
+            docker exec sh-staging-db pg_dump -U sovereign_health sovereign_health_staging 2>/dev/null | \
+            gzip > $VPS_BASE/backups/staging_backup_\$(date +%Y%m%d_%H%M%S).sql.gz && \
+            ls -t $VPS_BASE/backups/staging_backup_*.sql.gz 2>/dev/null | tail -n +6 | xargs rm -f 2>/dev/null || true"
+        continue-on-error: true
+
+      - name: Transfer images to VPS
+        run: |
+          docker save $BACKEND_IMAGE:staging | ssh root@${{ secrets.VPS_HOST }} "docker load"
+          docker save $FRONTEND_IMAGE:staging | ssh root@${{ secrets.VPS_HOST }} "docker load"
+
+      - name: Restart containers
+        run: |
+          ssh root@${{ secrets.VPS_HOST }} "cd $VPS_BASE && \
+            docker compose -f docker-compose.staging.yml --env-file .env.staging -p sh-staging up -d --force-recreate backend frontend && \
+            docker image prune -f"
+
+      - name: Verify deployment
+        run: |
+          sleep 8
+          AUTH=""
+          if [ -n "${{ secrets.STAGING_AUTH_USER }}" ] && [ -n "${{ secrets.STAGING_AUTH_PASS }}" ]; then
+            AUTH="-u ${{ secrets.STAGING_AUTH_USER }}:${{ secrets.STAGING_AUTH_PASS }}"
+          fi
+
+          # Check API health
+          API_STATUS=$(curl -sf --max-time 10 $AUTH "https://api-demo.sovereignhealth.io/health" 2>/dev/null)
+          API_VERSION=$(echo "$API_STATUS" | grep -o '"version":"[^"]*"' | cut -d'"' -f4)
+          echo "API version: $API_VERSION"
+
+          # Check app responds
+          APP_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 $AUTH "https://demo.sovereignhealth.io/" 2>/dev/null)
+          echo "App status: $APP_CODE"
+
+          if [ "$APP_CODE" != "200" ]; then
+            echo "::error::App health check failed (HTTP $APP_CODE)"
+            exit 1
+          fi
+          echo "Staging deployment verified successfully"

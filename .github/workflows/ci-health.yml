@@ -52,11 +52,25 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - run: cargo test -p sovereign-health-backend --test smoke -- --nocapture
 
+  # ── Snapshot check (catch stale insta snapshots) ──
+  test-snapshots:
+    name: snapshot check
+    runs-on: ubuntu-latest
+    needs: test-smoke
+    env:
+      INSTA_UPDATE: 'no'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo install cargo-insta --quiet
+      - run: cargo insta test -p sovereign-health-backend --test integration -- --nocapture
+
   # ── Integration tests (no DB) ──
   test-integration:
     name: integration tests
     runs-on: ubuntu-latest
-    needs: test-smoke
+    needs: test-snapshots
     env:
       INSTA_UPDATE: 'no'
     steps:

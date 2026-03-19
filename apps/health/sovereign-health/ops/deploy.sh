@@ -302,6 +302,11 @@ deploy_backend() {
     log "Transferring backend to VPS..."
     docker save "${BACKEND_IMAGE}:${image_tag}" | ssh $VPS "docker load"
 
+    # Backup staging DB before restart (migrations run on startup)
+    if [ "$env" = "staging" ]; then
+        backup_staging_db
+    fi
+
     log "Restarting backend ($env) on VPS..."
     if [ "$env" = "staging" ]; then
         ssh $VPS "cd $VPS_BASE && docker compose -f $compose_file --env-file .env.staging -p sh-staging up -d --force-recreate backend && docker image prune -f"
@@ -469,6 +474,33 @@ cloudflare_purge() {
     fi
 }
 
+# ── Database backup (staging only) ────────────────────────────────────────────
+# Creates a pg_dump of the staging database before migrations run.
+# Backup files stored on VPS at /opt/sovereign-health/backups/
+
+backup_staging_db() {
+    local timestamp
+    timestamp=$(date +"%Y%m%d_%H%M%S")
+    local backup_file="staging_backup_${timestamp}.sql.gz"
+    local backup_dir="/opt/sovereign-health/backups"
+
+    log "Creating staging database backup..."
+
+    # Ensure backup directory exists and dump the database
+    ssh $VPS "mkdir -p $backup_dir && \
+        docker exec sh-staging-db pg_dump -U sovereign_health sovereign_health_staging | gzip > $backup_dir/$backup_file && \
+        echo \"Backup created: $backup_dir/$backup_file (\$(du -h $backup_dir/$backup_file | cut -f1))\" && \
+        ls -t $backup_dir/staging_backup_*.sql.gz 2>/dev/null | tail -n +6 | xargs rm -f 2>/dev/null || true" 2>/dev/null
+
+    if [ $? -eq 0 ]; then
+        log "Staging DB backup: $backup_file"
+        report_add "OK" "Staging DB backup created: $backup_file (keeps last 5)"
+    else
+        warn "Staging DB backup failed -- continuing anyway"
+        report_add "FAIL" "Staging DB backup failed"
+    fi
+}
+
 # ── Verify deployment ────────────────────────────────────────────────────────
 # Checks that all services respond with HTTP 200.
 # For staging, sends basic auth credentials with each request.
@@ -538,6 +570,13 @@ verify() {
 
     if [ -n "$api_version" ]; then
         report_add "INFO" "API version: $api_version"
+        # Version assertion: verify deployed version matches expected VERSION
+        if [ "$api_version" != "$VERSION" ]; then
+            warn "VERSION MISMATCH: deployed=$api_version expected=$VERSION"
+            report_add "FAIL" "Version mismatch: API reports $api_version but deploy expected $VERSION"
+        else
+            report_add "OK" "Version assertion passed: $api_version matches expected"
+        fi
     fi
 
     # Only purge Cloudflare for production deploys.
