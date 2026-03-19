@@ -116,6 +116,7 @@ pub async fn click(
 pub async fn me(
     pool: web::Data<PgPool>,
     auth: AuthenticatedUser,
+    config: web::Data<crate::config::Config>,
 ) -> Result<HttpResponse, AppError> {
     // Get user's affiliate code and settings
     let row = sqlx::query(
@@ -212,7 +213,7 @@ pub async fn me(
     Ok(HttpResponse::Ok().json(json!({
         "data": {
             "affiliate_code": affiliate_code,
-            "referral_link": format!("https://sovereignhealth.io/?ref={}", affiliate_code),
+            "referral_link": format!("{}/?ref={}", config.frontend_url.trim_end_matches('/'), affiliate_code),
             "stats": {
                 "total_clicks": total_clicks,
                 "total_signups": total_signups,
