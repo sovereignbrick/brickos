@@ -258,6 +258,10 @@ export function AuditLogsTab() {
   const [eventLoading, setEventLoading] = useState(false)
   const [eventExpanded, setEventExpanded] = useState<string | null>(null)
 
+  // Error state
+  const [accessError, setAccessError] = useState<string | null>(null)
+  const [eventError, setEventError] = useState<string | null>(null)
+
   // Stats / purge state
   const [stats, setStats] = useState<AuditStats | null>(null)
   const [purgeConfirm, setPurgeConfirm] = useState(false)
@@ -296,9 +300,11 @@ export function AuditLogsTab() {
       }))
       setAccessLogs(entries)
       setAccessTotal(res.data.total ?? 0)
-    } catch {
+      setAccessError(null)
+    } catch (err) {
       setAccessLogs([])
       setAccessTotal(0)
+      setAccessError(err instanceof Error ? err.message : 'Failed to load access logs')
     } finally {
       setAccessLoading(false)
     }
@@ -336,9 +342,11 @@ export function AuditLogsTab() {
       }))
       setEventLogs(entries)
       setEventTotal(res.data.total ?? 0)
-    } catch {
+      setEventError(null)
+    } catch (err) {
       setEventLogs([])
       setEventTotal(0)
+      setEventError(err instanceof Error ? err.message : 'Failed to load event logs')
     } finally {
       setEventLoading(false)
     }
@@ -523,6 +531,14 @@ export function AuditLogsTab() {
                       Loading...
                     </td>
                   </tr>
+                ) : accessError ? (
+                  <tr>
+                    <td colSpan={6} className="px-4 py-8 text-center">
+                      <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-red-900/30 border border-red-500/30 text-red-400 text-sm">
+                        Error: {accessError}
+                      </div>
+                    </td>
+                  </tr>
                 ) : accessLogs.length === 0 ? (
                   <tr>
                     <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
@@ -600,6 +616,14 @@ export function AuditLogsTab() {
                   <tr>
                     <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
                       Loading...
+                    </td>
+                  </tr>
+                ) : eventError ? (
+                  <tr>
+                    <td colSpan={6} className="px-4 py-8 text-center">
+                      <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-red-900/30 border border-red-500/30 text-red-400 text-sm">
+                        Error: {eventError}
+                      </div>
                     </td>
                   </tr>
                 ) : eventLogs.length === 0 ? (

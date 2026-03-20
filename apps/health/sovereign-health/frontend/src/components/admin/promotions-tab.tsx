@@ -187,6 +187,7 @@ export function PromotionsTab() {
       setRedemptions(res.data.redemptions)
     } catch {
       setRedemptions([])
+      toast.error('Failed to load redemptions')
     } finally {
       setRedemptionLoading(false)
     }
@@ -218,6 +219,7 @@ export function PromotionsTab() {
       setRevenuePreview(res.data)
     } catch {
       setRevenuePreview(null)
+      toast.error('Failed to load revenue preview')
     } finally {
       setPreviewLoading(false)
     }

@@ -59,7 +59,7 @@ export function AffiliatesTab() {
   useEffect(() => {
     api.admin.affiliateQueueCount()
       .then(r => setQueueCount(r.data.count))
-      .catch(() => {})
+      .catch(() => toast.error('Failed to load queue count'))
   }, [subTab])
 
   const SUB_TABS: { key: SubTab; label: string }[] = [

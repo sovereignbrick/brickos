@@ -63,6 +63,7 @@ export function AiUsageTab() {
   const t = useTranslations('admin')
   const [data, setData] = useState<AiUsageResponse | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [period, setPeriod] = useState<Period>('month')
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10))
   const [sortBy, setSortBy] = useState<'cost_eur' | 'calls'>('cost_eur')
@@ -72,8 +73,9 @@ export function AiUsageTab() {
     try {
       const res = await api.admin.aiUsage(period, date)
       setData(res.data)
-    } catch {
-      toast.error('Failed to load AI usage data')
+      setError(null)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load AI usage data')
     } finally {
       setLoading(false)
     }
@@ -132,6 +134,10 @@ export function AiUsageTab() {
 
       {loading ? (
         <p className="text-muted-foreground text-sm">Loading...</p>
+      ) : error ? (
+        <div className="px-4 py-3 rounded-lg bg-red-900/30 border border-red-500/30 text-red-400 text-sm">
+          Error: {error}
+        </div>
       ) : !data ? (
         <p className="text-muted-foreground text-sm">No data available</p>
       ) : (
