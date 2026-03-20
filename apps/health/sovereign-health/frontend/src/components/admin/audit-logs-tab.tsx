@@ -273,19 +273,28 @@ export function AuditLogsTab() {
         page: String(accessPage),
         per_page: String(PER_PAGE),
         sort: accessSort,
-        dir: accessDir,
+        order: accessDir,
       }
       if (search) params.search = search
       if (actionFilter) params.action = actionFilter
       const since = dateRangeToParam(dateRange)
-      if (since) params.since = since
+      if (since) params.from = since
 
-      const res = await fetchAudit<{ data: AccessLogEntry[]; meta: { total: number } }>(
+      const res = await fetchAudit<{ data: { entries: Record<string, unknown>[]; total: number } }>(
         '/admin/audit/access-logs',
         params,
       )
-      setAccessLogs(res.data)
-      setAccessTotal(res.meta.total)
+      const entries: AccessLogEntry[] = (res.data.entries || []).map((e: Record<string, unknown>) => ({
+        id: String(e.id ?? ''),
+        timestamp: String(e.created_at ?? ''),
+        user_email: String(e.user_email ?? ''),
+        accessed_by: String(e.accessed_by_email ?? ''),
+        action: String(e.action ?? ''),
+        resource: String(e.resource ?? ''),
+        metadata: e.metadata as Record<string, unknown> | undefined,
+      }))
+      setAccessLogs(entries)
+      setAccessTotal(res.data.total ?? 0)
     } catch {
       setAccessLogs([])
       setAccessTotal(0)
@@ -304,19 +313,28 @@ export function AuditLogsTab() {
         page: String(eventPage),
         per_page: String(PER_PAGE),
         sort: eventSort,
-        dir: eventDir,
+        order: eventDir,
       }
       if (search) params.search = search
       if (actionFilter) params.action = actionFilter
       const since = dateRangeToParam(dateRange)
-      if (since) params.since = since
+      if (since) params.from = since
 
-      const res = await fetchAudit<{ data: EventLogEntry[]; meta: { total: number } }>(
-        '/admin/audit/event-logs',
+      const res = await fetchAudit<{ data: { entries: Record<string, unknown>[]; total: number } }>(
+        '/admin/audit/events',
         params,
       )
-      setEventLogs(res.data)
-      setEventTotal(res.meta.total)
+      const entries: EventLogEntry[] = (res.data.entries || []).map((e: Record<string, unknown>) => ({
+        id: String(e.id ?? ''),
+        timestamp: String(e.created_at ?? ''),
+        user_email: String(e.user_email ?? ''),
+        action: String(e.action ?? ''),
+        resource_type: String(e.resource_type ?? ''),
+        ip: String(e.ip_address ?? ''),
+        metadata: e.metadata as Record<string, unknown> | undefined,
+      }))
+      setEventLogs(entries)
+      setEventTotal(res.data.total ?? 0)
     } catch {
       setEventLogs([])
       setEventTotal(0)
@@ -330,8 +348,14 @@ export function AuditLogsTab() {
   // -------------------------------------------------------------------------
   const fetchStats = useCallback(async () => {
     try {
-      const res = await fetchAudit<AuditStats>('/admin/audit/stats')
-      setStats(res)
+      const res = await fetchAudit<{ data: Record<string, unknown> }>('/admin/audit/stats')
+      const d = res.data
+      setStats({
+        access_count: Number(d.access_log_count ?? 0),
+        event_count: Number(d.event_log_count ?? 0),
+        oldest_access: d.access_log_oldest ? String(d.access_log_oldest) : null,
+        oldest_event: d.event_log_oldest ? String(d.event_log_oldest) : null,
+      })
     } catch {
       setStats(null)
     }
@@ -343,9 +367,19 @@ export function AuditLogsTab() {
   const handlePurge = async () => {
     setPurging(true)
     try {
-      const res = await fetchAudit<PurgeResult>('/admin/audit/purge', {
-        older_than_days: String(RETENTION_DAYS),
+      const token = getToken()
+      const qs = new URLSearchParams({ older_than_days: String(RETENTION_DAYS) }).toString()
+      const rawRes = await fetch(`${API}/admin/audit/purge?${qs}`, {
+        method: 'DELETE',
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
       })
+      if (!rawRes.ok) throw new Error('Purge failed')
+      const json = await rawRes.json()
+      const d = json.data || {}
+      const res: PurgeResult = {
+        deleted_access: Number(d.access_logs_deleted ?? 0),
+        deleted_events: Number(d.event_logs_deleted ?? 0),
+      }
       setPurgeResult(res)
       setPurgeConfirm(false)
       // Refresh data
