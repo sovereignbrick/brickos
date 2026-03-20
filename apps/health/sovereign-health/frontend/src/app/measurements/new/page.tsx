@@ -514,29 +514,55 @@ export default function NewMeasurementPage() {
     }
     if (!markerFilter.trim()) return active
     const q = markerFilter.toLowerCase()
-    return active.filter(m => {
-      const translatedName = contentMarkers[m.marker_slug]?.name ?? m.display_name ?? m.marker_name
-      return translatedName.toLowerCase().includes(q) ||
-        (m.display_name ?? m.marker_name).toLowerCase().includes(q) ||
-        (m.abbreviation ?? '').toLowerCase().includes(q) ||
-        m.marker_slug.toLowerCase().includes(q) ||
-        (m.zone_name ?? '').toLowerCase().includes(q)
-    })
-  }, [allMarkers, activeSlugs, markerFilter, deviceMarkerSet, values, contentMarkers])
+    return active
+      .map(m => ({ m, score: scoreMarker(m, q) }))
+      .filter(({ score }) => score > 0)
+      .sort((a, b) => b.score - a.score)
+      .map(({ m }) => m)
+  }, [allMarkers, activeSlugs, markerFilter, deviceMarkerSet, values, contentMarkers, scoreMarker])
+
+  // Ranked search scoring: prioritize exact/word matches over substring, name over description
+  const scoreMarker = useCallback((m: MarkerWithZone, q: string): number => {
+    const name = (contentMarkers[m.marker_slug]?.name ?? m.display_name ?? m.marker_name).toLowerCase()
+    const rawName = (m.display_name ?? m.marker_name).toLowerCase()
+    const abbr = (m.abbreviation ?? '').toLowerCase()
+    const slug = m.marker_slug.toLowerCase()
+    const zone = (m.zone_name ?? '').toLowerCase()
+    const desc = (contentMarkers[m.marker_slug]?.description ?? m.what_is ?? '').toLowerCase()
+
+    // Exact name match
+    if (name === q || rawName === q || abbr === q) return 100
+    // Name starts with query
+    if (name.startsWith(q) || rawName.startsWith(q)) return 80
+    // Word boundary match in name (e.g. "muscle" matches "Skeletal Muscle Index")
+    const wordBoundary = new RegExp(`\\b${q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`)
+    if (wordBoundary.test(name) || wordBoundary.test(rawName)) return 70
+    // Abbreviation starts with
+    if (abbr.startsWith(q)) return 65
+    // Name contains (substring)
+    if (name.includes(q) || rawName.includes(q)) return 50
+    // Abbreviation contains
+    if (abbr.includes(q)) return 45
+    // Slug contains
+    if (slug.includes(q)) return 30
+    // Description/what_is contains query word
+    if (wordBoundary.test(desc)) return 20
+    if (desc.includes(q)) return 15
+    // Zone name matches
+    if (zone.includes(q)) return 10
+    return 0
+  }, [contentMarkers])
 
   // Markers for "Add Markers" browser: grouped by zone, filtered, paginated
   const addBrowserMarkers = useMemo(() => {
     let filtered = allMarkers
     if (addMarkerSearch.trim()) {
       const q = addMarkerSearch.toLowerCase()
-      filtered = allMarkers.filter(m => {
-        const translatedName = contentMarkers[m.marker_slug]?.name ?? m.display_name ?? m.marker_name
-        return translatedName.toLowerCase().includes(q) ||
-          (m.display_name ?? m.marker_name).toLowerCase().includes(q) ||
-          (m.abbreviation ?? '').toLowerCase().includes(q) ||
-          m.marker_slug.toLowerCase().includes(q) ||
-          (m.zone_name ?? '').toLowerCase().includes(q)
-      })
+      const scored = allMarkers
+        .map(m => ({ m, score: scoreMarker(m, q) }))
+        .filter(({ score }) => score > 0)
+        .sort((a, b) => b.score - a.score)
+      filtered = scored.map(({ m }) => m)
     }
     // Group by zone, maintaining zone order
     const grouped: { zone: { slug: string; name: string; icon: string; color: string } | null; markers: MarkerWithZone[] }[] = []
@@ -561,7 +587,7 @@ export default function NewMeasurementPage() {
       grouped.push({ zone: null, markers: noZone })
     }
     return { grouped, total: filtered.length }
-  }, [allMarkers, addMarkerSearch, contentMarkers, zoneList])
+  }, [allMarkers, addMarkerSearch, contentMarkers, zoneList, scoreMarker])
 
   // Paginated flat list for add browser
   const paginatedAddMarkers = useMemo(() => {
