@@ -1,0 +1,54 @@
+# Monitoring stack — ntfy (notifications) + Gatus (uptime + status page)
+# Deploy alongside prod/staging compose files on the VPS.
+#
+# Usage:
+#   docker compose -f docker-compose.monitoring.yml up -d
+#
+# Requires .env.monitoring with:
+#   NTFY_BASE_URL, NTFY_TOKEN,
+#   TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID,
+#   TELEGRAM_CRITICAL_TOPIC_ID, TELEGRAM_STATUS_TOPIC_ID
+
+services:
+  ntfy:
+    image: binwiederhier/ntfy
+    container_name: ntfy
+    command: serve
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:2586:80"
+    volumes:
+      - ntfy-cache:/var/cache/ntfy
+      - ntfy-etc:/etc/ntfy
+    environment:
+      NTFY_BASE_URL: "${NTFY_BASE_URL:-https://ntfy.brickos.io}"
+      NTFY_AUTH_DEFAULT_ACCESS: "deny-all"
+      NTFY_AUTH_FILE: "/etc/ntfy/auth.db"
+      NTFY_BEHIND_PROXY: "true"
+      NTFY_CACHE_FILE: "/var/cache/ntfy/cache.db"
+      NTFY_CACHE_DURATION: "48h"
+
+  gatus:
+    image: twinproduction/gatus:latest
+    container_name: gatus
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8082:8080"
+    volumes:
+      - ./gatus-config.yaml:/config/config.yaml:ro
+      - gatus-data:/data
+    environment:
+      GATUS_CONFIG_PATH: "/config/config.yaml"
+      NTFY_BASE_URL: "${NTFY_BASE_URL:-https://ntfy.brickos.io}"
+      NTFY_TOKEN: "${NTFY_TOKEN:-}"
+      TELEGRAM_BOT_TOKEN: "${TELEGRAM_BOT_TOKEN}"
+      TELEGRAM_CHAT_ID: "${TELEGRAM_CHAT_ID}"
+      TELEGRAM_STATUS_TOPIC_ID: "${TELEGRAM_STATUS_TOPIC_ID:-7}"
+    # Gatus needs access to the host network to check localhost services
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+volumes:
+  ntfy-cache:
+  ntfy-etc:
+  gatus-data:

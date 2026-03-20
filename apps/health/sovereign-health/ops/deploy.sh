@@ -19,6 +19,9 @@
 
 set -e
 
+# Notify on unexpected exit (set -e failures)
+trap '_exit_code=$?; if [ $_exit_code -ne 0 ]; then notify "Deploy FAILED (${ENV:-?} ${COMPONENT:-?})" "Exit code ${_exit_code} at $(date -u '\''+%H:%M UTC'\'')" 5 "critical" "warning,deploy"; fi' EXIT
+
 # ══════════════════════════════════════════════════════════════════════════════
 # VARIABLES — Change these per release or environment
 # ══════════════════════════════════════════════════════════════════════════════
@@ -79,7 +82,7 @@ if [ -f "$APP_ROOT/api/.env" ]; then
     # Only load safe key=value lines (skip lines with special chars like <>)
     while IFS='=' read -r key value; do
         [[ "$key" =~ ^#.*$ || -z "$key" ]] && continue
-        case "$key" in CF_ZONE_ID|CF_API_TOKEN|STAGING_AUTH_PASS) export "$key=$value" ;; esac
+        case "$key" in CF_ZONE_ID|CF_API_TOKEN|STAGING_AUTH_PASS|NTFY_BASE_URL|NTFY_TOKEN|NTFY_APP_PREFIX|TELEGRAM_BOT_TOKEN|TELEGRAM_CHAT_ID|TELEGRAM_CRITICAL_TOPIC_ID|TELEGRAM_ERRORS_TOPIC_ID|TELEGRAM_BILLING_TOPIC_ID|TELEGRAM_USERS_TOPIC_ID|TELEGRAM_INFO_TOPIC_ID|TELEGRAM_STATUS_TOPIC_ID) export "$key=$value" ;; esac
     done < "$APP_ROOT/api/.env"
 fi
 
@@ -165,6 +168,65 @@ report_print() {
     echo ""
     echo "============================================================================"
     echo ""
+}
+
+# ══════════════════════════════════════════════════════════════════════════════
+# NOTIFICATIONS — Dual-dispatch to ntfy (sovereign) + Telegram (admin UI)
+# ══════════════════════════════════════════════════════════════════════════════
+
+# Sends a notification to both ntfy and Telegram. Fire-and-forget — failures
+# are logged but never block the deploy.
+#
+# Usage: notify "title" "body" [priority] [channel] [tags]
+#   priority: 1=min, 2=low, 3=default, 4=high, 5=urgent
+#   channel:  critical|errors|billing|users|info|status
+#   tags:     comma-separated ntfy tags (e.g. "rocket,staging")
+
+notify() {
+    local title="$1" body="$2"
+    local priority="${3:-3}" channel="${4:-info}" tags="${5:-}"
+
+    # ── ntfy (sovereign store + fallback) ──
+    if [ -n "${NTFY_BASE_URL:-}" ]; then
+        local ntfy_topic="${NTFY_APP_PREFIX:-sh}-${channel}"
+        local auth_header=""
+        if [ -n "${NTFY_TOKEN:-}" ]; then
+            auth_header="-H \"Authorization: Bearer ${NTFY_TOKEN}\""
+        fi
+        eval curl -s \
+            -H "\"Title: ${title}\"" \
+            -H "\"Priority: ${priority}\"" \
+            ${tags:+-H "\"Tags: ${tags}\""} \
+            ${auth_header} \
+            -d "\"${body}\"" \
+            "\"${NTFY_BASE_URL}/${ntfy_topic}\"" >/dev/null 2>&1 || true
+    fi
+
+    # ── Telegram (admin UI) ──
+    if [ -n "${TELEGRAM_BOT_TOKEN:-}" ] && [ -n "${TELEGRAM_CHAT_ID:-}" ]; then
+        # Map channel name to forum topic thread ID
+        local thread_id=""
+        case "$channel" in
+            critical) thread_id="${TELEGRAM_CRITICAL_TOPIC_ID:-}" ;;
+            errors)   thread_id="${TELEGRAM_ERRORS_TOPIC_ID:-}" ;;
+            billing)  thread_id="${TELEGRAM_BILLING_TOPIC_ID:-}" ;;
+            users)    thread_id="${TELEGRAM_USERS_TOPIC_ID:-}" ;;
+            info)     thread_id="${TELEGRAM_INFO_TOPIC_ID:-}" ;;
+            status)   thread_id="${TELEGRAM_STATUS_TOPIC_ID:-}" ;;
+        esac
+
+        local thread_param=""
+        if [ -n "$thread_id" ]; then
+            thread_param="-d message_thread_id=${thread_id}"
+        fi
+
+        curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+            -d chat_id="${TELEGRAM_CHAT_ID}" \
+            ${thread_param} \
+            -d parse_mode=HTML \
+            --data-urlencode "text=<b>${title}</b>
+${body}" >/dev/null 2>&1 || true
+    fi
 }
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -332,6 +394,7 @@ deploy_backend() {
 
     log "Backend ($env) deployed."
     report_add "OK" "Backend built, transferred, restarted ($env, tag: $image_tag)"
+    notify "Backend deployed to ${env}" "v${VERSION} — container recreated at $(date -u '+%H:%M UTC')" 2 "info" "rocket,${env}"
 }
 
 # ── Frontend ─────────────────────────────────────────────────────────────────
@@ -393,6 +456,7 @@ deploy_frontend() {
 
     log "Frontend ($env) deployed."
     report_add "OK" "Frontend built, transferred, restarted ($env, API: $api_url)"
+    notify "Frontend deployed to ${env}" "v${VERSION} — API: ${api_url}" 2 "info" "rocket,${env}"
 }
 
 # ── Postgres (pgaudit) ────────────────────────────────────────────────────────
@@ -594,6 +658,7 @@ backup_staging_db() {
     else
         warn "Staging DB backup failed -- continuing anyway"
         report_add "FAIL" "Staging DB backup failed"
+        notify "Staging DB backup FAILED" "Backup failed before deploy — continuing without backup" 4 "errors" "warning,backup"
     fi
 }
 
@@ -659,9 +724,11 @@ verify() {
     if [ "$all_ok" = true ]; then
         log "All checks passed."
         report_add "OK" "Verification passed -- all endpoints responding"
+        notify "Deploy v${VERSION} to ${env}: ALL OK" "All endpoints responding. API: ${api_version:-?}" 2 "info" "white_check_mark,${env}"
     else
         warn "Some checks failed -- review above."
         report_add "FAIL" "Verification -- some endpoints failed"
+        notify "Deploy v${VERSION} to ${env}: CHECKS FAILED" "Some endpoints not responding — check server" 4 "errors" "warning,${env}"
     fi
 
     if [ -n "$api_version" ]; then

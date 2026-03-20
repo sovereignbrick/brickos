@@ -1,0 +1,118 @@
+# Gatus monitoring configuration — Sovereign Health Intelligence
+# Monitors all public endpoints and alerts via ntfy + Telegram.
+# Status page served at status.sovereignhealth.io
+
+storage:
+  type: sqlite
+  path: /data/gatus.db
+
+ui:
+  title: "Sovereign Health Status"
+  description: "Real-time status of Sovereign Health services"
+
+endpoints:
+  # ── Production ──
+  - name: "API (Production)"
+    group: "Production"
+    url: "https://api.sovereignhealth.io/health"
+    interval: 60s
+    conditions:
+      - "[STATUS] == 200"
+      - "[RESPONSE_TIME] < 3000"
+    alerts:
+      - type: ntfy
+        send-on-resolved: true
+        description: "Production API"
+      - type: telegram
+        send-on-resolved: true
+        description: "Production API"
+
+  - name: "App (Production)"
+    group: "Production"
+    url: "https://app.sovereignhealth.io/"
+    interval: 60s
+    conditions:
+      - "[STATUS] == 200"
+      - "[RESPONSE_TIME] < 5000"
+    alerts:
+      - type: ntfy
+        send-on-resolved: true
+      - type: telegram
+        send-on-resolved: true
+
+  - name: "Website"
+    group: "Production"
+    url: "https://sovereignhealth.io/"
+    interval: 120s
+    conditions:
+      - "[STATUS] == 200"
+
+  # ── Staging ──
+  - name: "API (Staging)"
+    group: "Staging"
+    url: "https://api-demo.sovereignhealth.io/health"
+    interval: 300s
+    conditions:
+      - "[STATUS] == 200"
+      - "[STATUS] == 401"
+    alerts:
+      - type: ntfy
+        send-on-resolved: true
+        failure-threshold: 3
+
+  - name: "App (Staging)"
+    group: "Staging"
+    url: "https://demo.sovereignhealth.io/"
+    interval: 300s
+    conditions:
+      - "[STATUS] == 200"
+      - "[STATUS] == 401"
+
+  # ── Infrastructure ──
+  - name: "PostgreSQL"
+    group: "Infrastructure"
+    url: "tcp://host.docker.internal:5432"
+    interval: 30s
+    conditions:
+      - "[CONNECTED] == true"
+    alerts:
+      - type: ntfy
+        send-on-resolved: true
+      - type: telegram
+        send-on-resolved: true
+
+  - name: "Redis"
+    group: "Infrastructure"
+    url: "tcp://host.docker.internal:6379"
+    interval: 30s
+    conditions:
+      - "[CONNECTED] == true"
+    alerts:
+      - type: ntfy
+        send-on-resolved: true
+
+  - name: "ntfy"
+    group: "Infrastructure"
+    url: "http://host.docker.internal:2586"
+    interval: 300s
+    conditions:
+      - "[STATUS] == 200"
+
+alerting:
+  ntfy:
+    url: "${NTFY_BASE_URL}"
+    topic: "sh-critical"
+    priority: 4
+    token: "${NTFY_TOKEN}"
+    default-alert:
+      failure-threshold: 2
+      success-threshold: 2
+      send-on-resolved: true
+
+  telegram:
+    token: "${TELEGRAM_BOT_TOKEN}"
+    id: "${TELEGRAM_CHAT_ID}"
+    default-alert:
+      failure-threshold: 2
+      success-threshold: 2
+      send-on-resolved: true
