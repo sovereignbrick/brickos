@@ -1,12 +1,12 @@
 'use client'
 
-import { useState, useRef, KeyboardEvent } from 'react'
+import { useState, useRef, KeyboardEvent, useEffect } from 'react'
 import { APP_CONFIG } from '@/lib/config'
 import { useTranslations } from 'next-intl'
 
 interface ChatInputProps {
   onSend: (question: string) => void
-  onFileUpload?: (files: File[], importType: 'lab_import' | 'med_import') => void
+  onFileUpload?: (files: File[], importType: 'lab_import' | 'med_import' | 'measurement_import') => void
   disabled: boolean
   quotaExhausted: boolean
   tier?: string
@@ -23,7 +23,23 @@ export function ChatInput({ onSend, onFileUpload, disabled, quotaExhausted: rawQ
   const isUnlimited = tier && UNLIMITED_TIERS.includes(tier)
   const quotaExhausted = isUnlimited ? false : rawQuotaExhausted
   const [value, setValue] = useState('')
+  const [uploadMenuOpen, setUploadMenuOpen] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const uploadMenuRef = useRef<HTMLDivElement>(null)
+  const labInputRef = useRef<HTMLInputElement>(null)
+  const medInputRef = useRef<HTMLInputElement>(null)
+  const tableInputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    if (!uploadMenuOpen) return
+    const handleClick = (e: MouseEvent) => {
+      if (uploadMenuRef.current && !uploadMenuRef.current.contains(e.target as Node)) {
+        setUploadMenuOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [uploadMenuOpen])
 
   const canSend = value.trim().length > 0 && !disabled && !quotaExhausted && value.length <= MAX_CHARS
 
@@ -75,23 +91,47 @@ export function ChatInput({ onSend, onFileUpload, disabled, quotaExhausted: rawQ
     <div className="px-4 py-3 border-t border-border">
       <div className="flex gap-2 items-end">
         {onFileUpload && (
-          <label className="shrink-0 p-3 text-muted-foreground hover:text-muted-foreground cursor-pointer transition-colors" title={t('uploadTitle')} aria-label={t('uploadTitle')}>
-            <input
-              type="file"
-              accept="image/jpeg,image/png,image/webp,application/pdf"
-              className="hidden"
-              onChange={e => {
-                const file = e.target.files?.[0]
-                if (file && onFileUpload) {
-                  onFileUpload([file], 'lab_import')
-                }
-                if (e.target) e.target.value = ''
-              }}
-            />
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48" />
-            </svg>
-          </label>
+          <div className="relative shrink-0" ref={uploadMenuRef}>
+            <button
+              type="button"
+              onClick={() => setUploadMenuOpen(prev => !prev)}
+              className="p-3 text-muted-foreground hover:text-foreground cursor-pointer transition-colors"
+              title={t('uploadTitle')}
+              aria-label={t('uploadTitle')}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48" />
+              </svg>
+            </button>
+            {uploadMenuOpen && (
+              <div className="absolute bottom-full left-0 mb-2 w-56 bg-card border border-border rounded-xl shadow-xl overflow-hidden z-50">
+                <button
+                  type="button"
+                  onClick={() => { setUploadMenuOpen(false); labInputRef.current?.click() }}
+                  className="w-full text-left px-4 py-2.5 text-sm text-foreground hover:bg-accent transition-colors flex items-center gap-2"
+                >
+                  <span>📄</span> {t('uploadMenuLab')}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setUploadMenuOpen(false); medInputRef.current?.click() }}
+                  className="w-full text-left px-4 py-2.5 text-sm text-foreground hover:bg-accent transition-colors flex items-center gap-2 border-t border-border"
+                >
+                  <span>💊</span> {t('uploadMenuMed')}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setUploadMenuOpen(false); tableInputRef.current?.click() }}
+                  className="w-full text-left px-4 py-2.5 text-sm text-foreground hover:bg-accent transition-colors flex items-center gap-2 border-t border-border"
+                >
+                  <span>📊</span> {t('uploadMenuTable')}
+                </button>
+              </div>
+            )}
+            <input ref={labInputRef} type="file" accept="image/jpeg,image/png,image/webp,application/pdf" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) onFileUpload([f], 'lab_import'); if (e.target) e.target.value = '' }} />
+            <input ref={medInputRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) onFileUpload([f], 'med_import'); if (e.target) e.target.value = '' }} />
+            <input ref={tableInputRef} type="file" accept=".ods,.xlsx,.xls,.csv,image/jpeg,image/png,image/webp" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) onFileUpload([f], 'measurement_import'); if (e.target) e.target.value = '' }} />
+          </div>
         )}
         <div className="flex-1 relative">
           <textarea

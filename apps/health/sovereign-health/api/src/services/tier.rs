@@ -51,6 +51,7 @@ pub struct TierLimits {
     pub chat_protocols_monthly: Option<i32>,
     pub chat_lab_import_monthly: Option<i32>,
     pub chat_med_import_monthly: Option<i32>,
+    pub chat_measurement_import_monthly: Option<i32>,
     pub pdf_reports_monthly: Option<i32>,
     // Measurement cap
     pub max_measurements: Option<i32>,
@@ -151,6 +152,7 @@ pub async fn get_user_tier(pool: &PgPool, user_id: Uuid) -> Result<TierLimits, A
             lt.chat_general_monthly, lt.chat_trends_monthly, lt.chat_labs_monthly,
             lt.chat_diet_monthly, lt.chat_supplements_monthly, lt.chat_protocols_monthly,
             lt.chat_lab_import_monthly, lt.chat_med_import_monthly,
+            lt.chat_measurement_import_monthly,
             lt.pdf_reports_monthly, lt.max_measurements,
             ul.status, ul.grace_period_ends, ul.previous_tier_slug,
             ul.downgraded_at, ul.admin_override,
@@ -246,6 +248,10 @@ pub async fn get_user_tier(pool: &PgPool, user_id: Uuid) -> Result<TierLimits, A
         chat_protocols_monthly: row.try_get("chat_protocols_monthly").ok().flatten(),
         chat_lab_import_monthly: row.try_get("chat_lab_import_monthly").ok().flatten(),
         chat_med_import_monthly: row.try_get("chat_med_import_monthly").ok().flatten(),
+        chat_measurement_import_monthly: row
+            .try_get("chat_measurement_import_monthly")
+            .ok()
+            .flatten(),
         pdf_reports_monthly: row.try_get("pdf_reports_monthly").ok().flatten(),
         max_measurements: row.try_get("max_measurements").ok().flatten(),
         is_grace_period: false,
@@ -604,6 +610,7 @@ async fn get_tier_by_slug(pool: &PgPool, slug: &str) -> Result<Option<TierLimits
             chat_general_monthly, chat_trends_monthly, chat_labs_monthly,
             chat_diet_monthly, chat_supplements_monthly, chat_protocols_monthly,
             chat_lab_import_monthly, chat_med_import_monthly,
+            chat_measurement_import_monthly,
             pdf_reports_monthly, max_measurements
         FROM license_tiers WHERE slug = $1"#,
     )
@@ -638,6 +645,10 @@ async fn get_tier_by_slug(pool: &PgPool, slug: &str) -> Result<Option<TierLimits
         chat_protocols_monthly: r.try_get("chat_protocols_monthly").ok().flatten(),
         chat_lab_import_monthly: r.try_get("chat_lab_import_monthly").ok().flatten(),
         chat_med_import_monthly: r.try_get("chat_med_import_monthly").ok().flatten(),
+        chat_measurement_import_monthly: r
+            .try_get("chat_measurement_import_monthly")
+            .ok()
+            .flatten(),
         pdf_reports_monthly: r.try_get("pdf_reports_monthly").ok().flatten(),
         max_measurements: r.try_get("max_measurements").ok().flatten(),
         is_grace_period: false,
@@ -684,6 +695,7 @@ async fn get_all_agent_quotas(
         "protocols",
         "lab_import",
         "med_import",
+        "measurement_import",
     ];
     let mut quotas = Vec::new();
 
@@ -714,6 +726,7 @@ fn chat_limit_for_agent(tier: &TierLimits, agent_type: &str) -> Option<i32> {
         "protocols" => tier.chat_protocols_monthly,
         "lab_import" => tier.chat_lab_import_monthly,
         "med_import" => tier.chat_med_import_monthly,
+        "measurement_import" => tier.chat_measurement_import_monthly,
         _ => tier.chat_general_monthly,
     }
 }
@@ -748,7 +761,7 @@ fn required_tier_for_feature(feature: &str) -> String {
 fn required_tier_for_agent(agent_type: &str) -> String {
     match agent_type {
         "diet" | "supplements" | "protocols" => "focus".to_string(),
-        "lab_import" | "med_import" => "insight".to_string(),
+        "lab_import" | "med_import" | "measurement_import" => "insight".to_string(),
         _ => "glimpse".to_string(),
     }
 }
@@ -763,6 +776,7 @@ fn agent_label(agent_type: &str) -> &str {
         "protocols" => "Protocol Comparison",
         "lab_import" => "Lab Import",
         "med_import" => "Medication Import",
+        "measurement_import" => "Measurement Import",
         _ => "This feature",
     }
 }
@@ -826,6 +840,7 @@ fn unlimited_tier(slug: &str) -> TierLimits {
         chat_protocols_monthly: None,
         chat_lab_import_monthly: None,
         chat_med_import_monthly: None,
+        chat_measurement_import_monthly: None,
         pdf_reports_monthly: None,
         max_measurements: None,
         is_grace_period: false,
@@ -862,6 +877,7 @@ fn default_glimpse_tier() -> TierLimits {
         chat_protocols_monthly: Some(0),
         chat_lab_import_monthly: Some(0),
         chat_med_import_monthly: Some(0),
+        chat_measurement_import_monthly: Some(0),
         pdf_reports_monthly: Some(0),
         max_measurements: Some(100),
         is_grace_period: false,

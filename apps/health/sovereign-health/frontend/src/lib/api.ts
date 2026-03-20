@@ -1,5 +1,5 @@
 import Cookies from 'js-cookie'
-import type { ImportSession, ImportMedication, ImportHistoryEntry, UserMedicationFull, CreateMedicationInput, AiUsageResponse, InfluenceFactor, CreateInfluenceFactorInput, MedImportSession } from './types'
+import type { ImportSession, ImportMedication, ImportHistoryEntry, UserMedicationFull, CreateMedicationInput, AiUsageResponse, InfluenceFactor, CreateInfluenceFactorInput, MedImportSession, MeasurementImportSession } from './types'
 import { APP_CONFIG } from './config'
 
 // On .onion domains, the API is served from the same origin via nginx routing.
@@ -691,6 +691,20 @@ export const api = {
       request<{ data: { session_id: string; influence_factors_created: number; message: string } }>(`/import/${sessionId}/confirm-medications`, {
         method: 'POST',
         body: JSON.stringify({ medications }),
+      }),
+    uploadMeasurements: (files: File[]) => {
+      const fd = new FormData()
+      files.forEach(file => fd.append('files', file))
+      return uploadRequest<{ data: MeasurementImportSession }>('/import/upload-measurements', fd)
+    },
+    confirmMeasurements: (sessionId: string, columnMapping: Array<{ marker_slug: string; device_id?: string | null; unit?: string }>, selectedRows: number[], skipDuplicates?: boolean) =>
+      request<{ data: { session_id: string; measurements_created: number; duplicates_skipped: number; message: string } }>('/import/confirm-measurements', {
+        method: 'POST',
+        body: JSON.stringify({ session_id: sessionId, column_mapping: columnMapping, selected_rows: selectedRows, skip_duplicates: skipDuplicates ?? true }),
+      }),
+    rollbackImport: (sessionId: string) =>
+      request<{ data: { session_id: string; measurements_deleted: number; message: string } }>(`/import/sessions/${sessionId}/rollback`, {
+        method: 'DELETE',
       }),
     getSession: (id: string) =>
       request<{ data: ImportSession }>(`/import/${id}`),

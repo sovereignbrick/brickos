@@ -26,7 +26,7 @@ pub async fn trends(
 
     // Validate days param (0 = all time)
     let days = query.days.unwrap_or(30);
-    if days < 0 || days > 3650 {
+    if !(0..=3650).contains(&days) {
         return Err(AppError::Validation(
             "days must be between 0 and 3650".to_string(),
         ));

@@ -1295,3 +1295,90 @@ pub async fn call_claude_vision_multi(
         model: "claude-sonnet-4-20250514".to_string(),
     })
 }
+
+// ---------------------------------------------------------------------------
+// Text-only Claude call for CSV extraction (tabular measurement import)
+// ---------------------------------------------------------------------------
+
+pub async fn call_claude_csv_extraction(
+    api_key: &str,
+    system_prompt: &str,
+    user_text: &str,
+) -> Result<ClaudeResponse, AppError> {
+    if api_key.is_empty() {
+        return Err(AppError::MissingApiKey);
+    }
+
+    let req_body = serde_json::json!({
+        "model": "claude-sonnet-4-20250514",
+        "max_tokens": 8192,
+        "system": system_prompt,
+        "messages": [{
+            "role": "user",
+            "content": user_text
+        }]
+    });
+
+    let client = reqwest::Client::builder()
+        .timeout(std::time::Duration::from_secs(60))
+        .build()
+        .unwrap_or_else(|_| reqwest::Client::new());
+
+    let resp = client
+        .post(crate::config::Config::anthropic_api_url_static())
+        .header("x-api-key", api_key)
+        .header(
+            "anthropic-version",
+            &crate::config::Config::anthropic_api_version_static(),
+        )
+        .header("content-type", "application/json")
+        .json(&req_body)
+        .send()
+        .await
+        .map_err(|e| {
+            tracing::error!("Anthropic CSV extraction request failed: {:?}", e);
+            AppError::UpstreamError
+        })?;
+
+    let status = resp.status();
+    if !status.is_success() {
+        let body = resp.text().await.unwrap_or_default();
+        tracing::error!("Anthropic API error {} (csv extraction): {}", status, body);
+        if status == 401 || status == 403 {
+            return Err(AppError::MissingApiKey);
+        }
+        if status.as_u16() == 529 || status.as_u16() == 503 {
+            return Err(AppError::ServiceOverloaded);
+        }
+        if status.as_u16() == 429 {
+            return Err(AppError::RateLimited);
+        }
+        return Err(AppError::UpstreamError);
+    }
+
+    let parsed: AnthropicResponse = resp.json().await.map_err(|e| {
+        tracing::error!("Failed to parse Anthropic CSV extraction response: {:?}", e);
+        AppError::UpstreamError
+    })?;
+
+    let text = parsed
+        .content
+        .into_iter()
+        .find(|c| c.content_type == "text")
+        .and_then(|c| c.text)
+        .unwrap_or_else(|| "{}".to_string());
+
+    let input_tokens = parsed.usage.as_ref().and_then(|u| u.input_tokens);
+    let output_tokens = parsed.usage.as_ref().and_then(|u| u.output_tokens);
+    let total_tokens = parsed
+        .usage
+        .map(|u| u.input_tokens.unwrap_or(0) + u.output_tokens.unwrap_or(0));
+
+    Ok(ClaudeResponse {
+        text,
+        total_tokens,
+        input_tokens,
+        output_tokens,
+        model: "claude-sonnet-4-20250514".to_string(),
+    })
+}

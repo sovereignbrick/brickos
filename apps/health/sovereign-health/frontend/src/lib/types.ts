@@ -507,7 +507,7 @@ export interface LicenseInfo {
 export interface ImportExtractedMarker {
   original_name: string
   matched_marker: string | null
-  match_confidence: 'high' | 'medium' | 'low' | 'unmatched'
+  match_confidence: 'high' | 'medium' | 'low' | 'unmatched' | 'calculated_skip'
   value_original: number
   unit_original: string
   value_converted: number | null
@@ -575,6 +575,38 @@ export interface MedImportSession {
   status: string
   medications: ExtractedMedication[]
   total_count: number
+}
+
+export interface MeasurementImportColumn {
+  index: number
+  source_name: string
+  marker_slug: string | null
+  abbreviation: string | null
+  unit: string
+  device_id: string | null
+  device_name: string | null
+  match_confidence: 'high' | 'medium' | 'low' | 'unmatched' | 'calculated_skip'
+}
+
+export interface MeasurementImportRow {
+  date: string
+  time: string
+  protocol: string
+  diet: string | null
+  notes: string | null
+  values: Record<string, number>
+}
+
+export interface MeasurementImportSession {
+  session_id: string
+  file_name: string
+  import_type: 'measurement_import'
+  status: string
+  columns: MeasurementImportColumn[]
+  protocols: Record<string, string> | null
+  rows: MeasurementImportRow[]
+  total_rows: number
+  total_markers: number
 }
 
 export interface AdminUser {

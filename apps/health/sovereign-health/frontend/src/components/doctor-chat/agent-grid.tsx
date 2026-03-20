@@ -7,7 +7,7 @@ import { Conversation } from '@/lib/types'
 
 interface AgentGridProps {
   onSelectAgent: (agentType: string) => void
-  onFileUpload: (files: File[], importType: 'lab_import' | 'med_import') => void
+  onFileUpload: (files: File[], importType: 'lab_import' | 'med_import' | 'measurement_import') => void
   recentConversations: Conversation[]
   onSelectConversation: (id: string) => void
   tier?: string
@@ -40,6 +40,7 @@ const IMPORT_ACTIONS = [
   { id: 'scan_lab', titleKey: 'importScan', descKey: 'importScanDesc', icon: '📷', accept: 'image/jpeg,image/png,image/webp', importType: 'lab_import' as const, color: 'from-teal-500/20 to-teal-600/10 border-teal-500/30' },
   { id: 'upload_pdf', titleKey: 'importUpload', descKey: 'importUploadDesc', icon: '📄', accept: 'application/pdf', importType: 'lab_import' as const, color: 'from-indigo-500/20 to-indigo-600/10 border-indigo-500/30' },
   { id: 'track_meds', titleKey: 'importTrack', descKey: 'importTrackDesc', icon: '💊', accept: 'image/jpeg,image/png,image/webp', importType: 'med_import' as const, color: 'from-rose-500/20 to-rose-600/10 border-rose-500/30' },
+  { id: 'import_table', titleKey: 'importTable', descKey: 'importTableDesc', icon: '📊', accept: '.ods,.xlsx,.xls,.csv,image/jpeg,image/png,image/webp', importType: 'measurement_import' as const, color: 'from-amber-500/20 to-amber-600/10 border-amber-500/30' },
 ]
 
 const AGENT_LABEL_KEYS: Record<string, string> = {
@@ -112,7 +113,7 @@ export function AgentGrid({ onSelectAgent, onFileUpload, recentConversations, on
         {/* Smart Import - compact */}
         <div>
           <h3 className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-2">{t('smartImport')}</h3>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             {IMPORT_ACTIONS.map((action) => (
               <MultiFileUploadCard
                 key={action.id}
@@ -241,7 +242,7 @@ function MultiFileUploadCard({ action, onUpload }: { action: typeof IMPORT_ACTIO
   }
 
   return (
-    <div className={`col-span-2 sm:col-span-3 p-4 rounded-xl border bg-gradient-to-br ${action.color}`}>
+    <div className={`col-span-2 sm:col-span-4 p-4 rounded-xl border bg-gradient-to-br ${action.color}`}>
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <span className="text-lg">{action.icon}</span>

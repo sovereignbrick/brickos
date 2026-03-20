@@ -4,13 +4,14 @@ import { useState, useEffect, useCallback } from 'react'
 import { toast } from '@/lib/toast'
 import { api } from '@/lib/api'
 import { useAuth } from '@/lib/auth-context'
-import { ChatMessage, Conversation, QuotaResponse, ImportSession, MedImportSession } from '@/lib/types'
+import { ChatMessage, Conversation, QuotaResponse, ImportSession, MedImportSession, MeasurementImportSession } from '@/lib/types'
 import { ConversationList } from './conversation-list'
 import { QuotaBadge } from './quota-badge'
 import { ChatMessages } from './chat-messages'
 import { ChatInput } from './chat-input'
 import { ImportReview } from './import-review'
 import { InfluenceFactorImportReview } from './influence-factor-import-review'
+import { MeasurementImportReview } from './measurement-import-review'
 import { useTranslations } from 'next-intl'
 
 export function ChatLayout() {
@@ -27,6 +28,7 @@ export function ChatLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [importSession, setImportSession] = useState<ImportSession | null>(null)
   const [medImportSession, setMedImportSession] = useState<MedImportSession | null>(null)
+  const [measurementImportSession, setMeasurementImportSession] = useState<MeasurementImportSession | null>(null)
   const [importLoading, setImportLoading] = useState(false)
   const [chatError, setChatError] = useState<string | null>(null)
   const [lastQuestion, setLastQuestion] = useState<string | null>(null)
@@ -159,14 +161,17 @@ export function ChatLayout() {
     }
   }
 
-  const handleFileUpload = async (files: File[], importType: 'lab_import' | 'med_import') => {
+  const handleFileUpload = async (files: File[], importType: 'lab_import' | 'med_import' | 'measurement_import') => {
     if (files.length > 3) {
       toast.error(tChat('maxFilesPerUpload'))
       return
     }
     setImportLoading(true)
     try {
-      if (importType === 'lab_import') {
+      if (importType === 'measurement_import') {
+        const res = await api.import.uploadMeasurements(files)
+        setMeasurementImportSession(res.data)
+      } else if (importType === 'lab_import') {
         const res = await api.import.uploadLab(files)
         setImportSession(res.data)
       } else {
@@ -218,12 +223,41 @@ export function ChatLayout() {
     }
   }
 
+  const handleMeasurementImportConfirm = async (
+    columnMapping: Array<{ marker_slug: string; device_id?: string | null; unit?: string }>,
+    selectedRows: number[],
+    skipDuplicates: boolean
+  ) => {
+    if (!measurementImportSession) return
+    setImportLoading(true)
+    try {
+      const res = await api.import.confirmMeasurements(
+        measurementImportSession.session_id,
+        columnMapping,
+        selectedRows,
+        skipDuplicates
+      )
+      toast.success(res.data.message, {
+        action: {
+          label: tChat('viewMeasurements'),
+          onClick: () => window.location.href = '/measurements',
+        },
+      })
+      setMeasurementImportSession(null)
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : tChat('importFailed'))
+    } finally {
+      setImportLoading(false)
+    }
+  }
+
   const handleNewChat = () => {
     setMessages([])
     setActiveConversationId(null)
     setActiveAgentType(null)
     setImportSession(null)
     setMedImportSession(null)
+    setMeasurementImportSession(null)
     setSidebarOpen(false)
   }
 
@@ -298,13 +332,20 @@ export function ChatLayout() {
 
         {/* Home screen, import review, or chat */}
         <div className="flex-1 overflow-hidden flex flex-col">
-          {importLoading && !importSession && !medImportSession ? (
+          {importLoading && !importSession && !medImportSession && !measurementImportSession ? (
             <div className="flex-1 flex items-center justify-center">
               <div className="text-center space-y-3">
                 <div className="text-3xl animate-pulse">🔬</div>
                 <p className="text-sm text-muted-foreground">{tChat('analyzingDocument')}</p>
               </div>
             </div>
+          ) : measurementImportSession ? (
+            <MeasurementImportReview
+              session={measurementImportSession}
+              onConfirm={handleMeasurementImportConfirm}
+              onCancel={() => { setMeasurementImportSession(null) }}
+              isLoading={importLoading}
+            />
           ) : medImportSession ? (
             <InfluenceFactorImportReview
               sessionId={medImportSession.session_id}
@@ -336,7 +377,7 @@ export function ChatLayout() {
         </div>
 
         {/* Input (hidden during import) */}
-        {!importSession && !medImportSession && !importLoading && (
+        {!importSession && !medImportSession && !measurementImportSession && !importLoading && (
           <ChatInput
             onSend={(q) => handleSend(q)}
             onFileUpload={handleFileUpload}

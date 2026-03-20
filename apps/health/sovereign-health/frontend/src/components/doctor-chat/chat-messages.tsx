@@ -14,7 +14,7 @@ interface ChatMessagesProps {
   error?: string | null
   onRetry?: () => void
   onSendPrompt?: (text: string) => void
-  onFileUpload?: (files: File[], importType: 'lab_import' | 'med_import') => void
+  onFileUpload?: (files: File[], importType: 'lab_import' | 'med_import' | 'measurement_import') => void
   tier?: string
 }
 
