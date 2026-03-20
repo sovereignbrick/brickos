@@ -208,7 +208,7 @@ function FieldTooltip({ text }: { text: string }) {
     <span className="relative inline-flex ml-1">
       <button
         type="button"
-        className="text-zinc-500 hover:text-zinc-300 transition-colors"
+        className="text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
         onMouseEnter={() => setShow(true)}
         onMouseLeave={() => setShow(false)}
         onClick={() => setShow(!show)}

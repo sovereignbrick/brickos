@@ -212,6 +212,10 @@ input[type="number"] {
   pointer-events: none;
 }
 
+/* Native date/time inputs: match color-scheme to theme */
+:root { color-scheme: light; }
+.dark { color-scheme: dark; }
+
 /* react-datepicker theme overrides */
 .react-datepicker {
   font-family: inherit !important;
