@@ -24,8 +24,8 @@ v0.22.0 shipped with 12 bugs found during RC testing. Sprint 004 retro identifie
 
 **Pre-sprint checklist:**
 - [x] `cargo fmt` as separate commit
-- [ ] Verify v0.22.0 on production (health check, login, measurements)
-- [ ] Review production logs for errors
+- [x] Verify v0.22.0 on production (health check, login, measurements)
+- [x] Review production logs for errors
 
 ---
 
