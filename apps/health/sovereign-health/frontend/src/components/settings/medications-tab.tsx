@@ -7,6 +7,27 @@ import { api } from '@/lib/api'
 import type { InfluenceFactor, CreateInfluenceFactorInput } from '@/lib/types'
 import { useTranslations } from 'next-intl'
 
+/** Native date input that respects light/dark theme for the browser popup */
+function DateInput({ value, onChange, className }: { value: string; onChange: (v: string) => void; className?: string }) {
+  const [isDark, setIsDark] = useState(true)
+  useEffect(() => {
+    const check = () => setIsDark(document.documentElement.classList.contains('dark'))
+    check()
+    const obs = new MutationObserver(check)
+    obs.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
+    return () => obs.disconnect()
+  }, [])
+  return (
+    <input
+      type="date"
+      value={value}
+      onChange={e => onChange(e.target.value)}
+      className={className}
+      style={{ colorScheme: isDark ? 'dark' : 'light' }}
+    />
+  )
+}
+
 const FREQUENCY_KEYS: { value: string; labelKey: string }[] = [
   { value: '1x daily', labelKey: 'frequencies.onceDaily' },
   { value: '2x daily', labelKey: 'frequencies.twiceDaily' },
@@ -387,7 +408,7 @@ function InfluenceFactorForm({
           <label className="block text-xs text-muted-foreground mb-1">
             {tMeds('startDateLabel')} <FieldTooltip text={tMeds('tooltips.startDate')} />
           </label>
-          <input type="date" value={form.start_date || ''} onChange={e => set('start_date', e.target.value)} className={`${fieldClass} [color-scheme:light] dark:[color-scheme:dark]`} />
+          <DateInput value={form.start_date || ''} onChange={v => set('start_date', v)} className={fieldClass} />
         </div>
 
         {/* Prescriber - only for medications */}
