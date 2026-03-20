@@ -1283,7 +1283,10 @@ function ProfileTab({
               <span className="text-sm text-muted-foreground">{t('age')}</span>
               <InfoTooltip>{t('ageTooltip')}</InfoTooltip>
             </div>
-            <input type="number" value={form.age ?? ''} onChange={e => setForm({ ...form, age: e.target.value ? Number(e.target.value) : null })} className={"w-16 " + inp} min={1} max={99} />
+            <input type="text" inputMode="numeric" pattern="[0-9]*" value={form.age ?? ''} onChange={e => {
+              const v = e.target.value.replace(/[^0-9]/g, '')
+              setForm({ ...form, age: v ? Number(v) : null })
+            }} className={"w-16 " + inp} />
           </div>
           <div>
             <div className="flex items-center gap-1 mb-1">
@@ -1291,10 +1294,11 @@ function ProfileTab({
               <InfoTooltip>{t('heightTooltip')}</InfoTooltip>
             </div>
             <div className="flex gap-1">
-              <input type="number" value={displayHeight ?? ''} onChange={e => {
-                const v = e.target.value ? Number(e.target.value) : null
+              <input type="text" inputMode="decimal" value={displayHeight ?? ''} onChange={e => {
+                const filtered = filterDecimal(e.target.value)
+                const v = parseDecimal(filtered)
                 setForm({ ...form, height_cm: heightUnit === 'ft-in' && v ? Math.round(v * 2.54 * 10) / 10 : v })
-              }} className={"w-16 " + inp} step={0.1} />
+              }} className={"w-16 " + inp} />
               <select value={heightUnit} onChange={e => setHeightUnit(e.target.value as 'cm' | 'ft-in')} className="w-14 rounded-lg border border-border bg-card px-1 py-1.5 text-xs text-foreground">
                 <option value="cm">cm</option><option value="ft-in">in</option>
               </select>
@@ -1306,10 +1310,11 @@ function ProfileTab({
               <InfoTooltip>{t('waistTooltip')}</InfoTooltip>
             </div>
             <div className="flex gap-1">
-              <input type="number" value={displayWaist ?? ''} onChange={e => {
-                const v = e.target.value ? Number(e.target.value) : null
+              <input type="text" inputMode="decimal" value={displayWaist ?? ''} onChange={e => {
+                const filtered = filterDecimal(e.target.value)
+                const v = parseDecimal(filtered)
                 setForm({ ...form, default_waist_cm: waistUnit === 'inches' && v ? Math.round(v * 2.54 * 10) / 10 : v })
-              }} className={"w-20 " + inp} step={0.1} />
+              }} className={"w-20 " + inp} />
               <select value={waistUnit} onChange={e => setWaistUnit(e.target.value as 'cm' | 'inches')} className="w-14 rounded-lg border border-border bg-card px-1 py-1.5 text-xs text-foreground">
                 <option value="cm">cm</option><option value="inches">in</option>
               </select>
@@ -3428,7 +3433,7 @@ function FieldWithInfo({ label, items, children }: { label: string; items: { nam
       <div className="flex items-center gap-1">
         <label className="text-sm text-muted-foreground">{label}</label>
         <div ref={ref} onMouseEnter={onEnter} onMouseLeave={onLeave} className="inline-flex">
-          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground/60 hover:text-muted-foreground cursor-help transition-colors"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 cursor-help transition-colors"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
         </div>
         {show && pos && typeof document !== 'undefined' && createPortal(
           <div

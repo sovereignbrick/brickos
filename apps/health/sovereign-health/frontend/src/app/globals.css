@@ -213,8 +213,11 @@ input[type="number"] {
 }
 
 /* Native date/time inputs: match color-scheme to theme */
-:root { color-scheme: light; }
-.dark { color-scheme: dark; }
+:root, html { color-scheme: light; }
+html.dark, .dark { color-scheme: dark; }
+input[type="date"], input[type="time"], input[type="datetime-local"] {
+  color-scheme: inherit;
+}
 
 /* react-datepicker theme overrides */
 .react-datepicker {
