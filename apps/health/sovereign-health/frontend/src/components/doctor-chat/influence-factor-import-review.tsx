@@ -16,6 +16,7 @@ interface EditableIngredient {
 
 interface EditableMedication {
   name: string
+  brand: string
   factor_type: string // "medication" or "supplement"
   dosage: string
   frequency: string
@@ -31,6 +32,7 @@ interface InfluenceFactorImportReviewProps {
   medications: ExtractedMedication[]
   onConfirm: (medications: Array<{
     name: string
+    brand?: string
     factor_type?: string
     dosage?: string
     frequency?: string
@@ -74,6 +76,7 @@ export function InfluenceFactorImportReview({
   const [medications, setMedications] = useState<EditableMedication[]>(() =>
     extractedMedications.map((m) => ({
       name: m.name,
+      brand: m.brand ?? '',
       factor_type: m.type === 'supplement' ? 'supplement' : 'medication',
       dosage: m.dosage ?? '',
       frequency: m.frequency ?? '',
@@ -144,6 +147,7 @@ export function InfluenceFactorImportReview({
       .filter((m) => m.selected)
       .map((m) => ({
         name: m.name,
+        brand: m.brand || undefined,
         factor_type: m.factor_type || undefined,
         dosage: m.dosage || undefined,
         frequency: m.frequency || undefined,
@@ -208,16 +212,30 @@ export function InfluenceFactorImportReview({
                     {med.factor_type === 'supplement' ? '\uD83C\uDF3F' : '\uD83D\uDC8A'}
                   </span>
                   {med.editing ? (
-                    <input
-                      type="text"
-                      value={med.name}
-                      onChange={(e) =>
-                        updateMed(medIdx, { name: e.target.value })
-                      }
-                      className="bg-[var(--background)] border border-[var(--border)] rounded px-2 py-1 text-sm text-[var(--foreground)] font-medium"
-                    />
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={med.name}
+                        onChange={(e) =>
+                          updateMed(medIdx, { name: e.target.value })
+                        }
+                        className="bg-[var(--background)] border border-[var(--border)] rounded px-2 py-1 text-sm text-[var(--foreground)] font-medium"
+                      />
+                      <input
+                        type="text"
+                        value={med.brand}
+                        onChange={(e) =>
+                          updateMed(medIdx, { brand: e.target.value })
+                        }
+                        placeholder={t('brandLabel')}
+                        className="bg-[var(--background)] border border-[var(--border)] rounded px-2 py-1 text-sm text-[var(--muted-foreground)]"
+                      />
+                    </div>
                   ) : (
-                    <span className="text-[var(--foreground)] font-medium">{med.name}</span>
+                    <span className="text-[var(--foreground)] font-medium">
+                      {med.name}
+                      {med.brand && <span className="text-[var(--muted-foreground)] font-normal ml-1.5 text-xs">({med.brand})</span>}
+                    </span>
                   )}
                 </div>
                 <button

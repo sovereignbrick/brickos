@@ -687,7 +687,7 @@ export const api = {
         method: 'POST',
         body: JSON.stringify({ session_id: sessionId, markers, ...opts }),
       }),
-    confirmMedications: (sessionId: string, medications: Array<{ name: string; factor_type?: string; dosage?: string; frequency?: string; form?: string; prescriber?: string; ingredients?: Array<{ name: string; amount?: string; unit?: string; role?: string; notes?: string }> }>) =>
+    confirmMedications: (sessionId: string, medications: Array<{ name: string; brand?: string; factor_type?: string; dosage?: string; frequency?: string; form?: string; prescriber?: string; ingredients?: Array<{ name: string; amount?: string; unit?: string; role?: string; notes?: string }> }>) =>
       request<{ data: { session_id: string; influence_factors_created: number; message: string } }>(`/import/${sessionId}/confirm-medications`, {
         method: 'POST',
         body: JSON.stringify({ medications }),

@@ -985,16 +985,24 @@ const MEDICATION_EXTRACTION_PROMPT: &str = r#"Extract all medications and supple
 Classify each item as "medication" (prescription drugs, OTC medicine) or "supplement" (vitamins, minerals, herbal products, dietary supplements).
 If ingredients are visible on the packaging, extract them too.
 
+CRITICAL RULES for dosage:
+- "dosage" is the per-serving/per-dose amount shown on the front label (e.g. "500 mg", "1000 IU", "50 mcg").
+- Read the EXACT number and unit from the packaging. Do NOT guess or calculate.
+- If the label says "500 µg" or "500 mcg", dosage is "500 mcg". If it says "20,000 IU", dosage is "20000 IU".
+
 CRITICAL RULES for ingredient amounts:
 - "amount" must be a PURE NUMBER only (e.g. "500", "0.25", "1000"). No units, no text.
 - "unit" must be one of: "mg", "g", "mcg", "ml", "IU", "%", "mmol". Use "mcg" for micrograms (µg).
 - If the packaging shows equivalent values like "500µg (20,000 I.E.)", put ONLY the primary number in "amount" (e.g. "500"), the primary unit in "unit" (e.g. "mcg"), and any extra info in "notes" (e.g. "equivalent to 20,000 IU").
 - If you cannot determine the unit, set unit to null and put the full text in "notes".
 
+BRAND: Always extract the brand/manufacturer name visible on the packaging (e.g. "Nature Made", "NOW Foods", "Ratiopharm").
+
 Return a JSON array:
 [
   {
     "name": "Vitamin D3",
+    "brand": "Nature Made",
     "type": "supplement",
     "dosage": "500 mcg",
     "frequency": "1x daily",
@@ -1006,6 +1014,7 @@ Return a JSON array:
   }
 ]
 type must be "medication" or "supplement".
+brand is the manufacturer or brand name visible on the packaging. Set to null if not visible.
 Each ingredient role must be "active" or "auxiliary".
 If ingredients are not visible, return an empty array for ingredients.
 Return valid JSON only. No markdown, no explanations."#;

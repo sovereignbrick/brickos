@@ -559,6 +559,7 @@ export interface ImportMedication {
 
 export interface ExtractedMedication {
   name: string
+  brand?: string | null
   type: string  // "medication" or "supplement"
   dosage: string | null
   frequency: string | null

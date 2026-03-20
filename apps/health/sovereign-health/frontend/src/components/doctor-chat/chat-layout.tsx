@@ -194,7 +194,7 @@ export function ChatLayout() {
     }
   }
 
-  const handleMedImportConfirm = async (medications: Array<{ name: string; factor_type?: string; dosage?: string; frequency?: string; form?: string; prescriber?: string; ingredients?: Array<{ name: string; amount?: string; unit?: string; role?: string; notes?: string }> }>) => {
+  const handleMedImportConfirm = async (medications: Array<{ name: string; brand?: string; factor_type?: string; dosage?: string; frequency?: string; form?: string; prescriber?: string; ingredients?: Array<{ name: string; amount?: string; unit?: string; role?: string; notes?: string }> }>) => {
     if (!medImportSession) return
     setImportLoading(true)
     try {

@@ -836,6 +836,7 @@ pub struct ConfirmMedicationIngredient {
 #[derive(Deserialize, Serialize)]
 pub struct ConfirmMedicationItem {
     pub name: String,
+    pub brand: Option<String>,
     pub factor_type: Option<String>, // "medication" or "supplement"
     pub dosage: Option<String>,
     pub frequency: Option<String>,
@@ -900,13 +901,14 @@ pub async fn confirm_medications(
 
         let row = sqlx::query(
             r#"INSERT INTO influence_factors
-               (user_id, name, category, factor_type, dosage, frequency, form,
+               (user_id, name, brand, category, factor_type, dosage, frequency, form,
                 prescriber, source, ai_extracted_data)
-               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
                RETURNING id"#,
         )
         .bind(auth.user_id)
         .bind(name)
+        .bind(&med.brand)
         .bind(category)
         .bind(factor_type)
         .bind(&med.dosage)
