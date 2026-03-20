@@ -53,8 +53,7 @@ endpoints:
     url: "https://api-demo.sovereignhealth.io/health"
     interval: 300s
     conditions:
-      - "[STATUS] == 200"
-      - "[STATUS] == 401"
+      - "[STATUS] < 500"
     alerts:
       - type: ntfy
         send-on-resolved: true
@@ -65,42 +64,21 @@ endpoints:
     url: "https://demo.sovereignhealth.io/"
     interval: 300s
     conditions:
-      - "[STATUS] == 200"
-      - "[STATUS] == 401"
+      - "[STATUS] < 500"
 
   # ── Infrastructure ──
-  - name: "PostgreSQL"
-    group: "Infrastructure"
-    url: "tcp://host.docker.internal:5432"
-    interval: 30s
-    conditions:
-      - "[CONNECTED] == true"
-    alerts:
-      - type: ntfy
-        send-on-resolved: true
-      - type: telegram
-        send-on-resolved: true
-
-  - name: "Redis"
-    group: "Infrastructure"
-    url: "tcp://host.docker.internal:6379"
-    interval: 30s
-    conditions:
-      - "[CONNECTED] == true"
-    alerts:
-      - type: ntfy
-        send-on-resolved: true
-
+  # Postgres/Redis are on Docker internal networks (not host-exposed).
+  # DB health is covered by the API /health endpoint which checks DB connectivity.
   - name: "ntfy"
     group: "Infrastructure"
-    url: "http://host.docker.internal:2586"
+    url: "http://ntfy:80"
     interval: 300s
     conditions:
       - "[STATUS] == 200"
 
 alerting:
   ntfy:
-    url: "${NTFY_BASE_URL}"
+    url: "http://ntfy:80"
     topic: "sh-critical"
     priority: 4
     token: "${NTFY_TOKEN}"
