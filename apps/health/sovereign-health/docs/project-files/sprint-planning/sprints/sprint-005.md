@@ -29,6 +29,14 @@ v0.22.0 shipped with 12 bugs found during RC testing. Sprint 004 retro identifie
 
 ---
 
+## Phase 0 — Production Hotfixes (? pts)
+
+Issues found during v0.22.0 production testing. These take priority over everything else.
+
+_To be collected by founder during production use. Add items here as they are found._
+
+---
+
 ## Phase 1 — Developer Workflow (4 pts)
 
 Quick improvements to prevent recurring issues.
@@ -214,6 +222,9 @@ Day 1 (2026-03-21):
 ---
 
 ## Definition of Done
+
+### Phase 0 — Production Hotfixes
+- [ ] All reported production issues resolved and deployed
 
 ### Phase 1 — Developer Workflow
 - [ ] `bash ops/preflight.sh` runs all checks and fails on first error
