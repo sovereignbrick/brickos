@@ -217,8 +217,9 @@ function MeasurementsContent() {
           {/* Row 1: Date range + Device */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
-              <label className="text-xs text-muted-foreground mb-1 block">{t('from')}</label>
+              <label htmlFor="meas-list-from" className="text-xs text-muted-foreground mb-1 block">{t('from')}</label>
               <input
+                id="meas-list-from"
                 type="date"
                 value={fromDate}
                 onChange={e => { setFromDate(e.target.value); resetPage() }}
@@ -226,8 +227,9 @@ function MeasurementsContent() {
               />
             </div>
             <div>
-              <label className="text-xs text-muted-foreground mb-1 block">{t('to')}</label>
+              <label htmlFor="meas-list-to" className="text-xs text-muted-foreground mb-1 block">{t('to')}</label>
               <input
+                id="meas-list-to"
                 type="date"
                 value={toDate}
                 onChange={e => { setToDate(e.target.value); resetPage() }}
@@ -235,8 +237,9 @@ function MeasurementsContent() {
               />
             </div>
             <div>
-              <label className="text-xs text-muted-foreground mb-1 block">{t('device')}</label>
+              <label htmlFor="meas-list-device" className="text-xs text-muted-foreground mb-1 block">{t('device')}</label>
               <select
+                id="meas-list-device"
                 value={selectedDevice}
                 onChange={e => { setSelectedDevice(e.target.value); resetPage() }}
                 className="w-full bg-popover border border-border rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-blue-500 [&>option]:bg-popover [&>option]:text-white"
@@ -252,10 +255,11 @@ function MeasurementsContent() {
           {/* Row 2: Marker + Protocol */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="text-xs text-muted-foreground mb-1 block">
+              <label htmlFor="meas-list-marker" className="text-xs text-muted-foreground mb-1 block">
                 {t('marker')} {selectedMarkers.length > 0 && `(${selectedMarkers.length})`}
               </label>
               <MarkerMultiSelect
+                id="meas-list-marker"
                 options={filters?.markers || []}
                 selected={selectedMarkers}
                 onToggle={toggleMarker}
@@ -264,8 +268,9 @@ function MeasurementsContent() {
               />
             </div>
             <div>
-              <label className="text-xs text-muted-foreground mb-1 block">{tCommon('protocol')}</label>
+              <label htmlFor="meas-list-protocol" className="text-xs text-muted-foreground mb-1 block">{tCommon('protocol')}</label>
               <select
+                id="meas-list-protocol"
                 value={selectedProtocol}
                 onChange={e => { setSelectedProtocol(e.target.value); resetPage() }}
                 className="w-full bg-popover border border-border rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-blue-500 [&>option]:bg-popover [&>option]:text-white"
@@ -404,12 +409,14 @@ function MarkerMultiSelect({
   onToggle,
   allLabel,
   countLabel,
+  id,
 }: {
   options: { slug: string; name: string; count: number }[]
   selected: string[]
   onToggle: (slug: string) => void
   allLabel: string
   countLabel: (count: number) => string
+  id?: string
 }) {
   const t = useTranslations('measurements')
   const tCommon = useTranslations('common')
@@ -441,6 +448,7 @@ function MarkerMultiSelect({
   return (
     <div ref={ref} className="relative">
       <button
+        id={id}
         type="button"
         onClick={() => setOpen(!open)}
         className="w-full bg-accent border rounded-lg px-3 py-2 text-sm text-left focus:outline-none focus:ring-1 focus:ring-blue-500 flex items-center justify-between"

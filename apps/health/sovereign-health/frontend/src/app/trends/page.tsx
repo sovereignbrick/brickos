@@ -56,12 +56,14 @@ function MarkerSelector({
   onChange,
   label,
   allowEmpty,
+  id,
 }: {
   markers: GroupedMarker[]
   value: string
   onChange: (slug: string) => void
   label: string
   allowEmpty?: boolean
+  id?: string
 }) {
   const t = useTranslations('trends')
   const tCommon = useTranslations('common')
@@ -91,8 +93,9 @@ function MarkerSelector({
 
   return (
     <div className="relative" ref={ref}>
-      <label className="text-xs text-muted-foreground block mb-1">{label}</label>
+      <label htmlFor={id} className="text-xs text-muted-foreground block mb-1">{label}</label>
       <button
+        id={id}
         onClick={() => setOpen(o => !o)}
         className="bg-accent border rounded-lg px-3 py-2 text-sm text-left min-w-[180px] flex items-center justify-between gap-2 hover:bg-white/8 transition-colors"
       >
@@ -297,6 +300,7 @@ export default function TrendsPage() {
             value={markerSlug}
             onChange={setMarkerSlug}
             label={t('primaryMarker')}
+            id="trends-primary-marker"
           />
           <MarkerSelector
             markers={availableMarkers.filter(m => m.slug !== markerSlug)}
@@ -304,6 +308,7 @@ export default function TrendsPage() {
             onChange={setSecondarySlug}
             label={t('compareWith')}
             allowEmpty
+            id="trends-compare-marker"
           />
           <div>
             <label className="text-xs text-muted-foreground block mb-1">{t('period')}</label>

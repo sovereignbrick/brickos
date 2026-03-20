@@ -204,8 +204,9 @@ export default function EditMeasurementPage() {
             </div>
             {devices.length > 0 && (
               <div className="min-w-40">
-                <label className="text-xs text-muted-foreground block mb-1">{t('device')}</label>
+                <label htmlFor="meas-edit-device" className="text-xs text-muted-foreground block mb-1">{t('device')}</label>
                 <select
+                  id="meas-edit-device"
                   value={deviceId}
                   onChange={e => { setDeviceId(e.target.value); markDirty() }}
                   className="bg-popover border border-border rounded-lg px-2.5 py-1.5 text-sm w-full text-foreground [&>option]:bg-popover [&>option]:text-foreground"
@@ -254,8 +255,9 @@ export default function EditMeasurementPage() {
             </span>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               <div>
-                <label className="text-xs text-muted-foreground block mb-1">{t('lifestyle.sleepHours')}</label>
+                <label htmlFor="meas-edit-sleep-hours" className="text-xs text-muted-foreground block mb-1">{t('lifestyle.sleepHours')}</label>
                 <input
+                  id="meas-edit-sleep-hours"
                   type="text"
                   inputMode="decimal"
                   value={sleepHours}
@@ -269,8 +271,9 @@ export default function EditMeasurementPage() {
                 />
               </div>
               <div>
-                <label className="text-xs text-muted-foreground block mb-1">{t('lifestyle.sleepQuality')}</label>
+                <label htmlFor="meas-edit-sleep-quality" className="text-xs text-muted-foreground block mb-1">{t('lifestyle.sleepQuality')}</label>
                 <select
+                  id="meas-edit-sleep-quality"
                   value={sleepQuality}
                   onChange={e => { setSleepQuality(e.target.value); markDirty() }}
                   className="w-full bg-popover border border-border rounded-lg px-2.5 py-1.5 text-sm text-foreground [&>option]:bg-popover [&>option]:text-foreground"
@@ -283,8 +286,9 @@ export default function EditMeasurementPage() {
                 </select>
               </div>
               <div>
-                <label className="text-xs text-muted-foreground block mb-1">{t('lifestyle.stressLevel')}</label>
+                <label htmlFor="meas-edit-stress-level" className="text-xs text-muted-foreground block mb-1">{t('lifestyle.stressLevel')}</label>
                 <select
+                  id="meas-edit-stress-level"
                   value={stressLevel}
                   onChange={e => { setStressLevel(e.target.value); markDirty() }}
                   className="w-full bg-popover border border-border rounded-lg px-2.5 py-1.5 text-sm text-foreground [&>option]:bg-popover [&>option]:text-foreground"
@@ -310,8 +314,9 @@ export default function EditMeasurementPage() {
 
           {/* Note */}
           <div>
-            <label className="text-xs text-muted-foreground block mb-1">{t('lifestyle.note')}</label>
+            <label htmlFor="meas-edit-note" className="text-xs text-muted-foreground block mb-1">{t('lifestyle.note')}</label>
             <textarea
+              id="meas-edit-note"
               value={note}
               onChange={e => { setNote(e.target.value.slice(0, 300)); markDirty() }}
               rows={2}

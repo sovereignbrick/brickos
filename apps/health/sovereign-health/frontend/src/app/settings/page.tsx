@@ -848,8 +848,9 @@ function DeviceModal({ device, markers, initialType, onClose, onSaved }: {
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           {/* Name */}
           <div>
-            <label className="text-xs text-muted-foreground block mb-1">{tCommon('nameLabel')} *</label>
+            <label htmlFor="settings-device-name" className="text-xs text-muted-foreground block mb-1">{tCommon('nameLabel')} *</label>
             <input
+              id="settings-device-name"
               type="text"
               value={name}
               onChange={e => setName(e.target.value)}
@@ -860,8 +861,9 @@ function DeviceModal({ device, markers, initialType, onClose, onSaved }: {
 
           {/* Type — before manufacturer/model so conditional fields appear after */}
           <div>
-            <label className="text-xs text-muted-foreground block mb-1">{tDev('typeLabel')} *</label>
+            <label htmlFor="settings-device-type" className="text-xs text-muted-foreground block mb-1">{tDev('typeLabel')} *</label>
             <select
+              id="settings-device-type"
               value={deviceType}
               onChange={e => setDeviceType(e.target.value)}
               disabled={deviceType === 'lab'}
@@ -875,8 +877,9 @@ function DeviceModal({ device, markers, initialType, onClose, onSaved }: {
             <>
               {/* Lab-specific fields */}
               <div>
-                <label className="text-xs text-muted-foreground block mb-1">{tDev('labAddress')}</label>
+                <label htmlFor="settings-lab-address" className="text-xs text-muted-foreground block mb-1">{tDev('labAddress')}</label>
                 <input
+                  id="settings-lab-address"
                   type="text"
                   value={labAddress}
                   onChange={e => setLabAddress(e.target.value)}
@@ -886,8 +889,9 @@ function DeviceModal({ device, markers, initialType, onClose, onSaved }: {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs text-muted-foreground block mb-1">{tDev('labPostalCode')}</label>
+                  <label htmlFor="settings-lab-postal-code" className="text-xs text-muted-foreground block mb-1">{tDev('labPostalCode')}</label>
                   <input
+                    id="settings-lab-postal-code"
                     type="text"
                     value={labPostalCode}
                     onChange={e => setLabPostalCode(e.target.value)}
@@ -896,8 +900,9 @@ function DeviceModal({ device, markers, initialType, onClose, onSaved }: {
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-muted-foreground block mb-1">{tDev('labCity')}</label>
+                  <label htmlFor="settings-lab-city" className="text-xs text-muted-foreground block mb-1">{tDev('labCity')}</label>
                   <input
+                    id="settings-lab-city"
                     type="text"
                     value={labCity}
                     onChange={e => setLabCity(e.target.value)}
@@ -907,8 +912,9 @@ function DeviceModal({ device, markers, initialType, onClose, onSaved }: {
                 </div>
               </div>
               <div>
-                <label className="text-xs text-muted-foreground block mb-1">{tDev('labCountry')}</label>
+                <label htmlFor="settings-lab-country" className="text-xs text-muted-foreground block mb-1">{tDev('labCountry')}</label>
                 <input
+                  id="settings-lab-country"
                   type="text"
                   value={labCountry}
                   onChange={e => setLabCountry(e.target.value)}
@@ -921,8 +927,9 @@ function DeviceModal({ device, markers, initialType, onClose, onSaved }: {
             <>
               {/* Manufacturer */}
               <div>
-                <label className="text-xs text-muted-foreground block mb-1">{tDev('manufacturerLabel')}</label>
+                <label htmlFor="settings-device-manufacturer" className="text-xs text-muted-foreground block mb-1">{tDev('manufacturerLabel')}</label>
                 <input
+                  id="settings-device-manufacturer"
                   type="text"
                   value={manufacturer}
                   onChange={e => setManufacturer(e.target.value)}
@@ -937,8 +944,9 @@ function DeviceModal({ device, markers, initialType, onClose, onSaved }: {
 
               {/* Model */}
               <div>
-                <label className="text-xs text-muted-foreground block mb-1">{tDev('modelLabel')}</label>
+                <label htmlFor="settings-device-model" className="text-xs text-muted-foreground block mb-1">{tDev('modelLabel')}</label>
                 <input
+                  id="settings-device-model"
                   type="text"
                   value={model}
                   onChange={e => setModel(e.target.value)}
@@ -951,10 +959,11 @@ function DeviceModal({ device, markers, initialType, onClose, onSaved }: {
 
           {/* Markers */}
           <div>
-            <label className="text-xs text-muted-foreground block mb-1">
+            <label htmlFor="settings-device-marker-search" className="text-xs text-muted-foreground block mb-1">
               {tDev('markersSelected', { count: selectedMarkers.size })}
             </label>
             <input
+              id="settings-device-marker-search"
               type="text"
               value={markerSearch}
               onChange={e => setMarkerSearch(e.target.value)}
@@ -1014,8 +1023,9 @@ function DeviceModal({ device, markers, initialType, onClose, onSaved }: {
 
           {/* Notes */}
           <div>
-            <label className="text-xs text-muted-foreground block mb-1">{tCommon('notesLabel')}</label>
+            <label htmlFor="settings-device-notes" className="text-xs text-muted-foreground block mb-1">{tCommon('notesLabel')}</label>
             <textarea
+              id="settings-device-notes"
               value={notes}
               onChange={e => setNotes(e.target.value)}
               placeholder={deviceType === 'lab' ? tDev('placeholders.labNotes') : tDev('placeholders.notes')}
@@ -1029,8 +1039,9 @@ function DeviceModal({ device, markers, initialType, onClose, onSaved }: {
             <div className="border-t border-border pt-4 space-y-3">
               <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">{tDev('validation')}</p>
               <div>
-                <label className="text-xs text-muted-foreground block mb-1">{tDev('statusLabel')}</label>
+                <label htmlFor="settings-device-status" className="text-xs text-muted-foreground block mb-1">{tDev('statusLabel')}</label>
                 <select
+                  id="settings-device-status"
                   value={validationStatus}
                   onChange={e => setValidationStatus(e.target.value)}
                   className="w-full bg-card text-foreground border border-border rounded-lg px-3 py-2 text-sm [&>option]:bg-card [&>option]:text-foreground"
@@ -1042,8 +1053,9 @@ function DeviceModal({ device, markers, initialType, onClose, onSaved }: {
                 </select>
               </div>
               <div>
-                <label className="text-xs text-muted-foreground block mb-1">{tDev('validationNotes')}</label>
+                <label htmlFor="settings-device-validation-notes" className="text-xs text-muted-foreground block mb-1">{tDev('validationNotes')}</label>
                 <input
+                  id="settings-device-validation-notes"
                   type="text"
                   value={validationNotes}
                   onChange={e => setValidationNotes(e.target.value)}
@@ -1280,21 +1292,21 @@ function ProfileTab({
         <div className="grid grid-cols-4 gap-3">
           <div>
             <div className="flex items-center gap-1 mb-1">
-              <span className="text-sm text-muted-foreground">{t('age')}</span>
+              <label htmlFor="settings-age" className="text-sm text-muted-foreground">{t('age')}</label>
               <InfoTooltip>{t('ageTooltip')}</InfoTooltip>
             </div>
-            <input type="text" inputMode="numeric" pattern="[0-9]*" value={form.age ?? ''} onChange={e => {
+            <input id="settings-age" type="text" inputMode="numeric" pattern="[0-9]*" value={form.age ?? ''} onChange={e => {
               const v = e.target.value.replace(/[^0-9]/g, '')
               setForm({ ...form, age: v ? Number(v) : null })
             }} className={"w-16 " + inp} />
           </div>
           <div>
             <div className="flex items-center gap-1 mb-1">
-              <span className="text-sm text-muted-foreground">{t('height')}</span>
+              <label htmlFor="settings-height" className="text-sm text-muted-foreground">{t('height')}</label>
               <InfoTooltip>{t('heightTooltip')}</InfoTooltip>
             </div>
             <div className="flex gap-1">
-              <input type="text" inputMode="decimal" value={displayHeight ?? ''} onChange={e => {
+              <input id="settings-height" type="text" inputMode="decimal" value={displayHeight ?? ''} onChange={e => {
                 const filtered = filterDecimal(e.target.value)
                 const v = parseDecimal(filtered)
                 setForm({ ...form, height_cm: heightUnit === 'ft-in' && v ? Math.round(v * 2.54 * 10) / 10 : v })
@@ -1306,11 +1318,11 @@ function ProfileTab({
           </div>
           <div>
             <div className="flex items-center gap-1 mb-1">
-              <span className="text-sm text-muted-foreground">{t('waist')}</span>
+              <label htmlFor="settings-waist" className="text-sm text-muted-foreground">{t('waist')}</label>
               <InfoTooltip>{t('waistTooltip')}</InfoTooltip>
             </div>
             <div className="flex gap-1">
-              <input type="text" inputMode="decimal" value={displayWaist ?? ''} onChange={e => {
+              <input id="settings-waist" type="text" inputMode="decimal" value={displayWaist ?? ''} onChange={e => {
                 const filtered = filterDecimal(e.target.value)
                 const v = parseDecimal(filtered)
                 setForm({ ...form, default_waist_cm: waistUnit === 'inches' && v ? Math.round(v * 2.54 * 10) / 10 : v })
@@ -1322,11 +1334,11 @@ function ProfileTab({
           </div>
           <div>
             <div className="flex items-center gap-1 mb-1">
-              <span className="text-sm text-muted-foreground">{t('weight')}</span>
+              <label htmlFor="settings-weight" className="text-sm text-muted-foreground">{t('weight')}</label>
               <InfoTooltip>{t('weightTooltip')}</InfoTooltip>
             </div>
             <div className="flex gap-1">
-              <input type="text" inputMode="decimal" value={weightText} onChange={e => {
+              <input id="settings-weight" type="text" inputMode="decimal" value={weightText} onChange={e => {
                 const filtered = filterDecimal(e.target.value)
                 setWeightText(filtered)
                 const v = parseDecimal(filtered)
@@ -1397,10 +1409,10 @@ function ProfileTab({
               </FieldWithInfo>
               <div className="space-y-1.5">
                 <div className="flex items-center gap-1">
-                  <label className="text-sm text-muted-foreground">{t('sleepHoursLabel')}</label>
+                  <label htmlFor="settings-sleep-hours" className="text-sm text-muted-foreground">{t('sleepHoursLabel')}</label>
                   <InfoTooltip>{t('sleepHoursInfo')}</InfoTooltip>
                 </div>
-                <input type="text" inputMode="decimal" value={sleepText} onChange={e => {
+                <input id="settings-sleep-hours" type="text" inputMode="decimal" value={sleepText} onChange={e => {
                   const filtered = filterDecimal(e.target.value)
                   setSleepText(filtered)
                   setLForm({ ...lForm, default_sleep_hours: parseDecimal(filtered) })
@@ -1408,10 +1420,10 @@ function ProfileTab({
               </div>
               <div className="space-y-1.5">
                 <div className="flex items-center gap-1">
-                  <label className="text-sm text-muted-foreground">{t('sleepQualityTitle')}</label>
+                  <label htmlFor="settings-sleep-quality" className="text-sm text-muted-foreground">{t('sleepQualityTitle')}</label>
                   <InfoTooltip>{t('sleepQualityInfo')}</InfoTooltip>
                 </div>
-                <select value={lForm.default_sleep_quality ?? ''} onChange={e => setLForm({ ...lForm, default_sleep_quality: e.target.value || null })} className={inp}>
+                <select id="settings-sleep-quality" value={lForm.default_sleep_quality ?? ''} onChange={e => setLForm({ ...lForm, default_sleep_quality: e.target.value || null })} className={inp}>
                   <option value="">{tCommon('notSet')}</option>
                   <option value="excellent">{tSleep('excellent')}</option>
                   <option value="good">{tCommon('good')}</option>
@@ -1421,10 +1433,11 @@ function ProfileTab({
               </div>
               <div className="space-y-1.5">
                 <div className="flex items-center gap-1">
-                  <label className="text-sm text-muted-foreground">{t('stressLevelLabel')}</label>
+                  <label htmlFor="settings-stress-level" className="text-sm text-muted-foreground">{t('stressLevelLabel')}</label>
                   <InfoTooltip>{t('stressLevelInfo')}</InfoTooltip>
                 </div>
                 <select
+                  id="settings-stress-level"
                   value={lForm.default_stress_level ?? ''}
                   onChange={e => setLForm({ ...lForm, default_stress_level: e.target.value ? Number(e.target.value) : null })}
                   className={inp}
@@ -2109,8 +2122,9 @@ function DataPrivacyTab({ shareAnonymousData, onToggle }: { shareAnonymousData: 
         <p className="text-sm text-muted-foreground">{t('healthReportsDesc')}</p>
 
         <div className="flex flex-wrap items-center gap-3">
-          <label className="text-sm text-muted-foreground">{t('period')}</label>
+          <label htmlFor="settings-report-period" className="text-sm text-muted-foreground">{t('period')}</label>
           <select
+            id="settings-report-period"
             value={reportPeriod}
             onChange={e => setReportPeriod(e.target.value)}
             className="bg-card border border-border rounded-lg px-3 py-1.5 text-sm"
@@ -2326,11 +2340,11 @@ function BillingAddressSection() {
         {/* Left column */}
         <div className="space-y-4">
           <div>
-            <label className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
+            <label htmlFor="settings-customer-type" className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
               {t('customerType')}
               <InfoTooltip>{t('customerTypeInfo')}</InfoTooltip>
             </label>
-            <select value={form.customer_type} onChange={e => setForm({ ...form, customer_type: e.target.value })} className={inp}>
+            <select id="settings-customer-type" value={form.customer_type} onChange={e => setForm({ ...form, customer_type: e.target.value })} className={inp}>
               <option value="private">{t('customerPrivate')}</option>
               <option value="organization">{t('customerOrganization')}</option>
             </select>
@@ -2338,41 +2352,41 @@ function BillingAddressSection() {
           {form.customer_type === 'organization' && (
             <>
               <div>
-                <label className="text-xs text-muted-foreground block mb-1">{t('companyName')}</label>
-                <input type="text" value={form.company_name} onChange={e => setForm({ ...form, company_name: e.target.value })} className={inp} />
+                <label htmlFor="settings-company-name" className="text-xs text-muted-foreground block mb-1">{t('companyName')}</label>
+                <input id="settings-company-name" type="text" value={form.company_name} onChange={e => setForm({ ...form, company_name: e.target.value })} className={inp} />
               </div>
               <div>
-                <label className="text-xs text-muted-foreground block mb-1">{t('vatId')}</label>
-                <input type="text" value={form.vat_id} onChange={e => setForm({ ...form, vat_id: e.target.value })} className={inp} placeholder="DE123456789" />
+                <label htmlFor="settings-vat-id" className="text-xs text-muted-foreground block mb-1">{t('vatId')}</label>
+                <input id="settings-vat-id" type="text" value={form.vat_id} onChange={e => setForm({ ...form, vat_id: e.target.value })} className={inp} placeholder="DE123456789" />
               </div>
             </>
           )}
           <div>
-            <label className="text-xs text-muted-foreground block mb-1">{t('addressLine1')}</label>
-            <input type="text" value={form.billing_address_line1} onChange={e => setForm({ ...form, billing_address_line1: e.target.value })} className={inp} />
+            <label htmlFor="settings-address-line1" className="text-xs text-muted-foreground block mb-1">{t('addressLine1')}</label>
+            <input id="settings-address-line1" type="text" value={form.billing_address_line1} onChange={e => setForm({ ...form, billing_address_line1: e.target.value })} className={inp} />
           </div>
           <div>
-            <label className="text-xs text-muted-foreground block mb-1">{t('addressLine2')}</label>
-            <input type="text" value={form.billing_address_line2} onChange={e => setForm({ ...form, billing_address_line2: e.target.value })} className={inp} />
+            <label htmlFor="settings-address-line2" className="text-xs text-muted-foreground block mb-1">{t('addressLine2')}</label>
+            <input id="settings-address-line2" type="text" value={form.billing_address_line2} onChange={e => setForm({ ...form, billing_address_line2: e.target.value })} className={inp} />
           </div>
         </div>
         {/* Right column */}
         <div className="space-y-4">
           <div>
-            <label className="text-xs text-muted-foreground block mb-1">{t('city')}</label>
-            <input type="text" value={form.billing_address_city} onChange={e => setForm({ ...form, billing_address_city: e.target.value })} className={inp} />
+            <label htmlFor="settings-billing-city" className="text-xs text-muted-foreground block mb-1">{t('city')}</label>
+            <input id="settings-billing-city" type="text" value={form.billing_address_city} onChange={e => setForm({ ...form, billing_address_city: e.target.value })} className={inp} />
           </div>
           <div>
-            <label className="text-xs text-muted-foreground block mb-1">{t('postalCode')}</label>
-            <input type="text" value={form.billing_address_postal_code} onChange={e => setForm({ ...form, billing_address_postal_code: e.target.value })} className={inp} />
+            <label htmlFor="settings-billing-postal-code" className="text-xs text-muted-foreground block mb-1">{t('postalCode')}</label>
+            <input id="settings-billing-postal-code" type="text" value={form.billing_address_postal_code} onChange={e => setForm({ ...form, billing_address_postal_code: e.target.value })} className={inp} />
           </div>
           <div>
-            <label className="text-xs text-muted-foreground block mb-1">{t('state')}</label>
-            <input type="text" value={form.billing_address_state} onChange={e => setForm({ ...form, billing_address_state: e.target.value })} className={inp} />
+            <label htmlFor="settings-billing-state" className="text-xs text-muted-foreground block mb-1">{t('state')}</label>
+            <input id="settings-billing-state" type="text" value={form.billing_address_state} onChange={e => setForm({ ...form, billing_address_state: e.target.value })} className={inp} />
           </div>
           <div>
-            <label className="text-xs text-muted-foreground block mb-1">{t('billingCountry')}</label>
-            <select value={form.billing_address_country} onChange={e => setForm({ ...form, billing_address_country: e.target.value })} className={inp}>
+            <label htmlFor="settings-billing-country" className="text-xs text-muted-foreground block mb-1">{t('billingCountry')}</label>
+            <select id="settings-billing-country" value={form.billing_address_country} onChange={e => setForm({ ...form, billing_address_country: e.target.value })} className={inp}>
               <option value="">—</option>
               {BILINGUAL_COUNTRIES.map(c => (
                 <option key={c.code} value={c.code}>{c.name[countryLang]}</option>
@@ -2955,8 +2969,9 @@ function LicenseTab() {
             </p>
 
             <div>
-              <label className="text-sm text-muted-foreground block mb-1">{tCommon('cancelReason')}</label>
+              <label htmlFor="settings-cancel-reason" className="text-sm text-muted-foreground block mb-1">{tCommon('cancelReason')}</label>
               <select
+                id="settings-cancel-reason"
                 value={cancelReason}
                 onChange={e => setCancelReason(e.target.value)}
                 className="w-full bg-muted border border-border rounded-lg px-3 py-2 text-sm"
@@ -3193,10 +3208,11 @@ function SecurityTab() {
             </p>
           </div>
           <div>
-            <label className="text-sm text-muted-foreground block mb-1.5">
+            <label htmlFor="settings-mfa-setup-code" className="text-sm text-muted-foreground block mb-1.5">
               {t('enterCode')}
             </label>
             <input
+              id="settings-mfa-setup-code"
               type="text"
               inputMode="numeric"
               maxLength={6}
@@ -3353,21 +3369,21 @@ function SecurityTab() {
         <h3 className="font-medium">{t('changePassword')}</h3>
         <div className="space-y-3 max-w-md">
           <div>
-            <label className="text-sm text-muted-foreground block mb-1">{t('currentPassword')}</label>
-            <input type="password" value={currentPw} onChange={e => setCurrentPw(e.target.value)}
+            <label htmlFor="settings-current-password" className="text-sm text-muted-foreground block mb-1">{t('currentPassword')}</label>
+            <input id="settings-current-password" type="password" value={currentPw} onChange={e => setCurrentPw(e.target.value)}
               className="w-full bg-accent border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500" />
           </div>
           <div>
-            <label className="text-sm text-muted-foreground block mb-1">{tCommon('newPassword')}</label>
-            <input type="password" value={newPw} onChange={e => setNewPw(e.target.value)}
+            <label htmlFor="settings-new-password" className="text-sm text-muted-foreground block mb-1">{tCommon('newPassword')}</label>
+            <input id="settings-new-password" type="password" value={newPw} onChange={e => setNewPw(e.target.value)}
               className="w-full bg-accent border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500" />
             {newPw.length > 0 && newPw.length < 8 && (
               <p className="text-xs text-yellow-400 mt-1">{t('security.passwordTooShort')}</p>
             )}
           </div>
           <div>
-            <label className="text-sm text-muted-foreground block mb-1">{t('confirmNewPassword')}</label>
-            <input type="password" value={confirmPw} onChange={e => setConfirmPw(e.target.value)}
+            <label htmlFor="settings-confirm-password" className="text-sm text-muted-foreground block mb-1">{t('confirmNewPassword')}</label>
+            <input id="settings-confirm-password" type="password" value={confirmPw} onChange={e => setConfirmPw(e.target.value)}
               className="w-full bg-accent border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500" />
             {confirmPw.length > 0 && newPw !== confirmPw && (
               <p className="text-xs text-red-400 mt-1">{t('security.passwordMismatch')}</p>
@@ -3375,8 +3391,8 @@ function SecurityTab() {
           </div>
           {mfaEnabled && (
             <div>
-              <label className="text-sm text-muted-foreground block mb-1">{t('mfaCode')}</label>
-              <input type="text" inputMode="numeric" maxLength={6} value={pwMfaCode}
+              <label htmlFor="settings-mfa-code" className="text-sm text-muted-foreground block mb-1">{t('mfaCode')}</label>
+              <input id="settings-mfa-code" type="text" inputMode="numeric" maxLength={6} value={pwMfaCode}
                 onChange={e => setPwMfaCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
                 placeholder="000000"
                 className="w-full bg-accent border rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-1 focus:ring-blue-500" />

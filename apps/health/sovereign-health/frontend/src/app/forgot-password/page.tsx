@@ -63,8 +63,9 @@ export default function ForgotPasswordPage() {
         </div>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div>
-            <label className="text-sm font-medium block mb-1.5">{tCommon('email')}</label>
+            <label htmlFor="forgot-email" className="text-sm font-medium block mb-1.5">{tCommon('email')}</label>
             <input
+              id="forgot-email"
               type="email"
               {...register('email')}
               className="w-full bg-white/5 border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors"

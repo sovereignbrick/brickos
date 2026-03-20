@@ -195,6 +195,7 @@ function MarkerRow({ marker, value, displayUnit, badge, onChange, onRemove, zone
         )}
       </div>
       <input
+        id={`meas-new-marker-${marker.marker_slug}`}
         type="text"
         inputMode="decimal"
         value={value}
@@ -787,8 +788,9 @@ export default function NewMeasurementPage() {
               />
             </div>
             <div>
-              <label className="text-[10px] text-muted-foreground block mb-0.5">{tMeasurements('device')}</label>
+              <label htmlFor="meas-new-device" className="text-[10px] text-muted-foreground block mb-0.5">{tMeasurements('device')}</label>
               <select
+                id="meas-new-device"
                 value={selectedDeviceId}
                 onChange={e => {
                   const id = e.target.value
@@ -818,7 +820,7 @@ export default function NewMeasurementPage() {
             </div>
             <div>
               <div className="flex items-center justify-between mb-0.5">
-                <label className="text-[10px] text-muted-foreground">{t('template')}</label>
+                <label htmlFor="meas-new-template" className="text-[10px] text-muted-foreground">{t('template')}</label>
                 {!selectedDeviceId && (
                   <div className="flex items-center gap-2">
                     {activeTemplate && isTemplateModified && (
@@ -832,6 +834,7 @@ export default function NewMeasurementPage() {
                 )}
               </div>
               <select
+                id="meas-new-template"
                 value={activeTemplate}
                 disabled={!!selectedDeviceId}
                 onChange={e => {
@@ -882,8 +885,9 @@ export default function NewMeasurementPage() {
           {/* Session overrides — single compact row */}
           <div className="grid gap-2" style={{ gridTemplateColumns: protocol === 'fasting' ? '2fr 0.8fr 1fr 1fr 1.2fr' : '2fr 0.8fr 1fr 1fr' }}>
             <div>
-              <label className="text-[10px] text-muted-foreground block mb-0.5">{t('lifestyle.mealTiming')}</label>
+              <label htmlFor="meas-new-meal-timing" className="text-[10px] text-muted-foreground block mb-0.5">{t('lifestyle.mealTiming')}</label>
               <select
+                id="meas-new-meal-timing"
                 value={mealTiming}
                 onChange={e => setMealTiming(e.target.value)}
                 className="w-full bg-popover border border-border rounded-lg px-2 py-1 text-xs text-foreground [&>option]:bg-popover [&>option]:text-foreground"
@@ -898,8 +902,9 @@ export default function NewMeasurementPage() {
               </select>
             </div>
             <div>
-              <label className="text-[10px] text-muted-foreground block mb-0.5">{t('lifestyle.sleepHours')}</label>
+              <label htmlFor="meas-new-sleep-hours" className="text-[10px] text-muted-foreground block mb-0.5">{t('lifestyle.sleepHours')}</label>
               <input
+                id="meas-new-sleep-hours"
                 type="text"
                 inputMode="decimal"
                 value={sleepHours}
@@ -913,8 +918,9 @@ export default function NewMeasurementPage() {
               />
             </div>
             <div>
-              <label className="text-[10px] text-muted-foreground block mb-0.5">{t('lifestyle.sleepQuality')}</label>
+              <label htmlFor="meas-new-sleep-quality" className="text-[10px] text-muted-foreground block mb-0.5">{t('lifestyle.sleepQuality')}</label>
               <select
+                id="meas-new-sleep-quality"
                 value={sleepQuality}
                 onChange={e => setSleepQuality(e.target.value)}
                 className="w-full bg-popover border border-border rounded-lg px-2 py-1 text-xs text-foreground [&>option]:bg-popover [&>option]:text-foreground"
@@ -927,8 +933,9 @@ export default function NewMeasurementPage() {
               </select>
             </div>
             <div>
-              <label className="text-[10px] text-muted-foreground block mb-0.5">{t('lifestyle.stressLevel')}</label>
+              <label htmlFor="meas-new-stress-level" className="text-[10px] text-muted-foreground block mb-0.5">{t('lifestyle.stressLevel')}</label>
               <select
+                id="meas-new-stress-level"
                 value={stressLevel}
                 onChange={e => setStressLevel(e.target.value)}
                 className="w-full bg-popover border border-border rounded-lg px-2 py-1 text-xs text-foreground [&>option]:bg-popover [&>option]:text-foreground"
@@ -953,8 +960,9 @@ export default function NewMeasurementPage() {
 
           {/* Note */}
           <div>
-            <label className="text-xs text-muted-foreground block mb-1">{t('lifestyle.note')}</label>
+            <label htmlFor="meas-new-note" className="text-xs text-muted-foreground block mb-1">{t('lifestyle.note')}</label>
             <textarea
+              id="meas-new-note"
               value={note}
               onChange={e => setNote(e.target.value.slice(0, 300))}
               rows={2}

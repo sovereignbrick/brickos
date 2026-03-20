@@ -95,9 +95,10 @@ function ResetPasswordContent() {
         </div>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div>
-            <label className="text-sm font-medium block mb-1.5">{tCommon('newPassword')}</label>
+            <label htmlFor="reset-password" className="text-sm font-medium block mb-1.5">{tCommon('newPassword')}</label>
             <div className="relative">
               <input
+                id="reset-password"
                 type={showPassword ? 'text' : 'password'}
                 {...register('password')}
                 className="w-full bg-white/5 border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors pr-16"
@@ -114,8 +115,9 @@ function ResetPasswordContent() {
             {errors.password && <p className="text-xs text-red-400 mt-1">{errors.password.message}</p>}
           </div>
           <div>
-            <label className="text-sm font-medium block mb-1.5">{t('signup.confirmPassword')}</label>
+            <label htmlFor="reset-confirm-password" className="text-sm font-medium block mb-1.5">{t('signup.confirmPassword')}</label>
             <input
+              id="reset-confirm-password"
               type="password"
               {...register('confirm_password')}
               className="w-full bg-white/5 border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors"
