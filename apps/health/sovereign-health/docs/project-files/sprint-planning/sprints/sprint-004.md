@@ -1,7 +1,7 @@
 # Sprint 004 — Polish & Precision
 
 **Started:** 2026-03-20
-**Completed:** ongoing
+**Completed:** 2026-03-20
 **Goal:** Fix all UX issues found during v0.20.0 production testing. Every issue below was reported by the founder after hands-on use of the live product.
 
 ## Context
