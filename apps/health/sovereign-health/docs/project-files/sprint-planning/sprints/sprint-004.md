@@ -352,10 +352,10 @@ Day 2+ (if multi-day):
 - [ ] Diet protocol influence visible on threshold ranges
 
 ### Phase 5 — Hygiene
-- [ ] `crash-report-*.md` files cleaned up and pattern added to `.gitignore`
-- [ ] Unused tables dropped (`health_check`, `content_audit_log`, `ui_strings`, `ui_string_translations`)
-- [ ] `doctor_chat_quota` vs `chat_agent_quota` resolved (dropped or documented)
-- [ ] `deploy.sh` pre-flight checks frontend lockfile sync
+- [x] `crash-report-*.md` files cleaned up and pattern added to `.gitignore` (already done prior)
+- [x] Unused tables dropped: `health_check`, `content_audit_log` (migration 103). `ui_strings`/`ui_string_translations` kept — actively used by content endpoints.
+- [x] `doctor_chat_quota` vs `chat_agent_quota`: both needed. `chat_agent_quota` = generic per-agent-type quota (tier.rs, license.rs, purge.rs). `doctor_chat_quota` = Dr. Alex-specific with rollover support (doctor_chat.rs). No action needed.
+- [x] `deploy.sh` pre-flight checks frontend lockfile sync (already implemented in preflight())
 
 ---
 
