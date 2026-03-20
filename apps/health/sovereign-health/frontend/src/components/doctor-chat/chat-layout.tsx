@@ -185,7 +185,12 @@ export function ChatLayout() {
     setImportLoading(true)
     try {
       const res = await api.import.confirm(importSession.session_id, markers, opts)
-      toast.success(res.data.message)
+      toast.success(res.data.message, {
+        action: {
+          label: tChat('viewMeasurements'),
+          onClick: () => window.location.href = '/measurements',
+        },
+      })
       setImportSession(null)
     } catch (err) {
       toast.error(err instanceof Error ? err.message : tChat('importFailed'))
