@@ -233,6 +233,28 @@
 - [ ] Exercise types translated
 - [ ] Dosage forms translated
 
+### B9a. CONTENT — Admin Content Pipeline
+
+**App content (live, DB-driven):**
+- [ ] Admin → App-Inhalte → Markers → edit a marker description (e.g., Glucose)
+- [ ] Verify change appears in app immediately (clear localStorage or wait for cache TTL)
+- [ ] Admin → App-Inhalte → Zones → verify DE zone names display correctly
+- [ ] Admin → App-Inhalte → Tiers → switch to DE tab → verify German translations present
+- [ ] Admin → Textbausteine → edit a UI string → verify it appears in app
+
+**Website content (static, requires publish):**
+- [ ] Admin → Web-Inhalte → edit a section (e.g., homepage hero text)
+- [ ] Verify change does NOT appear on website yet (static build)
+- [ ] Admin → Website → click "Publish Website"
+- [ ] Verify publish completes successfully
+- [ ] Verify change NOW appears on the website
+- [ ] Check `src/data/content-en.json` fetchedAt timestamp is fresh
+
+**Content completeness:**
+- [ ] Admin → App-Inhalte → Markers → spot-check 5 markers have description, tooltip, why_it_matters filled (EN + DE)
+- [ ] Admin → App-Inhalte → Tiers → all 6 tiers have DE translations (name, tagline, description)
+- [ ] Admin → App-Inhalte → Zones → all 8 zones have EN + DE names and descriptions
+
 ### B10. THEME — Dark/Light Mode
 
 - [ ] Theme toggle visible in navbar
