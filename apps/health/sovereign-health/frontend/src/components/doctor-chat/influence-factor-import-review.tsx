@@ -211,46 +211,29 @@ export function InfluenceFactorImportReview({
                   <span className="text-lg">
                     {med.factor_type === 'supplement' ? '\uD83C\uDF3F' : '\uD83D\uDC8A'}
                   </span>
-                  {med.editing ? (
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="text"
-                        value={med.name}
-                        onChange={(e) =>
-                          updateMed(medIdx, { name: e.target.value })
-                        }
-                        className="bg-[var(--background)] border border-[var(--border)] rounded px-2 py-1 text-sm text-[var(--foreground)] font-medium"
-                      />
-                      <input
-                        type="text"
-                        value={med.brand}
-                        onChange={(e) =>
-                          updateMed(medIdx, { brand: e.target.value })
-                        }
-                        placeholder={t('brandLabel')}
-                        className="bg-[var(--background)] border border-[var(--border)] rounded px-2 py-1 text-sm text-[var(--muted-foreground)]"
-                      />
-                    </div>
-                  ) : (
-                    <span className="text-[var(--foreground)] font-medium">
-                      {med.name}
-                      {med.brand && <span className="text-[var(--muted-foreground)] font-normal ml-1.5 text-xs">({med.brand})</span>}
-                    </span>
-                  )}
+                  <input
+                    type="text"
+                    value={med.name}
+                    onChange={(e) =>
+                      updateMed(medIdx, { name: e.target.value })
+                    }
+                    className="bg-[var(--background)] border border-[var(--border)] rounded px-2 py-1 text-sm text-[var(--foreground)] font-medium min-w-0 flex-1"
+                  />
+                  <input
+                    type="text"
+                    value={med.brand}
+                    onChange={(e) =>
+                      updateMed(medIdx, { brand: e.target.value })
+                    }
+                    placeholder={t('brandLabel')}
+                    className="bg-[var(--background)] border border-[var(--border)] rounded px-2 py-1 text-sm text-[var(--muted-foreground)] w-40"
+                  />
                 </div>
-                <button
-                  onClick={() =>
-                    updateMed(medIdx, { editing: !med.editing })
-                  }
-                  className="text-xs text-[var(--foreground)]/40 hover:text-[var(--muted-foreground)] px-2 py-1 border border-[var(--border)] rounded"
-                >
-                  {t('importReview.edit')}
-                </button>
               </div>
 
-              {/* Card body */}
+              {/* Card body — all fields always visible and editable */}
               <div className="px-4 pb-4 space-y-3">
-                {/* Type, Dosage, Frequency row */}
+                {/* Row 1: Type, Dosage, Frequency */}
                 <div className="grid grid-cols-3 gap-3">
                   <div>
                     <label className="text-xs text-[var(--foreground)]/40 block mb-1">
@@ -261,8 +244,7 @@ export function InfluenceFactorImportReview({
                       onChange={(e) =>
                         updateMed(medIdx, { factor_type: e.target.value })
                       }
-                      disabled={!med.editing}
-                      className="w-full bg-[var(--background)] border border-[var(--border)] rounded-lg px-2 py-1.5 text-sm text-[var(--foreground)] disabled:opacity-60"
+                      className="w-full bg-[var(--background)] border border-[var(--border)] rounded-lg px-2 py-1.5 text-sm text-[var(--foreground)]"
                     >
                       <option value="medication">{t('typeMedication')}</option>
                       <option value="supplement">{t('typeSupplement')}</option>
@@ -278,8 +260,7 @@ export function InfluenceFactorImportReview({
                       onChange={(e) =>
                         updateMed(medIdx, { dosage: e.target.value })
                       }
-                      disabled={!med.editing}
-                      className="w-full bg-[var(--background)] border border-[var(--border)] rounded-lg px-2 py-1.5 text-sm text-[var(--foreground)] disabled:opacity-60"
+                      className="w-full bg-[var(--background)] border border-[var(--border)] rounded-lg px-2 py-1.5 text-sm text-[var(--foreground)]"
                       placeholder={t('placeholders.dosageMed')}
                     />
                   </div>
@@ -292,8 +273,7 @@ export function InfluenceFactorImportReview({
                       onChange={(e) =>
                         updateMed(medIdx, { frequency: e.target.value })
                       }
-                      disabled={!med.editing}
-                      className="w-full bg-[var(--background)] border border-[var(--border)] rounded-lg px-2 py-1.5 text-sm text-[var(--foreground)] disabled:opacity-60"
+                      className="w-full bg-[var(--background)] border border-[var(--border)] rounded-lg px-2 py-1.5 text-sm text-[var(--foreground)]"
                     >
                       <option value="">{t('selectFrequency')}</option>
                       {FREQUENCY_OPTIONS.map((opt) => (
@@ -305,44 +285,42 @@ export function InfluenceFactorImportReview({
                   </div>
                 </div>
 
-                {/* Form row (only in edit mode) */}
-                {med.editing && (
-                  <div className="grid grid-cols-3 gap-3">
-                    <div>
-                      <label className="text-xs text-[var(--foreground)]/40 block mb-1">
-                        {t('formLabel')}
-                      </label>
-                      <select
-                        value={med.form}
-                        onChange={(e) =>
-                          updateMed(medIdx, { form: e.target.value })
-                        }
-                        className="w-full bg-[var(--background)] border border-[var(--border)] rounded-lg px-2 py-1.5 text-sm text-[var(--foreground)]"
-                      >
-                        <option value="">{t('selectForm')}</option>
-                        {FORM_OPTIONS.map((opt) => (
-                          <option key={opt.value} value={opt.value}>
-                            {t(opt.labelKey)}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="text-xs text-[var(--foreground)]/40 block mb-1">
-                        {t('prescriberLabel')}
-                      </label>
-                      <input
-                        type="text"
-                        value={med.prescriber}
-                        onChange={(e) =>
-                          updateMed(medIdx, { prescriber: e.target.value })
-                        }
-                        className="w-full bg-[var(--background)] border border-[var(--border)] rounded-lg px-2 py-1.5 text-sm text-[var(--foreground)]"
-                        placeholder={t('placeholders.prescriber')}
-                      />
-                    </div>
+                {/* Row 2: Form, Prescriber (always visible) */}
+                <div className="grid grid-cols-3 gap-3">
+                  <div>
+                    <label className="text-xs text-[var(--foreground)]/40 block mb-1">
+                      {t('formLabel')}
+                    </label>
+                    <select
+                      value={med.form}
+                      onChange={(e) =>
+                        updateMed(medIdx, { form: e.target.value })
+                      }
+                      className="w-full bg-[var(--background)] border border-[var(--border)] rounded-lg px-2 py-1.5 text-sm text-[var(--foreground)]"
+                    >
+                      <option value="">{t('selectForm')}</option>
+                      {FORM_OPTIONS.map((opt) => (
+                        <option key={opt.value} value={opt.value}>
+                          {t(opt.labelKey)}
+                        </option>
+                      ))}
+                    </select>
                   </div>
-                )}
+                  <div>
+                    <label className="text-xs text-[var(--foreground)]/40 block mb-1">
+                      {t('prescriberLabel')}
+                    </label>
+                    <input
+                      type="text"
+                      value={med.prescriber}
+                      onChange={(e) =>
+                        updateMed(medIdx, { prescriber: e.target.value })
+                      }
+                      className="w-full bg-[var(--background)] border border-[var(--border)] rounded-lg px-2 py-1.5 text-sm text-[var(--foreground)]"
+                      placeholder={t('placeholders.prescriber')}
+                    />
+                  </div>
+                </div>
 
                 {/* Ingredients section */}
                 <div>
@@ -365,101 +343,67 @@ export function InfluenceFactorImportReview({
                               ? '\u2514\u2500'
                               : '\u251C\u2500'}
                           </span>
-                          {med.editing ? (
-                            <div className="flex-1 space-y-1">
-                              <div className="flex items-center gap-1.5">
-                                <input
-                                  type="text"
-                                  value={ing.name}
-                                  onChange={(e) =>
-                                    updateIngredient(medIdx, ingIdx, { name: e.target.value })
-                                  }
-                                  placeholder={t('placeholders.ingredientName')}
-                                  className="w-40 min-w-0 bg-[var(--background)] border border-[var(--border)] rounded px-2 py-1 text-xs text-[var(--foreground)]"
-                                />
-                                <input
-                                  type="text"
-                                  inputMode="decimal"
-                                  value={ing.amount}
-                                  onChange={(e) => {
-                                    const val = e.target.value.replace(/[^0-9.,]/g, '')
-                                    updateIngredient(medIdx, ingIdx, { amount: val })
-                                  }}
-                                  placeholder={t('placeholders.ingredientAmount')}
-                                  className="w-16 bg-[var(--background)] border border-[var(--border)] rounded px-2 py-1 text-xs text-[var(--foreground)]"
-                                />
-                                <select
-                                  value={ing.unit || 'mg'}
-                                  onChange={(e) =>
-                                    updateIngredient(medIdx, ingIdx, { unit: e.target.value })
-                                  }
-                                  className="w-16 bg-[var(--background)] border border-[var(--border)] rounded px-1 py-1 text-xs text-[var(--foreground)]"
-                                >
-                                  {UNIT_KEYS.map((u) => (
-                                    <option key={u} value={u}>{t(`units.${u}`)}</option>
-                                  ))}
-                                </select>
-                                <select
-                                  value={ing.role}
-                                  onChange={(e) =>
-                                    updateIngredient(medIdx, ingIdx, { role: e.target.value })
-                                  }
-                                  className="w-24 bg-[var(--background)] border border-[var(--border)] rounded px-1 py-1 text-xs text-[var(--foreground)]"
-                                >
-                                  <option value="active">{t('roleActive')}</option>
-                                  <option value="auxiliary">{t('roleAuxiliary')}</option>
-                                </select>
-                                <button
-                                  onClick={() => removeIngredient(medIdx, ingIdx)}
-                                  className="text-red-400/60 hover:text-red-400 text-xs px-1"
-                                >
-                                  x
-                                </button>
-                              </div>
+                          <div className="flex-1 space-y-1">
+                            <div className="flex items-center gap-1.5">
                               <input
                                 type="text"
-                                value={ing.notes}
+                                value={ing.name}
                                 onChange={(e) =>
-                                  updateIngredient(medIdx, ingIdx, { notes: e.target.value })
+                                  updateIngredient(medIdx, ingIdx, { name: e.target.value })
                                 }
-                                placeholder={t('ingredientNotes')}
-                                className="w-full bg-[var(--background)] border border-[var(--border)] rounded px-2 py-1 text-[10px] text-[var(--muted-foreground)] italic"
+                                placeholder={t('placeholders.ingredientName')}
+                                className="w-40 min-w-0 bg-[var(--background)] border border-[var(--border)] rounded px-2 py-1 text-xs text-[var(--foreground)]"
                               />
-                            </div>
-                          ) : (
-                            <>
-                              <span className="text-[var(--foreground)] text-xs">{ing.name}</span>
-                              {ing.amount && (
-                                <span className="text-[var(--muted-foreground)] text-xs">
-                                  {ing.amount}{ing.unit && ing.unit !== 'noUnit' ? ` ${ing.unit === 'mcg' ? 'µg' : ing.unit === 'iu' ? 'IU' : ing.unit}` : ''}
-                                </span>
-                              )}
-                              <span
-                                className={`text-[10px] px-1.5 py-0.5 rounded ${
-                                  ing.role === 'active'
-                                    ? 'bg-blue-500/20 text-blue-400'
-                                    : 'bg-[var(--muted)]/30 text-[var(--muted-foreground)]'
-                                }`}
+                              <input
+                                type="text"
+                                inputMode="decimal"
+                                value={ing.amount}
+                                onChange={(e) => {
+                                  const val = e.target.value.replace(/[^0-9.,]/g, '')
+                                  updateIngredient(medIdx, ingIdx, { amount: val })
+                                }}
+                                placeholder={t('placeholders.ingredientAmount')}
+                                className="w-16 bg-[var(--background)] border border-[var(--border)] rounded px-2 py-1 text-xs text-[var(--foreground)]"
+                              />
+                              <select
+                                value={ing.unit || 'mg'}
+                                onChange={(e) =>
+                                  updateIngredient(medIdx, ingIdx, { unit: e.target.value })
+                                }
+                                className="w-16 bg-[var(--background)] border border-[var(--border)] rounded px-1 py-1 text-xs text-[var(--foreground)]"
                               >
-                                {ing.role === 'active' ? t('roleActive') : t('roleAuxiliary')}
-                              </span>
-                              {ing.notes && (
-                                <span className="text-[10px] text-[var(--muted-foreground)]/60 italic">{ing.notes}</span>
-                              )}
-                            </>
-                          )}
+                                {UNIT_KEYS.map((u) => (
+                                  <option key={u} value={u}>{t(`units.${u}`)}</option>
+                                ))}
+                              </select>
+                              <select
+                                value={ing.role}
+                                onChange={(e) =>
+                                  updateIngredient(medIdx, ingIdx, { role: e.target.value })
+                                }
+                                className="w-24 bg-[var(--background)] border border-[var(--border)] rounded px-1 py-1 text-xs text-[var(--foreground)]"
+                              >
+                                <option value="active">{t('roleActive')}</option>
+                                <option value="auxiliary">{t('roleAuxiliary')}</option>
+                              </select>
+                              <button
+                                onClick={() => removeIngredient(medIdx, ingIdx)}
+                                className="text-red-400/60 hover:text-red-400 text-xs px-1"
+                              >
+                                x
+                              </button>
+                            </div>
+                          </div>
                         </div>
                       ))}
                     </div>
                   )}
-                  {med.editing && (
-                    <button
-                      onClick={() => addIngredient(medIdx)}
-                      className="mt-2 text-xs text-blue-400/60 hover:text-blue-400"
-                    >
-                      + {t('addIngredient')}
-                    </button>
-                  )}
+                  <button
+                    onClick={() => addIngredient(medIdx)}
+                    className="mt-2 text-xs text-blue-400/60 hover:text-blue-400"
+                  >
+                    + {t('addIngredient')}
+                  </button>
                 </div>
               </div>
             </div>
