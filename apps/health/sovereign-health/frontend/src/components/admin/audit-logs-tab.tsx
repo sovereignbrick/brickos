@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, Fragment } from 'react'
+import Cookies from 'js-cookie'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -52,7 +53,7 @@ const RETENTION_DAYS = 90
 
 const getToken = () => {
   try {
-    return localStorage.getItem('sh_token')
+    return Cookies.get('auth_token') ?? null
   } catch {
     return null
   }

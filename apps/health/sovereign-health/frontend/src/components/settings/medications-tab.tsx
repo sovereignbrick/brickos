@@ -387,7 +387,7 @@ function InfluenceFactorForm({
           <label className="block text-xs text-muted-foreground mb-1">
             {tMeds('startDateLabel')} <FieldTooltip text={tMeds('tooltips.startDate')} />
           </label>
-          <input type="date" value={form.start_date || ''} onChange={e => set('start_date', e.target.value)} className={fieldClass} />
+          <input type="date" value={form.start_date || ''} onChange={e => set('start_date', e.target.value)} className={`${fieldClass} [color-scheme:light] dark:[color-scheme:dark]`} />
         </div>
 
         {/* Prescriber - only for medications */}
