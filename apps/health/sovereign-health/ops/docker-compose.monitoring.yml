@@ -24,6 +24,7 @@ services:
       NTFY_BASE_URL: "${NTFY_BASE_URL:-https://ntfy.brickos.io}"
       NTFY_AUTH_DEFAULT_ACCESS: "deny-all"
       NTFY_AUTH_FILE: "/etc/ntfy/auth.db"
+      NTFY_ENABLE_LOGIN: "true"
       NTFY_BEHIND_PROXY: "true"
       NTFY_CACHE_FILE: "/var/cache/ntfy/cache.db"
       NTFY_CACHE_DURATION: "48h"
