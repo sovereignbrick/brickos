@@ -223,15 +223,17 @@ async fn main() -> std::io::Result<()> {
     // Notification service (ntfy + Telegram dual-dispatch)
     let notify_config = sovereign_health_backend::services::notify::NotifyConfig::from_env();
     if notify_config.is_enabled() {
-        tracing::info!("Notifications: ENABLED (ntfy: {}, telegram: {})",
+        tracing::info!(
+            "Notifications: ENABLED (ntfy: {}, telegram: {})",
             notify_config.ntfy_base_url.is_some(),
-            notify_config.telegram_bot_token.is_some());
+            notify_config.telegram_bot_token.is_some()
+        );
     } else {
         tracing::info!("Notifications: DISABLED (NTFY_BASE_URL and TELEGRAM_BOT_TOKEN not set)");
     }
-    let notifier_data = web::Data::new(
-        sovereign_health_backend::services::notify::Notifier::new(notify_config),
-    );
+    let notifier_data = web::Data::new(sovereign_health_backend::services::notify::Notifier::new(
+        notify_config,
+    ));
 
     let extra_origins = config.cors_origins.clone();
     let bind_addr = format!("{}:{}", config.host, config.port);

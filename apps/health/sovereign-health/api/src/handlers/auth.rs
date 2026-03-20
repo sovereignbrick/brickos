@@ -506,7 +506,11 @@ pub async fn signup(
         crate::services::notify::Channel::Users,
         crate::services::notify::Priority::Default,
         "New signup",
-        &format!("{} (referred by: {})", &email, body.referred_by.as_deref().unwrap_or("direct")),
+        &format!(
+            "{} (referred by: {})",
+            &email,
+            body.referred_by.as_deref().unwrap_or("direct")
+        ),
     );
 
     Ok(HttpResponse::Created().json(json!({

@@ -864,7 +864,11 @@ pub async fn cancel(
                     "user_id={} ends={} reason={}",
                     user.user_id,
                     period_end.format("%Y-%m-%d"),
-                    if cancel_reason.is_empty() { "none" } else { &cancel_reason }
+                    if cancel_reason.is_empty() {
+                        "none"
+                    } else {
+                        &cancel_reason
+                    }
                 ),
             );
 
@@ -1048,20 +1052,30 @@ pub async fn webhook(
             }
         }
         "customer.subscription.deleted" => {
-            if let Err(e) =
-                handle_subscription_deleted(&pool, &email_provider, &config, &notifier, &event, &event_id)
-                    .await
+            if let Err(e) = handle_subscription_deleted(
+                &pool,
+                &email_provider,
+                &config,
+                &notifier,
+                &event,
+                &event_id,
+            )
+            .await
             {
                 tracing::error!("Error handling customer.subscription.deleted: {}", e);
             }
         }
         "invoice.payment_succeeded" => {
-            if let Err(e) = handle_invoice_payment(&pool, &notifier, &event, &event_id, "succeeded").await {
+            if let Err(e) =
+                handle_invoice_payment(&pool, &notifier, &event, &event_id, "succeeded").await
+            {
                 tracing::error!("Error handling invoice.payment_succeeded: {}", e);
             }
         }
         "invoice.payment_failed" => {
-            if let Err(e) = handle_invoice_payment(&pool, &notifier, &event, &event_id, "failed").await {
+            if let Err(e) =
+                handle_invoice_payment(&pool, &notifier, &event, &event_id, "failed").await
+            {
                 tracing::error!("Error handling invoice.payment_failed: {}", e);
             }
         }
@@ -1154,7 +1168,10 @@ async fn handle_checkout_completed(
         crate::services::notify::Channel::Billing,
         crate::services::notify::Priority::Default,
         "New subscription",
-        &format!("user_id={} tier={} interval={}", user_id, tier_slug, interval),
+        &format!(
+            "user_id={} tier={} interval={}",
+            user_id, tier_slug, interval
+        ),
     );
 
     // Track promotion redemption if promo code was used
@@ -1400,7 +1417,12 @@ async fn handle_subscription_deleted(
             crate::services::notify::Channel::Billing,
             crate::services::notify::Priority::High,
             "Subscription cancelled",
-            &format!("user_id={} tier={} — grace period until {}", user_id, tier_slug, grace_end.format("%Y-%m-%d")),
+            &format!(
+                "user_id={} tier={} — grace period until {}",
+                user_id,
+                tier_slug,
+                grace_end.format("%Y-%m-%d")
+            ),
         );
 
         // Start grace period downgrade in user_licenses
@@ -1510,11 +1532,7 @@ async fn handle_invoice_payment(
             crate::services::notify::Channel::Billing,
             crate::services::notify::Priority::Urgent,
             "Payment failed",
-            &format!(
-                "customer={} amount={}c",
-                customer_id,
-                amount.unwrap_or(0)
-            ),
+            &format!("customer={} amount={}c", customer_id, amount.unwrap_or(0)),
         );
     }
 
@@ -1809,7 +1827,10 @@ async fn handle_charge_refunded(
         crate::services::notify::Channel::Billing,
         crate::services::notify::Priority::High,
         "Refund processed",
-        &format!("user_id={} amount={}c — reverted to core tier", user_id, amount_refunded),
+        &format!(
+            "user_id={} amount={}c — reverted to core tier",
+            user_id, amount_refunded
+        ),
     );
 
     tracing::info!(

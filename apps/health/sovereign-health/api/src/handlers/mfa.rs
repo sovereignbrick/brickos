@@ -390,7 +390,10 @@ pub async fn mfa_verify_login(
             crate::services::notify::Channel::Critical,
             crate::services::notify::Priority::High,
             "MFA brute force lockout",
-            &format!("user_id={} — 5 failed MFA attempts, session locked", user_id),
+            &format!(
+                "user_id={} — 5 failed MFA attempts, session locked",
+                user_id
+            ),
         );
 
         return Ok(HttpResponse::Unauthorized().json(json!({

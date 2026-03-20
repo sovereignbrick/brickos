@@ -56,7 +56,9 @@ impl NotifyConfig {
         }
 
         Self {
-            ntfy_base_url: std::env::var("NTFY_BASE_URL").ok().filter(|s| !s.is_empty()),
+            ntfy_base_url: std::env::var("NTFY_BASE_URL")
+                .ok()
+                .filter(|s| !s.is_empty()),
             ntfy_token: std::env::var("NTFY_TOKEN").ok().filter(|s| !s.is_empty()),
             ntfy_app_prefix: std::env::var("NTFY_APP_PREFIX").unwrap_or_else(|_| "sh".into()),
             telegram_bot_token: std::env::var("TELEGRAM_BOT_TOKEN")
@@ -102,8 +104,10 @@ impl Notifier {
     }
 
     async fn dispatch(&self, channel: Channel, priority: Priority, title: &str, body: &str) {
-        let (ntfy_result, tg_result) =
-            tokio::join!(self.send_ntfy(channel, priority, title, body), self.send_telegram(channel, title, body),);
+        let (ntfy_result, tg_result) = tokio::join!(
+            self.send_ntfy(channel, priority, title, body),
+            self.send_telegram(channel, title, body),
+        );
 
         if let Err(e) = ntfy_result {
             tracing::debug!("ntfy send failed: {e}");
@@ -143,12 +147,7 @@ impl Notifier {
         Ok(())
     }
 
-    async fn send_telegram(
-        &self,
-        channel: Channel,
-        title: &str,
-        body: &str,
-    ) -> Result<(), String> {
+    async fn send_telegram(&self, channel: Channel, title: &str, body: &str) -> Result<(), String> {
         let token = match &self.config.telegram_bot_token {
             Some(t) => t,
             None => return Ok(()),
