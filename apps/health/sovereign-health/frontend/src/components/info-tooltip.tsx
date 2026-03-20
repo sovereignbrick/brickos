@@ -22,7 +22,7 @@ export function InfoTooltip({ children }: { children: ReactNode }) {
         ref={ref}
         onMouseEnter={handleEnter}
         onMouseLeave={() => setShow(false)}
-        className="text-blue-500 dark:text-muted-foreground/50 hover:text-blue-600 dark:hover:text-muted-foreground cursor-help shrink-0 text-xs"
+        className="text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 cursor-help shrink-0 text-xs"
       >
         ⓘ
       </span>
