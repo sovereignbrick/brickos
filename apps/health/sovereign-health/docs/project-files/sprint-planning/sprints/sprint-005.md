@@ -16,7 +16,7 @@
 
 **Started:** 2026-03-21
 **Completed:** ongoing
-**Goal:** Harden production environment, fix remaining Sprint 004 retro items, improve test coverage and developer workflow. No new features — stability and confidence only.
+**Goal:** Fix production issues from v0.22.0, implement Dr. Alex tabular data import (Design 015), harden production environment, and improve developer workflow. Multi-day sprint.
 
 ## Context
 
@@ -162,6 +162,52 @@ Document any mismatches and fix them.
 
 ---
 
+## Phase 6 — Dr. Alex: Smart Import — Tabular Data (13 pts)
+
+See full design: `docs/project-files/design/015-smart-import-tabular-data.md`
+
+### P6-A: Backend — upload + AI extraction + confirm (5 pts)
+
+**Problem:** Users have historical measurement data in spreadsheets (ODS/XLSX/CSV) and photos of tables. No way to bulk import.
+**Fix:**
+1. `POST /import/upload-measurements` — accepts spreadsheet files + images
+2. LibreOffice headless conversion for ODS/XLSX → CSV
+3. Claude AI prompt to extract column mapping + data rows
+4. Marker + device matching against user's existing data
+5. `POST /import/confirm-measurements` — bulk create measurements
+6. `import_sessions` table for rollback tracking
+7. `DELETE /import/sessions/{id}/rollback` — undo an import
+**Files:** `api/src/handlers/import.rs`, new migration
+
+---
+
+### P6-B: Frontend — Review Screen (5 pts)
+
+**Problem:** Need a review step between AI extraction and import, matching the Lab PDF review UX.
+**Fix:**
+1. Column-to-marker mapping table (editable dropdowns)
+2. Device assignment per marker column (auto-detected from user's devices)
+3. Protocol mapping (fasting, postprandial, etc.)
+4. Row preview with selection checkboxes
+5. Duplicate detection toggle
+6. Progress bar during bulk upload
+7. Success toast with "View in History" link
+**Files:** `frontend/src/components/doctor-chat/measurement-import-review.tsx`
+
+---
+
+### P6-C: Frontend — Entry Points + i18n (3 pts)
+
+**Problem:** Need entry points for the new import type.
+**Fix:**
+1. Agent Grid: add "Tabellarische Messwerte importieren" card to Smart Import section
+2. Chat input: paperclip submenu with 3 options (Lab, Medication, Measurements)
+3. i18n: EN + DE for all new strings
+4. File type detection: route to correct import pipeline based on file extension
+**Files:** `frontend/src/components/doctor-chat/agent-grid.tsx`, `chat-input.tsx`, `chat-layout.tsx`, i18n files
+
+---
+
 ## Backlog (not this sprint)
 
 - #151: Branded affiliate URL shortener (brickos.io/r/{code}) — needs domain working first
@@ -178,14 +224,16 @@ Document any mismatches and fix them.
 
 | Metric | Value |
 |---|---|
+| Phase 0 (production hotfixes) | ~7 pts |
 | Phase 1 (workflow) | 4 pts |
 | Phase 2 (content) | 6 pts |
 | Phase 3 (admin audit) | 5 pts |
 | Phase 4 (hardening) | 5 pts |
 | Phase 5 (tests, stretch) | 5 pts |
-| **Total planned** | **25 pts** |
+| Phase 6 (smart import) | 13 pts |
+| **Total planned** | **~45 pts** |
 
-**Note:** Scoped to 25 pts per retro feedback (single-day sprint cap). Phase 5 is stretch.
+**Note:** Multi-day sprint. Phase 0 + 1 + 6 are priority. Phase 5 is stretch.
 
 ---
 
@@ -198,10 +246,26 @@ Day 1 (2026-03-21):
     Verify v0.22.0 production              → 10 min
     Merge post-release fixes to main (P1-3)→ 5 min
 
+  Phase 0: Production Hotfixes (~7 pts, ~3 hrs)
+    P0-1 History date filter default       → 30 min
+    P0-2 Trends 7D/30D empty chart         → 45 min
+    P0-5 History sort newest first         → 15 min
+    P0-7 Edit form loses device_id         → 30 min
+    P0-4 US date format in DE locale       → 20 min
+    P0-6 History table layout              → 45 min
+    P0-3 Missing measurement investigation → 15 min
+
   Phase 1: Developer Workflow (4 pts, ~1 hr)
     P1-1 Preflight script                  → 20 min
     P1-2 Replace native date picker        → 30 min
 
+Day 2:
+  Phase 6: Smart Import (13 pts, ~6 hrs)
+    P6-A Backend: upload + AI extraction   → 3 hrs
+    P6-B Review screen                     → 2 hrs
+    P6-C Entry points + i18n              → 1 hr
+
+Day 3 (if needed):
   Phase 2: Content Completeness (6 pts, ~2 hrs)
     P2-1 why_it_matters for 92 markers     → 1 hr
     P2-2 when_to_worry for 92 markers      → 1 hr
