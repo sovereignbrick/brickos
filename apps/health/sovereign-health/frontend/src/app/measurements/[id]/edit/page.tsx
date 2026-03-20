@@ -84,6 +84,7 @@ export default function EditMeasurementPage() {
           setSleepQuality(m.sleep_quality ?? '')
           setStressLevel(m.stress_level != null ? String(m.stress_level) : '')
           setNote(m.lifestyle_note ?? '')
+          setDeviceId(m.device_id ?? '')
         })
         .catch(() => setMeasurement(null))
         .finally(() => setFetching(false))
@@ -106,6 +107,7 @@ export default function EditMeasurementPage() {
         value: numVal,
         measured_at: new Date(measuredAt).toISOString(),
         protocol_tag: protocol,
+        device_id: deviceId || undefined,
         ...(protocol === 'fasting' ? {
           fasting_protocol: fastingProtocol,
           fast_start_datetime: fastStart ? new Date(fastStart).toISOString() : undefined,

@@ -47,6 +47,7 @@ export interface Measurement {
   sleep_quality: string | null
   stress_level: number | null
   lifestyle_note: string | null
+  device_id: string | null
   device_name: string | null
   created_at: string
 }

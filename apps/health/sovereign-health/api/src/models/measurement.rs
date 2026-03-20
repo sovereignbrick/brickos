@@ -73,6 +73,7 @@ pub struct MeasurementResponse {
     pub sleep_quality: Option<String>,
     pub stress_level: Option<i32>,
     pub lifestyle_note: Option<String>,
+    pub device_id: Option<Uuid>,
     pub device_name: Option<String>,
     pub created_at: DateTime<Utc>,
 }

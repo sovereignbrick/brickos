@@ -25,7 +25,7 @@ function periodToDays(p: Period): number {
     case '3m': return 90
     case '6m': return 180
     case '1y': return 365
-    case 'all': return 365
+    case 'all': return 0
   }
 }
 
