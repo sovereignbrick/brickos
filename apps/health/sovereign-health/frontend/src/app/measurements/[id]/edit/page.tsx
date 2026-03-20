@@ -10,6 +10,7 @@ import { Breadcrumb } from '@/components/breadcrumb'
 import { StatusBadge } from '@/components/status-badge'
 import { computeStatus, DEFAULT_RANGES } from '@/lib/status'
 import { toast } from '@/lib/toast'
+import { formatDate } from '@/lib/date-format'
 import { DateTimePicker } from '@/components/date-time-picker'
 import Link from 'next/link'
 import { useTranslations } from 'next-intl'
@@ -398,7 +399,7 @@ export default function EditMeasurementPage() {
             } disabled:opacity-50`}
           >
             {deleting ? t('deleting') : confirmDelete
-              ? t('confirmDeleteMeasurement', { date: new Date(measurement.timestamp).toLocaleDateString() })
+              ? t('confirmDeleteMeasurement', { date: formatDate(measurement.timestamp, user?.country_code) })
               : t('deleteMeasurement')}
           </button>
           {confirmDelete && (

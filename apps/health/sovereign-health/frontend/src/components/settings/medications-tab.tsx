@@ -160,7 +160,7 @@ function InfluenceFactorCard({
             {factor.frequency && <div><span className="text-muted-foreground/70">{tMeds('freqField')}</span> <span className="text-muted-foreground">{factor.frequency}</span></div>}
             {factor.form && <div><span className="text-muted-foreground/70">{tMeds('formField')}</span> <span className="capitalize text-muted-foreground">{factor.form}</span></div>}
             {factor.start_date && (
-              <div><span className="text-muted-foreground/70">{tMeds('sinceField')}</span> <span className="text-muted-foreground">{new Date(factor.start_date).toLocaleDateString()}</span></div>
+              <div><span className="text-muted-foreground/70">{tMeds('sinceField')}</span> <span className="text-muted-foreground">{factor.start_date}</span></div>
             )}
             {factor.factor_type === 'medication' && factor.prescriber && (
               <div><span className="text-muted-foreground/70">{tMeds('prescriberField')}</span> <span className="text-muted-foreground">{factor.prescriber}</span></div>

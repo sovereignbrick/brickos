@@ -21,6 +21,7 @@ import { Breadcrumb } from '@/components/breadcrumb'
 import { IS_OSS } from '@/lib/mode'
 import { MedicationsTab } from '@/components/settings/medications-tab'
 import { InfoTooltip, MarkerInfoTooltip } from '@/components/info-tooltip'
+import { formatDate as fmtDate } from '@/lib/date-format'
 
 const TABS = ['Profile', 'Devices', 'Thresholds', 'Medications', 'License', 'Security', 'Data & Privacy'] as const
 type Tab = (typeof TABS)[number]
@@ -694,12 +695,12 @@ function DeviceCard({ device, markers, onEdit, onDelete, onSetDefault }: {
         )}
         <p>
           {tDev('measurementCount', { count: device.measurement_count })}
-          {device.last_used && ` | ${tDev('lastUsed', { date: new Date(device.last_used).toLocaleDateString() })}`}
+          {device.last_used && ` | ${tDev('lastUsed', { date: fmtDate(device.last_used) })}`}
         </p>
         {device.notes && <p>{tDev('notes', { notes: device.notes })}</p>}
         {device.validation_status && device.validation_date && (
           <p className="text-emerald-400/80">
-            {tDev('validatedOn', { date: new Date(device.validation_date).toLocaleDateString() })}
+            {tDev('validatedOn', { date: fmtDate(device.validation_date) })}
             {device.validation_notes && `: ${device.validation_notes}`}
           </p>
         )}

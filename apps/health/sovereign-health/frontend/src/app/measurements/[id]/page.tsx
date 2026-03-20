@@ -11,6 +11,7 @@ import Link from 'next/link'
 import { toast } from '@/lib/toast'
 import { Breadcrumb } from '@/components/breadcrumb'
 import { useTranslations } from 'next-intl'
+import { formatDateTime, formatDate } from '@/lib/date-format'
 
 export default function MeasurementDetailPage() {
   const { user, loading } = useAuth()
@@ -69,7 +70,7 @@ export default function MeasurementDetailPage() {
   const fields: { label: string; value: string | number | null | undefined }[] = [
     { label: 'Marker', value: measurement.marker_name },
     { label: 'Value', value: `${measurement.value} ${measurement.unit}` },
-    { label: 'Timestamp', value: new Date(measurement.timestamp).toLocaleString() },
+    { label: 'Timestamp', value: formatDateTime(measurement.timestamp, user?.country_code) },
     { label: 'Protocol', value: measurement.protocol_tag },
     { label: 'Diet Protocol', value: measurement.diet_protocol },
     { label: 'Fasting Protocol', value: measurement.fasting_protocol },
@@ -80,7 +81,7 @@ export default function MeasurementDetailPage() {
     { label: 'Sleep Quality', value: measurement.sleep_quality },
     { label: 'Stress Level', value: measurement.stress_level != null ? (measurement.stress_level <= 2 ? 'None' : measurement.stress_level <= 4 ? 'Low' : measurement.stress_level <= 6 ? 'Moderate' : measurement.stress_level <= 8 ? 'High' : 'Very High') : null },
     { label: 'Note', value: measurement.lifestyle_note },
-    { label: 'Created', value: new Date(measurement.created_at).toLocaleString() },
+    { label: 'Created', value: formatDateTime(measurement.created_at, user?.country_code) },
   ]
 
   return (
@@ -91,7 +92,7 @@ export default function MeasurementDetailPage() {
           <Breadcrumb items={[
             { label: 'Overview', href: '/dashboard' },
             { label: 'History', href: '/measurements' },
-            { label: `${measurement.marker_name}  - ${new Date(measurement.timestamp).toLocaleDateString()}` },
+            { label: `${measurement.marker_name}  - ${formatDate(measurement.timestamp, user?.country_code)}` },
           ]} />
         </div>
 
@@ -99,7 +100,7 @@ export default function MeasurementDetailPage() {
           <div className="flex items-start justify-between mb-4">
             <div>
               <h1 className="text-xl font-bold">{measurement.marker_name}</h1>
-              <p className="text-muted-foreground text-sm">{new Date(measurement.timestamp).toLocaleString()}</p>
+              <p className="text-muted-foreground text-sm">{formatDateTime(measurement.timestamp, user?.country_code)}</p>
             </div>
             <div className="text-right">
               <p className="text-2xl font-bold">{measurement.value} <span className="text-sm text-muted-foreground">{measurement.unit}</span></p>
@@ -136,7 +137,7 @@ export default function MeasurementDetailPage() {
                 : 'bg-accent text-red-400 hover:bg-red-500/10 border border-red-500/30'
             } disabled:opacity-50`}
           >
-            {deleting ? 'Deleting...' : confirmDelete ? `Confirm: Delete from ${new Date(measurement.timestamp).toLocaleDateString()}?` : 'Delete'}
+            {deleting ? 'Deleting...' : confirmDelete ? `Confirm: Delete from ${formatDate(measurement.timestamp, user?.country_code)}?` : 'Delete'}
           </button>
         </div>
         {confirmDelete && (
