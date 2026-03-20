@@ -15,7 +15,8 @@ pub fn build_totp(secret_base32: &str, email: &str) -> anyhow::Result<TOTP> {
     let secret = Secret::Encoded(secret_base32.to_string())
         .to_bytes()
         .map_err(|e| anyhow::anyhow!("Invalid base32 secret: {e}"))?;
-    let issuer = std::env::var("PRODUCT_NAME").unwrap_or_else(|_| "BrickOS".to_string());
+    let issuer = std::env::var("PRODUCT_NAME")
+        .unwrap_or_else(|_| "BrickOS - Sovereign Health Intelligence".to_string());
     let totp = TOTP::new(
         Algorithm::SHA1,
         6,

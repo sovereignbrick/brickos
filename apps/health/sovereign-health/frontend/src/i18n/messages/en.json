@@ -68,6 +68,7 @@
     "cancelReason": "Reason for cancellation (optional)",
     "cancelling": "Cancelling...",
     "cardio": "Cardio",
+    "cycling": "Cycling",
     "carnivore": "Carnivore",
     "changeLanguage": "Change language",
     "changePlan": "Change Plan",
@@ -117,6 +118,7 @@
     "paleo": "Paleo",
     "paymentMethod": "Payment method",
     "pending": "Pending",
+    "pilates": "Pilates",
     "protocol": "Protocol",
     "reactivating": "Reactivating...",
     "reasonMissingFeatures": "Missing features I need",
@@ -127,11 +129,13 @@
     "rest": "Rest",
     "status": "Status",
     "strength": "Strength Training",
+    "swimming": "Swimming",
     "total": "Total",
     "upgradePlan": "Upgrade your plan",
     "vegan": "Vegan",
     "vegetarian": "Vegetarian",
-    "walking": "Walking"
+    "walking": "Walking",
+    "yoga": "Yoga"
   },
   "nav": {
     "menu": "Menu",
@@ -455,6 +459,8 @@
     "notesPlaceholder": "Any additional notes...",
     "title": "Influence Factors",
     "subtitle": "Track your current and past influence factors",
+    "explanationMedication": "Medications are prescribed drugs that may affect your blood values. Tracking them helps Dr. Alex interpret your results more accurately.",
+    "explanationSupplement": "Supplements are vitamins, minerals, or herbal products you take voluntarily. They can shift biomarker ranges and should be considered when reviewing your health data.",
     "addButton": "Add Influence Factor",
     "addTitle": "Add New Influence Factor",
     "editTitle": "Edit Influence Factor",
@@ -509,7 +515,8 @@
       "patch": "Patch",
       "cream": "Cream",
       "inhaler": "Inhaler",
-      "drops": "Drops"
+      "drops": "Drops",
+      "powder": "Powder"
     },
     "source": {
       "manual": "Manual",
@@ -813,6 +820,10 @@
         "cardio": "Running, cycling, swimming",
         "walking": "Walking, light movement",
         "hiit": "High-intensity interval training",
+        "yoga": "Yoga, stretching, flexibility",
+        "swimming": "Swimming, water exercises",
+        "cycling": "Cycling, indoor or outdoor",
+        "pilates": "Pilates, core stability exercises",
         "rest": "Rest day, no exercise"
       },
       "sleepDescs": {

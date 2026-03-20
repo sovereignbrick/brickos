@@ -200,6 +200,16 @@ preflight() {
     # Verify SSH connectivity: Fail fast if VPS is unreachable.
     ssh -o ConnectTimeout=5 $VPS "echo ok" >/dev/null 2>&1 || fail "Cannot reach VPS at $VPS"
     log "VPS reachable"
+
+    # Check frontend lockfile sync: Prevents Docker build failure from stale pnpm-lock.yaml.
+    local frontend_dir="${APP_ROOT}/frontend"
+    if [ -f "${frontend_dir}/package.json" ] && [ -f "${frontend_dir}/pnpm-lock.yaml" ]; then
+        if ! (cd "$frontend_dir" && pnpm install --frozen-lockfile --ignore-workspace 2>/dev/null); then
+            fail "Frontend pnpm-lock.yaml is out of sync with package.json. Run: cd frontend && pnpm install --ignore-workspace"
+        fi
+        log "Frontend lockfile in sync"
+    fi
+
     report_add "OK" "Pre-flight passed (local: ${local_free}G free, VPS: ${vps_free:-?}G free)"
 }
 

@@ -59,6 +59,7 @@ const FORM_OPTIONS = [
   { value: 'cream', labelKey: 'forms.cream' },
   { value: 'inhaler', labelKey: 'forms.inhaler' },
   { value: 'drops', labelKey: 'forms.drops' },
+  { value: 'powder', labelKey: 'forms.powder' },
 ]
 
 export function InfluenceFactorImportReview({

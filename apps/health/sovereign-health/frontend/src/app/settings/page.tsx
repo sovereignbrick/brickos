@@ -1105,6 +1105,21 @@ function ProfileTab({
   const { locale: contentLocale, setLocale: setContentLocale } = useContent()
   const [locale, setLocale] = useState(contentLocale)
 
+  // Locale-aware decimal: accept both "." and "," as decimal separator
+  const parseDecimal = (v: string): number | null => {
+    const s = v.replace(',', '.').trim()
+    if (!s) return null
+    const n = Number(s)
+    return isFinite(n) ? n : null
+  }
+  const fmtDec = (v: number | null): string => {
+    if (v == null) return ''
+    return locale === 'de' ? String(v).replace('.', ',') : String(v)
+  }
+  // Track raw text for decimal inputs to allow intermediate states like "7,"
+  const [weightText, setWeightText] = useState(fmtDec(weightUnit === 'lbs' && form.default_weight_kg ? Math.round(form.default_weight_kg * 2.205 * 10) / 10 : form.default_weight_kg))
+  const [sleepText, setSleepText] = useState(fmtDec(lForm.default_sleep_hours))
+
   const localizedCountries = useMemo(() => {
     try {
       const dn = new Intl.DisplayNames([locale], { type: 'region' })
@@ -1195,7 +1210,7 @@ function ProfileTab({
     }
   }
 
-  const inp = "w-full rounded-lg border border-border bg-card px-2.5 py-1.5 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-blue-500"
+  const inp = "w-full rounded-lg border border-border bg-card px-2.5 py-1.5 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-blue-500 [&>option]:bg-card [&>option]:text-foreground"
   const ro = "w-full rounded-lg border border-border bg-muted px-2.5 py-1.5 text-sm text-muted-foreground cursor-not-allowed"
 
   return (
@@ -1304,10 +1319,11 @@ function ProfileTab({
               <InfoTooltip>{t('weightTooltip')}</InfoTooltip>
             </div>
             <div className="flex gap-1">
-              <input type="number" value={displayWeight ?? ''} onChange={e => {
-                const v = e.target.value ? Number(e.target.value) : null
+              <input type="text" inputMode="decimal" value={weightText} onChange={e => {
+                setWeightText(e.target.value)
+                const v = parseDecimal(e.target.value)
                 setForm({ ...form, default_weight_kg: weightUnit === 'lbs' && v ? Math.round(v / 2.205 * 10) / 10 : v })
-              }} className={"w-16 " + inp} step={0.1} />
+              }} className={"w-16 " + inp} />
               <select value={weightUnit} onChange={e => setWeightUnit(e.target.value as 'kg' | 'lbs')} className="w-14 rounded-lg border border-border bg-card px-1 py-1.5 text-xs text-foreground">
                 <option value="kg">kg</option><option value="lbs">lbs</option>
               </select>
@@ -1354,13 +1370,17 @@ function ProfileTab({
                   <p className="text-[11px] text-muted-foreground mt-1 leading-snug">{t(`fastingDescs.${lForm.default_fasting_protocol}`)}</p>
                 )}
               </FieldWithInfo>
-              <FieldWithInfo label={t('exerciseLevel')} items={['strength','cardio','walking','hiit','rest'].map(k => ({ name: tCommon(k as 'strength'), desc: t(`exerciseDescs.${k}` as 'exerciseDescs.strength') }))}>
+              <FieldWithInfo label={t('exerciseLevel')} items={['strength','cardio','walking','hiit','yoga','swimming','cycling','pilates','rest'].map(k => ({ name: tCommon(k as 'strength'), desc: t(`exerciseDescs.${k}` as 'exerciseDescs.strength') }))}>
                 <select value={lForm.default_exercise ?? ''} onChange={e => setLForm({ ...lForm, default_exercise: e.target.value || null })} className={inp}>
                   <option value="">{tCommon('none')}</option>
                   <option value="strength">{tCommon('strength')}</option>
                   <option value="cardio">{tCommon('cardio')}</option>
                   <option value="walking">{tCommon('walking')}</option>
                   <option value="hiit">{tCommon('hiit')}</option>
+                  <option value="yoga">{tCommon('yoga')}</option>
+                  <option value="swimming">{tCommon('swimming')}</option>
+                  <option value="cycling">{tCommon('cycling')}</option>
+                  <option value="pilates">{tCommon('pilates')}</option>
                   <option value="rest">{tCommon('rest')}</option>
                 </select>
                 {lForm.default_exercise && (
@@ -1372,7 +1392,10 @@ function ProfileTab({
                   <label className="text-sm text-muted-foreground">{t('sleepHoursLabel')}</label>
                   <InfoTooltip>{t('sleepHoursInfo')}</InfoTooltip>
                 </div>
-                <input type="number" value={lForm.default_sleep_hours ?? ''} onChange={e => setLForm({ ...lForm, default_sleep_hours: e.target.value ? Number(e.target.value) : null })} className={inp} min={0} max={24} step={0.5} />
+                <input type="text" inputMode="decimal" value={sleepText} onChange={e => {
+                  setSleepText(e.target.value)
+                  setLForm({ ...lForm, default_sleep_hours: parseDecimal(e.target.value) })
+                }} className={inp} />
               </div>
               <div className="space-y-1.5">
                 <div className="flex items-center gap-1">
@@ -2047,7 +2070,9 @@ function DataPrivacyTab({ shareAnonymousData, onToggle }: { shareAnonymousData: 
   }, [logout, router])
 
   return (
-    <div className="space-y-8">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Left column: data visibility & consent */}
+      <div className="space-y-6">
       <div className="border border-border rounded-lg p-6 space-y-3">
         <div className="flex items-center justify-between">
           <div>
@@ -2146,7 +2171,10 @@ function DataPrivacyTab({ shareAnonymousData, onToggle }: { shareAnonymousData: 
           </div>
         )}
       </div>
+      </div>
 
+      {/* Right column: export & account deletion */}
+      <div className="space-y-6">
       <div className="border border-border rounded-lg p-6 space-y-3">
         <h3 className="font-medium">{t('exportAllTitle')}</h3>
         <p className="text-sm text-muted-foreground">{t('exportAllDesc')}</p>
@@ -2169,6 +2197,7 @@ function DataPrivacyTab({ shareAnonymousData, onToggle }: { shareAnonymousData: 
             </div>
           </div>
         )}
+      </div>
       </div>
 
     </div>
@@ -2610,7 +2639,7 @@ function LicenseTab() {
       {paymentCanceled && (
         <div className="bg-muted/50 border border-border rounded-lg p-4 flex items-center gap-3">
           <span className="text-muted-foreground text-lg">&#8505;</span>
-          <p className="text-sm text-zinc-300">{t('paymentCanceled')}</p>
+          <p className="text-sm text-muted-foreground">{t('paymentCanceled')}</p>
         </div>
       )}
 
@@ -3189,7 +3218,7 @@ function SecurityTab() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       {/* Two-Factor Authentication */}
       <div className="border border-border rounded-lg p-6 space-y-4">
         <h3 className="font-medium">{t('twoFactor')}</h3>

@@ -144,7 +144,7 @@ export default function EditMeasurementPage() {
   // Helper: translate exercise value
   const translateExercise = (val: string) => {
     if (!val) return tCommon('notSet')
-    if (['cardio', 'hiit', 'none', 'rest', 'strength', 'walking'].includes(val)) return tCommon(val)
+    if (['cardio', 'cycling', 'hiit', 'none', 'pilates', 'rest', 'strength', 'swimming', 'walking', 'yoga'].includes(val)) return tCommon(val)
     return tExercise(val)
   }
 
@@ -208,7 +208,7 @@ export default function EditMeasurementPage() {
                 <select
                   value={deviceId}
                   onChange={e => { setDeviceId(e.target.value); markDirty() }}
-                  className="bg-popover border border-border rounded-lg px-2.5 py-1.5 text-sm w-full text-white [&>option]:bg-popover [&>option]:text-white"
+                  className="bg-popover border border-border rounded-lg px-2.5 py-1.5 text-sm w-full text-foreground [&>option]:bg-popover [&>option]:text-foreground"
                 >
                   <option value="">{t('manualEntry')}</option>
                   {devices.map(d => (
@@ -274,7 +274,7 @@ export default function EditMeasurementPage() {
                 <select
                   value={sleepQuality}
                   onChange={e => { setSleepQuality(e.target.value); markDirty() }}
-                  className="w-full bg-popover border border-border rounded-lg px-2.5 py-1.5 text-sm text-white [&>option]:bg-popover [&>option]:text-white"
+                  className="w-full bg-popover border border-border rounded-lg px-2.5 py-1.5 text-sm text-foreground [&>option]:bg-popover [&>option]:text-foreground"
                 >
                   <option value="">-</option>
                   <option value="poor">{tSleepQuality('poor')}</option>
@@ -288,7 +288,7 @@ export default function EditMeasurementPage() {
                 <select
                   value={stressLevel}
                   onChange={e => { setStressLevel(e.target.value); markDirty() }}
-                  className="w-full bg-popover border border-border rounded-lg px-2.5 py-1.5 text-sm text-white [&>option]:bg-popover [&>option]:text-white"
+                  className="w-full bg-popover border border-border rounded-lg px-2.5 py-1.5 text-sm text-foreground [&>option]:bg-popover [&>option]:text-foreground"
                 >
                   {STRESS_OPTIONS.map(o => (
                     <option key={o.value} value={o.value}>{tStressLevel(o.key)}</option>

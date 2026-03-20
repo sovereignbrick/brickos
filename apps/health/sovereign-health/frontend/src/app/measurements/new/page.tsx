@@ -781,7 +781,7 @@ export default function NewMeasurementPage() {
                     setTemplateOriginalSlugs(null)
                   }
                 }}
-                className="w-full bg-popover border border-border rounded-lg px-2 py-1 text-xs text-white [&>option]:bg-popover [&>option]:text-white"
+                className="w-full bg-popover border border-border rounded-lg px-2 py-1 text-xs text-foreground [&>option]:bg-popover [&>option]:text-foreground"
               >
                 <option value="">{t('noDevice')}</option>
                 {devices.map(d => (
@@ -820,7 +820,7 @@ export default function NewMeasurementPage() {
                     if (tpl) applyTemplate(tpl)
                   }
                 }}
-                className={`w-full bg-popover border border-border rounded-lg px-2 py-1 text-xs text-white [&>option]:bg-popover [&>option]:text-white ${selectedDeviceId ? 'opacity-40 cursor-not-allowed' : ''}`}
+                className={`w-full bg-popover border border-border rounded-lg px-2 py-1 text-xs text-foreground [&>option]:bg-popover [&>option]:text-foreground ${selectedDeviceId ? 'opacity-40 cursor-not-allowed' : ''}`}
               >
                 <option value="">{t('noTemplate')}</option>
                 {templates.map(tp => (
@@ -848,7 +848,7 @@ export default function NewMeasurementPage() {
             </span>
             <span className="text-zinc-700">·</span>
             <span className="shrink-0">
-              {t('lifestyle.exercise')}: <span className="text-foreground">{exercise ? (['cardio', 'hiit', 'none', 'rest', 'strength', 'walking'].includes(exercise) ? tCommon(exercise) : tExercise(exercise)) : '–'}</span>
+              {t('lifestyle.exercise')}: <span className="text-foreground">{exercise ? (['cardio', 'cycling', 'hiit', 'none', 'pilates', 'rest', 'strength', 'swimming', 'walking', 'yoga'].includes(exercise) ? tCommon(exercise) : tExercise(exercise)) : '–'}</span>
             </span>
             <span className="flex-1" />
             <Link href="/settings?tab=profile" className="text-blue-400 hover:text-blue-300 shrink-0">{t('lifestyle.editInSettings')}</Link>
@@ -861,7 +861,7 @@ export default function NewMeasurementPage() {
               <select
                 value={mealTiming}
                 onChange={e => setMealTiming(e.target.value)}
-                className="w-full bg-popover border border-border rounded-lg px-2 py-1 text-xs text-white [&>option]:bg-popover [&>option]:text-white"
+                className="w-full bg-popover border border-border rounded-lg px-2 py-1 text-xs text-foreground [&>option]:bg-popover [&>option]:text-foreground"
               >
                 <option value="no_tag">{t('mealTiming.noTag')}</option>
                 <option value="fasting">{t('mealTiming.fasting')}</option>
@@ -893,7 +893,7 @@ export default function NewMeasurementPage() {
               <select
                 value={sleepQuality}
                 onChange={e => setSleepQuality(e.target.value)}
-                className="w-full bg-popover border border-border rounded-lg px-2 py-1 text-xs text-white [&>option]:bg-popover [&>option]:text-white"
+                className="w-full bg-popover border border-border rounded-lg px-2 py-1 text-xs text-foreground [&>option]:bg-popover [&>option]:text-foreground"
               >
                 <option value="">-</option>
                 <option value="poor">{tSleepQuality('poor')}</option>
@@ -907,7 +907,7 @@ export default function NewMeasurementPage() {
               <select
                 value={stressLevel}
                 onChange={e => setStressLevel(e.target.value)}
-                className="w-full bg-popover border border-border rounded-lg px-2 py-1 text-xs text-white [&>option]:bg-popover [&>option]:text-white"
+                className="w-full bg-popover border border-border rounded-lg px-2 py-1 text-xs text-foreground [&>option]:bg-popover [&>option]:text-foreground"
               >
                 {STRESS_OPTIONS.map(o => (
                   <option key={o.value} value={o.value}>{tStressLevel(o.key)}</option>

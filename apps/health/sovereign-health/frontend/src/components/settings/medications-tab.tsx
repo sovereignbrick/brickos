@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { toast } from '@/lib/toast'
 import { api } from '@/lib/api'
-import Link from 'next/link'
+
 import type { InfluenceFactor, CreateInfluenceFactorInput } from '@/lib/types'
 import { useTranslations } from 'next-intl'
 
@@ -17,7 +17,7 @@ const FREQUENCY_KEYS: { value: string; labelKey: string }[] = [
 ]
 
 const FORM_KEYS = [
-  'tablet', 'capsule', 'liquid', 'injection', 'patch', 'cream', 'inhaler', 'drops', 'other',
+  'tablet', 'capsule', 'liquid', 'powder', 'injection', 'patch', 'cream', 'inhaler', 'drops', 'other',
 ]
 
 const UNIT_KEYS = ['mg', 'g', 'mcg', 'ml', 'iu', 'pct', 'mmol', 'noUnit']
@@ -133,16 +133,16 @@ function InfluenceFactorCard({
             <SourceBadge source={factor.source} />
           </div>
 
-          <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-xs text-muted-foreground">
-            {factor.brand && <span>{tMeds('brandField')} {factor.brand}</span>}
-            {factor.dosage && <span>{tMeds('dosageField')} {factor.dosage}</span>}
-            {factor.frequency && <span>{tMeds('freqField')} {factor.frequency}</span>}
-            {factor.form && <span className="capitalize">{tMeds('formField')} {factor.form}</span>}
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-1.5 mt-2 text-xs">
+            {factor.brand && <div><span className="text-muted-foreground/70">{tMeds('brandField')}</span> <span className="text-muted-foreground">{factor.brand}</span></div>}
+            {factor.dosage && <div><span className="text-muted-foreground/70">{tMeds('dosageField')}</span> <span className="text-muted-foreground">{factor.dosage}</span></div>}
+            {factor.frequency && <div><span className="text-muted-foreground/70">{tMeds('freqField')}</span> <span className="text-muted-foreground">{factor.frequency}</span></div>}
+            {factor.form && <div><span className="text-muted-foreground/70">{tMeds('formField')}</span> <span className="capitalize text-muted-foreground">{factor.form}</span></div>}
             {factor.start_date && (
-              <span>{tMeds('sinceField')} {new Date(factor.start_date).toLocaleDateString()}</span>
+              <div><span className="text-muted-foreground/70">{tMeds('sinceField')}</span> <span className="text-muted-foreground">{new Date(factor.start_date).toLocaleDateString()}</span></div>
             )}
             {factor.factor_type === 'medication' && factor.prescriber && (
-              <span>{tMeds('prescriberField')} {factor.prescriber}</span>
+              <div><span className="text-muted-foreground/70">{tMeds('prescriberField')}</span> <span className="text-muted-foreground">{factor.prescriber}</span></div>
             )}
           </div>
 
@@ -608,14 +608,8 @@ export function MedicationsTab() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [showArchived, setShowArchived] = useState(false)
   const [saving, setSaving] = useState(false)
-  const [tipDismissed, setTipDismissed] = useState(false)
-  const [sortBy, setSortBy] = useState<'date' | 'name'>('date')
 
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      setTipDismissed(localStorage.getItem('sh_med_tip_dismissed') === '1')
-    }
-  }, [])
+  const [sortBy, setSortBy] = useState<'date' | 'name'>('date')
 
   const sortFn = (a: InfluenceFactor, b: InfluenceFactor) => {
     if (sortBy === 'name') return a.name.localeCompare(b.name)
@@ -746,34 +740,17 @@ export function MedicationsTab() {
         )}
       </div>
 
-      {/* Dr. Alex tip */}
-      {!tipDismissed && (
-        <div className="flex items-start gap-3 rounded-lg bg-blue-100 dark:bg-blue-950/30 border border-blue-300 dark:border-blue-800/30 px-4 py-3">
-          <span className="text-blue-600 dark:text-blue-400 mt-0.5 shrink-0">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="10" /><path d="M12 16v-4" /><path d="M12 8h.01" />
-            </svg>
-          </span>
-          <p className="text-xs text-blue-700 dark:text-blue-300/80 flex-1">
-            {tMeds.rich('tipText', {
-              drAlex: (chunks) => (
-                <Link href="/doctor-chat" className="text-blue-400 hover:text-blue-300 font-medium underline underline-offset-2">
-                  {chunks}
-                </Link>
-              ),
-            })}
-          </p>
-          <button
-            onClick={() => { setTipDismissed(true); localStorage.setItem('sh_med_tip_dismissed', '1') }}
-            className="text-blue-400/60 dark:text-blue-400/40 hover:text-blue-600 dark:hover:text-blue-400/80 shrink-0 mt-0.5"
-            aria-label={tCommon('dismiss')}
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M18 6L6 18M6 6l12 12" />
-            </svg>
-          </button>
+      {/* Explanation: medications vs supplements */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="border border-border rounded-lg p-3 space-y-1">
+          <p className="text-xs font-medium flex items-center gap-1.5"><span>💊</span> {tMeds('typeMedication')}</p>
+          <p className="text-xs text-muted-foreground leading-relaxed">{tMeds('explanationMedication')}</p>
         </div>
-      )}
+        <div className="border border-border rounded-lg p-3 space-y-1">
+          <p className="text-xs font-medium flex items-center gap-1.5"><span>🌿</span> {tMeds('typeSupplement')}</p>
+          <p className="text-xs text-muted-foreground leading-relaxed">{tMeds('explanationSupplement')}</p>
+        </div>
+      </div>
 
       {/* Add form */}
       {showForm && (

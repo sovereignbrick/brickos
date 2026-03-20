@@ -24,6 +24,9 @@ out/
 .DS_Store
 Thumbs.db
 
+# Crash reports
+crash-report-*.md
+
 # Build
 dist/
 build/

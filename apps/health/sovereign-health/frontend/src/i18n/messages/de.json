@@ -68,6 +68,7 @@
     "cancelReason": "Kündigungsgrund (optional)",
     "cancelling": "Wird gekündigt...",
     "cardio": "Ausdauer",
+    "cycling": "Radfahren",
     "carnivore": "Karnivor",
     "changeLanguage": "Sprache ändern",
     "changePlan": "Plan ändern",
@@ -117,6 +118,7 @@
     "paleo": "Paleo",
     "paymentMethod": "Zahlungsmethode",
     "pending": "Ausstehend",
+    "pilates": "Pilates",
     "protocol": "Protokoll",
     "reactivating": "Wird reaktiviert...",
     "reasonMissingFeatures": "Fehlende Funktionen",
@@ -127,11 +129,13 @@
     "rest": "Ruhe",
     "status": "Status",
     "strength": "Krafttraining",
+    "swimming": "Schwimmen",
     "total": "Gesamt",
     "upgradePlan": "Plan upgraden",
     "vegan": "Vegan",
     "vegetarian": "Vegetarisch",
-    "walking": "Spaziergang"
+    "walking": "Spaziergang",
+    "yoga": "Yoga"
   },
   "nav": {
     "menu": "Menü",
@@ -455,6 +459,8 @@
     "notesPlaceholder": "Zusätzliche Notizen...",
     "title": "Einflussfaktoren",
     "subtitle": "Verfolge deine aktuellen und vergangenen Einflussfaktoren",
+    "explanationMedication": "Medikamente sind verschriebene Arzneimittel, die deine Blutwerte beeinflussen können. Die Erfassung hilft Dr. Alex, deine Ergebnisse genauer zu interpretieren.",
+    "explanationSupplement": "Nahrungsergänzungsmittel sind Vitamine, Mineralien oder pflanzliche Produkte. Sie können Biomarker-Bereiche verschieben und sollten bei der Auswertung berücksichtigt werden.",
     "addButton": "Einflussfaktor hinzufügen",
     "addTitle": "Neuen Einflussfaktor hinzufügen",
     "editTitle": "Einflussfaktor bearbeiten",
@@ -509,7 +515,8 @@
       "patch": "Pflaster",
       "cream": "Creme",
       "inhaler": "Inhalator",
-      "drops": "Tropfen"
+      "drops": "Tropfen",
+      "powder": "Pulver"
     },
     "source": {
       "manual": "Manuell",
@@ -813,6 +820,10 @@
         "cardio": "Laufen, Radfahren, Schwimmen",
         "walking": "Spazierengehen, leichte Bewegung",
         "hiit": "Hochintensives Intervalltraining",
+        "yoga": "Yoga, Dehnung, Flexibilität",
+        "swimming": "Schwimmen, Wasserübungen",
+        "cycling": "Radfahren, drinnen oder draußen",
+        "pilates": "Pilates, Rumpfstabilität",
         "rest": "Ruhetag, kein Training"
       },
       "sleepDescs": {

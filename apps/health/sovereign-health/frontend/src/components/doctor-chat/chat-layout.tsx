@@ -160,6 +160,10 @@ export function ChatLayout() {
   }
 
   const handleFileUpload = async (files: File[], importType: 'lab_import' | 'med_import') => {
+    if (files.length > 3) {
+      toast.error(tChat('maxFilesPerUpload'))
+      return
+    }
     setImportLoading(true)
     try {
       if (importType === 'lab_import') {
