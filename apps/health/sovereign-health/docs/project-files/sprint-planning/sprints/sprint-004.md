@@ -327,25 +327,25 @@ Day 2+ (if multi-day):
 ## Definition of Done for Sprint 004
 
 ### Phase 1 — Quick Wins
-- [ ] MFA QR code shows "BrickOS - Sovereign Health Intelligence" as issuer
-- [ ] Exercise dropdown includes Yoga, Pilates, Swimming, Cycling, and other common activities
-- [ ] Light theme tooltips are readable (no black-on-black)
-- [ ] Blue Dr. Alex banner removed from influence factors tab
-- [ ] "Pulver/Powder" available in dosage form dropdown
-- [ ] Supplement import toast has "View in Settings" link
+- [x] MFA QR code shows "BrickOS - Sovereign Health Intelligence" as issuer
+- [x] Exercise dropdown includes Yoga, Pilates, Swimming, Cycling, and other common activities
+- [x] Light theme tooltips are readable (no black-on-black)
+- [x] Blue Dr. Alex banner removed from influence factors tab
+- [x] "Pulver/Powder" available in dosage form dropdown
+- [x] Supplement import toast has "View in Settings" link
 
 ### Phase 2 — UX Improvements
-- [ ] Weight/sleeping hours inputs accept both `.` and `,`, display per locale
+- [x] Weight/sleeping hours inputs accept both `.` and `,`, display per locale
 - [ ] Inline notifications clear on page navigation
-- [ ] Security tab uses two-column layout
-- [ ] Privacy tab uses two-column layout
-- [ ] Influence factors page clearly explains medication vs supplement distinction
-- [ ] Medication/supplement edit has column labels and readable widths
+- [x] Security tab uses two-column layout
+- [x] Privacy tab uses two-column layout
+- [x] Influence factors page clearly explains medication vs supplement distinction
+- [x] Medication/supplement edit has column labels and readable widths
 
 ### Phase 3 — Search & AI
-- [ ] "muscle" search returns CK, Myoglobin, Creatinine as top results (not noise)
-- [ ] Dr. Alex shows photo count error before analysis starts
-- [ ] Dr. Alex results show brand, allow inline editing of extracted values
+- [x] "muscle" search returns CK, Myoglobin, Creatinine as top results (not noise)
+- [x] Dr. Alex shows photo count error before analysis starts
+- [x] Dr. Alex results show brand, allow inline editing of extracted values
 
 ### Phase 4 — Thresholds (stretch for Day 1)
 - [ ] Thresholds tab shows reference scheme source per marker
