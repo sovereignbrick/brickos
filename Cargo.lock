@@ -70,7 +70,7 @@ dependencies = [
  "http 0.2.12",
  "httparse",
  "httpdate",
- "itoa 1.0.17",
+ "itoa 1.0.18",
  "language-tags",
  "local-channel",
  "mime",
@@ -220,7 +220,7 @@ dependencies = [
  "futures-core",
  "futures-util",
  "impl-more",
- "itoa 1.0.17",
+ "itoa 1.0.18",
  "language-tags",
  "log",
  "mime",
@@ -1847,7 +1847,7 @@ checksum = "601cbb57e577e2f5ef5be8e7b83f0f63994f25aa94d673e54a92d5c516d101f1"
 dependencies = [
  "bytes",
  "fnv",
- "itoa 1.0.17",
+ "itoa 1.0.18",
 ]
 
 [[package]]
@@ -1857,7 +1857,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e3ba2a386d7f85a81f119ad7498ebe444d2e22c2af0b86b069416ace48b3311a"
 dependencies = [
  "bytes",
- "itoa 1.0.17",
+ "itoa 1.0.18",
 ]
 
 [[package]]
@@ -1908,7 +1908,7 @@ dependencies = [
  "http 1.4.0",
  "http-body",
  "httparse",
- "itoa 1.0.17",
+ "itoa 1.0.18",
  "pin-project-lite",
  "pin-utils",
  "smallvec",
@@ -2211,9 +2211,9 @@ checksum = "b71991ff56294aa922b450139ee08b3bfc70982c6b2c7562771375cf73542dd4"
 
 [[package]]
 name = "itoa"
-version = "1.0.17"
+version = "1.0.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "92ecc6618181def0457392ccd0ee51198e065e016d1d527a7ac1b6dc7c1f09d2"
+checksum = "8f42a60cbdf9a97f5d2305f08a87dc4e09308d1276d28c869c684d7777685682"
 
 [[package]]
 name = "jobserver"
@@ -3888,7 +3888,7 @@ version = "1.0.149"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "83fc039473c5595ace860d8c4fafa220ff474b3fc6bfdb4293327f1a37e94d86"
 dependencies = [
- "itoa 1.0.17",
+ "itoa 1.0.18",
  "memchr",
  "serde",
  "serde_core",
@@ -3911,7 +3911,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d3491c14715ca2294c4d6a88f15e84739788c1d030eed8c110436aafdaa2f3fd"
 dependencies = [
  "form_urlencoded",
- "itoa 1.0.17",
+ "itoa 1.0.18",
  "ryu",
  "serde",
 ]
@@ -4055,7 +4055,7 @@ dependencies = [
 
 [[package]]
 name = "sovereign-health-backend"
-version = "0.21.0"
+version = "0.22.0"
 dependencies = [
  "actix-cors",
  "actix-governor",
@@ -4243,7 +4243,7 @@ dependencies = [
  "hex",
  "hkdf",
  "hmac",
- "itoa 1.0.17",
+ "itoa 1.0.18",
  "log",
  "md-5",
  "memchr",
@@ -4284,7 +4284,7 @@ dependencies = [
  "hkdf",
  "hmac",
  "home",
- "itoa 1.0.17",
+ "itoa 1.0.18",
  "log",
  "md-5",
  "memchr",
@@ -4580,7 +4580,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "743bd48c283afc0388f9b8827b976905fb217ad9e647fae3a379a9283c4def2c"
 dependencies = [
  "deranged",
- "itoa 1.0.17",
+ "itoa 1.0.18",
  "num-conv",
  "powerfmt",
  "serde_core",
@@ -5718,18 +5718,18 @@ dependencies = [
 
 [[package]]
 name = "zerocopy"
-version = "0.8.46"
+version = "0.8.47"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5c5030500cb2d66bdfbb4ebc9563be6ce7005a4b5d0f26be0c523870fe372ca6"
+checksum = "efbb2a062be311f2ba113ce66f697a4dc589f85e78a4aea276200804cea0ed87"
 dependencies = [
  "zerocopy-derive",
 ]
 
 [[package]]
 name = "zerocopy-derive"
-version = "0.8.46"
+version = "0.8.47"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a5f86989a046a79640b9d8867c823349a139367bda96549794fcc3313ce91f4e"
+checksum = "0e8bc7269b54418e7aeeef514aa68f8690b8c0489a06b0136e5f57c4c5ccab89"
 dependencies = [
  "proc-macro2",
  "quote",
