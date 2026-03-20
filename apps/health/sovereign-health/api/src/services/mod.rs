@@ -16,4 +16,5 @@ pub mod purge;
 pub mod rate_limit;
 pub mod reference;
 pub mod segments;
+pub mod notify;
 pub mod tier;

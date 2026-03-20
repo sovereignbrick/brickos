@@ -220,6 +220,19 @@ async fn main() -> std::io::Result<()> {
         sovereign_health_backend::handlers::content_strings::ContentStringsCache::new(),
     );
 
+    // Notification service (ntfy + Telegram dual-dispatch)
+    let notify_config = sovereign_health_backend::services::notify::NotifyConfig::from_env();
+    if notify_config.is_enabled() {
+        tracing::info!("Notifications: ENABLED (ntfy: {}, telegram: {})",
+            notify_config.ntfy_base_url.is_some(),
+            notify_config.telegram_bot_token.is_some());
+    } else {
+        tracing::info!("Notifications: DISABLED (NTFY_BASE_URL and TELEGRAM_BOT_TOKEN not set)");
+    }
+    let notifier_data = web::Data::new(
+        sovereign_health_backend::services::notify::Notifier::new(notify_config),
+    );
+
     let extra_origins = config.cors_origins.clone();
     let bind_addr = format!("{}:{}", config.host, config.port);
     let cors_max_age = config.cors_max_age;
@@ -274,7 +287,8 @@ async fn main() -> std::io::Result<()> {
             .app_data(public_chat_token_tracker.clone())
             .app_data(public_chat_daily_ip_tracker.clone())
             .app_data(content_strings_cache.clone())
-            .app_data(payment_router_data.clone());
+            .app_data(payment_router_data.clone())
+            .app_data(notifier_data.clone());
         if let Some(ref sd) = stripe_data {
             app = app.app_data(sd.clone());
         }

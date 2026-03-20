@@ -107,6 +107,7 @@ pub async fn mfa_verify_setup(
     pool: web::Data<PgPool>,
     auth: AuthenticatedUser,
     enc: web::Data<Encryptor>,
+    notifier: web::Data<crate::services::notify::Notifier>,
     body: web::Json<MfaVerifySetupRequest>,
 ) -> Result<HttpResponse, AppError> {
     // Find setup token
@@ -212,6 +213,14 @@ pub async fn mfa_verify_setup(
         .execute(pool.get_ref())
         .await?;
 
+    // Notify admins
+    notifier.send(
+        crate::services::notify::Channel::Users,
+        crate::services::notify::Priority::Default,
+        "MFA enabled",
+        &format!("user_id={}", auth.user_id),
+    );
+
     Ok(HttpResponse::Ok().json(json!({
         "data": {
             "enabled": true,
@@ -234,6 +243,7 @@ pub async fn mfa_disable(
     pool: web::Data<PgPool>,
     auth: AuthenticatedUser,
     enc: web::Data<Encryptor>,
+    notifier: web::Data<crate::services::notify::Notifier>,
     body: web::Json<MfaDisableRequest>,
 ) -> Result<HttpResponse, AppError> {
     // Get MFA record
@@ -290,6 +300,14 @@ pub async fn mfa_disable(
         .execute(pool.get_ref())
         .await?;
 
+    // Notify admins (security event)
+    notifier.send(
+        crate::services::notify::Channel::Users,
+        crate::services::notify::Priority::High,
+        "MFA disabled",
+        &format!("user_id={} email={}", auth.user_id, email),
+    );
+
     Ok(HttpResponse::Ok().json(json!({
         "data": { "enabled": false },
         "error": null
@@ -313,6 +331,7 @@ pub async fn mfa_verify_login(
     pool: web::Data<PgPool>,
     config: web::Data<crate::config::Config>,
     enc: web::Data<Encryptor>,
+    notifier: web::Data<crate::services::notify::Notifier>,
     body: web::Json<MfaVerifyLoginRequest>,
 ) -> Result<HttpResponse, AppError> {
     use sqlx::Row;
@@ -365,6 +384,15 @@ pub async fn mfa_verify_login(
             .bind(verification_id)
             .execute(pool.get_ref())
             .await?;
+
+        // Notify admins (potential brute force)
+        notifier.send(
+            crate::services::notify::Channel::Critical,
+            crate::services::notify::Priority::High,
+            "MFA brute force lockout",
+            &format!("user_id={} — 5 failed MFA attempts, session locked", user_id),
+        );
+
         return Ok(HttpResponse::Unauthorized().json(json!({
             "data": null,
             "error": { "code": "MAX_ATTEMPTS", "message": "Too many attempts. Please log in again." }
@@ -642,6 +670,7 @@ pub async fn change_password(
     pool: web::Data<PgPool>,
     auth: AuthenticatedUser,
     enc: web::Data<Encryptor>,
+    notifier: web::Data<crate::services::notify::Notifier>,
     body: web::Json<ChangePasswordRequest>,
 ) -> Result<HttpResponse, AppError> {
     // Get current user
@@ -715,6 +744,14 @@ pub async fn change_password(
         .bind(auth.user_id)
         .execute(pool.get_ref())
         .await?;
+
+    // Notify admins
+    notifier.send(
+        crate::services::notify::Channel::Users,
+        crate::services::notify::Priority::Default,
+        "Password changed",
+        &format!("user_id={}", auth.user_id),
+    );
 
     Ok(HttpResponse::Ok().json(json!({
         "data": { "message": "Password updated successfully." },

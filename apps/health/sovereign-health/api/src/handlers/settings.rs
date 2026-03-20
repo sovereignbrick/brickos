@@ -1211,6 +1211,7 @@ pub async fn export_all(
 pub async fn delete_account(
     pool: web::Data<PgPool>,
     auth: AuthenticatedUser,
+    notifier: web::Data<crate::services::notify::Notifier>,
 ) -> Result<HttpResponse, AppError> {
     // Soft delete: set is_deleted = true, deleted_at = now()
     sqlx::query(
@@ -1225,6 +1226,14 @@ pub async fn delete_account(
         .bind(auth.user_id)
         .execute(pool.get_ref())
         .await?;
+
+    // Notify admins (important event)
+    notifier.send(
+        crate::services::notify::Channel::Users,
+        crate::services::notify::Priority::High,
+        "Account deletion initiated",
+        &format!("user_id={} — 30-day grace period started", auth.user_id),
+    );
 
     Ok(HttpResponse::Ok().json(json!({
         "data": {

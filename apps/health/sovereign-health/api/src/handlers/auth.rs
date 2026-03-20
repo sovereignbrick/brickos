@@ -149,6 +149,7 @@ pub async fn signup(
     config: web::Data<Config>,
     email_provider: web::Data<Arc<dyn EmailProvider>>,
     rate_limiters: web::Data<AuthRateLimiters>,
+    notifier: web::Data<crate::services::notify::Notifier>,
     body: web::Json<SignupRequest>,
 ) -> Result<HttpResponse, AppError> {
     // Rate limit by IP (need IP before registration gate for whitelist check)
@@ -500,6 +501,14 @@ pub async fn signup(
         });
     }
 
+    // Notify admins
+    notifier.send(
+        crate::services::notify::Channel::Users,
+        crate::services::notify::Priority::Default,
+        "New signup",
+        &format!("{} (referred by: {})", &email, body.referred_by.as_deref().unwrap_or("direct")),
+    );
+
     Ok(HttpResponse::Created().json(json!({
         "data": { "message": "Check your email to verify your account." },
         "error": null
@@ -519,6 +528,7 @@ pub async fn verify_email(
     pool: web::Data<PgPool>,
     config: web::Data<Config>,
     email_provider: web::Data<Arc<dyn EmailProvider>>,
+    notifier: web::Data<crate::services::notify::Notifier>,
     query: web::Query<VerifyQuery>,
 ) -> Result<HttpResponse, AppError> {
     use sqlx::Row;
@@ -583,6 +593,14 @@ pub async fn verify_email(
             .bind(user_id)
             .fetch_optional(pool.get_ref())
             .await?;
+
+    // Notify admins
+    notifier.send(
+        crate::services::notify::Channel::Users,
+        crate::services::notify::Priority::Default,
+        "Email verified",
+        &format!("user_id={}", user_id),
+    );
 
     // Non-blocking: Mailgun sync + welcome email + segments
     if let Some(row) = user_row {
@@ -850,6 +868,7 @@ pub async fn reset_password(
     req: HttpRequest,
     pool: web::Data<PgPool>,
     rate_limiters: web::Data<AuthRateLimiters>,
+    notifier: web::Data<crate::services::notify::Notifier>,
     body: web::Json<ResetPasswordRequest>,
 ) -> Result<HttpResponse, AppError> {
     // Rate limit by IP
@@ -919,6 +938,14 @@ pub async fn reset_password(
         .bind(user_id)
         .execute(pool.get_ref())
         .await?;
+
+    // Notify admins
+    notifier.send(
+        crate::services::notify::Channel::Users,
+        crate::services::notify::Priority::Default,
+        "Password reset completed",
+        &format!("user_id={}", user_id),
+    );
 
     Ok(HttpResponse::Ok().json(json!({
         "data": { "message": "Password updated. Please log in." },

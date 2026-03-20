@@ -795,6 +795,7 @@ pub async fn cancel(
     pool: web::Data<PgPool>,
     stripe: Option<web::Data<StripeService>>,
     user: AuthenticatedUser,
+    notifier: web::Data<crate::services::notify::Notifier>,
     body: Option<web::Json<CancelRequest>>,
 ) -> HttpResponse {
     let stripe =
@@ -854,6 +855,19 @@ pub async fn cancel(
             .execute(pool.get_ref())
             .await;
 
+            // Notify admins
+            notifier.send(
+                crate::services::notify::Channel::Billing,
+                crate::services::notify::Priority::High,
+                "Cancellation requested",
+                &format!(
+                    "user_id={} ends={} reason={}",
+                    user.user_id,
+                    period_end.format("%Y-%m-%d"),
+                    if cancel_reason.is_empty() { "none" } else { &cancel_reason }
+                ),
+            );
+
             HttpResponse::Ok().json(json!({
                 "data": {
                     "message": format!("Subscription will end on {}.", period_end.format("%B %d, %Y")),
@@ -880,6 +894,7 @@ pub async fn reactivate(
     pool: web::Data<PgPool>,
     stripe: Option<web::Data<StripeService>>,
     user: AuthenticatedUser,
+    notifier: web::Data<crate::services::notify::Notifier>,
 ) -> HttpResponse {
     let stripe =
         match stripe {
@@ -930,6 +945,14 @@ pub async fn reactivate(
             .execute(pool.get_ref())
             .await;
 
+            // Notify admins
+            notifier.send(
+                crate::services::notify::Channel::Billing,
+                crate::services::notify::Priority::Default,
+                "Subscription reactivated",
+                &format!("user_id={}", user.user_id),
+            );
+
             HttpResponse::Ok().json(json!({
                 "data": { "message": "Subscription reactivated." },
                 "error": null
@@ -955,6 +978,7 @@ pub async fn webhook(
     config: web::Data<Config>,
     stripe: Option<web::Data<StripeService>>,
     email_provider: web::Data<Arc<dyn EmailProvider>>,
+    notifier: web::Data<crate::services::notify::Notifier>,
     body: web::Bytes,
 ) -> HttpResponse {
     let stripe = match stripe {
@@ -999,6 +1023,7 @@ pub async fn webhook(
                 &stripe,
                 &email_provider,
                 &config,
+                &notifier,
                 &event,
                 &event_id,
             )
@@ -1013,6 +1038,7 @@ pub async fn webhook(
                 &stripe,
                 &email_provider,
                 &config,
+                &notifier,
                 &event,
                 &event_id,
             )
@@ -1023,24 +1049,24 @@ pub async fn webhook(
         }
         "customer.subscription.deleted" => {
             if let Err(e) =
-                handle_subscription_deleted(&pool, &email_provider, &config, &event, &event_id)
+                handle_subscription_deleted(&pool, &email_provider, &config, &notifier, &event, &event_id)
                     .await
             {
                 tracing::error!("Error handling customer.subscription.deleted: {}", e);
             }
         }
         "invoice.payment_succeeded" => {
-            if let Err(e) = handle_invoice_payment(&pool, &event, &event_id, "succeeded").await {
+            if let Err(e) = handle_invoice_payment(&pool, &notifier, &event, &event_id, "succeeded").await {
                 tracing::error!("Error handling invoice.payment_succeeded: {}", e);
             }
         }
         "invoice.payment_failed" => {
-            if let Err(e) = handle_invoice_payment(&pool, &event, &event_id, "failed").await {
+            if let Err(e) = handle_invoice_payment(&pool, &notifier, &event, &event_id, "failed").await {
                 tracing::error!("Error handling invoice.payment_failed: {}", e);
             }
         }
         "charge.refunded" => {
-            if let Err(e) = handle_charge_refunded(&pool, &event, &event_id).await {
+            if let Err(e) = handle_charge_refunded(&pool, &notifier, &event, &event_id).await {
                 tracing::error!("Error handling charge.refunded: {}", e);
             }
         }
@@ -1061,6 +1087,7 @@ async fn handle_checkout_completed(
     stripe: &StripeService,
     email_provider: &Arc<dyn EmailProvider>,
     config: &Config,
+    notifier: &crate::services::notify::Notifier,
     event: &serde_json::Value,
     event_id: &str,
 ) -> anyhow::Result<()> {
@@ -1121,6 +1148,14 @@ async fn handle_checkout_completed(
 
     // Update user tier in user_licenses
     update_user_tier(pool, user_id, &tier_slug).await?;
+
+    // Notify admins
+    notifier.send(
+        crate::services::notify::Channel::Billing,
+        crate::services::notify::Priority::Default,
+        "New subscription",
+        &format!("user_id={} tier={} interval={}", user_id, tier_slug, interval),
+    );
 
     // Track promotion redemption if promo code was used
     let promo_code = session["metadata"]["promo_code"]
@@ -1217,6 +1252,7 @@ async fn handle_subscription_updated(
     stripe: &StripeService,
     email_provider: &Arc<dyn EmailProvider>,
     config: &Config,
+    notifier: &crate::services::notify::Notifier,
     event: &serde_json::Value,
     event_id: &str,
 ) -> anyhow::Result<()> {
@@ -1283,6 +1319,14 @@ async fn handle_subscription_updated(
         if let Some(uid) = user_id {
             update_user_tier(pool, uid, &new_tier).await?;
 
+            // Notify admins
+            notifier.send(
+                crate::services::notify::Channel::Billing,
+                crate::services::notify::Priority::Default,
+                "Plan changed",
+                &format!("user_id={} {} → {}", uid, prev_tier, new_tier),
+            );
+
             // Send tier change email
             let email = get_user_email(pool, uid).await.unwrap_or_default();
             if !email.is_empty() {
@@ -1324,6 +1368,7 @@ async fn handle_subscription_deleted(
     pool: &PgPool,
     email_provider: &Arc<dyn EmailProvider>,
     config: &Config,
+    notifier: &crate::services::notify::Notifier,
     event: &serde_json::Value,
     event_id: &str,
 ) -> anyhow::Result<()> {
@@ -1349,6 +1394,14 @@ async fn handle_subscription_deleted(
     if let Some(row) = row {
         let user_id: Uuid = row.try_get("user_id")?;
         let tier_slug: String = row.try_get("tier_slug").unwrap_or_default();
+
+        // Notify admins
+        notifier.send(
+            crate::services::notify::Channel::Billing,
+            crate::services::notify::Priority::High,
+            "Subscription cancelled",
+            &format!("user_id={} tier={} — grace period until {}", user_id, tier_slug, grace_end.format("%Y-%m-%d")),
+        );
 
         // Start grace period downgrade in user_licenses
         // The tier enforcement checks grace_period_end at request time (Task 7)
@@ -1412,6 +1465,7 @@ async fn handle_subscription_deleted(
 
 async fn handle_invoice_payment(
     pool: &PgPool,
+    notifier: &crate::services::notify::Notifier,
     event: &serde_json::Value,
     event_id: &str,
     result: &str,
@@ -1450,6 +1504,18 @@ async fn handle_invoice_payment(
             .execute(pool)
             .await;
         }
+
+        // Notify admins (urgent — revenue at risk)
+        notifier.send(
+            crate::services::notify::Channel::Billing,
+            crate::services::notify::Priority::Urgent,
+            "Payment failed",
+            &format!(
+                "customer={} amount={}c",
+                customer_id,
+                amount.unwrap_or(0)
+            ),
+        );
     }
 
     // Generate invoice number for successful payments
@@ -1682,6 +1748,7 @@ async fn handle_invoice_payment(
 
 async fn handle_charge_refunded(
     pool: &PgPool,
+    notifier: &crate::services::notify::Notifier,
     event: &serde_json::Value,
     event_id: &str,
 ) -> anyhow::Result<()> {
@@ -1737,6 +1804,14 @@ async fn handle_charge_refunded(
     )
     .await?;
 
+    // Notify admins
+    notifier.send(
+        crate::services::notify::Channel::Billing,
+        crate::services::notify::Priority::High,
+        "Refund processed",
+        &format!("user_id={} amount={}c — reverted to core tier", user_id, amount_refunded),
+    );
+
     tracing::info!(
         "Processed charge.refunded for user {}: {} cents",
         user_id,
@@ -1749,11 +1824,13 @@ async fn handle_charge_refunded(
 // POST /admin/subscriptions/{user_id}/refund  (admin only)
 // ---------------------------------------------------------------------------
 
+#[allow(clippy::too_many_arguments)]
 pub async fn admin_refund(
     pool: web::Data<PgPool>,
     stripe: Option<web::Data<StripeService>>,
     email_provider: web::Data<Arc<dyn EmailProvider>>,
     config: web::Data<Config>,
+    notifier: web::Data<crate::services::notify::Notifier>,
     admin: AdminUser,
     path: web::Path<String>,
     body: web::Json<RefundRequest>,
@@ -1939,6 +2016,21 @@ pub async fn admin_refund(
             }
         });
     }
+
+    // Notify admins
+    notifier.send(
+        crate::services::notify::Channel::Billing,
+        crate::services::notify::Priority::High,
+        "Admin refund issued",
+        &format!(
+            "admin={} user={} amount={}c reason={} force={}",
+            admin.user_id,
+            target_user_id,
+            amount_refunded,
+            body.reason.as_deref().unwrap_or("none"),
+            force,
+        ),
+    );
 
     tracing::info!(
         "Admin {} refunded {} cents for user {} (force={})",
