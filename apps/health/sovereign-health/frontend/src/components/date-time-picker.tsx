@@ -49,3 +49,44 @@ export function DateTimePicker({ value, onChange, countryCode, className }: Date
     />
   )
 }
+
+interface DateOnlyPickerProps {
+  value: string // YYYY-MM-DD format
+  onChange: (value: string) => void
+  countryCode?: string | null
+  className?: string
+  placeholder?: string
+}
+
+function dateOnlyFormat(countryCode?: string | null): string {
+  const cc = countryCode?.toUpperCase()
+  if (cc === 'US') return 'MM/dd/yyyy'
+  if (cc === 'DE' || cc === 'AT' || cc === 'CH') return 'dd.MM.yyyy'
+  if (cc === 'GB') return 'dd/MM/yyyy'
+  return 'dd.MM.yyyy'
+}
+
+export function DateOnlyPicker({ value, onChange, countryCode, className, placeholder }: DateOnlyPickerProps) {
+  const selected = value ? new Date(value + 'T00:00:00') : null
+
+  return (
+    <DatePicker
+      selected={selected}
+      onChange={(date: Date | null) => {
+        if (date) {
+          const p = (n: number) => n.toString().padStart(2, '0')
+          onChange(`${date.getFullYear()}-${p(date.getMonth() + 1)}-${p(date.getDate())}`)
+        } else {
+          onChange('')
+        }
+      }}
+      dateFormat={dateOnlyFormat(countryCode)}
+      showPopperArrow={false}
+      isClearable
+      placeholderText={placeholder}
+      className={className ?? 'w-full bg-transparent text-sm focus:outline-none border rounded-lg px-2.5 py-1.5'}
+      calendarClassName="sh-datepicker"
+      popperPlacement="bottom-start"
+    />
+  )
+}
