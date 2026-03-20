@@ -232,17 +232,17 @@ Small cleanup items from Sprint 003 backlog and retro actions.
 
 ---
 
-## Sprint 003 Carry-over (19 pts — stretch goals)
+## Sprint 003 Carry-over (19 pts — deferred to backlog)
 
-These items carried from Sprint 003. Only attempt if Phases 1-4 complete early.
+These items carried from Sprint 003. Deferred — not attempted this sprint.
 
-### CO-1: Analysis tab — richer visualizations (8 pts)
-Correlation heatmap, zone timeline, lifestyle overlay on marker trends.
+### CO-1: Analysis tab — richer visualizations (8 pts) → **BACKLOG**
+Correlation heatmap, zone timeline, lifestyle overlay on marker trends. Enhancement, not a fix.
 
-### CO-2: E2E browser tests — Playwright (8 pts)
+### CO-2: E2E browser tests — Playwright (8 pts) → **BACKLOG**
 Auth flow, measurement flow, settings flow, billing flow.
 
-### CO-3: Release notes auto-generation (3 pts)
+### CO-3: Release notes auto-generation (3 pts) → **BACKLOG**
 Script to generate release notes from conventional commits.
 
 ---
