@@ -201,10 +201,9 @@ function MarkerRow({ marker, value, displayUnit, badge, onChange, onRemove, zone
         placeholder="-"
         onInput={e => {
           const el = e.currentTarget
-          const fixed = el.value.replace(',', '.')
-          if (fixed !== el.value) el.value = fixed
+          el.value = el.value.replace(/[^0-9.,-]/g, '').replace(',', '.')
         }}
-        onChange={e => onChange(marker.marker_slug, e.target.value.replace(',', '.'))}
+        onChange={e => onChange(marker.marker_slug, e.target.value.replace(/[^0-9.,-]/g, '').replace(',', '.'))}
         className="w-20 shrink-0 bg-accent border rounded-lg px-2.5 py-1.5 text-sm text-center focus:outline-none focus:ring-1 focus:ring-blue-500"
       />
       <span className="text-xs text-muted-foreground w-16 shrink-0 text-right">{displayUnit}</span>
@@ -906,10 +905,9 @@ export default function NewMeasurementPage() {
                 value={sleepHours}
                 onInput={e => {
                   const el = e.currentTarget
-                  const fixed = el.value.replace(',', '.')
-                  if (fixed !== el.value) el.value = fixed
+                  el.value = el.value.replace(/[^0-9.,-]/g, '').replace(',', '.')
                 }}
-                onChange={e => setSleepHours(e.target.value.replace(',', '.'))}
+                onChange={e => setSleepHours(e.target.value.replace(/[^0-9.,-]/g, '').replace(',', '.'))}
                 placeholder="-"
                 className="w-full bg-popover border border-border rounded-lg px-2 py-1 text-xs text-white text-center"
               />

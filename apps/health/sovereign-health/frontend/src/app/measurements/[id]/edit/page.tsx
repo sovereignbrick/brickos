@@ -261,10 +261,9 @@ export default function EditMeasurementPage() {
                   value={sleepHours}
                   onInput={e => {
                     const el = e.currentTarget
-                    const fixed = el.value.replace(',', '.')
-                    if (fixed !== el.value) el.value = fixed
+                    el.value = el.value.replace(/[^0-9.,-]/g, '').replace(',', '.')
                   }}
-                  onChange={e => { setSleepHours(e.target.value.replace(',', '.')); markDirty() }}
+                  onChange={e => { setSleepHours(e.target.value.replace(/[^0-9.,-]/g, '').replace(',', '.')); markDirty() }}
                   placeholder="-"
                   className="w-full bg-accent border rounded-lg px-2.5 py-1.5 text-sm"
                 />
@@ -339,10 +338,9 @@ export default function EditMeasurementPage() {
                 value={value}
                 onInput={e => {
                   const el = e.currentTarget
-                  const fixed = el.value.replace(',', '.')
-                  if (fixed !== el.value) el.value = fixed
+                  el.value = el.value.replace(/[^0-9.,-]/g, '').replace(',', '.')
                 }}
-                onChange={e => { setValue(e.target.value.replace(',', '.')); markDirty() }}
+                onChange={e => { setValue(e.target.value.replace(/[^0-9.,-]/g, '').replace(',', '.')); markDirty() }}
                 className="w-24 bg-accent border rounded-lg px-2.5 py-1.5 text-sm text-center font-bold focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
               <span className="text-xs text-muted-foreground w-16 shrink-0 text-right">{measurement.unit}</span>

@@ -1112,6 +1112,8 @@ function ProfileTab({
     const n = Number(s)
     return isFinite(n) ? n : null
   }
+  // Only allow digits, one decimal separator (. or ,), and leading minus
+  const filterDecimal = (v: string): string => v.replace(/[^0-9.,-]/g, '').replace(/([\.,])(?=.*[\.,])/g, '')
   const fmtDec = (v: number | null): string => {
     if (v == null) return ''
     return locale === 'de' ? String(v).replace('.', ',') : String(v)
@@ -1320,8 +1322,9 @@ function ProfileTab({
             </div>
             <div className="flex gap-1">
               <input type="text" inputMode="decimal" value={weightText} onChange={e => {
-                setWeightText(e.target.value)
-                const v = parseDecimal(e.target.value)
+                const filtered = filterDecimal(e.target.value)
+                setWeightText(filtered)
+                const v = parseDecimal(filtered)
                 setForm({ ...form, default_weight_kg: weightUnit === 'lbs' && v ? Math.round(v / 2.205 * 10) / 10 : v })
               }} className={"w-16 " + inp} />
               <select value={weightUnit} onChange={e => setWeightUnit(e.target.value as 'kg' | 'lbs')} className="w-14 rounded-lg border border-border bg-card px-1 py-1.5 text-xs text-foreground">
@@ -1393,8 +1396,9 @@ function ProfileTab({
                   <InfoTooltip>{t('sleepHoursInfo')}</InfoTooltip>
                 </div>
                 <input type="text" inputMode="decimal" value={sleepText} onChange={e => {
-                  setSleepText(e.target.value)
-                  setLForm({ ...lForm, default_sleep_hours: parseDecimal(e.target.value) })
+                  const filtered = filterDecimal(e.target.value)
+                  setSleepText(filtered)
+                  setLForm({ ...lForm, default_sleep_hours: parseDecimal(filtered) })
                 }} className={inp} />
               </div>
               <div className="space-y-1.5">
@@ -1929,8 +1933,9 @@ function ThresholdInput({ value, onBlur, onChange, ring }: {
       inputMode="decimal"
       value={local}
       onChange={e => {
-        setLocal(e.target.value)
-        onChange(e.target.value)
+        const filtered = e.target.value.replace(/[^0-9.,-]/g, '')
+        setLocal(filtered)
+        onChange(filtered)
       }}
       onBlur={() => {
         const normalized = normalizeDecimal(local)
