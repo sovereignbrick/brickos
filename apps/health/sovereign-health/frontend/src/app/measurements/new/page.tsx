@@ -503,24 +503,6 @@ export default function NewMeasurementPage() {
     return new Set(selectedDevice.markers_measured)
   }, [selectedDevice])
 
-  // Visible markers: active markers filtered by search and optionally by device
-  const visibleMarkers = useMemo(() => {
-    let active = allMarkers.filter(m => activeSlugs.has(m.marker_slug))
-    // When a device is selected, show device markers first, then any others with values
-    if (deviceMarkerSet) {
-      active = active.filter(m =>
-        deviceMarkerSet.has(m.marker_slug) || (values[m.marker_slug] && values[m.marker_slug].trim())
-      )
-    }
-    if (!markerFilter.trim()) return active
-    const q = markerFilter.toLowerCase()
-    return active
-      .map(m => ({ m, score: scoreMarker(m, q) }))
-      .filter(({ score }) => score > 0)
-      .sort((a, b) => b.score - a.score)
-      .map(({ m }) => m)
-  }, [allMarkers, activeSlugs, markerFilter, deviceMarkerSet, values, contentMarkers, scoreMarker])
-
   // Ranked search scoring: prioritize exact/word matches over substring, name over description
   const scoreMarker = useCallback((m: MarkerWithZone, q: string): number => {
     const name = (contentMarkers[m.marker_slug]?.name ?? m.display_name ?? m.marker_name).toLowerCase()
@@ -552,6 +534,24 @@ export default function NewMeasurementPage() {
     if (zone.includes(q)) return 10
     return 0
   }, [contentMarkers])
+
+  // Visible markers: active markers filtered by search and optionally by device
+  const visibleMarkers = useMemo(() => {
+    let active = allMarkers.filter(m => activeSlugs.has(m.marker_slug))
+    // When a device is selected, show device markers first, then any others with values
+    if (deviceMarkerSet) {
+      active = active.filter(m =>
+        deviceMarkerSet.has(m.marker_slug) || (values[m.marker_slug] && values[m.marker_slug].trim())
+      )
+    }
+    if (!markerFilter.trim()) return active
+    const q = markerFilter.toLowerCase()
+    return active
+      .map(m => ({ m, score: scoreMarker(m, q) }))
+      .filter(({ score }) => score > 0)
+      .sort((a, b) => b.score - a.score)
+      .map(({ m }) => m)
+  }, [allMarkers, activeSlugs, markerFilter, deviceMarkerSet, values, contentMarkers, scoreMarker])
 
   // Markers for "Add Markers" browser: grouped by zone, filtered, paginated
   const addBrowserMarkers = useMemo(() => {
