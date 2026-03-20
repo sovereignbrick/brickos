@@ -336,7 +336,64 @@ function MeasurementsContent() {
             ) : null}
           </div>
         ) : (
-          <div className="space-y-2">
+          <>
+          {/* Desktop: structured table */}
+          <div className="hidden sm:block border rounded-xl overflow-hidden">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b bg-accent text-muted-foreground text-xs">
+                  <th className="text-left px-4 py-2.5 font-medium">{t('colDate')}</th>
+                  <th className="text-left px-4 py-2.5 font-medium">{t('colMarker')}</th>
+                  <th className="text-right px-4 py-2.5 font-medium">{t('colValue')}</th>
+                  <th className="text-left px-4 py-2.5 font-medium">{t('colUnit')}</th>
+                  <th className="text-left px-4 py-2.5 font-medium">{t('colDevice')}</th>
+                  <th className="text-left px-4 py-2.5 font-medium">{t('colProtocol')}</th>
+                  <th className="px-2 py-2.5 w-8"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {measurements.map((m, i) => {
+                  const mealLabel = m.meal_timing_tag && m.meal_timing_tag !== 'no_tag' && m.meal_timing_tag !== 'unspecified' ? tMealTiming(m.meal_timing_tag) : null
+                  return (
+                    <MeasurementPopover key={m.id} data={m} countryCode={user?.country_code}>
+                      <tr className={`border-b border-border hover:bg-accent/50 transition-colors cursor-pointer ${i % 2 === 1 ? 'bg-muted/20' : ''}`}>
+                        <td className="px-4 py-2.5 text-muted-foreground whitespace-nowrap text-xs">
+                          {formatDateTime(m.timestamp, user?.country_code)}
+                        </td>
+                        <td className="px-4 py-2.5 font-medium truncate max-w-[200px]">
+                          {contentMarkers[m.marker_slug]?.name ?? m.marker_name}
+                        </td>
+                        <td className="px-4 py-2.5 text-right font-semibold tabular-nums">
+                          {m.value}
+                        </td>
+                        <td className="px-4 py-2.5 text-muted-foreground text-xs">
+                          {m.unit}
+                        </td>
+                        <td className="px-4 py-2.5 text-muted-foreground text-xs truncate max-w-[120px]">
+                          {m.device_name || '-'}
+                        </td>
+                        <td className="px-4 py-2.5 text-xs">
+                          {m.protocol_tag === 'fasting' ? (
+                            <span className="text-purple-400">{t('fasting')}</span>
+                          ) : mealLabel ? (
+                            <span className="text-muted-foreground">{mealLabel}</span>
+                          ) : (
+                            <span className="text-muted-foreground">-</span>
+                          )}
+                        </td>
+                        <td className="px-2 py-2.5">
+                          <StatusBadge status={m.status as 'green' | 'orange' | 'red' | null} />
+                        </td>
+                      </tr>
+                    </MeasurementPopover>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Mobile: card list */}
+          <div className="sm:hidden space-y-2">
             {measurements.map(m => (
               <MeasurementPopover key={m.id} data={m} countryCode={user?.country_code}>
                 {isDemo ? (
@@ -344,7 +401,7 @@ function MeasurementsContent() {
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium truncate">{contentMarkers[m.marker_slug]?.name ?? m.marker_name}</p>
                       <p className="text-xs text-muted-foreground">
-                        {formatDateTime(m.timestamp, user?.country_code)} · <span>{m.meal_timing_tag && m.meal_timing_tag !== 'no_tag' && m.meal_timing_tag !== 'unspecified' ? tMealTiming(m.meal_timing_tag) : '-'}</span>
+                        {formatDateTime(m.timestamp, user?.country_code)} · {m.device_name || '-'}
                       </p>
                     </div>
                     <div className="flex items-center gap-3 ml-3 shrink-0">
@@ -360,7 +417,7 @@ function MeasurementsContent() {
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium truncate">{contentMarkers[m.marker_slug]?.name ?? m.marker_name}</p>
                       <p className="text-xs text-muted-foreground">
-                        {formatDateTime(m.timestamp, user?.country_code)} · <span>{m.meal_timing_tag && m.meal_timing_tag !== 'no_tag' && m.meal_timing_tag !== 'unspecified' ? tMealTiming(m.meal_timing_tag) : '-'}</span>
+                        {formatDateTime(m.timestamp, user?.country_code)} · {m.device_name || '-'}
                       </p>
                     </div>
                     <div className="flex items-center gap-3 ml-3 shrink-0">
@@ -372,6 +429,7 @@ function MeasurementsContent() {
               </MeasurementPopover>
             ))}
           </div>
+          </>
         )}
 
         {/* Pagination */}
