@@ -117,11 +117,23 @@ export function ChatMessages({ messages, conversationId, isLoading, onRate, erro
     input.click()
   }
 
+  const handleTableUpload = () => {
+    if (!onFileUpload) return
+    const input = document.createElement('input')
+    input.type = 'file'
+    input.accept = '.ods,.xlsx,.xls,.csv,.jpg,.jpeg,.png,.webp'
+    input.onchange = (e) => {
+      const files = Array.from((e.target as HTMLInputElement).files ?? [])
+      if (files.length > 0) onFileUpload(files, 'measurement_import')
+    }
+    input.click()
+  }
+
   // Empty state with starter prompts
   if (messages.length === 0 && !isLoading) {
     return (
       <div className="overflow-y-auto flex-1 py-4">
-        <div className="flex flex-col items-center justify-center min-h-full px-4 py-6">
+        <div className="flex flex-col items-center px-4 py-4 md:pt-8">
           <div className="text-center mb-6">
             <h2 className="text-lg font-semibold text-foreground mb-1">{t('welcomeTitle')}</h2>
             <p className="text-xs text-muted-foreground max-w-md mx-auto">{t('welcomeDesc')}</p>
@@ -153,7 +165,7 @@ export function ChatMessages({ messages, conversationId, isLoading, onRate, erro
                               borderLeftColor: unlocked ? prompt.color : 'rgba(255,255,255,0.05)',
                               animationDelay: `${(sIdx * 3 + pIdx) * 50}ms`,
                             }}
-                            title={!unlocked ? t('lockedTooltip', { tier: prompt.minTier }) : undefined}
+                            title={!unlocked ? t('lockedTooltip', { tier: prompt.minTier }) : `${t(prompt.key)}\n${t(prompt.key + 'Desc')}`}
                           >
                             <span className="text-sm shrink-0">{prompt.icon}</span>
                             <span className="flex-1 truncate">{t(prompt.key)}</span>
@@ -177,28 +189,30 @@ export function ChatMessages({ messages, conversationId, isLoading, onRate, erro
                   <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold mb-2">
                     {t('smartImport')}
                   </p>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="grid grid-cols-3 gap-2">
                     <button
                       onClick={handleLabUpload}
-                      className="flex items-center gap-2 text-xs bg-accent/50 hover:bg-accent text-muted-foreground hover:text-foreground px-3 py-2 rounded-lg border border-border hover:border-border transition-colors"
+                      className="flex items-center justify-center gap-2 text-xs bg-accent/50 hover:bg-accent text-muted-foreground hover:text-foreground px-3 py-2.5 rounded-lg border border-border hover:border-border transition-colors"
+                      title={t('importUploadDesc')}
                     >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                        <polyline points="14 2 14 8 20 8" />
-                        <line x1="12" y1="18" x2="12" y2="12" />
-                        <line x1="9" y1="15" x2="15" y2="15" />
-                      </svg>
-                      {t('importUpload')}
+                      <span>📄</span>
+                      {t('uploadMenuLab')}
                     </button>
                     <button
                       onClick={handleMedUpload}
-                      className="flex items-center gap-2 text-xs bg-accent/50 hover:bg-accent text-muted-foreground hover:text-foreground px-3 py-2 rounded-lg border border-border hover:border-border transition-colors"
+                      className="flex items-center justify-center gap-2 text-xs bg-accent/50 hover:bg-accent text-muted-foreground hover:text-foreground px-3 py-2.5 rounded-lg border border-border hover:border-border transition-colors"
+                      title={t('importTrackDesc')}
                     >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M9 2h6l3 7H6L9 2z" />
-                        <rect x="5" y="9" width="14" height="13" rx="2" />
-                      </svg>
-                      {t('importTrack')}
+                      <span>💊</span>
+                      {t('uploadMenuMed')}
+                    </button>
+                    <button
+                      onClick={handleTableUpload}
+                      className="flex items-center justify-center gap-2 text-xs bg-accent/50 hover:bg-accent text-muted-foreground hover:text-foreground px-3 py-2.5 rounded-lg border border-border hover:border-border transition-colors"
+                      title={t('importTableDesc')}
+                    >
+                      <span>📊</span>
+                      {t('uploadMenuTable')}
                     </button>
                   </div>
                 </div>

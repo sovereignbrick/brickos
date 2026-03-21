@@ -1011,8 +1011,9 @@ Rules:
 12. Percentage values like "7% fat" or "19% Muscle" — extract the numeric part only (7, 19)
 
 CRITICAL — Reject summary/average tables:
-- If the columns are time RANGES (e.g. "7 Days", "30 Days", "6 Months", "1 Year") instead of specific dates, this is a SUMMARY table, NOT raw measurements.
-- If the table shows "Overview", "Analysis", "Average", "Durchschnitt", or "Zusammenfassung", it is NOT importable.
+- ONLY reject if the columns are time RANGES (e.g. "7 Days", "30 Days", "6 Months", "1 Year") instead of specific dates.
+- ONLY reject if the table header explicitly says "Overview", "Analysis", "Average", "Durchschnitt", or "Zusammenfassung".
+- Do NOT reject tables that have specific dates (e.g. "24.6.2025") even if they have protocol labels like "Nüchtern", "2h nach Essen", "Abendmessung" — these are individual measurements with protocol context, not summaries.
 - For summary tables, return: {"error": "summary_table", "columns": [], "rows": [], "protocols": {}}
 
 CRITICAL — Year inference for DD/MM dates:
@@ -1066,8 +1067,9 @@ Rules:
 8. Extract time if visible (e.g. "05:55" below or next to the date)
 
 CRITICAL — Reject summary/average tables:
-- If columns are time RANGES ("7 Days", "30 Days", "6 Months", "1 Year") instead of specific dates, this is a SUMMARY table
-- If the table title says "Overview", "Analysis", "Average", "Durchschnitt", or "Zusammenfassung", it is NOT importable
+- ONLY reject if columns are time RANGES ("7 Days", "30 Days", "6 Months", "1 Year") instead of specific dates.
+- ONLY reject if the table header explicitly says "Overview", "Analysis", "Average", "Durchschnitt", or "Zusammenfassung".
+- Do NOT reject tables with specific dates even if they have protocol labels like "Nüchtern", "2h nach Essen" — these are individual measurements.
 - For summary tables, return: {"error": "summary_table", "columns": [], "rows": [], "protocols": {}}
 
 CRITICAL — Year inference for DD/MM dates:
@@ -1963,8 +1965,9 @@ async fn spreadsheet_to_csv(bytes: &[u8], filename: &str) -> Result<String, AppE
     // Write to temp file and convert with LibreOffice
     let tmp_dir = std::env::temp_dir();
     let tmp_id = Uuid::new_v4();
-    let input_path = tmp_dir.join(format!("import_{}_{}", tmp_id, filename));
-    let csv_path = input_path.with_extension("csv");
+    // Use clean filename (no spaces) to avoid LibreOffice output path issues
+    let input_path = tmp_dir.join(format!("import_{}.{}", tmp_id, ext));
+    let csv_path = tmp_dir.join(format!("import_{}.csv", tmp_id));
 
     tokio::fs::write(&input_path, bytes).await.map_err(|e| {
         tracing::error!("Failed to write temp spreadsheet: {:?}", e);
@@ -1975,7 +1978,7 @@ async fn spreadsheet_to_csv(bytes: &[u8], filename: &str) -> Result<String, AppE
         .args([
             "--headless",
             "--convert-to",
-            "csv",
+            "csv:Text - txt - csv (StarCalc):44,34,76,1,,0,false,true,false,false,false,-1",
             "--outdir",
             tmp_dir.to_str().unwrap_or("/tmp"),
             input_path.to_str().unwrap_or(""),
@@ -1985,7 +1988,7 @@ async fn spreadsheet_to_csv(bytes: &[u8], filename: &str) -> Result<String, AppE
         .map_err(|e| {
             tracing::error!("LibreOffice conversion failed: {:?}", e);
             AppError::Validation(
-                "Spreadsheet conversion failed. LibreOffice may not be installed.".to_string(),
+                "Could not process the spreadsheet. Please try exporting it as CSV first.".to_string(),
             )
         })?;
 
@@ -1994,20 +1997,58 @@ async fn spreadsheet_to_csv(bytes: &[u8], filename: &str) -> Result<String, AppE
 
     if !output.status.success() {
         let stderr = String::from_utf8_lossy(&output.stderr);
-        tracing::error!("LibreOffice error: {}", stderr);
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        tracing::error!("LibreOffice error: stderr={}, stdout={}", stderr, stdout);
         return Err(AppError::Validation(
-            "Spreadsheet conversion failed. Try exporting as CSV manually.".to_string(),
+            "Could not convert the spreadsheet. Please try saving it as CSV and uploading again.".to_string(),
         ));
     }
 
-    // Read the converted CSV
-    let csv_content = tokio::fs::read_to_string(&csv_path).await.map_err(|e| {
-        tracing::error!("Failed to read converted CSV: {:?}", e);
-        AppError::Validation("Spreadsheet conversion produced no output.".to_string())
-    })?;
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    tracing::info!("LibreOffice output: {}", stdout);
 
-    // Clean up CSV file
-    let _ = tokio::fs::remove_file(&csv_path).await;
+    // Find the converted CSV — multi-sheet files produce UUID-SheetName.csv
+    let csv_path = if csv_path.exists() {
+        csv_path
+    } else {
+        // Look for first CSV matching our UUID prefix (first sheet)
+        let prefix = format!("import_{}", tmp_id);
+        let mut found = None;
+        if let Ok(mut entries) = tokio::fs::read_dir(&tmp_dir).await {
+            while let Ok(Some(entry)) = entries.next_entry().await {
+                let name = entry.file_name().to_string_lossy().to_string();
+                if name.starts_with(&prefix) && name.ends_with(".csv") {
+                    found = Some(entry.path());
+                    break;
+                }
+            }
+        }
+        found.ok_or_else(|| {
+            tracing::error!("No CSV output found for prefix {}", prefix);
+            AppError::Validation("Could not read the converted file. Please try saving as CSV and uploading again.".to_string())
+        })?
+    };
+
+    // Read the converted CSV (handle non-UTF-8 encodings like Latin-1 from LibreOffice)
+    let csv_bytes = tokio::fs::read(&csv_path).await.map_err(|e| {
+        tracing::error!("Failed to read converted CSV at {:?}: {:?}", csv_path, e);
+        AppError::Validation("Could not read the converted file. Please try saving as CSV and uploading again.".to_string())
+    })?;
+    let csv_content = String::from_utf8(csv_bytes.clone()).unwrap_or_else(|_| {
+        tracing::info!("CSV not UTF-8, falling back to Latin-1 decoding");
+        csv_bytes.iter().map(|&b| b as char).collect()
+    });
+
+    // Clean up all CSV files matching this import ID
+    let prefix = format!("import_{}", tmp_id);
+    if let Ok(mut entries) = tokio::fs::read_dir(&tmp_dir).await {
+        while let Ok(Some(entry)) = entries.next_entry().await {
+            let name = entry.file_name().to_string_lossy().to_string();
+            if name.starts_with(&prefix) && name.ends_with(".csv") {
+                let _ = tokio::fs::remove_file(entry.path()).await;
+            }
+        }
+    }
 
     Ok(csv_content)
 }

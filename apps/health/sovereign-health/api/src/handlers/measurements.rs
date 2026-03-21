@@ -26,8 +26,10 @@ pub struct ListQuery {
     pub marker_slug: Option<String>,
     pub marker: Option<String>,
     pub protocol_tag: Option<String>,
-    pub device_id: Option<Uuid>,
+    pub device_id: Option<String>,
     pub source_type: Option<String>,
+    pub diet_protocol: Option<String>,
+    pub fasting_protocol: Option<String>,
     pub page: Option<i64>,
     pub per_page: Option<i64>,
 }
@@ -350,9 +352,15 @@ pub async fn list(
             bind_idx += slugs.len() as u32;
         }
     }
-    if query.device_id.is_some() {
-        sql.push_str(&format!(" AND m.device_id = ${}", bind_idx));
-        bind_idx += 1;
+    let device_ids: Option<Vec<Uuid>> = query.device_id.as_ref().and_then(|s| {
+        let ids: Vec<Uuid> = s.split(',').filter_map(|id| id.trim().parse().ok()).collect();
+        if ids.is_empty() { None } else { Some(ids) }
+    });
+    if let Some(ref ids) = device_ids {
+        let placeholders: Vec<String> = ids.iter().enumerate()
+            .map(|(i, _)| format!("${}", bind_idx + i as u32)).collect();
+        sql.push_str(&format!(" AND m.device_id IN ({})", placeholders.join(",")));
+        bind_idx += ids.len() as u32;
     }
     if query.source_type.is_some() {
         sql.push_str(&format!(" AND mk.source_type = ${}", bind_idx));
@@ -361,6 +369,28 @@ pub async fn list(
     if query.protocol_tag.is_some() {
         sql.push_str(&format!(" AND m.protocol_tag = ${}", bind_idx));
         bind_idx += 1;
+    }
+    let diet_protocols: Option<Vec<String>> = query.diet_protocol.as_ref().map(|s| {
+        s.split(',').map(|p| p.trim().to_string()).filter(|p| !p.is_empty()).collect()
+    });
+    if let Some(ref protos) = diet_protocols {
+        if !protos.is_empty() {
+            let placeholders: Vec<String> = protos.iter().enumerate()
+                .map(|(i, _)| format!("${}", bind_idx + i as u32)).collect();
+            sql.push_str(&format!(" AND m.diet_protocol IN ({})", placeholders.join(",")));
+            bind_idx += protos.len() as u32;
+        }
+    }
+    let fasting_protocols: Option<Vec<String>> = query.fasting_protocol.as_ref().map(|s| {
+        s.split(',').map(|p| p.trim().to_string()).filter(|p| !p.is_empty()).collect()
+    });
+    if let Some(ref protos) = fasting_protocols {
+        if !protos.is_empty() {
+            let placeholders: Vec<String> = protos.iter().enumerate()
+                .map(|(i, _)| format!("${}", bind_idx + i as u32)).collect();
+            sql.push_str(&format!(" AND m.fasting_protocol IN ({})", placeholders.join(",")));
+            bind_idx += protos.len() as u32;
+        }
     }
 
     sql.push_str(&format!(
@@ -382,14 +412,26 @@ pub async fn list(
             q = q.bind(slug.clone());
         }
     }
-    if let Some(device_id) = query.device_id {
-        q = q.bind(device_id);
+    if let Some(ref ids) = device_ids {
+        for id in ids {
+            q = q.bind(*id);
+        }
     }
     if let Some(ref source_type) = query.source_type {
         q = q.bind(source_type.clone());
     }
     if let Some(ref protocol_tag) = query.protocol_tag {
         q = q.bind(protocol_tag.clone());
+    }
+    if let Some(ref protos) = diet_protocols {
+        for p in protos {
+            q = q.bind(p.clone());
+        }
+    }
+    if let Some(ref protos) = fasting_protocols {
+        for p in protos {
+            q = q.bind(p.clone());
+        }
     }
     q = q.bind(per_page);
     q = q.bind(offset);
@@ -722,11 +764,10 @@ pub async fn filters(
 
     // Get devices used by this user
     let device_rows = sqlx::query(
-        r#"SELECT DISTINCT d.id, d.device_name
-        FROM measurements m
-        JOIN devices d ON d.id = m.device_id
-        WHERE m.user_id = $1 AND m.is_deleted = false AND m.device_id IS NOT NULL
-        ORDER BY d.device_name"#,
+        r#"SELECT d.id, d.device_name, d.device_type
+        FROM devices d
+        WHERE d.user_id = $1 AND d.is_deleted = false AND d.status = 'active'
+        ORDER BY d.device_type, d.device_name"#,
     )
     .bind(auth.user_id)
     .fetch_all(pool.get_ref())
@@ -735,9 +776,11 @@ pub async fn filters(
     let devices: Vec<serde_json::Value> = device_rows
         .iter()
         .map(|row| {
+            let dt: String = row.try_get("device_type").unwrap_or_else(|_| "home".to_string());
             json!({
                 "id": row.try_get::<Uuid, _>("id").unwrap_or_default(),
                 "name": row.try_get::<String, _>("device_name").unwrap_or_default(),
+                "device_type": dt,
             })
         })
         .collect();

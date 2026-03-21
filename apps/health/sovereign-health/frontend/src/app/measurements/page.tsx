@@ -3,6 +3,7 @@ import { Suspense, useEffect, useState, useCallback, useRef } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { api } from '@/lib/api'
 import { Measurement, MeasurementFilters } from '@/lib/types'
+import { DateOnlyPicker } from '@/components/date-time-picker'
 import { Navbar } from '@/components/layout/navbar'
 import { Footer } from '@/components/layout/footer'
 import { StatusBadge } from '@/components/status-badge'
@@ -19,15 +20,28 @@ import { useContent } from '@/lib/content-context'
 
 const PER_PAGE = 20
 
+function tryTranslate(t: (key: string) => string, key: string): string {
+  try {
+    const result = t(key)
+    if (result === key || result.startsWith('common.')) return key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, ' ')
+    return result
+  } catch {
+    return key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, ' ')
+  }
+}
+
 function MeasurementsContent() {
   const { user, loading, isDemo } = useAuth()
   const { profile } = useDemoProfile()
+  // When logged in on demo hostname, use authenticated endpoints (not demo)
+  const useDemoApi = isDemo && !user
   const router = useRouter()
   const searchParams = useSearchParams()
   const t = useTranslations('measurements')
   const tCommon = useTranslations('common')
   const tNav = useTranslations('nav')
   const tMealTiming = useTranslations('common.mealTimingLabels')
+  const tFasting = useTranslations('fastingProtocols')
   const { markers: contentMarkers } = useContent()
   const [measurements, setMeasurements] = useState<Measurement[]>([])
   const [page, setPage] = useState(1)
@@ -41,19 +55,27 @@ function MeasurementsContent() {
   const [selectedMarkers, setSelectedMarkers] = useState<string[]>(
     searchParams.get('marker')?.split(',').filter(Boolean) || []
   )
-  const [selectedDevice, setSelectedDevice] = useState(searchParams.get('device_id') || '')
+  const [selectedDevices, setSelectedDevices] = useState<string[]>(searchParams.get('device_id')?.split(',').filter(Boolean) || [])
+  const [selectedLabs, setSelectedLabs] = useState<string[]>(searchParams.get('lab_id')?.split(',').filter(Boolean) || [])
   const [selectedProtocol, setSelectedProtocol] = useState(searchParams.get('protocol_tag') || '')
+  const [selectedDiets, setSelectedDiets] = useState<string[]>(searchParams.get('diet_protocol')?.split(',').filter(Boolean) || [])
+  const [selectedFastings, setSelectedFastings] = useState<string[]>(searchParams.get('fasting_protocol')?.split(',').filter(Boolean) || [])
+
+  const toggleDevice = (id: string) => { setSelectedDevices(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]); resetPage() }
+  const toggleLab = (id: string) => { setSelectedLabs(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]); resetPage() }
+  const toggleDiet = (key: string) => { setSelectedDiets(prev => prev.includes(key) ? prev.filter(x => x !== key) : [...prev, key]); resetPage() }
+  const toggleFasting = (key: string) => { setSelectedFastings(prev => prev.includes(key) ? prev.filter(x => x !== key) : [...prev, key]); resetPage() }
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // Fetch filter options
   useEffect(() => {
     if (loading) return
-    if (!isDemo && !user) return
+    if (!useDemoApi && !user) return
 
     const fetchFilters = async () => {
       try {
-        const res = isDemo
+        const res = useDemoApi
           ? await api.demo.measurementFilters(profile)
           : await api.measurements.filters()
         setFilters(res.data)
@@ -73,11 +95,14 @@ function MeasurementsContent() {
     if (fromDate) params.from = new Date(fromDate + 'T00:00:00Z').toISOString()
     if (toDate) params.to = new Date(toDate + 'T23:59:59Z').toISOString()
     if (selectedMarkers.length > 0) params.marker = selectedMarkers.join(',')
-    if (selectedDevice) params.device_id = selectedDevice
+    const deviceIds = [...selectedDevices, ...selectedLabs]
+    if (deviceIds.length > 0) params.device_id = deviceIds.join(',')
     if (selectedProtocol) params.protocol_tag = selectedProtocol
-    if (isDemo) params.profile = profile
+    if (selectedDiets.length > 0) params.diet_protocol = selectedDiets.join(',')
+    if (selectedFastings.length > 0) params.fasting_protocol = selectedFastings.join(',')
+    if (useDemoApi) params.profile = profile
     return params
-  }, [page, fromDate, toDate, selectedMarkers, selectedDevice, selectedProtocol, isDemo, profile])
+  }, [page, fromDate, toDate, selectedMarkers, selectedDevices, selectedLabs, selectedProtocol, selectedDiets, selectedFastings, isDemo, profile])
 
   // Update URL params
   const updateUrl = useCallback(() => {
@@ -85,22 +110,25 @@ function MeasurementsContent() {
     if (fromDate) urlParams.set('from', fromDate)
     if (toDate) urlParams.set('to', toDate)
     if (selectedMarkers.length > 0) urlParams.set('marker', selectedMarkers.join(','))
-    if (selectedDevice) urlParams.set('device_id', selectedDevice)
+    if (selectedDevices.length > 0) urlParams.set('device_id', selectedDevices.join(','))
+    if (selectedLabs.length > 0) urlParams.set('lab_id', selectedLabs.join(','))
     if (selectedProtocol) urlParams.set('protocol_tag', selectedProtocol)
+    if (selectedDiets.length > 0) urlParams.set('diet_protocol', selectedDiets.join(','))
+    if (selectedFastings.length > 0) urlParams.set('fasting_protocol', selectedFastings.join(','))
     const qs = urlParams.toString()
     router.replace(`/measurements${qs ? '?' + qs : ''}`, { scroll: false })
-  }, [fromDate, toDate, selectedMarkers, selectedDevice, selectedProtocol, router])
+  }, [fromDate, toDate, selectedMarkers, selectedDevices, selectedLabs, selectedProtocol, selectedDiets, selectedFastings, router])
 
   // Fetch measurements
   useEffect(() => {
     if (loading) return
-    if (!isDemo && !user) return
+    if (!useDemoApi && !user) return
 
     const fetchData = async () => {
       setFetching(true)
       try {
         const params = buildParams()
-        const res = isDemo
+        const res = useDemoApi
           ? await api.demo.measurements(params)
           : await api.measurements.list(params)
         setMeasurements(res.data ?? [])
@@ -113,7 +141,7 @@ function MeasurementsContent() {
       }
     }
     fetchData()
-  }, [user, loading, isDemo, page, fromDate, toDate, selectedMarkers, selectedDevice, selectedProtocol, profile, buildParams])
+  }, [user, loading, isDemo, page, fromDate, toDate, selectedMarkers, selectedDevices, selectedLabs, selectedProtocol, selectedDiets, selectedFastings, profile, buildParams])
 
   // Debounced URL update when filters change
   useEffect(() => {
@@ -124,25 +152,28 @@ function MeasurementsContent() {
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current)
     }
-  }, [fromDate, toDate, selectedMarkers, selectedDevice, selectedProtocol, updateUrl])
+  }, [fromDate, toDate, selectedMarkers, selectedDevices, selectedLabs, selectedProtocol, selectedDiets, selectedFastings, updateUrl])
 
   const totalPages = Math.ceil(total / PER_PAGE)
 
-  const hasActiveFilters = fromDate || toDate || selectedMarkers.length > 0 || selectedDevice || selectedProtocol
+  const hasActiveFilters = fromDate || toDate || selectedMarkers.length > 0 || selectedDevices.length > 0 || selectedLabs.length > 0 || selectedProtocol || selectedDiets.length > 0 || selectedFastings.length > 0
 
   const clearAllFilters = () => {
     setFromDate('')
     setToDate('')
     setSelectedMarkers([])
-    setSelectedDevice('')
+    setSelectedDevices([])
+    setSelectedLabs([])
     setSelectedProtocol('')
+    setSelectedDiets([])
+    setSelectedFastings([])
     setPage(1)
   }
 
   const resetPage = () => setPage(1)
 
   const handleExport = async () => {
-    if (isDemo) {
+    if (useDemoApi) {
       toast.info(t('exportRegistered'))
       return
     }
@@ -152,8 +183,11 @@ function MeasurementsContent() {
       if (fromDate) params.from = new Date(fromDate + 'T00:00:00Z').toISOString()
       if (toDate) params.to = new Date(toDate + 'T23:59:59Z').toISOString()
       if (selectedMarkers.length > 0) params.markers = selectedMarkers.join(',')
-      if (selectedDevice) params.device_id = selectedDevice
+      const deviceIds = [...selectedDevices, ...selectedLabs]
+      if (deviceIds.length > 0) params.device_id = deviceIds.join(',')
       if (selectedProtocol) params.protocol_tag = selectedProtocol
+      if (selectedDiets.length > 0) params.diet_protocol = selectedDiets.join(',')
+      if (selectedFastings.length > 0) params.fasting_protocol = selectedFastings.join(',')
 
       const res = await api.export.csv(Object.keys(params).length > 0 ? params : undefined)
       if (!res.ok) {
@@ -214,48 +248,54 @@ function MeasurementsContent() {
 
         {/* Filter Bar */}
         <div className="rounded-xl border p-4 mb-5 space-y-3">
-          {/* Row 1: Date range + Device */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {/* Row 1: Date range + Device + Lab */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div>
-              <label htmlFor="meas-list-from" className="text-xs text-muted-foreground mb-1 block">{t('from')}</label>
-              <input
-                id="meas-list-from"
-                type="date"
+              <label className="text-xs text-muted-foreground mb-1 block">{t('from')}</label>
+              <DateOnlyPicker
                 value={fromDate}
-                onChange={e => { setFromDate(e.target.value); resetPage() }}
-                className="w-full bg-accent border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                onChange={v => { setFromDate(v); resetPage() }}
+                countryCode={user?.country_code}
+                placeholder={t('from')}
+                className="w-full bg-accent border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <div>
-              <label htmlFor="meas-list-to" className="text-xs text-muted-foreground mb-1 block">{t('to')}</label>
-              <input
-                id="meas-list-to"
-                type="date"
+              <label className="text-xs text-muted-foreground mb-1 block">{t('to')}</label>
+              <DateOnlyPicker
                 value={toDate}
-                onChange={e => { setToDate(e.target.value); resetPage() }}
-                className="w-full bg-accent border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                onChange={v => { setToDate(v); resetPage() }}
+                countryCode={user?.country_code}
+                placeholder={t('to')}
+                className="w-full bg-accent border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <div>
-              <label htmlFor="meas-list-device" className="text-xs text-muted-foreground mb-1 block">{t('device')}</label>
-              <select
-                id="meas-list-device"
-                value={selectedDevice}
-                onChange={e => { setSelectedDevice(e.target.value); resetPage() }}
-                className="w-full bg-popover border border-border rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-blue-500 [&>option]:bg-popover [&>option]:text-white"
-              >
-                <option value="">{t('allDevices')}</option>
-                {filters?.devices.map(d => (
-                  <option key={d.id} value={d.id}>{d.name}</option>
-                ))}
-              </select>
+              <label className="text-xs text-muted-foreground mb-1 block">{t('device')}</label>
+              <MultiSelect
+                options={(filters?.devices ?? []).filter(d => d.device_type !== 'lab').map(d => ({ key: d.id, label: d.name }))}
+                selected={selectedDevices}
+                onToggle={toggleDevice}
+                allLabel={t('allDevices')}
+                countLabel={(n) => `${n} ${t('device')}`}
+              />
+            </div>
+            <div>
+              <label className="text-xs text-muted-foreground mb-1 block">{t('labProvider')}</label>
+              <MultiSelect
+                options={(filters?.devices ?? []).filter(d => d.device_type === 'lab').map(d => ({ key: d.id, label: d.name }))}
+                selected={selectedLabs}
+                onToggle={toggleLab}
+                allLabel={t('allLabs')}
+                countLabel={(n) => `${n} ${t('labProvider')}`}
+              />
             </div>
           </div>
 
-          {/* Row 2: Marker + Protocol */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {/* Row 2: Marker + Diet + Fasting */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div>
-              <label htmlFor="meas-list-marker" className="text-xs text-muted-foreground mb-1 block">
+              <label className="text-xs text-muted-foreground mb-1 block">
                 {t('marker')} {selectedMarkers.length > 0 && `(${selectedMarkers.length})`}
               </label>
               <MarkerMultiSelect
@@ -268,18 +308,24 @@ function MeasurementsContent() {
               />
             </div>
             <div>
-              <label htmlFor="meas-list-protocol" className="text-xs text-muted-foreground mb-1 block">{tCommon('protocol')}</label>
-              <select
-                id="meas-list-protocol"
-                value={selectedProtocol}
-                onChange={e => { setSelectedProtocol(e.target.value); resetPage() }}
-                className="w-full bg-popover border border-border rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-blue-500 [&>option]:bg-popover [&>option]:text-white"
-              >
-                <option value="">{t('allProtocols')}</option>
-                {filters?.protocols.map(p => (
-                  <option key={p} value={p}>{p.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}</option>
-                ))}
-              </select>
+              <label className="text-xs text-muted-foreground mb-1 block">{t('dietProtocol')}</label>
+              <MultiSelect
+                options={['omnivore', 'vegetarian', 'vegan', 'pescatarian', 'keto', 'carnivore', 'paleo', 'mediterranean'].map(k => ({ key: k, label: tCommon(k) }))}
+                selected={selectedDiets}
+                onToggle={toggleDiet}
+                allLabel={t('allProtocols')}
+                countLabel={(n) => `${n} ${t('dietProtocol')}`}
+              />
+            </div>
+            <div>
+              <label className="text-xs text-muted-foreground mb-1 block">{t('fastingProtocol')}</label>
+              <MultiSelect
+                options={['16_8', '18_6', '20_4', 'omad', '36h', '48h', '72h', 'extended'].map(k => ({ key: k, label: tFasting(k) }))}
+                selected={selectedFastings}
+                onToggle={toggleFasting}
+                allLabel={t('allProtocols')}
+                countLabel={(n) => `${n} ${t('fastingProtocol')}`}
+              />
             </div>
           </div>
 
@@ -338,54 +384,66 @@ function MeasurementsContent() {
         ) : (
           <>
           {/* Desktop: structured table */}
-          <div className="hidden sm:block border rounded-xl overflow-hidden">
-            <table className="w-full text-sm">
+          <div className="hidden sm:block border rounded-xl relative">
+            <table className="w-full text-sm" style={{ tableLayout: 'fixed' }}>
+              <colgroup>
+                <col style={{ width: '14%' }} />
+                <col style={{ width: '22%' }} />
+                <col style={{ width: '12%' }} />
+                <col style={{ width: '12%' }} />
+                <col style={{ width: '12%' }} />
+                <col style={{ width: '14%' }} />
+                <col style={{ width: '8%' }} />
+                <col style={{ width: '4%' }} />
+              </colgroup>
               <thead>
                 <tr className="border-b bg-accent text-muted-foreground text-xs">
-                  <th className="text-left px-4 py-2.5 font-medium">{t('colDate')}</th>
-                  <th className="text-left px-4 py-2.5 font-medium">{t('colMarker')}</th>
-                  <th className="text-right px-4 py-2.5 font-medium">{t('colValue')}</th>
-                  <th className="text-left px-4 py-2.5 font-medium">{t('colUnit')}</th>
-                  <th className="text-left px-4 py-2.5 font-medium">{t('colDevice')}</th>
-                  <th className="text-left px-4 py-2.5 font-medium">{t('colProtocol')}</th>
-                  <th className="px-2 py-2.5 w-8"></th>
+                  <th className="text-left px-3 py-2.5 font-medium">{t('colDate')}</th>
+                  <th className="text-left px-3 py-2.5 font-medium">{t('colMarker')}</th>
+                  <th className="text-left px-3 py-2.5 font-medium">{t('colDevice')}</th>
+                  <th className="text-left px-3 py-2.5 font-medium">{t('dietProtocol')}</th>
+                  <th className="text-left px-3 py-2.5 font-medium">{t('fastingProtocol')}</th>
+                  <th className="text-right px-3 py-2.5 font-medium">{t('colValue')}</th>
+                  <th className="text-left px-3 py-2.5 font-medium">{t('colUnit')}</th>
+                  <th className="px-1 py-2.5"></th>
                 </tr>
               </thead>
               <tbody>
                 {measurements.map((m, i) => {
                   const mealLabel = m.meal_timing_tag && m.meal_timing_tag !== 'no_tag' && m.meal_timing_tag !== 'unspecified' ? tMealTiming(m.meal_timing_tag) : null
                   return (
-                    <MeasurementPopover key={m.id} data={m} countryCode={user?.country_code}>
-                      <tr className={`border-b border-border hover:bg-accent/50 transition-colors cursor-pointer ${i % 2 === 1 ? 'bg-muted/20' : ''}`}>
-                        <td className="px-4 py-2.5 text-muted-foreground whitespace-nowrap text-xs">
+                    <tr key={m.id} className={`border-b border-border hover:bg-accent/50 transition-colors ${i % 2 === 1 ? 'bg-muted/20' : ''}`}>
+                        <td className="px-3 py-2.5 text-muted-foreground whitespace-nowrap text-xs">
                           {formatDateTime(m.timestamp, user?.country_code)}
                         </td>
-                        <td className="px-4 py-2.5 font-medium truncate max-w-[200px]">
+                        <td className="px-3 py-2.5 font-medium truncate">
                           {contentMarkers[m.marker_slug]?.name ?? m.marker_name}
                         </td>
-                        <td className="px-4 py-2.5 text-right font-semibold tabular-nums">
-                          {m.value}
-                        </td>
-                        <td className="px-4 py-2.5 text-muted-foreground text-xs">
-                          {m.unit}
-                        </td>
-                        <td className="px-4 py-2.5 text-muted-foreground text-xs truncate max-w-[120px]">
+                        <td className="px-3 py-2.5 text-muted-foreground text-xs truncate">
                           {m.device_name || '-'}
                         </td>
-                        <td className="px-4 py-2.5 text-xs">
-                          {m.protocol_tag === 'fasting' ? (
+                        <td className="px-3 py-2.5 text-xs whitespace-nowrap text-muted-foreground">
+                          {m.diet_protocol ? tryTranslate(tCommon, m.diet_protocol) : '-'}
+                        </td>
+                        <td className="px-3 py-2.5 text-xs whitespace-nowrap">
+                          {m.fasting_protocol ? (
+                            <span className="text-purple-400">{tryTranslate(tFasting, m.fasting_protocol)}</span>
+                          ) : m.protocol_tag === 'fasting' ? (
                             <span className="text-purple-400">{t('fasting')}</span>
-                          ) : mealLabel ? (
-                            <span className="text-muted-foreground">{mealLabel}</span>
                           ) : (
                             <span className="text-muted-foreground">-</span>
                           )}
                         </td>
-                        <td className="px-2 py-2.5">
+                        <td className="px-3 py-2.5 text-right font-semibold tabular-nums whitespace-nowrap">
+                          {m.value}
+                        </td>
+                        <td className="px-3 py-2.5 text-muted-foreground text-xs whitespace-nowrap">
+                          {m.unit}
+                        </td>
+                        <td className="px-1 py-2.5">
                           <StatusBadge status={m.status as 'green' | 'orange' | 'red' | null} />
                         </td>
-                      </tr>
-                    </MeasurementPopover>
+                    </tr>
                   )
                 })}
               </tbody>
@@ -461,22 +519,23 @@ function MeasurementsContent() {
 }
 
 // Marker multi-select dropdown component
-function MarkerMultiSelect({
+function MultiSelect({
   options,
   selected,
   onToggle,
   allLabel,
   countLabel,
-  id,
+  searchable = false,
+  searchPlaceholder,
 }: {
-  options: { slug: string; name: string; count: number }[]
+  options: { key: string; label: string; count?: number }[]
   selected: string[]
-  onToggle: (slug: string) => void
+  onToggle: (key: string) => void
   allLabel: string
   countLabel: (count: number) => string
-  id?: string
+  searchable?: boolean
+  searchPlaceholder?: string
 }) {
-  const t = useTranslations('measurements')
   const tCommon = useTranslations('common')
   const [open, setOpen] = useState(false)
   const [search, setSearch] = useState('')
@@ -493,54 +552,55 @@ function MarkerMultiSelect({
     return () => document.removeEventListener('mousedown', handler)
   }, [open])
 
-  const filtered = options.filter(o =>
-    o.name.toLowerCase().includes(search.toLowerCase())
-  )
+  const filtered = searchable
+    ? options.filter(o => o.label.toLowerCase().includes(search.toLowerCase()))
+    : options
 
   const label = selected.length === 0
     ? allLabel
     : selected.length === 1
-      ? options.find(o => o.slug === selected[0])?.name || selected[0]
+      ? options.find(o => o.key === selected[0])?.label || selected[0]
       : countLabel(selected.length)
 
   return (
     <div ref={ref} className="relative">
       <button
-        id={id}
         type="button"
         onClick={() => setOpen(!open)}
-        className="w-full bg-accent border rounded-lg px-3 py-2 text-sm text-left focus:outline-none focus:ring-1 focus:ring-blue-500 flex items-center justify-between"
+        className="w-full bg-accent border border-border rounded-lg px-3 py-2 text-sm text-left focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center justify-between"
       >
         <span className="truncate">{label}</span>
         <span className="text-muted-foreground ml-1 text-xs">{open ? '\u25B2' : '\u25BC'}</span>
       </button>
       {open && (
         <div className="absolute z-50 mt-1 w-full bg-popover border border-border rounded-lg shadow-xl max-h-60 overflow-hidden">
-          <div className="p-2 border-b border-border">
-            <input
-              type="text"
-              placeholder={tCommon('searchMarkers')}
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              className="w-full bg-accent border rounded px-2 py-1 text-sm focus:outline-none"
-              autoFocus
-            />
-          </div>
+          {searchable && (
+            <div className="p-2 border-b border-border">
+              <input
+                type="text"
+                placeholder={searchPlaceholder ?? tCommon('search')}
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                className="w-full bg-accent border rounded px-2 py-1 text-sm focus:outline-none"
+                autoFocus
+              />
+            </div>
+          )}
           <div className="overflow-y-auto max-h-48">
             {filtered.map(o => (
               <button
-                key={o.slug}
+                key={o.key}
                 type="button"
-                onClick={() => onToggle(o.slug)}
+                onClick={() => onToggle(o.key)}
                 className="w-full px-3 py-1.5 text-left text-sm hover:bg-accent flex items-center gap-2"
               >
                 <span className={`w-3.5 h-3.5 rounded border flex items-center justify-center text-[10px] shrink-0 ${
-                  selected.includes(o.slug) ? 'bg-blue-600 border-blue-600 text-white' : 'border-border'
+                  selected.includes(o.key) ? 'bg-blue-600 border-blue-600 text-white' : 'border-border'
                 }`}>
-                  {selected.includes(o.slug) && '\u2713'}
+                  {selected.includes(o.key) && '\u2713'}
                 </span>
-                <span className="truncate">{o.name}</span>
-                <span className="text-muted-foreground text-xs ml-auto shrink-0">({o.count})</span>
+                <span className="truncate">{o.label}</span>
+                {o.count !== undefined && <span className="text-muted-foreground text-xs ml-auto shrink-0">({o.count})</span>}
               </button>
             ))}
             {filtered.length === 0 && (
@@ -550,6 +610,35 @@ function MarkerMultiSelect({
         </div>
       )}
     </div>
+  )
+}
+
+function MarkerMultiSelect({
+  options,
+  selected,
+  onToggle,
+  allLabel,
+  countLabel,
+  id,
+}: {
+  options: { slug: string; name: string; count: number }[]
+  selected: string[]
+  onToggle: (slug: string) => void
+  allLabel: string
+  countLabel: (count: number) => string
+  id?: string
+}) {
+  const tCommon = useTranslations('common')
+  return (
+    <MultiSelect
+      options={options.map(o => ({ key: o.slug, label: o.name, count: o.count }))}
+      selected={selected}
+      onToggle={onToggle}
+      allLabel={allLabel}
+      countLabel={countLabel}
+      searchable
+      searchPlaceholder={tCommon('searchMarkers')}
+    />
   )
 }
 

@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useTranslations } from 'next-intl'
 import { Conversation } from '@/lib/types'
-import { Pencil, Check, X } from 'lucide-react'
+import { Pencil, Check, X, Trash2 } from 'lucide-react'
 
 interface ConversationListProps {
   conversations: Conversation[]
@@ -11,9 +11,10 @@ interface ConversationListProps {
   onSelect: (id: string) => void
   onNewChat: () => void
   onRename?: (id: string, title: string) => Promise<void>
+  onDelete?: (id: string) => void
 }
 
-export function ConversationList({ conversations, activeId, onSelect, onNewChat, onRename }: ConversationListProps) {
+export function ConversationList({ conversations, activeId, onSelect, onNewChat, onRename, onDelete }: ConversationListProps) {
   const t = useTranslations('doctorChat')
 
   const formatDate = (dateStr: string): string => {
@@ -143,6 +144,15 @@ export function ConversationList({ conversations, activeId, onSelect, onNewChat,
                         aria-label={t('renameConversation')}
                       >
                         <Pencil size={10} />
+                      </button>
+                    )}
+                    {onDelete && (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); onDelete(conv.id) }}
+                        className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-red-400 transition-opacity p-0.5"
+                        aria-label={t('deleteConversation')}
+                      >
+                        <Trash2 size={10} />
                       </button>
                     )}
                     <span className="text-xs text-muted-foreground">

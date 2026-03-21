@@ -3,7 +3,7 @@
 -- Idempotent: only updates where field is NULL or empty
 
 -- ============================================================================
--- ENGLISH — why_it_matters
+-- ENGLISH  -  why_it_matters
 -- ============================================================================
 
 -- Liver & Metabolic
@@ -145,7 +145,7 @@ UPDATE marker_translations SET why_it_matters = 'Vitamin E protects cell membran
 FROM markers m WHERE marker_translations.marker_id = m.id AND m.marker_slug = 'vitamin_e' AND marker_translations.locale = 'en' AND (marker_translations.why_it_matters IS NULL OR marker_translations.why_it_matters = '');
 
 -- Omega-3
-UPDATE marker_translations SET why_it_matters = 'The Omega-3 Index measures EPA+DHA in red blood cell membranes — a strong predictor of cardiovascular risk and systemic inflammation.', updated_at = NOW()
+UPDATE marker_translations SET why_it_matters = 'The Omega-3 Index measures EPA+DHA in red blood cell membranes  -  a strong predictor of cardiovascular risk and systemic inflammation.', updated_at = NOW()
 FROM markers m WHERE marker_translations.marker_id = m.id AND m.marker_slug = 'omega3_index' AND marker_translations.locale = 'en' AND (marker_translations.why_it_matters IS NULL OR marker_translations.why_it_matters = '');
 
 UPDATE marker_translations SET why_it_matters = 'EPA is an omega-3 fatty acid with potent anti-inflammatory effects, particularly beneficial for cardiovascular and joint health.', updated_at = NOW()
@@ -183,7 +183,7 @@ FROM markers m WHERE marker_translations.marker_id = m.id AND m.marker_slug = 'n
 UPDATE marker_translations SET why_it_matters = 'Neutrophil percentage shows the proportion of white blood cells that are neutrophils, the primary bacterial defense cells.', updated_at = NOW()
 FROM markers m WHERE marker_translations.marker_id = m.id AND m.marker_slug = 'neutrophils_pct' AND marker_translations.locale = 'en' AND (marker_translations.why_it_matters IS NULL OR marker_translations.why_it_matters = '');
 
-UPDATE marker_translations SET why_it_matters = 'Lymphocytes drive adaptive immunity — fighting viruses, producing antibodies, and maintaining immune memory.', updated_at = NOW()
+UPDATE marker_translations SET why_it_matters = 'Lymphocytes drive adaptive immunity  -  fighting viruses, producing antibodies, and maintaining immune memory.', updated_at = NOW()
 FROM markers m WHERE marker_translations.marker_id = m.id AND m.marker_slug = 'lymphocytes_abs' AND marker_translations.locale = 'en' AND (marker_translations.why_it_matters IS NULL OR marker_translations.why_it_matters = '');
 
 UPDATE marker_translations SET why_it_matters = 'Lymphocyte percentage reflects the balance between adaptive and innate immunity in your white blood cell population.', updated_at = NOW()
@@ -208,7 +208,7 @@ UPDATE marker_translations SET why_it_matters = 'Basophil percentage reflects th
 FROM markers m WHERE marker_translations.marker_id = m.id AND m.marker_slug = 'basophils_pct' AND marker_translations.locale = 'en' AND (marker_translations.why_it_matters IS NULL OR marker_translations.why_it_matters = '');
 
 -- Cardiovascular
-UPDATE marker_translations SET why_it_matters = 'Blood pressure (systolic) measures the force during heartbeats — the most important single number for cardiovascular risk assessment.', updated_at = NOW()
+UPDATE marker_translations SET why_it_matters = 'Blood pressure (systolic) measures the force during heartbeats  -  the most important single number for cardiovascular risk assessment.', updated_at = NOW()
 FROM markers m WHERE marker_translations.marker_id = m.id AND m.marker_slug = 'bp_systolic' AND marker_translations.locale = 'en' AND (marker_translations.why_it_matters IS NULL OR marker_translations.why_it_matters = '');
 
 UPDATE marker_translations SET why_it_matters = 'Diastolic blood pressure measures the force between heartbeats. Persistently elevated values damage blood vessels over time.', updated_at = NOW()
@@ -233,12 +233,12 @@ FROM markers m WHERE marker_translations.marker_id = m.id AND m.marker_slug = 'b
 UPDATE marker_translations SET why_it_matters = 'Bone mass reflects skeletal density. Tracking it helps detect early signs of osteoporosis, especially in women post-menopause.', updated_at = NOW()
 FROM markers m WHERE marker_translations.marker_id = m.id AND m.marker_slug = 'bone_mass_pct' AND marker_translations.locale = 'en' AND (marker_translations.why_it_matters IS NULL OR marker_translations.why_it_matters = '');
 
-UPDATE marker_translations SET why_it_matters = 'Waist circumference measures visceral fat distribution — a stronger predictor of metabolic syndrome and cardiovascular risk than BMI.', updated_at = NOW()
+UPDATE marker_translations SET why_it_matters = 'Waist circumference measures visceral fat distribution  -  a stronger predictor of metabolic syndrome and cardiovascular risk than BMI.', updated_at = NOW()
 FROM markers m WHERE marker_translations.marker_id = m.id AND m.marker_slug = 'waist_circumference' AND marker_translations.locale = 'en' AND (marker_translations.why_it_matters IS NULL OR marker_translations.why_it_matters = '');
 
 
 -- ============================================================================
--- ENGLISH — when_to_worry
+-- ENGLISH  -  when_to_worry
 -- ============================================================================
 
 -- Liver & Metabolic
@@ -443,7 +443,7 @@ UPDATE marker_translations SET when_to_worry = 'Basophil percentage above 1% is 
 FROM markers m WHERE marker_translations.marker_id = m.id AND m.marker_slug = 'basophils_pct' AND marker_translations.locale = 'en' AND (marker_translations.when_to_worry IS NULL OR marker_translations.when_to_worry = '');
 
 -- Cardiovascular
-UPDATE marker_translations SET when_to_worry = 'Systolic blood pressure consistently above 140 mmHg is stage 2 hypertension. Above 180 mmHg is a hypertensive crisis — seek immediate care.', updated_at = NOW()
+UPDATE marker_translations SET when_to_worry = 'Systolic blood pressure consistently above 140 mmHg is stage 2 hypertension. Above 180 mmHg is a hypertensive crisis  -  seek immediate care.', updated_at = NOW()
 FROM markers m WHERE marker_translations.marker_id = m.id AND m.marker_slug = 'bp_systolic' AND marker_translations.locale = 'en' AND (marker_translations.when_to_worry IS NULL OR marker_translations.when_to_worry = '');
 
 UPDATE marker_translations SET when_to_worry = 'Diastolic blood pressure consistently above 90 mmHg indicates hypertension. Above 120 mmHg requires immediate medical attention.', updated_at = NOW()
@@ -473,10 +473,10 @@ FROM markers m WHERE marker_translations.marker_id = m.id AND m.marker_slug = 'w
 
 
 -- ============================================================================
--- GERMAN — why_it_matters (all 92 markers, skip the 3 that already have content)
+-- GERMAN  -  why_it_matters (all 92 markers, skip the 3 that already have content)
 -- ============================================================================
 
--- Already have DE content: glucose, insulin, ketones — skip these
+-- Already have DE content: glucose, insulin, ketones  -  skip these
 
 -- Liver & Metabolic
 UPDATE marker_translations SET why_it_matters = 'Albumin zeigt die Fähigkeit der Leber, Proteine zu produzieren, und gibt Hinweise auf Ernährungsstatus und Nierenfunktion.', updated_at = NOW()
@@ -526,13 +526,13 @@ FROM markers m WHERE marker_translations.marker_id = m.id AND m.marker_slug = 'h
 UPDATE marker_translations SET why_it_matters = 'LDL-Cholesterin lagert sich in Arterienwänden ab und ist der Haupttreiber von Atherosklerose und Herzinfarktrisiko.', updated_at = NOW()
 FROM markers m WHERE marker_translations.marker_id = m.id AND m.marker_slug = 'ldl_c' AND marker_translations.locale = 'de' AND (marker_translations.why_it_matters IS NULL OR marker_translations.why_it_matters = '');
 
-UPDATE marker_translations SET why_it_matters = 'Non-HDL-Cholesterin erfasst alle atherogenen Lipoproteine in einer Zahl — ein starker Prädiktor für kardiovaskuläres Risiko.', updated_at = NOW()
+UPDATE marker_translations SET why_it_matters = 'Non-HDL-Cholesterin erfasst alle atherogenen Lipoproteine in einer Zahl  -  ein starker Prädiktor für kardiovaskuläres Risiko.', updated_at = NOW()
 FROM markers m WHERE marker_translations.marker_id = m.id AND m.marker_slug = 'non_hdl_c' AND marker_translations.locale = 'de' AND (marker_translations.why_it_matters IS NULL OR marker_translations.why_it_matters = '');
 
 UPDATE marker_translations SET why_it_matters = 'Triglyceride sind Blutfette, die bei Überernährung und Insulinresistenz ansteigen und das Herzinfarktrisiko erhöhen.', updated_at = NOW()
 FROM markers m WHERE marker_translations.marker_id = m.id AND m.marker_slug = 'triglycerides' AND marker_translations.locale = 'de' AND (marker_translations.why_it_matters IS NULL OR marker_translations.why_it_matters = '');
 
-UPDATE marker_translations SET why_it_matters = 'ApoB ist die Anzahl atherogener Partikel im Blut — ein genauerer Risikomarker als LDL-Cholesterin allein.', updated_at = NOW()
+UPDATE marker_translations SET why_it_matters = 'ApoB ist die Anzahl atherogener Partikel im Blut  -  ein genauerer Risikomarker als LDL-Cholesterin allein.', updated_at = NOW()
 FROM markers m WHERE marker_translations.marker_id = m.id AND m.marker_slug = 'apob' AND marker_translations.locale = 'de' AND (marker_translations.why_it_matters IS NULL OR marker_translations.why_it_matters = '');
 
 UPDATE marker_translations SET why_it_matters = 'Lp(a) ist genetisch bestimmt und erhöht unabhängig von anderen Cholesterinwerten das Herzinfarkt- und Schlaganfallrisiko.', updated_at = NOW()
@@ -584,7 +584,7 @@ FROM markers m WHERE marker_translations.marker_id = m.id AND m.marker_slug = 'e
 UPDATE marker_translations SET why_it_matters = 'Progesteron unterstützt den Menstruationszyklus und die Schwangerschaft. Bei Männern beeinflusst es die Stimmung.', updated_at = NOW()
 FROM markers m WHERE marker_translations.marker_id = m.id AND m.marker_slug = 'progesterone' AND marker_translations.locale = 'de' AND (marker_translations.why_it_matters IS NULL OR marker_translations.why_it_matters = '');
 
-UPDATE marker_translations SET why_it_matters = 'FSH reguliert die Fortpflanzung — den Eisprung bei Frauen und die Spermienproduktion bei Männern.', updated_at = NOW()
+UPDATE marker_translations SET why_it_matters = 'FSH reguliert die Fortpflanzung  -  den Eisprung bei Frauen und die Spermienproduktion bei Männern.', updated_at = NOW()
 FROM markers m WHERE marker_translations.marker_id = m.id AND m.marker_slug = 'fsh' AND marker_translations.locale = 'de' AND (marker_translations.why_it_matters IS NULL OR marker_translations.why_it_matters = '');
 
 UPDATE marker_translations SET why_it_matters = 'LH löst den Eisprung bei Frauen aus und stimuliert die Testosteronproduktion bei Männern.', updated_at = NOW()
@@ -625,7 +625,7 @@ FROM markers m WHERE marker_translations.marker_id = m.id AND m.marker_slug = 'f
 UPDATE marker_translations SET why_it_matters = 'Transferrin transportiert Eisen im Blut. Der Wert zeigt die Eisentransportkapazität des Körpers.', updated_at = NOW()
 FROM markers m WHERE marker_translations.marker_id = m.id AND m.marker_slug = 'transferrin' AND marker_translations.locale = 'de' AND (marker_translations.why_it_matters IS NULL OR marker_translations.why_it_matters = '');
 
-UPDATE marker_translations SET why_it_matters = 'Die Transferrinsättigung zeigt, wie viel der Eisentransportkapazität genutzt wird — wichtig zur Unterscheidung von Anämieformen.', updated_at = NOW()
+UPDATE marker_translations SET why_it_matters = 'Die Transferrinsättigung zeigt, wie viel der Eisentransportkapazität genutzt wird  -  wichtig zur Unterscheidung von Anämieformen.', updated_at = NOW()
 FROM markers m WHERE marker_translations.marker_id = m.id AND m.marker_slug = 'transferrin_sat' AND marker_translations.locale = 'de' AND (marker_translations.why_it_matters IS NULL OR marker_translations.why_it_matters = '');
 
 -- Vitamins
@@ -653,7 +653,7 @@ FROM markers m WHERE marker_translations.marker_id = m.id AND m.marker_slug = 'v
 UPDATE marker_translations SET why_it_matters = 'Vitamin B12 ist entscheidend für Nervenfunktion, DNA-Synthese und Blutbildung. Mangel verursacht irreversible Nervenschäden.', updated_at = NOW()
 FROM markers m WHERE marker_translations.marker_id = m.id AND m.marker_slug = 'vitamin_b12' AND marker_translations.locale = 'de' AND (marker_translations.why_it_matters IS NULL OR marker_translations.why_it_matters = '');
 
-UPDATE marker_translations SET why_it_matters = 'Holotranscobalamin ist der früheste und spezifischste Marker für Vitamin-B12-Mangel — erkennt ihn vor Auftreten von Symptomen.', updated_at = NOW()
+UPDATE marker_translations SET why_it_matters = 'Holotranscobalamin ist der früheste und spezifischste Marker für Vitamin-B12-Mangel  -  erkennt ihn vor Auftreten von Symptomen.', updated_at = NOW()
 FROM markers m WHERE marker_translations.marker_id = m.id AND m.marker_slug = 'holo_tc' AND marker_translations.locale = 'de' AND (marker_translations.why_it_matters IS NULL OR marker_translations.why_it_matters = '');
 
 UPDATE marker_translations SET why_it_matters = 'Folsäure ist essenziell für DNA-Synthese und Zellteilung. Mangel in der Schwangerschaft verursacht Neuralrohrdefekte.', updated_at = NOW()
@@ -663,7 +663,7 @@ UPDATE marker_translations SET why_it_matters = 'Vitamin E schützt Zellmembrane
 FROM markers m WHERE marker_translations.marker_id = m.id AND m.marker_slug = 'vitamin_e' AND marker_translations.locale = 'de' AND (marker_translations.why_it_matters IS NULL OR marker_translations.why_it_matters = '');
 
 -- Omega-3
-UPDATE marker_translations SET why_it_matters = 'Der Omega-3-Index misst EPA+DHA in roten Blutkörperchen — ein starker Prädiktor für Herz-Kreislauf-Risiko und systemische Entzündung.', updated_at = NOW()
+UPDATE marker_translations SET why_it_matters = 'Der Omega-3-Index misst EPA+DHA in roten Blutkörperchen  -  ein starker Prädiktor für Herz-Kreislauf-Risiko und systemische Entzündung.', updated_at = NOW()
 FROM markers m WHERE marker_translations.marker_id = m.id AND m.marker_slug = 'omega3_index' AND marker_translations.locale = 'de' AND (marker_translations.why_it_matters IS NULL OR marker_translations.why_it_matters = '');
 
 UPDATE marker_translations SET why_it_matters = 'EPA ist eine Omega-3-Fettsäure mit starken entzündungshemmenden Effekten, besonders vorteilhaft für Herz und Gelenke.', updated_at = NOW()
@@ -679,7 +679,7 @@ FROM markers m WHERE marker_translations.marker_id = m.id AND m.marker_slug = 'w
 UPDATE marker_translations SET why_it_matters = 'Rote Blutkörperchen transportieren Sauerstoff. Niedrige Werte verursachen Anämie; hohe Werte können das Blut verdicken.', updated_at = NOW()
 FROM markers m WHERE marker_translations.marker_id = m.id AND m.marker_slug = 'rbc' AND marker_translations.locale = 'de' AND (marker_translations.why_it_matters IS NULL OR marker_translations.why_it_matters = '');
 
-UPDATE marker_translations SET why_it_matters = 'Hämatokrit zeigt den Anteil roter Blutkörperchen am Blutvolumen — ein wichtiger Indikator für Sauerstofftransportkapazität.', updated_at = NOW()
+UPDATE marker_translations SET why_it_matters = 'Hämatokrit zeigt den Anteil roter Blutkörperchen am Blutvolumen  -  ein wichtiger Indikator für Sauerstofftransportkapazität.', updated_at = NOW()
 FROM markers m WHERE marker_translations.marker_id = m.id AND m.marker_slug = 'hematocrit' AND marker_translations.locale = 'de' AND (marker_translations.why_it_matters IS NULL OR marker_translations.why_it_matters = '');
 
 UPDATE marker_translations SET why_it_matters = 'Hämoglobin ist das sauerstofftragende Protein in roten Blutkörperchen. Niedrige Werte bedeuten Anämie mit Müdigkeit und Schwäche.', updated_at = NOW()
@@ -691,7 +691,7 @@ FROM markers m WHERE marker_translations.marker_id = m.id AND m.marker_slug = 'p
 UPDATE marker_translations SET why_it_matters = 'MCV misst die durchschnittliche Größe roter Blutkörperchen und hilft bei der Klassifikation von Anämieformen.', updated_at = NOW()
 FROM markers m WHERE marker_translations.marker_id = m.id AND m.marker_slug = 'mcv' AND marker_translations.locale = 'de' AND (marker_translations.why_it_matters IS NULL OR marker_translations.why_it_matters = '');
 
-UPDATE marker_translations SET why_it_matters = 'MCH misst den durchschnittlichen Hämoglobingehalt pro rotem Blutkörperchen — hilft bei der Diagnose von Eisenmangel.', updated_at = NOW()
+UPDATE marker_translations SET why_it_matters = 'MCH misst den durchschnittlichen Hämoglobingehalt pro rotem Blutkörperchen  -  hilft bei der Diagnose von Eisenmangel.', updated_at = NOW()
 FROM markers m WHERE marker_translations.marker_id = m.id AND m.marker_slug = 'mch' AND marker_translations.locale = 'de' AND (marker_translations.why_it_matters IS NULL OR marker_translations.why_it_matters = '');
 
 UPDATE marker_translations SET why_it_matters = 'MCHC misst die Hämoglobinkonzentration in roten Blutkörperchen und hilft bei der Unterscheidung von Anämieformen.', updated_at = NOW()
@@ -707,7 +707,7 @@ FROM markers m WHERE marker_translations.marker_id = m.id AND m.marker_slug = 'n
 UPDATE marker_translations SET why_it_matters = 'Der Neutrophilenanteil zeigt den Anteil der bakteriellen Abwehrzellen an den weißen Blutkörperchen.', updated_at = NOW()
 FROM markers m WHERE marker_translations.marker_id = m.id AND m.marker_slug = 'neutrophils_pct' AND marker_translations.locale = 'de' AND (marker_translations.why_it_matters IS NULL OR marker_translations.why_it_matters = '');
 
-UPDATE marker_translations SET why_it_matters = 'Lymphozyten steuern die adaptive Immunität — Virusabwehr, Antikörperproduktion und Immungedächtnis.', updated_at = NOW()
+UPDATE marker_translations SET why_it_matters = 'Lymphozyten steuern die adaptive Immunität  -  Virusabwehr, Antikörperproduktion und Immungedächtnis.', updated_at = NOW()
 FROM markers m WHERE marker_translations.marker_id = m.id AND m.marker_slug = 'lymphocytes_abs' AND marker_translations.locale = 'de' AND (marker_translations.why_it_matters IS NULL OR marker_translations.why_it_matters = '');
 
 UPDATE marker_translations SET why_it_matters = 'Der Lymphozytenanteil zeigt das Gleichgewicht zwischen adaptiver und angeborener Immunität.', updated_at = NOW()
@@ -732,7 +732,7 @@ UPDATE marker_translations SET why_it_matters = 'Der Basophilenanteil zeigt den 
 FROM markers m WHERE marker_translations.marker_id = m.id AND m.marker_slug = 'basophils_pct' AND marker_translations.locale = 'de' AND (marker_translations.why_it_matters IS NULL OR marker_translations.why_it_matters = '');
 
 -- Cardiovascular (DE)
-UPDATE marker_translations SET why_it_matters = 'Der systolische Blutdruck misst die Kraft während des Herzschlags — die wichtigste Einzelzahl zur Beurteilung des Herz-Kreislauf-Risikos.', updated_at = NOW()
+UPDATE marker_translations SET why_it_matters = 'Der systolische Blutdruck misst die Kraft während des Herzschlags  -  die wichtigste Einzelzahl zur Beurteilung des Herz-Kreislauf-Risikos.', updated_at = NOW()
 FROM markers m WHERE marker_translations.marker_id = m.id AND m.marker_slug = 'bp_systolic' AND marker_translations.locale = 'de' AND (marker_translations.why_it_matters IS NULL OR marker_translations.why_it_matters = '');
 
 UPDATE marker_translations SET why_it_matters = 'Der diastolische Blutdruck misst die Kraft zwischen Herzschlägen. Dauerhaft erhöhte Werte schädigen die Blutgefäße.', updated_at = NOW()
@@ -745,10 +745,10 @@ FROM markers m WHERE marker_translations.marker_id = m.id AND m.marker_slug = 'h
 UPDATE marker_translations SET why_it_matters = 'Das Körpergewicht ist ein grundlegender Gesundheitswert. Trends über die Zeit zeigen den Einfluss von Ernährung und Bewegung.', updated_at = NOW()
 FROM markers m WHERE marker_translations.marker_id = m.id AND m.marker_slug = 'weight' AND marker_translations.locale = 'de' AND (marker_translations.why_it_matters IS NULL OR marker_translations.why_it_matters = '');
 
-UPDATE marker_translations SET why_it_matters = 'Der Körperfettanteil unterscheidet zwischen Fett- und Magermasse — ein genaueres Bild als das Gewicht allein.', updated_at = NOW()
+UPDATE marker_translations SET why_it_matters = 'Der Körperfettanteil unterscheidet zwischen Fett- und Magermasse  -  ein genaueres Bild als das Gewicht allein.', updated_at = NOW()
 FROM markers m WHERE marker_translations.marker_id = m.id AND m.marker_slug = 'body_fat_pct' AND marker_translations.locale = 'de' AND (marker_translations.why_it_matters IS NULL OR marker_translations.why_it_matters = '');
 
-UPDATE marker_translations SET why_it_matters = 'Der Muskelanteil spiegelt die Magermasse wider — entscheidend für Stoffwechselgesundheit, Kraft und gesundes Altern.', updated_at = NOW()
+UPDATE marker_translations SET why_it_matters = 'Der Muskelanteil spiegelt die Magermasse wider  -  entscheidend für Stoffwechselgesundheit, Kraft und gesundes Altern.', updated_at = NOW()
 FROM markers m WHERE marker_translations.marker_id = m.id AND m.marker_slug = 'muscle_pct' AND marker_translations.locale = 'de' AND (marker_translations.why_it_matters IS NULL OR marker_translations.why_it_matters = '');
 
 UPDATE marker_translations SET why_it_matters = 'Der Wasseranteil zeigt den Hydratationsstatus. Ausreichende Flüssigkeitszufuhr ist essenziell für Organfunktion und Temperaturregulation.', updated_at = NOW()
@@ -757,12 +757,12 @@ FROM markers m WHERE marker_translations.marker_id = m.id AND m.marker_slug = 'b
 UPDATE marker_translations SET why_it_matters = 'Die Knochenmasse zeigt die Skelettdichte. Tracking hilft, frühe Anzeichen von Osteoporose zu erkennen.', updated_at = NOW()
 FROM markers m WHERE marker_translations.marker_id = m.id AND m.marker_slug = 'bone_mass_pct' AND marker_translations.locale = 'de' AND (marker_translations.why_it_matters IS NULL OR marker_translations.why_it_matters = '');
 
-UPDATE marker_translations SET why_it_matters = 'Der Bauchumfang misst die viszerale Fettverteilung — ein stärkerer Prädiktor für metabolisches Syndrom als der BMI.', updated_at = NOW()
+UPDATE marker_translations SET why_it_matters = 'Der Bauchumfang misst die viszerale Fettverteilung  -  ein stärkerer Prädiktor für metabolisches Syndrom als der BMI.', updated_at = NOW()
 FROM markers m WHERE marker_translations.marker_id = m.id AND m.marker_slug = 'waist_circumference' AND marker_translations.locale = 'de' AND (marker_translations.why_it_matters IS NULL OR marker_translations.why_it_matters = '');
 
 
 -- ============================================================================
--- GERMAN — when_to_worry (all 92 markers)
+-- GERMAN  -  when_to_worry (all 92 markers)
 -- ============================================================================
 
 UPDATE marker_translations SET when_to_worry = 'Albumin dauerhaft unter 35 g/L kann auf Lebererkrankungen, Nierenprobleme oder Mangelernährung hinweisen. Arzt konsultieren.', updated_at = NOW()
@@ -801,7 +801,7 @@ FROM markers m WHERE marker_translations.marker_id = m.id AND m.marker_slug = 'c
 UPDATE marker_translations SET when_to_worry = 'Cystatin C über 1,0 mg/L kann auf eingeschränkte Nierenfunktion hinweisen. Arzt konsultieren, besonders bei Diabetes oder Bluthochdruck.', updated_at = NOW()
 FROM markers m WHERE marker_translations.marker_id = m.id AND m.marker_slug = 'cystatin_c' AND marker_translations.locale = 'de' AND (marker_translations.when_to_worry IS NULL OR marker_translations.when_to_worry = '');
 
-UPDATE marker_translations SET when_to_worry = 'eGFR unter 60 mL/min deutet auf chronische Nierenerkrankung hin. Unter 30 mL/min ist schwerwiegend — ärztliche Betreuung notwendig.', updated_at = NOW()
+UPDATE marker_translations SET when_to_worry = 'eGFR unter 60 mL/min deutet auf chronische Nierenerkrankung hin. Unter 30 mL/min ist schwerwiegend  -  ärztliche Betreuung notwendig.', updated_at = NOW()
 FROM markers m WHERE marker_translations.marker_id = m.id AND m.marker_slug = 'egfr' AND marker_translations.locale = 'de' AND (marker_translations.when_to_worry IS NULL OR marker_translations.when_to_worry = '');
 
 UPDATE marker_translations SET when_to_worry = 'Gesamtcholesterin über 5,2 mmol/L sollte zusammen mit HDL und LDL bewertet werden. Allein wenig aussagekräftig.', updated_at = NOW()
@@ -834,13 +834,13 @@ FROM markers m WHERE marker_translations.marker_id = m.id AND m.marker_slug = 'g
 UPDATE marker_translations SET when_to_worry = 'HbA1c über 6,5% bestätigt Diabetes. Zwischen 5,7–6,4% besteht Prädiabetes. Regelmäßige Kontrolle wichtig.', updated_at = NOW()
 FROM markers m WHERE marker_translations.marker_id = m.id AND m.marker_slug = 'hba1c' AND marker_translations.locale = 'de' AND (marker_translations.when_to_worry IS NULL OR marker_translations.when_to_worry = '');
 
-UPDATE marker_translations SET when_to_worry = 'Nüchterninsulin über 25 µIU/mL kann auf Insulinresistenz hinweisen — ein Frühzeichen für Typ-2-Diabetes.', updated_at = NOW()
+UPDATE marker_translations SET when_to_worry = 'Nüchterninsulin über 25 µIU/mL kann auf Insulinresistenz hinweisen  -  ein Frühzeichen für Typ-2-Diabetes.', updated_at = NOW()
 FROM markers m WHERE marker_translations.marker_id = m.id AND m.marker_slug = 'insulin' AND marker_translations.locale = 'de' AND (marker_translations.when_to_worry IS NULL OR marker_translations.when_to_worry = '');
 
 UPDATE marker_translations SET when_to_worry = 'Harnsäure über 420 µmol/L (Männer) oder 360 µmol/L (Frauen) erhöht das Gichtrisiko. Ernährung anpassen und Arzt konsultieren.', updated_at = NOW()
 FROM markers m WHERE marker_translations.marker_id = m.id AND m.marker_slug = 'uric_acid' AND marker_translations.locale = 'de' AND (marker_translations.when_to_worry IS NULL OR marker_translations.when_to_worry = '');
 
-UPDATE marker_translations SET when_to_worry = 'Blutketone über 3,0 mmol/L bei Diabetes können auf Ketoazidose hinweisen — sofort Arzt aufsuchen.', updated_at = NOW()
+UPDATE marker_translations SET when_to_worry = 'Blutketone über 3,0 mmol/L bei Diabetes können auf Ketoazidose hinweisen  -  sofort Arzt aufsuchen.', updated_at = NOW()
 FROM markers m WHERE marker_translations.marker_id = m.id AND m.marker_slug = 'ketones' AND marker_translations.locale = 'de' AND (marker_translations.when_to_worry IS NULL OR marker_translations.when_to_worry = '');
 
 UPDATE marker_translations SET when_to_worry = 'TSH über 4,0 mIU/L deutet auf Schilddrüsenunterfunktion; unter 0,4 auf Überfunktion. Beides ärztlich abklären.', updated_at = NOW()
@@ -981,7 +981,7 @@ FROM markers m WHERE marker_translations.marker_id = m.id AND m.marker_slug = 'm
 UPDATE marker_translations SET when_to_worry = 'Niedrige MCHC kann auf Eisenmangelanämie hinweisen. Hohe MCHC ist selten und kann auf hereditäre Sphärozytose deuten.', updated_at = NOW()
 FROM markers m WHERE marker_translations.marker_id = m.id AND m.marker_slug = 'mchc' AND marker_translations.locale = 'de' AND (marker_translations.when_to_worry IS NULL OR marker_translations.when_to_worry = '');
 
-UPDATE marker_translations SET when_to_worry = 'RDW über 14,5% deutet auf ungleichmäßige Erythrozytengrößen hin — mögliche Eisenmangel-, B12-Mangel- oder Mischanämie.', updated_at = NOW()
+UPDATE marker_translations SET when_to_worry = 'RDW über 14,5% deutet auf ungleichmäßige Erythrozytengrößen hin  -  mögliche Eisenmangel-, B12-Mangel- oder Mischanämie.', updated_at = NOW()
 FROM markers m WHERE marker_translations.marker_id = m.id AND m.marker_slug = 'rdw' AND marker_translations.locale = 'de' AND (marker_translations.when_to_worry IS NULL OR marker_translations.when_to_worry = '');
 
 UPDATE marker_translations SET when_to_worry = 'Neutrophile unter 1,5 Gpt/L (Neutropenie) erhöhen die Infektanfälligkeit deutlich. Über 7,0 Gpt/L oft bei aktiver Infektion.', updated_at = NOW()
@@ -1014,7 +1014,7 @@ FROM markers m WHERE marker_translations.marker_id = m.id AND m.marker_slug = 'b
 UPDATE marker_translations SET when_to_worry = 'Basophilenanteil über 1% ist ungewöhnlich und sollte bei Persistenz weiter untersucht werden.', updated_at = NOW()
 FROM markers m WHERE marker_translations.marker_id = m.id AND m.marker_slug = 'basophils_pct' AND marker_translations.locale = 'de' AND (marker_translations.when_to_worry IS NULL OR marker_translations.when_to_worry = '');
 
-UPDATE marker_translations SET when_to_worry = 'Systolischer Blutdruck dauerhaft über 140 mmHg ist Hypertonie Grad 2. Über 180 mmHg ist ein hypertensiver Notfall — sofort Arzt aufsuchen.', updated_at = NOW()
+UPDATE marker_translations SET when_to_worry = 'Systolischer Blutdruck dauerhaft über 140 mmHg ist Hypertonie Grad 2. Über 180 mmHg ist ein hypertensiver Notfall  -  sofort Arzt aufsuchen.', updated_at = NOW()
 FROM markers m WHERE marker_translations.marker_id = m.id AND m.marker_slug = 'bp_systolic' AND marker_translations.locale = 'de' AND (marker_translations.when_to_worry IS NULL OR marker_translations.when_to_worry = '');
 
 UPDATE marker_translations SET when_to_worry = 'Diastolischer Blutdruck dauerhaft über 90 mmHg zeigt Hypertonie an. Über 120 mmHg erfordert sofortige ärztliche Hilfe.', updated_at = NOW()

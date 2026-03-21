@@ -153,37 +153,44 @@ export default function ZoneDetailPage() {
             }).map((marker: MarkerLatest, index: number) => {
               const hasData = marker.latest_value !== null
               const isCalc = marker.marker_type === 'calculated'
+              const isArchived = marker.device_archived === true
+              const isLab = marker.source_type === 'lab'
               const sourceLabel = isCalc
                 ? null
-                : (marker.device_name ?? (marker.source_type === 'lab' ? tZones('labTest') : tZones('homeDevice')))
+                : isLab ? tZones('labTest') : (marker.device_name ?? tZones('homeDevice'))
+              const tagCls = isLab
+                ? 'bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300 border-purple-300 dark:border-purple-700'
+                : isArchived
+                  ? 'border-dashed border-amber-400 dark:border-amber-600 text-amber-600 dark:text-amber-400'
+                  : 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 border-blue-300 dark:border-blue-700'
               return (
                 <Link
                   key={`${marker.marker_slug}-${index}`}
                   href={demoHref(`/markers/${marker.marker_slug}`)}
                   className={`rounded-xl border p-4 flex items-center justify-between hover:border-border hover:bg-muted/50 hover:scale-[1.01] transition-all duration-150 block ${!hasData ? 'opacity-60' : ''}`}
                 >
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <p className="text-sm font-semibold">{marker.marker_name}</p>
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold">{marker.marker_name}</p>
+                    <div className="flex items-center gap-2 mt-0.5">
                       {isCalc ? (
-                        <span className="text-[10px] px-1.5 py-0.5 rounded border border-indigo-300 dark:border-indigo-700 bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-medium">
+                        <span className="shrink-0 whitespace-nowrap text-[10px] px-1.5 py-0.5 rounded border border-indigo-300 dark:border-indigo-700 bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-medium">
                           📐 {tZones('calculated')}
                         </span>
                       ) : sourceLabel ? (
                         <span
                           onClick={(e) => { e.preventDefault(); e.stopPropagation(); window.location.href = '/settings?tab=devices' }}
-                          className="text-[10px] px-1.5 py-0.5 rounded border border-border text-muted-foreground hover:text-foreground hover:border-zinc-500 cursor-pointer transition-colors"
-                          title={`View ${sourceLabel} in device settings`}
+                          className={`shrink-0 whitespace-nowrap text-[10px] px-1.5 py-0.5 rounded border cursor-pointer transition-colors ${tagCls}`}
+                          title={isArchived ? tZones('deviceArchivedTooltip', { name: sourceLabel }) : undefined}
                         >{sourceLabel}</span>
                       ) : null}
+                      {marker.measured_at ? (
+                        <span className="text-xs text-muted-foreground">
+                          {formatShortDate(marker.measured_at, user?.country_code)}
+                        </span>
+                      ) : (
+                        <span className="text-xs text-muted-foreground/60">{tZones('noDataYet')}</span>
+                      )}
                     </div>
-                    {marker.measured_at ? (
-                      <p className="text-xs text-muted-foreground">
-                        {formatShortDate(marker.measured_at, user?.country_code)}
-                      </p>
-                    ) : (
-                      <p className="text-xs text-muted-foreground/60">{tZones('noDataYet')}</p>
-                    )}
                   </div>
                   <div className="flex items-center gap-3">
                     {hasData ? (

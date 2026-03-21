@@ -148,8 +148,12 @@ pub async fn detail(
             .try_get("source_type")
             .unwrap_or_else(|_| "home".to_string());
 
+        // Translated name from marker_translations
+        let translated_name = fetch_translated_field(&pool, marker_id, &locale, "name").await?
+            .unwrap_or(marker_name);
+
         // Zone memberships
-        let zones = fetch_zones(&pool, &marker_slug, "en").await?;
+        let zones = fetch_zones(&pool, &marker_slug, &locale).await?;
 
         // Standard reference range
         let rr = fetch_range(&pool, marker_id, auth.user_id, "standard", &unit).await?;
@@ -163,11 +167,13 @@ pub async fn detail(
         // Description
         let description = fetch_description(&pool, &marker_slug, &locale).await?;
         let fasting_explanation = fetch_fasting_explanation(&pool, &marker_slug, &locale).await?;
+        let why_it_matters = fetch_translated_field(&pool, marker_id, &locale, "why_it_matters").await?;
+        let when_to_worry = fetch_translated_field(&pool, marker_id, &locale, "when_to_worry").await?;
 
         return Ok(HttpResponse::Ok().json(json!({
             "data": {
                 "marker_id":       marker_slug,
-                "name":            marker_name,
+                "name":            translated_name,
                 "unit":            unit,
                 "source_type":     source_type,
                 "zones":           zones,
@@ -177,6 +183,8 @@ pub async fn detail(
                 "latest":          latest,
                 "is_calculated":   false,
                 "description":     description,
+                "why_it_matters":  why_it_matters,
+                "when_to_worry":   when_to_worry,
             },
             "error": null
         })));
@@ -193,7 +201,7 @@ pub async fn detail(
 
     if let Some(row) = maybe_calc {
         let calc_id: uuid::Uuid = row.try_get("id").map_err(|_| AppError::Internal)?;
-        let marker_name: String = row.try_get("marker_name").unwrap_or_default();
+        let marker_name_raw: String = row.try_get("marker_name").unwrap_or_default();
         let formula: String = row.try_get("formula_description").unwrap_or_default();
         let source_type: String = row
             .try_get("source_type")
@@ -202,7 +210,9 @@ pub async fn detail(
         let overrides: serde_json::Value = row.try_get("protocol_overrides").unwrap_or(json!({}));
         let unit = calc_unit(&marker_slug).to_string();
 
-        let zones = fetch_zones(&pool, &marker_slug, "en").await?;
+        let translated_name = fetch_translated_field(pool.get_ref(), calc_id, &locale, "name").await?
+            .unwrap_or(marker_name_raw);
+        let zones = fetch_zones(&pool, &marker_slug, &locale).await?;
 
         let reference_range = {
             let om = thresholds["orange_min"].as_f64();
@@ -256,10 +266,13 @@ pub async fn detail(
             .try_get::<Vec<String>, _>("base_markers_required")
             .unwrap_or_default();
 
+        let why_it_matters = fetch_translated_field(pool.get_ref(), calc_id, &locale, "why_it_matters").await?;
+        let when_to_worry = fetch_translated_field(pool.get_ref(), calc_id, &locale, "when_to_worry").await?;
+
         return Ok(HttpResponse::Ok().json(json!({
             "data": {
                 "marker_id":       marker_slug,
-                "name":            marker_name,
+                "name":            translated_name,
                 "unit":            unit,
                 "source_type":     source_type,
                 "formula":         formula,
@@ -271,6 +284,8 @@ pub async fn detail(
                 "is_calculated":   true,
                 "description":     description,
                 "base_markers":    base_markers,
+                "why_it_matters":  why_it_matters,
+                "when_to_worry":   when_to_worry,
             },
             "error": null
         })));
@@ -1047,6 +1062,38 @@ async fn fetch_description(
         return Ok(fallback.and_then(|r| r.try_get::<String, _>("body_text").ok()));
     }
 
+    Ok(None)
+}
+
+async fn fetch_translated_field(
+    pool: &PgPool,
+    marker_id: uuid::Uuid,
+    locale: &str,
+    field: &str,
+) -> Result<Option<String>, AppError> {
+    use sqlx::Row;
+    let query = format!(
+        "SELECT {f} FROM marker_translations WHERE marker_id = $1 AND locale = $2 AND {f} IS NOT NULL AND {f} != '' LIMIT 1",
+        f = field
+    );
+    let row = sqlx::query(&query)
+        .bind(marker_id)
+        .bind(locale)
+        .fetch_optional(pool)
+        .await?;
+    if let Some(r) = row {
+        return Ok(r.try_get::<String, _>(field).ok());
+    }
+    if locale != "en" {
+        let row = sqlx::query(&query)
+            .bind(marker_id)
+            .bind("en")
+            .fetch_optional(pool)
+            .await?;
+        if let Some(r) = row {
+            return Ok(r.try_get::<String, _>(field).ok());
+        }
+    }
     Ok(None)
 }
 

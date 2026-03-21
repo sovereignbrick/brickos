@@ -82,7 +82,7 @@ WORKDIR /app
 
 # Only TLS roots for outbound HTTPS; rustls is statically linked
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends ca-certificates fonts-liberation \
+    && apt-get install -y --no-install-recommends ca-certificates fonts-liberation libreoffice-calc \
     && rm -rf /var/lib/apt/lists/*
 
 # Binary + migrations (sqlx::migrate! embeds at compile-time, runtime copy for reference)

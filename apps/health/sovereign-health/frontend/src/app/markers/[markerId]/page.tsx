@@ -350,7 +350,7 @@ export default function MarkerDetailPage() {
       })
       .catch(() => setError('Failed to load marker data'))
       .finally(() => setFetching(false))
-  }, [loading, user, isDemo, markerId, profile])
+  }, [loading, user, isDemo, markerId, profile, locale])
 
   // Fetch user diet protocol for food filtering
   useEffect(() => {
@@ -751,6 +751,22 @@ export default function MarkerDetailPage() {
           )
         })()}
 
+        {/* ── Why It Matters ────────────────────────────────────────────── */}
+        {marker.why_it_matters && (
+          <div className="rounded-2xl border p-5 space-y-2">
+            <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">{t('whyItMatters')}</h2>
+            <p className="text-sm text-muted-foreground leading-relaxed">{marker.why_it_matters}</p>
+          </div>
+        )}
+
+        {/* ── When to Worry ──────────────────────────────────────────────── */}
+        {marker.when_to_worry && (
+          <div className="rounded-2xl border border-amber-200 dark:border-amber-800 p-5 space-y-2">
+            <h2 className="text-sm font-semibold text-amber-600 dark:text-amber-400 uppercase tracking-wider">{t('whenToWorry')}</h2>
+            <p className="text-sm text-muted-foreground leading-relaxed">{marker.when_to_worry}</p>
+          </div>
+        )}
+
         {/* ── SECTION 6: How to Stay in Range ──────────────────────────── */}
         {(() => {
           const howTo = content.find(c => c.content_type === 'how_to_stay_in_range')
@@ -775,6 +791,8 @@ export default function MarkerDetailPage() {
         {filteredFoods.length > 0 && (
           <div className="rounded-2xl border p-5 space-y-4">
             <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">{t('foodsToBoost', { name: marker.name })}</h2>
+            <p className="text-sm text-muted-foreground leading-relaxed">{t('foodsIntro')}</p>
+            <p className="text-xs text-muted-foreground/70 leading-relaxed">{t('foodsFilterNote')}</p>
             {groupFoodsByCategory(filteredFoods, (key: string) => key === 'other' ? tCommon('other') : t(`foodCategories.${key}`)).map(group => (
               <div key={group.label}>
                 <div className="flex items-center gap-2 mb-2">

@@ -123,7 +123,7 @@ pub async fn detail(
         LEFT JOIN marker_translations mt ON mt.marker_id = mk.id AND mt.locale = $3
         LEFT JOIN LATERAL (
             SELECT ms.value_canonical as latest_value, ms.status, ms.timestamp as measured_at,
-                   dv.device_name
+                   dv.device_name, dv.is_deleted as device_archived
             FROM measurements ms
             LEFT JOIN devices dv ON dv.id = ms.device_id
             WHERE ms.user_id = $2 AND ms.marker_id = mk.id AND ms.is_deleted = false
@@ -156,6 +156,7 @@ pub async fn detail(
                 .try_get("source_type")
                 .unwrap_or_else(|_| "home".to_string()),
             device_name: row.try_get("device_name").ok().flatten(),
+            device_archived: row.try_get("device_archived").ok().flatten(),
             marker_type: "standard".to_string(),
         })
         .collect();
@@ -205,6 +206,7 @@ pub async fn detail(
                 .try_get("source_type")
                 .unwrap_or_else(|_| "calculated".to_string()),
             device_name: None,
+            device_archived: None,
             marker_type: "calculated".to_string(),
         });
     }

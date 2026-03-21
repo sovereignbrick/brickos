@@ -280,13 +280,14 @@ export function ChatLayout() {
       )}
 
       {/* Desktop sidebar */}
-      <div className="w-[280px] hidden md:flex flex-col border-r border-border bg-accent">
+      <div className="w-[280px] hidden md:flex flex-col border-r border-border bg-zinc-100 dark:bg-zinc-950">
         <ConversationList
           conversations={conversations}
           activeId={activeConversationId}
           onSelect={handleSelectConversation}
           onNewChat={handleNewChat}
           onRename={handleRenameConversation}
+          onDelete={(id) => { toast.info('Delete coming soon'); }}
         />
       </div>
 

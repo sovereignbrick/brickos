@@ -383,7 +383,7 @@ pub async fn demo_zone_detail(
         LEFT JOIN marker_translations mte ON mte.marker_id = mk.id AND mte.locale = 'en'
         LEFT JOIN LATERAL (
             SELECT ms.value_canonical as latest_value, ms.status, ms.timestamp as measured_at,
-                   dv.device_name
+                   dv.device_name, dv.is_deleted as device_archived
             FROM measurements ms
             LEFT JOIN devices dv ON dv.id = ms.device_id
             WHERE ms.is_demo = true AND ms.demo_profile = $2 AND ms.marker_id = mk.id AND ms.is_deleted = false
@@ -417,6 +417,7 @@ pub async fn demo_zone_detail(
                 .try_get("source_type")
                 .unwrap_or_else(|_| "home".to_string()),
             device_name: row.try_get("device_name").ok().flatten(),
+            device_archived: row.try_get("device_archived").ok().flatten(),
             marker_type: "standard".to_string(),
         })
         .collect();
@@ -452,6 +453,7 @@ pub async fn demo_zone_detail(
                 .try_get("source_type")
                 .unwrap_or_else(|_| "calculated".to_string()),
             device_name: None,
+            device_archived: None,
             marker_type: "calculated".to_string(),
         });
     }
@@ -483,11 +485,11 @@ pub async fn demo_measurements_filters(
     let profile = profile_or_default(&query.profile);
 
     let device_rows = sqlx::query(
-        r#"SELECT DISTINCT d.id, d.device_name
+        r#"SELECT DISTINCT d.id, d.device_name, d.device_type
         FROM measurements m
         JOIN devices d ON d.id = m.device_id
         WHERE m.is_demo = true AND m.demo_profile = $1 AND m.is_deleted = false AND m.device_id IS NOT NULL
-        ORDER BY d.device_name"#,
+        ORDER BY d.device_type, d.device_name"#,
     )
     .bind(profile)
     .fetch_all(pool.get_ref())
@@ -496,9 +498,11 @@ pub async fn demo_measurements_filters(
     let devices: Vec<serde_json::Value> = device_rows
         .iter()
         .map(|row| {
+            let dt: String = row.try_get("device_type").unwrap_or_else(|_| "home".to_string());
             json!({
                 "id": row.try_get::<Uuid, _>("id").unwrap_or_default(),
                 "name": row.try_get::<String, _>("device_name").unwrap_or_default(),
+                "device_type": dt,
             })
         })
         .collect();

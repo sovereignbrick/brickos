@@ -96,6 +96,7 @@ export interface MarkerLatest {
   measured_at: string | null
   source_type?: string
   device_name?: string | null
+  device_archived?: boolean | null
   marker_type?: string
 }
 
@@ -220,6 +221,8 @@ export interface MarkerDetail {
   is_calculated: boolean
   description?: string | null
   fasting_explanation?: string | null
+  why_it_matters?: string | null
+  when_to_worry?: string | null
   base_markers?: string[]
 }
 
@@ -277,7 +280,7 @@ export interface MarkerReference {
 }
 
 export interface MeasurementFilters {
-  devices: { id: string; name: string }[]
+  devices: { id: string; name: string; device_type?: string }[]
   markers: { slug: string; name: string; count: number }[]
   protocols: string[]
   source_types: string[]

@@ -43,6 +43,7 @@ pub struct MarkerLatest {
     pub measured_at: Option<DateTime<Utc>>,
     pub source_type: String,
     pub device_name: Option<String>,
+    pub device_archived: Option<bool>,
     pub marker_type: String,
 }
 
