@@ -123,7 +123,7 @@ fi
 bump_staging_version() {
     local lib_rs="${APP_ROOT}/api/src/lib.rs"
     local current
-    current=$(grep 'pub const VERSION' "$lib_rs" | grep -oP '"\K[^"]+')
+    current=$(grep 'pub const VERSION' "$lib_rs" | grep -oP '"\K[^"]+' | head -1)
 
     # Extract base version and current build number
     local base_ver build_num
