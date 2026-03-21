@@ -94,6 +94,12 @@ export function MeasurementImportReview({ session, onConfirm, onCancel, isLoadin
     setSelectedRows(next)
   }
 
+  // Translate protocol tags to current locale
+  const translateProtocol = (tag: string): string => {
+    const key = `protocol${tag.charAt(0).toUpperCase()}${tag.slice(1)}` as 'protocolFasting' | 'protocolPostprandial' | 'protocolStandard'
+    return t.has(key) ? t(key) : tag
+  }
+
   // Unique devices from columns for display
   const uniqueDevices = new Map<string, string>()
   matchedColumns.forEach(c => {
@@ -239,7 +245,7 @@ export function MeasurementImportReview({ session, onConfirm, onCancel, isLoadin
                   {Object.entries(protocols).map(([source, mapped], i) => (
                     <tr key={i} className="border-t border-border first:border-t-0">
                       <td className="py-2 px-3 text-muted-foreground">"{source}"</td>
-                      <td className="py-2 px-3 text-foreground font-medium">{mapped}</td>
+                      <td className="py-2 px-3 text-foreground font-medium">{translateProtocol(mapped)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -299,7 +305,7 @@ export function MeasurementImportReview({ session, onConfirm, onCancel, isLoadin
                           )}
                         </td>
                         <td className="py-1.5 px-2 text-muted-foreground text-xs">{row.time}</td>
-                        <td className="py-1.5 px-2 text-muted-foreground text-xs">{row.protocol}</td>
+                        <td className="py-1.5 px-2 text-muted-foreground text-xs">{row.protocol ? translateProtocol(row.protocol) : ''}</td>
                         {matchedColumns.map((col, ci) => {
                           const val = col.marker_slug ? row.values[col.marker_slug] : undefined
                           return (
