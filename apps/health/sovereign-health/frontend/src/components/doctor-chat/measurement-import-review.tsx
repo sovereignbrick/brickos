@@ -47,7 +47,7 @@ export function MeasurementImportReview({ session, onConfirm, onCancel, isLoadin
   })
 
   // Protocol options matching the measurement form (Messzeitpunkt)
-  const tMeal = useTranslations('mealTiming')
+  const tMeal = useTranslations('newMeasurement.mealTiming')
   const protocolOptions = [
     { value: 'standard', label: tMeal('noTag') },
     { value: 'fasting', label: tMeal('fasting') },
