@@ -149,7 +149,8 @@ pub async fn detail(
             .unwrap_or_else(|_| "home".to_string());
 
         // Translated name from marker_translations
-        let translated_name = fetch_translated_field(&pool, marker_id, &locale, "name").await?
+        let translated_name = fetch_translated_field(&pool, marker_id, &locale, "name")
+            .await?
             .unwrap_or(marker_name);
 
         // Zone memberships
@@ -167,8 +168,10 @@ pub async fn detail(
         // Description
         let description = fetch_description(&pool, &marker_slug, &locale).await?;
         let fasting_explanation = fetch_fasting_explanation(&pool, &marker_slug, &locale).await?;
-        let why_it_matters = fetch_translated_field(&pool, marker_id, &locale, "why_it_matters").await?;
-        let when_to_worry = fetch_translated_field(&pool, marker_id, &locale, "when_to_worry").await?;
+        let why_it_matters =
+            fetch_translated_field(&pool, marker_id, &locale, "why_it_matters").await?;
+        let when_to_worry =
+            fetch_translated_field(&pool, marker_id, &locale, "when_to_worry").await?;
 
         return Ok(HttpResponse::Ok().json(json!({
             "data": {
@@ -210,7 +213,8 @@ pub async fn detail(
         let overrides: serde_json::Value = row.try_get("protocol_overrides").unwrap_or(json!({}));
         let unit = calc_unit(&marker_slug).to_string();
 
-        let translated_name = fetch_translated_field(pool.get_ref(), calc_id, &locale, "name").await?
+        let translated_name = fetch_translated_field(pool.get_ref(), calc_id, &locale, "name")
+            .await?
             .unwrap_or(marker_name_raw);
         let zones = fetch_zones(&pool, &marker_slug, &locale).await?;
 
@@ -266,8 +270,10 @@ pub async fn detail(
             .try_get::<Vec<String>, _>("base_markers_required")
             .unwrap_or_default();
 
-        let why_it_matters = fetch_translated_field(pool.get_ref(), calc_id, &locale, "why_it_matters").await?;
-        let when_to_worry = fetch_translated_field(pool.get_ref(), calc_id, &locale, "when_to_worry").await?;
+        let why_it_matters =
+            fetch_translated_field(pool.get_ref(), calc_id, &locale, "why_it_matters").await?;
+        let when_to_worry =
+            fetch_translated_field(pool.get_ref(), calc_id, &locale, "when_to_worry").await?;
 
         return Ok(HttpResponse::Ok().json(json!({
             "data": {

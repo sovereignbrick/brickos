@@ -498,7 +498,9 @@ pub async fn demo_measurements_filters(
     let devices: Vec<serde_json::Value> = device_rows
         .iter()
         .map(|row| {
-            let dt: String = row.try_get("device_type").unwrap_or_else(|_| "home".to_string());
+            let dt: String = row
+                .try_get("device_type")
+                .unwrap_or_else(|_| "home".to_string());
             json!({
                 "id": row.try_get::<Uuid, _>("id").unwrap_or_default(),
                 "name": row.try_get::<String, _>("device_name").unwrap_or_default(),

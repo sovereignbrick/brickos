@@ -353,12 +353,22 @@ pub async fn list(
         }
     }
     let device_ids: Option<Vec<Uuid>> = query.device_id.as_ref().and_then(|s| {
-        let ids: Vec<Uuid> = s.split(',').filter_map(|id| id.trim().parse().ok()).collect();
-        if ids.is_empty() { None } else { Some(ids) }
+        let ids: Vec<Uuid> = s
+            .split(',')
+            .filter_map(|id| id.trim().parse().ok())
+            .collect();
+        if ids.is_empty() {
+            None
+        } else {
+            Some(ids)
+        }
     });
     if let Some(ref ids) = device_ids {
-        let placeholders: Vec<String> = ids.iter().enumerate()
-            .map(|(i, _)| format!("${}", bind_idx + i as u32)).collect();
+        let placeholders: Vec<String> = ids
+            .iter()
+            .enumerate()
+            .map(|(i, _)| format!("${}", bind_idx + i as u32))
+            .collect();
         sql.push_str(&format!(" AND m.device_id IN ({})", placeholders.join(",")));
         bind_idx += ids.len() as u32;
     }
@@ -371,24 +381,42 @@ pub async fn list(
         bind_idx += 1;
     }
     let diet_protocols: Option<Vec<String>> = query.diet_protocol.as_ref().map(|s| {
-        s.split(',').map(|p| p.trim().to_string()).filter(|p| !p.is_empty()).collect()
+        s.split(',')
+            .map(|p| p.trim().to_string())
+            .filter(|p| !p.is_empty())
+            .collect()
     });
     if let Some(ref protos) = diet_protocols {
         if !protos.is_empty() {
-            let placeholders: Vec<String> = protos.iter().enumerate()
-                .map(|(i, _)| format!("${}", bind_idx + i as u32)).collect();
-            sql.push_str(&format!(" AND m.diet_protocol IN ({})", placeholders.join(",")));
+            let placeholders: Vec<String> = protos
+                .iter()
+                .enumerate()
+                .map(|(i, _)| format!("${}", bind_idx + i as u32))
+                .collect();
+            sql.push_str(&format!(
+                " AND m.diet_protocol IN ({})",
+                placeholders.join(",")
+            ));
             bind_idx += protos.len() as u32;
         }
     }
     let fasting_protocols: Option<Vec<String>> = query.fasting_protocol.as_ref().map(|s| {
-        s.split(',').map(|p| p.trim().to_string()).filter(|p| !p.is_empty()).collect()
+        s.split(',')
+            .map(|p| p.trim().to_string())
+            .filter(|p| !p.is_empty())
+            .collect()
     });
     if let Some(ref protos) = fasting_protocols {
         if !protos.is_empty() {
-            let placeholders: Vec<String> = protos.iter().enumerate()
-                .map(|(i, _)| format!("${}", bind_idx + i as u32)).collect();
-            sql.push_str(&format!(" AND m.fasting_protocol IN ({})", placeholders.join(",")));
+            let placeholders: Vec<String> = protos
+                .iter()
+                .enumerate()
+                .map(|(i, _)| format!("${}", bind_idx + i as u32))
+                .collect();
+            sql.push_str(&format!(
+                " AND m.fasting_protocol IN ({})",
+                placeholders.join(",")
+            ));
             bind_idx += protos.len() as u32;
         }
     }
@@ -776,7 +804,9 @@ pub async fn filters(
     let devices: Vec<serde_json::Value> = device_rows
         .iter()
         .map(|row| {
-            let dt: String = row.try_get("device_type").unwrap_or_else(|_| "home".to_string());
+            let dt: String = row
+                .try_get("device_type")
+                .unwrap_or_else(|_| "home".to_string());
             json!({
                 "id": row.try_get::<Uuid, _>("id").unwrap_or_default(),
                 "name": row.try_get::<String, _>("device_name").unwrap_or_default(),

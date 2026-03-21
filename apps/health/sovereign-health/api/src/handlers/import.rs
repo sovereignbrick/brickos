@@ -1988,7 +1988,8 @@ async fn spreadsheet_to_csv(bytes: &[u8], filename: &str) -> Result<String, AppE
         .map_err(|e| {
             tracing::error!("LibreOffice conversion failed: {:?}", e);
             AppError::Validation(
-                "Could not process the spreadsheet. Please try exporting it as CSV first.".to_string(),
+                "Could not process the spreadsheet. Please try exporting it as CSV first."
+                    .to_string(),
             )
         })?;
 
@@ -2000,7 +2001,8 @@ async fn spreadsheet_to_csv(bytes: &[u8], filename: &str) -> Result<String, AppE
         let stdout = String::from_utf8_lossy(&output.stdout);
         tracing::error!("LibreOffice error: stderr={}, stdout={}", stderr, stdout);
         return Err(AppError::Validation(
-            "Could not convert the spreadsheet. Please try saving it as CSV and uploading again.".to_string(),
+            "Could not convert the spreadsheet. Please try saving it as CSV and uploading again."
+                .to_string(),
         ));
     }
 
@@ -2025,14 +2027,20 @@ async fn spreadsheet_to_csv(bytes: &[u8], filename: &str) -> Result<String, AppE
         }
         found.ok_or_else(|| {
             tracing::error!("No CSV output found for prefix {}", prefix);
-            AppError::Validation("Could not read the converted file. Please try saving as CSV and uploading again.".to_string())
+            AppError::Validation(
+                "Could not read the converted file. Please try saving as CSV and uploading again."
+                    .to_string(),
+            )
         })?
     };
 
     // Read the converted CSV (handle non-UTF-8 encodings like Latin-1 from LibreOffice)
     let csv_bytes = tokio::fs::read(&csv_path).await.map_err(|e| {
         tracing::error!("Failed to read converted CSV at {:?}: {:?}", csv_path, e);
-        AppError::Validation("Could not read the converted file. Please try saving as CSV and uploading again.".to_string())
+        AppError::Validation(
+            "Could not read the converted file. Please try saving as CSV and uploading again."
+                .to_string(),
+        )
     })?;
     let csv_content = String::from_utf8(csv_bytes.clone()).unwrap_or_else(|_| {
         tracing::info!("CSV not UTF-8, falling back to Latin-1 decoding");
