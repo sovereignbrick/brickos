@@ -8,21 +8,19 @@
 
 | # | Title | Points | Area |
 |---|-------|--------|------|
-| P0-1 | fix: resolve Projects vs projects path inconsistency (#153) | 3 | Ops |
-| P0-2 | chore: production v0.23.0 spot check (all 18 sections quick pass) | 2 | Ops |
-| P1-1 | feat: Dr. Alex navigation - back to start screen, clickable header (#154) | 3 | Frontend |
-| P1-2 | feat: Dr. Alex - improve follow-up question responsiveness (#154) | 5 | API |
-| P1-3 | feat: conversation delete backend endpoint + frontend wiring | 3 | API + Frontend |
-| P1-4 | fix: replace native date inputs with DateOnlyPicker (3 locations) | 2 | Frontend |
-| P1-5 | fix: import review date control - use DateOnlyPicker with locale | 2 | Frontend |
-| P1-6 | fix: React hydration error #418 on measurements page | 2 | Frontend |
-| P2-1 | refactor: extract MultiSelect to shared component | 2 | Frontend |
-| P2-2 | chore: deploy script - staging build numbers + post-deploy verification | 3 | Ops |
-| | **Total** | **27** | |
+| [#153](https://github.com/sovereignbrick/brickos/issues/153) | fix: resolve Projects vs projects path inconsistency | 3 | Ops |
+| - | chore: production v0.23.0 spot check (all 18 sections quick pass) | 2 | Ops |
+| [#154](https://github.com/sovereignbrick/brickos/issues/154) | feat: Dr. Alex navigation + follow-up responsiveness | 8 | Frontend + API |
+| [#155](https://github.com/sovereignbrick/brickos/issues/155) | feat: conversation delete endpoint + frontend wiring | 3 | API + Frontend |
+| [#156](https://github.com/sovereignbrick/brickos/issues/156) | fix: replace native date inputs with DateOnlyPicker (3 locations) | 2 | Frontend |
+| [#157](https://github.com/sovereignbrick/brickos/issues/157) | fix: React hydration error #418 on measurements page | 2 | Frontend |
+| [#158](https://github.com/sovereignbrick/brickos/issues/158) | refactor: extract MultiSelect to shared component | 2 | Frontend |
+| [#159](https://github.com/sovereignbrick/brickos/issues/159) | chore: deploy script - staging build numbers + post-deploy verification | 3 | Ops |
+| | **Total** | **25** | |
 
 ## Scope Notes
 
-- Single-day sprint, 27 pts planned (slightly over 25 pt guideline - P2 items are stretch)
+- Single-day sprint, 25 pts planned (at guideline cap - P2 items are stretch)
 - Date controls: use `DateOnlyPicker` for date-only fields, `DateTimePicker` for date+time fields (both in `src/components/date-time-picker.tsx`)
 - Native date inputs found at: `import-review.tsx:130`, `promotions-tab.tsx:368,377` (all date-only)
 - Production review: quick pass through all 18 checklist sections on app.sovereignhealth.io, not full retest
@@ -30,13 +28,13 @@
 
 ## Phase Order
 
-1. **P0-1:** Fix paths first (unblocks everything)
-2. **P0-2:** Production spot check (verify v0.23.0 is healthy)
-3. **P1-4, P1-5:** Date controls (small, quick wins)
-4. **P1-6:** Hydration error (investigate, may be quick)
-5. **P1-1, P1-3:** Dr. Alex navigation + delete (frontend work)
-6. **P1-2:** Dr. Alex responsiveness (prompt engineering, needs testing)
-7. **P2-1, P2-2:** Stretch goals if time permits
+1. **#153:** Fix paths first (unblocks everything)
+2. **Spot check:** Production v0.23.0 quick pass
+3. **#156:** Date controls (3 native inputs -> DateOnlyPicker, quick wins)
+4. **#157:** Hydration error (investigate, may be quick)
+5. **#155:** Conversation delete (backend endpoint + frontend wiring)
+6. **#154:** Dr. Alex navigation + responsiveness (largest task)
+7. **#158, #159:** Stretch goals if time permits
 
 ## Completed
 _(to be filled during sprint)_
@@ -51,7 +49,7 @@ _(to be filled during sprint)_
 
 | Metric | Value |
 |--------|-------|
-| Planned | 27 pts |
+| Planned | 25 pts |
 | Completed | - |
 | Carried over | - |
 | Unplanned | - |
