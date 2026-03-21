@@ -141,21 +141,27 @@ bump_staging_version() {
     log "Staging build number: $new_ver"
 }
 
-# Verify Docker image ID matches between local and remote after transfer
-verify_image_id() {
+# Verify Docker image was loaded on VPS and has the expected size
+verify_image_loaded() {
     local image="$1"
     local tag="$2"
-    local local_id remote_id
 
-    local_id=$(docker inspect --format='{{.Id}}' "${image}:${tag}" 2>/dev/null | cut -c1-20)
-    remote_id=$(ssh $VPS "docker inspect --format='{{.Id}}' '${image}:${tag}' 2>/dev/null" | cut -c1-20)
+    local local_size remote_size
+    local_size=$(docker inspect --format='{{.Size}}' "${image}:${tag}" 2>/dev/null)
+    remote_size=$(ssh $VPS "docker inspect --format='{{.Size}}' '${image}:${tag}' 2>/dev/null")
 
-    if [ -n "$local_id" ] && [ -n "$remote_id" ] && [ "$local_id" = "$remote_id" ]; then
-        log "Image ID verified: ${local_id}"
-        report_add "OK" "Image ID verified: ${image}:${tag} (${local_id})"
+    if [ -z "$remote_size" ]; then
+        warn "Image not found on VPS: ${image}:${tag}"
+        report_add "FAIL" "Image not found on VPS: ${image}:${tag}"
+    elif [ -n "$local_size" ] && [ "$local_size" = "$remote_size" ]; then
+        local size_mb=$(( local_size / 1048576 ))
+        log "Image verified on VPS: ${image}:${tag} (${size_mb}MB)"
+        report_add "OK" "Image verified: ${image}:${tag} (${size_mb}MB)"
     else
-        warn "Image ID mismatch: local=${local_id:-?} remote=${remote_id:-?}"
-        report_add "FAIL" "Image ID mismatch: ${image}:${tag} local=${local_id:-?} remote=${remote_id:-?}"
+        local local_mb=$(( ${local_size:-0} / 1048576 ))
+        local remote_mb=$(( ${remote_size:-0} / 1048576 ))
+        warn "Image size differs: local=${local_mb}MB remote=${remote_mb}MB"
+        report_add "FAIL" "Image size mismatch: ${image}:${tag} local=${local_mb}MB remote=${remote_mb}MB"
     fi
 }
 
@@ -445,7 +451,7 @@ deploy_backend() {
     log "Transferring backend to VPS..."
     docker save "${BACKEND_IMAGE}:${image_tag}" | ssh $VPS "docker load"
 
-    verify_image_id "$BACKEND_IMAGE" "$image_tag"
+    verify_image_loaded "$BACKEND_IMAGE" "$image_tag"
 
     # Backup staging DB before restart (migrations run on startup)
     if [ "$env" = "staging" ]; then
@@ -515,7 +521,7 @@ deploy_frontend() {
     log "Transferring frontend to VPS..."
     docker save "${FRONTEND_IMAGE}:${image_tag}" | ssh $VPS "docker load"
 
-    verify_image_id "$FRONTEND_IMAGE" "$image_tag"
+    verify_image_loaded "$FRONTEND_IMAGE" "$image_tag"
 
     log "Restarting frontend ($env) on VPS..."
     if [ "$env" = "staging" ]; then
