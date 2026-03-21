@@ -1370,11 +1370,32 @@ pub async fn update_consent(
         }
     }
 
-    // Fetch user email for Mailgun tag sync
+    // Fetch user email for Mailgun tag sync and newsletter_subscribers sync
     let email: Option<String> = sqlx::query_scalar("SELECT email FROM users WHERE id = $1")
         .bind(auth.user_id)
         .fetch_optional(pool.get_ref())
         .await?;
+
+    // Sync newsletter_subscribers table
+    if let (Some(v), Some(ref email)) = (newsletter, &email) {
+        if v {
+            let _ = sqlx::query(
+                r#"INSERT INTO newsletter_subscribers (email, source, confirmed, subscribed)
+                   VALUES ($1, 'settings', true, true)
+                   ON CONFLICT (email) DO UPDATE SET subscribed = true, confirmed = true, updated_at = NOW()"#,
+            )
+            .bind(email)
+            .execute(pool.get_ref())
+            .await;
+        } else {
+            let _ = sqlx::query(
+                "UPDATE newsletter_subscribers SET subscribed = false, updated_at = NOW() WHERE email = $1",
+            )
+            .bind(email)
+            .execute(pool.get_ref())
+            .await;
+        }
+    }
 
     if let Some(email) = email {
         if !add_tags.is_empty() || !remove_tags.is_empty() {

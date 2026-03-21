@@ -370,6 +370,18 @@ pub async fn signup(
     .execute(pool.get_ref())
     .await;
 
+    // Add to newsletter_subscribers if user opted in
+    if body.consent_newsletter.unwrap_or(false) {
+        let _ = sqlx::query(
+            r#"INSERT INTO newsletter_subscribers (email, source, confirmed, subscribed)
+               VALUES ($1, 'signup', true, true)
+               ON CONFLICT (email) DO UPDATE SET subscribed = true, confirmed = true, updated_at = NOW()"#,
+        )
+        .bind(&body.email)
+        .execute(pool.get_ref())
+        .await;
+    }
+
     // Assign tier: Glimpse for SaaS, Core for OSS
     let tier_slug = if is_oss { "core" } else { "glimpse" };
     let _ = sqlx::query(
