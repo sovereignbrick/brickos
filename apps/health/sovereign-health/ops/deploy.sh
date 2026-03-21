@@ -30,7 +30,7 @@ trap '_exit_code=$?; if [ $_exit_code -ne 0 ]; then notify "Deploy FAILED (${ENV
 VERSION="0.23.0"
 
 # Local project root: BrickOS monorepo.
-PROJECT_ROOT="/home/dev-comp/projects/brickos"
+PROJECT_ROOT="/home/dev-comp/Projects/brickos"
 
 # App root: Where the Sovereign Health app lives within the monorepo.
 APP_ROOT="${PROJECT_ROOT}/apps/health/sovereign-health"
@@ -101,6 +101,20 @@ log()  { echo -e "${GREEN}[DEPLOY]${NC} $1"; }
 warn() { echo -e "${YELLOW}[WARN]${NC} $1"; }
 fail() { echo -e "${RED}[FAIL]${NC} $1"; exit 1; }
 info() { echo -e "${CYAN}[INFO]${NC} $1"; }
+
+# ── Pre-deploy sanity check ──────────────────────────────────────────────────
+# Verify PROJECT_ROOT is the actual git working directory, not a stale symlink
+# or mismatched path. Prevents Docker from building stale code.
+
+if [ ! -d "$PROJECT_ROOT/.git" ]; then
+    fail "PROJECT_ROOT ($PROJECT_ROOT) is not a git repository. Check the path."
+fi
+
+RESOLVED_ROOT="$(readlink -f "$PROJECT_ROOT")"
+RESOLVED_GIT="$(git -C "$RESOLVED_ROOT" rev-parse --show-toplevel 2>/dev/null)"
+if [ "$RESOLVED_ROOT" != "$RESOLVED_GIT" ]; then
+    fail "PROJECT_ROOT resolves to $RESOLVED_ROOT but git root is $RESOLVED_GIT"
+fi
 
 # ── Report tracking ──────────────────────────────────────────────────────────
 # Collects what was done during the deploy and prints a summary at the end.
