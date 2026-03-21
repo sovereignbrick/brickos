@@ -73,25 +73,32 @@ fix: translate marker names in trends dropdowns (#42)
 ### Directory Structure
 
 ```
-apps/health/sovereign-health/docs/
+apps/health/sovereign-health/docs/project-files/
 ├── sprint-planning/
-│   ├── SPRINT_PLANNING.md          ← this file (process guide)
+│   ├── SPRINT_PLANNING.md          <- this file (process guide)
 │   ├── sprints/
-│   │   ├── sprint-001.md           ← one file per sprint
-│   │   └── sprint-002.md
+│   │   ├── 000-sprint-NNN-TEMPLATE.md
+│   │   ├── sprint-001.md           <- one file per sprint
+│   │   └── sprint-006.md
 │   └── retrospectives/
-│       └── 2026-Q1.md             ← quarterly retro
-├── design/                         ← feature design docs
+│       ├── TEMPLATE.md
+│       ├── 2026-03-21_rc-testing-retro.md  <- after RC testing sessions
+│       └── 2026-03-20_sprint-005-retro.md  <- after every sprint
+├── design/                         <- feature design docs
 │   ├── 000-TEMPLATE.md
 │   ├── 001-oauth-social-login.md
-│   ├── 002-data-sovereignty.md
-│   └── ...
-├── adr/                            ← architecture decisions
+│   └── 015-smart-import-tabular-data.md
+├── adr/                            <- architecture decisions (019 so far)
 │   ├── 000-TEMPLATE.md
-│   └── ...
-├── specs/                          ← existing specs
-├── releases/                       ← existing release docs
-└── reports/                        ← existing test/audit reports
+│   └── 019-marker-translations-source-of-truth.md
+├── deployment/
+│   └── README.md                   <- full CI/CD and deployment docs
+├── releases/
+│   ├── RELEASE_TEMPLATE.md
+│   └── v0.23.0/
+│       └── RELEASE_v0.23.0.md
+└── reports/
+    └── 2026-03-21_weekly-project-summary.md  <- weekly (Fridays)
 ```
 
 ### Sprint Summary Template
@@ -227,28 +234,52 @@ For features that need extended thinking across multiple conversations:
 
 ## Sprint Workflow (Solo Dev)
 
-### Starting a Sprint
+### Planning a Sprint
 
 1. Pick a theme/goal from the backlog and milestones
-2. Create `sprints/sprint-NNN.md` with the goal and planned issues
-3. Assign the sprint label/field on the GitHub Project board
+2. **Scope check:** max ~25 pts for single-day sprints; feature work needs multi-day
+3. Create `sprints/sprint-NNN.md` with the goal and planned issues
+4. Assign the sprint label/field on the GitHub Project board
+5. Run `cargo fmt` as a separate commit before sprint work
 
 ### During a Sprint
 
-- Move items on the board (Todo → In Progress → In Review → Done)
+- Move items on the board (Todo -> In Progress -> In Review -> Done)
 - Link PRs to issues with `Closes #N`
 - Update design docs as decisions are made
+- Run `pnpm build` locally before committing frontend changes (catches TS errors)
 
 ### Closing a Sprint
 
 1. Complete the sprint summary in `sprints/sprint-NNN.md`
 2. Move unfinished items to next sprint or back to backlog
 3. Note velocity and decisions
+4. Write retrospective in `retrospectives/YYYY-MM-DD_sprint-NNN-retro.md`
 
-### Retrospective (when it feels right)
+### RC Testing & Release
+
+1. Deploy to staging: `bash ops/deploy.sh staging`
+2. Walk through manual testing checklist (18 sections)
+3. Fix issues found, redeploy, re-test
+4. Write release notes in `releases/vX.Y.Z/RELEASE_vX.Y.Z.md`
+5. Write RC testing retrospective
+6. Promote to production (see `deployment/README.md` Phase 7)
+7. Weekly report on Fridays in `reports/`
+
+### Retrospective (after every sprint)
 
 - What went well? What didn't? What to change?
-- Save in `retrospectives/YYYY-QN.md` or after major milestones
+- Save in `retrospectives/YYYY-MM-DD_sprint-NNN-retro.md`
+- Also write a retro after RC testing sessions if significant issues found
+
+### Documentation Checklist (end of sprint)
+
+- [ ] Sprint summary updated (`sprints/sprint-NNN.md`)
+- [ ] Retrospective written (`retrospectives/`)
+- [ ] ADRs for any architectural decisions (`adr/`)
+- [ ] Release notes (`releases/vX.Y.Z/`)
+- [ ] Weekly report if Friday (`reports/`)
+- [ ] Deployment docs updated if process changed (`deployment/README.md`)
 
 ---
 
