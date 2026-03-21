@@ -136,7 +136,7 @@ bump_staging_version() {
     fi
 
     local new_ver="${base_ver}-b${build_num}"
-    sed -i "s/pub const VERSION: &str = \"[^\"]*\"/pub const VERSION: \&str = \"${new_ver}\"/" "$lib_rs"
+    sed -i 's|pub const VERSION: &str = "[^"]*"|pub const VERSION: \&str = "'"${new_ver}"'"|' "$lib_rs"
     VERSION="$new_ver"
     log "Staging build number: $new_ver"
 }
