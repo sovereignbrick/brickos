@@ -253,7 +253,8 @@ export function ChatLayout({ conversationId }: ChatLayoutProps) {
   const handleMeasurementImportConfirm = async (
     columnMapping: Array<{ marker_slug: string; device_id?: string | null; unit?: string }>,
     selectedRows: number[],
-    skipDuplicates: boolean
+    skipDuplicates: boolean,
+    protocolOverrides?: Record<string, string>
   ) => {
     if (!measurementImportSession) return
     setImportLoading(true)
@@ -262,7 +263,8 @@ export function ChatLayout({ conversationId }: ChatLayoutProps) {
         measurementImportSession.session_id,
         columnMapping,
         selectedRows,
-        skipDuplicates
+        skipDuplicates,
+        protocolOverrides
       )
       toast.success(res.data.message, {
         action: {

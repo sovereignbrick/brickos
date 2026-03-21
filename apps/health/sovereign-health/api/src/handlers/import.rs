@@ -1,5 +1,6 @@
 // Sovereign Health Intelligence -- AGPL-3.0 -- https://sovereignhealth.io/
 
+use std::collections::HashMap;
 use actix_multipart::Multipart;
 use actix_web::{web, HttpResponse};
 use base64::{engine::general_purpose::STANDARD as BASE64, Engine as _};
@@ -1496,6 +1497,7 @@ pub struct ConfirmMeasurementsRequest {
     pub column_mapping: Vec<ColumnMapping>,
     pub selected_rows: Vec<usize>,
     pub skip_duplicates: Option<bool>,
+    pub protocol_overrides: Option<HashMap<String, String>>,
 }
 
 #[derive(Deserialize, Serialize)]
@@ -1544,6 +1546,26 @@ pub async fn confirm_measurements(
         .map(|c| (c.marker_slug.clone(), c))
         .collect();
 
+    // Build protocol remap: old_tag -> new_tag from user overrides
+    let protocol_remap: HashMap<String, String> = if let Some(ref overrides) = body.protocol_overrides {
+        let original_protocols = matched_data
+            .get("protocols")
+            .and_then(|v| v.as_object())
+            .cloned()
+            .unwrap_or_default();
+        let mut remap = HashMap::new();
+        for (source, original_val) in &original_protocols {
+            if let (Some(old_tag), Some(new_tag)) = (original_val.as_str(), overrides.get(source)) {
+                if old_tag != new_tag {
+                    remap.insert(old_tag.to_string(), new_tag.clone());
+                }
+            }
+        }
+        remap
+    } else {
+        HashMap::new()
+    };
+
     let mut created_ids: Vec<Uuid> = Vec::new();
     let mut skipped_dupes = 0i32;
 
@@ -1554,10 +1576,14 @@ pub async fn confirm_measurements(
 
         let date_str = row.get("date").and_then(|v| v.as_str()).unwrap_or("");
         let time_str = row.get("time").and_then(|v| v.as_str()).unwrap_or("08:00");
-        let protocol_str = row
+        let raw_protocol = row
             .get("protocol")
             .and_then(|v| v.as_str())
             .unwrap_or("standard");
+        let protocol_str = protocol_remap
+            .get(raw_protocol)
+            .map(|s| s.as_str())
+            .unwrap_or(raw_protocol);
 
         // Parse timestamp
         let measured_at = parse_measurement_timestamp(date_str, time_str);

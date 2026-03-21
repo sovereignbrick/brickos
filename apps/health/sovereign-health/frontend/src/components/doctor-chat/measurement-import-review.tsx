@@ -10,7 +10,8 @@ interface MeasurementImportReviewProps {
   onConfirm: (
     columnMapping: Array<{ marker_slug: string; device_id?: string | null; unit?: string }>,
     selectedRows: number[],
-    skipDuplicates: boolean
+    skipDuplicates: boolean,
+    protocolOverrides?: Record<string, string>
   ) => void
   onCancel: () => void
   isLoading: boolean
@@ -34,6 +35,24 @@ export function MeasurementImportReview({ session, onConfirm, onCancel, isLoadin
     return init
   })
 
+  // Editable protocol mapping
+  const [protocolOverrides, setProtocolOverrides] = useState<Record<string, string>>(() => {
+    const init: Record<string, string> = {}
+    if (session.protocols) {
+      Object.entries(session.protocols).forEach(([source, mapped]) => {
+        init[source] = mapped
+      })
+    }
+    return init
+  })
+
+  // Protocol options matching the measurement form
+  const protocolOptions = [
+    { value: 'standard', key: 'protocolStandard' },
+    { value: 'fasting', key: 'protocolFasting' },
+    { value: 'postprandial', key: 'protocolPostprandial' },
+  ] as const
+
   // Row selection
   const [selectedRows, setSelectedRows] = useState<Record<number, boolean>>(() => {
     const init: Record<number, boolean> = {}
@@ -47,6 +66,18 @@ export function MeasurementImportReview({ session, onConfirm, onCancel, isLoadin
   })
 
   const [skipDuplicates, setSkipDuplicates] = useState(true)
+
+  // Build protocol remap: original mapped value -> user's override
+  const protocolRemap = new Map<string, string>()
+  if (session.protocols) {
+    Object.entries(session.protocols).forEach(([source, originalMapped]) => {
+      const override = protocolOverrides[source]
+      if (override && override !== originalMapped) {
+        protocolRemap.set(originalMapped, override)
+      }
+    })
+  }
+  const remapProtocol = (tag: string): string => protocolRemap.get(tag) ?? tag
 
   // Detect duplicate rows (same date + time + values)
   const duplicateRows = new Set<number>()
@@ -79,7 +110,11 @@ export function MeasurementImportReview({ session, onConfirm, onCancel, isLoadin
       .filter(([, v]) => v)
       .map(([k]) => parseInt(k))
 
-    onConfirm(mapping, rows, skipDuplicates)
+    // Only pass overrides if the user actually changed something
+    const hasOverrides = Object.entries(protocolOverrides).some(
+      ([source, val]) => session.protocols && session.protocols[source] !== val
+    )
+    onConfirm(mapping, rows, skipDuplicates, hasOverrides ? protocolOverrides : undefined)
   }
 
   const allSelected = selectedCount === selectableRows.length && selectableRows.length > 0
@@ -242,10 +277,23 @@ export function MeasurementImportReview({ session, onConfirm, onCancel, isLoadin
             <div className="border border-border rounded-xl overflow-hidden">
               <table className="w-full text-sm">
                 <tbody>
-                  {Object.entries(protocols).map(([source, mapped], i) => (
+                  {Object.entries(protocols).map(([source], i) => (
                     <tr key={i} className="border-t border-border first:border-t-0">
                       <td className="py-2 px-3 text-muted-foreground">"{source}"</td>
-                      <td className="py-2 px-3 text-foreground font-medium">{translateProtocol(mapped)}</td>
+                      <td className="py-2 px-3">
+                        <select
+                          value={protocolOverrides[source] || 'standard'}
+                          onChange={e => setProtocolOverrides(prev => ({
+                            ...prev,
+                            [source]: e.target.value,
+                          }))}
+                          className={selectCls}
+                        >
+                          {protocolOptions.map(opt => (
+                            <option key={opt.value} value={opt.value}>{t(opt.key)}</option>
+                          ))}
+                        </select>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -305,7 +353,7 @@ export function MeasurementImportReview({ session, onConfirm, onCancel, isLoadin
                           )}
                         </td>
                         <td className="py-1.5 px-2 text-muted-foreground text-xs">{row.time}</td>
-                        <td className="py-1.5 px-2 text-muted-foreground text-xs">{row.protocol ? translateProtocol(row.protocol) : ''}</td>
+                        <td className="py-1.5 px-2 text-muted-foreground text-xs">{row.protocol ? translateProtocol(remapProtocol(row.protocol)) : ''}</td>
                         {matchedColumns.map((col, ci) => {
                           const val = col.marker_slug ? row.values[col.marker_slug] : undefined
                           return (
