@@ -2,19 +2,19 @@
 ============================================================================
  SOVEREIGN HEALTH INTELLIGENCE
 
- BLOOD · BIOMARKERS · INSIGHT
+ BLOOD - BIOMARKERS - INSIGHT
 
  Deployment & CI/CD Documentation
- Last updated: 2026-03-20
+ Last updated: 2026-03-21
 
  https://sovereignhealth.io/
- AGPL-3.0 — https://github.com/sovereignbrick/brickos
+ AGPL-3.0 - https://github.com/sovereignbrick/brickos
 ============================================================================
 -->
 
-# Deployment & CI/CD — Sovereign Health Intelligence
+# Deployment & CI/CD - Sovereign Health Intelligence
 
-This document describes the full deployment pipeline for Sovereign Health Intelligence. There is no external CI/CD service — builds happen on the developer's machine and are transferred to the VPS via SSH. This is intentional: the platform is privacy-first, self-sovereign, and does not depend on third-party CI/CD providers.
+This document describes the full deployment pipeline for Sovereign Health Intelligence. There is no external CI/CD service - builds happen on the developer's machine and are transferred to the VPS via SSH. This is intentional: the platform is privacy-first, self-sovereign, and does not depend on third-party CI/CD providers.
 
 ---
 
@@ -33,6 +33,7 @@ This document describes the full deployment pipeline for Sovereign Health Intell
 11. [Scripts Reference](#11-scripts-reference)
 12. [Secrets & Configuration](#12-secrets--configuration)
 13. [Troubleshooting](#13-troubleshooting)
+14. [Critical Rules](#14-critical-rules)
 
 ---
 
@@ -40,44 +41,44 @@ This document describes the full deployment pipeline for Sovereign Health Intell
 
 ```
 Developer Machine (localhost)
-  │
-  ├── cargo build  → Rust backend Docker image
-  ├── pnpm build   → Next.js frontend Docker image
-  └── pnpm build   → Static website (rsync)
-          │
-          │  docker save | ssh docker load
-          ▼
+  |
+  +-- cargo build  -> Rust backend Docker image
+  +-- pnpm build   -> Next.js frontend Docker image
+  +-- pnpm build   -> Static website (rsync)
+          |
+          |  docker save | ssh docker load
+          v
 VPS (72.61.154.115)
-  │
-  ├── nginx (reverse proxy + TLS)
-  │     ├── sovereignhealth.io        → static files (/opt/sovereign-health/homepage)
-  │     ├── app.sovereignhealth.io    → frontend container (:3000)
-  │     ├── api.sovereignhealth.io    → backend container (:8080)
-  │     ├── demo.sovereignhealth.io   → staging frontend (:3001)
-  │     ├── api-demo.sovereignhealth.io → staging backend (:8081)
-  │     ├── ntfy.brickos.io          → ntfy container (:2586)
-  │     └── status.sovereignhealth.io → gatus container (:8082)
-  │
-  ├── Docker Compose (production)
-  │     ├── backend    (sovereign-health-backend:latest)     :8080
-  │     ├── frontend   (sovereign-health-frontend:latest)    :3000
-  │     ├── db         (sovereign-health-postgres:latest)    internal
-  │     └── redis      (redis:7-alpine)                      internal
-  │
-  ├── Docker Compose (staging)
-  │     ├── backend    (sovereign-health-backend:staging)    :8081
-  │     ├── frontend   (sovereign-health-frontend:staging)   :3001
-  │     ├── db         (sh-staging-db)                       internal
-  │     └── redis      (sh-staging-redis)                    internal
-  │
-  └── Docker Compose (monitoring)
-        ├── ntfy       (binwiederhier/ntfy)                  :2586
-        └── gatus      (twinproduction/gatus)                :8082
+  |
+  +-- nginx (reverse proxy + TLS)
+  |     +-- sovereignhealth.io        -> static files (/opt/sovereign-health/homepage)
+  |     +-- app.sovereignhealth.io    -> frontend container (:3000)
+  |     +-- api.sovereignhealth.io    -> backend container (:8080)
+  |     +-- demo.sovereignhealth.io   -> staging frontend (:3001)
+  |     +-- api-demo.sovereignhealth.io -> staging backend (:8081)
+  |     +-- ntfy.brickos.io          -> ntfy container (:2586)
+  |     +-- status.sovereignhealth.io -> gatus container (:8082)
+  |
+  +-- Docker Compose (production)
+  |     +-- backend    (sovereign-health-backend:latest)     :8080
+  |     +-- frontend   (sovereign-health-frontend:latest)    :3000
+  |     +-- db         (sovereign-health-postgres:latest)    internal
+  |     +-- redis      (redis:7-alpine)                      internal
+  |
+  +-- Docker Compose (staging)
+  |     +-- backend    (sovereign-health-backend:staging)    :8081
+  |     +-- frontend   (sovereign-health-frontend:staging)   :3001
+  |     +-- db         (sh-staging-db)                       internal
+  |     +-- redis      (sh-staging-redis)                    internal
+  |
+  +-- Docker Compose (monitoring)
+        +-- ntfy       (binwiederhier/ntfy)                  :2586
+        +-- gatus      (twinproduction/gatus)                :8082
 ```
 
 **Key design decisions:**
-- No Docker registry — images are built locally and transferred via `docker save | ssh docker load`
-- No external CI/CD — all builds run on the developer machine
+- No Docker registry - images are built locally and transferred via `docker save | ssh docker load`
+- No external CI/CD - all builds run on the developer machine
 - Staging and production share the same VPS but are fully isolated (separate DB, Redis, ports, env vars)
 - Cloudflare sits in front for CDN/DDoS protection (production only)
 - Let's Encrypt for TLS via certbot
@@ -97,7 +98,7 @@ VPS (72.61.154.115)
 | **Database** | PostgreSQL 16 with pgaudit extension |
 | **Cache** | Redis 7 (Alpine) |
 | **Monitoring** | Gatus (uptime) + ntfy (notifications) |
-| **Email** | Mailgun (EU region) |
+| **Email** | Mailgun (EU region) - staging: log-only (no MAILGUN_API_KEY set) |
 | **Payments** | Stripe (TEST keys on staging, LIVE on production) |
 
 ---
@@ -108,7 +109,7 @@ VPS (72.61.154.115)
 
 | Component | URL | Container | Port |
 |-----------|-----|-----------|------|
-| Website | `sovereignhealth.io` | static files (nginx) | — |
+| Website | `sovereignhealth.io` | static files (nginx) | - |
 | App | `app.sovereignhealth.io` | `sovereign-health-frontend-1` | 3000 |
 | API | `api.sovereignhealth.io` | `sovereign-health-backend-1` | 8080 |
 | DB | internal | `sovereign-health-db-1` | 5432 |
@@ -122,7 +123,7 @@ VPS (72.61.154.115)
 
 | Component | URL | Container | Port |
 |-----------|-----|-----------|------|
-| Website | `www-demo.sovereignhealth.io` | static files (nginx) | — |
+| Website | `www-demo.sovereignhealth.io` | static files (nginx) | - |
 | App | `demo.sovereignhealth.io` | `sh-staging-frontend` | 3001 |
 | API | `api-demo.sovereignhealth.io` | `sh-staging-backend` | 8081 |
 | DB | internal | `sh-staging-db` | 5432 |
@@ -151,8 +152,8 @@ VPS (72.61.154.115)
 | `docker-compose.prod.yml` | Production services | default |
 | `docker-compose.staging.yml` | Staging services (isolated) | `sh-staging` |
 | `docker-compose.monitoring.yml` | ntfy + Gatus | default |
-| `docker-compose.dev.yml` | Local development | — |
-| `docker-compose.selfhosted.yml` | OSS self-hosted deployment | — |
+| `docker-compose.dev.yml` | Local development | - |
+| `docker-compose.selfhosted.yml` | OSS self-hosted deployment | - |
 
 ---
 
@@ -162,37 +163,40 @@ The deploy script (`ops/deploy.sh`) handles the entire pipeline:
 
 ```
 Local: pre-flight checks
-  → Local: docker build (backend/frontend)
-  → Local: docker save | ssh docker load (transfer to VPS)
-  → VPS: staging DB backup (staging only)
-  → VPS: docker compose up -d --force-recreate
-  → VPS: migrations run automatically on backend startup
-  → VPS: rsync website static files
-  → VPS: docker image prune (cleanup)
-  → VPS/Cloudflare: cache purge (production only)
-  → VPS: verification (health check, version assertion)
-  → Local/ntfy/Telegram: deployment report + notification
+  -> Local: docker build --no-cache (backend with code changes)
+  -> Local: docker save | ssh docker load (transfer to VPS)
+  -> VPS: staging DB backup (staging only)
+  -> VPS: docker compose up -d --force-recreate
+  -> VPS: migrations run automatically on backend startup
+  -> VPS: rsync website static files
+  -> VPS: docker image prune (cleanup)
+  -> VPS/Cloudflare: cache purge (production only)
+  -> VPS: verification (health check, version assertion)
+  -> Local/ntfy/Telegram: deployment report + notification
 ```
 
 ### Pre-flight Checks
 
 Run automatically before every deploy:
 
-1. **Local disk space** — need 2GB+ free for Docker build cache
-2. **VPS disk space** — warns if < 2GB free
-3. **SSH connectivity** — fail fast if VPS unreachable
-4. **Frontend lockfile sync** — runs `pnpm install --frozen-lockfile` to catch stale `pnpm-lock.yaml`
+1. **Branch check** - production requires `main`, staging requires `develop`
+2. **Local disk space** - need 2GB+ free for Docker build cache
+3. **VPS disk space** - warns if < 2GB free
+4. **SSH connectivity** - fail fast if VPS unreachable
+5. **Frontend lockfile sync** - runs `pnpm install --frozen-lockfile` to catch stale `pnpm-lock.yaml`
 
 ### Build Process
 
 **Backend (Rust):**
 ```bash
-docker build -f apps/health/sovereign-health/api/Dockerfile \
+# CRITICAL: Use --no-cache when code has changed to avoid stale binaries
+docker build --no-cache -f apps/health/sovereign-health/api/Dockerfile \
   -t sovereign-health-backend:${tag} .
 ```
-- Multi-stage build: `rust:1.83-slim` → `debian:bookworm-slim`
+- Multi-stage build: `rust:bookworm` -> `debian:bookworm-slim`
 - Uses `runtime-tokio-rustls` (no libssl-dev required)
-- Migrations embedded via `sqlx::migrate!()` — run on startup
+- Runtime includes `libreoffice-calc` for spreadsheet conversion
+- Migrations embedded via `sqlx::migrate!()` - run on startup
 
 **Frontend (Next.js):**
 ```bash
@@ -201,7 +205,7 @@ docker build \
   --build-arg NEXT_PUBLIC_ENVIRONMENT="${env}" \
   -t sovereign-health-frontend:${tag} .
 ```
-- `NEXT_PUBLIC_API_URL` is baked at build time — separate images for staging vs production
+- `NEXT_PUBLIC_API_URL` is baked at build time - separate images for staging vs production
 - Standalone output mode for minimal image size
 
 **Website (static):**
@@ -213,43 +217,74 @@ rsync -avz --delete out/ VPS:/opt/sovereign-health/homepage/
 ### Transfer & Restart
 
 ```bash
+# CRITICAL: Remove old tag on VPS first to ensure new image is loaded
+ssh root@VPS "docker rmi sovereign-health-backend:staging 2>/dev/null"
+
 # Transfer image (no registry needed)
 docker save image:tag | ssh root@VPS "docker load"
+
+# Verify image ID matches local
+LOCAL_ID=$(docker images image:tag --format '{{.ID}}')
+REMOTE_ID=$(ssh root@VPS "docker images image:tag --format '{{.ID}}'")
+[ "$LOCAL_ID" = "$REMOTE_ID" ] || echo "WARNING: Image ID mismatch!"
 
 # Restart container
 ssh root@VPS "cd /opt/sovereign-health && \
   docker compose -f ${compose_file} up -d --force-recreate ${service}"
 ```
 
+### Post-deploy Verification (MANDATORY)
+
+```bash
+# 1. Wait for container to start
+sleep 5
+
+# 2. Check version matches expected (staging port 8081, production port 8080)
+ssh root@VPS "curl -s http://localhost:8081/health"
+# Must show: {"version": "X.Y.Z"}
+
+# 3. Verify container was actually recreated
+ssh root@VPS "docker ps --format '{{.Names}}\t{{.CreatedAt}}' | grep backend"
+# Creation time must be AFTER the deploy timestamp
+
+# 4. Check for migration errors
+ssh root@VPS "docker logs sh-staging-backend 2>&1 | grep -i 'error\|modified'"
+# Watch for: "was previously applied but has been modified" -> FATAL
+# Watch for: only ONE db container exists
+
+# 5. Verify only one DB container
+ssh root@VPS "docker ps | grep staging-db"
+# Must show exactly ONE container
+```
+
 ---
 
 ## 6. Version Management
 
-### Single source of truth
+### Places where VERSION must be updated
 
-`api/src/lib.rs` → `pub const VERSION: &str = "X.Y.Z";`
+| File | Field | Example |
+|------|-------|---------|
+| `api/src/lib.rs` | `pub const VERSION` | `"0.23.0"` |
+| `api/Cargo.toml` | `version` | `"0.23.0"` |
+| `ops/deploy.sh` | `VERSION` | `"0.23.0"` |
+| `api/tests/snapshots/integration__health_snapshot.snap` | `"version"` | `"0.23.0"` |
+| `api/tests/snapshots/integration__hello_snapshot.snap` | `"version"` | `"0.23.0"` |
+| `Cargo.lock` | auto-regenerated | - |
 
 ### Bump script
 
 ```bash
-bash ops/bump-version.sh 0.22.0
+bash ops/bump-version.sh 0.23.0
 ```
 
-Updates 7 files automatically:
-- `ops/deploy.sh` — `VERSION="X.Y.Z"`
-- `api/src/lib.rs` — `pub const VERSION`
-- `api/Cargo.toml` — `version = "X.Y.Z"`
-- `frontend/package.json` — `"version"`
-- `website/package.json` — `"version"`
-- `api/tests/snapshots/integration__health_snapshot.snap`
-- `api/tests/snapshots/integration__hello_snapshot.snap`
-- `Cargo.lock` (regenerated)
+Updates all files listed above automatically.
 
 ### Versioning strategy
 
-- **Minor bump** (0.21.0 → 0.22.0): sprint releases with new features, migrations, or significant changes
-- **Patch bump** (0.21.0 → 0.21.1): bug fixes, small improvements, dependency updates
-- No RC tags — every version is a full release
+- **Minor bump** (0.22.0 -> 0.23.0): sprint releases with new features, migrations, or significant changes
+- **Patch bump** (0.23.0 -> 0.23.1): bug fixes, small improvements, dependency updates
+- **Staging build numbers:** During RC testing, use v0.23.0-b1, v0.23.0-b2... so version changes are visible in the UI footer
 
 ---
 
@@ -260,10 +295,8 @@ Updates 7 files automatically:
 ```bash
 cargo fmt --check && cargo clippy -- -D warnings   # Backend lint
 cargo test -p sovereign-health-backend              # Backend tests
+pnpm --filter sovereign-health-frontend build       # Frontend build (catches TS errors)
 pnpm --filter sovereign-health-frontend lint        # Frontend lint
-pnpm --filter sovereign-health-frontend test        # Frontend tests
-bash frontend/scripts/check-theme-colors.sh         # Theme audit
-cargo audit                                          # Security (advisory)
 ```
 
 ### Phase 2: Version bump (localhost)
@@ -278,52 +311,70 @@ All artifacts go into `docs/project-files/releases/vX.Y.Z/`:
 
 | File | Purpose |
 |------|---------|
-| `release-audit.json` | Automated check results |
 | `RELEASE_vX.Y.Z.md` | Release notes |
-| `YYYY-MM-DD_testing-report_vX.Y.Z.md` | Test pyramid results |
 | `YYYY-MM-DD_manual-testing-checklist_vX.Y.Z.md` | Manual test checklist |
+| `YYYY-MM-DD_testing-report_vX.Y.Z.md` | Test results |
 
 ```bash
 git add <files>
-git commit -m "release: vX.Y.Z — summary"
+git commit -m "release: vX.Y.Z - summary"
 ```
 
 ### Phase 4: Deploy to staging
 
 ```bash
-bash ops/deploy.sh staging              # Full deploy
-bash ops/deploy.sh staging backend      # Backend only
-bash ops/deploy.sh staging frontend     # Frontend only
+# Backend: ALWAYS use --no-cache for code changes
+docker build --no-cache -f apps/health/sovereign-health/api/Dockerfile \
+  -t sovereign-health-backend:staging .
+
+# Remove old image on VPS, transfer new one
+ssh root@VPS "docker rmi sovereign-health-backend:staging 2>/dev/null"
+docker save sovereign-health-backend:staging | ssh root@VPS 'docker load'
+
+# Deploy via script
+bash ops/deploy.sh staging backend
+bash ops/deploy.sh staging frontend
 ```
 
 ### Phase 5: Post-deploy verification (staging)
 
-1. API health: `curl https://api-demo.sovereignhealth.io/health` → version matches
+1. API health: `curl https://api-demo.sovereignhealth.io/health` -> version matches
 2. Frontend loads: `https://demo.sovereignhealth.io/`
-3. Container creation times are fresh (not old containers surviving)
-4. Migrations applied: check `_sqlx_migrations` table
-5. No errors in `docker logs sh-staging-backend`
+3. Container creation times are fresh: `docker ps --format '{{.Names}}\t{{.CreatedAt}}'`
+4. Only ONE DB container exists: `docker ps | grep staging-db` (must be exactly 1)
+5. No migration errors: `docker logs sh-staging-backend 2>&1 | grep "modified"`
+6. Backend logs clean: `docker logs sh-staging-backend 2>&1 | grep -i error`
 
 ### Phase 6: Manual testing (staging)
 
 Walk through the manual testing checklist. Latest checklist:
-`docs/project-files/releases/v0.22.0/2026-03-20_manual-testing-checklist_v0.22.0.md`
+`docs/project-files/releases/v0.23.0-rc1/2026-03-21_manual-testing-checklist_v0.23.0-rc1.md`
 
 ### Phase 7: Promote to production
 
 ```bash
-# Merge develop → main
+# 1. Merge develop -> main
 bash ops/deploy.sh promote
 
-# Deploy to production
+# 2. Switch to main branch (REQUIRED for production deploy)
+git checkout main
+
+# 3. Deploy to production
 bash ops/deploy.sh production --confirm
 
-# Push to GitHub
+# 4. Push both branches
+git push origin main
+git checkout develop
+
+# 5. Push git repos
 bash ops/deploy.sh git
 
-# Tag release
+# 6. Tag release
 git tag -a vX.Y.Z -m "Sovereign Health Intelligence vX.Y.Z"
 git push origin --tags
+
+# 7. Purge Cloudflare cache
+# (automatic if CF_ZONE_ID and CF_API_TOKEN are set, otherwise manual)
 ```
 
 ---
@@ -341,7 +392,7 @@ bash ops/deploy.sh rollback staging backend      # Backend only
 bash ops/deploy.sh rollback production --confirm
 ```
 
-This restores the previous Docker image tag and restarts containers. Database migrations are NOT rolled back automatically — if a migration needs reversal, write a new migration.
+This restores the previous Docker image tag and restarts containers. Database migrations are NOT rolled back automatically - if a migration needs reversal, write a new migration.
 
 ---
 
@@ -357,8 +408,8 @@ This restores the previous Docker image tag and restarts containers. Database mi
 ### Notification Channels (ntfy + Telegram dual-dispatch)
 
 Notifications are sent from two places:
-1. **Deploy script** (`ops/deploy.sh`) — deploy start/finish, failures, verification results
-2. **API runtime** (`services/notify.rs`) — auth events, billing events, security alerts
+1. **Deploy script** (`ops/deploy.sh`) - deploy start/finish, failures, verification results
+2. **API runtime** (`services/notify.rs`) - auth events, billing events, security alerts
 
 | Channel | ntfy topic | Purpose |
 |---------|-----------|---------|
@@ -369,29 +420,6 @@ Notifications are sent from two places:
 | Info | `sh-info` | Deploys, general status |
 | Status | `sh-status` | Gatus uptime alerts |
 
-### Runtime notification hooks (API)
-
-The `Notifier` service is injected as `web::Data<Notifier>` into Actix handlers:
-
-| Event | Channel | Priority |
-|-------|---------|----------|
-| New signup | Users | Default |
-| Email verified | Users | Default |
-| Password reset | Users | Default |
-| MFA enabled | Users | Default |
-| MFA disabled | Users | High |
-| MFA brute force lockout | Critical | High |
-| Password changed | Users | Default |
-| Account deletion | Users | High |
-| New subscription | Billing | Default |
-| Plan changed | Billing | Default |
-| Cancellation requested | Billing | High |
-| Subscription cancelled | Billing | High |
-| Subscription reactivated | Billing | Default |
-| Payment failed | Billing | Urgent |
-| Refund processed | Billing | High |
-| Admin refund | Billing | High |
-
 ---
 
 ## 10. Database Operations
@@ -401,7 +429,12 @@ The `Notifier` service is injected as `web::Data<Notifier>` into Actix handlers:
 - Location: `api/migrations/` (numbered SQL files)
 - Applied automatically on backend startup via `sqlx::migrate!()`
 - Convention: `IF NOT EXISTS` / `ON CONFLICT DO NOTHING` for idempotency
-- Current count: 103 migrations
+
+### Migration Rules
+
+1. **NEVER modify an already-applied migration file** - SQLx tracks checksums. If a previously applied migration is modified, SQLx will refuse to run ALL subsequent migrations silently. Always create a NEW migration to fix data.
+2. **Always test migrations locally** before deploying to staging
+3. **Check backend logs** after deploy for: `"was previously applied but has been modified"` - this is FATAL
 
 ### Staging DB backup
 
@@ -431,15 +464,14 @@ Drops and recreates the staging database. Backend re-runs all migrations on next
 | `ops/deploy.sh staging frontend` | Staging frontend only |
 | `ops/deploy.sh staging website` | Staging website only |
 | `ops/deploy.sh staging postgres` | Build & transfer pgaudit postgres image |
-| `ops/deploy.sh production --confirm` | Full production deploy |
-| `ops/deploy.sh promote` | Merge develop → main (no deploy) |
+| `ops/deploy.sh production --confirm` | Full production deploy (must be on main branch) |
+| `ops/deploy.sh promote` | Merge develop -> main (no deploy) |
 | `ops/deploy.sh git` | Push to GitHub |
 | `ops/deploy.sh status` | Show VPS container status |
 | `ops/deploy.sh rollback <env> [component]` | Restore previous images |
 | `ops/deploy.sh staging-reset-db` | Reset staging database |
 | `ops/bump-version.sh X.Y.Z` | Bump version across all files |
-| `ops/test-all.sh` | Run full test suite |
-| `ops/cleanup.sh` | Docker cleanup on VPS |
+| `ops/preflight.sh` | Pre-deploy verification checks |
 
 ---
 
@@ -463,7 +495,7 @@ Drops and recreates the staging database. Backend re-runs all migrations on next
 | `ENCRYPTION_KEY` | At-rest encryption for sensitive fields |
 | `ANTHROPIC_API_KEY` | Claude API for Dr. Alex |
 | `STRIPE_SECRET_KEY` | Stripe payments |
-| `MAILGUN_API_KEY` | Transactional email |
+| `MAILGUN_API_KEY` | Transactional email (not set on staging = log-only) |
 | `NTFY_BASE_URL` / `NTFY_TOKEN` | Push notifications |
 | `TELEGRAM_BOT_TOKEN` / `TELEGRAM_CHAT_ID` | Telegram alerts |
 | `CF_ZONE_ID` / `CF_API_TOKEN` | Cloudflare cache purge |
@@ -472,24 +504,80 @@ Drops and recreates the staging database. Backend re-runs all migrations on next
 
 ## 13. Troubleshooting
 
-### Common issues
+### Backend still running old version after deploy
 
-**Container not recreated after deploy:**
+**Root cause:** Docker build cache serves stale binary, or image transfer doesn't replace old tag.
+
 ```bash
-# Check creation time
-ssh root@VPS "docker inspect --format='{{.Created}}' sh-staging-backend"
-# Force recreate
-ssh root@VPS "cd /opt/sovereign-health && docker compose -f docker-compose.staging.yml --env-file .env.staging -p sh-staging up -d --force-recreate backend"
+# 1. Build without cache
+docker build --no-cache -f apps/health/sovereign-health/api/Dockerfile \
+  -t sovereign-health-backend:staging .
+
+# 2. Remove old image on VPS BEFORE transferring
+ssh root@VPS "docker rmi sovereign-health-backend:staging 2>/dev/null"
+
+# 3. Transfer
+docker save sovereign-health-backend:staging | ssh root@VPS 'docker load'
+
+# 4. Verify image IDs match
+docker images sovereign-health-backend:staging --format '{{.ID}}'
+ssh root@VPS "docker images sovereign-health-backend:staging --format '{{.ID}}'"
+
+# 5. Deploy and verify version
+bash ops/deploy.sh staging backend
+ssh root@VPS "curl -s http://localhost:8081/health"  # staging
+ssh root@VPS "curl -s http://localhost:8080/health"  # production
 ```
 
-**Frontend lockfile out of sync:**
+### Orphan DB containers
+
+**Root cause:** Manual `docker compose up` creates a second DB container.
+
+```bash
+# Check for duplicates
+ssh root@VPS "docker ps -a | grep staging-db"
+
+# If multiple, stop the orphan (the one with the longer name)
+ssh root@VPS "docker stop <orphan_name> && docker rm <orphan_name>"
+
+# RULE: Never use raw docker compose commands on VPS. Always use ops/deploy.sh
+```
+
+### Migration checksum mismatch
+
+**Root cause:** An already-applied migration file was modified.
+
+```bash
+# Check logs
+ssh root@VPS "docker logs sh-staging-backend 2>&1 | grep 'modified'"
+# Output: "migration 20260321000002 was previously applied but has been modified"
+
+# Fix: Create a NEW corrective migration, never modify the original
+# If critical: reset staging DB
+bash ops/deploy.sh staging-reset-db
+```
+
+### Container not recreated after deploy
+
+```bash
+# Check creation time
+ssh root@VPS "docker ps --format '{{.Names}}\t{{.CreatedAt}}' | grep backend"
+
+# If creation time is BEFORE the deploy, force recreate
+ssh root@VPS "docker stop sh-staging-backend && docker rm sh-staging-backend"
+bash ops/deploy.sh staging backend
+```
+
+### Frontend lockfile out of sync
+
 ```bash
 cd apps/health/sovereign-health/frontend
 pnpm install --ignore-workspace
 git add pnpm-lock.yaml
 ```
 
-**Stale content after deploy (Cloudflare cache):**
+### Stale content after deploy (Cloudflare cache)
+
 ```bash
 # Auto-purged for production deploys, or manually:
 curl -X POST "https://api.cloudflare.com/client/v4/zones/${CF_ZONE_ID}/purge_cache" \
@@ -498,20 +586,50 @@ curl -X POST "https://api.cloudflare.com/client/v4/zones/${CF_ZONE_ID}/purge_cac
   --data '{"purge_everything":true}'
 ```
 
-**Migration failed on startup:**
-```bash
-# Check logs
-ssh root@VPS "docker logs sh-staging-backend 2>&1 | head -50"
-# Migrations are idempotent — restarting usually fixes transient issues
-ssh root@VPS "docker restart sh-staging-backend"
-```
+### SSH $-variable escaping issues
 
-**SSH $-variable escaping issues:**
 Never inline strings containing `$` through SSH. Always pipe via stdin:
 ```bash
 # BAD:  ssh VPS "echo $HOME"
-# GOOD: echo '$HOME' | ssh VPS "cat"
+# GOOD: printf 'value' | ssh VPS 'cat'
 ```
 
-**Docker build fails with libssl-dev:**
+### Docker build fails with libssl-dev
+
 The project uses `rustls` everywhere. Never add `native-tls` or `openssl` as a dependency. Ensure sqlx uses `runtime-tokio-rustls` and reqwest uses `rustls-tls`.
+
+### LibreOffice conversion issues
+
+The backend Docker image includes `libreoffice-calc` for spreadsheet (ODS/XLSX) to CSV conversion.
+
+```bash
+# Verify installed
+ssh root@VPS "docker exec sh-staging-backend which libreoffice"
+
+# Check conversion logs
+ssh root@VPS "docker logs sh-staging-backend 2>&1 | grep -i libre"
+
+# Common issues:
+# - Multi-sheet files: output is UUID-SheetName.csv (not UUID.csv)
+# - Encoding: UTF-8 charset flag set, Latin-1 fallback for legacy files
+# - Timeout: Claude API extraction timeout is 120s
+```
+
+---
+
+## 14. Critical Rules
+
+These rules were learned from production incidents. Violating them causes silent failures.
+
+| Rule | Why | Incident |
+|------|-----|----------|
+| Always `--no-cache` for backend builds with code changes | Docker cache can serve stale binary from unchanged layers | v0.23.0 RC: 5 deploys showed v0.22.0 |
+| Remove old image tag on VPS before `docker load` | `docker load` is a no-op if tag already exists with same layers | v0.23.0 RC: image transfer appeared successful but old image remained |
+| Verify version via `curl localhost:PORT/health` after EVERY deploy | Deploy script may report success while old container runs | v0.23.0 RC: script said OK but API was v0.22.0 |
+| NEVER modify applied migrations | SQLx silently skips ALL subsequent migrations on checksum mismatch | v0.23.0 RC: em-dash fix migration never applied |
+| NEVER use manual `docker compose` on VPS | Can create orphan DB containers; backend connects to empty DB | v0.23.0 RC: second DB created, all data missing |
+| NEVER deploy to production while testing staging | Shared VPS; wrong commands affect production | v0.23.0 RC: Gatus 502 alert on production |
+| Use staging build numbers (v0.23.0-b1, b2...) | Same version string across deploys makes verification impossible | v0.23.0 RC: couldn't tell if new code was running |
+| Check for only ONE DB container after any docker operation | Orphan DBs cause empty data and long migration replays | v0.23.0 RC: 3-minute migration replay on empty DB |
+| Never replace sovereign-health-postgres with standard postgres | pgaudit extension is required for audit logging | Historical |
+| `pnpm build` locally before committing frontend changes | Catches TypeScript errors before deploy | Historical |
