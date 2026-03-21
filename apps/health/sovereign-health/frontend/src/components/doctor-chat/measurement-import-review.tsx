@@ -46,12 +46,17 @@ export function MeasurementImportReview({ session, onConfirm, onCancel, isLoadin
     return init
   })
 
-  // Protocol options matching the measurement form
+  // Protocol options matching the measurement form (Messzeitpunkt)
+  const tMeal = useTranslations('mealTiming')
   const protocolOptions = [
-    { value: 'standard', key: 'protocolStandard' },
-    { value: 'fasting', key: 'protocolFasting' },
-    { value: 'postprandial', key: 'protocolPostprandial' },
-  ] as const
+    { value: 'standard', label: tMeal('noTag') },
+    { value: 'fasting', label: tMeal('fasting') },
+    { value: 'before', label: tMeal('before') },
+    { value: '30m_after', label: tMeal('30mAfter') },
+    { value: '1h_after', label: tMeal('1hAfter') },
+    { value: '2h_after', label: tMeal('2hAfter') },
+    { value: '3h_after', label: tMeal('3hAfter') },
+  ]
 
   // Row selection
   const [selectedRows, setSelectedRows] = useState<Record<number, boolean>>(() => {
@@ -131,8 +136,8 @@ export function MeasurementImportReview({ session, onConfirm, onCancel, isLoadin
 
   // Translate protocol tags to current locale
   const translateProtocol = (tag: string): string => {
-    const key = `protocol${tag.charAt(0).toUpperCase()}${tag.slice(1)}` as 'protocolFasting' | 'protocolPostprandial' | 'protocolStandard'
-    return t.has(key) ? t(key) : tag
+    const opt = protocolOptions.find(o => o.value === tag)
+    return opt ? opt.label : tag
   }
 
   // Unique devices from columns for display
@@ -290,7 +295,7 @@ export function MeasurementImportReview({ session, onConfirm, onCancel, isLoadin
                           className={selectCls}
                         >
                           {protocolOptions.map(opt => (
-                            <option key={opt.value} value={opt.value}>{t(opt.key)}</option>
+                            <option key={opt.value} value={opt.value}>{opt.label}</option>
                           ))}
                         </select>
                       </td>
