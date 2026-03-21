@@ -1,6 +1,5 @@
 // Sovereign Health Intelligence -- AGPL-3.0 -- https://sovereignhealth.io/
 
-use std::collections::HashMap;
 use actix_multipart::Multipart;
 use actix_web::{web, HttpResponse};
 use base64::{engine::general_purpose::STANDARD as BASE64, Engine as _};
@@ -9,6 +8,7 @@ use futures_util::StreamExt;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use sqlx::{PgPool, Row};
+use std::collections::HashMap;
 use uuid::Uuid;
 
 use crate::{
@@ -1547,7 +1547,9 @@ pub async fn confirm_measurements(
         .collect();
 
     // Build protocol remap: old_tag -> new_tag from user overrides
-    let protocol_remap: HashMap<String, String> = if let Some(ref overrides) = body.protocol_overrides {
+    let protocol_remap: HashMap<String, String> = if let Some(ref overrides) =
+        body.protocol_overrides
+    {
         let original_protocols = matched_data
             .get("protocols")
             .and_then(|v| v.as_object())
