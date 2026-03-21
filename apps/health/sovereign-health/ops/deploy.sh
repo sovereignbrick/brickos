@@ -116,6 +116,49 @@ if [ "$RESOLVED_ROOT" != "$RESOLVED_GIT" ]; then
     fail "PROJECT_ROOT resolves to $RESOLVED_ROOT but git root is $RESOLVED_GIT"
 fi
 
+# ── Staging build number ─────────────────────────────────────────────────────
+# Auto-increment build suffix (v0.23.0-b1 → v0.23.0-b2) for staging deploys
+# so the version in the UI changes visibly on each deploy.
+
+bump_staging_version() {
+    local lib_rs="${APP_ROOT}/api/src/lib.rs"
+    local current
+    current=$(grep 'pub const VERSION' "$lib_rs" | grep -oP '"\K[^"]+')
+
+    # Extract base version and current build number
+    local base_ver build_num
+    base_ver=$(echo "$current" | sed 's/-b[0-9]*//')
+    if echo "$current" | grep -qP '\-b\d+'; then
+        build_num=$(echo "$current" | grep -oP '(?<=-b)\d+')
+        build_num=$((build_num + 1))
+    else
+        build_num=1
+    fi
+
+    local new_ver="${base_ver}-b${build_num}"
+    sed -i "s/pub const VERSION: &str = \"[^\"]*\"/pub const VERSION: \&str = \"${new_ver}\"/" "$lib_rs"
+    VERSION="$new_ver"
+    log "Staging build number: $new_ver"
+}
+
+# Verify Docker image ID matches between local and remote after transfer
+verify_image_id() {
+    local image="$1"
+    local tag="$2"
+    local local_id remote_id
+
+    local_id=$(docker inspect --format='{{.Id}}' "${image}:${tag}" 2>/dev/null | cut -c1-20)
+    remote_id=$(ssh $VPS "docker inspect --format='{{.Id}}' '${image}:${tag}' 2>/dev/null" | cut -c1-20)
+
+    if [ -n "$local_id" ] && [ -n "$remote_id" ] && [ "$local_id" = "$remote_id" ]; then
+        log "Image ID verified: ${local_id}"
+        report_add "OK" "Image ID verified: ${image}:${tag} (${local_id})"
+    else
+        warn "Image ID mismatch: local=${local_id:-?} remote=${remote_id:-?}"
+        report_add "FAIL" "Image ID mismatch: ${image}:${tag} local=${local_id:-?} remote=${remote_id:-?}"
+    fi
+}
+
 # ── Report tracking ──────────────────────────────────────────────────────────
 # Collects what was done during the deploy and prints a summary at the end.
 # Each step calls report_add to log its action. report_print shows the full report.
@@ -390,12 +433,19 @@ deploy_backend() {
     # Save current image for rollback before overwriting
     save_rollback_state "$env" "backend" "$BACKEND_IMAGE" "$image_tag"
 
+    # Auto-bump build number for staging deploys
+    if [ "$env" = "staging" ]; then
+        bump_staging_version
+    fi
+
     log "Building backend ($env)..."
     cd "$PROJECT_ROOT"
-    docker build -f apps/health/sovereign-health/api/Dockerfile -t "${BACKEND_IMAGE}:${image_tag}" .
+    docker build --no-cache -f apps/health/sovereign-health/api/Dockerfile -t "${BACKEND_IMAGE}:${image_tag}" .
 
     log "Transferring backend to VPS..."
     docker save "${BACKEND_IMAGE}:${image_tag}" | ssh $VPS "docker load"
+
+    verify_image_id "$BACKEND_IMAGE" "$image_tag"
 
     # Backup staging DB before restart (migrations run on startup)
     if [ "$env" = "staging" ]; then
@@ -464,6 +514,8 @@ deploy_frontend() {
 
     log "Transferring frontend to VPS..."
     docker save "${FRONTEND_IMAGE}:${image_tag}" | ssh $VPS "docker load"
+
+    verify_image_id "$FRONTEND_IMAGE" "$image_tag"
 
     log "Restarting frontend ($env) on VPS..."
     if [ "$env" = "staging" ]; then
@@ -755,11 +807,19 @@ verify() {
     if [ -n "$api_version" ]; then
         report_add "INFO" "API version: $api_version"
         # Version assertion: verify deployed version matches expected VERSION
-        if [ "$api_version" != "$VERSION" ]; then
+        # For staging, VERSION includes the build number (e.g. 0.23.0-b2)
+        local expected_base
+        expected_base=$(echo "$VERSION" | sed 's/-b[0-9]*//')
+        local api_base
+        api_base=$(echo "$api_version" | sed 's/-b[0-9]*//')
+        if [ "$api_version" = "$VERSION" ]; then
+            report_add "OK" "Version assertion passed: $api_version"
+        elif [ "$api_base" = "$expected_base" ] && echo "$api_version" | grep -qP '\-b\d+'; then
+            # Base version matches but build number differs (e.g. frontend-only deploy)
+            report_add "INFO" "API at build $api_version (expected $VERSION)"
+        else
             warn "VERSION MISMATCH: deployed=$api_version expected=$VERSION"
             report_add "FAIL" "Version mismatch: API reports $api_version but deploy expected $VERSION"
-        else
-            report_add "OK" "Version assertion passed: $api_version matches expected"
         fi
     fi
 
