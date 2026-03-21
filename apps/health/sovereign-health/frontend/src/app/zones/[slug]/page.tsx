@@ -9,6 +9,7 @@ import { Footer } from '@/components/layout/footer'
 import { StatusBadge } from '@/components/status-badge'
 import Link from 'next/link'
 import { useDemoProfile } from '@/lib/demo-profile-context'
+import { useContent } from '@/lib/content-context'
 import { Breadcrumb } from '@/components/breadcrumb'
 import { formatShortDate } from '@/lib/date-format'
 import { useDemoHref } from '@/lib/use-demo-href'
@@ -34,6 +35,7 @@ export default function ZoneDetailPage() {
   const tZones = useTranslations('zones')
   const tCommon = useTranslations('common')
   const tNav = useTranslations('nav')
+  const { locale } = useContent()
 
   const [zone, setZone] = useState<ZoneDetail | null>(null)
   const [fetching, setFetching] = useState(true)
@@ -49,7 +51,7 @@ export default function ZoneDetailPage() {
     fetchZone()
       .catch(() => setZone(null))
       .finally(() => setFetching(false))
-  }, [user, loading, isDemo, slug, profile])
+  }, [user, loading, isDemo, slug, profile, locale])
 
   if (loading || fetching) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">{tCommon('loading')}</div>
 

@@ -1235,17 +1235,26 @@ pub async fn upload_measurements(
     .fetch_all(pool.get_ref())
     .await?;
 
+    let alias_map = marker_matcher::aliases_by_slug();
     let markers_context: Vec<String> = marker_rows
         .iter()
         .map(|r| {
             let slug: String = r.try_get("marker_slug").unwrap_or_default();
             let abbr: Option<String> = r.try_get("abbreviation").ok().flatten();
             let unit: String = r.try_get("unit_canonical").unwrap_or_default();
+            let aliases = alias_map
+                .get(slug.as_str())
+                .map(|v| v.join(", "))
+                .unwrap_or_default();
+            let mut parts = vec![slug.clone()];
             if let Some(a) = abbr {
-                format!("  {} ({}) [{}]", slug, a, unit)
-            } else {
-                format!("  {} [{}]", slug, unit)
+                parts.push(format!("({})", a));
             }
+            parts.push(format!("[{}]", unit));
+            if !aliases.is_empty() {
+                parts.push(format!("aka: {}", aliases));
+            }
+            format!("  {}", parts.join(" "))
         })
         .collect();
 
@@ -1978,7 +1987,7 @@ async fn spreadsheet_to_csv(bytes: &[u8], filename: &str) -> Result<String, AppE
         .args([
             "--headless",
             "--convert-to",
-            "csv:Text - txt - csv (StarCalc):44,34,76,1,,0,false,true,false,false,false,-1",
+            "csv:Text - txt - csv (StarCalc):44,34,76,1,,0,false,true,false,false,false,0",
             "--outdir",
             tmp_dir.to_str().unwrap_or("/tmp"),
             input_path.to_str().unwrap_or(""),
@@ -2013,19 +2022,34 @@ async fn spreadsheet_to_csv(bytes: &[u8], filename: &str) -> Result<String, AppE
     let csv_path = if csv_path.exists() {
         csv_path
     } else {
-        // Look for first CSV matching our UUID prefix (first sheet)
+        // Multi-sheet: pick the largest CSV (data sheets are bigger than explanation sheets)
         let prefix = format!("import_{}", tmp_id);
-        let mut found = None;
+        let mut best: Option<(std::path::PathBuf, u64)> = None;
         if let Ok(mut entries) = tokio::fs::read_dir(&tmp_dir).await {
             while let Ok(Some(entry)) = entries.next_entry().await {
                 let name = entry.file_name().to_string_lossy().to_string();
                 if name.starts_with(&prefix) && name.ends_with(".csv") {
-                    found = Some(entry.path());
-                    break;
+                    let size = entry.metadata().await.map(|m| m.len()).unwrap_or(0);
+                    if best.is_none() || size > best.as_ref().unwrap().1 {
+                        best = Some((entry.path(), size));
+                    }
                 }
             }
         }
-        found.ok_or_else(|| {
+        // Clean up all other CSV files from this conversion
+        if let Ok(mut entries) = tokio::fs::read_dir(&tmp_dir).await {
+            while let Ok(Some(entry)) = entries.next_entry().await {
+                let name = entry.file_name().to_string_lossy().to_string();
+                if name.starts_with(&prefix) && name.ends_with(".csv") {
+                    if let Some((ref best_path, _)) = best {
+                        if entry.path() != *best_path {
+                            let _ = tokio::fs::remove_file(entry.path()).await;
+                        }
+                    }
+                }
+            }
+        }
+        best.map(|(p, _)| p).ok_or_else(|| {
             tracing::error!("No CSV output found for prefix {}", prefix);
             AppError::Validation(
                 "Could not read the converted file. Please try saving as CSV and uploading again."
@@ -2138,12 +2162,17 @@ async fn enrich_columns_with_db(
             .and_then(|v| v.as_str())
             .unwrap_or("");
 
-        // Verify marker exists in DB via matcher
-        let resolved_slug = if marker_slug.is_empty() {
-            marker_matcher::match_marker(source_name)
-        } else {
+        // Verify marker via matcher — prefer source_name match (more reliable for
+        // foreign language columns) over AI's marker_slug when they disagree.
+        let source_match = marker_matcher::match_marker(source_name);
+        let resolved_slug = if let Some(sm) = source_match {
+            // Source name matched — trust it (handles German column headers etc.)
+            Some(sm)
+        } else if !marker_slug.is_empty() {
+            // Fall back to AI's suggestion
             marker_matcher::match_marker(marker_slug)
-                .or_else(|| marker_matcher::match_marker(source_name))
+        } else {
+            None
         };
 
         let Some(slug) = resolved_slug else {

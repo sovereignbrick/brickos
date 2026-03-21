@@ -1536,6 +1536,7 @@
     "date": "Date",
     "time": "Time",
     "protocol": "Protocol",
+    "duplicateRow": "Duplicate row",
     "skipDuplicates": "Skip duplicate timestamps (recommended)",
     "selectedCount": "{count} row(s) selected",
     "importing": "Importing...",

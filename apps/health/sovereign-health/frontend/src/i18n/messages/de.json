@@ -1536,6 +1536,7 @@
     "date": "Datum",
     "time": "Uhrzeit",
     "protocol": "Protokoll",
+    "duplicateRow": "Doppelte Zeile",
     "skipDuplicates": "Doppelte Zeitstempel überspringen (empfohlen)",
     "selectedCount": "{count} Zeile(n) ausgewählt",
     "importing": "Importiere...",

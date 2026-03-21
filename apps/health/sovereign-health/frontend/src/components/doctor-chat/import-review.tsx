@@ -255,7 +255,7 @@ export function ImportReview({ session, onConfirm, onCancel, isLoading }: Import
                           <MarkerTooltip slug={m.matched_marker!} />
                         </span>
                       </td>
-                      <td className="py-2 px-3 text-muted-foreground text-xs">{(m as unknown as Record<string, string>).abbreviation || '—'}</td>
+                      <td className="py-2 px-3 text-muted-foreground text-xs">{(m as unknown as Record<string, string>).abbreviation || '-'}</td>
                       <td className="py-2 px-3 text-right">
                         <input
                           type="number"

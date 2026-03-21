@@ -48,6 +48,21 @@ export function MeasurementImportReview({ session, onConfirm, onCancel, isLoadin
 
   const [skipDuplicates, setSkipDuplicates] = useState(true)
 
+  // Detect duplicate rows (same date + time + values)
+  const duplicateRows = new Set<number>()
+  const rowFingerprints = new Map<string, number[]>()
+  session.rows.forEach((row, i) => {
+    if (!row.values || Object.keys(row.values).length === 0) return
+    const fp = `${row.date}|${row.time}|${JSON.stringify(row.values, Object.keys(row.values).sort())}`
+    const existing = rowFingerprints.get(fp)
+    if (existing) {
+      existing.push(i)
+      existing.forEach(idx => duplicateRows.add(idx))
+    } else {
+      rowFingerprints.set(fp, [i])
+    }
+  })
+
   const selectedCount = Object.values(selectedRows).filter(Boolean).length
   const selectableRows = session.rows.filter(r => r.values && Object.keys(r.values).length > 0)
 
@@ -101,7 +116,7 @@ export function MeasurementImportReview({ session, onConfirm, onCancel, isLoadin
           <div>
             <h2 className="text-lg font-semibold text-foreground">{t('title')}</h2>
             <p className="text-sm text-muted-foreground mt-1">
-              {session.file_name} — {session.total_rows} {t('rowsFound')}, {session.total_markers} {t('markersDetected')}
+              {session.file_name} - {session.total_rows} {t('rowsFound')}, {session.total_markers} {t('markersDetected')}
             </p>
           </div>
           <button onClick={onCancel} className="text-sm text-muted-foreground hover:text-foreground">
@@ -268,7 +283,7 @@ export function MeasurementImportReview({ session, onConfirm, onCancel, isLoadin
                     const hasValues = row.values && Object.keys(row.values).length > 0
                     if (!hasValues) return null
                     return (
-                      <tr key={ri} className={`border-t border-border ${!selectedRows[ri] ? 'opacity-40' : ''}`}>
+                      <tr key={ri} className={`border-t border-border ${!selectedRows[ri] ? 'opacity-40' : ''} ${duplicateRows.has(ri) ? 'bg-amber-500/10' : ''}`}>
                         <td className="py-1.5 px-3">
                           <input
                             type="checkbox"
@@ -277,14 +292,19 @@ export function MeasurementImportReview({ session, onConfirm, onCancel, isLoadin
                             className="rounded"
                           />
                         </td>
-                        <td className="py-1.5 px-2 text-foreground text-xs whitespace-nowrap">{row.date}</td>
+                        <td className="py-1.5 px-2 text-foreground text-xs whitespace-nowrap">
+                          {row.date}
+                          {duplicateRows.has(ri) && (
+                            <span className="ml-1 text-amber-500 text-[10px]" title={t('duplicateRow')}>dup</span>
+                          )}
+                        </td>
                         <td className="py-1.5 px-2 text-muted-foreground text-xs">{row.time}</td>
                         <td className="py-1.5 px-2 text-muted-foreground text-xs">{row.protocol}</td>
                         {matchedColumns.map((col, ci) => {
                           const val = col.marker_slug ? row.values[col.marker_slug] : undefined
                           return (
                             <td key={ci} className="py-1.5 px-2 text-right text-xs text-foreground tabular-nums">
-                              {val != null ? val : <span className="text-muted-foreground">—</span>}
+                              {val != null ? val : <span className="text-muted-foreground">-</span>}
                             </td>
                           )
                         })}

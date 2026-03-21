@@ -189,6 +189,15 @@ fn alias_map() -> &'static HashMap<&'static str, &'static str> {
             "systolic blood pressure",
             "bp systolic",
             "systolisch",
+            "blutdruck systolisch",
+            "blutdruck syst",
+            "blutdruck syst.",
+            "rr systolisch",
+            "rr syst",
+            "rr syst.",
+            "systolischer blutdruck",
+            "sys bp",
+            "sys",
         ] {
             m.insert(a, "bp_systolic");
         }
@@ -197,6 +206,15 @@ fn alias_map() -> &'static HashMap<&'static str, &'static str> {
             "diastolic blood pressure",
             "bp diastolic",
             "diastolisch",
+            "blutdruck diastolisch",
+            "blutdruck diast",
+            "blutdruck diast.",
+            "rr diastolisch",
+            "rr diast",
+            "rr diast.",
+            "diastolischer blutdruck",
+            "dia bp",
+            "dia",
         ] {
             m.insert(a, "bp_diastolic");
         }
@@ -531,6 +549,25 @@ fn alias_map() -> &'static HashMap<&'static str, &'static str> {
     })
 }
 
+/// Return aliases grouped by marker slug for AI prompt context.
+/// Only includes aliases that differ from the slug itself (i.e. human-readable names).
+pub fn aliases_by_slug() -> HashMap<&'static str, Vec<&'static str>> {
+    let map = alias_map();
+    let mut grouped: HashMap<&str, Vec<&str>> = HashMap::new();
+    for (alias, slug) in map.iter() {
+        // Skip very short abbreviations and the slug itself
+        if alias.len() >= 4 && *alias != *slug {
+            grouped.entry(slug).or_default().push(alias);
+        }
+    }
+    // Sort aliases by length descending so the most descriptive appear first
+    for v in grouped.values_mut() {
+        v.sort_by(|a, b| b.len().cmp(&a.len()));
+        v.truncate(5); // keep at most 5 per marker
+    }
+    grouped
+}
+
 /// Match an AI-extracted marker name to a system marker slug.
 pub fn match_marker(ai_name: &str) -> Option<&'static str> {
     let normalized = ai_name.trim().to_lowercase();
@@ -545,7 +582,7 @@ pub fn match_marker(ai_name: &str) -> Option<&'static str> {
     //    Prefer longer alias matches to avoid false positives.
     let mut best: Option<(&str, usize)> = None;
     for (alias, slug) in map.iter() {
-        if alias.len() >= 3
+        if alias.len() >= 4
             && normalized.contains(alias)
             && (best.is_none() || alias.len() > best.unwrap().1)
         {
@@ -683,6 +720,22 @@ mod tests {
         assert_eq!(match_marker("HCT"), Some("hematocrit"));
         // SHBG still works
         assert_eq!(match_marker("SHBG"), Some("shbg"));
+    }
+
+    #[test]
+    fn test_match_blood_pressure_german() {
+        assert_eq!(match_marker("Blutdruck syst."), Some("bp_systolic"));
+        assert_eq!(match_marker("Blutdruck diast."), Some("bp_diastolic"));
+        assert_eq!(match_marker("Blutdruck systolisch"), Some("bp_systolic"));
+        assert_eq!(match_marker("Blutdruck diastolisch"), Some("bp_diastolic"));
+        assert_eq!(match_marker("RR syst."), Some("bp_systolic"));
+        assert_eq!(match_marker("RR diast."), Some("bp_diastolic"));
+    }
+
+    #[test]
+    fn test_no_false_positive_ast_in_diast() {
+        // "Blutdruck diast." must NOT match AST
+        assert_ne!(match_marker("Blutdruck diast."), Some("ast"));
     }
 
     #[test]

@@ -8,6 +8,7 @@ import { Footer } from '@/components/layout/footer'
 import Link from 'next/link'
 import { useAuth } from '@/lib/auth-context'
 import { useDemoProfile, DEMO_PROFILES, getProfileLabel } from '@/lib/demo-profile-context'
+import { useContent } from '@/lib/content-context'
 import { InfoCarousel, CarouselCard } from '@/components/info-carousel'
 import { UsageWidget } from '@/components/usage-widget'
 import { OnboardingChecklist } from '@/components/onboarding-checklist'
@@ -47,6 +48,7 @@ export default function DashboardPage() {
   const tCommon = useTranslations('common')
   const tDemo = useTranslations('demo')
   const carouselCards = useCarouselCards()
+  const { locale } = useContent()
   const [zones, setZones] = useState<Zone[]>(MOCK_ZONES)
   useEffect(() => {
     if (loading) return
@@ -59,7 +61,7 @@ export default function DashboardPage() {
         .then(res => { if (res.data) setZones(res.data) })
         .catch(() => {})
     }
-  }, [user, loading, isDemo, profile])
+  }, [user, loading, isDemo, profile, locale])
 
   if (loading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">{tCommon('loading')}</div>
 

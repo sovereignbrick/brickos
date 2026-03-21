@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import { toast } from '@/lib/toast'
 import { api } from '@/lib/api'
 import { useAuth } from '@/lib/auth-context'
@@ -14,14 +15,19 @@ import { InfluenceFactorImportReview } from './influence-factor-import-review'
 import { MeasurementImportReview } from './measurement-import-review'
 import { useTranslations } from 'next-intl'
 
-export function ChatLayout() {
+interface ChatLayoutProps {
+  conversationId?: string
+}
+
+export function ChatLayout({ conversationId }: ChatLayoutProps) {
   const tChat = useTranslations('doctorChat')
   const tMed = useTranslations('medications')
+  const router = useRouter()
 
   const { user } = useAuth()
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [conversations, setConversations] = useState<Conversation[]>([])
-  const [activeConversationId, setActiveConversationId] = useState<string | null>(null)
+  const [activeConversationId, setActiveConversationId] = useState<string | null>(conversationId ?? null)
   const [activeAgentType, setActiveAgentType] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [quota, setQuota] = useState<QuotaResponse | null>(null)
@@ -55,6 +61,20 @@ export function ChatLayout() {
     fetchQuota()
     fetchConversations()
   }, [fetchQuota, fetchConversations])
+
+  // Load conversation from URL param
+  useEffect(() => {
+    if (!conversationId) return
+    api.doctorChat.getConversation(conversationId)
+      .then(res => {
+        setMessages(res.data.messages)
+        setActiveConversationId(conversationId)
+      })
+      .catch(() => {
+        // Conversation not found, redirect to landing
+        router.replace('/doctor-chat')
+      })
+  }, [conversationId, router])
 
   const handleSend = async (question: string, agentType?: string) => {
     if (isLoading) return
@@ -98,6 +118,11 @@ export function ChatLayout() {
       setActiveConversationId(data.conversation_id)
       if (agent) setActiveAgentType(agent)
 
+      // Update URL to conversation-specific route
+      if (!activeConversationId) {
+        router.replace(`/doctor-chat/${data.conversation_id}`)
+      }
+
       if (quota) {
         setQuota({
           ...quota,
@@ -136,6 +161,8 @@ export function ChatLayout() {
       // Find agent_type from conversations list
       const conv = conversations.find(c => c.id === id)
       setActiveAgentType(conv?.agent_type ?? null)
+      // Update URL
+      router.push(`/doctor-chat/${id}`)
     } catch (err) {
       toast.error(err instanceof Error ? err.message : tChat('failedLoadConversation'))
     }
@@ -258,7 +285,11 @@ export function ChatLayout() {
     setImportSession(null)
     setMedImportSession(null)
     setMeasurementImportSession(null)
+    setImportLoading(false)
     setSidebarOpen(false)
+    setChatError(null)
+    setLastQuestion(null)
+    router.push('/doctor-chat')
   }
 
   return (
