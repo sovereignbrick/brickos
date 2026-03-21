@@ -562,7 +562,7 @@ pub fn aliases_by_slug() -> HashMap<&'static str, Vec<&'static str>> {
     }
     // Sort aliases by length descending so the most descriptive appear first
     for v in grouped.values_mut() {
-        v.sort_by(|a, b| b.len().cmp(&a.len()));
+        v.sort_by_key(|b| std::cmp::Reverse(b.len()));
         v.truncate(5); // keep at most 5 per marker
     }
     grouped
