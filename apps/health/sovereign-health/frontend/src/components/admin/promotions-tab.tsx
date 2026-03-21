@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, Fragment } from 'react'
 import { useTranslations } from 'next-intl'
 import { toast } from '@/lib/toast'
 import { api } from '@/lib/api'
+import { DateOnlyPicker } from '@/components/date-time-picker'
 
 interface Promotion {
   id: string
@@ -364,19 +365,17 @@ export function PromotionsTab() {
             </div>
             <div>
               <label className="text-xs text-muted-foreground block mb-1">Start Date</label>
-              <input
-                type="date"
+              <DateOnlyPicker
                 value={form.starts_at}
-                onChange={e => setForm({ ...form, starts_at: e.target.value })}
+                onChange={v => setForm({ ...form, starts_at: v })}
                 className="w-full bg-muted border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
             </div>
             <div>
               <label className="text-xs text-muted-foreground block mb-1">Expiry Date</label>
-              <input
-                type="date"
+              <DateOnlyPicker
                 value={form.expires_at}
-                onChange={e => setForm({ ...form, expires_at: e.target.value })}
+                onChange={v => setForm({ ...form, expires_at: v })}
                 className="w-full bg-muted border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
             </div>

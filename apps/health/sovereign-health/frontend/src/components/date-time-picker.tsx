@@ -1,6 +1,14 @@
 'use client'
+import { useState, useEffect } from 'react'
 import DatePicker from 'react-datepicker'
 import 'react-datepicker/dist/react-datepicker.css'
+
+// Prevent hydration mismatch: react-datepicker renders differently on server vs client
+function useIsMounted() {
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
+  return mounted
+}
 
 interface DateTimePickerProps {
   value: string // YYYY-MM-DDTHH:mm format
@@ -29,8 +37,11 @@ function dateFormat(countryCode?: string | null): string {
 }
 
 export function DateTimePicker({ value, onChange, countryCode, className }: DateTimePickerProps) {
+  const mounted = useIsMounted()
   const selected = value ? new Date(value) : new Date()
   const use24 = is24h(countryCode)
+
+  if (!mounted) return <input type="text" readOnly className={className ?? 'w-full bg-transparent text-sm border rounded-lg px-2.5 py-1.5'} />
 
   return (
     <DatePicker
@@ -67,7 +78,10 @@ function dateOnlyFormat(countryCode?: string | null): string {
 }
 
 export function DateOnlyPicker({ value, onChange, countryCode, className, placeholder }: DateOnlyPickerProps) {
+  const mounted = useIsMounted()
   const selected = value ? new Date(value + 'T00:00:00') : null
+
+  if (!mounted) return <input type="text" readOnly placeholder={placeholder} className={className ?? 'w-full bg-transparent text-sm border rounded-lg px-2.5 py-1.5'} />
 
   return (
     <DatePicker

@@ -397,6 +397,10 @@ pub fn configure_routes(cfg: &mut actix_web::web::ServiceConfig) {
                 actix_web::web::put().to(handlers::doctor_chat::rename_conversation),
             )
             .route(
+                "/conversations/{id}",
+                actix_web::web::delete().to(handlers::doctor_chat::delete_conversation),
+            )
+            .route(
                 "/conversations/{id}/rate",
                 actix_web::web::post().to(handlers::doctor_chat::rate_message),
             ),

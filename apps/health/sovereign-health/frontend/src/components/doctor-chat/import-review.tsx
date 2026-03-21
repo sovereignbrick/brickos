@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom'
 import { ImportSession } from '@/lib/types'
 import { useTranslations } from 'next-intl'
 import { useContent } from '@/lib/content-context'
+import { DateOnlyPicker } from '@/components/date-time-picker'
 
 interface ImportReviewProps {
   session: ImportSession
@@ -126,10 +127,9 @@ export function ImportReview({ session, onConfirm, onCancel, isLoading }: Import
         <div className="flex gap-4 flex-wrap">
           <div>
             <label className="text-xs text-muted-foreground block mb-1">{t('measurementDate')}</label>
-            <input
-              type="date"
+            <DateOnlyPicker
               value={measuredAt}
-              onChange={e => setMeasuredAt(e.target.value)}
+              onChange={setMeasuredAt}
               className={inputCls}
             />
           </div>

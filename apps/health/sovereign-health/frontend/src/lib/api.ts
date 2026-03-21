@@ -436,6 +436,11 @@ export const api = {
         `/doctor-chat/conversations/${id}`,
         { method: 'PUT', body: JSON.stringify({ title }) }
       ),
+    deleteConversation: (id: string) =>
+      request<{ data: { deleted: boolean } }>(
+        `/doctor-chat/conversations/${id}`,
+        { method: 'DELETE' }
+      ),
     rateMessage: (conversationId: string, messageId: string, rating: 'helpful' | 'not_helpful') =>
       request<{ data: null }>(
         `/doctor-chat/conversations/${conversationId}/rate`,

@@ -280,6 +280,18 @@ export function ChatLayout({ conversationId }: ChatLayoutProps) {
     }
   }
 
+  const handleDeleteConversation = async (id: string) => {
+    try {
+      await api.doctorChat.deleteConversation(id)
+      setConversations(prev => prev.filter(c => c.id !== id))
+      if (activeConversationId === id) {
+        handleNewChat()
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : tChat('failedLoadConversation'))
+    }
+  }
+
   const handleNewChat = () => {
     setMessages([])
     setActiveConversationId(null)
@@ -320,7 +332,7 @@ export function ChatLayout({ conversationId }: ChatLayoutProps) {
           onSelect={handleSelectConversation}
           onNewChat={handleNewChat}
           onRename={handleRenameConversation}
-          onDelete={(id) => { toast.info('Delete coming soon'); }}
+          onDelete={handleDeleteConversation}
         />
       </div>
 

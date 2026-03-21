@@ -360,6 +360,33 @@ pub async fn rename_conversation(
     })))
 }
 
+// ── DELETE /doctor-chat/conversations/:id ──────────────────────────────────────
+
+pub async fn delete_conversation(
+    pool: web::Data<PgPool>,
+    auth: AuthenticatedUser,
+    path: web::Path<Uuid>,
+) -> Result<HttpResponse, AppError> {
+    let conversation_id = path.into_inner();
+
+    let result = sqlx::query(
+        "UPDATE doctor_chat_conversations SET is_deleted = true, updated_at = now() WHERE id = $1 AND user_id = $2 AND is_deleted = false",
+    )
+    .bind(conversation_id)
+    .bind(auth.user_id)
+    .execute(pool.get_ref())
+    .await?;
+
+    if result.rows_affected() == 0 {
+        return Err(AppError::NotFound);
+    }
+
+    Ok(HttpResponse::Ok().json(json!({
+        "data": { "deleted": true },
+        "error": null
+    })))
+}
+
 // ── POST /doctor-chat/conversations/:id/rate ──────────────────────────────────
 
 pub async fn rate_message(
