@@ -438,7 +438,7 @@ deploy_frontend() {
     save_rollback_state "$env" "frontend" "$FRONTEND_IMAGE" "$image_tag"
 
     log "Building frontend ($env) with API_URL=$api_url..."
-    cd "$APP_ROOT/frontend"
+    cd "$PROJECT_ROOT"
 
     # NEXT_PUBLIC_API_URL is baked at build time. This is why we need
     # separate Docker images for staging vs production.
@@ -453,6 +453,7 @@ deploy_frontend() {
         --build-arg NEXT_PUBLIC_API_URL="$api_url" \
         --build-arg NEXT_PUBLIC_ENVIRONMENT="$env" \
         $demo_host_arg \
+        -f apps/health/sovereign-health/frontend/Dockerfile \
         -t "${FRONTEND_IMAGE}:${image_tag}" .
 
     log "Transferring frontend to VPS..."

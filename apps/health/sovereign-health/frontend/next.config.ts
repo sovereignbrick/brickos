@@ -5,6 +5,7 @@ const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  transpilePackages: ["@brickos/ui"],
   env: {
     NEXT_PUBLIC_APP_VERSION: require("./package.json").version,
   },

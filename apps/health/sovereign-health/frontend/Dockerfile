@@ -9,15 +9,21 @@
 FROM node:22-alpine AS deps
 WORKDIR /app
 RUN corepack enable && corepack prepare pnpm@latest --activate
-COPY package.json pnpm-lock.yaml .npmrc ./
-RUN pnpm install --frozen-lockfile
+COPY apps/health/sovereign-health/frontend/package.json apps/health/sovereign-health/frontend/pnpm-lock.yaml apps/health/sovereign-health/frontend/.npmrc ./
+# Copy shared packages so pnpm can resolve workspace deps via file: protocol
+COPY packages/ui /packages/ui
+# Rewrite workspace:* to file: for standalone Docker build, use hoisted linker
+RUN sed -i 's|"workspace:\*"|"file:/packages/ui"|g' package.json \
+    && echo 'node-linker=hoisted' >> .npmrc \
+    && pnpm install --no-frozen-lockfile
 
 # ── Build stage ────────────────────────────────────────────────────────────────
 FROM node:22-alpine AS builder
 WORKDIR /app
 RUN corepack enable && corepack prepare pnpm@latest --activate
 COPY --from=deps /app/node_modules ./node_modules
-COPY . .
+# Copy app source
+COPY apps/health/sovereign-health/frontend/ .
 ENV NEXT_TELEMETRY_DISABLED=1
 # NEXT_PUBLIC_* vars are baked at build time — pass via --build-arg
 ARG NEXT_PUBLIC_API_URL=https://api.sovereignhealth.io
