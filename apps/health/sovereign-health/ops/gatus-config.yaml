@@ -19,9 +19,8 @@ endpoints:
     conditions:
       - "[STATUS] == 200"
       - "[RESPONSE_TIME] < 3000"
-      # Enable after deploying v0.24.0 with deep health endpoint:
-      # - "[BODY].status == ok"
-      # - "[BODY].checks.database.status == ok"
+      - "[BODY].status == ok"
+      - "[BODY].checks.database.status == ok"
     alerts:
       - type: ntfy
         send-on-resolved: true
