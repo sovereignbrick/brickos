@@ -350,11 +350,14 @@ preflight() {
     fi
     log "Compose project isolation verified"
 
-    # Version consistency: deploy.sh VERSION must match lib.rs VERSION.
+    # Version consistency: deploy.sh VERSION must match lib.rs VERSION (base version).
     # Prevents deploying with stale version tag (container shows old version).
+    # Build numbers (-b1, -b2) are expected for staging and are not a mismatch.
     local lib_version
     lib_version=$(grep -oP 'pub const VERSION: &str = "\K[^"]+' "${APP_ROOT}/api/src/lib.rs" 2>/dev/null || echo "")
-    if [ -n "$lib_version" ] && [ "$lib_version" != "$VERSION" ]; then
+    local lib_base
+    lib_base=$(echo "$lib_version" | sed 's/-b[0-9]*//')
+    if [ -n "$lib_version" ] && [ "$lib_base" != "$VERSION" ]; then
         fail "Version mismatch: deploy.sh has VERSION=${VERSION} but lib.rs has VERSION=${lib_version}. Update deploy.sh VERSION."
     fi
     log "Version consistency: v${VERSION}"
