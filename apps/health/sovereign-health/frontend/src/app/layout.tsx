@@ -90,7 +90,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <CanonicalMeta />
         </Suspense>
       </head>
-      <body className="antialiased">
+      <body className="antialiased" suppressHydrationWarning>
         <a href="#main-content" className="skip-to-content">Skip to content</a>
         <NextIntlClientProvider locale={locale} messages={messages}>
           <ThemeProvider>
