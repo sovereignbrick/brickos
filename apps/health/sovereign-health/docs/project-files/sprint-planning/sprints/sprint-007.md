@@ -24,28 +24,35 @@
 |---|-------|--------|---------|
 | #192 | fix: remove demo banner | 2 | `9af55df` |
 | #197 | fix: BPM marker alias + AI prompt | 2 | `9af55df` |
-| #196 | fix: marker-to-zone assignments (7 markers immune->structural) | 3 | `9af55df` |
+| #196 | fix: marker-to-zone assignments (7 blood markers immune->structural) | 3 | `9af55df` |
 | #193 | fix: website/tier limit mismatches (12 fixes, EN + DE) | 3 | `9af55df` |
-| #194 | fix: verify ntfy + Telegram (code verified, VPS manual) | 2 | `9af55df` |
-| #189 | fix: React hydration #418 (remove inline theme script) | 3 | `9af55df` |
-| #183 | fix: deploy pre-flight (version check, migration warning, container age) | 5 | `9af55df` |
-| #180 | chore: admin settings audit — design doc 020 | 3 | `9af55df` |
+| #194 | fix: verify ntfy + Telegram (code verified, VPS confirmed) | 2 | `9af55df` |
+| #189 | fix: React hydration #418 (remove inline theme script) | 3 | `9af55df`, `7d93ca8` |
+| #183 | fix: deploy pre-flight (version check, migration warning, container age) | 5 | `9af55df`, `0b5c3b3` |
+| #180 | chore: admin settings audit -- design doc 020 | 3 | `9af55df` |
 | | **Planned Total** | **23** | |
 
 ## Carried Over
 
-None - all planned items completed.
+None -- all planned items completed.
 
 ## Unplanned Work
 
 | Title | Points | Commits |
 |-------|--------|---------|
 | fix: property tests missing HealthResponse.checks field | 0.5 | `9af55df` |
-| fix: test snapshots version 0.23.0 -> 0.24.0 | 0.5 | `9af55df` |
-| fix: deploy.sh VERSION 0.23.0 -> 0.24.0 | 0 | `9af55df` |
+| fix: test snapshots version 0.23.0 -> 0.24.0 -> 0.25.0 | 0.5 | `9af55df`, `47b803d` |
+| fix: deploy.sh VERSION 0.23.0 -> 0.24.0 -> 0.25.0 | 0 | `9af55df`, `47b803d` |
+| fix: restore suppressHydrationWarning on body element | 0.5 | `7d93ca8` |
+| fix: deploy version check allows staging build numbers (-bN) | 1 | `0b5c3b3` |
+| fix: add weight to structural zone (was only in energy_metabolic) | 1 | `221a291` |
+| feat: calculated markers trigger from any input source | 5 | `8c6d651` |
+| fix: Cloudflare cache purge for staging + production | 1 | `d179fa9` |
+| fix: migration 56 checksum mismatch on staging + production DBs | 0 | manual DB fix |
 | chore: close 3 pre-sprint issues (#184, #187, #191) | 0 | - |
-| chore: create GitHub issue #197 (BPM marker) | 0 | - |
-| **Unplanned Total** | **~1** | |
+| chore: create GitHub issues #197, #198, #199, #200 | 0 | - |
+| release: v0.25.0 version bump + production deploy | 0 | `47b803d` |
+| **Unplanned Total** | **~10** | |
 
 ## Velocity
 
@@ -53,20 +60,28 @@ None - all planned items completed.
 |--------|-------|
 | Planned | 23 pts |
 | Completed (planned) | 23 pts |
-| Completed (unplanned) | ~1 pt |
+| Completed (unplanned) | ~10 pts |
 | Carried over | 0 pts |
-| Total delivered | ~24 pts |
-| Commits | 1 |
+| Total delivered | ~33 pts |
+| Commits | 11 |
+| Staging deploys | 4 (b1, b2, b3 + frontend-only) |
+| Production deploys | 1 (v0.25.0) |
 | GitHub issues closed | 9 (3 pre-sprint + 6 sprint) |
+| GitHub issues created | 4 (#197 BPM, #198 staging notifications, #199 LinkedIn preview, #200 migration checksums) |
 
 ## Notes / Decisions
 
 - Sprint follows v0.24.0 production release (same day)
 - 3 issues closed before sprint start (#184, #187, #191 -- already shipped in v0.24.0)
 - #180 scoped to audit-only this sprint; full fix deferred (design doc 020)
-- #194 code verified correct; VPS env var verification requires manual SSH check
+- #194 verified: all 11 env vars populated on both staging and production
 - Marker zone audit: moved mcv/mch/mchc/rdw/rbc/hemoglobin/hematocrit from immune to structural
+- Weight added to structural zone (was only in energy_metabolic via zone_markers)
 - Website tier limits had 12 mismatches vs DB enforcement (all understated user access)
-- React hydration #418 root cause: inline theme script modified DOM before React hydrated
+- React hydration #418: removed inline theme script (cause), kept suppressHydrationWarning on body (separate mismatch source tracked in #185)
 - Deploy script VERSION was stale (0.23.0); new pre-flight check prevents this in future
-- Open issues remaining: 13 (#176-#178, #179, #180 remediation, #181, #182, #185, #186, #188, #190, #194 VPS, #195)
+- Calculated markers now trigger from any input source (manual, import, separate submissions)
+- Migration checksum mismatch (20260312000056) blocked all post-000004 migrations on staging; fixed manually on both DBs
+- Cloudflare zone ID hardcoded in deploy script; purge now runs for both staging and production
+- Released v0.25.0 to production (from v0.24.0)
+- Open issues: 16 (#176-179, #180 remediation, #181-182, #185-186, #188, #190, #194 closed, #195, #198-200)
