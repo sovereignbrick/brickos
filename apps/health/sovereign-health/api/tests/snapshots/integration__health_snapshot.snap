@@ -5,5 +5,5 @@ expression: body
 {
   "service": "sovereign-health-backend",
   "status": "ok",
-  "version": "0.24.0-b2"
+  "version": "0.25.0"
 }
