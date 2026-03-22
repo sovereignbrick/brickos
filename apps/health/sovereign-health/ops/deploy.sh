@@ -327,17 +327,13 @@ preflight() {
     log "VPS reachable"
 
     # Check frontend lockfile sync: Prevents Docker build failure from stale pnpm-lock.yaml.
-    # Workspace deps (@brickos/*) are stripped in Docker, so strip them here too.
+    # Note: workspace deps (@brickos/*) are rewritten to file: protocol in Docker,
+    # so we skip frozen-lockfile here and just verify non-workspace deps resolve.
     local frontend_dir="${APP_ROOT}/frontend"
     if [ -f "${frontend_dir}/package.json" ] && [ -f "${frontend_dir}/pnpm-lock.yaml" ]; then
-        local tmp_pkg
-        tmp_pkg=$(mktemp)
-        sed '/"@brickos\//d' "${frontend_dir}/package.json" > "$tmp_pkg"
-        if ! (cd "$frontend_dir" && cp "$tmp_pkg" package.json.tmp && mv package.json package.json.bak && mv package.json.tmp package.json && pnpm install --frozen-lockfile 2>/dev/null; rc=$?; mv package.json.bak package.json; exit $rc); then
-            rm -f "$tmp_pkg"
+        if ! (cd "$frontend_dir" && pnpm install --frozen-lockfile 2>/dev/null); then
             fail "Frontend pnpm-lock.yaml is out of sync with package.json. Run: cd frontend && pnpm install"
         fi
-        rm -f "$tmp_pkg"
         log "Frontend lockfile in sync"
     fi
 
