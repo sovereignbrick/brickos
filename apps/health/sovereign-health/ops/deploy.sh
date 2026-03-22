@@ -74,7 +74,8 @@ STAGING_AUTH_PASS="${STAGING_AUTH_PASS:-}"
 BRANCH_PROD="main"
 BRANCH_STAGING="develop"
 
-# Cloudflare: Loaded from .env below. Set CF_ZONE_ID and CF_API_TOKEN there.
+# Cloudflare: Zone ID is fixed (sovereignhealth.io). API token loaded from .env.
+CF_ZONE_ID="4162ecad4799d0f97385d1ba589e9b3b"
 
 # Load secrets from .env (Cloudflare tokens, etc.)
 # This file is gitignored and contains CF_ZONE_ID, CF_API_TOKEN, etc.
@@ -640,8 +641,8 @@ deploy_website() {
 # Requires CF_ZONE_ID and CF_API_TOKEN in core-backend/.env.
 
 cloudflare_purge() {
-    if [ -z "$CF_ZONE_ID" ] || [ -z "$CF_API_TOKEN" ]; then
-        warn "CF_ZONE_ID or CF_API_TOKEN not set in api/.env -- skipping Cloudflare purge"
+    if [ -z "$CF_API_TOKEN" ]; then
+        warn "CF_API_TOKEN not set in api/.env -- skipping Cloudflare purge"
         warn "Purge manually: Cloudflare > sovereignhealth.io > Caching > Purge Everything"
         return
     fi
@@ -879,11 +880,9 @@ verify() {
         fi
     fi
 
-    # Only purge Cloudflare for production deploys.
-    # Staging doesn't need it (different subdomain, usually not cached).
-    if [ "$env" = "production" ]; then
-        cloudflare_purge
-    fi
+    # Purge Cloudflare cache for both staging and production.
+    # All subdomains (app.*, api-demo.*, www-demo.*) share the same zone.
+    cloudflare_purge
 
     # Print the final deployment report.
     report_print "$env"
