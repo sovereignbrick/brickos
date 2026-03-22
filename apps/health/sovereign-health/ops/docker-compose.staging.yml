@@ -3,6 +3,8 @@
 # All staging containers are prefixed with 'sh-staging-'.
 #
 # Requires: .env.staging file with test keys (NOT production keys).
+
+name: sh-staging
 # Usage: docker compose -f docker-compose.staging.yml --env-file .env.staging up -d
 
 services:

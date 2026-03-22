@@ -233,6 +233,9 @@ input[type="date"], input[type="time"], input[type="datetime-local"] {
 .react-datepicker__day--keyboard-selected {
   background-color: #2563eb !important;
   color: #ffffff !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
 .react-datepicker__day--today {
   font-weight: 700 !important;

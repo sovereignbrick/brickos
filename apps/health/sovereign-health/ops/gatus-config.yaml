@@ -14,11 +14,14 @@ endpoints:
   # ── Production ──
   - name: "API (Production)"
     group: "Production"
-    url: "https://api.sovereignhealth.io/health"
+    url: "https://api.sovereignhealth.io/health?deep=1"
     interval: 60s
     conditions:
       - "[STATUS] == 200"
       - "[RESPONSE_TIME] < 3000"
+      # Enable after deploying v0.24.0 with deep health endpoint:
+      # - "[BODY].status == ok"
+      # - "[BODY].checks.database.status == ok"
     alerts:
       - type: ntfy
         send-on-resolved: true
@@ -67,14 +70,37 @@ endpoints:
       - "[STATUS] < 500"
 
   # ── Infrastructure ──
-  # Postgres/Redis are on Docker internal networks (not host-exposed).
-  # DB health is covered by the API /health endpoint which checks DB connectivity.
   - name: "ntfy"
     group: "Infrastructure"
     url: "http://ntfy:80"
     interval: 300s
     conditions:
       - "[STATUS] == 200"
+
+  # ── TLS Certificate Expiry ──
+  - name: "TLS: api.sovereignhealth.io"
+    group: "Infrastructure"
+    url: "https://api.sovereignhealth.io/health"
+    interval: 21600s
+    conditions:
+      - "[CERTIFICATE_EXPIRATION] > 7d"
+    alerts:
+      - type: ntfy
+        send-on-resolved: true
+      - type: telegram
+        send-on-resolved: true
+
+  - name: "TLS: app.sovereignhealth.io"
+    group: "Infrastructure"
+    url: "https://app.sovereignhealth.io/"
+    interval: 21600s
+    conditions:
+      - "[CERTIFICATE_EXPIRATION] > 7d"
+    alerts:
+      - type: ntfy
+        send-on-resolved: true
+      - type: telegram
+        send-on-resolved: true
 
 alerting:
   ntfy:

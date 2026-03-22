@@ -67,7 +67,7 @@ pub async fn chat(
         Some(cid) => {
             // Verify ownership
             let exists = sqlx::query(
-                "SELECT id FROM doctor_chat_conversations WHERE id = $1 AND user_id = $2",
+                "SELECT id FROM doctor_chat_conversations WHERE id = $1 AND user_id = $2 AND is_deleted = false",
             )
             .bind(cid)
             .bind(auth.user_id)
@@ -231,7 +231,7 @@ pub async fn list_conversations(
                COUNT(*) OVER() as total_count
            FROM doctor_chat_conversations c
            LEFT JOIN doctor_chat_messages m ON m.conversation_id = c.id
-           WHERE c.user_id = $1
+           WHERE c.user_id = $1 AND c.is_deleted = false
            GROUP BY c.id
            ORDER BY c.updated_at DESC
            LIMIT $2 OFFSET $3"#,
@@ -277,7 +277,7 @@ pub async fn get_conversation(
     let conversation_id = path.into_inner();
 
     let conv_row = sqlx::query(
-        "SELECT id, title, created_at FROM doctor_chat_conversations WHERE id = $1 AND user_id = $2",
+        "SELECT id, title, created_at FROM doctor_chat_conversations WHERE id = $1 AND user_id = $2 AND is_deleted = false",
     )
     .bind(conversation_id)
     .bind(auth.user_id)
@@ -370,7 +370,7 @@ pub async fn delete_conversation(
     let conversation_id = path.into_inner();
 
     let result = sqlx::query(
-        "UPDATE doctor_chat_conversations SET is_deleted = true, updated_at = now() WHERE id = $1 AND user_id = $2 AND is_deleted = false",
+        "UPDATE doctor_chat_conversations SET is_deleted = true, deleted_at = now(), updated_at = now() WHERE id = $1 AND user_id = $2 AND is_deleted = false",
     )
     .bind(conversation_id)
     .bind(auth.user_id)
@@ -398,7 +398,7 @@ pub async fn rate_message(
     let conversation_id = path.into_inner();
 
     // Verify conversation ownership
-    sqlx::query("SELECT id FROM doctor_chat_conversations WHERE id = $1 AND user_id = $2")
+    sqlx::query("SELECT id FROM doctor_chat_conversations WHERE id = $1 AND user_id = $2 AND is_deleted = false")
         .bind(conversation_id)
         .bind(auth.user_id)
         .fetch_optional(pool.get_ref())

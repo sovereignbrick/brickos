@@ -1,0 +1,9 @@
+[Unit]
+Description=Sovereign Health Container Watchdog
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+EnvironmentFile=/opt/sovereign-health/.env
+ExecStart=/opt/sovereign-health/scripts/container-watchdog.sh --auto-restart

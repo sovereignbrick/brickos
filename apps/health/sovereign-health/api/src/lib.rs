@@ -35,7 +35,7 @@ pub mod payments;
 pub mod services;
 pub mod templates;
 
-pub const VERSION: &str = "0.23.0";
+pub const VERSION: &str = "0.23.0-b1";
 pub const SERVICE_NAME: &str = "sovereign-health-backend";
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -46,6 +46,19 @@ pub struct HealthResponse {
     pub timestamp: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub mode: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub checks: Option<HealthChecks>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HealthChecks {
+    pub database: HealthCheckResult,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HealthCheckResult {
+    pub status: String,
+    pub latency_ms: i64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -178,8 +178,8 @@ export function TrendChart({
     })
   }
 
-  // Determine whether to show individual dots (fewer than 30 data points)
-  const showDots = chartData.length < 30
+  // Always show dots — smaller radius for dense charts
+  const dotRadius = chartData.length > 60 ? 2 : chartData.length > 30 ? 3 : 4
 
   // Determine tick count for x-axis based on data size
   const xTickCount = Math.min(chartData.length, 7)
@@ -268,13 +268,43 @@ export function TrendChart({
             />
           )}
           <Tooltip
-            contentStyle={{ background: 'var(--color-card, #1a1a2e)', border: '1px solid var(--color-border, rgba(255,255,255,0.1))', borderRadius: 8, color: 'var(--color-foreground, #fff)' }}
-            labelStyle={{ color: 'var(--color-muted-foreground, #a1a1aa)' }}
-            formatter={(val: unknown, name: unknown) => {
-              const n = String(name ?? '')
-              const u = n === 'secondary' ? (secondaryUnit ?? '') : unit
-              const label = n === 'secondary' ? secondaryName : markerName
-              return [`${formatValue(val, u)} ${u}`, label]
+            contentStyle={{ background: 'var(--color-card, #1a1a2e)', border: '1px solid var(--color-border, rgba(255,255,255,0.1))', borderRadius: 8, color: 'var(--color-foreground, #fff)', padding: '8px 12px' }}
+            labelStyle={{ color: 'var(--color-muted-foreground, #a1a1aa)', marginBottom: 4 }}
+            content={({ active, payload, label }) => {
+              if (!active || !payload?.length) return null
+              const entry = payload[0]?.payload as Record<string, unknown> | undefined
+              if (!entry) return null
+              const color = (entry.primaryColor as string) ?? '#3b82f6'
+              const status = entry.primaryStatus as string | null
+              const value = entry.primary as number | undefined
+              const protocol = entry.protocol_tag as string | undefined
+              return (
+                <div style={{ background: 'var(--color-card, #1a1a2e)', border: '1px solid var(--color-border, rgba(255,255,255,0.1))', borderRadius: 8, padding: '8px 12px' }}>
+                  <p style={{ color: 'var(--color-muted-foreground, #a1a1aa)', fontSize: 11, marginBottom: 4 }}>{label}</p>
+                  {value != null && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: color, flexShrink: 0 }} />
+                      <span style={{ color, fontWeight: 600, fontSize: 13 }}>
+                        {formatValue(value, unit)} {unit}
+                      </span>
+                    </div>
+                  )}
+                  {status && (
+                    <p style={{ fontSize: 10, color: 'var(--color-muted-foreground, #a1a1aa)', marginTop: 2, textTransform: 'capitalize' }}>{status}</p>
+                  )}
+                  {protocol && protocol !== 'standard' && (
+                    <p style={{ fontSize: 10, color: '#a78bfa', marginTop: 1 }}>{protocol}</p>
+                  )}
+                  {hasDual && entry.secondary != null && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4 }}>
+                      <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: '#fb923c', flexShrink: 0 }} />
+                      <span style={{ color: '#fb923c', fontWeight: 600, fontSize: 13 }}>
+                        {formatValue(entry.secondary, secondaryUnit ?? '')} {secondaryUnit}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )
             }}
           />
           {hasDual && (
@@ -316,20 +346,20 @@ export function TrendChart({
             stroke="#3b82f6"
             strokeWidth={2}
             connectNulls
-            dot={showDots ? (props) => {
+            dot={(props) => {
               const { cx = 0, cy = 0, payload } = props as { cx?: number; cy?: number; payload: { primaryColor?: string } }
               return (
                 <circle
                   key={`dot-${cx}-${cy}`}
                   cx={cx}
                   cy={cy}
-                  r={4}
+                  r={dotRadius}
                   fill={payload.primaryColor ?? '#3b82f6'}
                   stroke="none"
                   style={{ cursor: 'pointer' }}
                 />
               )
-            } : false}
+            }}
             activeDot={{ r: 6, strokeWidth: 2, stroke: '#fff' }}
           />
           {hasDual && (
@@ -341,7 +371,7 @@ export function TrendChart({
               strokeWidth={2}
               strokeDasharray="6 3"
               connectNulls
-              dot={showDots ? { r: 3, fill: '#fb923c' } : false}
+              dot={{ r: Math.max(dotRadius - 1, 2), fill: '#fb923c' }}
               activeDot={{ r: 5, strokeWidth: 2, stroke: '#fff' }}
             />
           )}
@@ -350,9 +380,14 @@ export function TrendChart({
 
       {/* Fasting period legend entry (if there are fasting periods) */}
       {fastingPeriods.length > 0 && (
-        <div className="flex items-center justify-center gap-1.5 -mt-2 mb-1">
+        <div className="flex items-center justify-center gap-1.5 -mt-2 mb-1 group relative cursor-help">
           <span className="inline-block w-3 h-3 rounded-sm bg-purple-400/20 border border-purple-400/30" />
-          <span className="text-[10px] text-muted-foreground">{t('fastingPeriod')}</span>
+          <span className="text-[10px] text-muted-foreground underline decoration-dotted">{t('fastingPeriod')}</span>
+          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block w-64 z-20">
+            <div className="bg-card border border-border rounded-lg p-2.5 shadow-xl text-[11px] text-muted-foreground leading-relaxed">
+              {t('fastingPeriodTooltip')}
+            </div>
+          </div>
         </div>
       )}
 

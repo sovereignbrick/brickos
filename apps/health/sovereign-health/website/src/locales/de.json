@@ -494,7 +494,7 @@
       },
       "thresholds": {
         "label": "Referenzbereich",
-        "tooltip": "Persönliche Grenzwerte pro Marker setzen"
+        "tooltip": "Persönliche Referenzbereiche pro Marker setzen"
       },
       "body_comp": {
         "label": "Körperanalyse",

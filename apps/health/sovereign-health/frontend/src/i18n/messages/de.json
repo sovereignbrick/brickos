@@ -618,6 +618,7 @@
     "standardRange": "Standardbereich",
     "fastingRange": "Fastenbereich",
     "fastingPeriod": "Fastenperiode",
+    "fastingPeriodTooltip": "Schattierte Bereiche zeigen Messungen unter Fastenprotokoll. Nuechternwerte haben andere Referenzbereiche und sind wichtig fuer eine genaue Stoffwechselbeurteilung.",
     "viewDetails": "Details anzeigen",
     "noMarkersFound": "Keine Marker gefunden",
     "addMeasurementsFirst": "Fügen Sie zuerst Messungen hinzu, um Trendanalysen zu sehen"

@@ -128,9 +128,9 @@ export function ChatInput({ onSend, onFileUpload, disabled, quotaExhausted: rawQ
                 </button>
               </div>
             )}
-            <input ref={labInputRef} type="file" accept="image/jpeg,image/png,image/webp,application/pdf" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) onFileUpload([f], 'lab_import'); if (e.target) e.target.value = '' }} />
-            <input ref={medInputRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) onFileUpload([f], 'med_import'); if (e.target) e.target.value = '' }} />
-            <input ref={tableInputRef} type="file" accept=".ods,.xlsx,.xls,.csv,image/jpeg,image/png,image/webp" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) onFileUpload([f], 'measurement_import'); if (e.target) e.target.value = '' }} />
+            <input ref={labInputRef} type="file" accept="image/jpeg,image/png,image/webp,application/pdf" multiple className="hidden" onChange={e => { if (e.target.files?.length) onFileUpload(Array.from(e.target.files).slice(0, 3), 'lab_import'); if (e.target) e.target.value = '' }} />
+            <input ref={medInputRef} type="file" accept="image/jpeg,image/png,image/webp" multiple className="hidden" onChange={e => { if (e.target.files?.length) onFileUpload(Array.from(e.target.files).slice(0, 3), 'med_import'); if (e.target) e.target.value = '' }} />
+            <input ref={tableInputRef} type="file" accept=".ods,.xlsx,.xls,.csv,image/jpeg,image/png,image/webp" multiple className="hidden" onChange={e => { if (e.target.files?.length) onFileUpload(Array.from(e.target.files).slice(0, 3), 'measurement_import'); if (e.target) e.target.value = '' }} />
           </div>
         )}
         <div className="flex-1 relative">

@@ -341,6 +341,19 @@ preflight() {
         log "Frontend lockfile in sync"
     fi
 
+    # Verify compose project isolation: Production and staging must have separate project names.
+    # Without explicit names, docker compose can cross-contaminate containers.
+    # Incident 2026-03-22: staging compose command destroyed production DB container.
+    local prod_compose="${OPS_DIR}/docker-compose.prod.yml"
+    local staging_compose="${OPS_DIR}/docker-compose.staging.yml"
+    if [ -f "$prod_compose" ] && ! grep -q '^name:' "$prod_compose"; then
+        fail "docker-compose.prod.yml missing 'name:' field — compose isolation required"
+    fi
+    if [ -f "$staging_compose" ] && ! grep -q '^name:' "$staging_compose"; then
+        fail "docker-compose.staging.yml missing 'name:' field — compose isolation required"
+    fi
+    log "Compose project isolation verified"
+
     report_add "OK" "Pre-flight passed (local: ${local_free}G free, VPS: ${vps_free:-?}G free)"
 }
 

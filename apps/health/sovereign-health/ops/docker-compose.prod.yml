@@ -2,6 +2,8 @@
 # Requires: .env file with DB_PASSWORD and JWT_SECRET set.
 # Usage: docker compose -f docker-compose.prod.yml up -d
 
+name: sovereign-health
+
 services:
   backend:
     image: sovereign-health-backend:latest

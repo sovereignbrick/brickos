@@ -618,6 +618,7 @@
     "standardRange": "Standard range",
     "fastingRange": "Fasting range",
     "fastingPeriod": "Fasting period",
+    "fastingPeriodTooltip": "Shaded areas indicate measurements taken under fasting protocol. Fasting values have different reference ranges and are important for accurate metabolic assessment.",
     "viewDetails": "View details",
     "noMarkersFound": "No markers found",
     "addMeasurementsFirst": "Add measurements first to see trend analysis"

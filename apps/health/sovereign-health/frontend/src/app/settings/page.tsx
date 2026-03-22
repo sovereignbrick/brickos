@@ -2388,7 +2388,7 @@ function BillingAddressSection() {
           <div>
             <label htmlFor="settings-billing-country" className="text-xs text-muted-foreground block mb-1">{t('billingCountry')}</label>
             <select id="settings-billing-country" value={form.billing_address_country} onChange={e => setForm({ ...form, billing_address_country: e.target.value })} className={inp}>
-              <option value="">—</option>
+              <option value="">-</option>
               {BILINGUAL_COUNTRIES.map(c => (
                 <option key={c.code} value={c.code}>{c.name[countryLang]}</option>
               ))}
