@@ -508,6 +508,41 @@ pub async fn confirm(
         .ok();
     }
 
+    // Compute calculated markers from imported + existing data
+    {
+        let mut values_map: std::collections::HashMap<String, f64> = body
+            .markers
+            .iter()
+            .map(|m| (m.marker_slug.clone(), m.value))
+            .collect();
+
+        crate::services::calculated::enrich_with_latest_values(
+            pool.get_ref(), auth.user_id, &mut values_map, enc.get_ref(),
+        ).await.ok();
+
+        let height_row = sqlx::query("SELECT height_cm FROM user_profile WHERE user_id = $1")
+            .bind(auth.user_id).fetch_optional(pool.get_ref()).await.ok().flatten();
+        let height_cm: Option<f64> = height_row.and_then(|r| {
+            r.try_get::<Option<String>, _>("height_cm").ok().flatten().map(|v| enc.decrypt_f64(&v))
+        });
+
+        let measured_at = body.measured_at.unwrap_or_else(Utc::now);
+        if let Ok(computed) = crate::services::calculated::compute_calculated_markers(
+            pool.get_ref(), auth.user_id, &values_map, height_cm, &protocol_tag, None, measured_at,
+        ).await {
+            for (cm_id, value, status) in &computed {
+                sqlx::query(
+                    r#"INSERT INTO calculated_marker_values (
+                        user_id, calculated_marker_id, value, status, protocol_tag, measured_at
+                    ) VALUES ($1, $2, $3, $4, $5, $6)"#,
+                )
+                .bind(auth.user_id).bind(cm_id).bind(value).bind(status)
+                .bind(&protocol_tag).bind(measured_at)
+                .execute(pool.get_ref()).await.ok();
+            }
+        }
+    }
+
     // Update session
     sqlx::query(
         r#"UPDATE import_sessions
@@ -1697,6 +1732,38 @@ pub async fn confirm_measurements(
     }
 
     let created_count = created_ids.len() as i32;
+
+    // Compute calculated markers from imported + existing data
+    {
+        let mut values_map: std::collections::HashMap<String, f64> = std::collections::HashMap::new();
+
+        // Fetch all latest values (includes just-imported ones)
+        crate::services::calculated::enrich_with_latest_values(
+            pool.get_ref(), auth.user_id, &mut values_map, enc.get_ref(),
+        ).await.ok();
+
+        let height_row = sqlx::query("SELECT height_cm FROM user_profile WHERE user_id = $1")
+            .bind(auth.user_id).fetch_optional(pool.get_ref()).await.ok().flatten();
+        let height_cm: Option<f64> = height_row.and_then(|r| {
+            use sqlx::Row;
+            r.try_get::<Option<String>, _>("height_cm").ok().flatten().map(|v| enc.decrypt_f64(&v))
+        });
+
+        if let Ok(computed) = crate::services::calculated::compute_calculated_markers(
+            pool.get_ref(), auth.user_id, &values_map, height_cm, "standard", None, Utc::now(),
+        ).await {
+            for (cm_id, value, status) in &computed {
+                sqlx::query(
+                    r#"INSERT INTO calculated_marker_values (
+                        user_id, calculated_marker_id, value, status, protocol_tag, measured_at
+                    ) VALUES ($1, $2, $3, $4, $5, $6)"#,
+                )
+                .bind(auth.user_id).bind(cm_id).bind(value).bind(status)
+                .bind("standard").bind(Utc::now())
+                .execute(pool.get_ref()).await.ok();
+            }
+        }
+    }
 
     // Store measurement IDs for rollback + update session
     sqlx::query(

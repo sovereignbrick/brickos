@@ -13,7 +13,7 @@ use crate::{
         CreateMeasurementRequest, MeasurementResponse, UpdateMeasurementRequest,
     },
     services::{
-        calculated::{compute_calculated_markers, resolve_protocol_context},
+        calculated::{compute_calculated_markers, enrich_with_latest_values, resolve_protocol_context},
         measurement::validate_marker_value,
         reference::calculate_status,
     },
@@ -215,6 +215,12 @@ pub async fn create(
     } else {
         None
     };
+
+    // Enrich values_map with latest measurements for calculated marker inputs
+    // that weren't in this submission (e.g. glucose entered today, ketones yesterday)
+    enrich_with_latest_values(pool.get_ref(), auth.user_id, &mut values_map, enc.get_ref())
+        .await
+        .ok(); // non-fatal: calculated markers are best-effort
 
     // Compute calculated markers
     let computed = compute_calculated_markers(

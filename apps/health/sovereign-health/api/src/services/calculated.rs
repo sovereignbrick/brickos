@@ -4,6 +4,69 @@ use chrono::{DateTime, Utc};
 use sqlx::PgPool;
 use uuid::Uuid;
 
+use crate::services::encryption::Encryptor;
+
+/// All marker slugs used as inputs to calculated marker formulas.
+const CALC_INPUT_SLUGS: &[&str] = &[
+    "glucose",
+    "ketones",
+    "waist_circumference",
+    "weight",
+    "hematocrit",
+    "hemoglobin",
+    "insulin",
+    "triglycerides",
+    "hdl",
+];
+
+/// Enrich a values map with the user's latest measurement for each calculated
+/// marker input slug that is NOT already present in the map.
+/// This ensures calculated markers fire even when input markers were entered
+/// in separate submissions (different forms, imports, or dates).
+pub async fn enrich_with_latest_values(
+    pool: &PgPool,
+    user_id: Uuid,
+    values: &mut std::collections::HashMap<String, f64>,
+    enc: &Encryptor,
+) -> Result<(), sqlx::Error> {
+    let missing: Vec<&str> = CALC_INPUT_SLUGS
+        .iter()
+        .filter(|s| !values.contains_key(**s))
+        .copied()
+        .collect();
+
+    if missing.is_empty() {
+        return Ok(());
+    }
+
+    // Fetch the latest measurement for each missing input marker in one query.
+    // Uses DISTINCT ON to get only the most recent value per marker.
+    let rows = sqlx::query(
+        r#"SELECT DISTINCT ON (m.marker_slug)
+               m.marker_slug, ms.value_canonical
+           FROM measurements ms
+           JOIN markers m ON m.id = ms.marker_id
+           WHERE ms.user_id = $1
+             AND m.marker_slug = ANY($2)
+           ORDER BY m.marker_slug, ms.timestamp DESC"#,
+    )
+    .bind(user_id)
+    .bind(missing.iter().map(|s| s.to_string()).collect::<Vec<_>>())
+    .fetch_all(pool)
+    .await?;
+
+    for row in rows {
+        use sqlx::Row;
+        let slug: String = row.try_get("marker_slug").unwrap_or_default();
+        let enc_val: String = row.try_get("value_canonical").unwrap_or_default();
+        if !enc_val.is_empty() {
+            values.insert(slug, enc.decrypt_f64(&enc_val));
+        }
+    }
+
+    Ok(())
+}
+
 /// Given a set of measured values (slug → value) and user profile height,
 /// compute all applicable calculated markers.
 /// Returns Vec of (calculated_marker_id, value, status)
