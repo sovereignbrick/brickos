@@ -289,9 +289,6 @@ export function TrendChart({
                       </span>
                     </div>
                   )}
-                  {status && (
-                    <p style={{ fontSize: 10, color: 'var(--color-muted-foreground, #a1a1aa)', marginTop: 2, textTransform: 'capitalize' }}>{status}</p>
-                  )}
                   {protocol && protocol !== 'standard' && (
                     <p style={{ fontSize: 10, color: '#a78bfa', marginTop: 1 }}>{protocol}</p>
                   )}
