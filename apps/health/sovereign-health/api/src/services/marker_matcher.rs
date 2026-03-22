@@ -223,9 +223,14 @@ fn alias_map() -> &'static HashMap<&'static str, &'static str> {
             "heart rate",
             "pulse",
             "hr",
+            "bpm",
+            "beats per minute",
+            "beats/min",
             "resting heart rate",
             "herzfrequenz",
             "puls",
+            "schläge pro minute",
+            "schläge/min",
         ] {
             m.insert(a, "heart_rate");
         }

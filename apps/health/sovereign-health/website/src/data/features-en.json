@@ -28,13 +28,13 @@
           },
           "focus": {
             "included": true,
-            "limit_label": "5/month",
-            "limit_value": 5
+            "limit_label": "10/month",
+            "limit_value": 10
           },
           "glimpse": {
             "included": true,
-            "limit_label": "2/month",
-            "limit_value": 2
+            "limit_label": "3/month",
+            "limit_value": 3
           },
           "horizon": {
             "included": true,
@@ -438,13 +438,13 @@
           },
           "focus": {
             "included": true,
-            "limit_label": "20 markers",
-            "limit_value": 20
+            "limit_label": "Unlimited",
+            "limit_value": null
           },
           "glimpse": {
             "included": true,
-            "limit_label": "8 markers",
-            "limit_value": 8
+            "limit_label": "15 markers",
+            "limit_value": 15
           },
           "horizon": {
             "included": true,
@@ -453,8 +453,8 @@
           },
           "insight": {
             "included": true,
-            "limit_label": "50 markers",
-            "limit_value": 50
+            "limit_label": "Unlimited",
+            "limit_value": null
           }
         },
         "tooltip": "The number of different blood markers you can track (e.g., glucose, cholesterol, HbA1c). Higher tiers unlock more markers for a complete health picture."
@@ -479,13 +479,13 @@
           },
           "focus": {
             "included": true,
-            "limit_label": "365 days",
-            "limit_value": 365
+            "limit_label": "Unlimited",
+            "limit_value": null
           },
           "glimpse": {
             "included": true,
-            "limit_label": "30 days",
-            "limit_value": 30
+            "limit_label": "90 days",
+            "limit_value": 90
           },
           "horizon": {
             "included": true,
@@ -520,13 +520,13 @@
           },
           "focus": {
             "included": true,
-            "limit_label": "3 markers",
-            "limit_value": 3
+            "limit_label": "Unlimited",
+            "limit_value": null
           },
           "glimpse": {
             "included": true,
-            "limit_label": "1 marker",
-            "limit_value": 1
+            "limit_label": "3 markers",
+            "limit_value": 3
           },
           "horizon": {
             "included": true,
@@ -535,8 +535,8 @@
           },
           "insight": {
             "included": true,
-            "limit_label": "8 markers",
-            "limit_value": 8
+            "limit_label": "Unlimited",
+            "limit_value": null
           }
         },
         "tooltip": "Markers automatically computed from your measurements, such as GKI (Glucose-Ketone Index), BMI, WHtR, or HOMA-IR. No manual calculation needed."
@@ -576,8 +576,8 @@
           },
           "insight": {
             "included": true,
-            "limit_label": "5 templates",
-            "limit_value": 5
+            "limit_label": "Unlimited",
+            "limit_value": null
           }
         },
         "tooltip": "Save custom measurement templates for your regular blood tests. One click to load your usual markers instead of selecting them each time."

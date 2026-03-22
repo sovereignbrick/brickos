@@ -89,9 +89,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <Suspense>
           <CanonicalMeta />
         </Suspense>
-        <script dangerouslySetInnerHTML={{ __html: `try{var t=localStorage.getItem('sh_theme');if(t==='light')document.documentElement.classList.remove('dark')}catch(e){}` }} />
       </head>
-      <body className="antialiased" suppressHydrationWarning>
+      <body className="antialiased">
         <a href="#main-content" className="skip-to-content">Skip to content</a>
         <NextIntlClientProvider locale={locale} messages={messages}>
           <ThemeProvider>

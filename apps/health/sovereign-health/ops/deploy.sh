@@ -27,7 +27,7 @@ trap '_exit_code=$?; if [ $_exit_code -ne 0 ]; then notify "Deploy FAILED (${ENV
 # ══════════════════════════════════════════════════════════════════════════════
 
 # Version: Update this before each release. Used in Docker image tags.
-VERSION="0.23.0"
+VERSION="0.24.0"
 
 # Local project root: BrickOS monorepo.
 PROJECT_ROOT="/home/dev-comp/Projects/brickos"
@@ -349,6 +349,25 @@ preflight() {
         fail "docker-compose.staging.yml missing 'name:' field — compose isolation required"
     fi
     log "Compose project isolation verified"
+
+    # Version consistency: deploy.sh VERSION must match lib.rs VERSION.
+    # Prevents deploying with stale version tag (container shows old version).
+    local lib_version
+    lib_version=$(grep -oP 'pub const VERSION: &str = "\K[^"]+' "${APP_ROOT}/api/src/lib.rs" 2>/dev/null || echo "")
+    if [ -n "$lib_version" ] && [ "$lib_version" != "$VERSION" ]; then
+        fail "Version mismatch: deploy.sh has VERSION=${VERSION} but lib.rs has VERSION=${lib_version}. Update deploy.sh VERSION."
+    fi
+    log "Version consistency: v${VERSION}"
+
+    # Migration stability: Warn if any migration file was modified after initial commit.
+    # Modified migrations are silently skipped by SQLx, breaking all subsequent migrations.
+    local modified_migrations
+    modified_migrations=$(cd "$PROJECT_ROOT" && git diff --name-only HEAD -- "${APP_ROOT#$PROJECT_ROOT/}/api/migrations/" 2>/dev/null || echo "")
+    if [ -n "$modified_migrations" ]; then
+        warn "Modified migration files detected (SQLx skips modified migrations):"
+        echo "$modified_migrations" | while read -r f; do echo "  - $f"; done
+        warn "If these are already applied, all subsequent migrations will be skipped silently."
+    fi
 
     report_add "OK" "Pre-flight passed (local: ${local_free}G free, VPS: ${vps_free:-?}G free)"
 }
@@ -807,6 +826,25 @@ verify() {
 
     check_url "App    " "$app_url"
     check_url "Web    " "$web_url"
+
+    # Container creation time: verify containers were actually recreated (not stale).
+    # Incident: deploy can succeed (image transferred) but containers survive from previous deploy.
+    local container_prefix
+    if [ "$env" = "staging" ]; then container_prefix="sovereign-health-staging"; else container_prefix="sovereign-health-prod"; fi
+    local stale_containers
+    stale_containers=$(ssh $VPS "docker ps --filter 'name=${container_prefix}' --format '{{.Names}} {{.CreatedAt}}' 2>/dev/null | while read name created_at; do
+        created_epoch=\$(date -d \"\$(echo \$created_at | cut -d' ' -f1-2)\" +%s 2>/dev/null || echo 0)
+        now_epoch=\$(date +%s)
+        age_minutes=\$(( (now_epoch - created_epoch) / 60 ))
+        if [ \$age_minutes -gt 10 ]; then echo \"\$name (created \${age_minutes}m ago)\"; fi
+    done" 2>/dev/null || echo "")
+    if [ -n "$stale_containers" ]; then
+        warn "Containers may not have been recreated:"
+        echo "$stale_containers" | while read -r line; do echo "  - $line"; done
+        report_add "WARN" "Potentially stale containers detected"
+    else
+        log "All containers recently created"
+    fi
 
     echo ""
     if [ "$all_ok" = true ]; then

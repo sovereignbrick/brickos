@@ -977,7 +977,8 @@ Rules:
   BILI = Bilirubin, TP = Total Protein, Na = Sodium, K = Potassium,
   Ca = Calcium, Mg = Magnesium, PO4 = Phosphate, CRP/hsCRP = C-Reactive Protein,
   LDL = LDL Cholesterol, HDL = HDL Cholesterol, HbA1c = Hemoglobin A1c,
-  FERR = Ferritin, TSAT = Transferrin Saturation, VitD/25OHD = Vitamin D
+  FERR = Ferritin, TSAT = Transferrin Saturation, VitD/25OHD = Vitamin D,
+  BPM = Heart Rate (Pulse), SYS = Systolic Blood Pressure, DIA = Diastolic Blood Pressure
 - If the source appears to be a summary table or screenshot (not a full lab report), match abbreviations against the list above
 - Return valid JSON only. No markdown, no explanations, just the JSON."#;
 

@@ -5,7 +5,6 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useAuth } from '@/lib/auth-context'
 import { usePathname, useRouter } from 'next/navigation'
-import { DemoBanner } from '@/components/demo-banner'
 import { InfoBar } from '@/components/layout/info-bar'
 import { useDemoHref } from '@/lib/use-demo-href'
 import { APP_NAME, IS_OSS } from '@/lib/mode'
@@ -470,7 +469,6 @@ export function Navbar() {
   return (
     <div className="sticky top-0 z-50">
       <InfoBar />
-      <DemoBanner />
       <nav className="border-b bg-background/80 backdrop-blur">
         <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
         <Link href={isDemo ? demoHref('/dashboard') : '/dashboard'} className="flex items-center gap-2 font-bold text-sm tracking-tight">

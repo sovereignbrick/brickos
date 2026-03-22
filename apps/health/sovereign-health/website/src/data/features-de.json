@@ -28,13 +28,13 @@
           },
           "focus": {
             "included": true,
-            "limit_label": "5/Monat",
-            "limit_value": 5
+            "limit_label": "10/Monat",
+            "limit_value": 10
           },
           "glimpse": {
             "included": true,
-            "limit_label": "2/Monat",
-            "limit_value": 2
+            "limit_label": "3/Monat",
+            "limit_value": 3
           },
           "horizon": {
             "included": true,
@@ -438,13 +438,13 @@
           },
           "focus": {
             "included": true,
-            "limit_label": "20 Marker",
-            "limit_value": 20
+            "limit_label": "Unbegrenzt",
+            "limit_value": null
           },
           "glimpse": {
             "included": true,
-            "limit_label": "8 Marker",
-            "limit_value": 8
+            "limit_label": "15 Marker",
+            "limit_value": 15
           },
           "horizon": {
             "included": true,
@@ -453,8 +453,8 @@
           },
           "insight": {
             "included": true,
-            "limit_label": "50 Marker",
-            "limit_value": 50
+            "limit_label": "Unbegrenzt",
+            "limit_value": null
           }
         },
         "tooltip": "Die Anzahl verschiedener Blutwerte, die Sie verfolgen können (z. B. Glukose, Cholesterin, HbA1c). Höhere Stufen schalten mehr Marker frei."
@@ -479,13 +479,13 @@
           },
           "focus": {
             "included": true,
-            "limit_label": "365 Tage",
-            "limit_value": 365
+            "limit_label": "Unbegrenzt",
+            "limit_value": null
           },
           "glimpse": {
             "included": true,
-            "limit_label": "30 Tage",
-            "limit_value": 30
+            "limit_label": "90 Tage",
+            "limit_value": 90
           },
           "horizon": {
             "included": true,
@@ -520,13 +520,13 @@
           },
           "focus": {
             "included": true,
-            "limit_label": "3 Marker",
-            "limit_value": 3
+            "limit_label": "Unbegrenzt",
+            "limit_value": null
           },
           "glimpse": {
             "included": true,
-            "limit_label": "1 Marker",
-            "limit_value": 1
+            "limit_label": "3 Marker",
+            "limit_value": 3
           },
           "horizon": {
             "included": true,
@@ -535,8 +535,8 @@
           },
           "insight": {
             "included": true,
-            "limit_label": "8 Marker",
-            "limit_value": 8
+            "limit_label": "Unbegrenzt",
+            "limit_value": null
           }
         },
         "tooltip": "Marker, die automatisch aus Ihren Messungen berechnet werden, z. B. GKI, BMI, WHtR oder HOMA-IR. Keine manuelle Berechnung nötig."
@@ -576,8 +576,8 @@
           },
           "insight": {
             "included": true,
-            "limit_label": "5 Vorlagen",
-            "limit_value": 5
+            "limit_label": "Unbegrenzt",
+            "limit_value": null
           }
         },
         "tooltip": "Speichern Sie Messvorlagen für Ihre regelmäßigen Bluttests. Ein Klick, um Ihre üblichen Marker zu laden."
