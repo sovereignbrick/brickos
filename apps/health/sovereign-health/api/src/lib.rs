@@ -848,6 +848,14 @@ pub fn configure_routes(cfg: &mut actix_web::web::ServiceConfig) {
                 actix_web::web::post().to(handlers::affiliate::admin_mark_paid),
             )
             .route(
+                "/links",
+                actix_web::web::get().to(handlers::affiliate::admin_list_links),
+            )
+            .route(
+                "/links/campaign",
+                actix_web::web::post().to(handlers::affiliate::admin_create_campaign),
+            )
+            .route(
                 "/settings",
                 actix_web::web::get().to(handlers::admin_settings::list_settings),
             )
@@ -945,6 +953,10 @@ pub fn configure_routes(cfg: &mut actix_web::web::ServiceConfig) {
             .route(
                 "/me/conversions",
                 actix_web::web::get().to(handlers::affiliate::my_conversions),
+            )
+            .route(
+                "/me/vanity",
+                actix_web::web::put().to(handlers::affiliate::set_vanity),
             ),
     )
     .service(

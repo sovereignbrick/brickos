@@ -767,6 +767,263 @@ pub async fn cron_auto_approve(pool: &PgPool) {
 }
 
 // ---------------------------------------------------------------------------
+// User: PUT /api/affiliate/me/vanity — Set vanity short link (Horizon+/Clarity)
+// ---------------------------------------------------------------------------
+
+#[derive(Deserialize)]
+pub struct VanityRequest {
+    pub code: String,
+}
+
+pub async fn set_vanity(
+    pool: web::Data<PgPool>,
+    auth: AuthenticatedUser,
+    body: web::Json<VanityRequest>,
+) -> Result<HttpResponse, AppError> {
+    let user_id = auth.user_id;
+    let code = body.code.trim().to_lowercase();
+
+    // Tier check: only clarity and horizon
+    let tier: String = sqlx::query_scalar("SELECT tier FROM users WHERE id = $1")
+        .bind(user_id)
+        .fetch_one(pool.get_ref())
+        .await
+        .unwrap_or_default();
+
+    if tier != "clarity" && tier != "horizon" && tier != "core" {
+        return Ok(HttpResponse::Forbidden().json(json!({
+            "error": { "code": "TIER_REQUIRED", "message": "Vanity codes require Clarity or Horizon tier" }
+        })));
+    }
+
+    // Validate code
+    if code.len() < 3 || code.len() > 30 {
+        return Ok(HttpResponse::BadRequest().json(json!({
+            "error": { "code": "INVALID_CODE", "message": "Code must be 3-30 characters" }
+        })));
+    }
+    if !code.chars().all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '-') {
+        return Ok(HttpResponse::BadRequest().json(json!({
+            "error": { "code": "INVALID_CODE", "message": "Code must be lowercase alphanumeric or hyphens" }
+        })));
+    }
+    if code.starts_with('-') || code.ends_with('-') {
+        return Ok(HttpResponse::BadRequest().json(json!({
+            "error": { "code": "INVALID_CODE", "message": "Code must not start or end with a hyphen" }
+        })));
+    }
+    let reserved = ["api", "admin", "health", "finance", "app", "docs", "status", "new", "discover"];
+    if reserved.contains(&code.as_str()) {
+        return Ok(HttpResponse::BadRequest().json(json!({
+            "error": { "code": "RESERVED_CODE", "message": "This code is reserved" }
+        })));
+    }
+    // Prevent collision with auto codes (2-char prefix + 8 hex chars)
+    if code.len() == 10 && code[2..].chars().all(|c| c.is_ascii_hexdigit()) {
+        return Ok(HttpResponse::BadRequest().json(json!({
+            "error": { "code": "RESERVED_FORMAT", "message": "This code format is reserved for auto-generated codes" }
+        })));
+    }
+
+    // Get user's affiliate code
+    let affiliate_code: Option<String> =
+        sqlx::query_scalar("SELECT affiliate_code FROM users WHERE id = $1")
+            .bind(user_id)
+            .fetch_one(pool.get_ref())
+            .await?;
+
+    let affiliate_code = match affiliate_code {
+        Some(c) => c,
+        None => return Err(AppError::NotFound),
+    };
+
+    let target_url = format!("https://app.sovereignhealth.io/?ref={}", affiliate_code);
+
+    // Upsert: create or update vanity link
+    let result = sqlx::query(
+        r#"INSERT INTO short_links (id, code, target_url, link_type, domain, app_key, owner_user_id, affiliate_code, title)
+           VALUES (gen_random_uuid(), $1, $2, 'vanity', 'health', 'sovereign-health', $3, $4, $1)
+           ON CONFLICT (code) DO UPDATE SET
+               target_url = EXCLUDED.target_url,
+               owner_user_id = EXCLUDED.owner_user_id,
+               updated_at = now()
+           WHERE short_links.owner_user_id = $3 OR short_links.owner_user_id IS NULL"#,
+    )
+    .bind(&code)
+    .bind(&target_url)
+    .bind(user_id)
+    .bind(&affiliate_code)
+    .execute(pool.get_ref())
+    .await;
+
+    match result {
+        Ok(r) if r.rows_affected() > 0 => {
+            Ok(HttpResponse::Ok().json(json!({
+                "data": {
+                    "vanity_link": format!("https://brickos.io/r/{}", code),
+                    "code": code
+                },
+                "error": null
+            })))
+        }
+        Ok(_) => Ok(HttpResponse::Conflict().json(json!({
+            "error": { "code": "CODE_TAKEN", "message": "This code is already taken by another user" }
+        }))),
+        Err(e) => {
+            let msg = e.to_string();
+            if msg.contains("unique") || msg.contains("duplicate") {
+                Ok(HttpResponse::Conflict().json(json!({
+                    "error": { "code": "CODE_TAKEN", "message": "This code is already taken" }
+                })))
+            } else {
+                Err(AppError::Internal)
+            }
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Admin: GET /api/admin/links — All short links with click stats
+// ---------------------------------------------------------------------------
+
+pub async fn admin_list_links(
+    pool: web::Data<PgPool>,
+    _admin: AdminUser,
+) -> Result<HttpResponse, AppError> {
+    let rows = sqlx::query(
+        r#"SELECT sl.id, sl.code, sl.target_url, sl.link_type, sl.domain, sl.app_key,
+                  sl.affiliate_code, sl.title, sl.is_active, sl.created_at,
+                  COALESCE(c.total_clicks, 0) as total_clicks,
+                  COALESCE(c.clicks_7d, 0) as clicks_7d,
+                  COALESCE(c.clicks_30d, 0) as clicks_30d
+           FROM short_links sl
+           LEFT JOIN LATERAL (
+               SELECT COUNT(*) as total_clicks,
+                      COUNT(*) FILTER (WHERE clicked_at > now() - interval '7 days') as clicks_7d,
+                      COUNT(*) FILTER (WHERE clicked_at > now() - interval '30 days') as clicks_30d
+               FROM short_link_clicks WHERE short_link_id = sl.id
+           ) c ON true
+           ORDER BY c.total_clicks DESC NULLS LAST, sl.created_at DESC
+           LIMIT 200"#,
+    )
+    .fetch_all(pool.get_ref())
+    .await?;
+
+    let links: Vec<serde_json::Value> = rows
+        .iter()
+        .map(|r| {
+            json!({
+                "id": r.try_get::<Uuid, _>("id").unwrap_or_default(),
+                "code": r.try_get::<String, _>("code").unwrap_or_default(),
+                "target_url": r.try_get::<String, _>("target_url").unwrap_or_default(),
+                "link_type": r.try_get::<String, _>("link_type").unwrap_or_default(),
+                "domain": r.try_get::<String, _>("domain").unwrap_or_default(),
+                "app_key": r.try_get::<String, _>("app_key").unwrap_or_default(),
+                "affiliate_code": r.try_get::<Option<String>, _>("affiliate_code").unwrap_or(None),
+                "title": r.try_get::<Option<String>, _>("title").unwrap_or(None),
+                "is_active": r.try_get::<bool, _>("is_active").unwrap_or(true),
+                "total_clicks": r.try_get::<i64, _>("total_clicks").unwrap_or(0),
+                "clicks_7d": r.try_get::<i64, _>("clicks_7d").unwrap_or(0),
+                "clicks_30d": r.try_get::<i64, _>("clicks_30d").unwrap_or(0),
+                "created_at": r.try_get::<chrono::DateTime<chrono::Utc>, _>("created_at").ok(),
+            })
+        })
+        .collect();
+
+    // Hierarchical summary by app prefix
+    let summary = sqlx::query(
+        r#"SELECT LEFT(sl.code, 2) as prefix, sl.link_type,
+                  COUNT(DISTINCT sl.id) as link_count,
+                  COALESCE(SUM(c.cnt), 0) as total_clicks
+           FROM short_links sl
+           LEFT JOIN LATERAL (
+               SELECT COUNT(*) as cnt FROM short_link_clicks WHERE short_link_id = sl.id
+           ) c ON true
+           WHERE sl.is_active = true
+           GROUP BY LEFT(sl.code, 2), sl.link_type
+           ORDER BY total_clicks DESC"#,
+    )
+    .fetch_all(pool.get_ref())
+    .await?;
+
+    let summary_data: Vec<serde_json::Value> = summary
+        .iter()
+        .map(|r| {
+            json!({
+                "prefix": r.try_get::<String, _>("prefix").unwrap_or_default(),
+                "link_type": r.try_get::<String, _>("link_type").unwrap_or_default(),
+                "link_count": r.try_get::<i64, _>("link_count").unwrap_or(0),
+                "total_clicks": r.try_get::<i64, _>("total_clicks").unwrap_or(0),
+            })
+        })
+        .collect();
+
+    Ok(HttpResponse::Ok().json(json!({
+        "data": { "links": links, "summary": summary_data },
+        "error": null
+    })))
+}
+
+// ---------------------------------------------------------------------------
+// Admin: POST /api/admin/links/campaign — Create campaign short link
+// ---------------------------------------------------------------------------
+
+#[derive(Deserialize)]
+pub struct CampaignLinkRequest {
+    pub code: String,
+    pub target_url: String,
+    pub title: Option<String>,
+}
+
+pub async fn admin_create_campaign(
+    pool: web::Data<PgPool>,
+    _admin: AdminUser,
+    body: web::Json<CampaignLinkRequest>,
+) -> Result<HttpResponse, AppError> {
+    let code = body.code.trim().to_lowercase();
+    if code.len() < 3 || code.len() > 50 {
+        return Ok(HttpResponse::BadRequest().json(json!({
+            "error": { "code": "INVALID_CODE", "message": "Code must be 3-50 characters" }
+        })));
+    }
+
+    let result = sqlx::query(
+        r#"INSERT INTO short_links (id, code, target_url, link_type, domain, app_key, title)
+           VALUES (gen_random_uuid(), $1, $2, 'campaign', 'health', 'sovereign-health', $3)
+           RETURNING id, code, target_url, created_at"#,
+    )
+    .bind(&code)
+    .bind(&body.target_url)
+    .bind(&body.title)
+    .fetch_optional(pool.get_ref())
+    .await;
+
+    match result {
+        Ok(Some(row)) => Ok(HttpResponse::Created().json(json!({
+            "data": {
+                "id": row.try_get::<Uuid, _>("id").unwrap_or_default(),
+                "short_link": format!("https://brickos.io/r/{}", code),
+                "code": code,
+                "target_url": body.target_url,
+                "created_at": row.try_get::<chrono::DateTime<chrono::Utc>, _>("created_at").ok(),
+            },
+            "error": null
+        }))),
+        Ok(None) => Err(AppError::Internal),
+        Err(e) => {
+            let msg = e.to_string();
+            if msg.contains("unique") || msg.contains("duplicate") {
+                Ok(HttpResponse::Conflict().json(json!({
+                    "error": { "code": "CODE_TAKEN", "message": "This code is already taken" }
+                })))
+            } else {
+                Err(AppError::Internal)
+            }
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
 // Helper: mask email for privacy (e.g., "h***@example.com")
 // ---------------------------------------------------------------------------
 

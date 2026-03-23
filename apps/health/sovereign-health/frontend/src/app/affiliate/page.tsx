@@ -66,6 +66,10 @@ export default function AffiliatePage() {
 
   const [affiliateCode, setAffiliateCode] = useState('')
   const [referralLink, setReferralLink] = useState('')
+  const [vanityCode, setVanityCode] = useState('')
+  const [vanityLink, setVanityLink] = useState('')
+  const [savingVanity, setSavingVanity] = useState(false)
+  const isVanityEligible = user?.tier === 'clarity' || user?.tier === 'horizon' || user?.tier === 'core'
   const [stats, setStats] = useState<AffiliateStats | null>(null)
   const [btcStats, setBtcStats] = useState<BtcStats | null>(null)
   const [hasEurCommissions, setHasEurCommissions] = useState(false)
@@ -133,6 +137,20 @@ export default function AffiliatePage() {
       setTimeout(() => setCopied(false), 2000)
     } catch {
       toast.error(tCommon('copyFailed'))
+    }
+  }
+
+  const handleSaveVanity = async () => {
+    if (!vanityCode.trim()) return
+    setSavingVanity(true)
+    try {
+      const res = await api.affiliate.setVanity(vanityCode.trim().toLowerCase())
+      setVanityLink(res.data.vanity_link)
+      toast.success(t('vanitySaved'))
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : t('vanityFailed'))
+    } finally {
+      setSavingVanity(false)
     }
   }
 
@@ -258,6 +276,37 @@ export default function AffiliatePage() {
                 </button>
               </div>
               <p className="text-xs text-muted-foreground">{t('shareDescription')}</p>
+
+              {isVanityEligible && (
+                <div className="pt-3 border-t border-border space-y-2">
+                  <h2 className="text-sm font-medium text-muted-foreground">{t('vanityCode')}</h2>
+                  {vanityLink ? (
+                    <div className="flex-1 bg-accent border rounded-lg px-3 py-2.5 text-sm font-mono truncate select-all">
+                      {vanityLink}
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-muted-foreground shrink-0">brickos.io/r/</span>
+                      <input
+                        type="text"
+                        value={vanityCode}
+                        onChange={e => setVanityCode(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                        placeholder="yourname"
+                        maxLength={30}
+                        className="flex-1 bg-accent border rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      />
+                      <button
+                        onClick={handleSaveVanity}
+                        disabled={savingVanity || vanityCode.length < 3}
+                        className="bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-sm font-medium px-3 py-2 rounded-lg transition-colors shrink-0"
+                      >
+                        {savingVanity ? '...' : tCommon('save')}
+                      </button>
+                    </div>
+                  )}
+                  <p className="text-xs text-muted-foreground/70">{t('vanityDescription')}</p>
+                </div>
+              )}
 
               <div className="pt-3 border-t border-border space-y-1">
                 <p className="text-xs font-medium text-muted-foreground">{t('paymentTerms')}</p>
