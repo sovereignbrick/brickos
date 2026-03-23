@@ -367,6 +367,18 @@ export const api = {
       request<{ data: { updated: boolean } }>(
         '/settings/anonymous-data', { method: 'PUT', body: JSON.stringify({ share_anonymous_data: share }) }
       ),
+    getConsent: () =>
+      request<{ data: { consent_newsletter: boolean; consent_partner_offers: boolean } }>(
+        '/settings/consent'
+      ),
+    updateConsent: (body: { consent_newsletter?: boolean; consent_partner_offers?: boolean }) =>
+      request<{ data: { updated: boolean } }>(
+        '/settings/consent', { method: 'PUT', body: JSON.stringify(body) }
+      ),
+    getAccessLog: () =>
+      request<{ data: Array<{ accessed_by: string; action: string; resource: string; created_at: string }> }>(
+        '/settings/access-log'
+      ),
   },
   templates: {
     list: () =>

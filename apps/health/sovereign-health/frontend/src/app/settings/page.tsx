@@ -1978,6 +1978,38 @@ function DataPrivacyTab({ shareAnonymousData, onToggle }: { shareAnonymousData: 
   const [deleting, setDeleting] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [toggling, setToggling] = useState(false)
+  // Consent state
+  const [consentNewsletter, setConsentNewsletter] = useState(false)
+  const [consentPartner, setConsentPartner] = useState(false)
+  const [consentLoading, setConsentLoading] = useState(false)
+  // Access log state
+  const [accessLog, setAccessLog] = useState<Array<{ accessed_by: string; action: string; resource: string; created_at: string }>>([])
+  const [accessLogLoaded, setAccessLogLoaded] = useState(false)
+
+  useEffect(() => {
+    api.settings.getConsent().then(r => {
+      setConsentNewsletter(r.data.consent_newsletter)
+      setConsentPartner(r.data.consent_partner_offers)
+    }).catch(() => {})
+    api.settings.getAccessLog().then(r => {
+      setAccessLog(r.data || [])
+      setAccessLogLoaded(true)
+    }).catch(() => setAccessLogLoaded(true))
+  }, [])
+
+  const handleConsentToggle = async (field: 'consent_newsletter' | 'consent_partner_offers', value: boolean) => {
+    setConsentLoading(true)
+    try {
+      await api.settings.updateConsent({ [field]: value })
+      if (field === 'consent_newsletter') setConsentNewsletter(value)
+      else setConsentPartner(value)
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : t('updateFailed'))
+    } finally {
+      setConsentLoading(false)
+    }
+  }
+
   // Reports state
   const [reportPeriod, setReportPeriod] = useState('3m')
   const [generatingPdf, setGeneratingPdf] = useState(false)
@@ -2117,6 +2149,91 @@ function DataPrivacyTab({ shareAnonymousData, onToggle }: { shareAnonymousData: 
         </div>
       </div>
 
+      {/* Consent Toggles */}
+      <div className="border border-border rounded-lg p-6 space-y-4">
+        <div>
+          <h3 className="font-medium">{t('consentTitle')}</h3>
+          <p className="text-sm text-muted-foreground mt-1">{t('consentDesc')}</p>
+        </div>
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium">{t('consentNewsletter')}</p>
+              <p className="text-xs text-muted-foreground">{t('consentNewsletterDesc')}</p>
+            </div>
+            <button
+              onClick={() => handleConsentToggle('consent_newsletter', !consentNewsletter)}
+              disabled={consentLoading}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors shrink-0 ml-4 ${
+                consentNewsletter ? 'bg-blue-600' : 'bg-zinc-700'
+              }`}
+            >
+              <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                consentNewsletter ? 'translate-x-6' : 'translate-x-1'
+              }`} />
+            </button>
+          </div>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium">{t('consentPartnerOffers')}</p>
+              <p className="text-xs text-muted-foreground">{t('consentPartnerOffersDesc')}</p>
+            </div>
+            <button
+              onClick={() => handleConsentToggle('consent_partner_offers', !consentPartner)}
+              disabled={consentLoading}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors shrink-0 ml-4 ${
+                consentPartner ? 'bg-blue-600' : 'bg-zinc-700'
+              }`}
+            >
+              <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                consentPartner ? 'translate-x-6' : 'translate-x-1'
+              }`} />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Data Access Log */}
+      <div className="border border-border rounded-lg p-6 space-y-3">
+        <div>
+          <h3 className="font-medium">{t('accessLogTitle')}</h3>
+          <p className="text-sm text-muted-foreground mt-1">{t('accessLogDesc')}</p>
+        </div>
+        {accessLogLoaded && accessLog.length === 0 && (
+          <p className="text-sm text-muted-foreground italic">{t('accessLogEmpty')}</p>
+        )}
+        {accessLog.length > 0 && (
+          <div className="max-h-[200px] overflow-y-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-xs text-muted-foreground border-b border-border">
+                  <th className="text-left py-1.5">{t('accessLogAction')}</th>
+                  <th className="text-left py-1.5">{t('accessLogResource')}</th>
+                  <th className="text-left py-1.5">{t('accessLogDate')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {accessLog.map((entry, i) => (
+                  <tr key={i} className="border-b border-border/50">
+                    <td className="py-1.5 text-foreground">{entry.action}</td>
+                    <td className="py-1.5 text-muted-foreground">{entry.resource}</td>
+                    <td className="py-1.5 text-muted-foreground whitespace-nowrap">
+                      {new Date(entry.created_at).toLocaleDateString(undefined, { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                      {' '}
+                      {new Date(entry.created_at).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+      </div>
+
+      {/* Right column */}
+      <div className="space-y-6">
+
       {/* Health Reports */}
       <div className="border border-border rounded-lg p-6 space-y-4">
         <h3 className="font-medium">{t('healthReports')}</h3>
@@ -2196,10 +2313,7 @@ function DataPrivacyTab({ shareAnonymousData, onToggle }: { shareAnonymousData: 
           </div>
         )}
       </div>
-      </div>
 
-      {/* Right column: export & account deletion */}
-      <div className="space-y-6">
       <div className="border border-border rounded-lg p-6 space-y-3">
         <h3 className="font-medium">{t('exportAllTitle')}</h3>
         <p className="text-sm text-muted-foreground">{t('exportAllDesc')}</p>

@@ -925,7 +925,19 @@
       "jsonFailed": "JSON-Export fehlgeschlagen",
       "exportDownloaded": "Export heruntergeladen",
       "updateFailed": "Einstellung konnte nicht aktualisiert werden",
-      "deleteFailed": "Konto konnte nicht gelöscht werden"
+      "deleteFailed": "Konto konnte nicht gelöscht werden",
+      "consentTitle": "Kommunikationseinstellungen",
+      "consentDesc": "Steuere, wie wir mit dir kommunizieren. Änderungen werden sofort wirksam.",
+      "consentNewsletter": "Newsletter",
+      "consentNewsletterDesc": "Produktupdates, Gesundheitstipps und neue Funktionen erhalten.",
+      "consentPartnerOffers": "Partnerangebote",
+      "consentPartnerOffersDesc": "Ausgewählte Angebote von Gesundheits- und Wellnesspartnern erhalten.",
+      "accessLogTitle": "Datenzugriffsprotokoll",
+      "accessLogDesc": "Sieh, wer wann auf deine Daten zugegriffen hat (DSGVO Art. 15).",
+      "accessLogEmpty": "Noch keine Datenzugriffe aufgezeichnet.",
+      "accessLogAction": "Aktion",
+      "accessLogResource": "Ressource",
+      "accessLogDate": "Datum"
     },
     "license": {
       "coreSelfHosted": "Core (Selbst gehostet)",

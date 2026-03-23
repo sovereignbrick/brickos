@@ -1370,7 +1370,7 @@ pub async fn update_consent(
         }
     }
 
-    // Fetch user email for Mailgun tag sync and newsletter_subscribers sync
+    // Fetch user email for Mailgun tag sync and newsletter_subscribers sync (consent update)
     let email: Option<String> = sqlx::query_scalar("SELECT email FROM users WHERE id = $1")
         .bind(auth.user_id)
         .fetch_optional(pool.get_ref())
@@ -1410,6 +1410,44 @@ pub async fn update_consent(
 
     Ok(HttpResponse::Ok().json(json!({
         "data": { "updated": true },
+        "error": null
+    })))
+}
+
+// ---------------------------------------------------------------------------
+// Data access log (GDPR Art. 15)
+// ---------------------------------------------------------------------------
+
+/// GET /settings/access-log
+pub async fn get_access_log(
+    pool: web::Data<PgPool>,
+    auth: AuthenticatedUser,
+) -> Result<HttpResponse, AppError> {
+    use sqlx::Row;
+    let rows = sqlx::query(
+        "SELECT accessed_by, action, resource, created_at \
+         FROM data_access_log WHERE user_id = $1 \
+         ORDER BY created_at DESC LIMIT 100",
+    )
+    .bind(auth.user_id)
+    .fetch_all(pool.get_ref())
+    .await?;
+
+    let log: Vec<serde_json::Value> = rows
+        .iter()
+        .map(|r| {
+            json!({
+                "accessed_by": r.try_get::<String, _>("accessed_by").unwrap_or_default(),
+                "action": r.try_get::<String, _>("action").unwrap_or_default(),
+                "resource": r.try_get::<String, _>("resource").unwrap_or_default(),
+                "created_at": r.try_get::<chrono::DateTime<chrono::Utc>, _>("created_at")
+                    .map(|t| t.to_rfc3339()).unwrap_or_default(),
+            })
+        })
+        .collect();
+
+    Ok(HttpResponse::Ok().json(json!({
+        "data": log,
         "error": null
     })))
 }

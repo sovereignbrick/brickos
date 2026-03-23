@@ -345,6 +345,10 @@ pub fn configure_routes(cfg: &mut actix_web::web::ServiceConfig) {
             .route(
                 "/consent",
                 actix_web::web::put().to(handlers::settings::update_consent),
+            )
+            .route(
+                "/access-log",
+                actix_web::web::get().to(handlers::settings::get_access_log),
             ),
     )
     .route(

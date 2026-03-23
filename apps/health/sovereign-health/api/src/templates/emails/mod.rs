@@ -77,6 +77,7 @@ const HTML_WRAPPER_END: &str = r#"
     <a href="https://sovereignhealth.io/privacy" style="color: #999999; text-decoration: none;">Privacy</a> &nbsp;|&nbsp;
     <a href="https://sovereignhealth.io/impressum" style="color: #999999; text-decoration: none;">Impressum</a>
   </p>
+  {{unsubscribe_block}}
 </div>
 
 </div>
@@ -140,6 +141,9 @@ const HTML_WRAPPER_END_DE: &str = r#"
     <a href="https://sovereignhealth.io/terms" style="color: #999999; text-decoration: none;">Nutzungsbedingungen</a> &nbsp;|&nbsp;
     <a href="https://sovereignhealth.io/privacy" style="color: #999999; text-decoration: none;">Datenschutz</a> &nbsp;|&nbsp;
     <a href="https://sovereignhealth.io/impressum" style="color: #999999; text-decoration: none;">Impressum</a>
+  </p>
+  <p style="margin: 8px 0 0; font-size: 11px;">
+    <a href="{{unsubscribe_url}}" style="color: #999999; text-decoration: underline;">Abmelden</a>
   </p>
 </div>
 
@@ -803,10 +807,26 @@ pub fn render_template(
     template: &EmailTemplate,
     vars: &HashMap<&str, String>,
 ) -> (String, String, String) {
-    let subject = render(template.subject, vars);
-    let html_body = render(template.html, vars);
-    let html = minify_html(&render(&wrap_html(&html_body), vars));
-    let text = render(template.text, vars);
+    let mut vars = vars.clone();
+    // Build unsubscribe block: only shown if unsubscribe_url is provided (marketing emails).
+    // Transactional emails (verification, password reset) don't set it → block is empty.
+    let unsub_block = if let Some(url) = vars.get("unsubscribe_url") {
+        if url.is_empty() {
+            String::new()
+        } else {
+            format!(
+                r#"<p style="margin: 8px 0 0; font-size: 11px;"><a href="{}" style="color: #999999; text-decoration: underline;">Unsubscribe</a></p>"#,
+                url
+            )
+        }
+    } else {
+        String::new()
+    };
+    vars.insert("unsubscribe_block", unsub_block);
+    let subject = render(template.subject, &vars);
+    let html_body = render(template.html, &vars);
+    let html = minify_html(&render(&wrap_html(&html_body), &vars));
+    let text = render(template.text, &vars);
     (subject, html, text)
 }
 
@@ -815,15 +835,31 @@ pub fn render_template_localized(
     vars: &HashMap<&str, String>,
     lang: &str,
 ) -> (String, String, String) {
-    let subject = render(template.subject, vars);
-    let html_body = render(template.html, vars);
+    let mut vars = vars.clone();
+    let unsub_url = vars.get("unsubscribe_url").cloned().unwrap_or_default();
+    let unsub_label = if lang == "de" {
+        "Abmelden"
+    } else {
+        "Unsubscribe"
+    };
+    let unsub_block = if unsub_url.is_empty() {
+        String::new()
+    } else {
+        format!(
+            r#"<p style="margin: 8px 0 0; font-size: 11px;"><a href="{}" style="color: #999999; text-decoration: underline;">{}</a></p>"#,
+            unsub_url, unsub_label
+        )
+    };
+    vars.insert("unsubscribe_block", unsub_block);
+    let subject = render(template.subject, &vars);
+    let html_body = render(template.html, &vars);
     let wrapper = if lang == "de" {
         wrap_html_de(&html_body)
     } else {
         wrap_html(&html_body)
     };
-    let html = minify_html(&render(&wrapper, vars));
-    let text = render(template.text, vars);
+    let html = minify_html(&render(&wrapper, &vars));
+    let text = render(template.text, &vars);
     (subject, html, text)
 }
 

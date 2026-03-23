@@ -925,7 +925,19 @@
       "jsonFailed": "JSON export failed",
       "exportDownloaded": "Export downloaded",
       "updateFailed": "Failed to update setting",
-      "deleteFailed": "Failed to delete account"
+      "deleteFailed": "Failed to delete account",
+      "consentTitle": "Communication Preferences",
+      "consentDesc": "Control how we communicate with you. Changes take effect immediately.",
+      "consentNewsletter": "Newsletter",
+      "consentNewsletterDesc": "Receive product updates, health tips, and feature announcements.",
+      "consentPartnerOffers": "Partner Offers",
+      "consentPartnerOffersDesc": "Receive curated offers from selected health and wellness partners.",
+      "accessLogTitle": "Data Access Log",
+      "accessLogDesc": "See who accessed your data and when (GDPR Art. 15).",
+      "accessLogEmpty": "No data access recorded yet.",
+      "accessLogAction": "Action",
+      "accessLogResource": "Resource",
+      "accessLogDate": "Date"
     },
     "license": {
       "coreSelfHosted": "Core (Self-Hosted)",
