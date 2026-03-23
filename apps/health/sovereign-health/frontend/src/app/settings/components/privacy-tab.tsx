@@ -253,8 +253,8 @@ export function DataPrivacyTab({ shareAnonymousData, onToggle }: { shareAnonymou
               <tbody>
                 {accessLog.map((entry, i) => (
                   <tr key={i} className="border-b border-border/50">
-                    <td className="py-1.5 text-foreground">{entry.action}</td>
-                    <td className="py-1.5 text-muted-foreground">{entry.resource}</td>
+                    <td className="py-1.5 text-foreground">{t.has(`action_${entry.action}`) ? t(`action_${entry.action}`) : entry.action}</td>
+                    <td className="py-1.5 text-muted-foreground">{t.has(`resource_${entry.resource}`) ? t(`resource_${entry.resource}`) : entry.resource}</td>
                     <td className="py-1.5 text-muted-foreground whitespace-nowrap">
                       {new Date(entry.created_at).toLocaleDateString(undefined, { day: '2-digit', month: '2-digit', year: 'numeric' })}
                       {' '}

@@ -937,7 +937,17 @@
       "accessLogEmpty": "No data access recorded yet.",
       "accessLogAction": "Action",
       "accessLogResource": "Resource",
-      "accessLogDate": "Date"
+      "accessLogDate": "Date",
+      "action_export_csv": "CSV Export",
+      "action_export_json": "JSON Export",
+      "action_export_pdf": "PDF Export",
+      "action_view": "View",
+      "action_update": "Update",
+      "action_delete": "Delete",
+      "resource_measurements": "Measurements",
+      "resource_profile": "Profile",
+      "resource_settings": "Settings",
+      "resource_reports": "Reports"
     },
     "license": {
       "coreSelfHosted": "Core (Self-Hosted)",
