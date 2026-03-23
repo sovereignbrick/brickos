@@ -6,19 +6,36 @@ use std::sync::Arc;
 use crate::db::LinkStore;
 use crate::models::*;
 
+/// GET /r/{code} — Dispatcher. Routes to QR handler if code ends with .qr,
+/// otherwise handles redirect.
+pub async fn handle_request(
+    code: web::Path<String>,
+    req: HttpRequest,
+    store: web::Data<Arc<dyn LinkStore>>,
+    pool: web::Data<PgPool>,
+) -> HttpResponse {
+    let raw = code.into_inner();
+
+    // Dispatch to QR handler if code ends with .qr
+    if let Some(base_code) = raw.strip_suffix(".qr") {
+        return super::qr::handle_qr_inner(base_code, &store, &pool).await;
+    }
+
+    handle_redirect(raw, &req, &store, &pool).await
+}
+
 /// GET /r/{code} — The hot path. Must be fast.
 ///
 /// Fast path: 10-char code with known 2-char prefix → build redirect URL from
 /// app_prefixes table without touching short_links.
 ///
 /// Slow path: vanity/campaign codes → full DB lookup on short_links.
-pub async fn handle_redirect(
-    code: web::Path<String>,
-    req: HttpRequest,
-    store: web::Data<Arc<dyn LinkStore>>,
-    pool: web::Data<PgPool>,
+async fn handle_redirect(
+    code: String,
+    req: &HttpRequest,
+    store: &web::Data<Arc<dyn LinkStore>>,
+    pool: &web::Data<PgPool>,
 ) -> HttpResponse {
-    let code = code.into_inner();
 
     // Fast path: auto-generated affiliate code (2-char prefix + 8-char hash)
     if code.len() == AUTO_CODE_LEN {
@@ -32,7 +49,7 @@ pub async fn handle_redirect(
             let pool_clone = pool.get_ref().clone();
             let code_clone = code.clone();
             let target_clone = target_url.clone();
-            let meta = extract_click_meta(&req);
+            let meta = extract_click_meta(req);
             tokio::spawn(async move {
                 record_click_for_code(&pool_clone, &code_clone, &target_clone, meta).await;
             });
@@ -50,7 +67,7 @@ pub async fn handle_redirect(
             let target = link.target_url.clone();
             let link_id = link.id;
             let store_clone = store.clone();
-            let meta = extract_click_meta(&req);
+            let meta = extract_click_meta(req);
 
             tokio::spawn(async move {
                 let _ = store_clone.record_click(link_id, meta).await;
@@ -105,7 +122,7 @@ fn extract_click_meta(req: &HttpRequest) -> ClickMeta {
 }
 
 /// Extract domain from a URL (strip protocol, path, query).
-fn url_domain(url: &str) -> Option<String> {
+pub fn url_domain(url: &str) -> Option<String> {
     let without_protocol = url
         .strip_prefix("https://")
         .or_else(|| url.strip_prefix("http://"))?;

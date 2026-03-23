@@ -9,8 +9,8 @@ use actix_web::web;
 pub fn configure_routes(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/r")
-            .route("/{code}", web::get().to(handlers::redirect::handle_redirect))
-            .route("/{code}.qr", web::get().to(handlers::qr::handle_qr)),
+            // Single route handles both redirect and QR — .qr suffix detected in handler
+            .route("/{code}", web::get().to(handlers::redirect::handle_request)),
     );
     cfg.service(
         web::scope("/api/v1/links")

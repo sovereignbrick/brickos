@@ -129,7 +129,7 @@ fn extract_user_id(req: &HttpRequest) -> Option<Uuid> {
 }
 
 /// Validate a vanity code.
-fn validate_vanity_code(code: &str) -> Result<(), &'static str> {
+pub fn validate_vanity_code(code: &str) -> Result<(), &'static str> {
     if code.len() < 3 {
         return Err("Code must be at least 3 characters");
     }

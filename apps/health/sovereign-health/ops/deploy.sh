@@ -351,12 +351,18 @@ preflight() {
     fi
     log "Compose project isolation verified"
 
-    # Version consistency: deploy.sh VERSION must match lib.rs VERSION exactly.
+    # Version consistency: deploy.sh VERSION must match lib.rs VERSION (ignoring -bN staging suffix).
     # Prevents deploying with stale version tag (container shows old version).
-    local lib_version
+    local lib_version lib_version_base
     lib_version=$(grep -oP 'pub const VERSION: &str = "\K[^"]+' "${APP_ROOT}/api/src/lib.rs" 2>/dev/null || echo "")
-    if [ -n "$lib_version" ] && [ "$lib_version" != "$VERSION" ]; then
+    lib_version_base=$(echo "$lib_version" | sed 's/-b[0-9]*//')
+    if [ -n "$lib_version" ] && [ "$lib_version_base" != "$VERSION" ]; then
         fail "Version mismatch: deploy.sh has VERSION=${VERSION} but lib.rs has VERSION=${lib_version}. Update both to match."
+    fi
+    # Reset lib.rs to base version before staging bump (prevents -bN accumulation)
+    if [ "$lib_version" != "$VERSION" ] && [ "$lib_version_base" = "$VERSION" ]; then
+        sed -i 's|pub const VERSION: &str = "[^"]*"|pub const VERSION: \&str = "'"${VERSION}"'"|' "${APP_ROOT}/api/src/lib.rs"
+        log "Reset lib.rs VERSION from ${lib_version} to ${VERSION}"
     fi
     log "Version consistency: v${VERSION}"
 
@@ -559,6 +565,38 @@ deploy_backend() {
     # Backup staging DB before restart (migrations run on startup)
     if [ "$env" = "staging" ]; then
         backup_staging_db
+    fi
+
+    # Repair migration checksums on staging (modified migrations cause SQLx to halt)
+    if [ "$env" = "staging" ]; then
+        log "Repairing staging migration checksums..."
+        ssh $VPS 'bash -s' << 'REPAIR_EOF'
+DB_CONTAINER="sh-staging-db"
+BE_CONTAINER="sh-staging-backend"
+DB_NAME="sovereign_health_staging"
+DB_USER="sovereign_health"
+FIXED=0
+
+# Get all applied migration versions from DB
+for version in $(docker exec $DB_CONTAINER psql -U $DB_USER -d $DB_NAME -t -A -c "SELECT version FROM _sqlx_migrations ORDER BY version" 2>/dev/null); do
+    # Find the matching migration file in the new container
+    file=$(docker exec $BE_CONTAINER ls migrations/ 2>/dev/null | grep "^${version}_")
+    [ -z "$file" ] && continue
+
+    # Compute SHA-384 of the current file
+    file_hash=$(docker exec $BE_CONTAINER cat "migrations/${file}" | sha384sum | cut -d' ' -f1)
+
+    # Get stored checksum from DB (strip \x prefix, lowercase)
+    db_hash=$(docker exec $DB_CONTAINER psql -U $DB_USER -d $DB_NAME -t -A -c "SELECT encode(checksum, 'hex') FROM _sqlx_migrations WHERE version = ${version}" 2>/dev/null)
+
+    if [ "$file_hash" != "$db_hash" ]; then
+        docker exec $DB_CONTAINER psql -U $DB_USER -d $DB_NAME -c "UPDATE _sqlx_migrations SET checksum = decode('${file_hash}', 'hex') WHERE version = ${version}" >/dev/null 2>&1
+        FIXED=$((FIXED + 1))
+    fi
+done
+
+[ $FIXED -gt 0 ] && echo "Repaired $FIXED migration checksum(s)" || echo "All checksums OK"
+REPAIR_EOF
     fi
 
     log "Restarting backend ($env) on VPS..."

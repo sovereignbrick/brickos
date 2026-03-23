@@ -7,17 +7,12 @@ use std::sync::Arc;
 use crate::db::LinkStore;
 use crate::models::*;
 
-/// GET /r/{code}.qr — Generate a QR code SVG for a short link.
-pub async fn handle_qr(
-    code: web::Path<String>,
-    store: web::Data<Arc<dyn LinkStore>>,
-    _pool: web::Data<PgPool>,
+/// Inner QR handler — called from the redirect dispatcher when code ends with .qr
+pub async fn handle_qr_inner(
+    code: &str,
+    store: &web::Data<Arc<dyn LinkStore>>,
+    _pool: &web::Data<PgPool>,
 ) -> HttpResponse {
-    let code = code.into_inner();
-    // Strip .qr suffix if present (actix may or may not strip it depending on route config)
-    let code = code.strip_suffix(".qr").unwrap_or(&code);
-
-    // Determine the full short URL to encode
     let short_url = format!("https://brickos.io/r/{}", code);
 
     // Verify the code exists (either as prefix-based or DB-based)
