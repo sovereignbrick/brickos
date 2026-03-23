@@ -78,12 +78,14 @@ export const metadata: Metadata = {
     title: "Sovereign Health Intelligence - Privacy-First Health Tracking",
     description:
       "Track 85+ biomarkers, analyze trends with AI, and maintain complete data sovereignty.",
+    images: [{ url: "/logo.png", width: 1024, height: 1024, alt: "Sovereign Health Intelligence" }],
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: "Sovereign Health Intelligence",
     description:
       "Track 85+ biomarkers, analyze trends with AI, and maintain complete data sovereignty.",
+    images: ["/logo.png"],
   },
   robots: {
     index: true,

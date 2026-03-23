@@ -13,7 +13,9 @@ use crate::{
         CreateMeasurementRequest, MeasurementResponse, UpdateMeasurementRequest,
     },
     services::{
-        calculated::{compute_calculated_markers, enrich_with_latest_values, resolve_protocol_context},
+        calculated::{
+            compute_calculated_markers, enrich_with_latest_values, resolve_protocol_context,
+        },
         measurement::validate_marker_value,
         reference::calculate_status,
     },

@@ -76,8 +76,8 @@ services:
 
   frontend:
     build:
-      context: ../frontend
-      dockerfile: Dockerfile
+      context: ../../../..
+      dockerfile: apps/health/sovereign-health/frontend/Dockerfile
       args:
         NEXT_PUBLIC_API_URL: http://localhost:8080
     container_name: sh-frontend

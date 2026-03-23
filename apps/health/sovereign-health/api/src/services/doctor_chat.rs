@@ -1128,7 +1128,7 @@ pub async fn call_claude_vision(
 
     let req_body = serde_json::json!({
         "model": "claude-sonnet-4-20250514",
-        "max_tokens": 4096,
+        "max_tokens": 16384,
         "system": system_prompt,
         "messages": [{
             "role": "user",
@@ -1137,21 +1137,24 @@ pub async fn call_claude_vision(
     });
 
     let client = reqwest::Client::new();
-    let resp = client
+    let mut request = client
         .post(crate::config::Config::anthropic_api_url_static())
         .header("x-api-key", api_key)
         .header(
             "anthropic-version",
             &crate::config::Config::anthropic_api_version_static(),
         )
-        .header("content-type", "application/json")
-        .json(&req_body)
-        .send()
-        .await
-        .map_err(|e| {
-            tracing::error!("Anthropic vision request failed: {:?}", e);
-            AppError::UpstreamError
-        })?;
+        .header("content-type", "application/json");
+
+    // PDF documents require the beta header
+    if media_type == "application/pdf" {
+        request = request.header("anthropic-beta", "pdfs-2024-09-25");
+    }
+
+    let resp = request.json(&req_body).send().await.map_err(|e| {
+        tracing::error!("Anthropic vision request failed: {:?}", e);
+        AppError::UpstreamError
+    })?;
 
     let status = resp.status();
     if !status.is_success() {
@@ -1235,7 +1238,7 @@ pub async fn call_claude_vision_multi(
 
     let req_body = serde_json::json!({
         "model": "claude-sonnet-4-20250514",
-        "max_tokens": 4096,
+        "max_tokens": 16384,
         "system": system_prompt,
         "messages": [{
             "role": "user",
@@ -1244,21 +1247,25 @@ pub async fn call_claude_vision_multi(
     });
 
     let client = reqwest::Client::new();
-    let resp = client
+    let has_pdf = files.iter().any(|(_, mt)| mt == "application/pdf");
+    let mut request = client
         .post(crate::config::Config::anthropic_api_url_static())
         .header("x-api-key", api_key)
         .header(
             "anthropic-version",
             &crate::config::Config::anthropic_api_version_static(),
         )
-        .header("content-type", "application/json")
-        .json(&req_body)
-        .send()
-        .await
-        .map_err(|e| {
-            tracing::error!("Anthropic vision multi request failed: {:?}", e);
-            AppError::UpstreamError
-        })?;
+        .header("content-type", "application/json");
+
+    // PDF documents require the beta header
+    if has_pdf {
+        request = request.header("anthropic-beta", "pdfs-2024-09-25");
+    }
+
+    let resp = request.json(&req_body).send().await.map_err(|e| {
+        tracing::error!("Anthropic vision multi request failed: {:?}", e);
+        AppError::UpstreamError
+    })?;
 
     let status = resp.status();
     if !status.is_success() {

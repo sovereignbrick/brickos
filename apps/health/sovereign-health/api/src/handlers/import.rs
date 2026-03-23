@@ -167,6 +167,16 @@ pub async fn upload(
 
     match vision_result {
         Ok(response) => {
+            // Log raw response for debugging extraction failures
+            tracing::info!(
+                "Claude vision response length: {} chars, first 1000: {}",
+                response.text.len(),
+                &response.text[..response.text.len().min(1000)]
+            );
+            tracing::info!(
+                "Claude vision response last 200: {}",
+                &response.text[response.text.len().saturating_sub(200)..]
+            );
             // Parse JSON from response text
             let extracted = parse_extraction_response(&response.text);
 
@@ -231,6 +241,20 @@ pub async fn upload(
                         .iter()
                         .filter(|m| m.get("matched_marker").and_then(|v| v.as_str()).is_none())
                         .collect();
+
+                    if !unmatched.is_empty() {
+                        let names: Vec<&str> = unmatched
+                            .iter()
+                            .filter_map(|m| m.get("original_name").and_then(|v| v.as_str()))
+                            .collect();
+                        tracing::warn!(
+                            user_id = %auth.user_id,
+                            import_type = "lab_import",
+                            unmatched_count = unmatched.len(),
+                            unmatched_names = ?names,
+                            "Unmatched markers during import"
+                        );
+                    }
 
                     Ok(HttpResponse::Ok().json(json!({
                         "data": {
@@ -517,28 +541,54 @@ pub async fn confirm(
             .collect();
 
         crate::services::calculated::enrich_with_latest_values(
-            pool.get_ref(), auth.user_id, &mut values_map, enc.get_ref(),
-        ).await.ok();
+            pool.get_ref(),
+            auth.user_id,
+            &mut values_map,
+            enc.get_ref(),
+        )
+        .await
+        .ok();
 
         let height_row = sqlx::query("SELECT height_cm FROM user_profile WHERE user_id = $1")
-            .bind(auth.user_id).fetch_optional(pool.get_ref()).await.ok().flatten();
+            .bind(auth.user_id)
+            .fetch_optional(pool.get_ref())
+            .await
+            .ok()
+            .flatten();
         let height_cm: Option<f64> = height_row.and_then(|r| {
-            r.try_get::<Option<String>, _>("height_cm").ok().flatten().map(|v| enc.decrypt_f64(&v))
+            r.try_get::<Option<String>, _>("height_cm")
+                .ok()
+                .flatten()
+                .map(|v| enc.decrypt_f64(&v))
         });
 
         let measured_at = body.measured_at.unwrap_or_else(Utc::now);
         if let Ok(computed) = crate::services::calculated::compute_calculated_markers(
-            pool.get_ref(), auth.user_id, &values_map, height_cm, &protocol_tag, None, measured_at,
-        ).await {
+            pool.get_ref(),
+            auth.user_id,
+            &values_map,
+            height_cm,
+            &protocol_tag,
+            None,
+            measured_at,
+        )
+        .await
+        {
             for (cm_id, value, status) in &computed {
                 sqlx::query(
                     r#"INSERT INTO calculated_marker_values (
                         user_id, calculated_marker_id, value, status, protocol_tag, measured_at
                     ) VALUES ($1, $2, $3, $4, $5, $6)"#,
                 )
-                .bind(auth.user_id).bind(cm_id).bind(value).bind(status)
-                .bind(&protocol_tag).bind(measured_at)
-                .execute(pool.get_ref()).await.ok();
+                .bind(auth.user_id)
+                .bind(cm_id)
+                .bind(value)
+                .bind(status)
+                .bind(&protocol_tag)
+                .bind(measured_at)
+                .execute(pool.get_ref())
+                .await
+                .ok();
             }
         }
     }
@@ -1735,32 +1785,59 @@ pub async fn confirm_measurements(
 
     // Compute calculated markers from imported + existing data
     {
-        let mut values_map: std::collections::HashMap<String, f64> = std::collections::HashMap::new();
+        let mut values_map: std::collections::HashMap<String, f64> =
+            std::collections::HashMap::new();
 
         // Fetch all latest values (includes just-imported ones)
         crate::services::calculated::enrich_with_latest_values(
-            pool.get_ref(), auth.user_id, &mut values_map, enc.get_ref(),
-        ).await.ok();
+            pool.get_ref(),
+            auth.user_id,
+            &mut values_map,
+            enc.get_ref(),
+        )
+        .await
+        .ok();
 
         let height_row = sqlx::query("SELECT height_cm FROM user_profile WHERE user_id = $1")
-            .bind(auth.user_id).fetch_optional(pool.get_ref()).await.ok().flatten();
+            .bind(auth.user_id)
+            .fetch_optional(pool.get_ref())
+            .await
+            .ok()
+            .flatten();
         let height_cm: Option<f64> = height_row.and_then(|r| {
             use sqlx::Row;
-            r.try_get::<Option<String>, _>("height_cm").ok().flatten().map(|v| enc.decrypt_f64(&v))
+            r.try_get::<Option<String>, _>("height_cm")
+                .ok()
+                .flatten()
+                .map(|v| enc.decrypt_f64(&v))
         });
 
         if let Ok(computed) = crate::services::calculated::compute_calculated_markers(
-            pool.get_ref(), auth.user_id, &values_map, height_cm, "standard", None, Utc::now(),
-        ).await {
+            pool.get_ref(),
+            auth.user_id,
+            &values_map,
+            height_cm,
+            "standard",
+            None,
+            Utc::now(),
+        )
+        .await
+        {
             for (cm_id, value, status) in &computed {
                 sqlx::query(
                     r#"INSERT INTO calculated_marker_values (
                         user_id, calculated_marker_id, value, status, protocol_tag, measured_at
                     ) VALUES ($1, $2, $3, $4, $5, $6)"#,
                 )
-                .bind(auth.user_id).bind(cm_id).bind(value).bind(status)
-                .bind("standard").bind(Utc::now())
-                .execute(pool.get_ref()).await.ok();
+                .bind(auth.user_id)
+                .bind(cm_id)
+                .bind(value)
+                .bind(status)
+                .bind("standard")
+                .bind(Utc::now())
+                .execute(pool.get_ref())
+                .await
+                .ok();
             }
         }
     }
@@ -1923,6 +2000,23 @@ fn parse_extraction_response(text: &str) -> Result<Vec<serde_json::Value>, Strin
         }
     }
 
+    // Handle truncated JSON (max_tokens exceeded): find the last complete object
+    // by looking for the last "},\n  {" and closing the array there
+    if let Some(start) = cleaned.find('[') {
+        let from_start = &cleaned[start..];
+        // Find last complete JSON object boundary
+        if let Some(last_obj_end) = from_start.rfind("},") {
+            let truncated = format!("{}}}]", &from_start[..last_obj_end]);
+            if let Ok(arr) = serde_json::from_str::<Vec<serde_json::Value>>(&truncated) {
+                tracing::warn!(
+                    "Extraction response was truncated — salvaged {} of possibly more markers",
+                    arr.len()
+                );
+                return Ok(arr);
+            }
+        }
+    }
+
     Err("Could not parse extraction result".to_string())
 }
 
@@ -2034,6 +2128,12 @@ async fn match_extracted_markers(
                 "extraction_confidence": confidence,
             }));
         } else {
+            tracing::warn!(
+                import_type = "lab_import",
+                original_name = ai_name,
+                unit = unit,
+                "Unmatched marker from AI extraction"
+            );
             matched.push(json!({
                 "original_name": ai_name,
                 "matched_marker": null,
@@ -2272,6 +2372,14 @@ async fn enrich_columns_with_db(
 
         let Some(slug) = resolved_slug else {
             // Unmatched column
+            if !source_name.is_empty() {
+                tracing::warn!(
+                    import_type = "measurement_import",
+                    source_name = source_name,
+                    ai_slug = marker_slug,
+                    "Unmatched column during measurement import"
+                );
+            }
             enriched.push(json!({
                 "index": col.get("index"),
                 "source_name": source_name,

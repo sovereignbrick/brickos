@@ -110,7 +110,13 @@ fn alias_map() -> &'static HashMap<&'static str, &'static str> {
             m.insert(a, "triglycerides");
         }
         // ── Uric Acid ──
-        for a in ["uric acid", "uric acid, serum", "harnsaure", "harnsäure"] {
+        for a in [
+            "uric acid",
+            "uric acid, serum",
+            "harnsaure",
+            "harnsäure",
+            "ua",
+        ] {
             m.insert(a, "uric_acid");
         }
         // ── Creatinine ──
@@ -120,11 +126,13 @@ fn alias_map() -> &'static HashMap<&'static str, &'static str> {
             "serum creatinine",
             "creat",
             "kreatinin",
+            "crea",
+            "krea",
         ] {
             m.insert(a, "creatinine");
         }
         // ── Iron ──
-        for a in ["iron", "iron, serum", "serum iron", "eisen"] {
+        for a in ["iron", "iron, serum", "serum iron", "eisen", "fe"] {
             m.insert(a, "iron");
         }
         // ── Ferritin ──
@@ -292,13 +300,36 @@ fn alias_map() -> &'static HashMap<&'static str, &'static str> {
             m.insert(a, "folate");
         }
         // ── Liver enzymes ──
-        for a in ["ast", "got", "aspartate aminotransferase", "sgot"] {
+        for a in [
+            "ast",
+            "got",
+            "aspartate aminotransferase",
+            "sgot",
+            "asat",
+            "aspartat-aminotransferase",
+        ] {
             m.insert(a, "ast");
         }
-        for a in ["alt", "gpt", "alanine aminotransferase", "sgpt"] {
+        for a in [
+            "alt",
+            "gpt",
+            "alanine aminotransferase",
+            "sgpt",
+            "alat",
+            "alanin-aminotransferase",
+        ] {
             m.insert(a, "alt");
         }
-        for a in ["ggt", "gamma-gt", "gamma-glutamyl transferase", "gamma gt"] {
+        for a in [
+            "ggt",
+            "gamma-gt",
+            "gamma-glutamyl transferase",
+            "gamma glutamyl transferase",
+            "gamma gt",
+            "gamma-glutamyltransferase",
+            "gamma-glutamyltranspeptidase",
+            "ggt (gamma-glutamyltranspeptidase)",
+        ] {
             m.insert(a, "ggt");
         }
         for a in [
@@ -316,7 +347,7 @@ fn alias_map() -> &'static HashMap<&'static str, &'static str> {
             "total bilirubin",
             "gesamtbilirubin",
         ] {
-            m.insert(a, "bilirubin");
+            m.insert(a, "bilirubin_total");
         }
         // ── Protein ──
         for a in [
@@ -550,6 +581,168 @@ fn alias_map() -> &'static HashMap<&'static str, &'static str> {
         ] {
             m.insert(a, "basophils_abs");
         }
+        // ── Calcium ──
+        for a in ["calcium", "ca", "kalzium", "calcium gesamt"] {
+            m.insert(a, "calcium");
+        }
+        // ── Magnesium ──
+        for a in ["magnesium", "mg"] {
+            m.insert(a, "magnesium");
+        }
+        // ── Potassium ──
+        for a in ["potassium", "kalium"] {
+            m.insert(a, "potassium");
+        }
+        // ── Sodium ──
+        for a in ["sodium", "natrium"] {
+            m.insert(a, "sodium");
+        }
+        // ── eGFR ──
+        for a in [
+            "egfr",
+            "gfr",
+            "estimated gfr",
+            "gfr (ckd-epi)",
+            "egfr (ckd-epi)",
+            "gfr ckd-epi",
+            "glomerulare filtrationsrate",
+            "glomeruläre filtrationsrate",
+        ] {
+            m.insert(a, "egfr");
+        }
+        // ── LDH ──
+        for a in ["ldh", "lactate dehydrogenase", "laktatdehydrogenase"] {
+            m.insert(a, "ldh");
+        }
+        // ── Free Testosterone ──
+        for a in [
+            "free testosterone",
+            "freies testosteron",
+            "testosteron frei",
+            "ftest",
+        ] {
+            m.insert(a, "free_testosterone");
+        }
+        // ── Progesterone ──
+        for a in ["progesterone", "progesteron", "prog"] {
+            m.insert(a, "progesterone");
+        }
+        // ── Prolactin ──
+        for a in ["prolactin", "prolaktin", "prl", "prol"] {
+            m.insert(a, "prolactin");
+        }
+        // ── FSH ──
+        for a in [
+            "fsh",
+            "follitropin",
+            "follikelstimulierendes hormon",
+            "follicle-stimulating hormone",
+        ] {
+            m.insert(a, "fsh");
+        }
+        // ── LH ──
+        for a in [
+            "lh",
+            "lutropin",
+            "luteinisierendes hormon",
+            "luteinizing hormone",
+        ] {
+            m.insert(a, "lh");
+        }
+        // ── DHA ──
+        for a in [
+            "dha",
+            "docosahexaenoic acid",
+            "docosahexaensaure",
+            "docosahexaensäure",
+        ] {
+            m.insert(a, "dha");
+        }
+        // ── EPA ──
+        for a in [
+            "epa",
+            "eicosapentaenoic acid",
+            "eicosapentaensaure",
+            "eicosapentaensäure",
+        ] {
+            m.insert(a, "epa");
+        }
+        // ── Omega-3 Index ──
+        for a in ["omega-3 index", "omega3 index", "omega 3 index"] {
+            m.insert(a, "omega3_index");
+        }
+        // ── Transferrin (aliases for existing slug) ──
+        for a in ["transferrin", "tf", "trfe"] {
+            m.insert(a, "transferrin");
+        }
+        // ── Transferrin Saturation ──
+        for a in [
+            "transferrin saturation",
+            "transferrinsattigung",
+            "transferrinsättigung",
+            "tsat",
+            "tfs",
+        ] {
+            m.insert(a, "transferrin_sat");
+        }
+        // ── Non-HDL Cholesterol ──
+        for a in [
+            "non-hdl cholesterol",
+            "non-hdl-cholesterin",
+            "nicht-hdl-cholesterin",
+            "non hdl cholesterol",
+            "non-hdl-cholesterol",
+        ] {
+            m.insert(a, "non_hdl_c");
+        }
+        // ── Vitamin B2 ──
+        for a in ["vitamin b2", "riboflavin"] {
+            m.insert(a, "vitamin_b2");
+        }
+        // ── Vitamin B6 ──
+        for a in [
+            "vitamin b6",
+            "pyridoxal phosphate",
+            "pyridoxalphosphat",
+            "plp",
+        ] {
+            m.insert(a, "vitamin_b6");
+        }
+        // ── Free Androgen Index ──
+        for a in [
+            "free androgen index",
+            "fai",
+            "fti",
+            "free testosterone index",
+        ] {
+            m.insert(a, "free_androgen_index");
+        }
+        // ── Amylase ──
+        for a in [
+            "amylase",
+            "pankreas-amylase",
+            "pamy",
+            "p-amylase",
+            "pancreatic amylase",
+        ] {
+            m.insert(a, "amylase");
+        }
+        // ── Lipase ──
+        for a in ["lipase", "pankreas-lipase", "lip"] {
+            m.insert(a, "lipase");
+        }
+        // ── BUN / Urea ──
+        for a in ["bun", "urea", "harnstoff", "hst", "blood urea nitrogen"] {
+            m.insert(a, "bun");
+        }
+        // ── IgG ──
+        for a in ["igg", "immunoglobulin g", "immunglobulin g"] {
+            m.insert(a, "igg");
+        }
+        // ── VLDL Cholesterol ──
+        for a in ["vldl", "vldl-c", "vldl cholesterol", "vldl-cholesterin"] {
+            m.insert(a, "vldl_c");
+        }
         m
     })
 }
@@ -741,6 +934,115 @@ mod tests {
     fn test_no_false_positive_ast_in_diast() {
         // "Blutdruck diast." must NOT match AST
         assert_ne!(match_marker("Blutdruck diast."), Some("ast"));
+    }
+
+    #[test]
+    fn test_match_european_naming() {
+        // ALAT/ASAT are IFCC-standard European names
+        assert_eq!(match_marker("ALAT"), Some("alt"));
+        assert_eq!(match_marker("ASAT"), Some("ast"));
+        assert_eq!(match_marker("Alanin-Aminotransferase"), Some("alt"));
+        assert_eq!(match_marker("Aspartat-Aminotransferase"), Some("ast"));
+        // CREA/Krea
+        assert_eq!(match_marker("CREA"), Some("creatinine"));
+        assert_eq!(match_marker("Krea"), Some("creatinine"));
+        // Fe
+        assert_eq!(match_marker("Fe"), Some("iron"));
+    }
+
+    #[test]
+    fn test_match_structural_minerals() {
+        assert_eq!(match_marker("Calcium"), Some("calcium"));
+        assert_eq!(match_marker("Kalzium"), Some("calcium"));
+        assert_eq!(match_marker("Magnesium"), Some("magnesium"));
+        assert_eq!(match_marker("Potassium"), Some("potassium"));
+        assert_eq!(match_marker("Kalium"), Some("potassium"));
+        assert_eq!(match_marker("Sodium"), Some("sodium"));
+        assert_eq!(match_marker("Natrium"), Some("sodium"));
+    }
+
+    #[test]
+    fn test_match_detoxification_new() {
+        assert_eq!(match_marker("eGFR"), Some("egfr"));
+        assert_eq!(match_marker("Glomeruläre Filtrationsrate"), Some("egfr"));
+        assert_eq!(match_marker("LDH"), Some("ldh"));
+        assert_eq!(match_marker("Laktatdehydrogenase"), Some("ldh"));
+        assert_eq!(match_marker("Amylase"), Some("amylase"));
+        assert_eq!(match_marker("Pankreas-Amylase"), Some("amylase"));
+        assert_eq!(match_marker("Lipase"), Some("lipase"));
+        assert_eq!(match_marker("Harnstoff"), Some("bun"));
+        assert_eq!(match_marker("BUN"), Some("bun"));
+        assert_eq!(match_marker("Urea"), Some("bun"));
+    }
+
+    #[test]
+    fn test_match_hormonal_new() {
+        assert_eq!(match_marker("Free Testosterone"), Some("free_testosterone"));
+        assert_eq!(
+            match_marker("Freies Testosteron"),
+            Some("free_testosterone")
+        );
+        assert_eq!(match_marker("Progesterone"), Some("progesterone"));
+        assert_eq!(match_marker("Progesteron"), Some("progesterone"));
+        assert_eq!(match_marker("Prolactin"), Some("prolactin"));
+        assert_eq!(match_marker("Prolaktin"), Some("prolactin"));
+        assert_eq!(match_marker("FSH"), Some("fsh"));
+        assert_eq!(match_marker("Follikelstimulierendes Hormon"), Some("fsh"));
+        assert_eq!(match_marker("LH"), Some("lh"));
+        assert_eq!(match_marker("Luteinisierendes Hormon"), Some("lh"));
+    }
+
+    #[test]
+    fn test_match_nutritional_new() {
+        assert_eq!(match_marker("DHA"), Some("dha"));
+        assert_eq!(match_marker("Docosahexaensäure"), Some("dha"));
+        assert_eq!(match_marker("EPA"), Some("epa"));
+        assert_eq!(match_marker("Eicosapentaensäure"), Some("epa"));
+        assert_eq!(match_marker("Omega-3 Index"), Some("omega3_index"));
+        assert_eq!(match_marker("Transferrin"), Some("transferrin"));
+        assert_eq!(
+            match_marker("Transferrinsättigung"),
+            Some("transferrin_sat")
+        );
+        assert_eq!(match_marker("TSAT"), Some("transferrin_sat"));
+        assert_eq!(match_marker("Vitamin B2"), Some("vitamin_b2"));
+        assert_eq!(match_marker("Riboflavin"), Some("vitamin_b2"));
+        assert_eq!(match_marker("Vitamin B6"), Some("vitamin_b6"));
+        assert_eq!(match_marker("Pyridoxalphosphat"), Some("vitamin_b6"));
+    }
+
+    #[test]
+    fn test_match_cardiovascular_new() {
+        assert_eq!(match_marker("Non-HDL-Cholesterin"), Some("non_hdl_c"));
+        assert_eq!(match_marker("Non-HDL Cholesterol"), Some("non_hdl_c"));
+        assert_eq!(match_marker("VLDL"), Some("vldl_c"));
+        assert_eq!(match_marker("VLDL-Cholesterin"), Some("vldl_c"));
+    }
+
+    #[test]
+    fn test_match_immune_new() {
+        assert_eq!(match_marker("IgG"), Some("igg"));
+        assert_eq!(match_marker("Immunoglobulin G"), Some("igg"));
+    }
+
+    #[test]
+    fn test_bilirubin_maps_to_total() {
+        assert_eq!(match_marker("Bilirubin"), Some("bilirubin_total"));
+        assert_eq!(match_marker("Bilirubin gesamt"), Some("bilirubin_total"));
+        assert_eq!(match_marker("Total Bilirubin"), Some("bilirubin_total"));
+    }
+
+    #[test]
+    fn test_free_androgen_index_aliases() {
+        assert_eq!(match_marker("FTI"), Some("free_androgen_index"));
+        assert_eq!(
+            match_marker("Free Testosterone Index"),
+            Some("free_androgen_index")
+        );
+        assert_eq!(
+            match_marker("Free Androgen Index"),
+            Some("free_androgen_index")
+        );
     }
 
     #[test]

@@ -198,9 +198,18 @@ export function ChatLayout({ conversationId }: ChatLayoutProps) {
       if (importType === 'measurement_import') {
         const res = await api.import.uploadMeasurements(files)
         setMeasurementImportSession(res.data)
+        const unmatched = (res.data.columns || []).filter(
+          (c) => !c.marker_slug && c.match_confidence !== 'calculated_skip'
+        )
+        if (unmatched.length > 0) {
+          toast.warning(tChat('unmatchedMarkersWarning', { count: unmatched.length }))
+        }
       } else if (importType === 'lab_import') {
         const res = await api.import.uploadLab(files)
         setImportSession(res.data)
+        if (res.data.unmatched_count && res.data.unmatched_count > 0) {
+          toast.warning(tChat('unmatchedMarkersWarning', { count: res.data.unmatched_count }))
+        }
       } else {
         const res = await api.import.uploadMedication(files)
         setMedImportSession(res.data)

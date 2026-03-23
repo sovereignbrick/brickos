@@ -109,6 +109,7 @@ export function ChatInput({ onSend, onFileUpload, disabled, quotaExhausted: rawQ
                   type="button"
                   onClick={() => { setUploadMenuOpen(false); labInputRef.current?.click() }}
                   className="w-full text-left px-4 py-2.5 text-sm text-foreground hover:bg-accent transition-colors flex items-center gap-2"
+                  title={t('uploadMenuLabTooltip')}
                 >
                   <span>📄</span> {t('uploadMenuLab')}
                 </button>
@@ -116,6 +117,7 @@ export function ChatInput({ onSend, onFileUpload, disabled, quotaExhausted: rawQ
                   type="button"
                   onClick={() => { setUploadMenuOpen(false); medInputRef.current?.click() }}
                   className="w-full text-left px-4 py-2.5 text-sm text-foreground hover:bg-accent transition-colors flex items-center gap-2 border-t border-border"
+                  title={t('uploadMenuMedTooltip')}
                 >
                   <span>💊</span> {t('uploadMenuMed')}
                 </button>
@@ -123,6 +125,7 @@ export function ChatInput({ onSend, onFileUpload, disabled, quotaExhausted: rawQ
                   type="button"
                   onClick={() => { setUploadMenuOpen(false); tableInputRef.current?.click() }}
                   className="w-full text-left px-4 py-2.5 text-sm text-foreground hover:bg-accent transition-colors flex items-center gap-2 border-t border-border"
+                  title={t('uploadMenuTableTooltip')}
                 >
                   <span>📊</span> {t('uploadMenuTable')}
                 </button>
