@@ -1,8 +1,9 @@
 # Release v0.26.0
 
 **Date:** 2026-03-23
-**Sprint:** 008 -- Import Reliability & Marker Coverage
+**Sprints:** 008 (Import Reliability & Marker Coverage) + 009 (Build Optimization & GDPR Compliance)
 **Previous:** v0.25.0
+**Velocity:** 62 pts (37 + 25)
 
 ---
 
@@ -13,6 +14,10 @@
 - **Tier-gated Smart Import** -- import buttons greyed out with lock icon for tiers below Insight, both on welcome screen and upload menu.
 - **Notification coverage** -- wired up sh-errors (migration failures) and sh-info (contact form, newsletter signups). Deploy script now verifies ntfy token before deploying.
 - **OG meta for social previews** -- LinkedIn/Twitter previews now show logo image and proper card type (app + website).
+- **GDPR compliance** (Sprint 009) -- consent management UI (newsletter + partner offers toggles), data access log viewer (Art. 15), email unsubscribe link in all marketing emails (CAN-SPAM).
+- **cargo-chef build optimization** (Sprint 009) -- Docker dependency caching cuts code-only rebuilds from 3-4 min to ~1 min. Component-level deploy detection auto-skips unchanged services.
+- **Settings page refactor** (Sprint 009) -- 3599-line monolith split into 7 component files (~200-800 lines each). Zero behavior change.
+- **FSH + Total Fatty Acids** (Sprint 009) -- added "follicle stimulating hormone" alias (no hyphen) and total_fatty_acids marker (LOINC 2571-8).
 
 ---
 
@@ -85,12 +90,16 @@
 | #200 | Migration checksum audit | Closed (verified clean) |
 | #185 | Hydration suppressWarning | Closed (intentional) |
 | #198 | Staging notification verification | Closed |
-| #207 | Unmatched: FSH + Total Fatty Acids | Open (sprint 009) |
+| #207 | FSH alias + Total Fatty Acids | Closed |
+| #208 | cargo-chef + component-level deploy | Closed |
+| #176 | GDPR privacy tab — access log UI | Closed |
+| #177 | GDPR consent management UI | Closed |
+| #178 | GDPR email unsubscribe | Closed |
+| #209 | Access log missing PDF + GDPR export entries | Open (sprint 010) |
 
 ---
 
 ## Known Issues
 
 - **Bench test** -- `benches/endpoints.rs` outdated (health handler signature changed). Non-blocking, not in CI.
-- **FSH alias** -- "Follicle Stimulating Hormone" (without hyphen) not yet matched (#207).
-- **Total Fatty Acids** -- new marker needed, not in DB (#207).
+- **Access log gaps** -- PDF report generation and full GDPR export not logged (#209).
