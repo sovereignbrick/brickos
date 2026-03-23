@@ -7,76 +7,50 @@
 #
 # Build context: monorepo root (../../../../)
 # Set via docker-compose or: docker build -f apps/health/sovereign-health/api/Dockerfile .
+#
+# Uses cargo-chef for dependency caching. On code-only changes, dependencies
+# are served from cache and only app code recompiles (~30s vs 3-4 min).
 
-# ── Build stage ────────────────────────────────────────────────────────────────
-FROM rust:bookworm AS builder
+# ── Chef: install cargo-chef ─────────────────────────────────────────────────
+FROM rust:bookworm AS chef
+RUN cargo install cargo-chef
 WORKDIR /app
 
-# pkg-config for linking; no libssl-dev needed (crate uses rustls, not openssl)
-RUN apt-get update && apt-get install -y --no-install-recommends pkg-config \
-    && rm -rf /var/lib/apt/lists/*
-
-# Copy workspace manifests + crate manifests for dependency layer caching
-COPY Cargo.toml Cargo.lock ./
-COPY crates/brickos-auth/Cargo.toml crates/brickos-auth/Cargo.toml
-COPY crates/brickos-crypto/Cargo.toml crates/brickos-crypto/Cargo.toml
-COPY crates/brickos-db/Cargo.toml crates/brickos-db/Cargo.toml
-COPY crates/brickos-billing/Cargo.toml crates/brickos-billing/Cargo.toml
-COPY crates/brickos-email/Cargo.toml crates/brickos-email/Cargo.toml
-COPY crates/brickos-backup/Cargo.toml crates/brickos-backup/Cargo.toml
-COPY crates/brickos-startos/Cargo.toml crates/brickos-startos/Cargo.toml
-COPY platform/core-api/Cargo.toml platform/core-api/Cargo.toml
-COPY apps/health/sovereign-health/api/Cargo.toml apps/health/sovereign-health/api/Cargo.toml
-
-# Dummy stubs for all workspace members so cargo can resolve deps
-RUN for crate in \
-      crates/brickos-auth \
-      crates/brickos-crypto \
-      crates/brickos-db \
-      crates/brickos-billing \
-      crates/brickos-email \
-      crates/brickos-backup \
-      crates/brickos-startos \
-      platform/core-api; do \
-        mkdir -p "$crate/src" && echo 'fn main(){}' > "$crate/src/lib.rs"; \
-    done \
-    && mkdir -p apps/health/sovereign-health/api/src \
-               apps/health/sovereign-health/api/src/bin \
-               apps/health/sovereign-health/api/benches \
-               apps/health/sovereign-health/api/fuzz/fuzz_targets \
-               apps/health/sovereign-health/api/migrations \
-    && echo 'fn main(){}' > apps/health/sovereign-health/api/src/main.rs \
-    && echo 'fn main(){}' > apps/health/sovereign-health/api/src/lib.rs \
-    && echo 'fn main(){}' > apps/health/sovereign-health/api/src/bin/encrypt_existing_data.rs \
-    && echo 'fn main(){}' > apps/health/sovereign-health/api/src/bin/migrate_early_access.rs \
-    && echo 'fn main(){}' > apps/health/sovereign-health/api/benches/endpoints.rs \
-    && echo 'fn main(){}' > apps/health/sovereign-health/api/fuzz/fuzz_targets/fuzz_health.rs \
-    && echo 'fn main(){}' > platform/core-api/src/main.rs \
-    && cargo build --release -p sovereign-health-backend \
-    && rm -rf crates platform apps \
-       target/release/sovereign-health-backend \
-       target/release/deps/sovereign_health_backend-* \
-       target/release/deps/libsovereign_health_backend-* \
-       target/release/.fingerprint/sovereign-health-backend-* \
-       target/release/build/sovereign-health-backend-* \
-       target/release/deps/brickos_* \
-       target/release/.fingerprint/brickos-*
-
-# Copy full source for all crates + app and rebuild
-# Re-copy all Cargo.toml files (removed in cleanup above)
+# ── Planner: analyze dependencies ────────────────────────────────────────────
+FROM chef AS planner
 COPY Cargo.toml Cargo.lock ./
 COPY crates ./crates
 COPY platform ./platform
 COPY apps/health/sovereign-health/api/Cargo.toml apps/health/sovereign-health/api/Cargo.toml
 COPY apps/health/sovereign-health/api/src ./apps/health/sovereign-health/api/src
-COPY apps/health/sovereign-health/api/migrations ./apps/health/sovereign-health/api/migrations
 COPY apps/health/sovereign-health/api/benches ./apps/health/sovereign-health/api/benches
-COPY apps/health/sovereign-health/api/assets ./apps/health/sovereign-health/api/assets
+# Stub fuzz target (not in normal builds but referenced in Cargo.toml)
 RUN mkdir -p apps/health/sovereign-health/api/fuzz/fuzz_targets \
-    && echo 'fn main(){}' > apps/health/sovereign-health/api/fuzz/fuzz_targets/fuzz_health.rs \
-    && cargo build --release -p sovereign-health-backend
+    && echo 'fn main(){}' > apps/health/sovereign-health/api/fuzz/fuzz_targets/fuzz_health.rs
+RUN cargo chef prepare --recipe-path recipe.json
 
-# ── Runtime stage ──────────────────────────────────────────────────────────────
+# ── Builder: compile dependencies (cached), then app code ────────────────────
+FROM chef AS builder
+
+# pkg-config for linking; no libssl-dev needed (rustls, not openssl)
+RUN apt-get update && apt-get install -y --no-install-recommends pkg-config \
+    && rm -rf /var/lib/apt/lists/*
+
+# Cook dependencies from recipe (this layer is cached until Cargo.toml/Cargo.lock change)
+COPY --from=planner /app/recipe.json recipe.json
+RUN cargo chef cook --release --recipe-path recipe.json
+
+# Copy full source and build (only app code compiles — deps are cached)
+COPY Cargo.toml Cargo.lock ./
+COPY crates ./crates
+COPY platform ./platform
+COPY apps/health/sovereign-health/api ./apps/health/sovereign-health/api
+# Stub fuzz target
+RUN mkdir -p apps/health/sovereign-health/api/fuzz/fuzz_targets \
+    && echo 'fn main(){}' > apps/health/sovereign-health/api/fuzz/fuzz_targets/fuzz_health.rs
+RUN cargo build --release -p sovereign-health-backend
+
+# ── Runtime stage ────────────────────────────────────────────────────────────
 FROM debian:bookworm-slim
 WORKDIR /app
 

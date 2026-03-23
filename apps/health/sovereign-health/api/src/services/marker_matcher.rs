@@ -637,6 +637,7 @@ fn alias_map() -> &'static HashMap<&'static str, &'static str> {
             "follitropin",
             "follikelstimulierendes hormon",
             "follicle-stimulating hormone",
+            "follicle stimulating hormone",
         ] {
             m.insert(a, "fsh");
         }
@@ -742,6 +743,17 @@ fn alias_map() -> &'static HashMap<&'static str, &'static str> {
         // ── VLDL Cholesterol ──
         for a in ["vldl", "vldl-c", "vldl cholesterol", "vldl-cholesterin"] {
             m.insert(a, "vldl_c");
+        }
+        // ── Total Fatty Acids ──
+        for a in [
+            "total fatty acids",
+            "fatty acids total",
+            "fettsäuren gesamt",
+            "fettsauren gesamt",
+            "gesamtfettsäuren",
+            "gesamtfettsauren",
+        ] {
+            m.insert(a, "total_fatty_acids");
         }
         m
     })

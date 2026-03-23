@@ -395,6 +395,58 @@ preflight() {
     report_add "OK" "Pre-flight passed (local: ${local_free}G free, VPS: ${vps_free:-?}G free)"
 }
 
+# ── Component change detection ───────────────────────────────────────────────
+# Detect which components changed since the last deploy (remote HEAD).
+# Sets DEPLOY_BACKEND, DEPLOY_FRONTEND, DEPLOY_WEBSITE to 0 or 1.
+
+detect_changes() {
+    local env="$1"
+    local remote_branch
+    if [ "$env" = "staging" ]; then
+        remote_branch="origin/${BRANCH_STAGING}"
+    else
+        remote_branch="origin/${BRANCH_PROD}"
+    fi
+
+    # Files changed since remote HEAD
+    local changed
+    changed=$(git diff --name-only "$remote_branch"...HEAD 2>/dev/null || echo "FULL")
+
+    if [ "$changed" = "FULL" ]; then
+        DEPLOY_BACKEND=1; DEPLOY_FRONTEND=1; DEPLOY_WEBSITE=1
+        log "Change detection: full deploy (no remote ref)"
+        return
+    fi
+
+    DEPLOY_BACKEND=0; DEPLOY_FRONTEND=0; DEPLOY_WEBSITE=0
+
+    if echo "$changed" | grep -qE "^(apps/health/sovereign-health/api/|crates/|platform/|Cargo)"; then
+        DEPLOY_BACKEND=1
+    fi
+    if echo "$changed" | grep -qE "^(apps/health/sovereign-health/frontend/|packages/)"; then
+        DEPLOY_FRONTEND=1
+    fi
+    if echo "$changed" | grep -qE "^apps/health/sovereign-health/website/"; then
+        DEPLOY_WEBSITE=1
+    fi
+    # ops/ changes (deploy script, compose) → deploy everything
+    if echo "$changed" | grep -qE "^apps/health/sovereign-health/ops/"; then
+        DEPLOY_BACKEND=1; DEPLOY_FRONTEND=1; DEPLOY_WEBSITE=1
+    fi
+
+    # Safety: if nothing detected, deploy everything
+    if [ "$DEPLOY_BACKEND" = "0" ] && [ "$DEPLOY_FRONTEND" = "0" ] && [ "$DEPLOY_WEBSITE" = "0" ]; then
+        DEPLOY_BACKEND=1; DEPLOY_FRONTEND=1; DEPLOY_WEBSITE=1
+        log "Change detection: no component-specific changes, full deploy"
+    else
+        local components=""
+        [ "$DEPLOY_BACKEND" = "1" ] && components="${components}backend "
+        [ "$DEPLOY_FRONTEND" = "1" ] && components="${components}frontend "
+        [ "$DEPLOY_WEBSITE" = "1" ] && components="${components}website "
+        log "Change detection: deploying ${components}"
+    fi
+}
+
 # ── Git: Ensure correct branch ───────────────────────────────────────────────
 # Before deploying, verify we're on the right branch.
 # Staging deploys from 'develop', production from 'main'.
@@ -969,9 +1021,10 @@ case "$ENV" in
             website)  deploy_website staging ;;
             postgres) deploy_postgres staging ;;
             all)
-                deploy_backend staging
-                deploy_frontend staging
-                deploy_website staging
+                detect_changes staging
+                [ "$DEPLOY_BACKEND" = "1" ] && deploy_backend staging
+                [ "$DEPLOY_FRONTEND" = "1" ] && deploy_frontend staging
+                [ "$DEPLOY_WEBSITE" = "1" ] && deploy_website staging
                 ;;
             *) fail "Unknown component: $COMPONENT. Use: backend, frontend, website, postgres, or all." ;;
         esac
@@ -1001,9 +1054,10 @@ case "$ENV" in
             website)  deploy_website production ;;
             postgres) deploy_postgres production ;;
             all)
-                deploy_backend production
-                deploy_frontend production
-                deploy_website production
+                detect_changes production
+                [ "$DEPLOY_BACKEND" = "1" ] && deploy_backend production
+                [ "$DEPLOY_FRONTEND" = "1" ] && deploy_frontend production
+                [ "$DEPLOY_WEBSITE" = "1" ] && deploy_website production
                 ;;
             *) fail "Unknown component: $COMPONENT. Use: backend, frontend, website, postgres, or all." ;;
         esac
