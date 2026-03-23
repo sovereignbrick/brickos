@@ -213,7 +213,8 @@ pub async fn me(
     Ok(HttpResponse::Ok().json(json!({
         "data": {
             "affiliate_code": affiliate_code,
-            "referral_link": format!("{}/?ref={}", config.frontend_url.trim_end_matches('/'), affiliate_code),
+            "referral_link": format!("https://brickos.io/r/sh{}", affiliate_code),
+            "referral_link_direct": format!("{}/?ref={}", config.frontend_url.trim_end_matches('/'), affiliate_code),
             "stats": {
                 "total_clicks": total_clicks,
                 "total_signups": total_signups,

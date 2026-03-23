@@ -1,0 +1,23 @@
+[package]
+name = "sovereign-link"
+version = "0.1.0"
+edition = "2021"
+description = "Sovereign Link — URL shortener, service gateway, and affiliate link platform"
+license = "AGPL-3.0"
+
+[dependencies]
+actix-web = { workspace = true }
+sqlx = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+chrono = { workspace = true }
+uuid = { workspace = true }
+tracing = { workspace = true }
+anyhow = { workspace = true }
+tokio = { workspace = true }
+sha2 = "0.10"
+hex = "0.4"
+rand = "0.9"
+qrcode = { version = "0.14", default-features = false, features = ["svg"] }
+async-trait = "0.1"
+url = "2"

@@ -10,8 +10,8 @@ members = [
     "crates/brickos-billing",
     "crates/brickos-startos",
     "apps/health/sovereign-health/api",
+    "apps/infrastructure/sovereign-link",
     # "apps/finance/btc-tracker/api",
-    # "apps/node/bitcoin-node/api",
 ]
 
 [workspace.dependencies]
@@ -37,3 +37,4 @@ brickos-db = { path = "crates/brickos-db" }
 brickos-backup = { path = "crates/brickos-backup" }
 brickos-email = { path = "crates/brickos-email" }
 brickos-billing = { path = "crates/brickos-billing" }
+sovereign-link = { path = "apps/infrastructure/sovereign-link" }

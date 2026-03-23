@@ -35,6 +35,7 @@ brickos-crypto = { path = "../../../../crates/brickos-crypto" }
 brickos-db = { path = "../../../../crates/brickos-db" }
 brickos-billing = { path = "../../../../crates/brickos-billing" }
 brickos-email = { path = "../../../../crates/brickos-email" }
+sovereign-link = { path = "../../../infrastructure/sovereign-link" }
 async-trait = "0.1"
 base64 = "0.22"
 image = { version = "0.25", default-features = false, features = ["jpeg", "png", "webp"] }

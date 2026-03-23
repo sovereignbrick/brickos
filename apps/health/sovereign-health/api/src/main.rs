@@ -28,6 +28,7 @@ use actix_cors::Cors;
 use actix_web::{http, web, App, HttpResponse, HttpServer};
 use sovereign_health_backend::configure_routes;
 use sqlx::postgres::{PgConnectOptions, PgPoolOptions};
+use std::sync::Arc;
 use tracing_subscriber::EnvFilter;
 
 #[actix_web::main]
@@ -303,6 +304,12 @@ async fn main() -> std::io::Result<()> {
             .app_data(content_strings_cache.clone())
             .app_data(payment_router_data.clone())
             .app_data(notifier_data.clone());
+
+        // Sovereign Link: URL shortener (brickos.io/r/)
+        let link_store: Arc<dyn sovereign_link::db::LinkStore> =
+            Arc::new(sovereign_link::db::postgres::PgLinkStore::new(pool.clone()));
+        app = app.app_data(web::Data::new(link_store));
+
         if let Some(ref sd) = stripe_data {
             app = app.app_data(sd.clone());
         }
@@ -310,6 +317,7 @@ async fn main() -> std::io::Result<()> {
             app = app.app_data(sd.clone());
         }
         app.configure(configure_routes)
+            .configure(sovereign_link::configure_routes)
     })
     .bind(&bind_addr)?
     .run()

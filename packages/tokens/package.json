@@ -1,0 +1,12 @@
+{
+  "name": "@brickos/tokens",
+  "version": "0.1.0",
+  "private": true,
+  "description": "BrickOS design tokens — shared colors, spacing, typography",
+  "exports": {
+    "./brickos-tokens.css": "./brickos-tokens.css"
+  },
+  "files": [
+    "brickos-tokens.css"
+  ]
+}
