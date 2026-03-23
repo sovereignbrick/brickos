@@ -1,124 +1,114 @@
-# Sprint 010 — BrickOS Link: URL Shortener + Service Gateway
+# Sprint 010 — Sovereign Link: URL Shortener + Service Gateway
 
-**Started:** 2026-03-24
-**Goal:** Ship the BrickOS URL shortener (Phase 1) as branded affiliate links on `brickos.io/r/`, create the `apps/infrastructure/shortener/` crate, and establish the shared design token system for cross-app consistency.
+**Started:** 2026-03-23
+**Completed:** 2026-03-23
+**Goal:** Ship the BrickOS URL shortener (Phase 1+2) as branded affiliate links on `brickos.io/r/`, create the Sovereign Link crate as the first BrickOS infrastructure service, and establish the shared design token system.
 
 ## Context
 
-Sprint 009 delivered GDPR compliance + cargo-chef build optimization. This sprint shifts focus to a new BrickOS infrastructure service — the first app outside Sovereign Health. The URL shortener serves dual purpose: platform affiliate links (brickos.io/r/) and foundation for a standalone self-hosted product (Sovereign Link for Start9).
+Sprint 009 delivered GDPR compliance + cargo-chef build optimization (v0.26.0). This sprint shifts focus to a new BrickOS infrastructure service — the first app outside Sovereign Health. Sovereign Link serves dual purpose: platform affiliate links (`brickos.io/r/`) and foundation for a standalone self-hosted product (Sovereign Link for Start9).
 
 Design doc: `docs/project-files/design/024-url-shortener-service.md`
 
-## Planned
+## Completed
 
-### P0 — Foundation (must complete)
+### P0 — Foundation
 
-| # | Title | Points | Area |
-|---|-------|--------|------|
-| - | chore: create `packages/tokens/` design token system | 2 | Platform |
-| - | chore: scaffold `apps/infrastructure/shortener/` crate | 3 | Platform |
-| [#151](https://github.com/sovereignbrick/brickos/issues/151) | feat: `short_links` + `short_link_clicks` + `app_prefixes` migrations | 2 | API |
-| [#151](https://github.com/sovereignbrick/brickos/issues/151) | feat: `GET /r/{code}` redirect handler + click tracking | 3 | API |
-| [#151](https://github.com/sovereignbrick/brickos/issues/151) | feat: auto-create short links for existing affiliate codes | 2 | API |
-| [#151](https://github.com/sovereignbrick/brickos/issues/151) | feat: affiliate page shows `brickos.io/r/sha3f2c1b9` + copy | 2 | Frontend |
-| - | ops: nginx route `brickos.io/r/*` to health API | 1 | Ops |
-| | **P0 Subtotal** | **15** | |
+| # | Title | Points | Commits |
+|---|-------|--------|---------|
+| - | chore: create `packages/tokens/` design token system | 2 | 7ece9b6 |
+| #151 | chore: scaffold `apps/infrastructure/sovereign-link/` crate | 3 | 7ece9b6 |
+| #151 | feat: `short_links` + `short_link_clicks` + `app_prefixes` migrations | 2 | 7ece9b6 |
+| #151 | feat: `GET /r/{code}` redirect handler + click tracking | 3 | 7ece9b6 |
+| #151 | feat: auto-create short links for existing affiliate codes (backfill) | 2 | 7ece9b6 |
+| #151 | feat: affiliate page shows `brickos.io/r/sha3f2c1b9` + QR | 2 | 7ece9b6 |
+| #151 | ops: nginx config `brickos.io/r/*` → health API | 1 | 4e1c26d |
+| | **P0 Total** | **15** | |
 
-### P1 — Enhancements (if time permits)
+### P1 — Enhancements
 
-| # | Title | Points | Area |
-|---|-------|--------|------|
-| [#151](https://github.com/sovereignbrick/brickos/issues/151) | feat: vanity codes for Horizon+ tier | 3 | Full-stack |
-| [#151](https://github.com/sovereignbrick/brickos/issues/151) | feat: QR code endpoint `/r/{code}.qr` | 2 | API |
-| [#151](https://github.com/sovereignbrick/brickos/issues/151) | feat: admin "Links" tab with click stats | 3 | Frontend |
-| [#151](https://github.com/sovereignbrick/brickos/issues/151) | feat: campaign link creation (admin) | 2 | Full-stack |
-| | **P1 Subtotal** | **10** | |
+| # | Title | Points | Commits |
+|---|-------|--------|---------|
+| #151 | feat: vanity codes for Horizon+/Clarity tier | 3 | edd8a1a |
+| #151 | feat: QR code endpoint `GET /r/{code}.qr` (SVG) | 0 | 7ece9b6 (included in P0) |
+| #151 | feat: admin "Links" tab with click stats + filters | 3 | edd8a1a |
+| #151 | feat: campaign link creation (admin) | 2 | edd8a1a |
+| | **P1 Total** | **8** | |
 
-## Technical Approach
+## Unplanned Work
 
-### Design Tokens (`packages/tokens/`)
+| Title | Points | Commits |
+|-------|--------|---------|
+| docs: local issue tracker (27 open, 71 closed, 10 milestones) | 3 | 29941b5 |
+| docs: design 021 multi-tenant platform offering | 0 | 29941b5 |
+| docs: design 023 progressive web app (Sprint 011 prep) | 0 | 29941b5 |
+| docs: design 024 URL shortener + Sovereign Link (full spec) | 0 | 29941b5 |
+| chore: rename `apps/node/` → `apps/infrastructure/` | 0 | 29941b5 |
+| chore: add AGPL-3.0 LICENSE file | 0 | 29941b5 |
+| **Unplanned Total** | **3** | |
 
-Extract BrickOS visual identity into framework-agnostic CSS:
+## Carried Over
+
+None — all planned items completed.
+
+## Velocity
+
+| Metric | Value |
+|--------|-------|
+| Planned (P0) | 15 pts |
+| Planned (P1) | 8 pts |
+| Completed (planned) | 23 pts |
+| Completed (unplanned) | 3 pts |
+| Carried over | 0 |
+| Total delivered | 26 pts |
+| Commits | 4 (+ 1 planning) |
+| New crate | `sovereign-link` (10 source files) |
+| New tables | 3 (`app_prefixes`, `short_links`, `short_link_clicks`) |
+| New admin tab | Links (click stats, filters, campaign creation) |
+| Design docs | 3 (#021, #023, #024) |
+| Tracker issues | 98 (27 open, 71 closed) |
+
+## Architecture Delivered
+
 ```
-packages/tokens/
-├── brickos-tokens.css    ← Colors, spacing, radius, fonts (hex, CSS vars)
-├── brickos-dark.css      ← Dark theme overrides
-└── README.md
-```
-
-Consumed by:
-- React apps: via Tailwind preset (import tokens as Tailwind theme vars)
-- Server-rendered apps (Sovereign Link): direct `<link>` include
-- Single source of truth for BrickOS visual identity
-
-### Shortener Crate (`apps/infrastructure/shortener/`)
-
-Scaffold the crate now, even though Phase 1 runs handlers in the health API. This ensures:
-- Crate compiles from day one
-- `LinkStore` trait and models are defined in the right place
-- Health API imports the crate (not the other way around)
-- Extraction at Phase 3 is trivial — just move the binary entry point
-
-```
-apps/infrastructure/shortener/
-├── Cargo.toml              ← library crate (no binary yet)
+apps/infrastructure/sovereign-link/     ← NEW crate (library)
 ├── src/
-│   ├── lib.rs              ← pub exports
-│   ├── models.rs           ← ShortLink, ShortLinkClick, AppPrefix
+│   ├── lib.rs                          ← configure_routes() for host API
+│   ├── models.rs                       ← ShortLink, AppPrefix, ClickMeta, LinkStats
 │   ├── handlers/
-│   │   ├── redirect.rs     ← GET /r/{code}
-│   │   ├── api.rs          ← CRUD endpoints
-│   │   └── qr.rs           ← QR generation
+│   │   ├── redirect.rs                 ← GET /r/{code} — fast-path prefix routing
+│   │   ├── qr.rs                       ← GET /r/{code}.qr — SVG QR codes
+│   │   └── api.rs                      ← CRUD REST API + vanity validation
 │   └── db/
-│       ├── mod.rs           ← LinkStore trait
-│       └── postgres.rs      ← Postgres implementation
-└── migrations/
-    └── postgres/
+│       ├── mod.rs                      ← LinkStore trait
+│       └── postgres.rs                 ← Full Postgres implementation
+
+packages/tokens/                        ← NEW design token system
+├── brickos-tokens.css                  ← Shared BrickOS visual identity
+└── package.json                        ← @brickos/tokens
+
+docs/tracker/                           ← NEW local-first issue tracker
+├── issues/ (27 open, 71 closed)
+├── milestones/ (10)
+└── sync/sync.sh                        ← GitHub REST API sync script
 ```
 
-Health API depends on `brickos-shortener` as a workspace crate and mounts its routes.
+### Key Technical Decisions
 
-### 2-Char App Prefix System
-
-Auto-generated affiliate codes get prefixed: `sh` + `a3f2c1b9` = `sha3f2c1b9`
-- `sh` = Sovereign Health
-- Redirect handler: if code is 10 chars and first 2 match a known prefix → fast-path redirect (no DB lookup)
-- Vanity codes (`drclinic`) are globally unique, no prefix, DB lookup
-
-### Migration
-
-```sql
--- 1. app_prefixes (platform routing)
--- 2. short_links (links + metadata)
--- 3. short_link_clicks (privacy-preserving analytics)
--- 4. Backfill: create short_links for all existing users.affiliate_code
-```
-
-## Velocity Budget
-
-| Budget | Points |
-|--------|--------|
-| Multi-day sprint (2-3 days) | ~25-35 pts |
-| P0 (must ship) | 15 pts |
-| P1 (stretch) | 10 pts |
-| Unplanned buffer (~30%) | ~8 pts |
-
-## Sprint 011 Preview
-
-**Sprint 011 — Progressive Web App (Phase 1)**
-- Manifest.json + meta tags (installable)
-- Service worker with @serwist/next (static asset caching)
-- Offline detection + fallback page
-- API cache headers (Rust middleware)
-- Install prompt UX
-
-Design doc: `docs/project-files/design/023-progressive-web-app.md`
+1. **Product renamed:** "shortener" → "Sovereign Link" — better brand, works as Start9 package name
+2. **2-char app prefix:** `sh` = Sovereign Health, `bt` = BTC Tracker. Auto-codes (`sha3f2c1b9`) route without DB lookup. Vanity codes (`drclinic`) are globally unique, DB lookup.
+3. **One codebase, two modes:** Feature flags (`--features platform` vs `--features standalone`) compile different backends. Not two repos.
+4. **Shortener layers, doesn't replace:** Existing affiliate system unchanged. Shortener adds redirect + click tracking in front. Join on `affiliate_code`.
+5. **Design tokens:** `packages/tokens/brickos-tokens.css` is the hex-based single source of truth. React apps use Tailwind preset, server-rendered apps use direct CSS link.
+6. **Local issue tracker:** `docs/tracker/` with `git mv` to close issues, sync.sh for GitHub REST API restore.
 
 ## Notes / Decisions
 
-- First BrickOS app outside Sovereign Health — sets the pattern for cross-app architecture
-- Design tokens extracted before implementation — ensures visual consistency from day one
-- Shortener crate is a library first (imported by health API), becomes a binary at Phase 3
-- Nginx routing: `brickos.io/r/*` → port 8080 (health API) for Phase 1
-- Existing affiliate system stays intact — shortener layers in front, doesn't replace
-- `affiliate_clicks` table: keep running in parallel, deprecate after 30-day validation
+- First BrickOS app outside Sovereign Health — sets the pattern for cross-app crate sharing
+- Crate is a library (imported by health API), becomes a standalone binary at Phase 3
+- Nginx: `brickos.io/r/*` → port 8080 (health API) via Cloudflare proxy + origin cert
+- QR codes: both client-side (qrcode.react on affiliate page) and server-side (GET /r/{code}.qr SVG) encode the short URL
+- Vanity codes tier-gated to Clarity + Horizon (checked server-side, not just UI)
+- Admin Links tab includes hierarchical summary by app prefix + link type
+- `affiliate_clicks` table stays in parallel — deprecate after 30-day validation period
+- Sprint 011 will be PWA Phase 1 (installable, service worker, offline detection)
