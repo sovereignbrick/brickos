@@ -27,13 +27,14 @@
 
 | # | Title | Points | Commits |
 |---|-------|--------|---------|
-| #202 | fix: missing markers in import -- 19 alias fixes + 5 new markers + European naming + ua/tf/mg | 10 | pending |
-| #203 | fix: toast error for unmatched markers during import | 3 | pending |
+| #202 | fix: missing markers in import -- 19 alias fixes + 5 new markers + European naming + ua/tf/mg | 10 | ecee2d7 |
+| #203 | fix: toast error for unmatched markers during import | 3 | ecee2d7 |
 | #204 | fix: PDF quality failure -- resolved by #202 marker coverage | 5 | closed with #202 |
-| #205 | feat: log unmatched marker names from imports | 3 | pending |
-| #199 | fix: LinkedIn preview / OG meta (app + website) | 2 | pending |
+| #205 | feat: log unmatched marker names from imports | 3 | ecee2d7 |
+| #199 | fix: LinkedIn preview / OG meta (app + website) | 2 | ecee2d7 |
 | #200 | fix: migration checksum audit -- 118/118 clean | 3 | verified |
 | #185 | fix: hydration suppressWarning -- intentional, no change needed | 2 | closed |
+| #198 | fix: staging notification verification | 2 | 779f36a + ops |
 
 ## Carried Over
 
@@ -43,19 +44,23 @@ TBD
 
 | Title | Points | Commits |
 |-------|--------|---------|
-| fix: docker-compose.dev.yml frontend build context | 1 | pending |
-| fix: upload menu label rename + file extension tooltips | 1 | pending |
-| fix: add UA alias for uric_acid | 0 | pending |
+| fix: docker-compose.dev.yml frontend build context | 1 | ecee2d7 |
+| fix: upload menu label rename + file extension tooltips | 1 | ecee2d7 |
+| fix: add UA alias for uric_acid | 0 | ecee2d7 |
+| fix: tier-gate smart import buttons | 2 | 779f36a |
+| feat: notification hooks (contact, newsletter, migration) | 2 | 779f36a |
+| fix: deploy ntfy pre-flight check | 1 | 779f36a |
+| fix: ntfy token + DNS on staging | 0 | ops |
 
 ## Velocity
 
 | Metric | Value |
 |--------|-------|
-| Planned | 19 pts (P0) + TBD (P1) |
-| Completed (planned) | - |
-| Completed (unplanned) | - |
-| Carried over | - |
-| Total delivered | - |
+| Planned | 21 pts (P0) + 9 pts (P1) = 30 pts |
+| Completed (planned) | 30 pts |
+| Completed (unplanned) | 7 pts |
+| Carried over | 0 |
+| Total delivered | 37 pts |
 
 ## Notes / Decisions
 
