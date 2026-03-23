@@ -27,7 +27,7 @@ trap '_exit_code=$?; if [ $_exit_code -ne 0 ]; then notify "Deploy FAILED (${ENV
 # ══════════════════════════════════════════════════════════════════════════════
 
 # Version: Update this before each release. Used in Docker image tags.
-VERSION="0.25.0"
+VERSION="0.26.0-b1"
 
 # Local project root: BrickOS monorepo.
 PROJECT_ROOT="/home/dev-comp/Projects/brickos"
@@ -351,15 +351,12 @@ preflight() {
     fi
     log "Compose project isolation verified"
 
-    # Version consistency: deploy.sh VERSION must match lib.rs VERSION (base version).
+    # Version consistency: deploy.sh VERSION must match lib.rs VERSION exactly.
     # Prevents deploying with stale version tag (container shows old version).
-    # Build numbers (-b1, -b2) are expected for staging and are not a mismatch.
     local lib_version
     lib_version=$(grep -oP 'pub const VERSION: &str = "\K[^"]+' "${APP_ROOT}/api/src/lib.rs" 2>/dev/null || echo "")
-    local lib_base
-    lib_base=$(echo "$lib_version" | sed 's/-b[0-9]*//')
-    if [ -n "$lib_version" ] && [ "$lib_base" != "$VERSION" ]; then
-        fail "Version mismatch: deploy.sh has VERSION=${VERSION} but lib.rs has VERSION=${lib_version}. Update deploy.sh VERSION."
+    if [ -n "$lib_version" ] && [ "$lib_version" != "$VERSION" ]; then
+        fail "Version mismatch: deploy.sh has VERSION=${VERSION} but lib.rs has VERSION=${lib_version}. Update both to match."
     fi
     log "Version consistency: v${VERSION}"
 
@@ -371,6 +368,28 @@ preflight() {
         warn "Modified migration files detected (SQLx skips modified migrations):"
         echo "$modified_migrations" | while read -r f; do echo "  - $f"; done
         warn "If these are already applied, all subsequent migrations will be skipped silently."
+    fi
+
+    # Notification connectivity: verify ntfy token works before deploying.
+    # Catches stale/rotated tokens that would silently break all notifications.
+    if [ -n "${NTFY_BASE_URL:-}" ] && [ -n "${NTFY_TOKEN:-}" ]; then
+        local ntfy_status
+        ntfy_status=$(curl -s -o /dev/null -w "%{http_code}" -m 5 \
+            -H "Authorization: Bearer ${NTFY_TOKEN}" \
+            "${NTFY_BASE_URL}/sh-info" 2>/dev/null || echo "000")
+        if [ "$ntfy_status" = "302" ] || [ "$ntfy_status" = "401" ] || [ "$ntfy_status" = "000" ]; then
+            fail "ntfy pre-flight failed (HTTP ${ntfy_status}). Token may be stale or ntfy unreachable. Check NTFY_TOKEN in .env.staging on VPS."
+        fi
+        log "ntfy connectivity verified (HTTP ${ntfy_status})"
+    else
+        # Check VPS-side token if local doesn't have one
+        local vps_ntfy_status
+        vps_ntfy_status=$(ssh "$VPS_SSH" 'source /opt/sovereign-health/.env.staging 2>/dev/null; curl -s -o /dev/null -w "%{http_code}" -m 5 -H "Authorization: Bearer ${NTFY_TOKEN}" "${NTFY_BASE_URL}/sh-info"' 2>/dev/null || echo "000")
+        if [ "$vps_ntfy_status" = "302" ] || [ "$vps_ntfy_status" = "401" ] || [ "$vps_ntfy_status" = "000" ]; then
+            warn "ntfy pre-flight failed from VPS (HTTP ${vps_ntfy_status}). Check NTFY_TOKEN in .env.staging on VPS."
+        else
+            log "ntfy connectivity verified from VPS (HTTP ${vps_ntfy_status})"
+        fi
     fi
 
     report_add "OK" "Pre-flight passed (local: ${local_free}G free, VPS: ${vps_free:-?}G free)"
@@ -863,17 +882,9 @@ verify() {
 
     if [ -n "$api_version" ]; then
         report_add "INFO" "API version: $api_version"
-        # Version assertion: verify deployed version matches expected VERSION
-        # For staging, VERSION includes the build number (e.g. 0.23.0-b2)
-        local expected_base
-        expected_base=$(echo "$VERSION" | sed 's/-b[0-9]*//')
-        local api_base
-        api_base=$(echo "$api_version" | sed 's/-b[0-9]*//')
+        # Version assertion: verify deployed version matches expected VERSION exactly.
         if [ "$api_version" = "$VERSION" ]; then
             report_add "OK" "Version assertion passed: $api_version"
-        elif [ "$api_base" = "$expected_base" ] && echo "$api_version" | grep -qP '\-b\d+'; then
-            # Base version matches but build number differs (e.g. frontend-only deploy)
-            report_add "INFO" "API at build $api_version (expected $VERSION)"
         else
             warn "VERSION MISMATCH: deployed=$api_version expected=$VERSION"
             report_add "FAIL" "Version mismatch: API reports $api_version but deploy expected $VERSION"

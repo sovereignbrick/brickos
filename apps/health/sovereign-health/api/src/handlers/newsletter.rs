@@ -68,6 +68,7 @@ pub async fn subscribe(
     _req: HttpRequest,
     pool: web::Data<PgPool>,
     email_provider: web::Data<Arc<dyn EmailProvider>>,
+    notifier: web::Data<crate::services::notify::Notifier>,
     body: web::Json<SubscribeRequest>,
 ) -> Result<HttpResponse, AppError> {
     // Honeypot check
@@ -145,6 +146,13 @@ pub async fn subscribe(
         .bind(&confirm_token)
         .execute(pool.get_ref())
         .await?;
+
+        notifier.send(
+            crate::services::notify::Channel::Info,
+            crate::services::notify::Priority::Default,
+            "New newsletter subscriber",
+            &format!("source={source}"),
+        );
     }
 
     // Send confirmation email (double opt-in)

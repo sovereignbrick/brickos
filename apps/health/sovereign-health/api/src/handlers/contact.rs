@@ -62,6 +62,7 @@ pub async fn submit(
     pool: web::Data<sqlx::PgPool>,
     email_provider: web::Data<Arc<dyn EmailProvider>>,
     enc: web::Data<crate::services::encryption::Encryptor>,
+    notifier: web::Data<crate::services::notify::Notifier>,
 ) -> Result<HttpResponse, AppError> {
     let name = body.name.trim().to_string();
     let email = body.email.trim().to_lowercase();
@@ -179,6 +180,13 @@ pub async fn submit(
     });
 
     tracing::info!(subject = %subject, "Contact form submission received");
+
+    notifier.send(
+        crate::services::notify::Channel::Info,
+        crate::services::notify::Priority::Default,
+        "Contact form submission",
+        &format!("subject={subject}"),
+    );
 
     Ok(HttpResponse::Ok().json(json!({
         "data": {"message": "Your message has been sent successfully. We'll get back to you soon."},

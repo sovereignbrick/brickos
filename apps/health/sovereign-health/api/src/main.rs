@@ -72,13 +72,28 @@ async fn main() -> std::io::Result<()> {
         .max_connections(config.db_pool_max)
         .connect_lazy_with(connect_opts);
 
+    // Create notifier early so migrations and crons can use it
+    let notify_config =
+        sovereign_health_backend::services::notify::NotifyConfig::from_env();
+    let notifier =
+        sovereign_health_backend::services::notify::Notifier::new(notify_config.clone());
+
     // Run migrations on startup (non-fatal if DB is unavailable)
     {
         let pool_clone = pool.clone();
+        let notifier_clone = notifier.clone();
         tokio::spawn(async move {
             match sqlx::migrate!("./migrations").run(&pool_clone).await {
                 Ok(_) => tracing::info!("Migrations ran successfully"),
-                Err(e) => tracing::warn!("Could not run migrations: {e}"),
+                Err(e) => {
+                    tracing::error!("Migration failure: {e}");
+                    notifier_clone.send(
+                        sovereign_health_backend::services::notify::Channel::Errors,
+                        sovereign_health_backend::services::notify::Priority::Urgent,
+                        "Migration failure on startup",
+                        &format!("{e}"),
+                    );
+                }
             }
         });
     }
@@ -220,8 +235,7 @@ async fn main() -> std::io::Result<()> {
         sovereign_health_backend::handlers::content_strings::ContentStringsCache::new(),
     );
 
-    // Notification service (ntfy + Telegram dual-dispatch)
-    let notify_config = sovereign_health_backend::services::notify::NotifyConfig::from_env();
+    // Notification service (ntfy + Telegram dual-dispatch) — reuse instance from above
     if notify_config.is_enabled() {
         tracing::info!(
             "Notifications: ENABLED (ntfy: {}, telegram: {})",
@@ -231,9 +245,7 @@ async fn main() -> std::io::Result<()> {
     } else {
         tracing::info!("Notifications: DISABLED (NTFY_BASE_URL and TELEGRAM_BOT_TOKEN not set)");
     }
-    let notifier_data = web::Data::new(sovereign_health_backend::services::notify::Notifier::new(
-        notify_config,
-    ));
+    let notifier_data = web::Data::new(notifier);
 
     let extra_origins = config.cors_origins.clone();
     let bind_addr = format!("{}:{}", config.host, config.port);

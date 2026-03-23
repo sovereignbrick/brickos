@@ -339,8 +339,8 @@ import featuresStaticEn from "@/data/features-en.json";
 import featuresStaticDe from "@/data/features-de.json";
 
 const staticFeatures: Record<string, ApiFeaturesResponse> = {
-  en: featuresStaticEn as ApiFeaturesResponse,
-  de: featuresStaticDe as ApiFeaturesResponse,
+  en: featuresStaticEn as unknown as ApiFeaturesResponse,
+  de: featuresStaticDe as unknown as ApiFeaturesResponse,
 };
 
 export function useApiFeatures(locale: string) {

@@ -190,30 +190,30 @@ export function ChatMessages({ messages, conversationId, isLoading, onRate, erro
                     {t('smartImport')}
                   </p>
                   <div className="grid grid-cols-3 gap-2">
-                    <button
-                      onClick={handleLabUpload}
-                      className="flex items-center justify-center gap-2 text-xs bg-accent/50 hover:bg-accent text-muted-foreground hover:text-foreground px-3 py-2.5 rounded-lg border border-border hover:border-border transition-colors"
-                      title={t('importUploadDesc')}
-                    >
-                      <span>📄</span>
-                      {t('uploadMenuLab')}
-                    </button>
-                    <button
-                      onClick={handleMedUpload}
-                      className="flex items-center justify-center gap-2 text-xs bg-accent/50 hover:bg-accent text-muted-foreground hover:text-foreground px-3 py-2.5 rounded-lg border border-border hover:border-border transition-colors"
-                      title={t('importTrackDesc')}
-                    >
-                      <span>💊</span>
-                      {t('uploadMenuMed')}
-                    </button>
-                    <button
-                      onClick={handleTableUpload}
-                      className="flex items-center justify-center gap-2 text-xs bg-accent/50 hover:bg-accent text-muted-foreground hover:text-foreground px-3 py-2.5 rounded-lg border border-border hover:border-border transition-colors"
-                      title={t('importTableDesc')}
-                    >
-                      <span>📊</span>
-                      {t('uploadMenuTable')}
-                    </button>
+                    {[
+                      { handler: handleLabUpload, icon: '📄', label: 'uploadMenuLab', tooltip: 'importUploadDesc' },
+                      { handler: handleMedUpload, icon: '💊', label: 'uploadMenuMed', tooltip: 'importTrackDesc' },
+                      { handler: handleTableUpload, icon: '📊', label: 'uploadMenuTable', tooltip: 'importTableDesc' },
+                    ].map((btn) => {
+                      const importUnlocked = isTierAtLeast(userTier, 'insight')
+                      return (
+                        <button
+                          key={btn.label}
+                          onClick={() => importUnlocked && btn.handler()}
+                          disabled={!importUnlocked}
+                          className={`flex items-center justify-center gap-2 text-xs px-3 py-2.5 rounded-lg border transition-colors ${
+                            importUnlocked
+                              ? 'bg-accent/50 hover:bg-accent text-muted-foreground hover:text-foreground border-border hover:border-border'
+                              : 'bg-accent/20 text-muted-foreground/40 border-border/30 cursor-not-allowed'
+                          }`}
+                          title={importUnlocked ? t(btn.tooltip) : t('lockedTooltip', { tier: 'insight' })}
+                        >
+                          <span className={importUnlocked ? '' : 'opacity-40'}>{btn.icon}</span>
+                          {t(btn.label)}
+                          {!importUnlocked && <svg className="w-3 h-3 opacity-40" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" /></svg>}
+                        </button>
+                      )
+                    })}
                   </div>
                 </div>
               )}

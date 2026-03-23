@@ -16,6 +16,10 @@ const MAX_CHARS = 500
 const WARN_CHARS = 400
 
 const UNLIMITED_TIERS = ['clarity', 'horizon', 'core']
+const TIER_ORDER = ['glimpse', 'focus', 'insight', 'clarity', 'horizon', 'core']
+function isTierAtLeast(userTier: string, minTier: string): boolean {
+  return TIER_ORDER.indexOf(userTier) >= TIER_ORDER.indexOf(minTier)
+}
 
 export function ChatInput({ onSend, onFileUpload, disabled, quotaExhausted: rawQuotaExhausted, tier }: ChatInputProps) {
   const t = useTranslations('doctorChat')
@@ -103,34 +107,45 @@ export function ChatInput({ onSend, onFileUpload, disabled, quotaExhausted: rawQ
                 <path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48" />
               </svg>
             </button>
-            {uploadMenuOpen && (
-              <div className="absolute bottom-full left-0 mb-2 w-56 bg-card border border-border rounded-xl shadow-xl overflow-hidden z-50">
-                <button
-                  type="button"
-                  onClick={() => { setUploadMenuOpen(false); labInputRef.current?.click() }}
-                  className="w-full text-left px-4 py-2.5 text-sm text-foreground hover:bg-accent transition-colors flex items-center gap-2"
-                  title={t('uploadMenuLabTooltip')}
-                >
-                  <span>📄</span> {t('uploadMenuLab')}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => { setUploadMenuOpen(false); medInputRef.current?.click() }}
-                  className="w-full text-left px-4 py-2.5 text-sm text-foreground hover:bg-accent transition-colors flex items-center gap-2 border-t border-border"
-                  title={t('uploadMenuMedTooltip')}
-                >
-                  <span>💊</span> {t('uploadMenuMed')}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => { setUploadMenuOpen(false); tableInputRef.current?.click() }}
-                  className="w-full text-left px-4 py-2.5 text-sm text-foreground hover:bg-accent transition-colors flex items-center gap-2 border-t border-border"
-                  title={t('uploadMenuTableTooltip')}
-                >
-                  <span>📊</span> {t('uploadMenuTable')}
-                </button>
-              </div>
-            )}
+            {uploadMenuOpen && (() => {
+              const importUnlocked = isTierAtLeast(tier ?? 'glimpse', 'insight')
+              const lockedCls = 'w-full text-left px-4 py-2.5 text-sm text-muted-foreground/40 cursor-not-allowed flex items-center gap-2'
+              const unlockedCls = 'w-full text-left px-4 py-2.5 text-sm text-foreground hover:bg-accent transition-colors flex items-center gap-2'
+              return (
+                <div className="absolute bottom-full left-0 mb-2 w-56 bg-card border border-border rounded-xl shadow-xl overflow-hidden z-50">
+                  <button
+                    type="button"
+                    onClick={() => { if (importUnlocked) { setUploadMenuOpen(false); labInputRef.current?.click() } }}
+                    disabled={!importUnlocked}
+                    className={importUnlocked ? unlockedCls : lockedCls}
+                    title={importUnlocked ? t('uploadMenuLabTooltip') : t('lockedTooltip', { tier: 'insight' })}
+                  >
+                    <span className={importUnlocked ? '' : 'opacity-40'}>📄</span> {t('uploadMenuLab')}
+                    {!importUnlocked && <svg className="w-3 h-3 ml-auto opacity-40" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" /></svg>}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { if (importUnlocked) { setUploadMenuOpen(false); medInputRef.current?.click() } }}
+                    disabled={!importUnlocked}
+                    className={`${importUnlocked ? unlockedCls : lockedCls} border-t border-border`}
+                    title={importUnlocked ? t('uploadMenuMedTooltip') : t('lockedTooltip', { tier: 'insight' })}
+                  >
+                    <span className={importUnlocked ? '' : 'opacity-40'}>💊</span> {t('uploadMenuMed')}
+                    {!importUnlocked && <svg className="w-3 h-3 ml-auto opacity-40" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" /></svg>}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { if (importUnlocked) { setUploadMenuOpen(false); tableInputRef.current?.click() } }}
+                    disabled={!importUnlocked}
+                    className={`${importUnlocked ? unlockedCls : lockedCls} border-t border-border`}
+                    title={importUnlocked ? t('uploadMenuTableTooltip') : t('lockedTooltip', { tier: 'insight' })}
+                  >
+                    <span className={importUnlocked ? '' : 'opacity-40'}>📊</span> {t('uploadMenuTable')}
+                    {!importUnlocked && <svg className="w-3 h-3 ml-auto opacity-40" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" /></svg>}
+                  </button>
+                </div>
+              )
+            })()}
             <input ref={labInputRef} type="file" accept="image/jpeg,image/png,image/webp,application/pdf" multiple className="hidden" onChange={e => { if (e.target.files?.length) onFileUpload(Array.from(e.target.files).slice(0, 3), 'lab_import'); if (e.target) e.target.value = '' }} />
             <input ref={medInputRef} type="file" accept="image/jpeg,image/png,image/webp" multiple className="hidden" onChange={e => { if (e.target.files?.length) onFileUpload(Array.from(e.target.files).slice(0, 3), 'med_import'); if (e.target) e.target.value = '' }} />
             <input ref={tableInputRef} type="file" accept=".ods,.xlsx,.xls,.csv,image/jpeg,image/png,image/webp" multiple className="hidden" onChange={e => { if (e.target.files?.length) onFileUpload(Array.from(e.target.files).slice(0, 3), 'measurement_import'); if (e.target) e.target.value = '' }} />
