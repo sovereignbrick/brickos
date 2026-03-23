@@ -18,27 +18,32 @@
 
 | # | Title | Points | Commits |
 |---|-------|--------|---------|
-| | | | |
+| #208 | feat: cargo-chef + component-level deploy | 5 | 9642289 |
+| #207 | fix: FSH alias + Total Fatty Acids marker | 2 | 9642289 |
+| #176 | feat: GDPR privacy tab — access log UI | 5 | 1238984 |
+| #177 | feat: GDPR consent management UI | 5 | 1238984 |
+| #178 | feat: GDPR email unsubscribe | 5 | 1238984 |
 
 ## Carried Over
 
-TBD
+None
 
 ## Unplanned Work
 
 | Title | Points | Commits |
 |-------|--------|---------|
-| | | |
+| refactor: settings page split (3599→198 lines + 7 components) | 3 | 7439bc3 |
+| fix: translate access log action/resource values (EN + DE) | 0 | 424c3f0 |
 
 ## Velocity
 
 | Metric | Value |
 |--------|-------|
 | Planned | 22 pts |
-| Completed (planned) | - |
-| Completed (unplanned) | - |
-| Carried over | - |
-| Total delivered | - |
+| Completed (planned) | 22 pts |
+| Completed (unplanned) | 3 pts |
+| Carried over | 0 |
+| Total delivered | 25 pts |
 
 ## Notes / Decisions
 
