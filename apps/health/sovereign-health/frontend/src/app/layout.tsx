@@ -79,13 +79,13 @@ export const metadata: Metadata = {
     title: APP_NAME,
     description: 'Privacy-first metabolic health tracking. Monitor biomarkers, track trends, and optimize your health.',
     url: SITE_URL,
-    images: [{ url: '/logo.png', width: 1024, height: 1024, alt: 'Sovereign Health Intelligence' }],
+    images: [{ url: '/og-image.png', width: 1200, height: 627, alt: 'Sovereign Health Intelligence — Privacy-first metabolic health tracking' }],
   },
   twitter: {
     card: 'summary_large_image',
     title: APP_NAME,
     description: 'Privacy-first metabolic health tracking. Monitor biomarkers, track trends, and optimize your health.',
-    images: ['/logo.png'],
+    images: ['/og-image.png'],
   },
   other: {
     'robots': 'noai, noimageai',
