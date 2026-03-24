@@ -100,7 +100,7 @@ export function InfoTooltip({ text }: { text: string }) {
     if (!triggerRef.current) return;
     const rect = triggerRef.current.getBoundingClientRect();
     setFlipToBottom(rect.top < 80);
-    setAlignLeft(window.innerWidth - rect.left < 200);
+    setAlignLeft(window.innerWidth - rect.left < 500);
   };
 
   return (
@@ -117,7 +117,7 @@ export function InfoTooltip({ text }: { text: string }) {
         className={`pointer-events-none absolute z-50 mb-2 rounded-lg bg-[var(--card)] border border-[var(--border)] px-4 py-3 text-xs leading-relaxed text-[var(--foreground)] opacity-0 shadow-xl transition-opacity group-hover:opacity-100 text-left ${
           flipToBottom ? "top-full mt-2" : "bottom-full"
         } ${alignLeft ? "left-0" : "left-1/2 -translate-x-1/2"}`}
-        style={{ minWidth: "280px", maxWidth: "480px", whiteSpace: "normal", overflowWrap: "break-word" }}
+        style={{ width: "420px", maxWidth: "90vw", whiteSpace: "normal", overflowWrap: "break-word" }}
       >
         {text}
       </span>
