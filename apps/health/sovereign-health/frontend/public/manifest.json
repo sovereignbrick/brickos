@@ -1,6 +1,6 @@
 {
   "name": "Sovereign Health Intelligence",
-  "short_name": "SHI",
+  "short_name": "Sovereign Health",
   "start_url": "/dashboard",
   "scope": "/",
   "display": "standalone",
