@@ -112,11 +112,18 @@ fn auto_code_fast_path_extraction() {
     ];
 
     for (code, expected_prefix, expected_affiliate) in test_cases {
-        assert_eq!(code.len(), AUTO_CODE_LEN, "Code {code} should be {AUTO_CODE_LEN} chars");
+        assert_eq!(
+            code.len(),
+            AUTO_CODE_LEN,
+            "Code {code} should be {AUTO_CODE_LEN} chars"
+        );
         let prefix = &code[..PREFIX_LEN];
         let affiliate = &code[PREFIX_LEN..];
         assert_eq!(prefix, expected_prefix, "Prefix mismatch for {code}");
-        assert_eq!(affiliate, expected_affiliate, "Affiliate mismatch for {code}");
+        assert_eq!(
+            affiliate, expected_affiliate,
+            "Affiliate mismatch for {code}"
+        );
     }
 }
 
@@ -125,15 +132,25 @@ fn non_auto_codes_skip_fast_path() {
     // Vanity codes (different lengths) should NOT match the fast path
     let vanity_codes = vec!["helmut", "drclinic", "btc-prague-2026", "abc"];
     for code in vanity_codes {
-        assert_ne!(code.len(), AUTO_CODE_LEN, "Vanity code {code} should not be {AUTO_CODE_LEN} chars");
+        assert_ne!(
+            code.len(),
+            AUTO_CODE_LEN,
+            "Vanity code {code} should not be {AUTO_CODE_LEN} chars"
+        );
     }
 }
 
 #[test]
 fn click_meta_domain_extraction() {
     // The redirect handler extracts referrer domain for click tracking
-    assert_eq!(url_domain("https://twitter.com/share?url=test"), Some("twitter.com".into()));
-    assert_eq!(url_domain("https://www.linkedin.com/feed"), Some("www.linkedin.com".into()));
+    assert_eq!(
+        url_domain("https://twitter.com/share?url=test"),
+        Some("twitter.com".into())
+    );
+    assert_eq!(
+        url_domain("https://www.linkedin.com/feed"),
+        Some("www.linkedin.com".into())
+    );
     assert_eq!(url_domain("android-app://com.google.android"), None); // no http(s)
 }
 
