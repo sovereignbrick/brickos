@@ -77,7 +77,11 @@ const apiCacheRules: RuntimeCaching[] = [
 ];
 
 const serwist = new Serwist({
-  precacheEntries: self.__SW_MANIFEST,
+  precacheEntries: [
+    ...(self.__SW_MANIFEST ?? []),
+    // Precache the offline fallback HTML so it's available when network fails
+    { url: "/offline", revision: "1" },
+  ],
   skipWaiting: true,
   clientsClaim: true,
   navigationPreload: true,
