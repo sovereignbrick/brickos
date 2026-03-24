@@ -27,6 +27,11 @@ Thumbs.db
 # Crash reports
 crash-report-*.md
 
+# Playwright
+**/test-results/
+**/playwright-report/
+**/playwright/.cache/
+
 # Service Worker (generated at build time by @serwist/next)
 **/public/sw.js
 **/public/serwist-worker-*.js
