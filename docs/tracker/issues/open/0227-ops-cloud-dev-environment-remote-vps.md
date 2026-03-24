@@ -135,7 +135,69 @@ Move the full development environment to a cloud VPS so work can happen from any
 
 ## Decision
 
-Pending discussion. Key questions:
-- Do we need GUI access (browser testing) or is headless sufficient?
-- Should the existing desktop remain as a backup dev environment?
-- Budget constraint? (€15/month vs €25-40/month for Codespaces)
+**Option A selected (Hetzner Dev VPS).**
+
+## Multi-Region Strategy (US Customer)
+
+With the first US customer, latency and data residency become important. This aligns with design docs 021 (multi-tenant) and 022 (deployment architecture scaling).
+
+### Proposed Infrastructure
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                    Hetzner EU (Nuremberg)                │
+│                                                         │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐              │
+│  │ Dev VPS  │  │ Prod VPS │  │ Staging  │              │
+│  │ CPX31    │  │ (current)│  │ (current)│              │
+│  │ €15/mo   │  │          │  │          │              │
+│  └──────────┘  └──────────┘  └──────────┘              │
+│                                                         │
+│  EU customers, GDPR-compliant, current setup            │
+└─────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────┐
+│                 Hetzner US (Ashburn, VA)                 │
+│                                                         │
+│  ┌──────────┐  ┌──────────┐                             │
+│  │ Prod US  │  │ DB US    │                             │
+│  │ CPX31    │  │ Postgres │                             │
+│  │ €15/mo   │  │          │                             │
+│  └──────────┘  └──────────┘                             │
+│                                                         │
+│  US customers, data stays in US, low latency            │
+└─────────────────────────────────────────────────────────┘
+```
+
+### Key Decisions Needed
+
+1. **Single DB vs multi-region DB** — one Postgres per region (simpler, data residency) or cross-region replication?
+2. **Routing** — Cloudflare geo-routing to nearest backend, or explicit US/EU subdomains?
+3. **Deploy workflow** — deploy.sh targets both regions, or separate pipelines?
+4. **Feature flags** — US instance may need different compliance (HIPAA vs GDPR)?
+5. **Org isolation** — US customer gets own org_id, data isolated by RLS (already designed in 021)
+
+### Phase Plan
+
+| Phase | Action | Timeline |
+|-------|--------|----------|
+| 1 | Provision Hetzner EU dev VPS (€15/mo) | This week |
+| 2 | Migrate dev workflow to cloud VPS | This week |
+| 3 | Provision Hetzner US prod VPS for first US customer | When customer onboards |
+| 4 | Update deploy.sh for multi-region | With Phase 3 |
+| 5 | Cloudflare geo-routing or US subdomain | With Phase 3 |
+
+### Cost Projection
+
+| Item | Monthly |
+|------|---------|
+| Dev VPS (EU, CPX31) | €15 |
+| Prod EU VPS (existing) | ~€20 |
+| Prod US VPS (CPX31) | €15 |
+| **Total** | **~€50/mo** |
+
+### References
+
+- Design 021: Multi-Tenant Platform Offering (org isolation, RLS, roles)
+- Design 022: Deployment Architecture & Scaling (feature flags, modular monolith)
+- Current prod VPS: root@72.61.154.115 (EU)
