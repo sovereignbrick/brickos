@@ -23,7 +23,7 @@ export interface ApiFeaturesResponse {
   };
 }
 
-export const CATEGORY_ORDER = ["data", "ai", "reporting", "integrations", "security"];
+export const CATEGORY_ORDER = ["data", "ai", "reporting", "integrations", "security", "compliance", "support"];
 
 export const categoryLabels: Record<string, { en: string; de: string; color: string }> = {
   data: { en: "Data & Tracking", de: "Daten & Tracking", color: "#3b82f6" },
@@ -31,6 +31,8 @@ export const categoryLabels: Record<string, { en: string; de: string; color: str
   reporting: { en: "Reporting & Export", de: "Berichte & Export", color: "#10b981" },
   integrations: { en: "Integrations", de: "Integrationen", color: "#f59e0b" },
   security: { en: "Security", de: "Sicherheit", color: "#ef4444" },
+  compliance: { en: "Compliance", de: "Compliance", color: "#f97316" },
+  support: { en: "Support", de: "Support", color: "#06b6d4" },
 };
 
 export const FEATURE_TOOLTIP_KEYS: Record<string, string> = {
