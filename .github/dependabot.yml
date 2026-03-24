@@ -4,13 +4,35 @@ updates:
     directory: /
     schedule:
       interval: weekly
-    labels: [shared, security]
+      day: monday
+    labels: [shared, dependencies]
+    open-pull-requests-limit: 5
+    groups:
+      rust-minor-patch:
+        update-types: [minor, patch]
+    ignore:
+      - dependency-name: "*"
+        update-types: [version-update:semver-major]
+
   - package-ecosystem: npm
     directory: /apps/health/sovereign-health/frontend
     schedule:
       interval: weekly
-    labels: [app:health]
+      day: monday
+    labels: [app:health, dependencies]
+    open-pull-requests-limit: 5
+    groups:
+      npm-minor-patch:
+        update-types: [minor, patch]
+    ignore:
+      - dependency-name: "*"
+        update-types: [version-update:semver-major]
+
   - package-ecosystem: github-actions
     directory: /
     schedule:
-      interval: weekly
+      interval: monthly
+    labels: [shared, dependencies]
+    groups:
+      actions-all:
+        patterns: ["*"]
