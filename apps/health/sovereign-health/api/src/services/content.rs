@@ -68,7 +68,22 @@ pub async fn get_markers(
                LEFT JOIN marker_translations t ON t.marker_id = m.id AND t.locale = $1
                LEFT JOIN marker_translations te ON te.marker_id = m.id AND te.locale = 'en'
                WHERE z.zone_slug = $2
-               ORDER BY m.display_order"#,
+
+               UNION ALL
+
+               SELECT cm.id, cm.marker_slug, NULL AS unit_canonical, 1000 + cm.display_order,
+                      z.zone_slug,
+                      true AS is_calculated,
+                      cm.marker_name AS name,
+                      cm.formula_description AS description,
+                      NULL AS tooltip,
+                      NULL AS why_it_matters,
+                      NULL AS when_to_worry
+               FROM calculated_markers cm
+               JOIN zones z ON z.id = cm.zone_id
+               WHERE z.zone_slug = $2
+
+               ORDER BY display_order"#,
         )
         .bind(locale)
         .bind(zone)
@@ -88,7 +103,21 @@ pub async fn get_markers(
                JOIN zones z ON z.id = m.zone_id
                LEFT JOIN marker_translations t ON t.marker_id = m.id AND t.locale = $1
                LEFT JOIN marker_translations te ON te.marker_id = m.id AND te.locale = 'en'
-               ORDER BY m.display_order"#,
+
+               UNION ALL
+
+               SELECT cm.id, cm.marker_slug, NULL AS unit_canonical, 1000 + cm.display_order,
+                      z.zone_slug,
+                      true AS is_calculated,
+                      cm.marker_name AS name,
+                      cm.formula_description AS description,
+                      NULL AS tooltip,
+                      NULL AS why_it_matters,
+                      NULL AS when_to_worry
+               FROM calculated_markers cm
+               JOIN zones z ON z.id = cm.zone_id
+
+               ORDER BY display_order"#,
         )
         .bind(locale)
         .fetch_all(pool)
