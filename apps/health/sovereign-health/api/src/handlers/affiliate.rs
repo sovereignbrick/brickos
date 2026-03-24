@@ -802,7 +802,10 @@ pub async fn set_vanity(
             "error": { "code": "INVALID_CODE", "message": "Code must be 3-30 characters" }
         })));
     }
-    if !code.chars().all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '-') {
+    if !code
+        .chars()
+        .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '-')
+    {
         return Ok(HttpResponse::BadRequest().json(json!({
             "error": { "code": "INVALID_CODE", "message": "Code must be lowercase alphanumeric or hyphens" }
         })));
@@ -812,7 +815,9 @@ pub async fn set_vanity(
             "error": { "code": "INVALID_CODE", "message": "Code must not start or end with a hyphen" }
         })));
     }
-    let reserved = ["api", "admin", "health", "finance", "app", "docs", "status", "new", "discover"];
+    let reserved = [
+        "api", "admin", "health", "finance", "app", "docs", "status", "new", "discover",
+    ];
     if reserved.contains(&code.as_str()) {
         return Ok(HttpResponse::BadRequest().json(json!({
             "error": { "code": "RESERVED_CODE", "message": "This code is reserved" }

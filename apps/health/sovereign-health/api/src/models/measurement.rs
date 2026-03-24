@@ -20,8 +20,8 @@ pub struct CreateMeasurementRequest {
     pub sleep_quality: Option<String>,
     pub stress_level: Option<i32>, // INT 1-10
     pub lifestyle_note: Option<String>,
-    pub client_id: Option<String>,         // PWA: multi-device identification
-    pub idempotency_key: Option<String>,   // PWA: replay-safe offline writes
+    pub client_id: Option<String>, // PWA: multi-device identification
+    pub idempotency_key: Option<String>, // PWA: replay-safe offline writes
 }
 
 #[derive(Debug, Deserialize)]

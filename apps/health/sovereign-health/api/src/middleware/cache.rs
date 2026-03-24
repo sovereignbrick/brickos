@@ -97,10 +97,8 @@ where
             // Only set if not already set by the handler
             if !res.headers().contains_key(header::CACHE_CONTROL) {
                 if let Some(value) = cache_value_for(&method, &path) {
-                    res.headers_mut().insert(
-                        header::CACHE_CONTROL,
-                        HeaderValue::from_static(value),
-                    );
+                    res.headers_mut()
+                        .insert(header::CACHE_CONTROL, HeaderValue::from_static(value));
                 }
             }
 

@@ -74,10 +74,8 @@ async fn main() -> std::io::Result<()> {
         .connect_lazy_with(connect_opts);
 
     // Create notifier early so migrations and crons can use it
-    let notify_config =
-        sovereign_health_backend::services::notify::NotifyConfig::from_env();
-    let notifier =
-        sovereign_health_backend::services::notify::Notifier::new(notify_config.clone());
+    let notify_config = sovereign_health_backend::services::notify::NotifyConfig::from_env();
+    let notifier = sovereign_health_backend::services::notify::Notifier::new(notify_config.clone());
 
     // Run migrations on startup (non-fatal if DB is unavailable)
     {

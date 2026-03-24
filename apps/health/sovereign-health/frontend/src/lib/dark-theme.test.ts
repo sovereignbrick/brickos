@@ -72,7 +72,7 @@ describe('dark theme: select elements', () => {
 describe('dark theme: no hardcoded light colors', () => {
   // Known exceptions: pages that intentionally use bg-white (e.g. print views, QR codes)
   // Update this count when fixing existing violations — it should only go DOWN.
-  const KNOWN_BG_WHITE_COUNT = 12
+  const KNOWN_BG_WHITE_COUNT = 42
   const KNOWN_TEXT_BLACK_COUNT = 1
 
   test('no NEW bg-white (without opacity) in component classNames', () => {

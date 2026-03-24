@@ -25,10 +25,7 @@ pub struct SubscriptionKeys {
 /// GET /api/v1/push/vapid-key
 /// Returns the VAPID public key for client-side push subscription.
 pub async fn vapid_key(config: web::Data<Config>) -> Result<HttpResponse, AppError> {
-    let key = config
-        .vapid_public_key
-        .as_deref()
-        .unwrap_or_default();
+    let key = config.vapid_public_key.as_deref().unwrap_or_default();
 
     Ok(HttpResponse::Ok().json(json!({
         "data": { "vapid_public_key": key },
@@ -80,13 +77,11 @@ pub async fn unsubscribe(
     auth: AuthenticatedUser,
     body: web::Json<UnsubscribeRequest>,
 ) -> Result<HttpResponse, AppError> {
-    sqlx::query(
-        "DELETE FROM push_subscriptions WHERE user_id = $1 AND endpoint = $2",
-    )
-    .bind(auth.user_id)
-    .bind(&body.endpoint)
-    .execute(pool.get_ref())
-    .await?;
+    sqlx::query("DELETE FROM push_subscriptions WHERE user_id = $1 AND endpoint = $2")
+        .bind(auth.user_id)
+        .bind(&body.endpoint)
+        .execute(pool.get_ref())
+        .await?;
 
     Ok(HttpResponse::Ok().json(json!({
         "data": { "unsubscribed": true },

@@ -56,7 +56,8 @@ pub async fn changes(
     let mut medications = Vec::new();
 
     if tables.contains(&"measurements") {
-        measurements = fetch_measurement_changes(pool.get_ref(), &enc, auth.user_id, since, limit).await?;
+        measurements =
+            fetch_measurement_changes(pool.get_ref(), &enc, auth.user_id, since, limit).await?;
     }
 
     if tables.contains(&"measurement_templates") {
