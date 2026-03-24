@@ -91,22 +91,28 @@ export function CellValue({ included, label }: { included: boolean; label: strin
 
 export function InfoTooltip({ text }: { text: string }) {
   const triggerRef = useRef<HTMLSpanElement>(null);
-  const [flipToBottom, setFlipToBottom] = useState(false);
-  const [alignLeft, setAlignLeft] = useState(false);
+  const tooltipRef = useRef<HTMLSpanElement>(null);
+  const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
 
   if (!text) return null;
 
   const handleMouseEnter = () => {
     if (!triggerRef.current) return;
     const rect = triggerRef.current.getBoundingClientRect();
-    setFlipToBottom(rect.top < 80);
-    setAlignLeft(window.innerWidth - rect.left < 500);
+    const tooltipW = 420;
+    // Center horizontally on the icon, but clamp to viewport
+    let left = rect.left + rect.width / 2 - tooltipW / 2;
+    left = Math.max(8, Math.min(left, window.innerWidth - tooltipW - 8));
+    // Position above the icon, or below if near top
+    const above = rect.top > 160;
+    const top = above ? rect.top - 8 : rect.bottom + 8;
+    setPos({ top, left });
   };
 
   return (
     <span
       ref={triggerRef}
-      className="group relative ml-1 inline-flex cursor-help"
+      className="group ml-1 inline-flex cursor-help"
       onMouseEnter={handleMouseEnter}
     >
       <svg width="14" height="14" viewBox="0 0 16 16" fill="none" className="text-[var(--muted)] opacity-60 group-hover:opacity-100 transition-opacity">
@@ -114,10 +120,15 @@ export function InfoTooltip({ text }: { text: string }) {
         <text x="8" y="12" textAnchor="middle" fill="currentColor" fontSize="10" fontWeight="600">i</text>
       </svg>
       <span
-        className={`pointer-events-none absolute z-50 mb-2 rounded-lg bg-[var(--card)] border border-[var(--border)] px-4 py-3 text-xs leading-relaxed text-[var(--foreground)] opacity-0 shadow-xl transition-opacity group-hover:opacity-100 text-left ${
-          flipToBottom ? "top-full mt-2" : "bottom-full"
-        } ${alignLeft ? "left-0" : "left-1/2 -translate-x-1/2"}`}
-        style={{ width: "420px", maxWidth: "90vw", whiteSpace: "normal", overflowWrap: "break-word" }}
+        ref={tooltipRef}
+        className="pointer-events-none fixed z-[9999] rounded-lg bg-[var(--card)] border border-[var(--border)] px-4 py-3 text-xs leading-relaxed text-[var(--foreground)] opacity-0 shadow-xl transition-opacity group-hover:opacity-100 text-left"
+        style={{
+          width: "420px",
+          maxWidth: "90vw",
+          whiteSpace: "normal",
+          overflowWrap: "break-word",
+          ...(pos ? { top: `${pos.top}px`, left: `${pos.left}px`, transform: "translateY(-100%)" } : {}),
+        }}
       >
         {text}
       </span>
