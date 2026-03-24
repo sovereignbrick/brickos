@@ -68,6 +68,14 @@ These are the journeys that must work perfectly during a live presentation:
 | — | docs: product comparison — vs Apple Health, vs Cronometer, vs Gyroscope | 2 | Docs |
 | | **P3 Subtotal** | **9** | |
 
+### P4 — Automated Testing & Quality Gates
+
+| # | Title | Points | Area |
+|---|-------|--------|------|
+| #72 | feat: Playwright E2E test suite — core user journeys | 5 | Testing |
+| #232 | ops: Lighthouse audit + fix issues (target > 90 all categories) | 3 | Testing |
+| | **P4 Subtotal** | **8** | |
+
 ## Demo Account Preparation
 
 The production demo must showcase the product's full capability:
@@ -145,7 +153,8 @@ open https://brickos.io/r/sovereignhealth
 | P1 (UX polish) | 12 pts |
 | P2 (security) | 8 pts |
 | P3 (documentation) | 9 pts |
-| **Total** | **40 pts** |
+| P4 (automated testing) | 8 pts |
+| **Total** | **48 pts** |
 
 ## Success Criteria
 
