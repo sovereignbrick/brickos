@@ -7,7 +7,8 @@ import { api } from '@/lib/api'
 import { toast } from '@/lib/toast'
 import { InfoTooltip } from '@/components/info-tooltip'
 import { useInstall } from '@/lib/install-context'
-import { Download, Check } from 'lucide-react'
+import { usePush } from '@/lib/push-context'
+import { Download, Check, Bell, BellOff } from 'lucide-react'
 import type { UserProfile, UnitPreferences, LifestyleDefaults } from '@/lib/types'
 import { COUNTRIES } from '../countries'
 import { getCountryDefaults, Field, FieldWithInfo } from './shared'
@@ -28,12 +29,14 @@ export function ProfileTab({
 }) {
   const t = useTranslations('settings.profile')
   const tInstall = useTranslations('install')
+  const tPush = useTranslations('push')
   const tToast = useTranslations('settings.toast')
   const tCommon = useTranslations('common')
   const tFasting = useTranslations('fastingProtocols')
   const tSleep = useTranslations('sleepQuality')
   const tStress = useTranslations('stressLevel')
   const { canInstall, isInstalled, promptInstall } = useInstall()
+  const { isSupported: pushSupported, permission: pushPermission, isSubscribed: pushSubscribed, subscribe: pushSubscribe, unsubscribe: pushUnsubscribe } = usePush()
   const [form, setForm] = useState(profile)
   const [lForm, setLForm] = useState(lifestyle)
   const [uForm, setUForm] = useState(units)
@@ -408,6 +411,35 @@ export function ProfileTab({
               <Check className="h-4 w-4" />
               {tInstall('installed')}
             </span>
+          )}
+        </div>
+      )}
+
+      {/* Push Notifications */}
+      {pushSupported && (
+        <div className="border border-border rounded-lg p-4 flex items-center justify-between">
+          <div>
+            <h3 className="text-sm font-medium">{tPush('title')}</h3>
+            <p className="text-xs text-muted-foreground mt-1">{tPush('description')}</p>
+          </div>
+          {pushPermission === 'denied' ? (
+            <span className="text-xs text-muted-foreground">{tPush('denied')}</span>
+          ) : pushSubscribed ? (
+            <button
+              onClick={pushUnsubscribe}
+              className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground border border-border px-4 py-2 rounded-lg transition-colors"
+            >
+              <BellOff className="h-4 w-4" />
+              {tPush('disable')}
+            </button>
+          ) : (
+            <button
+              onClick={pushSubscribe}
+              className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+            >
+              <Bell className="h-4 w-4" />
+              {tPush('enable')}
+            </button>
           )}
         </div>
       )}

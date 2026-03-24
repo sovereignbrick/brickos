@@ -6,5 +6,6 @@ pub mod doctor_chat;
 pub mod lab;
 pub mod marker;
 pub mod measurement;
+pub mod sync;
 pub mod user;
 pub mod zone;

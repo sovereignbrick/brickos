@@ -69,6 +69,10 @@ pub struct Config {
     // Anthropic API
     pub anthropic_api_url: String,
     pub anthropic_api_version: String,
+
+    // Push notifications (VAPID)
+    pub vapid_public_key: Option<String>,
+    pub vapid_private_key: Option<String>,
 }
 
 impl Config {
@@ -155,6 +159,10 @@ impl Config {
             // Anthropic API
             anthropic_api_url: env_or("ANTHROPIC_API_URL", "https://api.anthropic.com/v1/messages"),
             anthropic_api_version: env_or("ANTHROPIC_API_VERSION", "2023-06-01"),
+
+            // Push notifications
+            vapid_public_key: std::env::var("VAPID_PUBLIC_KEY").ok(),
+            vapid_private_key: std::env::var("VAPID_PRIVATE_KEY").ok(),
         })
     }
 
@@ -203,6 +211,8 @@ impl Config {
             grace_period_days: 7,
             anthropic_api_url: "https://api.anthropic.com".into(),
             anthropic_api_version: "2023-06-01".into(),
+            vapid_public_key: None,
+            vapid_private_key: None,
         }
     }
 

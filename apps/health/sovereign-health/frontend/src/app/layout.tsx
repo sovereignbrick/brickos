@@ -39,6 +39,8 @@ import { ReferralTracker } from '@/components/referral-tracker'
 import { InstallProvider } from '@/lib/install-context'
 import { OfflineProvider } from '@/lib/offline-context'
 import { OfflineBanner } from '@/components/offline-banner'
+import { SyncProvider } from '@/lib/sync-context'
+import { PushProvider } from '@/lib/push-context'
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -109,6 +111,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <AuthProvider>
               <InstallProvider>
               <OfflineProvider>
+              <SyncProvider>
+              <PushProvider>
               <ContentProvider initialLocale={locale}>
                 <Suspense>
                   <DemoProfileProvider>
@@ -127,6 +131,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                   </DemoProfileProvider>
                 </Suspense>
               </ContentProvider>
+              </PushProvider>
+              </SyncProvider>
               </OfflineProvider>
               </InstallProvider>
             </AuthProvider>

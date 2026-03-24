@@ -27,6 +27,10 @@ export function InstallProvider({ children }: { children: ReactNode }) {
     // Check if already installed (standalone mode)
     const mq = window.matchMedia('(display-mode: standalone)')
     setIsInstalled(mq.matches)
+    // Request persistent storage if already installed
+    if (mq.matches && navigator.storage?.persist) {
+      navigator.storage.persist()
+    }
     const handler = (e: MediaQueryListEvent) => setIsInstalled(e.matches)
     mq.addEventListener('change', handler)
 
@@ -48,6 +52,9 @@ export function InstallProvider({ children }: { children: ReactNode }) {
     const result = await deferredPrompt.prompt()
     if (result.outcome === 'accepted') {
       setIsInstalled(true)
+      if (navigator.storage?.persist) {
+        navigator.storage.persist()
+      }
     }
     setDeferredPrompt(null)
   }, [deferredPrompt])

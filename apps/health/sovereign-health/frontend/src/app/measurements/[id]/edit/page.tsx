@@ -10,6 +10,7 @@ import { Breadcrumb } from '@/components/breadcrumb'
 import { StatusBadge } from '@/components/status-badge'
 import { computeStatus, DEFAULT_RANGES } from '@/lib/status'
 import { toast } from '@/lib/toast'
+import { useOffline } from '@/lib/offline-context'
 import { formatDate } from '@/lib/date-format'
 import { DateTimePicker } from '@/components/date-time-picker'
 import Link from 'next/link'
@@ -32,6 +33,7 @@ const STRESS_OPTIONS = [
 
 export default function EditMeasurementPage() {
   const { user, loading } = useAuth()
+  const { isOffline } = useOffline()
   const router = useRouter()
   const params = useParams()
   const id = params.id as string
@@ -364,7 +366,7 @@ export default function EditMeasurementPage() {
           <button
             type="button"
             onClick={handleSave}
-            disabled={saving}
+            disabled={saving || isOffline}
             className="flex-1 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white rounded-xl py-3 text-sm font-medium transition-colors"
           >
             {saving ? tCommon('saving') : t('saveChanges')}

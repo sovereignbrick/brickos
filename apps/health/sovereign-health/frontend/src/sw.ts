@@ -93,3 +93,38 @@ const serwist = new Serwist({
 });
 
 serwist.addEventListeners();
+
+// --- Push Notifications ---
+
+self.addEventListener("push", (event: PushEvent) => {
+  if (!event.data) return;
+  try {
+    const data = event.data.json();
+    event.waitUntil(
+      self.registration.showNotification(data.title || "Sovereign Health", {
+        body: data.body || "",
+        icon: "/android-chrome-192x192.png",
+        badge: "/favicon-32x32.png",
+        data: { url: data.url || "/dashboard" },
+      })
+    );
+  } catch {
+    // Invalid push payload
+  }
+});
+
+self.addEventListener("notificationclick", (event: NotificationEvent) => {
+  event.notification.close();
+  const url = event.notification.data?.url || "/dashboard";
+  event.waitUntil(
+    self.clients.matchAll({ type: "window" }).then((clientList) => {
+      for (const client of clientList) {
+        if ("focus" in client) {
+          client.focus();
+          return (client as WindowClient).navigate(url);
+        }
+      }
+      return self.clients.openWindow(url);
+    })
+  );
+});

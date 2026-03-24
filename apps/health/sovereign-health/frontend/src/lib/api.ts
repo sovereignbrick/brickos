@@ -175,6 +175,25 @@ export const api = {
     delete: (id: string) =>
       request<{ data: { deleted: boolean } }>(`/measurements/${id}`, { method: 'DELETE' }),
   },
+  sync: {
+    version: () =>
+      request<{ data: { current_version: number } }>('/sync/version'),
+    changes: (sinceVersion: number, tables?: string) => {
+      const params = new URLSearchParams({ since_version: String(sinceVersion) })
+      if (tables) params.set('tables', tables)
+      return request<{ data: { measurements: Array<{ id: string; [key: string]: unknown }>; measurement_templates: unknown[]; user_medications: unknown[]; current_version: number } }>(
+        `/sync/changes?${params}`
+      )
+    },
+  },
+  push: {
+    vapidKey: () =>
+      request<{ data: { vapid_public_key: string } }>('/push/vapid-key'),
+    subscribe: (body: { endpoint: string; keys: { p256dh: string; auth: string } }) =>
+      request<{ data: { subscribed: boolean } }>('/push/subscribe', { method: 'POST', body: JSON.stringify(body) }),
+    unsubscribe: (body: { endpoint: string }) =>
+      request<{ data: { unsubscribed: boolean } }>('/push/unsubscribe', { method: 'DELETE', body: JSON.stringify(body) }),
+  },
   zones: {
     list: () =>
       request<{ data: import('./types').Zone[] }>('/zones'),

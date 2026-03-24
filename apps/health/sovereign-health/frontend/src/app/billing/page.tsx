@@ -6,6 +6,7 @@ import { api } from '@/lib/api'
 import { APP_CONFIG } from '@/lib/config'
 import { IS_OSS } from '@/lib/mode'
 import { toast } from '@/lib/toast'
+import { useOffline } from '@/lib/offline-context'
 import { useTranslations } from 'next-intl'
 
 interface Subscription {
@@ -75,6 +76,7 @@ function formatCents(cents: number): string {
 
 function BillingContent() {
   const searchParams = useSearchParams()
+  const { isOffline } = useOffline()
   const t = useTranslations('billing')
   const tCommon = useTranslations('common')
   const [loading, setLoading] = useState(true)
@@ -147,6 +149,7 @@ function BillingContent() {
   }
 
   const handlePortal = async () => {
+    if (isOffline) return
     try {
       const res = await api.billing.portal()
       window.location.href = res.data.portal_url
@@ -156,7 +159,7 @@ function BillingContent() {
   }
 
   const handleChangePlan = async (newTier: string) => {
-    if (!subscription) return
+    if (!subscription || isOffline) return
     setChangingPlan(true)
     try {
       const res = await api.billing.changePlan(newTier, subscription.billing_interval)
@@ -173,7 +176,7 @@ function BillingContent() {
   }
 
   const handleChangeInterval = async () => {
-    if (!subscription) return
+    if (!subscription || isOffline) return
     setChangingInterval(true)
     const newInterval = subscription.billing_interval === 'annual' ? 'monthly' : 'annual'
     try {

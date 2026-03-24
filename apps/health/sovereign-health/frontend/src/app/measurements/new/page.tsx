@@ -5,6 +5,8 @@ import { useAuth } from '@/lib/auth-context'
 import { useRouter } from 'next/navigation'
 import { api } from '@/lib/api'
 import { toast } from '@/lib/toast'
+import { useOffline } from '@/lib/offline-context'
+import { useSync } from '@/lib/sync-context'
 import { Navbar } from '@/components/layout/navbar'
 import { Footer } from '@/components/layout/footer'
 import { CalculatedMarkerCard } from '@/components/calculated-marker-card'
@@ -243,8 +245,11 @@ const STRESS_OPTIONS = [
 
 export default function NewMeasurementPage() {
   const { user, loading, isDemo } = useAuth()
+  const { isOffline } = useOffline()
+  const { queueWrite } = useSync()
   const router = useRouter()
   const t = useTranslations('newMeasurement')
+  const tSync = useTranslations('sync')
   const tCommon = useTranslations('common')
   const tNav = useTranslations('nav')
   const tMeasurements = useTranslations('measurements')
@@ -641,28 +646,35 @@ export default function NewMeasurementPage() {
       return
     }
 
+    const payload = {
+      measured_at: new Date(measuredAt).toISOString(),
+      values: measurementValues,
+      device_id: selectedDeviceId || undefined,
+      protocol_tag: protocol,
+      diet_protocol: dietProtocol || undefined,
+      fasting_protocol: protocol === 'fasting' ? fastingProtocol : undefined,
+      fast_start_datetime: protocol === 'fasting' && fastStart ? new Date(fastStart).toISOString() : undefined,
+      meal_timing_tag: mealTiming,
+      exercise_activity: exercise || undefined,
+      sleep_hours: sleepHours ? parseFloat(sleepHours) : undefined,
+      sleep_quality: sleepQuality || undefined,
+      stress_level: stressLevel ? parseInt(stressLevel) : undefined,
+      lifestyle_note: note || undefined,
+    }
+
     setSubmitting(true)
     try {
-      await api.measurements.create({
-        measured_at: new Date(measuredAt).toISOString(),
-        values: measurementValues,
-        device_id: selectedDeviceId || undefined,
-        protocol_tag: protocol,
-        diet_protocol: dietProtocol || undefined,
-        fasting_protocol: protocol === 'fasting' ? fastingProtocol : undefined,
-        fast_start_datetime: protocol === 'fasting' && fastStart ? new Date(fastStart).toISOString() : undefined,
-        meal_timing_tag: mealTiming,
-        exercise_activity: exercise || undefined,
-        sleep_hours: sleepHours ? parseFloat(sleepHours) : undefined,
-        sleep_quality: sleepQuality || undefined,
-        stress_level: stressLevel ? parseInt(stressLevel) : undefined,
-        lifestyle_note: note || undefined,
-      })
-      // Touch active template to update last_used_at
-      if (activeTemplate) {
-        api.templates.touch(activeTemplate).catch(() => {})
+      if (isOffline) {
+        await queueWrite('measurements', 'create', payload)
+        toast.success(tSync('savedOffline'))
+      } else {
+        await api.measurements.create(payload)
+        // Touch active template to update last_used_at
+        if (activeTemplate) {
+          api.templates.touch(activeTemplate).catch(() => {})
+        }
+        toast.success(t('saved'))
       }
-      toast.success(t('saved'))
       router.push('/dashboard')
     } catch (err) {
       toast.error(err instanceof Error ? err.message : tCommon('saveFailed'))

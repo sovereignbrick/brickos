@@ -2,6 +2,7 @@
 
 import { useState, useRef, KeyboardEvent, useEffect } from 'react'
 import { APP_CONFIG } from '@/lib/config'
+import { useOffline } from '@/lib/offline-context'
 import { useTranslations } from 'next-intl'
 
 interface ChatInputProps {
@@ -23,6 +24,7 @@ function isTierAtLeast(userTier: string, minTier: string): boolean {
 
 export function ChatInput({ onSend, onFileUpload, disabled, quotaExhausted: rawQuotaExhausted, tier }: ChatInputProps) {
   const t = useTranslations('doctorChat')
+  const { isOffline } = useOffline()
   // Never show exhausted state for unlimited tiers
   const isUnlimited = tier && UNLIMITED_TIERS.includes(tier)
   const quotaExhausted = isUnlimited ? false : rawQuotaExhausted
@@ -173,7 +175,7 @@ export function ChatInput({ onSend, onFileUpload, disabled, quotaExhausted: rawQ
         </div>
         <button
           onClick={handleSend}
-          disabled={!canSend}
+          disabled={!canSend || isOffline}
           className="px-4 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
         >
           {t('send')}

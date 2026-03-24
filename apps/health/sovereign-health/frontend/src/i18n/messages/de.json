@@ -1588,5 +1588,19 @@
     "description": "Zum Startbildschirm hinzufügen für schnellen Zugriff.",
     "button": "App installieren",
     "installed": "App ist installiert"
+  },
+  "sync": {
+    "savedOffline": "Offline gespeichert — wird bei Verbindung synchronisiert",
+    "pendingSync": "Synchronisierung ausstehend",
+    "syncing": "Synchronisiere..."
+  },
+  "push": {
+    "title": "Push-Benachrichtigungen",
+    "description": "Erhalte Erinnerungen für Messungen und Updates.",
+    "enable": "Benachrichtigungen aktivieren",
+    "disable": "Benachrichtigungen deaktivieren",
+    "enabled": "Benachrichtigungen aktiviert",
+    "denied": "Benachrichtigungen vom Browser blockiert",
+    "unsupported": "Push-Benachrichtigungen nicht unterstützt"
   }
 }

@@ -227,6 +227,32 @@ pub fn configure_routes(cfg: &mut actix_web::web::ServiceConfig) {
             ),
     )
     .service(
+        actix_web::web::scope("/sync")
+            .route(
+                "/version",
+                actix_web::web::get().to(handlers::sync::version),
+            )
+            .route(
+                "/changes",
+                actix_web::web::get().to(handlers::sync::changes),
+            ),
+    )
+    .service(
+        actix_web::web::scope("/push")
+            .route(
+                "/vapid-key",
+                actix_web::web::get().to(handlers::push::vapid_key),
+            )
+            .route(
+                "/subscribe",
+                actix_web::web::post().to(handlers::push::subscribe),
+            )
+            .route(
+                "/unsubscribe",
+                actix_web::web::delete().to(handlers::push::unsubscribe),
+            ),
+    )
+    .service(
         actix_web::web::scope("/markers")
             .route("", actix_web::web::get().to(handlers::markers::list))
             .route(

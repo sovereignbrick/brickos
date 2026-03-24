@@ -130,19 +130,21 @@ pub async fn create(
         )
         .await?;
 
-        // Insert measurement
+        // Insert measurement (with idempotency support for PWA offline sync)
         let insert_row = sqlx::query(
             r#"INSERT INTO measurements (
                 user_id, marker_id, timestamp, value_canonical, unit_canonical, status,
                 protocol_tag, diet_protocol, fasting_protocol, fast_start_datetime, fasting_hours,
                 meal_timing_tag, exercise_activity, sleep_hours, sleep_quality, stress_level, lifestyle_note,
-                device_id
+                device_id, client_id, idempotency_key
             ) VALUES (
                 $1, $2, $3, $4, $5, $6,
                 $7, $8, $9, $10, $11,
                 $12, $13, $14, $15, $16, $17,
-                $18
-            ) RETURNING id"#,
+                $18, $19, $20
+            )
+            ON CONFLICT (idempotency_key) WHERE idempotency_key IS NOT NULL DO NOTHING
+            RETURNING id"#,
         )
         .bind(auth.user_id)
         .bind(marker_id)
@@ -162,10 +164,26 @@ pub async fn create(
         .bind(body.stress_level)
         .bind(enc.encrypt_opt(body.lifestyle_note.as_deref()))
         .bind(body.device_id)
-        .fetch_one(pool.get_ref())
+        .bind(&body.client_id)
+        .bind(&body.idempotency_key)
+        .fetch_optional(pool.get_ref())
         .await?;
 
-        let measurement_id: Uuid = insert_row.try_get("id").map_err(|_| AppError::Internal)?;
+        // If ON CONFLICT hit (idempotent replay), fetch existing row
+        let measurement_id: Uuid = if let Some(row) = insert_row {
+            row.try_get("id").map_err(|_| AppError::Internal)?
+        } else if let Some(ref key) = body.idempotency_key {
+            let existing = sqlx::query(
+                "SELECT id FROM measurements WHERE idempotency_key = $1 AND user_id = $2",
+            )
+            .bind(key)
+            .bind(auth.user_id)
+            .fetch_one(pool.get_ref())
+            .await?;
+            existing.try_get("id").map_err(|_| AppError::Internal)?
+        } else {
+            return Err(AppError::Internal);
+        };
 
         values_map.insert(mv.marker_slug.clone(), mv.value);
 
@@ -772,7 +790,7 @@ pub async fn delete(
     let measurement_id = path.into_inner();
 
     let row = sqlx::query(
-        "UPDATE measurements SET is_deleted = true, updated_at = now()
+        "UPDATE measurements SET is_deleted = true, deleted_at = now(), updated_at = now()
          WHERE id = $1 AND user_id = $2 AND is_deleted = false
          RETURNING id",
     )

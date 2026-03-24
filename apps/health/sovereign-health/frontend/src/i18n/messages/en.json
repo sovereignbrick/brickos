@@ -1588,5 +1588,19 @@
     "description": "Add to your home screen for quick access.",
     "button": "Install App",
     "installed": "App is installed"
+  },
+  "sync": {
+    "savedOffline": "Saved offline — will sync when connected",
+    "pendingSync": "Pending sync",
+    "syncing": "Syncing..."
+  },
+  "push": {
+    "title": "Push Notifications",
+    "description": "Get notified about measurement reminders and updates.",
+    "enable": "Enable notifications",
+    "disable": "Disable notifications",
+    "enabled": "Notifications enabled",
+    "denied": "Notifications blocked by browser",
+    "unsupported": "Push notifications not supported"
   }
 }
