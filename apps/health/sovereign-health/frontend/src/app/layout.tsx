@@ -37,6 +37,8 @@ import { APP_NAME } from '@/lib/mode'
 import { OnboardingTracker } from '@/components/onboarding-tracker'
 import { ReferralTracker } from '@/components/referral-tracker'
 import { InstallProvider } from '@/lib/install-context'
+import { OfflineProvider } from '@/lib/offline-context'
+import { OfflineBanner } from '@/components/offline-banner'
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -106,9 +108,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <ThemeProvider>
             <AuthProvider>
               <InstallProvider>
+              <OfflineProvider>
               <ContentProvider initialLocale={locale}>
                 <Suspense>
                   <DemoProfileProvider>
+                    <OfflineBanner />
                     {process.env.NEXT_PUBLIC_ENVIRONMENT === 'staging' && (
                       <div className="fixed top-0 left-0 z-[9999] pointer-events-none">
                         <div className="bg-orange-500 text-black text-[10px] font-bold px-8 py-0.5 -rotate-45 -translate-x-[30%] translate-y-[40%]">
@@ -123,6 +127,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                   </DemoProfileProvider>
                 </Suspense>
               </ContentProvider>
+              </OfflineProvider>
               </InstallProvider>
             </AuthProvider>
           </ThemeProvider>

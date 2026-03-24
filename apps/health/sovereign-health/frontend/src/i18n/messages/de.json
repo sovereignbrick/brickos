@@ -1580,7 +1580,8 @@
   "offline": {
     "title": "Du bist offline",
     "description": "Überprüfe deine Internetverbindung und versuche es erneut.",
-    "retry": "Erneut versuchen"
+    "retry": "Erneut versuchen",
+    "banner": "Du bist offline — gespeicherte Daten werden angezeigt"
   },
   "install": {
     "title": "Sovereign Health installieren",

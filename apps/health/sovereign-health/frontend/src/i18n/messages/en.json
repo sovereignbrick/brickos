@@ -1580,7 +1580,8 @@
   "offline": {
     "title": "You're offline",
     "description": "Check your internet connection and try again.",
-    "retry": "Retry"
+    "retry": "Retry",
+    "banner": "You're offline — showing cached data"
   },
   "install": {
     "title": "Install Sovereign Health",
