@@ -300,17 +300,9 @@ export default function AffiliatePage() {
               {isVanityEligible && (
                 <div className="pt-3 border-t border-border space-y-2">
                   <h2 className="text-sm font-medium text-muted-foreground">{t('vanityCode')}</h2>
-                  {vanityLink && !editingVanity ? (
-                    <div className="flex items-center gap-2">
-                      <div className="flex-1 bg-accent border rounded-lg px-3 py-2.5 text-sm font-mono truncate select-all">
-                        {vanityLink}
-                      </div>
-                      <button
-                        onClick={() => { setEditingVanity(true); setVanityAvailable(null) }}
-                        className="text-xs text-muted-foreground hover:text-foreground border border-border px-2.5 py-2 rounded-lg transition-colors shrink-0"
-                      >
-                        {t('vanityChange')}
-                      </button>
+                  {vanityLink ? (
+                    <div className="flex-1 bg-accent border rounded-lg px-3 py-2.5 text-sm font-mono truncate select-all">
+                      {vanityLink}
                     </div>
                   ) : (
                     <div className="space-y-1.5">
@@ -331,7 +323,7 @@ export default function AffiliatePage() {
                         />
                         <button
                           onClick={handleSaveVanity}
-                          disabled={savingVanity || vanityCode.length < 3 || vanityAvailable === false}
+                          disabled={savingVanity || vanityCode.length < 3 || vanityAvailable !== true}
                           className="bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-sm font-medium px-3 py-2 rounded-lg transition-colors shrink-0"
                         >
                           {savingVanity ? '...' : tCommon('save')}
@@ -340,6 +332,7 @@ export default function AffiliatePage() {
                       {checkingVanity && <p className="text-xs text-muted-foreground">{t('vanityChecking')}</p>}
                       {vanityAvailable === true && <p className="text-xs text-green-400">{t('vanityAvailable')}</p>}
                       {vanityAvailable === false && <p className="text-xs text-red-400">{vanityReason || t('vanityTaken')}</p>}
+                      <p className="text-xs text-yellow-500/80">{t('vanityPermanent')}</p>
                     </div>
                   )}
                   <p className="text-xs text-muted-foreground/70">{t('vanityDescription')}</p>

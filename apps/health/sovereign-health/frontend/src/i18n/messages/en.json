@@ -1161,6 +1161,7 @@
     "vanityChecking": "Checking availability...",
     "vanityAvailable": "Available!",
     "vanityTaken": "This code is already taken.",
+    "vanityPermanent": "This choice is permanent and cannot be changed later.",
     "qrCode": "Your QR Code",
     "qrCodeDesc": "Share this QR code. Scanning opens your personal referral link.",
     "downloadQR": "Download QR Code",
