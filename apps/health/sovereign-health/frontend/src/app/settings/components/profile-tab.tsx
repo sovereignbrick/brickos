@@ -6,6 +6,8 @@ import { useTranslations } from 'next-intl'
 import { api } from '@/lib/api'
 import { toast } from '@/lib/toast'
 import { InfoTooltip } from '@/components/info-tooltip'
+import { useInstall } from '@/lib/install-context'
+import { Download, Check } from 'lucide-react'
 import type { UserProfile, UnitPreferences, LifestyleDefaults } from '@/lib/types'
 import { COUNTRIES } from '../countries'
 import { getCountryDefaults, Field, FieldWithInfo } from './shared'
@@ -25,11 +27,13 @@ export function ProfileTab({
   showSaved: () => void
 }) {
   const t = useTranslations('settings.profile')
+  const tInstall = useTranslations('install')
   const tToast = useTranslations('settings.toast')
   const tCommon = useTranslations('common')
   const tFasting = useTranslations('fastingProtocols')
   const tSleep = useTranslations('sleepQuality')
   const tStress = useTranslations('stressLevel')
+  const { canInstall, isInstalled, promptInstall } = useInstall()
   const [form, setForm] = useState(profile)
   const [lForm, setLForm] = useState(lifestyle)
   const [uForm, setUForm] = useState(units)
@@ -383,6 +387,30 @@ export function ProfileTab({
         </button>
         {msg && <span className={msg === tToast('profileSaved') ? 'text-green-400 text-sm' : 'text-red-400 text-sm'}>{msg}</span>}
       </div>
+
+      {/* Install App */}
+      {(canInstall || isInstalled) && (
+        <div className="border border-border rounded-lg p-4 flex items-center justify-between">
+          <div>
+            <h3 className="text-sm font-medium">{tInstall('title')}</h3>
+            <p className="text-xs text-muted-foreground mt-1">{tInstall('description')}</p>
+          </div>
+          {canInstall ? (
+            <button
+              onClick={promptInstall}
+              className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+            >
+              <Download className="h-4 w-4" />
+              {tInstall('button')}
+            </button>
+          ) : (
+            <span className="inline-flex items-center gap-1.5 text-sm text-green-400">
+              <Check className="h-4 w-4" />
+              {tInstall('installed')}
+            </span>
+          )}
+        </div>
+      )}
     </div>
   )
 }

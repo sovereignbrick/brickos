@@ -27,6 +27,12 @@ Thumbs.db
 # Crash reports
 crash-report-*.md
 
+# Service Worker (generated at build time by @serwist/next)
+**/public/sw.js
+**/public/serwist-worker-*.js
+**/public/sw.js.map
+**/public/serwist-worker-*.js.map
+
 # Build
 dist/
 build/

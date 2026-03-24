@@ -1576,5 +1576,16 @@
     "selectedCount": "{count} Zeile(n) ausgewählt",
     "importing": "Importiere...",
     "importCount": "{count} Messung(en) importieren"
+  },
+  "offline": {
+    "title": "Du bist offline",
+    "description": "Überprüfe deine Internetverbindung und versuche es erneut.",
+    "retry": "Erneut versuchen"
+  },
+  "install": {
+    "title": "Sovereign Health installieren",
+    "description": "Zum Startbildschirm hinzufügen für schnellen Zugriff.",
+    "button": "App installieren",
+    "installed": "App ist installiert"
   }
 }

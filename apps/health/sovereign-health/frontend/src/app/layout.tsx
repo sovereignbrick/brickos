@@ -36,11 +36,13 @@ import { Toaster } from 'sonner'
 import { APP_NAME } from '@/lib/mode'
 import { OnboardingTracker } from '@/components/onboarding-tracker'
 import { ReferralTracker } from '@/components/referral-tracker'
+import { InstallProvider } from '@/lib/install-context'
 
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   viewportFit: 'cover',
+  themeColor: '#09090b',
 }
 
 const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://app.sovereignhealth.io'
@@ -53,6 +55,12 @@ export const metadata: Metadata = {
   },
   description: 'Privacy-first metabolic health tracking. Monitor biomarkers, track trends, and optimize your health with protocol-aware reference ranges.',
   keywords: ['health tracking', 'biomarkers', 'metabolic health', 'blood work', 'health optimization', 'glucose', 'ketones', 'cholesterol', 'privacy-first'],
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'Sovereign Health',
+  },
   icons: {
     icon: [
       { url: '/favicon.ico', sizes: '32x32 16x16' },
@@ -97,6 +105,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <NextIntlClientProvider locale={locale} messages={messages}>
           <ThemeProvider>
             <AuthProvider>
+              <InstallProvider>
               <ContentProvider initialLocale={locale}>
                 <Suspense>
                   <DemoProfileProvider>
@@ -114,6 +123,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                   </DemoProfileProvider>
                 </Suspense>
               </ContentProvider>
+              </InstallProvider>
             </AuthProvider>
           </ThemeProvider>
         </NextIntlClientProvider>

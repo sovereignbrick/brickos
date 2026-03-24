@@ -1,6 +1,6 @@
 # Sprint 011 — Progressive Web App (Phase 1: Installable + Offline Detection)
 
-**Started:** TBD
+**Started:** 2026-03-24
 **Goal:** Make Sovereign Health installable on mobile/desktop home screens, add basic service worker for asset caching, implement offline detection UI, and add API cache headers for faster loads.
 
 ## Context
