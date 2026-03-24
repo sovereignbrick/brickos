@@ -394,6 +394,15 @@ pub async fn health_pdf(
     )
     .await?;
 
+    // Log data access (GDPR audit trail)
+    crate::services::access_log::log_self_access(
+        pool.get_ref(),
+        auth.user_id,
+        "generate_pdf",
+        "health_report",
+    )
+    .await;
+
     // Get user info
     use sqlx::Row;
     let user_row = sqlx::query("SELECT display_name, email FROM users WHERE id = $1")
