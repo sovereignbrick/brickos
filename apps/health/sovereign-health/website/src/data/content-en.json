@@ -1,6 +1,6 @@
 {
   "locale": "en",
-  "fetchedAt": "2026-03-24T16:26:27.291Z",
+  "fetchedAt": "2026-03-24T17:15:45.018Z",
   "zones": [
     {
       "description": "Can you sustain energy throughout the day without crashes? This zone tracks your glucose, insulin, ketones, and thyroid function. These markers form the engine of your metabolic health. Fix this zone first, and the rest becomes easier.",
@@ -657,19 +657,6 @@
       "zone_slug": "structural"
     },
     {
-      "description": "Average concentration of hemoglobin in red blood cells. Helps distinguish types of anemia.",
-      "display_order": 43,
-      "id": "8b2e32b7-ac13-40c0-abbf-bcd2e38ca0d1",
-      "is_calculated": false,
-      "marker_slug": "mchc",
-      "name": "Mean Corpuscular Hb Concentration",
-      "tooltip": "Average concentration of hemoglobin in red blood cells. Helps distinguish types of anemia.",
-      "unit_canonical": "g/dL",
-      "when_to_worry": "Low MCHC can indicate iron deficiency anemia. High MCHC is rare and may suggest hereditary spherocytosis.",
-      "why_it_matters": "MCHC measures hemoglobin concentration within red blood cells. Abnormal values help differentiate types of anemia.",
-      "zone_slug": "structural"
-    },
-    {
       "description": "SHBG (sex hormone-binding globulin) is a protein that binds testosterone and estrogen, controlling how much is available for your tissues. Higher SHBG means less free hormone activity.",
       "display_order": 43,
       "id": "f94ec532-bc40-46c8-98ea-3d67e536aa50",
@@ -683,17 +670,17 @@
       "zone_slug": "hormonal"
     },
     {
-      "description": "Estradiol (E2) is the primary form of estrogen. In women it regulates the menstrual cycle and bone health. In men, balanced estradiol is important for bone density and cardiovascular health.",
-      "display_order": 44,
-      "id": "ac9a694a-59a9-4244-8f55-837330f6e735",
+      "description": "Average concentration of hemoglobin in red blood cells. Helps distinguish types of anemia.",
+      "display_order": 43,
+      "id": "8b2e32b7-ac13-40c0-abbf-bcd2e38ca0d1",
       "is_calculated": false,
-      "marker_slug": "estradiol",
-      "name": "Estradiol",
-      "tooltip": "Estradiol (E2) is the primary form of estrogen. In women it regulates the menstrual cycle and bone health. In men, balanced estradiol is important for bone density and cardiovascular health.",
-      "unit_canonical": "pmol/L",
-      "when_to_worry": "Abnormal estradiol levels can affect bone density, mood, and cardiovascular health. Consult your doctor if values are persistently out of range.",
-      "why_it_matters": "Estradiol is the primary estrogen, essential for bone health, cardiovascular protection, and reproductive function.",
-      "zone_slug": "hormonal"
+      "marker_slug": "mchc",
+      "name": "Mean Corpuscular Hb Concentration",
+      "tooltip": "Average concentration of hemoglobin in red blood cells. Helps distinguish types of anemia.",
+      "unit_canonical": "g/dL",
+      "when_to_worry": "Low MCHC can indicate iron deficiency anemia. High MCHC is rare and may suggest hereditary spherocytosis.",
+      "why_it_matters": "MCHC measures hemoglobin concentration within red blood cells. Abnormal values help differentiate types of anemia.",
+      "zone_slug": "structural"
     },
     {
       "description": "Measures variation in red blood cell size. Elevated in iron, B12, or folate deficiency.",
@@ -707,6 +694,19 @@
       "when_to_worry": "RDW above 14.5% suggests red blood cells are uneven in size, which can indicate iron deficiency, B12 deficiency, or mixed anemias.",
       "why_it_matters": "RDW measures variation in red blood cell size. Elevated values can reveal mixed anemias or early nutritional deficiencies.",
       "zone_slug": "structural"
+    },
+    {
+      "description": "Estradiol (E2) is the primary form of estrogen. In women it regulates the menstrual cycle and bone health. In men, balanced estradiol is important for bone density and cardiovascular health.",
+      "display_order": 44,
+      "id": "ac9a694a-59a9-4244-8f55-837330f6e735",
+      "is_calculated": false,
+      "marker_slug": "estradiol",
+      "name": "Estradiol",
+      "tooltip": "Estradiol (E2) is the primary form of estrogen. In women it regulates the menstrual cycle and bone health. In men, balanced estradiol is important for bone density and cardiovascular health.",
+      "unit_canonical": "pmol/L",
+      "when_to_worry": "Abnormal estradiol levels can affect bone density, mood, and cardiovascular health. Consult your doctor if values are persistently out of range.",
+      "why_it_matters": "Estradiol is the primary estrogen, essential for bone health, cardiovascular protection, and reproductive function.",
+      "zone_slug": "hormonal"
     },
     {
       "description": "Progesterone balances estrogen and prepares the uterus for pregnancy. In both sexes it has calming effects on the nervous system and supports sleep quality.",
@@ -1357,6 +1357,110 @@
       "when_to_worry": "Declining bone mass over time may indicate osteopenia or osteoporosis risk. Discuss bone density testing with your doctor.",
       "why_it_matters": "Bone mass reflects skeletal density. Tracking it helps detect early signs of osteoporosis, especially in women post-menopause.",
       "zone_slug": "structural"
+    },
+    {
+      "description": "Glucose (mmol/L) ÷ Ketones (mmol/L)",
+      "display_order": 1001,
+      "id": "b206b07a-8e1e-44ac-bb38-1dc9d33c8a99",
+      "is_calculated": true,
+      "marker_slug": "gki",
+      "name": "GKI — Glucose-Ketone Index",
+      "tooltip": null,
+      "unit_canonical": null,
+      "when_to_worry": null,
+      "why_it_matters": null,
+      "zone_slug": "energy_metabolic"
+    },
+    {
+      "description": "Glucose (mg/dL) ÷ Ketones (mmol/L)  [= GKI × 18]",
+      "display_order": 1002,
+      "id": "40d12050-0972-4981-a27b-07f314fd24e4",
+      "is_calculated": true,
+      "marker_slug": "dr_boz_ratio",
+      "name": "Dr. Boz Ratio",
+      "tooltip": null,
+      "unit_canonical": null,
+      "when_to_worry": null,
+      "why_it_matters": null,
+      "zone_slug": "energy_metabolic"
+    },
+    {
+      "description": "Waist Circumference (cm) ÷ Height (cm)",
+      "display_order": 1003,
+      "id": "b1f71844-de03-4978-9439-0be1991b3de9",
+      "is_calculated": true,
+      "marker_slug": "whtr",
+      "name": "WHtR — Waist-to-Height Ratio",
+      "tooltip": null,
+      "unit_canonical": null,
+      "when_to_worry": null,
+      "why_it_matters": null,
+      "zone_slug": "structural"
+    },
+    {
+      "description": "Weight (kg) ÷ Height² (m²)",
+      "display_order": 1004,
+      "id": "cde88428-162d-4bb1-a94f-d9b9bf7228e4",
+      "is_calculated": true,
+      "marker_slug": "bmi",
+      "name": "BMI — Body Mass Index",
+      "tooltip": null,
+      "unit_canonical": null,
+      "when_to_worry": null,
+      "why_it_matters": null,
+      "zone_slug": "structural"
+    },
+    {
+      "description": "Hematocrit (%) ÷ Hemoglobin (g/dL)  [HB mmol/L × 1.61 → g/dL first]",
+      "display_order": 1005,
+      "id": "d6e4f363-5afd-47eb-919e-89a9fac50802",
+      "is_calculated": true,
+      "marker_slug": "hct_hb_ratio",
+      "name": "HCT/HB Ratio",
+      "tooltip": null,
+      "unit_canonical": null,
+      "when_to_worry": null,
+      "why_it_matters": null,
+      "zone_slug": "structural"
+    },
+    {
+      "description": "Triglycerides ÷ HDL (both in mmol/L)",
+      "display_order": 1006,
+      "id": "ba42b354-52b9-43ca-bd76-47791d507933",
+      "is_calculated": true,
+      "marker_slug": "tg_hdl_ratio",
+      "name": "TG/HDL Ratio",
+      "tooltip": null,
+      "unit_canonical": null,
+      "when_to_worry": null,
+      "why_it_matters": null,
+      "zone_slug": "cardiovascular"
+    },
+    {
+      "description": "(Glucose mg/dL × Insulin µIU/mL) ÷ 405  [glucose mmol/L × 18.018 to convert]",
+      "display_order": 1007,
+      "id": "462e8402-7793-4fcf-bd51-f272c2522f46",
+      "is_calculated": true,
+      "marker_slug": "homa_ir",
+      "name": "HOMA-IR",
+      "tooltip": null,
+      "unit_canonical": null,
+      "when_to_worry": null,
+      "why_it_matters": null,
+      "zone_slug": "energy_metabolic"
+    },
+    {
+      "description": "ln(Triglycerides mg/dL × Glucose mg/dL ÷ 2)  [convert mmol/L: TG×88.57, Glu×18.018]",
+      "display_order": 1008,
+      "id": "b919aa5c-115a-421e-a118-2243c37029ea",
+      "is_calculated": true,
+      "marker_slug": "tyg_index",
+      "name": "TyG Index",
+      "tooltip": null,
+      "unit_canonical": null,
+      "when_to_worry": null,
+      "why_it_matters": null,
+      "zone_slug": "energy_metabolic"
     }
   ],
   "tiers": [

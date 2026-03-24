@@ -1,6 +1,6 @@
 {
   "locale": "de",
-  "fetchedAt": "2026-03-24T16:26:27.416Z",
+  "fetchedAt": "2026-03-24T17:15:45.137Z",
   "zones": [
     {
       "description": "Kannst du den ganzen Tag über Energie aufrechterhalten, ohne Einbrüche? Diese Zone verfolgt deinen Glukose-, Insulin-, Keton- und Schilddrüsenstatus. Diese Marker bilden den Motor deiner Stoffwechselgesundheit. Bringe diese Zone zuerst in Ordnung, und der Rest wird einfacher.",
@@ -631,19 +631,6 @@
       "zone_slug": "hormonal"
     },
     {
-      "description": "Durchschnittliche Hämoglobinmenge pro rotem Blutkörperchen. Niedrige Werte deuten auf Eisenmangel hin.",
-      "display_order": 42,
-      "id": "6ba7c825-f2c5-4b77-87d5-b6715019a59d",
-      "is_calculated": false,
-      "marker_slug": "mch",
-      "name": "Mittleres Zellhämoglobin",
-      "tooltip": "Durchschnittliche Hämoglobinmenge pro rotem Blutkörperchen. Niedrige Werte deuten auf Eisenmangel hin.",
-      "unit_canonical": "pg",
-      "when_to_worry": "Niedriges MCH parallel zu niedrigem MCV deutet auf Eisenmangelanämie hin. Hohes MCH kann B12- oder Folsäuremangel anzeigen.",
-      "why_it_matters": "MCH misst den durchschnittlichen Hämoglobingehalt pro rotem Blutkörperchen  -  hilft bei der Diagnose von Eisenmangel.",
-      "zone_slug": "structural"
-    },
-    {
       "description": "Der freie Androgenindex berechnet sich aus Testosteron und SHBG. Er gibt Aufschluss über die tatsächliche Androgenwirkung im Körper.",
       "display_order": 42,
       "id": "caaabf0c-3f1b-4d5a-8743-ea682bf0f903",
@@ -657,16 +644,16 @@
       "zone_slug": "hormonal"
     },
     {
-      "description": "Durchschnittliche Hämoglobinkonzentration in roten Blutkörperchen. Hilft bei der Unterscheidung von Anämietypen.",
-      "display_order": 43,
-      "id": "8b2e32b7-ac13-40c0-abbf-bcd2e38ca0d1",
+      "description": "Durchschnittliche Hämoglobinmenge pro rotem Blutkörperchen. Niedrige Werte deuten auf Eisenmangel hin.",
+      "display_order": 42,
+      "id": "6ba7c825-f2c5-4b77-87d5-b6715019a59d",
       "is_calculated": false,
-      "marker_slug": "mchc",
-      "name": "Mittlere Hämoglobinkonzentration",
-      "tooltip": "Durchschnittliche Hämoglobinkonzentration in roten Blutkörperchen. Hilft bei der Unterscheidung von Anämietypen.",
-      "unit_canonical": "g/dL",
-      "when_to_worry": "Niedrige MCHC kann auf Eisenmangelanämie hinweisen. Hohe MCHC ist selten und kann auf hereditäre Sphärozytose deuten.",
-      "why_it_matters": "MCHC misst die Hämoglobinkonzentration in roten Blutkörperchen und hilft bei der Unterscheidung von Anämieformen.",
+      "marker_slug": "mch",
+      "name": "Mittleres Zellhämoglobin",
+      "tooltip": "Durchschnittliche Hämoglobinmenge pro rotem Blutkörperchen. Niedrige Werte deuten auf Eisenmangel hin.",
+      "unit_canonical": "pg",
+      "when_to_worry": "Niedriges MCH parallel zu niedrigem MCV deutet auf Eisenmangelanämie hin. Hohes MCH kann B12- oder Folsäuremangel anzeigen.",
+      "why_it_matters": "MCH misst den durchschnittlichen Hämoglobingehalt pro rotem Blutkörperchen  -  hilft bei der Diagnose von Eisenmangel.",
       "zone_slug": "structural"
     },
     {
@@ -683,16 +670,16 @@
       "zone_slug": "hormonal"
     },
     {
-      "description": "Misst die Variation der Größe roter Blutkörperchen. Erhöht bei Eisen-, B12- oder Folatmangel.",
-      "display_order": 44,
-      "id": "f50b7e56-a285-4240-ac19-b1364eaac233",
+      "description": "Durchschnittliche Hämoglobinkonzentration in roten Blutkörperchen. Hilft bei der Unterscheidung von Anämietypen.",
+      "display_order": 43,
+      "id": "8b2e32b7-ac13-40c0-abbf-bcd2e38ca0d1",
       "is_calculated": false,
-      "marker_slug": "rdw",
-      "name": "Erythrozytenverteilungsbreite",
-      "tooltip": "Misst die Variation der Größe roter Blutkörperchen. Erhöht bei Eisen-, B12- oder Folatmangel.",
-      "unit_canonical": "%",
-      "when_to_worry": "RDW über 14,5% deutet auf ungleichmäßige Erythrozytengrößen hin  -  mögliche Eisenmangel-, B12-Mangel- oder Mischanämie.",
-      "why_it_matters": "RDW misst die Größenvariation roter Blutkörperchen. Erhöhte Werte können auf gemischte Anämien oder frühe Nährstoffmängel hinweisen.",
+      "marker_slug": "mchc",
+      "name": "Mittlere Hämoglobinkonzentration",
+      "tooltip": "Durchschnittliche Hämoglobinkonzentration in roten Blutkörperchen. Hilft bei der Unterscheidung von Anämietypen.",
+      "unit_canonical": "g/dL",
+      "when_to_worry": "Niedrige MCHC kann auf Eisenmangelanämie hinweisen. Hohe MCHC ist selten und kann auf hereditäre Sphärozytose deuten.",
+      "why_it_matters": "MCHC misst die Hämoglobinkonzentration in roten Blutkörperchen und hilft bei der Unterscheidung von Anämieformen.",
       "zone_slug": "structural"
     },
     {
@@ -707,6 +694,19 @@
       "when_to_worry": "Abweichende Estradiol-Werte können Knochendichte, Stimmung und Herzgesundheit beeinflussen. Ärztlich abklären bei anhaltenden Abweichungen.",
       "why_it_matters": "Estradiol ist das wichtigste Östrogen, wesentlich für Knochengesundheit, Herz-Kreislauf-Schutz und Fortpflanzung.",
       "zone_slug": "hormonal"
+    },
+    {
+      "description": "Misst die Variation der Größe roter Blutkörperchen. Erhöht bei Eisen-, B12- oder Folatmangel.",
+      "display_order": 44,
+      "id": "f50b7e56-a285-4240-ac19-b1364eaac233",
+      "is_calculated": false,
+      "marker_slug": "rdw",
+      "name": "Erythrozytenverteilungsbreite",
+      "tooltip": "Misst die Variation der Größe roter Blutkörperchen. Erhöht bei Eisen-, B12- oder Folatmangel.",
+      "unit_canonical": "%",
+      "when_to_worry": "RDW über 14,5% deutet auf ungleichmäßige Erythrozytengrößen hin  -  mögliche Eisenmangel-, B12-Mangel- oder Mischanämie.",
+      "why_it_matters": "RDW misst die Größenvariation roter Blutkörperchen. Erhöhte Werte können auf gemischte Anämien oder frühe Nährstoffmängel hinweisen.",
+      "zone_slug": "structural"
     },
     {
       "description": "Progesteron ist wichtig für den Menstruationszyklus und die Schwangerschaft. Es wirkt auch beruhigend auf das Nervensystem.",
@@ -1294,19 +1294,6 @@
       "zone_slug": "cardiovascular"
     },
     {
-      "description": "Der Körperfettanteil zeigt den prozentualen Fettanteil am Gesamtgewicht. Er ist aussagekräftiger als das Gewicht allein und unterscheidet zwischen Fett- und Magermasse.",
-      "display_order": 90,
-      "id": "dee72bc3-4680-4652-a996-fe3041c6ab33",
-      "is_calculated": false,
-      "marker_slug": "body_fat_pct",
-      "name": "Körperfettanteil",
-      "tooltip": "Der Körperfettanteil zeigt den prozentualen Fettanteil am Gesamtgewicht. Er ist aussagekräftiger als das Gewicht allein und unterscheidet zwischen Fett- und Magermasse.",
-      "unit_canonical": "%",
-      "when_to_worry": "Sehr hoher Körperfettanteil erhöht das Risiko für metabolisches Syndrom, Typ-2-Diabetes und Herz-Kreislauf-Erkrankungen.",
-      "why_it_matters": "Der Körperfettanteil unterscheidet zwischen Fett- und Magermasse  -  ein genaueres Bild als das Gewicht allein.",
-      "zone_slug": "structural"
-    },
-    {
       "description": null,
       "display_order": 90,
       "id": "5605420b-fd7d-4076-b78c-350a1bda5f5a",
@@ -1318,6 +1305,19 @@
       "when_to_worry": null,
       "why_it_matters": null,
       "zone_slug": "nutritional"
+    },
+    {
+      "description": "Der Körperfettanteil zeigt den prozentualen Fettanteil am Gesamtgewicht. Er ist aussagekräftiger als das Gewicht allein und unterscheidet zwischen Fett- und Magermasse.",
+      "display_order": 90,
+      "id": "dee72bc3-4680-4652-a996-fe3041c6ab33",
+      "is_calculated": false,
+      "marker_slug": "body_fat_pct",
+      "name": "Körperfettanteil",
+      "tooltip": "Der Körperfettanteil zeigt den prozentualen Fettanteil am Gesamtgewicht. Er ist aussagekräftiger als das Gewicht allein und unterscheidet zwischen Fett- und Magermasse.",
+      "unit_canonical": "%",
+      "when_to_worry": "Sehr hoher Körperfettanteil erhöht das Risiko für metabolisches Syndrom, Typ-2-Diabetes und Herz-Kreislauf-Erkrankungen.",
+      "why_it_matters": "Der Körperfettanteil unterscheidet zwischen Fett- und Magermasse  -  ein genaueres Bild als das Gewicht allein.",
+      "zone_slug": "structural"
     },
     {
       "description": "Der Körperwasseranteil gibt an, wie viel Prozent des Körpergewichts Wasser ist. Ausreichende Hydration ist essentiell für Zellfunktion und Stoffwechsel.",
@@ -1357,6 +1357,110 @@
       "when_to_worry": "Abnehmende Knochenmasse über die Zeit kann auf Osteopenie oder Osteoporose hinweisen. Knochendichtemessung mit dem Arzt besprechen.",
       "why_it_matters": "Die Knochenmasse zeigt die Skelettdichte. Tracking hilft, frühe Anzeichen von Osteoporose zu erkennen.",
       "zone_slug": "structural"
+    },
+    {
+      "description": "Glucose (mmol/L) ÷ Ketones (mmol/L)",
+      "display_order": 1001,
+      "id": "b206b07a-8e1e-44ac-bb38-1dc9d33c8a99",
+      "is_calculated": true,
+      "marker_slug": "gki",
+      "name": "GKI — Glucose-Ketone Index",
+      "tooltip": null,
+      "unit_canonical": null,
+      "when_to_worry": null,
+      "why_it_matters": null,
+      "zone_slug": "energy_metabolic"
+    },
+    {
+      "description": "Glucose (mg/dL) ÷ Ketones (mmol/L)  [= GKI × 18]",
+      "display_order": 1002,
+      "id": "40d12050-0972-4981-a27b-07f314fd24e4",
+      "is_calculated": true,
+      "marker_slug": "dr_boz_ratio",
+      "name": "Dr. Boz Ratio",
+      "tooltip": null,
+      "unit_canonical": null,
+      "when_to_worry": null,
+      "why_it_matters": null,
+      "zone_slug": "energy_metabolic"
+    },
+    {
+      "description": "Waist Circumference (cm) ÷ Height (cm)",
+      "display_order": 1003,
+      "id": "b1f71844-de03-4978-9439-0be1991b3de9",
+      "is_calculated": true,
+      "marker_slug": "whtr",
+      "name": "WHtR — Waist-to-Height Ratio",
+      "tooltip": null,
+      "unit_canonical": null,
+      "when_to_worry": null,
+      "why_it_matters": null,
+      "zone_slug": "structural"
+    },
+    {
+      "description": "Weight (kg) ÷ Height² (m²)",
+      "display_order": 1004,
+      "id": "cde88428-162d-4bb1-a94f-d9b9bf7228e4",
+      "is_calculated": true,
+      "marker_slug": "bmi",
+      "name": "BMI — Body Mass Index",
+      "tooltip": null,
+      "unit_canonical": null,
+      "when_to_worry": null,
+      "why_it_matters": null,
+      "zone_slug": "structural"
+    },
+    {
+      "description": "Hematocrit (%) ÷ Hemoglobin (g/dL)  [HB mmol/L × 1.61 → g/dL first]",
+      "display_order": 1005,
+      "id": "d6e4f363-5afd-47eb-919e-89a9fac50802",
+      "is_calculated": true,
+      "marker_slug": "hct_hb_ratio",
+      "name": "HCT/HB Ratio",
+      "tooltip": null,
+      "unit_canonical": null,
+      "when_to_worry": null,
+      "why_it_matters": null,
+      "zone_slug": "structural"
+    },
+    {
+      "description": "Triglycerides ÷ HDL (both in mmol/L)",
+      "display_order": 1006,
+      "id": "ba42b354-52b9-43ca-bd76-47791d507933",
+      "is_calculated": true,
+      "marker_slug": "tg_hdl_ratio",
+      "name": "TG/HDL Ratio",
+      "tooltip": null,
+      "unit_canonical": null,
+      "when_to_worry": null,
+      "why_it_matters": null,
+      "zone_slug": "cardiovascular"
+    },
+    {
+      "description": "(Glucose mg/dL × Insulin µIU/mL) ÷ 405  [glucose mmol/L × 18.018 to convert]",
+      "display_order": 1007,
+      "id": "462e8402-7793-4fcf-bd51-f272c2522f46",
+      "is_calculated": true,
+      "marker_slug": "homa_ir",
+      "name": "HOMA-IR",
+      "tooltip": null,
+      "unit_canonical": null,
+      "when_to_worry": null,
+      "why_it_matters": null,
+      "zone_slug": "energy_metabolic"
+    },
+    {
+      "description": "ln(Triglycerides mg/dL × Glucose mg/dL ÷ 2)  [convert mmol/L: TG×88.57, Glu×18.018]",
+      "display_order": 1008,
+      "id": "b919aa5c-115a-421e-a118-2243c37029ea",
+      "is_calculated": true,
+      "marker_slug": "tyg_index",
+      "name": "TyG Index",
+      "tooltip": null,
+      "unit_canonical": null,
+      "when_to_worry": null,
+      "why_it_matters": null,
+      "zone_slug": "energy_metabolic"
     }
   ],
   "tiers": [
