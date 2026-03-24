@@ -69,6 +69,10 @@ export default function AffiliatePage() {
   const [vanityCode, setVanityCode] = useState('')
   const [vanityLink, setVanityLink] = useState('')
   const [savingVanity, setSavingVanity] = useState(false)
+  const [vanityAvailable, setVanityAvailable] = useState<boolean | null>(null)
+  const [vanityReason, setVanityReason] = useState('')
+  const [checkingVanity, setCheckingVanity] = useState(false)
+  const [editingVanity, setEditingVanity] = useState(false)
   const isVanityEligible = user?.tier === 'clarity' || user?.tier === 'horizon' || user?.tier === 'core'
   const [stats, setStats] = useState<AffiliateStats | null>(null)
   const [btcStats, setBtcStats] = useState<BtcStats | null>(null)
@@ -140,12 +144,27 @@ export default function AffiliatePage() {
     }
   }
 
+  const checkVanityAvailability = async (code: string) => {
+    if (code.length < 3) { setVanityAvailable(null); return }
+    setCheckingVanity(true)
+    try {
+      const res = await api.affiliate.checkVanity(code)
+      setVanityAvailable(res.data.available)
+      setVanityReason(res.data.reason || '')
+    } catch {
+      setVanityAvailable(null)
+    } finally {
+      setCheckingVanity(false)
+    }
+  }
+
   const handleSaveVanity = async () => {
     if (!vanityCode.trim()) return
     setSavingVanity(true)
     try {
       const res = await api.affiliate.setVanity(vanityCode.trim().toLowerCase())
       setVanityLink(res.data.vanity_link)
+      setEditingVanity(false)
       toast.success(t('vanitySaved'))
     } catch (err) {
       toast.error(err instanceof Error ? err.message : t('vanityFailed'))
@@ -280,28 +299,46 @@ export default function AffiliatePage() {
               {isVanityEligible && (
                 <div className="pt-3 border-t border-border space-y-2">
                   <h2 className="text-sm font-medium text-muted-foreground">{t('vanityCode')}</h2>
-                  {vanityLink ? (
-                    <div className="flex-1 bg-accent border rounded-lg px-3 py-2.5 text-sm font-mono truncate select-all">
-                      {vanityLink}
+                  {vanityLink && !editingVanity ? (
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 bg-accent border rounded-lg px-3 py-2.5 text-sm font-mono truncate select-all">
+                        {vanityLink}
+                      </div>
+                      <button
+                        onClick={() => { setEditingVanity(true); setVanityAvailable(null) }}
+                        className="text-xs text-muted-foreground hover:text-foreground border border-border px-2.5 py-2 rounded-lg transition-colors shrink-0"
+                      >
+                        {t('vanityChange')}
+                      </button>
                     </div>
                   ) : (
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-muted-foreground shrink-0">brickos.io/r/</span>
-                      <input
-                        type="text"
-                        value={vanityCode}
-                        onChange={e => setVanityCode(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
-                        placeholder="yourname"
-                        maxLength={30}
-                        className="flex-1 bg-accent border rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-1 focus:ring-blue-500"
-                      />
-                      <button
-                        onClick={handleSaveVanity}
-                        disabled={savingVanity || vanityCode.length < 3}
-                        className="bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-sm font-medium px-3 py-2 rounded-lg transition-colors shrink-0"
-                      >
-                        {savingVanity ? '...' : tCommon('save')}
-                      </button>
+                    <div className="space-y-1.5">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-muted-foreground shrink-0">brickos.io/r/</span>
+                        <input
+                          type="text"
+                          value={vanityCode}
+                          onChange={e => {
+                            const v = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '')
+                            setVanityCode(v)
+                            setVanityAvailable(null)
+                          }}
+                          onBlur={() => vanityCode.length >= 3 && checkVanityAvailability(vanityCode)}
+                          placeholder="yourname"
+                          maxLength={30}
+                          className="flex-1 bg-accent border rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        />
+                        <button
+                          onClick={handleSaveVanity}
+                          disabled={savingVanity || vanityCode.length < 3 || vanityAvailable === false}
+                          className="bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-sm font-medium px-3 py-2 rounded-lg transition-colors shrink-0"
+                        >
+                          {savingVanity ? '...' : tCommon('save')}
+                        </button>
+                      </div>
+                      {checkingVanity && <p className="text-xs text-muted-foreground">{t('vanityChecking')}</p>}
+                      {vanityAvailable === true && <p className="text-xs text-green-400">{t('vanityAvailable')}</p>}
+                      {vanityAvailable === false && <p className="text-xs text-red-400">{vanityReason || t('vanityTaken')}</p>}
                     </div>
                   )}
                   <p className="text-xs text-muted-foreground/70">{t('vanityDescription')}</p>

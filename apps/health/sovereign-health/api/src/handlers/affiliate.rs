@@ -888,6 +888,56 @@ pub async fn set_vanity(
 }
 
 // ---------------------------------------------------------------------------
+// User: GET /api/affiliate/vanity/check?code=x — Check vanity code availability
+// ---------------------------------------------------------------------------
+
+#[derive(serde::Deserialize)]
+pub struct VanityCheckQuery {
+    pub code: String,
+}
+
+pub async fn check_vanity(
+    pool: web::Data<PgPool>,
+    auth: AuthenticatedUser,
+    query: web::Query<VanityCheckQuery>,
+) -> Result<HttpResponse, AppError> {
+    let code = query.code.trim().to_lowercase();
+
+    if code.len() < 3 || code.len() > 30 {
+        return Ok(HttpResponse::Ok().json(json!({
+            "data": { "available": false, "reason": "Code must be 3-30 characters" }
+        })));
+    }
+
+    if !code
+        .chars()
+        .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '-')
+    {
+        return Ok(HttpResponse::Ok().json(json!({
+            "data": { "available": false, "reason": "Code must be lowercase alphanumeric or hyphens" }
+        })));
+    }
+
+    // Check if code exists and belongs to someone else
+    let existing: Option<(uuid::Uuid,)> = sqlx::query_as(
+        "SELECT owner_user_id FROM short_links WHERE code = $1 AND link_type = 'vanity'",
+    )
+    .bind(&code)
+    .fetch_optional(pool.get_ref())
+    .await?;
+
+    let available = match existing {
+        None => true,
+        Some((owner_id,)) => owner_id == auth.user_id, // Own code is "available" (changeable)
+    };
+
+    let reason: Option<&str> = if available { None } else { Some("Code is already taken") };
+    Ok(HttpResponse::Ok().json(json!({
+        "data": { "available": available, "reason": reason }
+    })))
+}
+
+// ---------------------------------------------------------------------------
 // Admin: GET /api/admin/links — All short links with click stats
 // ---------------------------------------------------------------------------
 

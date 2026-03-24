@@ -983,6 +983,10 @@ pub fn configure_routes(cfg: &mut actix_web::web::ServiceConfig) {
             .route(
                 "/me/vanity",
                 actix_web::web::put().to(handlers::affiliate::set_vanity),
+            )
+            .route(
+                "/vanity/check",
+                actix_web::web::get().to(handlers::affiliate::check_vanity),
             ),
     )
     .service(

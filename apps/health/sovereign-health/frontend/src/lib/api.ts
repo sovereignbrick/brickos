@@ -1078,6 +1078,8 @@ export const api = {
       request<{ data: { vanity_link: string; code: string } }>('/api/affiliate/me/vanity', {
         method: 'PUT', body: JSON.stringify({ code }),
       }),
+    checkVanity: (code: string) =>
+      request<{ data: { available: boolean; reason: string | null } }>(`/api/affiliate/vanity/check?code=${encodeURIComponent(code)}`),
   },
   contentStrings: {
     get: (section = 'app', lang = 'en') =>
