@@ -291,7 +291,7 @@ function InfluenceFactorForm({
 
   const isSup = form.factor_type === 'supplement'
   const fieldBorder = isSup ? 'border-emerald-800 focus:border-emerald-500' : 'border-purple-800 focus:border-purple-500'
-  const fieldClass = `w-full bg-white dark:bg-zinc-900 border rounded-lg px-3 py-2 text-sm focus:outline-none ${fieldBorder}`
+  const fieldClass = `w-full bg-zinc-900 border rounded-lg px-3 py-2 text-sm focus:outline-none ${fieldBorder}`
 
   return (
     <form onSubmit={handleSubmit} className={`rounded-lg p-4 bg-muted/50 space-y-4 border ${isSup ? 'border-emerald-300 dark:border-emerald-800/50' : 'border-purple-300 dark:border-purple-800/50'}`}>
@@ -309,7 +309,7 @@ function InfluenceFactorForm({
             className={`flex items-center gap-2 px-4 py-2 rounded-lg border text-sm transition-colors ${
               form.factor_type === 'medication'
                 ? 'border-purple-500 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300'
-                : 'border-border bg-white dark:bg-zinc-900 text-muted-foreground hover:border-zinc-400 dark:hover:border-zinc-600'
+                : 'border-border bg-zinc-900 text-muted-foreground hover:border-zinc-400 dark:hover:border-zinc-600'
             }`}
           >
             {'\uD83D\uDC8A'} {tMeds('typeMedication')}
@@ -320,7 +320,7 @@ function InfluenceFactorForm({
             className={`flex items-center gap-2 px-4 py-2 rounded-lg border text-sm transition-colors ${
               form.factor_type === 'supplement'
                 ? 'border-emerald-500 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300'
-                : 'border-border bg-white dark:bg-zinc-900 text-muted-foreground hover:border-zinc-400 dark:hover:border-zinc-600'
+                : 'border-border bg-zinc-900 text-muted-foreground hover:border-zinc-400 dark:hover:border-zinc-600'
             }`}
           >
             {'\uD83C\uDF3F'} {tMeds('typeSupplement')}
@@ -457,7 +457,7 @@ function InfluenceFactorForm({
                   type="text"
                   value={ing.name}
                   onChange={e => updateIngredient(idx, 'name', e.target.value)}
-                  className="flex-1 bg-white dark:bg-zinc-900 border border-border rounded-lg px-3 py-1.5 text-sm focus:border-zinc-500 focus:outline-none"
+                  className="flex-1 bg-zinc-900 border border-border rounded-lg px-3 py-1.5 text-sm focus:border-zinc-500 focus:outline-none"
                   placeholder={tMeds('placeholders.ingredientName')}
                 />
                 <input
@@ -467,7 +467,7 @@ function InfluenceFactorForm({
                     const unit = (ing.amount || '').match(/\s*(mg|g|µg|mcg|ml|IU|IE|%|mmol)$/i)?.[1] || ''
                     updateIngredient(idx, 'amount', unit ? `${e.target.value} ${unit}` : e.target.value)
                   }}
-                  className="w-20 bg-white dark:bg-zinc-900 border border-border rounded-lg px-3 py-1.5 text-sm focus:border-zinc-500 focus:outline-none"
+                  className="w-20 bg-zinc-900 border border-border rounded-lg px-3 py-1.5 text-sm focus:border-zinc-500 focus:outline-none"
                   placeholder={tMeds('placeholders.ingredientAmount')}
                 />
                 <select
@@ -477,7 +477,7 @@ function InfluenceFactorForm({
                     const unitLabel = e.target.value === 'noUnit' ? '' : tMeds(`units.${e.target.value}` as 'units.mg')
                     updateIngredient(idx, 'amount', unitLabel ? `${numPart} ${unitLabel}`.trim() : numPart)
                   }}
-                  className="w-20 bg-white dark:bg-zinc-900 border border-border rounded-lg px-2 py-1.5 text-sm focus:border-zinc-500 focus:outline-none"
+                  className="w-20 bg-zinc-900 border border-border rounded-lg px-2 py-1.5 text-sm focus:border-zinc-500 focus:outline-none"
                 >
                   {UNIT_KEYS.map(u => (
                     <option key={u} value={u}>{tMeds(`units.${u}` as 'units.mg')}</option>
@@ -486,7 +486,7 @@ function InfluenceFactorForm({
                 <select
                   value={ing.role}
                   onChange={e => updateIngredient(idx, 'role', e.target.value)}
-                  className="w-36 bg-white dark:bg-zinc-900 border border-border rounded-lg px-2 py-1.5 text-sm focus:border-zinc-500 focus:outline-none"
+                  className="w-36 bg-zinc-900 border border-border rounded-lg px-2 py-1.5 text-sm focus:border-zinc-500 focus:outline-none"
                 >
                   <option value="active">{tMeds('roleActive')}</option>
                   <option value="auxiliary">{tMeds('roleAuxiliary')}</option>
@@ -505,7 +505,7 @@ function InfluenceFactorForm({
                 type="text"
                 value={ing.notes || ''}
                 onChange={e => updateIngredient(idx, 'notes', e.target.value)}
-                className="w-full bg-white dark:bg-zinc-900 border border-border rounded-lg px-3 py-1 text-[11px] text-zinc-400 italic focus:border-zinc-500 focus:outline-none ml-6"
+                className="w-full bg-zinc-900 border border-border rounded-lg px-3 py-1 text-[11px] text-zinc-400 italic focus:border-zinc-500 focus:outline-none ml-6"
                 placeholder={tMeds('ingredientNotes')}
               />
               </div>

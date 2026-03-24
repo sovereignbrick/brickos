@@ -931,7 +931,11 @@ pub async fn check_vanity(
         Some((owner_id,)) => owner_id == auth.user_id, // Own code is "available" (changeable)
     };
 
-    let reason: Option<&str> = if available { None } else { Some("Code is already taken") };
+    let reason: Option<&str> = if available {
+        None
+    } else {
+        Some("Code is already taken")
+    };
     Ok(HttpResponse::Ok().json(json!({
         "data": { "available": available, "reason": reason }
     })))

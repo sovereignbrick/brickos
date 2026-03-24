@@ -16,7 +16,7 @@
 
 **Staging:** https://demo.sovereignhealth.io/
 **API:** https://api-demo.sovereignhealth.io/health
-**Login:** demo@sovereignhealth.io / Demo2026!
+**Login:** demo@sovereignhealth.io / SovereignDemo1!
 **Date:** 2026-03-24
 
 **Covers:** Sprint 008 (import reliability + marker coverage), Sprint 009 (GDPR + cargo-chef), Sprint 010 (Sovereign Link), Sprint 011 (PWA full stack)
