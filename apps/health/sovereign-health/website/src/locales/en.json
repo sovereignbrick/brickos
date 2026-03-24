@@ -839,7 +839,7 @@
   },
   "featureDetails": {
     "title": "Feature Comparison",
-    "subtitle": "Compare all 33 features across every plan side by side. Use the search to find specific features, or ask Dr. Alex - he knows every feature and can help you choose the right plan.",
+    "subtitle": "Compare all {count} features across every plan side by side. Use the search to find specific features, or ask Dr. Alex - he knows every feature and can help you choose the right plan.",
     "backToPricing": "Back to Pricing",
     "searchPlaceholder": "Search features...",
     "noResults": "No features match your search.",

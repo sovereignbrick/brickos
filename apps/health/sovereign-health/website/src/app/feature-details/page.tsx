@@ -18,7 +18,7 @@ export default function FeatureDetailsPage() {
             {t("featureDetails.title")}
           </h1>
           <p className="mx-auto mt-2 max-w-2xl text-sm text-[var(--muted)] leading-relaxed">
-            {t("featureDetails.subtitle")}
+            {t("featureDetails.subtitle", { count: features.length || "" })}
           </p>
         </div>
       </section>
