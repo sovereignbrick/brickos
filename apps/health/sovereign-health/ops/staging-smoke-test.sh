@@ -176,10 +176,10 @@ fi
 
 section "Layer 17: Sovereign Link"
 
-# Test redirect (follow 1 redirect, check location header)
-REDIR_STATUS=$(curl -sf -o /dev/null -w "%{http_code}" -L --max-redirs 0 "https://brickos.io/r/shDEMO2026" 2>/dev/null || echo "000")
+# Test redirect (use GET not HEAD — handler only matches GET)
+REDIR_STATUS=$(curl -s -X GET -o /dev/null -w "%{http_code}" --max-redirs 0 "https://brickos.io/r/shDEMO2026" 2>/dev/null || echo "000")
 if [ "$REDIR_STATUS" = "301" ] || [ "$REDIR_STATUS" = "302" ] || [ "$REDIR_STATUS" = "307" ]; then
-  REDIR_LOC=$(curl -sf -I -L --max-redirs 0 "https://brickos.io/r/shDEMO2026" 2>/dev/null | grep -i "^location:" | head -1 || echo "")
+  REDIR_LOC=$(curl -s -X GET -D - -o /dev/null --max-redirs 0 "https://brickos.io/r/shDEMO2026" 2>/dev/null | grep -i "^location:" | head -1 || echo "")
   pass "GET /r/shDEMO2026 redirects ($REDIR_STATUS → $REDIR_LOC)"
 elif [ "$REDIR_STATUS" = "200" ]; then
   pass "GET /r/shDEMO2026 returns 200 (followed redirect)"
@@ -214,6 +214,31 @@ if [ -n "$TOKEN" ]; then
   fi
 else
   skip "Admin links (no auth token)"
+fi
+
+# Click count verification (uses affiliate stats endpoint)
+if [ -n "$TOKEN" ]; then
+  # Get initial click count
+  STATS_BEFORE=$(curl -sf "$API/api/affiliate/me" -H "Authorization: Bearer $TOKEN" 2>/dev/null || echo "")
+  CLICKS_BEFORE=$(echo "$STATS_BEFORE" | grep -oP '"total_clicks":\K[0-9]+' || echo "0")
+
+  # Trigger a click via GET redirect (must use -X GET, not -I which sends HEAD)
+  curl -s -X GET "https://brickos.io/r/shDEMO2026" -o /dev/null 2>/dev/null
+  sleep 2
+
+  # Get new click count
+  STATS_AFTER=$(curl -sf "$API/api/affiliate/me" -H "Authorization: Bearer $TOKEN" 2>/dev/null || echo "")
+  CLICKS_AFTER=$(echo "$STATS_AFTER" | grep -oP '"total_clicks":\K[0-9]+' || echo "0")
+
+  if [ "$CLICKS_AFTER" -gt "$CLICKS_BEFORE" ]; then
+    pass "Click count incremented ($CLICKS_BEFORE → $CLICKS_AFTER)"
+  elif [ "$CLICKS_BEFORE" = "0" ] && [ "$CLICKS_AFTER" = "0" ]; then
+    skip "Click count (DEMO2026 affiliate code may not have short link)"
+  else
+    fail "Click count did not increment ($CLICKS_BEFORE → $CLICKS_AFTER)"
+  fi
+else
+  skip "Click count (no auth token)"
 fi
 
 # ── 8. Measurement Idempotency ────────────────────────────────────────────

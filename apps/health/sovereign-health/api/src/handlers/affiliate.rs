@@ -148,13 +148,20 @@ pub async fn me(
         .try_get::<Option<serde_json::Value>, _>("affiliate_settings")
         .unwrap_or(None);
 
-    // Count clicks
-    let total_clicks: i64 =
-        sqlx::query_scalar("SELECT COUNT(*) FROM affiliate_clicks WHERE affiliate_code = $1")
-            .bind(&affiliate_code)
-            .fetch_one(pool.get_ref())
-            .await
-            .unwrap_or(0);
+    // Count clicks (from both old affiliate_clicks and new short_link_clicks tables)
+    let total_clicks: i64 = sqlx::query_scalar(
+        r#"SELECT (
+            SELECT COUNT(*) FROM affiliate_clicks WHERE affiliate_code = $1
+        ) + (
+            SELECT COUNT(*) FROM short_link_clicks slc
+            JOIN short_links sl ON sl.id = slc.short_link_id
+            WHERE sl.affiliate_code = $1
+        )"#,
+    )
+    .bind(&affiliate_code)
+    .fetch_one(pool.get_ref())
+    .await
+    .unwrap_or(0);
 
     // Count signups
     let total_signups: i64 = sqlx::query_scalar(
