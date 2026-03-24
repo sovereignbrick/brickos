@@ -196,6 +196,7 @@
     "signInButton": "Anmelden",
     "welcomeBack": "Willkommen zurück!",
     "sessionExpired": "Sitzung abgelaufen. Bitte melde dich erneut an.",
+    "networkError": "Verbindung nicht möglich. Überprüfe deine Internetverbindung und versuche es erneut.",
     "noAccount": "Noch kein Konto? Registrieren",
     "noAccountWaitlist": "Kein Konto? Tritt der Warteliste bei",
     "emailVerified": "E-Mail bestätigt! Du kannst dich jetzt anmelden.",

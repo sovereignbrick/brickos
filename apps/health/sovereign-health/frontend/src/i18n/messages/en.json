@@ -196,6 +196,7 @@
     "signInButton": "Sign in",
     "welcomeBack": "Welcome back!",
     "sessionExpired": "Session expired. Please log in again.",
+    "networkError": "Unable to connect. Check your internet connection and try again.",
     "noAccount": "Do not have an account? Register",
     "noAccountWaitlist": "No account? Join the waitlist",
     "emailVerified": "Email verified! You can now log in.",

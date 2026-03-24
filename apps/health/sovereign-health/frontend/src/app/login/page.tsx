@@ -226,7 +226,8 @@ function LoginContent() {
         setShowResend(true)
         setResendEmail(data.email)
       }
-      toast.error(message)
+      const isNetworkError = message.includes('fetch') || message.includes('NetworkError') || message.includes('Failed to fetch')
+      toast.error(isNetworkError ? t('networkError') : message)
     }
   }
 

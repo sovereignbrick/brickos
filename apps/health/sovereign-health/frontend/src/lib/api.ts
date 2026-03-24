@@ -50,7 +50,16 @@ async function request<T>(
     headers['Authorization'] = `Bearer ${token}`
   }
 
-  const res = await fetch(`${API_BASE}${path}`, { ...options, headers })
+  let res: Response
+  try {
+    res = await fetch(`${API_BASE}${path}`, { ...options, headers })
+  } catch {
+    throw new Error(
+      navigator.onLine === false
+        ? 'You are offline. Please check your connection.'
+        : 'Unable to connect to the server. Please try again.'
+    )
+  }
 
   if (res.status === 401) {
     const json = await res.json().catch(() => null)
