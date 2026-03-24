@@ -1058,6 +1058,7 @@ export const api = {
         has_eur_commissions: boolean;
         has_btc_commissions: boolean;
         payout_settings: { method: string | null; btc_address: string | null } | null;
+        vanity_link: string | null;
       } }>('/api/affiliate/me'),
     updateSettings: (body: { payout_method: string; btc_address?: string }) =>
       request<{ data: { message: string } }>('/api/affiliate/me/settings', {

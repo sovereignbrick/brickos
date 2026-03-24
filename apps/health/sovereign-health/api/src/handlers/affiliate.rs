@@ -209,6 +209,17 @@ pub async fn me(
     let has_eur: bool = commission_row.try_get("has_eur").unwrap_or(false);
     let has_btc: bool = commission_row.try_get("has_btc").unwrap_or(false);
 
+    // Look up existing vanity link for this user
+    let vanity_link: Option<String> = sqlx::query_scalar(
+        "SELECT code FROM short_links WHERE owner_user_id = $1 AND link_type = 'vanity' AND is_active = true LIMIT 1",
+    )
+    .bind(auth.user_id)
+    .fetch_optional(pool.get_ref())
+    .await
+    .ok()
+    .flatten()
+    .map(|code: String| format!("https://brickos.io/r/{}", code));
+
     // Parse payout settings from JSONB
     let payout_settings = affiliate_settings.as_ref().map(|s| {
         json!({
@@ -222,6 +233,7 @@ pub async fn me(
             "affiliate_code": affiliate_code,
             "referral_link": format!("https://brickos.io/r/sh{}", affiliate_code),
             "referral_link_direct": format!("{}/?ref={}", config.frontend_url.trim_end_matches('/'), affiliate_code),
+            "vanity_link": vanity_link,
             "stats": {
                 "total_clicks": total_clicks,
                 "total_signups": total_signups,

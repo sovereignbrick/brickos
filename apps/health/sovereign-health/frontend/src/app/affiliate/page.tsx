@@ -97,6 +97,7 @@ export default function AffiliatePage() {
       const res = await api.affiliate.me()
       setAffiliateCode(res.data.affiliate_code)
       setReferralLink(res.data.referral_link)
+      if (res.data.vanity_link) setVanityLink(res.data.vanity_link)
       setStats(res.data.stats)
       setBtcStats(res.data.btc)
       setHasEurCommissions(res.data.has_eur_commissions)
