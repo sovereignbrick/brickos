@@ -5,7 +5,7 @@
  BLOOD - BIOMARKERS - INSIGHT
 
  Deployment & CI/CD Documentation
- Last updated: 2026-03-21
+ Last updated: 2026-03-24
 
  https://sovereignhealth.io/
  AGPL-3.0 - https://github.com/sovereignbrick/brickos
@@ -133,7 +133,7 @@ VPS (72.61.154.115)
 - Log level: `info`
 - Stripe: TEST keys
 - Protected by nginx basic auth
-- Demo user: `demo@sovereignhealth.io` / `Demo2026!`
+- Demo user: `demo@sovereignhealth.io` / `SovereignDemo1!`
 
 ### Local Development
 
@@ -633,3 +633,59 @@ These rules were learned from production incidents. Violating them causes silent
 | Check for only ONE DB container after any docker operation | Orphan DBs cause empty data and long migration replays | v0.23.0 RC: 3-minute migration replay on empty DB |
 | Never replace sovereign-health-postgres with standard postgres | pgaudit extension is required for audit logging | Historical |
 | `pnpm build` locally before committing frontend changes | Catches TypeScript errors before deploy | Historical |
+| Staging website must build with `NEXT_PUBLIC_API_URL=staging` | Website defaults to production API; feature-details page shows wrong data | Sprint 013 |
+| Never run `docker compose up` directly on VPS | Compose uses `${VAR}` interpolation; without `.env` sourced, secrets are empty → crash-loop | Sprint 013 (3 outages) |
+| nginx basic auth blocks PWA files (manifest.json, sw.js, /offline, icons) | Service worker can't authenticate; iOS can't fetch icons | Sprint 011 |
+| nginx basic auth on staging API blocks CORS preflight | OPTIONS requests don't carry basic auth → 401 → no CORS headers → browser blocks everything | Sprint 011 |
+| Staging API needs CORS + WEBSITE_URL for staging website domain | `www-demo.sovereignhealth.io` must be in CORS_ORIGINS | Sprint 013 |
+| Use `curl -X GET` not `curl -sI` (HEAD) for redirect testing | Sovereign Link handler only matches GET; HEAD returns 404 | Sprint 012 |
+| `next build --webpack` required for @serwist/next (PWA) | Turbopack doesn't support @serwist/next yet | Sprint 011 |
+| After version bump, update insta snapshots with `INSTA_UPDATE=always cargo test --test integration` | Snapshots contain VERSION string; stale snapshots fail CI | Every release |
+
+---
+
+## 15. New Components (Sprint 011-013)
+
+### PWA (Service Worker)
+- Built by `@serwist/next` during `pnpm build` (requires `--webpack` flag)
+- Generated files: `public/sw.js`, `public/serwist-worker-*.js` (gitignored)
+- nginx must exempt from basic auth: `/manifest.json`, `/sw.js`, `/offline`, icon files
+
+### Sovereign Link (brickos.io)
+- URL shortener routes: `brickos.io/r/{code}` → health API port 8080
+- nginx config: `ops/nginx-brickos.conf` on VPS at `/etc/nginx/sites-enabled/brickos.io`
+- Cloudflare Origin Certificate for `brickos.io` at `/etc/ssl/cloudflare/`
+
+### Staging Smoke Test
+```bash
+bash ops/staging-smoke-test.sh
+```
+30+ automated checks: API health, auth, PWA, cache headers, sync, push, Sovereign Link, idempotency, accessibility.
+
+### Playwright E2E Tests
+```bash
+# Public tests (no auth needed)
+pnpm test:e2e
+
+# Full suite with auth
+E2E_USER_EMAIL=demo@sovereignhealth.io E2E_USER_PASSWORD='SovereignDemo1!' pnpm test:e2e
+```
+15 tests: public pages, PWA, API, auth flow, demo mode, Sovereign Link, accessibility.
+
+---
+
+## 16. Known Issues & Workarounds (Sprint 013)
+
+### Compose env var crash-loop (#234)
+**Problem:** `docker compose up` on VPS creates containers with empty `ENCRYPTION_KEY` because `${VAR}` references aren't sourced.
+**Workaround:** Only use `deploy.sh` to manage containers. Never run `docker compose` directly.
+**Permanent fix:** Issue #234 — switch to `env_file:` directive in compose.
+
+### Staging website → production API
+**Problem:** Website built without `NEXT_PUBLIC_API_URL` defaults to production API.
+**Fix applied:** `deploy.sh` now sets `NEXT_PUBLIC_API_URL=api-demo.sovereignhealth.io` for staging builds.
+
+### Rate limiting during E2E tests
+**Problem:** Multiple login attempts trigger rate limiter, failing auth tests.
+**Workaround:** Restart backend to clear in-memory limits: `docker restart sh-staging-backend`
+**Fix:** E2E tests share single login across auth tests.
