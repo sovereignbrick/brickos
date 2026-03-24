@@ -19,13 +19,22 @@ pub trait LinkStore: Send + Sync {
     async fn record_click(&self, link_id: Uuid, meta: ClickMeta) -> anyhow::Result<()>;
 
     /// Create a new short link.
-    async fn create_link(&self, req: CreateLinkRequest, owner_user_id: Option<Uuid>) -> anyhow::Result<ShortLink>;
+    async fn create_link(
+        &self,
+        req: CreateLinkRequest,
+        owner_user_id: Option<Uuid>,
+    ) -> anyhow::Result<ShortLink>;
 
     /// List all links owned by a user.
     async fn list_by_owner(&self, user_id: Uuid) -> anyhow::Result<Vec<ShortLink>>;
 
     /// Update a link's metadata.
-    async fn update_link(&self, id: Uuid, owner_user_id: Uuid, req: UpdateLinkRequest) -> anyhow::Result<Option<ShortLink>>;
+    async fn update_link(
+        &self,
+        id: Uuid,
+        owner_user_id: Uuid,
+        req: UpdateLinkRequest,
+    ) -> anyhow::Result<Option<ShortLink>>;
 
     /// Soft-deactivate a link.
     async fn deactivate_link(&self, id: Uuid, owner_user_id: Uuid) -> anyhow::Result<bool>;

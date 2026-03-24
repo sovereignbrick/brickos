@@ -1,6 +1,6 @@
 use actix_web::{web, HttpResponse};
-use qrcode::QrCode;
 use qrcode::render::svg;
+use qrcode::QrCode;
 use sqlx::PgPool;
 use std::sync::Arc;
 

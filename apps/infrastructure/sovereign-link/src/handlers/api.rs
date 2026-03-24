@@ -6,13 +6,12 @@ use crate::db::LinkStore;
 use crate::models::*;
 
 /// GET /api/v1/links — List links owned by the authenticated user.
-pub async fn list_links(
-    req: HttpRequest,
-    store: web::Data<Arc<dyn LinkStore>>,
-) -> HttpResponse {
+pub async fn list_links(req: HttpRequest, store: web::Data<Arc<dyn LinkStore>>) -> HttpResponse {
     let user_id = match extract_user_id(&req) {
         Some(id) => id,
-        None => return HttpResponse::Unauthorized().json(serde_json::json!({"error": "Unauthorized"})),
+        None => {
+            return HttpResponse::Unauthorized().json(serde_json::json!({"error": "Unauthorized"}))
+        }
     };
 
     match store.list_by_owner(user_id).await {
@@ -32,7 +31,9 @@ pub async fn create_link(
 ) -> HttpResponse {
     let user_id = match extract_user_id(&req) {
         Some(id) => id,
-        None => return HttpResponse::Unauthorized().json(serde_json::json!({"error": "Unauthorized"})),
+        None => {
+            return HttpResponse::Unauthorized().json(serde_json::json!({"error": "Unauthorized"}))
+        }
     };
 
     // Validate vanity code if provided
@@ -50,7 +51,8 @@ pub async fn create_link(
                 HttpResponse::Conflict().json(serde_json::json!({"error": "Code already taken"}))
             } else {
                 tracing::error!("Failed to create link: {}", e);
-                HttpResponse::InternalServerError().json(serde_json::json!({"error": "Internal error"}))
+                HttpResponse::InternalServerError()
+                    .json(serde_json::json!({"error": "Internal error"}))
             }
         }
     }
@@ -65,7 +67,9 @@ pub async fn update_link(
 ) -> HttpResponse {
     let user_id = match extract_user_id(&req) {
         Some(id) => id,
-        None => return HttpResponse::Unauthorized().json(serde_json::json!({"error": "Unauthorized"})),
+        None => {
+            return HttpResponse::Unauthorized().json(serde_json::json!({"error": "Unauthorized"}))
+        }
     };
 
     match store.update_link(*id, user_id, body.into_inner()).await {
@@ -86,7 +90,9 @@ pub async fn delete_link(
 ) -> HttpResponse {
     let user_id = match extract_user_id(&req) {
         Some(id) => id,
-        None => return HttpResponse::Unauthorized().json(serde_json::json!({"error": "Unauthorized"})),
+        None => {
+            return HttpResponse::Unauthorized().json(serde_json::json!({"error": "Unauthorized"}))
+        }
     };
 
     match store.deactivate_link(*id, user_id).await {
@@ -107,7 +113,9 @@ pub async fn link_stats(
 ) -> HttpResponse {
     let _user_id = match extract_user_id(&req) {
         Some(id) => id,
-        None => return HttpResponse::Unauthorized().json(serde_json::json!({"error": "Unauthorized"})),
+        None => {
+            return HttpResponse::Unauthorized().json(serde_json::json!({"error": "Unauthorized"}))
+        }
     };
 
     match store.get_stats(*id).await {
@@ -123,9 +131,7 @@ pub async fn link_stats(
 fn extract_user_id(req: &HttpRequest) -> Option<Uuid> {
     // The host API's auth middleware stores the user_id in request extensions.
     // Try the common patterns:
-    req.extensions()
-        .get::<Uuid>()
-        .copied()
+    req.extensions().get::<Uuid>().copied()
 }
 
 /// Validate a vanity code.
@@ -136,7 +142,10 @@ pub fn validate_vanity_code(code: &str) -> Result<(), &'static str> {
     if code.len() > 30 {
         return Err("Code must be at most 30 characters");
     }
-    if !code.chars().all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '-') {
+    if !code
+        .chars()
+        .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '-')
+    {
         return Err("Code must be lowercase alphanumeric or hyphens");
     }
     if code.starts_with('-') || code.ends_with('-') {
@@ -145,8 +154,8 @@ pub fn validate_vanity_code(code: &str) -> Result<(), &'static str> {
 
     // Reserved words
     let reserved = [
-        "api", "admin", "health", "finance", "app", "docs", "status",
-        "new", "discover", "export", "import", "settings", "login", "signup",
+        "api", "admin", "health", "finance", "app", "docs", "status", "new", "discover", "export",
+        "import", "settings", "login", "signup",
     ];
     if reserved.contains(&code) {
         return Err("This code is reserved");

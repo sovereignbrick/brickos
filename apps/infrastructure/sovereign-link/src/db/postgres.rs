@@ -69,7 +69,9 @@ impl LinkStore for PgLinkStore {
         let code = req.code.unwrap_or_else(generate_short_code);
         let link_type = req.link_type.unwrap_or_else(|| "generic".to_string());
         let domain = req.domain.unwrap_or_else(|| "health".to_string());
-        let app_key = req.app_key.unwrap_or_else(|| "sovereign-health".to_string());
+        let app_key = req
+            .app_key
+            .unwrap_or_else(|| "sovereign-health".to_string());
 
         let link = sqlx::query_as::<_, ShortLink>(
             r#"INSERT INTO short_links (id, code, target_url, link_type, domain, app_key,
@@ -205,5 +207,7 @@ fn generate_short_code() -> String {
     use rand::Rng;
     let mut rng = rand::rng();
     let chars: Vec<char> = "abcdefghijklmnopqrstuvwxyz0123456789".chars().collect();
-    (0..6).map(|_| chars[rng.random_range(0..chars.len())]).collect()
+    (0..6)
+        .map(|_| chars[rng.random_range(0..chars.len())])
+        .collect()
 }

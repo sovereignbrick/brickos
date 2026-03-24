@@ -66,8 +66,14 @@ fn vanity_collision_with_auto_codes() {
 
 #[test]
 fn url_domain_https() {
-    assert_eq!(url_domain("https://example.com/path"), Some("example.com".into()));
-    assert_eq!(url_domain("https://sub.example.com/"), Some("sub.example.com".into()));
+    assert_eq!(
+        url_domain("https://example.com/path"),
+        Some("example.com".into())
+    );
+    assert_eq!(
+        url_domain("https://sub.example.com/"),
+        Some("sub.example.com".into())
+    );
 }
 
 #[test]
@@ -77,7 +83,10 @@ fn url_domain_http() {
 
 #[test]
 fn url_domain_with_port() {
-    assert_eq!(url_domain("https://example.com:8080/path"), Some("example.com".into()));
+    assert_eq!(
+        url_domain("https://example.com:8080/path"),
+        Some("example.com".into())
+    );
 }
 
 #[test]

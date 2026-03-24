@@ -36,7 +36,6 @@ async fn handle_redirect(
     store: &web::Data<Arc<dyn LinkStore>>,
     pool: &web::Data<PgPool>,
 ) -> HttpResponse {
-
     // Fast path: auto-generated affiliate code (2-char prefix + 8-char hash)
     if code.len() == AUTO_CODE_LEN {
         let prefix = &code[..PREFIX_LEN];
@@ -104,15 +103,13 @@ fn extract_click_meta(req: &HttpRequest) -> ClickMeta {
 
     // Privacy-preserving visitor hash: SHA256(IP + code + date)
     // Rotates daily — cannot be reversed to IP
-    let visitor_hash = req
-        .peer_addr()
-        .map(|addr| {
-            let today = chrono::Utc::now().format("%Y-%m-%d");
-            let input = format!("{}:{}", addr.ip(), today);
-            let mut hasher = Sha256::new();
-            hasher.update(input.as_bytes());
-            hex::encode(hasher.finalize())
-        });
+    let visitor_hash = req.peer_addr().map(|addr| {
+        let today = chrono::Utc::now().format("%Y-%m-%d");
+        let input = format!("{}:{}", addr.ip(), today);
+        let mut hasher = Sha256::new();
+        hasher.update(input.as_bytes());
+        hex::encode(hasher.finalize())
+    });
 
     ClickMeta {
         referrer_domain,

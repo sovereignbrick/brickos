@@ -29,6 +29,8 @@ curl -I https://brickos.io/r/sh0xforr84
 # Returns 404
 ```
 
-## Expected
+## Resolution
 
-302 redirect to `https://app.sovereignhealth.io/?ref=0xforr84`
+**Not a bug.** The redirect handler only matches GET requests. Testing with `curl -sI` (HEAD method) returned 404, but `curl -X GET` returns 301 correctly. Browsers always use GET for link navigation — short links work in production.
+
+Minor improvement: add HEAD support to redirect handler for monitoring tools.
