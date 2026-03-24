@@ -727,7 +727,15 @@ deploy_website() {
     cd "$APP_ROOT/website"
     rm -rf .next out
     pnpm install --frozen-lockfile 2>/dev/null || pnpm install
-    pnpm build
+
+    # Bake staging API URL into the website build
+    if [ "$env" = "staging" ]; then
+        NEXT_PUBLIC_API_URL="https://api-demo.sovereignhealth.io" \
+        NEXT_PUBLIC_APP_URL="https://demo.sovereignhealth.io" \
+        pnpm build
+    else
+        pnpm build
+    fi
 
     # Ensure target directory exists on VPS.
     ssh $VPS "mkdir -p $target_dir"
