@@ -277,7 +277,7 @@ export default function TrendsPage() {
   const tCommon = useTranslations('common')
   const tNav = useTranslations('nav')
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">{tCommon('loading')}</div>
+  if (loading) return <div className="min-h-screen" suppressHydrationWarning>{tCommon('loading')}</div>
 
   return (
     <div className="min-h-screen">

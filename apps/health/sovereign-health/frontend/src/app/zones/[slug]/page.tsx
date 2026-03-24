@@ -53,7 +53,7 @@ export default function ZoneDetailPage() {
       .finally(() => setFetching(false))
   }, [user, loading, isDemo, slug, profile, locale])
 
-  if (loading || fetching) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">{tCommon('loading')}</div>
+  if (loading || fetching) return <div className="min-h-screen" suppressHydrationWarning>{tCommon('loading')}</div>
 
   if (!zone) return (
     <div className="min-h-screen">

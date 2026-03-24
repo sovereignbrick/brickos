@@ -53,7 +53,7 @@ export default function MeasurementDetailPage() {
     }
   }
 
-  if (loading || fetching) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">{tCommon('loading')}</div>
+  if (loading || fetching) return <div className="min-h-screen" suppressHydrationWarning>{tCommon('loading')}</div>
 
   if (!measurement) return (
     <div className="min-h-screen">

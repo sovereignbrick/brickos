@@ -11,7 +11,7 @@ export default function DoctorChatConversationPage() {
   const params = useParams()
   const conversationId = params.id as string
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">{tCommon('loading')}</div>
+  if (loading) return <div className="min-h-screen" suppressHydrationWarning>{tCommon('loading')}</div>
 
   return (
     <div className="h-screen flex flex-col overflow-hidden">

@@ -755,7 +755,7 @@ export default function NewMeasurementPage() {
   }
 
   if (loading || !dataLoaded) return (
-    <div className="min-h-screen flex items-center justify-center text-muted-foreground">{tCommon('loading')}</div>
+    <div className="min-h-screen" suppressHydrationWarning>{tCommon('loading')}</div>
   )
 
   const filledCount = Object.entries(values).filter(([slug, v]) => activeSlugs.has(slug) && v.trim()).length

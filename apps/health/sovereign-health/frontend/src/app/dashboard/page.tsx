@@ -63,7 +63,7 @@ export default function DashboardPage() {
     }
   }, [user, loading, isDemo, profile, locale])
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">{tCommon('loading')}</div>
+  if (loading) return <div className="min-h-screen" suppressHydrationWarning>{tCommon('loading')}</div>
 
   return (
     <div className="min-h-screen">

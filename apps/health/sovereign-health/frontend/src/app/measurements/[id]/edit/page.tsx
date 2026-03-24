@@ -154,7 +154,7 @@ export default function EditMeasurementPage() {
   }
 
   if (loading || fetching) return (
-    <div className="min-h-screen flex items-center justify-center text-muted-foreground">{tCommon('loading')}</div>
+    <div className="min-h-screen" suppressHydrationWarning>{tCommon('loading')}</div>
   )
 
   if (!measurement) return (

@@ -223,7 +223,7 @@ function MeasurementsContent() {
     resetPage()
   }
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">{tCommon('loading')}</div>
+  if (loading) return <div className="min-h-screen" suppressHydrationWarning>{tCommon('loading')}</div>
 
   return (
     <div className="min-h-screen">
@@ -550,7 +550,7 @@ function MarkerMultiSelect({
 
 export default function MeasurementsPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-muted-foreground">Loading&hellip;</div>}>
+    <Suspense fallback={<div className="min-h-screen" suppressHydrationWarning>Loading&hellip;</div>}>
       <MeasurementsContent />
     </Suspense>
   )

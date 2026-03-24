@@ -13,7 +13,7 @@ export default function DoctorChatPage() {
   const tNav = useTranslations('nav')
   const tCommon = useTranslations('common')
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">{tCommon('loading')}</div>
+  if (loading) return <div className="min-h-screen" suppressHydrationWarning>{tCommon('loading')}</div>
 
   if (isDemo) {
     return (
