@@ -112,10 +112,10 @@ export function InfoTooltip({ text }: { text: string }) {
         <text x="8" y="12" textAnchor="middle" fill="currentColor" fontSize="10" fontWeight="600">i</text>
       </svg>
       <span
-        className={`pointer-events-none absolute z-50 mb-2 rounded-lg bg-[var(--card)] px-3 py-2 text-xs text-[var(--foreground)] opacity-0 shadow-lg transition-opacity group-hover:opacity-100 text-center ${
+        className={`pointer-events-none absolute z-50 mb-2 rounded-lg bg-[var(--card)] border border-[var(--border)] px-4 py-3 text-xs leading-relaxed text-[var(--foreground)] opacity-0 shadow-xl transition-opacity group-hover:opacity-100 text-left ${
           flipToBottom ? "top-full mt-2" : "bottom-full"
         } ${alignLeft ? "left-0" : "left-1/2 -translate-x-1/2"}`}
-        style={{ minWidth: "200px", maxWidth: "320px", whiteSpace: "normal", overflowWrap: "break-word" }}
+        style={{ minWidth: "280px", maxWidth: "480px", whiteSpace: "normal", overflowWrap: "break-word" }}
       >
         {text}
       </span>
