@@ -839,7 +839,7 @@
   },
   "featureDetails": {
     "title": "Feature-Vergleich",
-    "subtitle": "Vergleichen Sie alle {count} Funktionen über alle Tarife hinweg. Nutzen Sie die Suche, um bestimmte Funktionen zu finden, oder fragen Sie Dr. Alex - er kennt jede Funktion und kann Ihnen bei der Wahl des richtigen Tarifs helfen.",
+    "subtitle": "Vergleichen Sie alle {count} Funktionen über alle Tarife hinweg. Nutzen Sie die Suche, um bestimmte Funktionen zu finden, oder fragen Sie unseren Health Coach - er kennt jede Funktion und kann Ihnen bei der Wahl des richtigen Tarifs helfen.",
     "backToPricing": "Zurück zur Preisübersicht",
     "searchPlaceholder": "Features durchsuchen...",
     "noResults": "Keine Features entsprechen Ihrer Suche.",
