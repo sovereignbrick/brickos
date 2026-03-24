@@ -1,6 +1,7 @@
 # Sprint 011 — Progressive Web App (Phase 1: Installable + Offline Detection)
 
 **Started:** 2026-03-24
+**Completed:** 2026-03-24
 **Goal:** Make Sovereign Health installable on mobile/desktop home screens, add basic service worker for asset caching, implement offline detection UI, and add API cache headers for faster loads.
 
 ## Context
@@ -9,260 +10,92 @@ Sprint 010 delivered Sovereign Link (URL shortener + affiliate short links). Spr
 
 Design doc: `docs/project-files/design/023-progressive-web-app.md`
 
-**What exists:**
-- Icons: `android-chrome-192x192.png`, `android-chrome-512x512.png`, `apple-touch-icon.png` (all in `frontend/public/`)
-- Viewport: `viewportFit: 'cover'` in layout.tsx
-- Content caching: localStorage with 5-min TTL (`content-context.tsx`)
-- Auth no-cache: `Cache-Control: no-store` on checkout/signup/login/settings
-- Schema: sync columns on core tables (migration 068)
+## Completed
 
-**What's missing:**
-- `manifest.json` (frontend has none)
-- Service worker (none)
-- Offline detection / fallback
-- API cache headers (no `Cache-Control` on GET endpoints)
-- PWA meta tags (`theme-color`, `apple-mobile-web-app-capable`)
-- Install prompt UX
+### P0 — Installable PWA
 
-## Planned
+| # | Title | Points | Commits |
+|---|-------|--------|---------|
+| [#210](https://github.com/sovereignbrick/brickos/issues/210) | feat: `manifest.json` with icons, start_url, display: standalone | 1 | a484053 |
+| [#210](https://github.com/sovereignbrick/brickos/issues/210) | feat: PWA meta tags in layout.tsx (theme-color, apple-mobile-web-app-capable) | 1 | a484053 |
+| [#210](https://github.com/sovereignbrick/brickos/issues/210) | feat: service worker with @serwist/next (static asset caching) | 5 | a484053 |
+| [#210](https://github.com/sovereignbrick/brickos/issues/210) | feat: offline fallback page (`/offline`) | 1 | a484053 |
+| [#210](https://github.com/sovereignbrick/brickos/issues/210) | feat: `beforeinstallprompt` handler + install button in settings | 2 | a484053 |
+| [#210](https://github.com/sovereignbrick/brickos/issues/210) | fix: website `site.webmanifest` — add 192/512 icons, start_url | 1 | a484053 |
+| | **P0 Total** | **11** | |
 
-### P0 — Installable PWA (must complete)
+### P1 — Offline Read + API Caching
 
-| # | Title | Points | Area |
-|---|-------|--------|------|
-| [#210](https://github.com/sovereignbrick/brickos/issues/210) | feat: `manifest.json` with icons, start_url, display: standalone | 1 | Frontend |
-| [#210](https://github.com/sovereignbrick/brickos/issues/210) | feat: PWA meta tags in layout.tsx (theme-color, apple-mobile-web-app-capable) | 1 | Frontend |
-| [#210](https://github.com/sovereignbrick/brickos/issues/210) | feat: service worker with @serwist/next (static asset caching) | 5 | Frontend |
-| [#210](https://github.com/sovereignbrick/brickos/issues/210) | feat: offline fallback page (`/offline`) | 1 | Frontend |
-| [#210](https://github.com/sovereignbrick/brickos/issues/210) | feat: `beforeinstallprompt` handler + install button in settings | 2 | Frontend |
-| [#210](https://github.com/sovereignbrick/brickos/issues/210) | fix: website `site.webmanifest` — add 192/512 icons, start_url | 1 | Website |
-| | **P0 Subtotal** | **11** | |
+| # | Title | Points | Commits |
+|---|-------|--------|---------|
+| [#210](https://github.com/sovereignbrick/brickos/issues/210) | feat: Rust cache middleware (Cache-Control on GET endpoints) | 3 | ea3c020 |
+| [#210](https://github.com/sovereignbrick/brickos/issues/210) | feat: SW network-first caching for user data API calls | 3 | ea3c020 |
+| [#210](https://github.com/sovereignbrick/brickos/issues/210) | feat: SW cache-first for content endpoints (markers, zones, tiers) | 2 | ea3c020 |
+| [#210](https://github.com/sovereignbrick/brickos/issues/210) | feat: offline detection context + banner UI (EN + DE) | 2 | ea3c020 |
+| | **P1 Total** | **10** | |
 
-### P1 — Offline Read + API Caching (if time permits)
+## Carried Over
 
-| # | Title | Points | Area |
-|---|-------|--------|------|
-| [#210](https://github.com/sovereignbrick/brickos/issues/210) | feat: Rust cache middleware (Cache-Control on GET endpoints) | 3 | API |
-| [#210](https://github.com/sovereignbrick/brickos/issues/210) | feat: SW network-first caching for user data API calls | 3 | Frontend |
-| [#210](https://github.com/sovereignbrick/brickos/issues/210) | feat: SW cache-first for content endpoints (markers, zones, tiers) | 2 | Frontend |
-| [#210](https://github.com/sovereignbrick/brickos/issues/210) | feat: offline detection context + banner UI (EN + DE) | 2 | Frontend |
-| [#210](https://github.com/sovereignbrick/brickos/issues/210) | feat: grey out write actions when offline | 2 | Frontend |
-| | **P1 Subtotal** | **12** | |
+| Title | Points | Reason |
+|-------|--------|--------|
+| feat: grey out write actions when offline | 2 | Foundation built (`useOffline()` hook available), individual component integration deferred to Sprint 012 |
 
-## Technical Approach
+## Velocity
 
-### Manifest (`frontend/public/manifest.json`)
+| Metric | Value |
+|--------|-------|
+| Planned (P0) | 11 pts |
+| Planned (P1) | 12 pts |
+| Completed (P0) | 11 pts |
+| Completed (P1) | 10 pts |
+| Carried over | 2 pts |
+| Total delivered | 21 pts |
+| Commits | 2 |
 
-```json
-{
-  "name": "Sovereign Health Intelligence",
-  "short_name": "SHI",
-  "start_url": "/dashboard",
-  "scope": "/",
-  "display": "standalone",
-  "orientation": "portrait-primary",
-  "theme_color": "#09090b",
-  "background_color": "#09090b",
-  "icons": [
-    { "src": "/android-chrome-192x192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "/android-chrome-512x512.png", "sizes": "512x512", "type": "image/png" },
-    { "src": "/apple-touch-icon.png", "sizes": "180x180", "type": "image/png" }
-  ],
-  "categories": ["health", "medical", "lifestyle"]
-}
-```
-
-### Meta Tags (in `layout.tsx` metadata export)
-
-```typescript
-export const metadata: Metadata = {
-  // ... existing fields
-  manifest: '/manifest.json',
-  themeColor: '#09090b',
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: 'black-translucent',
-    title: 'Sovereign Health',
-  },
-}
-```
-
-Next.js 16 handles these natively via the `Metadata` type — no raw `<meta>` tags needed.
-
-### Service Worker (@serwist/next)
-
-**Why @serwist/next over next-pwa:**
-- `next-pwa` is unmaintained (last release 2023)
-- `@serwist/next` is the active successor, built for Next.js App Router
-- Workbox strategies under the hood, but with Next.js-aware routing
-
-**Setup:**
-
-```bash
-pnpm add @serwist/next && pnpm add -D serwist
-```
-
-**`next.config.ts`:**
-```typescript
-import withSerwistInit from "@serwist/next";
-
-const withSerwist = withSerwistInit({
-  swSrc: "src/sw.ts",
-  swDest: "public/sw.js",
-  disable: process.env.NODE_ENV === "development",
-});
-
-export default withSerwist(withNextIntl(nextConfig));
-```
-
-**`src/sw.ts`** (service worker source):
-```typescript
-import { defaultCache } from "@serwist/next/worker";
-import { Serwist } from "serwist";
-
-const serwist = new Serwist({
-  precacheEntries: self.__SW_MANIFEST,
-  skipWaiting: true,
-  clientsClaim: true,
-  navigationPreload: true,
-  runtimeCaching: defaultCache,
-  fallbacks: {
-    entries: [{ url: "/offline", matcher: ({ request }) => request.destination === "document" }],
-  },
-});
-
-serwist.addEventListeners();
-```
-
-**Caching strategies (from `defaultCache`):**
-- **Precache:** Next.js build assets (JS chunks, CSS)
-- **Stale-while-revalidate:** static assets (images, fonts)
-- **Network-first:** page navigations (with `/offline` fallback)
-- **Network-only:** API calls (P0 — no API caching yet)
-
-### Offline Fallback Page (`src/app/offline/page.tsx`)
-
-Simple page shown when network is unavailable and no cached page exists:
-
-```tsx
-export default function OfflinePage() {
-  return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="text-center space-y-4">
-        <h1 className="text-2xl font-bold">You're offline</h1>
-        <p className="text-muted-foreground">Check your connection and try again.</p>
-        <button onClick={() => window.location.reload()} className="...">
-          Retry
-        </button>
-      </div>
-    </div>
-  )
-}
-```
-
-### Install Prompt
-
-**Context provider** (`src/lib/install-context.tsx`):
-```typescript
-// Captures beforeinstallprompt event
-// Exposes: canInstall, promptInstall(), isInstalled
-// isInstalled: checks display-mode: standalone media query
-```
-
-**UI:** Button in Settings page (not intrusive popup):
-```
-Settings > App
-┌──────────────────────────────────────┐
-│  Install Sovereign Health            │
-│  Add to your home screen for quick   │
-│  access.                             │
-│                                      │
-│  [Install App]                       │
-└──────────────────────────────────────┘
-```
-
-Hidden if already installed (`display-mode: standalone`).
-
-### P1: API Cache Headers (Rust Middleware)
-
-New Actix middleware that sets `Cache-Control` based on route pattern:
-
-| Route pattern | Cache-Control | Reason |
-|---------------|---------------|--------|
-| `GET /api/v1/content/*` | `public, max-age=3600` | Markers, zones, tiers change rarely |
-| `GET /api/v1/dashboard` | `private, max-age=60` | User data, short cache |
-| `GET /api/v1/measurements` | `private, max-age=300` | User data, moderate cache |
-| `GET /health` | `no-cache` | Always fresh |
-| `POST/PUT/DELETE *` | `no-store` | Mutations never cached |
-| Auth routes | `no-store, no-cache` | Already set in next.config.ts |
-
-### P1: Offline Detection Context
-
-```typescript
-// src/lib/offline-context.tsx
-// - Listens to navigator.onLine + online/offline events
-// - Provides: { isOffline: boolean }
-// - When offline: shows persistent banner at top of page
-// - Grey out: "Add Measurement", "Import", "Dr. Alex", "Billing" buttons
-```
-
-Banner (i18n):
-- EN: "You're offline — showing cached data"
-- DE: "Du bist offline — gespeicherte Daten werden angezeigt"
-
-### P1: SW API Caching Strategies
-
-| Endpoint | Strategy | Why |
-|----------|----------|-----|
-| `/api/v1/content/*` | Cache-first, refresh in background | Content rarely changes |
-| `/api/v1/dashboard` | Network-first, fallback to cache | Show stale data vs blank |
-| `/api/v1/measurements` | Network-first, fallback to cache | User data, prefer fresh |
-| `/api/v1/zones/*` | Cache-first, refresh in background | Zone data is stable |
-| `/api/affiliate/*` | Network-only | Needs real-time data |
-| `/auth/*`, `/billing/*` | Network-only | Security-sensitive |
-
-## Execution Order
+## Architecture Delivered
 
 ```
-Step 1: manifest.json + meta tags                    → 30 min
-  Create frontend/public/manifest.json
-  Add manifest + themeColor + appleWebApp to layout.tsx metadata
-  Fix website site.webmanifest (add 192/512 icons)
+frontend/public/
+├── manifest.json                      ← NEW: PWA manifest
 
-Step 2: @serwist/next setup                          → 1-2 hrs
-  pnpm add @serwist/next serwist
-  Create src/sw.ts with defaultCache + offline fallback
-  Wrap next.config.ts with withSerwist
-  Verify: build succeeds, sw.js generated in public/
+frontend/src/
+├── sw.ts                              ← NEW: service worker (precache + API caching)
+├── app/offline/page.tsx               ← NEW: offline fallback (i18n EN+DE)
+├── lib/install-context.tsx            ← NEW: beforeinstallprompt + isInstalled
+├── lib/offline-context.tsx            ← NEW: navigator.onLine detection
+├── components/offline-banner.tsx      ← NEW: persistent offline banner
 
-Step 3: Offline fallback page                        → 30 min
-  Create src/app/offline/page.tsx (EN + DE)
-  Verify: disconnect network → navigate → see offline page
+api/src/middleware/
+├── cache.rs                           ← NEW: Cache-Control by route pattern
 
-Step 4: Install prompt                               → 1 hr
-  Create src/lib/install-context.tsx
-  Add InstallProvider to layout.tsx
-  Add install button to Settings page
-  Verify: Chrome shows install prompt, button works
-
-Step 5 (P1): API cache headers                       → 1 hr
-  Create middleware/cache.rs
-  Register in main.rs
-  Verify: curl -I shows Cache-Control headers
-
-Step 6 (P1): Offline detection + SW API caching      → 2 hrs
-  Create src/lib/offline-context.tsx
-  Add OfflineProvider to layout.tsx
-  Add OfflineBanner component
-  Configure SW runtime caching for API routes
-  Verify: go offline → banner shows, cached data loads
+website/public/
+├── site.webmanifest                   ← UPDATED: 192/512 icons + start_url
+├── android-chrome-192x192.png         ← NEW (copied from frontend)
+├── android-chrome-512x512.png         ← NEW (copied from frontend)
 ```
 
-## Docker Considerations
+### Key Technical Decisions
 
-The service worker (`sw.js`) is generated at build time by @serwist/next. The standalone Next.js output includes it. No Docker changes needed — the existing `pnpm build` + `standalone` output handles it.
+1. **@serwist/next v9.5.7** over next-pwa — actively maintained, App Router support, Workbox strategies under the hood
+2. **`next build --webpack`** — @serwist/next doesn't support Turbopack yet; Next.js 16 defaults to Turbopack, so webpack must be explicit for SW generation
+3. **`tsconfig.json` adds `webworker` lib** — required for `ServiceWorkerGlobalScope` types in `sw.ts`
+4. **Cache middleware is additive** — only sets `Cache-Control` if not already set by handler, so explicit handler headers take precedence
+5. **API caching layered** — Rust middleware sets HTTP headers (CDN/browser cache), SW adds client-side cache strategies (offline resilience)
+6. **Install prompt in Settings > Profile** — non-intrusive, shown only when `beforeinstallprompt` fires, hidden when installed
 
-**Important:** Service worker scope is `/` — it intercepts all navigations under the domain. The `swDest: "public/sw.js"` ensures it's served from root.
+### Cache Strategy Summary
+
+| Route | HTTP Cache-Control | SW Strategy |
+|-------|-------------------|-------------|
+| `GET /v1/content/*` | `public, max-age=3600` | Cache-first (1h TTL) |
+| `GET /api/tiers/*`, `/api/config/*` | `public, max-age=1800` | Cache-first (30m TTL) |
+| `GET /dashboard` | `private, max-age=60` | Network-first (10m fallback) |
+| `GET /measurements` | `private, max-age=300` | Network-first (10m fallback) |
+| `GET /markers/*` (user) | `private, max-age=300` | Network-first (10m fallback) |
+| `GET /zones/*` | — | Cache-first (1h TTL) |
+| `GET /health` | `no-cache` | — |
+| `POST/PUT/DELETE *` | `no-store` | — |
+| Auth, billing, affiliate | `no-store, no-cache` | Network-only |
 
 ## Testing Checklist
 
@@ -281,26 +114,17 @@ The service worker (`sw.js`) is generated at build time by @serwist/next. The st
 - [ ] Dashboard loads from cache when offline (after first visit)
 - [ ] Content data (markers, zones) loads from cache
 - [ ] Offline banner appears/disappears correctly
-- [ ] Write actions greyed out when offline
 - [ ] Reconnect: banner disappears, fresh data loads
-
-## Velocity Budget
-
-| Budget | Points |
-|--------|--------|
-| Multi-day sprint (2-3 days) | ~25-35 pts |
-| P0 (must ship) | 11 pts |
-| P1 (stretch) | 12 pts |
-| Unplanned buffer (~30%) | ~7 pts |
 
 ## Sprint 012 Preview
 
-**Sprint 012 — PWA Phase 2: Offline Write + Sync** (if P1 ships in 011)
+**Sprint 012 — PWA Phase 2: Offline Write + Sync** (P1 shipped in 011)
 - IndexedDB data layer (`idb` library)
 - Offline measurement entry → sync queue
 - Sync engine with `idempotency_key` and `sync_version`
 - `GET /api/v1/sync/changes?since_version={N}` endpoint
 - Storage persistence + quota management
+- Grey out write actions when offline (carried from 011)
 
 Or: **Sprint 012 — Production Release** (version bump, staging test, promote)
 
@@ -314,3 +138,5 @@ Or: **Sprint 012 — Production Release** (version bump, staging test, promote)
 - API cache headers are additive — no existing behavior changes, just new response headers
 - Install prompt only in Settings, not a popup — respects user attention
 - iOS limitations: no background sync, push only on 16.4+ home screen. Accept for now.
+- `next build --webpack` required until @serwist/next supports Turbopack (tracking: serwist/serwist#54)
+- Generated `sw.js` and `serwist-worker-*.js` added to `.gitignore` — build artifacts, not source
