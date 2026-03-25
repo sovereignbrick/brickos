@@ -1,5 +1,5 @@
 ---
-number: 226
+github_number: 242
 title: "feat: Dr. Alex document analysis — upload prescriptions, articles, doctor advice for AI evaluation"
 labels: [enhancement, ai, dr-alex]
 milestone: ai-smart-features

@@ -1,5 +1,5 @@
 ---
-number: 231
+github_number: 237
 title: "docs: update root README.md — current architecture, remove stale dirs"
 labels: [documentation, chore]
 milestone: infrastructure

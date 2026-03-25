@@ -1,5 +1,5 @@
 ---
-number: 228
+github_number: 240
 title: "design: multi-region infrastructure, data residency, disaster recovery"
 labels: [design, infrastructure, ops]
 milestone: infrastructure

@@ -1,7 +1,32 @@
 {
-  "last_sync": "2026-03-24T04:26:54Z",
-  "note": "No sync performed yet. Tracker seeded from sprint docs on 2026-03-23.",
-  "github_rate_limit_reset": "2026-03-23T17:19:28Z",
-  "issues_synced": 0,
-  "milestones_synced": 0
+  "last_sync": "2026-03-25T12:00:00Z",
+  "note": "Bulk sync: 24 local issues (#221-#245) created on GitHub as #223-#246. Labels added to sprint-014 issues.",
+  "issues_synced": 24,
+  "milestones_synced": 10,
+  "local_to_github_map": {
+    "245": 223,
+    "244": 224,
+    "243": 225,
+    "242": 226,
+    "241": 227,
+    "240": 228,
+    "239": 229,
+    "238": 230,
+    "237": 231,
+    "236": 232,
+    "235": 233,
+    "234": 234,
+    "233": 235,
+    "232": 236,
+    "231": 237,
+    "230": 238,
+    "229": 239,
+    "228": 240,
+    "227": 241,
+    "226": 242,
+    "225": 243,
+    "223": 244,
+    "222": 245,
+    "221": 246
+  }
 }

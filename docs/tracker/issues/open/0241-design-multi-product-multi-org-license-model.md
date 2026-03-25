@@ -1,5 +1,5 @@
 ---
-number: 241
+github_number: 227
 title: "design: verify license model supports multi-product (health, finance) + multi-org from BrickOS perspective"
 labels: [design, licensing, infrastructure]
 milestone: infrastructure

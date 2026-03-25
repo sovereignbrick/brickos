@@ -1,5 +1,5 @@
 ---
-number: 236
+github_number: 232
 title: "fix: pricing page must sync with feature-details master table"
 labels: [bug, website, priority-high]
 milestone: ux-and-onboarding

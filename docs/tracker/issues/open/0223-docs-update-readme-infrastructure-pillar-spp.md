@@ -1,5 +1,5 @@
 ---
-number: 223
+github_number: 244
 title: "docs: update core README.md with Infrastructure pillar + Sovereign Proposal Platform"
 labels: [documentation, infrastructure]
 milestone: infrastructure

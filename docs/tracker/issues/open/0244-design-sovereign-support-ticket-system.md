@@ -1,5 +1,5 @@
 ---
-number: 244
+github_number: 224
 title: "design: sovereign support & ticket system — AI-first with .md schema"
 labels: [design, infrastructure, ai]
 milestone: infrastructure
