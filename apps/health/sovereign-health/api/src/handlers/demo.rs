@@ -422,47 +422,90 @@ pub async fn demo_zone_detail(
         })
         .collect();
 
-    // Fetch calculated markers for this zone with latest demo values
+    // Compute calculated markers at runtime using the same pipeline as production.
+    // 1. Fetch latest demo measurement values for all calc input slugs
+    // 2. Run compute_calculated_markers() with the same formulas as real users
+    let input_rows = sqlx::query(
+        r#"SELECT DISTINCT ON (m.marker_slug)
+               m.marker_slug, ms.value_canonical
+           FROM measurements ms
+           JOIN markers m ON m.id = ms.marker_id
+           WHERE ms.user_id = '00000000-0000-0000-0000-000000000001'
+             AND ms.is_demo = true AND ms.demo_profile = $1
+             AND ms.is_deleted = false
+           ORDER BY m.marker_slug, ms.timestamp DESC"#,
+    )
+    .bind(profile)
+    .fetch_all(pool.get_ref())
+    .await?;
+
+    let mut values_map: std::collections::HashMap<String, f64> = std::collections::HashMap::new();
+    for row in &input_rows {
+        let slug: String = row.try_get("marker_slug").unwrap_or_default();
+        // Demo measurements are stored as plaintext numbers (not encrypted)
+        let val_str: String = row.try_get("value_canonical").unwrap_or_default();
+        if let Ok(v) = val_str.parse::<f64>() {
+            values_map.insert(slug, v);
+        }
+    }
+
+    // Get height from demo user profile
+    let height_cm: Option<f64> = sqlx::query_scalar(
+        "SELECT height_cm::float8 FROM user_profile WHERE user_id = '00000000-0000-0000-0000-000000000001'",
+    )
+    .fetch_optional(pool.get_ref())
+    .await?;
+
+    // Compute using production formulas
+    let computed = crate::services::calculated::compute_calculated_markers(
+        pool.get_ref(),
+        Uuid::parse_str("00000000-0000-0000-0000-000000000001").unwrap_or_default(),
+        &values_map,
+        height_cm,
+        "standard",
+        None,
+        Utc::now(),
+    )
+    .await
+    .unwrap_or_default();
+
+    // Build a lookup: calculated_marker_id -> (value, status)
+    let computed_map: std::collections::HashMap<Uuid, (f64, Option<String>)> = computed
+        .into_iter()
+        .map(|(id, val, status)| (id, (val, status)))
+        .collect();
+
+    // Fetch zone's calculated markers metadata and merge with computed values
     let calc_rows = sqlx::query(
-        r#"SELECT
-            zm.marker_slug, cm.marker_name, cm.source_type,
-            cv.value AS latest_value, cv.status, cv.measured_at
+        r#"SELECT zm.marker_slug, cm.id as cm_id, cm.marker_name, cm.source_type
         FROM zone_markers zm
         JOIN calculated_markers cm ON cm.marker_slug = zm.marker_slug
-        LEFT JOIN LATERAL (
-            SELECT cmv.value, cmv.status, cmv.measured_at
-            FROM calculated_marker_values cmv
-            WHERE cmv.calculated_marker_id = cm.id
-              AND cmv.is_demo = true
-              AND cmv.demo_profile = $2
-              AND cmv.is_deleted = false
-            ORDER BY cmv.measured_at DESC
-            LIMIT 1
-        ) cv ON true
         WHERE zm.zone_slug = $1 AND zm.marker_type = 'calculated'
         ORDER BY zm.display_order"#,
     )
     .bind(&zone_slug)
-    .bind(profile)
     .fetch_all(pool.get_ref())
     .await?;
 
     for row in &calc_rows {
         let slug: String = row.try_get("marker_slug").unwrap_or_default();
+        let cm_id: Uuid = row.try_get("cm_id").unwrap_or_default();
         let unit = match slug.as_str() {
             "bmi" => "kg/m\u{b2}",
             "homa_ir" | "tyg_index" => "index",
             _ => "ratio",
         };
-        let latest_value: Option<f64> =
-            row.try_get::<Option<f64>, _>("latest_value").ok().flatten();
+        let (latest_value, status) = computed_map
+            .get(&cm_id)
+            .map(|(v, s)| (Some(*v), s.clone()))
+            .unwrap_or((None, None));
         markers.push(MarkerLatest {
             marker_slug: slug,
             marker_name: row.try_get("marker_name").unwrap_or_default(),
             latest_value,
             unit: unit.to_string(),
-            status: row.try_get("status").ok().flatten(),
-            measured_at: row.try_get("measured_at").ok().flatten(),
+            status,
+            measured_at: None,
             source_type: row
                 .try_get("source_type")
                 .unwrap_or_else(|_| "calculated".to_string()),

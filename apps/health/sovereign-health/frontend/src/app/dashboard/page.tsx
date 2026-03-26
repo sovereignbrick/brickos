@@ -73,7 +73,7 @@ export default function DashboardPage() {
           <div>
             <h1 className="text-xl font-bold">{t('title')}</h1>
             {isDemo && (
-              <p className="text-sm text-orange-400/80">
+              <p className="text-sm" style={{ color: DEMO_PROFILES.find(p => p.slug === profile)?.color ?? '#fb923c' }}>
                 {t('demoData', { profile: getProfileLabel(profile, tDemo).name })}
               </p>
             )}

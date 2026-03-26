@@ -53,9 +53,9 @@ OR: add an admin endpoint to re-compute demo calculated markers on demand.
 - Pro: exercises the full stack end-to-end
 - Con: requires running application during seeding, slower
 
-## Recommendation
+## Decision
 
-**Option A** for zone detail display (lightweight, always current) + **Option B** for admin tooling (re-seed on demand after formula changes).
+**Option A** -- compute on the fly in demo handlers. Same formulas, same code path as production. No pre-seeded values needed.
 
 ## Requirements
 
