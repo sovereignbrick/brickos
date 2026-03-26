@@ -14,9 +14,7 @@ use crate::{
         ChatRequest, ChatResponse, ConversationDetail, ConversationSummaryWithAgent, Message,
         PaginationQuery, QuotaResponse, RateRequest, RateResponse,
     },
-    services::doctor_chat::{
-        build_health_context, call_claude, increment_quota, AnthropicMessage,
-    },
+    services::doctor_chat::{build_health_context, call_claude, increment_quota, AnthropicMessage},
     services::tier,
 };
 
@@ -428,23 +426,16 @@ pub async fn get_quota(
     pool: web::Data<PgPool>,
     auth: AuthenticatedUser,
 ) -> Result<HttpResponse, AppError> {
-    // Use AI credit pool (SSoT) for quota display
-    let ai_status = tier::check_ai_credits(pool.get_ref(), auth.user_id, "general")
-        .await
-        .unwrap_or(tier::AiCreditStatus {
-            used: 0,
-            limit: None,
-            remaining: None,
-            resets_at: String::new(),
-        });
+    // Use AI credit pool status (SSoT, non-enforcing) for display
+    let ai_status = tier::get_ai_credit_status(pool.get_ref(), auth.user_id).await?;
 
     let now = Utc::now();
     let month_str = format!("{}-{:02}", now.year(), now.month());
 
     let resp = QuotaResponse {
         requests_used: ai_status.used,
-        requests_limit: ai_status.limit.unwrap_or(0),
-        remaining: ai_status.remaining.unwrap_or(999),
+        requests_limit: ai_status.limit.unwrap_or(-1), // -1 = unlimited
+        remaining: ai_status.remaining.unwrap_or(-1),  // -1 = unlimited
         month: month_str,
         resets_at: ai_status.resets_at,
     };

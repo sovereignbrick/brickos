@@ -1088,6 +1088,51 @@ fn ai_credit_cost(agent_type: &str) -> i32 {
     }
 }
 
+/// Get AI credit pool status without enforcement (for display).
+pub async fn get_ai_credit_status(
+    pool: &PgPool,
+    user_id: Uuid,
+) -> Result<AiCreditStatus, AppError> {
+    let fs = load_user_features(pool, user_id).await?;
+
+    let limit = if fs.is_unlimited() {
+        None
+    } else {
+        let chat_keys = [
+            "chat_general",
+            "chat_trends",
+            "chat_labs",
+            "chat_diet",
+            "chat_supplements",
+            "chat_protocols",
+        ];
+        let total: i32 = chat_keys.iter().filter_map(|k| fs.get_limit(k)).sum();
+        Some(total)
+    };
+
+    let now = Utc::now();
+    let month_year = format!("{}-{:02}", now.year(), now.month());
+    let resets_at = next_month_reset();
+
+    let used: i32 = sqlx::query_scalar(
+        "SELECT COALESCE(used_credits, 0) FROM ai_credit_usage WHERE user_id = $1 AND month_year = $2",
+    )
+    .bind(user_id)
+    .bind(&month_year)
+    .fetch_optional(pool)
+    .await?
+    .unwrap_or(0);
+
+    let remaining = limit.map(|l| (l - used).max(0));
+
+    Ok(AiCreditStatus {
+        used,
+        limit,
+        remaining,
+        resets_at,
+    })
+}
+
 /// Check if user has enough AI credits for an action.
 pub async fn check_ai_credits(
     pool: &PgPool,
