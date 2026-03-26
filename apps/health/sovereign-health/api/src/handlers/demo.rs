@@ -422,16 +422,28 @@ pub async fn demo_zone_detail(
         })
         .collect();
 
-    // Fetch calculated markers for this zone
+    // Fetch calculated markers for this zone with latest demo values
     let calc_rows = sqlx::query(
         r#"SELECT
-            zm.marker_slug, cm.marker_name, cm.source_type
+            zm.marker_slug, cm.marker_name, cm.source_type,
+            cv.value AS latest_value, cv.status, cv.measured_at
         FROM zone_markers zm
         JOIN calculated_markers cm ON cm.marker_slug = zm.marker_slug
+        LEFT JOIN LATERAL (
+            SELECT cmv.value, cmv.status, cmv.measured_at
+            FROM calculated_marker_values cmv
+            WHERE cmv.calculated_marker_id = cm.id
+              AND cmv.is_demo = true
+              AND cmv.demo_profile = $2
+              AND cmv.is_deleted = false
+            ORDER BY cmv.measured_at DESC
+            LIMIT 1
+        ) cv ON true
         WHERE zm.zone_slug = $1 AND zm.marker_type = 'calculated'
         ORDER BY zm.display_order"#,
     )
     .bind(&zone_slug)
+    .bind(profile)
     .fetch_all(pool.get_ref())
     .await?;
 
@@ -442,13 +454,15 @@ pub async fn demo_zone_detail(
             "homa_ir" | "tyg_index" => "index",
             _ => "ratio",
         };
+        let latest_value: Option<f64> =
+            row.try_get::<Option<f64>, _>("latest_value").ok().flatten();
         markers.push(MarkerLatest {
             marker_slug: slug,
             marker_name: row.try_get("marker_name").unwrap_or_default(),
-            latest_value: None,
+            latest_value,
             unit: unit.to_string(),
-            status: None,
-            measured_at: None,
+            status: row.try_get("status").ok().flatten(),
+            measured_at: row.try_get("measured_at").ok().flatten(),
             source_type: row
                 .try_get("source_type")
                 .unwrap_or_else(|_| "calculated".to_string()),
