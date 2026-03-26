@@ -27,7 +27,7 @@ Old records ──┘        ▼           └─── Data Export (JSON/CSV)
               (encrypted at rest)
 ```
 
-**50+ biomarkers** across 8 health zones -- energy/metabolic, cardiovascular, structural, cognitive, immune, nutritional, hormonal, detoxification. Plus 8 calculated markers (GKI, BMI, HOMA-IR, WHtR, TG/HDL ratio, and more).
+**100+ biomarkers** across 8 health zones -- energy/metabolic, cardiovascular, structural, cognitive, immune, nutritional, hormonal, detoxification. Plus 8 calculated markers (GKI, BMI, HOMA-IR, WHtR, TG/HDL ratio, and more).
 
 ## Key Features
 
