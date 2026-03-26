@@ -131,15 +131,8 @@ pub async fn get_user_tier(pool: &PgPool, user_id: Uuid) -> Result<TierLimits, A
         return Ok(unlimited_tier("core"));
     }
 
-    // Admin users bypass all tier restrictions
-    let role: Option<String> =
-        sqlx::query_scalar("SELECT role FROM users WHERE id = $1 AND is_deleted = false")
-            .bind(user_id)
-            .fetch_optional(pool)
-            .await?;
-    if role.as_deref() == Some("admin") {
-        return Ok(unlimited_tier("admin"));
-    }
+    // Note: admin role does NOT bypass tier enforcement.
+    // Admin is for panel access, not license tiers.
 
     let row = sqlx::query(
         r#"SELECT lt.slug, lt.name,
@@ -934,20 +927,12 @@ pub async fn load_tier_features(
 }
 
 /// Lightweight: resolve user → tier slug only (no 30-column load).
+/// Note: admin role does NOT bypass tier enforcement -- admin is for
+/// panel access, not license tiers. Only SHI_MODE=oss bypasses.
 pub async fn get_user_tier_slug(pool: &PgPool, user_id: Uuid) -> Result<String, AppError> {
-    // OSS mode
+    // OSS mode -- unlimited for self-hosted
     if std::env::var("SHI_MODE").unwrap_or_default() == "oss" {
         return Ok("core".to_string());
-    }
-
-    // Admin bypass
-    let role: Option<String> =
-        sqlx::query_scalar("SELECT role FROM users WHERE id = $1 AND is_deleted = false")
-            .bind(user_id)
-            .fetch_optional(pool)
-            .await?;
-    if role.as_deref() == Some("admin") {
-        return Ok("admin".to_string());
     }
 
     let row = sqlx::query(

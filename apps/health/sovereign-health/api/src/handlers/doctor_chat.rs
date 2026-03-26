@@ -15,7 +15,7 @@ use crate::{
         PaginationQuery, QuotaResponse, RateRequest, RateResponse,
     },
     services::doctor_chat::{
-        build_health_context, call_claude, get_or_init_quota, increment_quota, AnthropicMessage,
+        build_health_context, call_claude, increment_quota, AnthropicMessage,
     },
     services::tier,
 };
@@ -39,28 +39,12 @@ pub async fn chat(
         ));
     }
 
-    // 1. Check per-agent quota (new system) + legacy quota
+    // 1. Check AI credit pool (SSoT enforcement)
     let agent_type = body
         .agent_type
         .clone()
         .unwrap_or_else(|| "general".to_string());
     let _ai_credits = tier::check_ai_credits(pool.get_ref(), auth.user_id, &agent_type).await?;
-
-    // Also check legacy quota for backward compat
-    // Read canonical tier from user_licenses (not JWT which may be stale)
-    let canonical_tier: String = sqlx::query(
-        "SELECT lt.slug FROM user_licenses ul JOIN license_tiers lt ON lt.id = ul.tier_id WHERE ul.user_id = $1",
-    )
-    .bind(auth.user_id)
-    .fetch_optional(pool.get_ref())
-    .await?
-    .and_then(|r| r.try_get("slug").ok())
-    .unwrap_or_else(|| auth.tier.clone());
-
-    let quota = get_or_init_quota(pool.get_ref(), auth.user_id, &canonical_tier).await?;
-    if quota.available() <= 0 {
-        return Err(AppError::QuotaExceeded);
-    }
 
     // 2. Get or create conversation
     let conversation_id = match body.conversation_id {
@@ -444,35 +428,25 @@ pub async fn get_quota(
     pool: web::Data<PgPool>,
     auth: AuthenticatedUser,
 ) -> Result<HttpResponse, AppError> {
-    // Read canonical tier from user_licenses (not JWT which may be stale)
-    let canonical_tier: String = sqlx::query(
-        "SELECT lt.slug FROM user_licenses ul JOIN license_tiers lt ON lt.id = ul.tier_id WHERE ul.user_id = $1",
-    )
-    .bind(auth.user_id)
-    .fetch_optional(pool.get_ref())
-    .await?
-    .and_then(|r| r.try_get("slug").ok())
-    .unwrap_or_else(|| auth.tier.clone());
-
-    let quota = get_or_init_quota(pool.get_ref(), auth.user_id, &canonical_tier).await?;
+    // Use AI credit pool (SSoT) for quota display
+    let ai_status = tier::check_ai_credits(pool.get_ref(), auth.user_id, "general")
+        .await
+        .unwrap_or(tier::AiCreditStatus {
+            used: 0,
+            limit: None,
+            remaining: None,
+            resets_at: String::new(),
+        });
 
     let now = Utc::now();
     let month_str = format!("{}-{:02}", now.year(), now.month());
 
-    // Compute first day of next month
-    let (reset_year, reset_month) = if now.month() == 12 {
-        (now.year() + 1, 1u32)
-    } else {
-        (now.year(), now.month() + 1)
-    };
-    let resets_at = format!("{}-{:02}-01T00:00:00Z", reset_year, reset_month);
-
     let resp = QuotaResponse {
-        requests_used: quota.requests_used,
-        requests_limit: quota.requests_limit,
-        remaining: quota.available(),
+        requests_used: ai_status.used,
+        requests_limit: ai_status.limit.unwrap_or(0),
+        remaining: ai_status.remaining.unwrap_or(999),
         month: month_str,
-        resets_at,
+        resets_at: ai_status.resets_at,
     };
 
     Ok(HttpResponse::Ok().json(json!({

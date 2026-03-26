@@ -16,7 +16,7 @@
     {
       "description": "Free access to explore your health data. Track your most important markers and get a taste of AI-powered health insights.",
       "display_order": 1,
-      "features_summary": "8 markers, 30 days history, 5 AI credits/month",
+      "features_summary": "10 markers, Basic dashboard, 3 AI questions/month",
       "highlight": false,
       "id": "c3b83016-6a3c-485b-9fb0-bf9d79f40318",
       "is_active": true,
@@ -29,7 +29,7 @@
     {
       "description": "Unlock all markers, full history, and personalized targets. The essential toolkit for anyone serious about their health.",
       "display_order": 2,
-      "features_summary": "20 markers, 1 year history, 15 AI credits/month, CSV export",
+      "features_summary": "75+ markers, AI insights, Cloud sync, 5 AI questions/month",
       "highlight": true,
       "id": "b1bfa574-4d5c-4880-b747-767c4f4dc465",
       "is_active": true,
@@ -42,7 +42,7 @@
     {
       "description": "Advanced AI analysis, smart lab import, and detailed health reports. For the health-conscious who want deeper understanding.",
       "display_order": 3,
-      "features_summary": "50 markers, unlimited history, 50 AI credits/month, lab import",
+      "features_summary": "Everything in Focus plus experiments, comparisons, 15 AI questions/month",
       "highlight": false,
       "id": "2d8e6f39-9ec2-4e83-8cd0-ba400098d0c8",
       "is_active": true,

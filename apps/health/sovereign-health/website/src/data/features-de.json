@@ -16,7 +16,7 @@
     {
       "description": "Kostenloser Zugang zur Erkundung deiner Gesundheitsdaten. Verfolge deine wichtigsten Marker und erhalte einen Vorgeschmack auf KI-gestützte Gesundheitseinblicke.",
       "display_order": 1,
-      "features_summary": "8 Marker, 30 Tage Verlauf, 5 AI-Credits/Monat",
+      "features_summary": "10 Marker, Basis-Dashboard, 3 KI-Fragen/Monat",
       "highlight": false,
       "id": "c3b83016-6a3c-485b-9fb0-bf9d79f40318",
       "is_active": true,
@@ -29,7 +29,7 @@
     {
       "description": "Schalte alle Marker, vollständigen Verlauf und personalisierte Ziele frei. Das wichtigste Werkzeug für alle, die ihre Gesundheit ernst nehmen.",
       "display_order": 2,
-      "features_summary": "20 Marker, 1 Jahr Verlauf, 15 AI-Credits/Monat, CSV-Export",
+      "features_summary": "75+ Marker, KI-Einblicke, Cloud-Sync, 5 KI-Fragen/Monat",
       "highlight": true,
       "id": "b1bfa574-4d5c-4880-b747-767c4f4dc465",
       "is_active": true,
@@ -42,7 +42,7 @@
     {
       "description": "Erweiterte KI-Analyse, intelligenter Labordaten-Import und detaillierte Gesundheitsberichte. Für Gesundheitsbewusste, die tieferes Verständnis wollen.",
       "display_order": 3,
-      "features_summary": "50 Marker, unbegrenzter Verlauf, 50 AI-Credits/Monat, Lab-Import",
+      "features_summary": "Alles in Focus plus Experimente, Vergleiche, 15 KI-Fragen/Monat",
       "highlight": false,
       "id": "2d8e6f39-9ec2-4e83-8cd0-ba400098d0c8",
       "is_active": true,

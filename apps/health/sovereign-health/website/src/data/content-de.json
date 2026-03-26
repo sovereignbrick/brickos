@@ -1,6 +1,6 @@
 {
   "locale": "de",
-  "fetchedAt": "2026-03-24T17:15:45.137Z",
+  "fetchedAt": "2026-03-26T16:24:26.407Z",
   "zones": [
     {
       "description": "Kannst du den ganzen Tag über Energie aufrechterhalten, ohne Einbrüche? Diese Zone verfolgt deinen Glukose-, Insulin-, Keton- und Schilddrüsenstatus. Diese Marker bilden den Motor deiner Stoffwechselgesundheit. Bringe diese Zone zuerst in Ordnung, und der Rest wird einfacher.",
@@ -1480,7 +1480,7 @@
     {
       "description": "Kostenloser Zugang zur Erkundung deiner Gesundheitsdaten. Verfolge deine wichtigsten Marker und erhalte einen Vorgeschmack auf KI-gestützte Gesundheitseinblicke.",
       "display_order": 1,
-      "features_summary": "8 Marker, 30 Tage Verlauf, 5 AI-Credits/Monat",
+      "features_summary": "10 Marker, Basis-Dashboard, 3 KI-Fragen/Monat",
       "highlight": false,
       "id": "c3b83016-6a3c-485b-9fb0-bf9d79f40318",
       "is_active": true,
@@ -1493,7 +1493,7 @@
     {
       "description": "Schalte alle Marker, vollständigen Verlauf und personalisierte Ziele frei. Das wichtigste Werkzeug für alle, die ihre Gesundheit ernst nehmen.",
       "display_order": 2,
-      "features_summary": "20 Marker, 1 Jahr Verlauf, 15 AI-Credits/Monat, CSV-Export",
+      "features_summary": "75+ Marker, KI-Einblicke, Cloud-Sync, 5 KI-Fragen/Monat",
       "highlight": true,
       "id": "b1bfa574-4d5c-4880-b747-767c4f4dc465",
       "is_active": true,
@@ -1506,7 +1506,7 @@
     {
       "description": "Erweiterte KI-Analyse, intelligenter Labordaten-Import und detaillierte Gesundheitsberichte. Für Gesundheitsbewusste, die tieferes Verständnis wollen.",
       "display_order": 3,
-      "features_summary": "50 Marker, unbegrenzter Verlauf, 50 AI-Credits/Monat, Lab-Import",
+      "features_summary": "Alles in Focus plus Experimente, Vergleiche, 15 KI-Fragen/Monat",
       "highlight": false,
       "id": "2d8e6f39-9ec2-4e83-8cd0-ba400098d0c8",
       "is_active": true,
@@ -2052,7 +2052,7 @@
         "feature_doctor_desc": "Ask Dr. Alex about your blood work, trends, and what to do next.",
         "feature_doctor_title": "Dr. Alex AI Chat",
         "feature_markers_desc": "Track everything from basic glucose to advanced hormones, with protocol-aware reference ranges.",
-        "feature_markers_title": "100+ Biomarker",
+        "feature_markers_title": "75+ Biomarkers",
         "feature_protocol_desc": "Your diet and fasting pattern change what normal means. We adjust automatically.",
         "feature_protocol_title": "Protocol-Aware Thresholds",
         "feature_zones_desc": "Your markers organized into functional zones that reflect how your body actually works.",
