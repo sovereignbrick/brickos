@@ -837,7 +837,8 @@ pub async fn update_reference_range(
     use sqlx::Row;
 
     // Tier check: custom_thresholds
-    crate::services::tier::check_feature(pool.get_ref(), auth.user_id, "custom_thresholds").await?;
+    crate::services::tier::check_tier_feature(pool.get_ref(), auth.user_id, "custom_thresholds")
+        .await?;
 
     let marker_slug = path.into_inner();
     let protocol = body.protocol_context.as_deref().unwrap_or("standard");
@@ -916,7 +917,8 @@ pub async fn update_reference_ranges_bulk(
     use sqlx::Row;
 
     // Tier check: custom_thresholds
-    crate::services::tier::check_feature(pool.get_ref(), auth.user_id, "custom_thresholds").await?;
+    crate::services::tier::check_tier_feature(pool.get_ref(), auth.user_id, "custom_thresholds")
+        .await?;
 
     if body.ranges.len() > 100 {
         return Err(AppError::Validation(

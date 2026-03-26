@@ -28,7 +28,7 @@ pub async fn export_csv(
     use sqlx::Row;
 
     // Tier check: csv_export
-    crate::services::tier::check_feature(pool.get_ref(), auth.user_id, "csv_export").await?;
+    crate::services::tier::check_tier_feature(pool.get_ref(), auth.user_id, "csv_export").await?;
 
     // Resolve period to from/to if period is set (period takes precedence)
     let (effective_from, effective_to) = if let Some(ref period) = query.period {

@@ -44,7 +44,7 @@ pub async fn chat(
         .agent_type
         .clone()
         .unwrap_or_else(|| "general".to_string());
-    let _agent_quota = tier::check_chat_quota(pool.get_ref(), auth.user_id, &agent_type).await?;
+    let _ai_credits = tier::check_ai_credits(pool.get_ref(), auth.user_id, &agent_type).await?;
 
     // Also check legacy quota for backward compat
     // Read canonical tier from user_licenses (not JWT which may be stale)

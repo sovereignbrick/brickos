@@ -43,11 +43,11 @@ pub async fn create(
             .fetch_one(pool.get_ref())
             .await
             .unwrap_or(0);
-    crate::services::tier::check_count_limit(
+    crate::services::tier::check_tier_limit(
         pool.get_ref(),
         auth.user_id,
-        "templates",
-        current_count,
+        "measurement_templates",
+        current_count as i64,
     )
     .await?;
 

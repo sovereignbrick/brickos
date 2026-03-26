@@ -849,6 +849,417 @@ fn unlimited_tier(slug: &str) -> TierLimits {
     }
 }
 
+// ── SSoT: tier_features-based enforcement (Design 029) ─────────────────────
+
+/// A feature entry from the tier_features table.
+#[derive(Debug, Clone)]
+struct TierFeatureEntry {
+    included: bool,
+    limit_value: Option<i32>,
+}
+
+/// All tier_features for a given tier, loaded in one query for O(1) lookups.
+#[derive(Debug, Clone)]
+pub struct TierFeatureSet {
+    pub tier_slug: String,
+    features: std::collections::HashMap<String, TierFeatureEntry>,
+}
+
+impl TierFeatureSet {
+    /// Whether a boolean feature is included in this tier.
+    pub fn is_included(&self, feature_key: &str) -> bool {
+        self.features
+            .get(feature_key)
+            .map(|e| e.included)
+            .unwrap_or(false)
+    }
+
+    /// Numeric limit for a feature. None = unlimited (or feature not found).
+    pub fn get_limit(&self, feature_key: &str) -> Option<i32> {
+        self.features
+            .get(feature_key)
+            .and_then(|e| if e.included { e.limit_value } else { Some(0) })
+    }
+
+    /// Returns true if the tier is unlimited (core, admin, clarity, horizon).
+    fn is_unlimited(&self) -> bool {
+        matches!(
+            self.tier_slug.as_str(),
+            "core" | "admin" | "clarity" | "horizon"
+        )
+    }
+}
+
+/// Load all tier_features for a tier slug in one query.
+pub async fn load_tier_features(
+    pool: &PgPool,
+    tier_slug: &str,
+) -> Result<TierFeatureSet, AppError> {
+    // For admin/core unlimited tiers, return a synthetic set with everything included.
+    if tier_slug == "admin" || tier_slug == "core" {
+        return Ok(TierFeatureSet {
+            tier_slug: tier_slug.to_string(),
+            features: std::collections::HashMap::new(), // is_unlimited() handles this
+        });
+    }
+
+    let rows = sqlx::query(
+        r#"SELECT pf.feature_key, tf.included, tf.limit_value
+           FROM tier_features tf
+           JOIN product_features pf ON pf.id = tf.feature_id
+           WHERE tf.tier_key = $1 AND pf.status IN ('active', 'coming_soon')"#,
+    )
+    .bind(tier_slug)
+    .fetch_all(pool)
+    .await?;
+
+    let mut features = std::collections::HashMap::new();
+    for row in rows {
+        let key: String = row.try_get("feature_key").unwrap_or_default();
+        let included: bool = row.try_get("included").unwrap_or(false);
+        let limit_value: Option<i32> = row.try_get("limit_value").ok().flatten();
+        features.insert(
+            key,
+            TierFeatureEntry {
+                included,
+                limit_value,
+            },
+        );
+    }
+
+    Ok(TierFeatureSet {
+        tier_slug: tier_slug.to_string(),
+        features,
+    })
+}
+
+/// Lightweight: resolve user → tier slug only (no 30-column load).
+pub async fn get_user_tier_slug(pool: &PgPool, user_id: Uuid) -> Result<String, AppError> {
+    // OSS mode
+    if std::env::var("SHI_MODE").unwrap_or_default() == "oss" {
+        return Ok("core".to_string());
+    }
+
+    // Admin bypass
+    let role: Option<String> =
+        sqlx::query_scalar("SELECT role FROM users WHERE id = $1 AND is_deleted = false")
+            .bind(user_id)
+            .fetch_optional(pool)
+            .await?;
+    if role.as_deref() == Some("admin") {
+        return Ok("admin".to_string());
+    }
+
+    let row = sqlx::query(
+        r#"SELECT lt.slug, ul.status, ul.grace_period_ends, ul.previous_tier_slug,
+                  COALESCE(ul.payment_method, 'stripe') as payment_method, ul.admin_override
+           FROM user_licenses ul
+           JOIN license_tiers lt ON lt.id = ul.tier_id
+           WHERE ul.user_id = $1"#,
+    )
+    .bind(user_id)
+    .fetch_optional(pool)
+    .await?;
+
+    let row = match row {
+        Some(r) => r,
+        None => return Ok("glimpse".to_string()),
+    };
+
+    let slug: String = row
+        .try_get("slug")
+        .unwrap_or_else(|_| "glimpse".to_string());
+    let status: String = row
+        .try_get("status")
+        .unwrap_or_else(|_| "active".to_string());
+
+    // Grace period: use previous tier
+    let grace_ends: Option<chrono::DateTime<Utc>> = row.try_get("grace_period_ends").ok().flatten();
+    let prev_slug: Option<String> = row.try_get("previous_tier_slug").ok().flatten();
+    let is_grace = status == "downgrade_grace" && grace_ends.is_some_and(|g| Utc::now() < g);
+
+    if is_grace {
+        if let Some(ref prev) = prev_slug {
+            return Ok(prev.clone());
+        }
+    }
+
+    // BTC prepaid check
+    let payment_method: String = row
+        .try_get("payment_method")
+        .unwrap_or_else(|_| "stripe".to_string());
+    let admin_override: bool = row.try_get("admin_override").unwrap_or(false);
+
+    if payment_method == "strike_btc" && !admin_override {
+        let btc_active: bool = sqlx::query_scalar(
+            r#"SELECT EXISTS(
+                SELECT 1 FROM btc_payments
+                WHERE user_id = $1 AND status = 'paid' AND prepaid_until > NOW()
+            )"#,
+        )
+        .bind(user_id)
+        .fetch_one(pool)
+        .await
+        .unwrap_or(false);
+
+        if !btc_active {
+            return Ok("glimpse".to_string());
+        }
+    }
+
+    Ok(slug)
+}
+
+/// Load full TierFeatureSet for a user (resolves slug + loads features).
+pub async fn load_user_features(pool: &PgPool, user_id: Uuid) -> Result<TierFeatureSet, AppError> {
+    let slug = get_user_tier_slug(pool, user_id).await?;
+    load_tier_features(pool, &slug).await
+}
+
+/// Check a boolean feature via tier_features SSoT.
+pub async fn check_tier_feature(
+    pool: &PgPool,
+    user_id: Uuid,
+    feature_key: &str,
+) -> Result<(), AppError> {
+    let fs = load_user_features(pool, user_id).await?;
+
+    if fs.is_unlimited() || fs.is_included(feature_key) {
+        return Ok(());
+    }
+
+    // Find the lowest tier that includes this feature
+    let required = find_required_tier(pool, feature_key).await?;
+    let msg = upgrade_message(feature_key, &required);
+    Err(AppError::UpgradeRequired(Box::new(
+        TierError::upgrade_required(feature_key, &fs.tier_slug, &required, &msg),
+    )))
+}
+
+/// Check a numeric limit via tier_features SSoT.
+pub async fn check_tier_limit(
+    pool: &PgPool,
+    user_id: Uuid,
+    feature_key: &str,
+    current_count: i64,
+) -> Result<(), AppError> {
+    let fs = load_user_features(pool, user_id).await?;
+
+    if fs.is_unlimited() {
+        return Ok(());
+    }
+
+    let limit = fs.get_limit(feature_key);
+
+    match limit {
+        None => Ok(()), // unlimited for this tier
+        Some(max) if (current_count as i32) < max => Ok(()),
+        Some(max) => {
+            let required = find_required_tier(pool, feature_key).await?;
+            let msg = format!(
+                "You've reached your {} limit ({}/{}). Upgrade for more.",
+                feature_key, current_count, max
+            );
+            Err(AppError::UpgradeRequired(Box::new(
+                TierError::upgrade_required(feature_key, &fs.tier_slug, &required, &msg),
+            )))
+        }
+    }
+}
+
+/// Find the lowest tier that includes a feature (dynamic, no hardcoded mapping).
+async fn find_required_tier(pool: &PgPool, feature_key: &str) -> Result<String, AppError> {
+    let slug: Option<String> = sqlx::query_scalar(
+        r#"SELECT tf.tier_key
+           FROM tier_features tf
+           JOIN product_features pf ON pf.id = tf.feature_id
+           WHERE pf.feature_key = $1 AND tf.included = true
+           ORDER BY array_position(ARRAY['glimpse','focus','insight','clarity','horizon'], tf.tier_key)
+           LIMIT 1"#,
+    )
+    .bind(feature_key)
+    .fetch_optional(pool)
+    .await?;
+
+    Ok(slug.unwrap_or_else(|| "focus".to_string()))
+}
+
+// ── AI Credit Pool (Design 029, Decision 3) ────────────────────────────────
+
+/// AI credit pool status for the current billing period.
+#[derive(Debug, Clone, Serialize)]
+pub struct AiCreditStatus {
+    pub used: i32,
+    pub limit: Option<i32>,
+    pub remaining: Option<i32>,
+    pub resets_at: String,
+}
+
+/// Credit costs per action type.
+fn ai_credit_cost(agent_type: &str) -> i32 {
+    match agent_type {
+        "lab_import" | "med_import" | "measurement_import" => 2,
+        _ => 1, // general, trends, labs, diet, supplements, protocols
+    }
+}
+
+/// Check if user has enough AI credits for an action.
+pub async fn check_ai_credits(
+    pool: &PgPool,
+    user_id: Uuid,
+    agent_type: &str,
+) -> Result<AiCreditStatus, AppError> {
+    let fs = load_user_features(pool, user_id).await?;
+    let cost = ai_credit_cost(agent_type);
+
+    // Derive pool limit: sum of all chat_* limits for this tier,
+    // or use chat_general as the pool indicator.
+    // For unlimited tiers, limit = None.
+    let limit = if fs.is_unlimited() {
+        None
+    } else {
+        // Sum all chat-related feature limits as the total pool
+        let chat_keys = [
+            "chat_general",
+            "chat_trends",
+            "chat_labs",
+            "chat_diet",
+            "chat_supplements",
+            "chat_protocols",
+        ];
+        let total: i32 = chat_keys.iter().filter_map(|k| fs.get_limit(k)).sum();
+        if total == 0 {
+            Some(0)
+        } else {
+            Some(total)
+        }
+    };
+
+    // Agent disabled at this tier? (limit_value = 0 or not included)
+    if limit == Some(0) {
+        let required = find_required_tier(pool, &format!("chat_{}", agent_type)).await?;
+        let msg = format!(
+            "{} is available on {} and above.",
+            agent_label(agent_type),
+            required
+        );
+        return Err(AppError::UpgradeRequired(Box::new(
+            TierError::upgrade_required(
+                &format!("chat_{}", agent_type),
+                &fs.tier_slug,
+                &required,
+                &msg,
+            ),
+        )));
+    }
+
+    let now = Utc::now();
+    let month_year = format!("{}-{:02}", now.year(), now.month());
+    let resets_at = next_month_reset();
+
+    let used: i32 = sqlx::query_scalar(
+        "SELECT COALESCE(used_credits, 0) FROM ai_credit_usage WHERE user_id = $1 AND month_year = $2",
+    )
+    .bind(user_id)
+    .bind(&month_year)
+    .fetch_optional(pool)
+    .await?
+    .unwrap_or(0);
+
+    let remaining = limit.map(|l| (l - used).max(0));
+
+    if let Some(rem) = remaining {
+        if rem < cost {
+            return Err(AppError::QuotaExceeded);
+        }
+    }
+
+    Ok(AiCreditStatus {
+        used,
+        limit,
+        remaining,
+        resets_at,
+    })
+}
+
+/// Consume AI credits + dual-write to chat_agent_quota for analytics.
+pub async fn consume_ai_credits(
+    pool: &PgPool,
+    user_id: Uuid,
+    agent_type: &str,
+) -> Result<AiCreditStatus, AppError> {
+    let cost = ai_credit_cost(agent_type);
+    let now = Utc::now();
+    let month_year = format!("{}-{:02}", now.year(), now.month());
+
+    // Upsert AI credit pool usage
+    sqlx::query(
+        r#"INSERT INTO ai_credit_usage (user_id, month_year, used_credits)
+           VALUES ($1, $2, $3)
+           ON CONFLICT (user_id, month_year)
+           DO UPDATE SET used_credits = ai_credit_usage.used_credits + $3"#,
+    )
+    .bind(user_id)
+    .bind(&month_year)
+    .bind(cost)
+    .execute(pool)
+    .await?;
+
+    // Dual-write to chat_agent_quota for per-agent analytics
+    sqlx::query(
+        r#"INSERT INTO chat_agent_quota (user_id, month_year, agent_type, used_count)
+           VALUES ($1, $2, $3, 1)
+           ON CONFLICT (user_id, month_year, agent_type)
+           DO UPDATE SET used_count = chat_agent_quota.used_count + 1"#,
+    )
+    .bind(user_id)
+    .bind(&month_year)
+    .bind(agent_type)
+    .execute(pool)
+    .await?;
+
+    // Return updated status
+    let fs = load_user_features(pool, user_id).await?;
+    let limit = if fs.is_unlimited() {
+        None
+    } else {
+        let chat_keys = [
+            "chat_general",
+            "chat_trends",
+            "chat_labs",
+            "chat_diet",
+            "chat_supplements",
+            "chat_protocols",
+        ];
+        let total: i32 = chat_keys.iter().filter_map(|k| fs.get_limit(k)).sum();
+        if total == 0 {
+            Some(0)
+        } else {
+            Some(total)
+        }
+    };
+
+    let used: i32 = sqlx::query_scalar(
+        "SELECT COALESCE(used_credits, 0) FROM ai_credit_usage WHERE user_id = $1 AND month_year = $2",
+    )
+    .bind(user_id)
+    .bind(&month_year)
+    .fetch_optional(pool)
+    .await?
+    .unwrap_or(0);
+
+    let remaining = limit.map(|l| (l - used).max(0));
+
+    Ok(AiCreditStatus {
+        used,
+        limit,
+        remaining,
+        resets_at: next_month_reset(),
+    })
+}
+
+// ── Legacy helpers (kept for backward compat) ──────────────────────────────
+
 fn default_glimpse_tier() -> TierLimits {
     TierLimits {
         tier_slug: "glimpse".to_string(),

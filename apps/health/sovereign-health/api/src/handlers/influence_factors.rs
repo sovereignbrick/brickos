@@ -239,11 +239,11 @@ pub async fn create(
     .await
     .unwrap_or(0);
 
-    crate::services::tier::check_count_limit(
+    crate::services::tier::check_tier_limit(
         pool.get_ref(),
         auth.user_id,
-        "medications",
-        current_count,
+        "influence_factors",
+        current_count as i64,
     )
     .await?;
 
