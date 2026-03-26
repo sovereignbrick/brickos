@@ -179,9 +179,13 @@ pub async fn chat(
         .execute(pool.get_ref())
         .await?;
 
-    // 9. Increment quota
-    let (used, limit) = increment_quota(pool.get_ref(), auth.user_id).await?;
-    let remaining = (limit - used).max(0);
+    // 9. Consume AI credits (SSoT pool)
+    let ai_status = tier::consume_ai_credits(pool.get_ref(), auth.user_id, &agent_type).await?;
+    // Also increment legacy quota for backward compat analytics
+    let _ = increment_quota(pool.get_ref(), auth.user_id).await;
+
+    let remaining = ai_status.remaining.unwrap_or(-1);
+    let monthly_limit = ai_status.limit.unwrap_or(-1);
 
     Ok(HttpResponse::Ok().json(json!({
         "data": ChatResponse {
@@ -189,7 +193,7 @@ pub async fn chat(
             message_id,
             answer: claude_resp.text,
             remaining_quota: remaining,
-            monthly_limit: limit,
+            monthly_limit,
         },
         "error": null
     })))
