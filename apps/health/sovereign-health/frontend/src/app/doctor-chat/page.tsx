@@ -57,7 +57,7 @@ export default function DoctorChatPage() {
   return (
     <div className="h-screen flex flex-col overflow-hidden">
       <Navbar />
-      <div className="flex-1 min-h-0 max-w-5xl mx-auto w-full">
+      <div className="flex-1 min-h-0 max-w-5xl mx-auto w-full flex flex-col overflow-hidden">
         <ChatLayout />
       </div>
     </div>
