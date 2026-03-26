@@ -1365,10 +1365,10 @@
       "is_calculated": true,
       "marker_slug": "gki",
       "name": "GKI — Glucose-Ketone Index",
-      "tooltip": null,
-      "unit_canonical": null,
-      "when_to_worry": null,
-      "why_it_matters": null,
+      "tooltip": "Ratio of glucose to ketones — lower values indicate deeper ketosis.",
+      "unit_canonical": "ratio",
+      "when_to_worry": "A GKI above 9 suggests you are not in nutritional ketosis. Values below 1 during extended fasts are expected but should be monitored.",
+      "why_it_matters": "GKI is the gold standard for measuring ketosis depth. It combines glucose and ketone readings into a single ratio that accounts for both fuel sources, giving a more accurate picture than ketones alone.",
       "zone_slug": "energy_metabolic"
     },
     {
@@ -1378,10 +1378,10 @@
       "is_calculated": true,
       "marker_slug": "dr_boz_ratio",
       "name": "Dr. Boz Ratio",
-      "tooltip": null,
-      "unit_canonical": null,
-      "when_to_worry": null,
-      "why_it_matters": null,
+      "tooltip": "A simplified ketosis metric using mg/dL glucose divided by ketones.",
+      "unit_canonical": "ratio",
+      "when_to_worry": "Values above 80 indicate minimal ketosis. Below 40 indicates strong ketosis. Extremely low values during extended fasts warrant monitoring.",
+      "why_it_matters": "Popularized by Dr. Annette Bosworth, this ratio uses conventional glucose units (mg/dL) making it easier for US-based users to calculate without unit conversion.",
       "zone_slug": "energy_metabolic"
     },
     {
@@ -1391,10 +1391,10 @@
       "is_calculated": true,
       "marker_slug": "whtr",
       "name": "WHtR — Waist-to-Height Ratio",
-      "tooltip": null,
-      "unit_canonical": null,
-      "when_to_worry": null,
-      "why_it_matters": null,
+      "tooltip": "Waist circumference relative to height — a strong predictor of cardiometabolic risk.",
+      "unit_canonical": "ratio",
+      "when_to_worry": "A WHtR above 0.5 is associated with increased cardiometabolic risk. Above 0.6 indicates substantially elevated risk. Below 0.4 may indicate underweight.",
+      "why_it_matters": "WHtR is superior to BMI for predicting cardiovascular disease, diabetes, and metabolic syndrome because it accounts for central adiposity — where fat is stored matters more than total weight.",
       "zone_slug": "structural"
     },
     {
@@ -1404,10 +1404,10 @@
       "is_calculated": true,
       "marker_slug": "bmi",
       "name": "BMI — Body Mass Index",
-      "tooltip": null,
-      "unit_canonical": null,
-      "when_to_worry": null,
-      "why_it_matters": null,
+      "tooltip": "Standard body composition index based on weight and height.",
+      "unit_canonical": "kg/m\u00b2",
+      "when_to_worry": "BMI below 18.5 (underweight) or above 30 (obese) warrants medical attention. Note: BMI does not distinguish muscle from fat — athletes may have high BMI with low body fat.",
+      "why_it_matters": "BMI provides a quick screening tool for weight categories. While imperfect, it correlates with population-level health outcomes and is universally understood by healthcare providers.",
       "zone_slug": "structural"
     },
     {
@@ -1417,10 +1417,10 @@
       "is_calculated": true,
       "marker_slug": "hct_hb_ratio",
       "name": "HCT/HB Ratio",
-      "tooltip": null,
-      "unit_canonical": null,
-      "when_to_worry": null,
-      "why_it_matters": null,
+      "tooltip": "Ratio of hematocrit to hemoglobin — detects hydration and red blood cell abnormalities.",
+      "unit_canonical": "ratio",
+      "when_to_worry": "Values significantly outside the 2.9–3.2 range may indicate dehydration, blood disorders, or measurement errors. Persistent abnormalities warrant further investigation.",
+      "why_it_matters": "This ratio helps distinguish between true polycythemia and dehydration-related hematocrit elevation. It is also useful for detecting thalassemia traits and iron deficiency patterns.",
       "zone_slug": "structural"
     },
     {
@@ -1430,10 +1430,10 @@
       "is_calculated": true,
       "marker_slug": "tg_hdl_ratio",
       "name": "TG/HDL Ratio",
-      "tooltip": null,
-      "unit_canonical": null,
-      "when_to_worry": null,
-      "why_it_matters": null,
+      "tooltip": "Triglycerides divided by HDL cholesterol — a proxy for insulin resistance and cardiovascular risk.",
+      "unit_canonical": "ratio",
+      "when_to_worry": "A ratio above 1.3 (mmol/L) suggests insulin resistance and increased cardiovascular risk. Above 2.0 is a strong predictor of metabolic syndrome.",
+      "why_it_matters": "The TG/HDL ratio is one of the best lipid-based predictors of cardiovascular disease and insulin resistance. It correlates with small, dense LDL particles — the most atherogenic type.",
       "zone_slug": "cardiovascular"
     },
     {
@@ -1443,10 +1443,10 @@
       "is_calculated": true,
       "marker_slug": "homa_ir",
       "name": "HOMA-IR",
-      "tooltip": null,
-      "unit_canonical": null,
-      "when_to_worry": null,
-      "why_it_matters": null,
+      "tooltip": "Homeostatic Model Assessment for Insulin Resistance — estimates beta-cell function and insulin sensitivity.",
+      "unit_canonical": "index",
+      "when_to_worry": "HOMA-IR above 2.5 suggests insulin resistance. Above 5.0 indicates significant resistance and high risk for type 2 diabetes. Values below 1.0 indicate excellent insulin sensitivity.",
+      "why_it_matters": "HOMA-IR detects insulin resistance years before blood glucose rises. It is the most widely used fasting insulin resistance index and a key predictor of metabolic syndrome and type 2 diabetes.",
       "zone_slug": "energy_metabolic"
     },
     {
@@ -1456,10 +1456,10 @@
       "is_calculated": true,
       "marker_slug": "tyg_index",
       "name": "TyG Index",
-      "tooltip": null,
-      "unit_canonical": null,
-      "when_to_worry": null,
-      "why_it_matters": null,
+      "tooltip": "Triglyceride-Glucose Index — a surrogate for insulin resistance that does not require fasting insulin.",
+      "unit_canonical": "index",
+      "when_to_worry": "TyG Index above 8.5 is associated with insulin resistance and increased cardiovascular risk. Values above 9.0 strongly predict metabolic syndrome.",
+      "why_it_matters": "TyG Index is a practical alternative to HOMA-IR when fasting insulin is not available. It uses only triglycerides and glucose — both routinely measured in standard blood panels — making it accessible for most patients.",
       "zone_slug": "energy_metabolic"
     }
   ],
