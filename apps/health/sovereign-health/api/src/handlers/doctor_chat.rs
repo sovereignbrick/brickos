@@ -14,7 +14,7 @@ use crate::{
         ChatRequest, ChatResponse, ConversationDetail, ConversationSummaryWithAgent, Message,
         PaginationQuery, QuotaResponse, RateRequest, RateResponse,
     },
-    services::doctor_chat::{build_health_context, call_claude, increment_quota, AnthropicMessage},
+    services::doctor_chat::{build_health_context, call_claude, AnthropicMessage},
     services::tier,
 };
 
@@ -181,8 +181,6 @@ pub async fn chat(
 
     // 9. Consume AI credits (SSoT pool)
     let ai_status = tier::consume_ai_credits(pool.get_ref(), auth.user_id, &agent_type).await?;
-    // Also increment legacy quota for backward compat analytics
-    let _ = increment_quota(pool.get_ref(), auth.user_id).await;
 
     let remaining = ai_status.remaining.unwrap_or(-1);
     let monthly_limit = ai_status.limit.unwrap_or(-1);

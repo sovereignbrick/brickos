@@ -386,7 +386,7 @@ export function ChatLayout({ conversationId }: ChatLayoutProps) {
         </div>
 
         {/* Home screen, import review, or chat */}
-        <div className="flex-1 overflow-hidden flex flex-col">
+        <div className="flex-1 overflow-y-auto flex flex-col min-h-0">
           {importLoading && !importSession && !medImportSession && !measurementImportSession ? (
             <div className="flex-1 flex items-center justify-center">
               <div className="text-center space-y-3">

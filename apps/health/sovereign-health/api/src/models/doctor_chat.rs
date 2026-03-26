@@ -32,14 +32,6 @@ pub struct Message {
     pub created_at: DateTime<Utc>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ChatQuota {
-    pub requests_used: i32,
-    pub requests_limit: i32,
-    pub remaining: i32,
-    pub month: String,
-}
-
 // Request/Response types
 #[derive(Debug, Deserialize)]
 pub struct ChatRequest {

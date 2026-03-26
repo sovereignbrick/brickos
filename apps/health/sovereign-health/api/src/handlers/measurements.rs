@@ -90,9 +90,9 @@ pub async fn create(
         None
     };
 
-    // Tier: enforce measurement cap via SSoT
+    // Tier: enforce measurement cap via SSoT (exclude demo data from count)
     let measurement_count: i64 = sqlx::query_scalar(
-        "SELECT COUNT(*) FROM measurements WHERE user_id = $1 AND is_deleted = false",
+        "SELECT COUNT(*) FROM measurements WHERE user_id = $1 AND is_deleted = false AND is_demo = false",
     )
     .bind(auth.user_id)
     .fetch_one(pool.get_ref())

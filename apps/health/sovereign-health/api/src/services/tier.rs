@@ -468,7 +468,7 @@ pub async fn get_measurement_usage(
     let tier = get_user_tier(pool, user_id).await?;
 
     let count: i64 = sqlx::query_scalar(
-        "SELECT COUNT(*) FROM measurements WHERE user_id = $1 AND is_deleted = false",
+        "SELECT COUNT(*) FROM measurements WHERE user_id = $1 AND is_deleted = false AND is_demo = false",
     )
     .bind(user_id)
     .fetch_one(pool)
