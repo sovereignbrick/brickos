@@ -49,6 +49,15 @@ pub async fn upload(
     };
     tier::check_ai_credits(pool.get_ref(), auth.user_id, quota_type).await?;
 
+    // GDPR audit: log PDF import access
+    crate::services::access_log::log_self_access(
+        pool.get_ref(),
+        auth.user_id,
+        "import_lab_pdf",
+        "measurements",
+    )
+    .await;
+
     // Read multipart files (up to 3)
     struct UploadedFile {
         bytes: Vec<u8>,
@@ -736,6 +745,15 @@ pub async fn upload_medication(
     // Check tier quota for medication import
     tier::check_ai_credits(pool.get_ref(), auth.user_id, "med_import").await?;
 
+    // GDPR audit: log medication import access
+    crate::services::access_log::log_self_access(
+        pool.get_ref(),
+        auth.user_id,
+        "import_med_pdf",
+        "influence_factors",
+    )
+    .await;
+
     // Read multipart files (up to 3)
     struct UploadedMedFile {
         bytes: Vec<u8>,
@@ -1189,6 +1207,15 @@ pub async fn upload_measurements(
     mut payload: Multipart,
 ) -> Result<HttpResponse, AppError> {
     tier::check_ai_credits(pool.get_ref(), auth.user_id, "measurement_import").await?;
+
+    // GDPR audit: log measurement import access
+    crate::services::access_log::log_self_access(
+        pool.get_ref(),
+        auth.user_id,
+        "import_measurements",
+        "measurements",
+    )
+    .await;
 
     struct UploadedFile {
         bytes: Vec<u8>,
