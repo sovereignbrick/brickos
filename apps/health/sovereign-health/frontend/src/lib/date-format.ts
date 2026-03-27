@@ -99,9 +99,9 @@ export function formatDateTime(date: Date | string, countryCode?: string | null)
 
 /**
  * Format a short date (no year).
- *   US      → Mar 9
- *   others  → 9 Mar
- *   default → 9 Mar
+ *   US      -> Mar 9
+ *   others  -> 9 Mar
+ *   default -> 9 Mar
  */
 export function formatShortDate(date: Date | string, countryCode?: string | null): string {
   const d = toDate(date);
@@ -112,6 +112,25 @@ export function formatShortDate(date: Date | string, countryCode?: string | null
   const fmt = new Intl.DateTimeFormat(locale, {
     day: "numeric",
     month: "short",
+  });
+
+  return fmt.format(d);
+}
+
+/**
+ * Format a short date with abbreviated year.
+ *   US      -> Mar 9 '26
+ *   others  -> 9 Mar '26
+ */
+export function formatShortDateWithYear(date: Date | string, countryCode?: string | null): string {
+  const d = toDate(date);
+  const code = countryCode?.toUpperCase();
+  const locale = code === "US" ? "en-US" : "en-GB";
+
+  const fmt = new Intl.DateTimeFormat(locale, {
+    day: "numeric",
+    month: "short",
+    year: "2-digit",
   });
 
   return fmt.format(d);

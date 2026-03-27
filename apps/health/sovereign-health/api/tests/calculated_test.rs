@@ -142,6 +142,37 @@ async fn test_homa_ir_formula() {
 }
 
 #[actix_web::test]
+async fn test_dr_boz_ratio_real_values() {
+    let Some((pool, _config)) = common::setup().await else { return };
+
+    // Real user values: glucose 5.7 mmol/L, ketones 0.7 mmol/L
+    let mut values = std::collections::HashMap::new();
+    values.insert("glucose".to_string(), 5.7_f64);   // mmol/L
+    values.insert("ketones".to_string(), 0.7_f64);   // mmol/L
+
+    let results = sovereign_health_backend::services::calculated::compute_calculated_markers(
+        &pool,
+        uuid::Uuid::nil(),
+        &values,
+        None,
+        "standard",
+        None,
+        chrono::Utc::now(),
+    )
+    .await
+    .unwrap();
+
+    // Dr. Boz = (5.7 * 18.0) / 0.7 = 102.6 / 0.7 = 146.57
+    let boz = results.iter().find(|(_, v, _)| (*v - 146.57).abs() < 1.0);
+    assert!(boz.is_some(), "Dr. Boz should be ~146.57 for glucose 5.7 / ketones 0.7, got: {:?}",
+        results.iter().map(|(_, v, s)| (v, s)).collect::<Vec<_>>());
+
+    // GKI = 5.7 / 0.7 = 8.14
+    let gki = results.iter().find(|(_, v, _)| (*v - 8.14).abs() < 0.1);
+    assert!(gki.is_some(), "GKI should be ~8.14 for glucose 5.7 / ketones 0.7");
+}
+
+#[actix_web::test]
 async fn test_missing_inputs_skip_marker() {
     let Some((pool, _config)) = common::setup().await else { return };
 
