@@ -19,31 +19,49 @@ Example: user helmut@schindlwick.com has 43 glucose and 27 ketone measurements, 
 
 Measurement values are **encrypted** (AES-256-GCM) in `value_canonical`. A SQL-only backfill cannot read the values -- it must go through the application layer's `Encryptor`.
 
-## Proposed Fix
+## Proposed Fix: Two-Part Strategy
 
-Create an admin endpoint that re-processes calculated markers for a user:
+### Part 1: Compute on import (proactive)
+
+When a user imports data (lab PDF, CSV, manual entry), after storing the new measurements:
+
+1. Collect ALL distinct timestamps for the user that include CALC_INPUT_SLUGS
+2. For each timestamp: check if calculated_marker_values already exist
+3. If not: run `enrich_with_latest_values()` + `compute_calculated_markers()`
+4. Insert new computed values (upsert to avoid duplicates)
+
+This means: importing ketone data today will retroactively compute Dr. Boz/GKI for all dates where glucose already existed.
+
+Modify in `handlers/measurements.rs` (line ~259):
+- After inserting new measurements, scan for ANY timestamps where new calc markers can now fire
+- Not just the current submission timestamp, but any historical date that gained a new input
+
+### Part 2: Admin backfill endpoint (one-time catch-up)
+
+For users with existing historical data that was never processed:
 
 ```
 POST /admin/backfill-calculated-markers?user_id={uuid}
 ```
 
 Logic:
-1. Fetch all measurement sessions (distinct timestamps) for the user
-2. For each session: collect all marker values, decrypt them
+1. Fetch all distinct measurement timestamps for the user
+2. For each: collect all marker values, decrypt via Encryptor
 3. Call `enrich_with_latest_values()` + `compute_calculated_markers()`
-4. Insert results into `calculated_marker_values` (skip if already exists)
+4. Upsert into calculated_marker_values
 5. Return count of new computed values
 
-## Also Fix
+### Part 3: Prevent duplicates
 
-- [ ] Add UNIQUE constraint or upsert logic to prevent duplicate calculated_marker_values
-  (same user + same calculated_marker_id + same measured_at should not have duplicates)
-- [ ] Add deduplication on insert: `ON CONFLICT (user_id, calculated_marker_id, measured_at) DO UPDATE`
+- [ ] Add UNIQUE constraint: `(user_id, calculated_marker_id, measured_at)` on calculated_marker_values
+- [ ] Change INSERT to upsert: `ON CONFLICT (user_id, calculated_marker_id, measured_at) DO UPDATE SET value = EXCLUDED.value, status = EXCLUDED.status`
+- [ ] This makes all computation idempotent (safe to re-run)
 
 ## Requirements
 
-- [ ] Admin endpoint for backfill
+- [ ] Part 1: Import triggers calc for all eligible historical timestamps
+- [ ] Part 2: Admin backfill endpoint for catch-up
+- [ ] Part 3: UNIQUE constraint + upsert logic
 - [ ] Handles encrypted values via Encryptor
-- [ ] Idempotent (safe to run multiple times)
-- [ ] Test with production user data
-- [ ] Prevent future duplicates with DB constraint
+- [ ] Test: import ketones, verify Dr. Boz computed for old glucose dates
+- [ ] Test: run backfill twice, verify no duplicates
