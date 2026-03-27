@@ -1,0 +1,71 @@
+# Security scanning for Sovereign Health Intelligence
+# Runs on every push to main/develop and weekly schedule.
+# Complements cargo audit (in ci-health.yml) with SAST and dependency scanning.
+
+name: Security Scanning
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    - cron: '0 6 * * 1'  # Weekly Monday 06:00 UTC
+
+jobs:
+  # -- Semgrep SAST (Static Application Security Testing) --
+  semgrep:
+    name: Semgrep SAST
+    runs-on: ubuntu-latest
+    container:
+      image: semgrep/semgrep
+    steps:
+      - uses: actions/checkout@v6
+      - run: semgrep scan --config auto --config p/rust --config p/typescript --config p/owasp-top-ten --config p/secrets --error --json --output semgrep-results.json .
+        continue-on-error: true
+      - run: semgrep scan --config auto --config p/rust --config p/typescript --config p/owasp-top-ten --config p/secrets .
+        continue-on-error: true
+
+  # -- npm dependency audit --
+  npm-audit:
+    name: npm audit (frontend)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - run: cd apps/health/sovereign-health/frontend && pnpm install --frozen-lockfile
+      - run: cd apps/health/sovereign-health/frontend && pnpm audit --audit-level=high
+        continue-on-error: true
+
+  # -- Cargo deny (license + advisory check) --
+  cargo-deny:
+    name: cargo deny
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: EmbarkStudios/cargo-deny-action@v2
+        with:
+          command: check advisories
+        continue-on-error: true
+
+  # -- Trivy container scan (if Dockerfile exists) --
+  trivy:
+    name: Trivy container scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Build backend image
+        run: docker build -f apps/health/sovereign-health/api/Dockerfile -t shi-backend:scan .
+        continue-on-error: true
+      - name: Run Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'shi-backend:scan'
+          format: 'table'
+          severity: 'HIGH,CRITICAL'
+          exit-code: '0'
+        continue-on-error: true
