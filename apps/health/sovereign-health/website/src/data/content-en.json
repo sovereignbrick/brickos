@@ -1,6 +1,6 @@
 {
   "locale": "en",
-  "fetchedAt": "2026-03-27T06:24:51.725Z",
+  "fetchedAt": "2026-03-27T06:51:46.701Z",
   "zones": [
     {
       "description": "Can you sustain energy throughout the day without crashes? This zone tracks your glucose, insulin, ketones, and thyroid function. These markers form the engine of your metabolic health. Fix this zone first, and the rest becomes easier.",
@@ -1364,7 +1364,7 @@
       "id": "b206b07a-8e1e-44ac-bb38-1dc9d33c8a99",
       "is_calculated": true,
       "marker_slug": "gki",
-      "name": "GKI — Glucose-Ketone Index",
+      "name": "GKI - Glucose-Ketone Index",
       "tooltip": null,
       "unit_canonical": null,
       "when_to_worry": null,
@@ -1390,7 +1390,7 @@
       "id": "b1f71844-de03-4978-9439-0be1991b3de9",
       "is_calculated": true,
       "marker_slug": "whtr",
-      "name": "WHtR — Waist-to-Height Ratio",
+      "name": "WHtR - Waist-to-Height Ratio",
       "tooltip": null,
       "unit_canonical": null,
       "when_to_worry": null,
@@ -1403,7 +1403,7 @@
       "id": "cde88428-162d-4bb1-a94f-d9b9bf7228e4",
       "is_calculated": true,
       "marker_slug": "bmi",
-      "name": "BMI — Body Mass Index",
+      "name": "BMI - Body Mass Index",
       "tooltip": null,
       "unit_canonical": null,
       "when_to_worry": null,

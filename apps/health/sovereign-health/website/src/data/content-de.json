@@ -1,6 +1,6 @@
 {
   "locale": "de",
-  "fetchedAt": "2026-03-27T06:24:51.852Z",
+  "fetchedAt": "2026-03-27T06:51:46.800Z",
   "zones": [
     {
       "description": "Kannst du den ganzen Tag über Energie aufrechterhalten, ohne Einbrüche? Diese Zone verfolgt deinen Glukose-, Insulin-, Keton- und Schilddrüsenstatus. Diese Marker bilden den Motor deiner Stoffwechselgesundheit. Bringe diese Zone zuerst in Ordnung, und der Rest wird einfacher.",
@@ -416,7 +416,7 @@
       "is_calculated": false,
       "marker_slug": "calcium",
       "name": "Kalzium",
-      "tooltip": "Kalzium ist essentiell für Knochen, Muskelfunktion und Nervenleitung. Der Blutspiegel wird streng reguliert — Abweichungen können auf Nebenschilddrüsen- oder Knochenprobleme hinweisen.",
+      "tooltip": "Kalzium ist essentiell für Knochen, Muskelfunktion und Nervenleitung. Der Blutspiegel wird streng reguliert - Abweichungen können auf Nebenschilddrüsen- oder Knochenprobleme hinweisen.",
       "unit_canonical": "mmol/L",
       "when_to_worry": "Kalzium unter 2,1 oder über 2,6 mmol/L erfordert Abklärung. Symptome: Muskelkrämpfe, Müdigkeit, Verwirrtheit.",
       "why_it_matters": "Kalzium ist essenziell für Knochen, Muskelkontraktion, Nervensignale und Blutgerinnung.",
@@ -631,19 +631,6 @@
       "zone_slug": "hormonal"
     },
     {
-      "description": "Der freie Androgenindex berechnet sich aus Testosteron und SHBG. Er gibt Aufschluss über die tatsächliche Androgenwirkung im Körper.",
-      "display_order": 42,
-      "id": "caaabf0c-3f1b-4d5a-8743-ea682bf0f903",
-      "is_calculated": false,
-      "marker_slug": "free_androgen_index",
-      "name": "Freier Androgenindex",
-      "tooltip": "Der freie Androgenindex berechnet sich aus Testosteron und SHBG. Er gibt Aufschluss über die tatsächliche Androgenwirkung im Körper.",
-      "unit_canonical": "ratio",
-      "when_to_worry": "Ein erhöhter Freier Androgenindex bei Frauen kann auf PCOS hinweisen. Ärztliche Abklärung empfohlen.",
-      "why_it_matters": "Der Freie Androgenindex schätzt das biologisch verfügbare Testosteron im Verhältnis zum SHBG.",
-      "zone_slug": "hormonal"
-    },
-    {
       "description": "Durchschnittliche Hämoglobinmenge pro rotem Blutkörperchen. Niedrige Werte deuten auf Eisenmangel hin.",
       "display_order": 42,
       "id": "6ba7c825-f2c5-4b77-87d5-b6715019a59d",
@@ -655,6 +642,19 @@
       "when_to_worry": "Niedriges MCH parallel zu niedrigem MCV deutet auf Eisenmangelanämie hin. Hohes MCH kann B12- oder Folsäuremangel anzeigen.",
       "why_it_matters": "MCH misst den durchschnittlichen Hämoglobingehalt pro rotem Blutkörperchen  -  hilft bei der Diagnose von Eisenmangel.",
       "zone_slug": "structural"
+    },
+    {
+      "description": "Der freie Androgenindex berechnet sich aus Testosteron und SHBG. Er gibt Aufschluss über die tatsächliche Androgenwirkung im Körper.",
+      "display_order": 42,
+      "id": "caaabf0c-3f1b-4d5a-8743-ea682bf0f903",
+      "is_calculated": false,
+      "marker_slug": "free_androgen_index",
+      "name": "Freier Androgenindex",
+      "tooltip": "Der freie Androgenindex berechnet sich aus Testosteron und SHBG. Er gibt Aufschluss über die tatsächliche Androgenwirkung im Körper.",
+      "unit_canonical": "ratio",
+      "when_to_worry": "Ein erhöhter Freier Androgenindex bei Frauen kann auf PCOS hinweisen. Ärztliche Abklärung empfohlen.",
+      "why_it_matters": "Der Freie Androgenindex schätzt das biologisch verfügbare Testosteron im Verhältnis zum SHBG.",
+      "zone_slug": "hormonal"
     },
     {
       "description": "Durchschnittliche Hämoglobinkonzentration in roten Blutkörperchen. Hilft bei der Unterscheidung von Anämietypen.",
@@ -1364,7 +1364,7 @@
       "id": "b206b07a-8e1e-44ac-bb38-1dc9d33c8a99",
       "is_calculated": true,
       "marker_slug": "gki",
-      "name": "GKI — Glucose-Ketone Index",
+      "name": "GKI - Glucose-Ketone Index",
       "tooltip": null,
       "unit_canonical": null,
       "when_to_worry": null,
@@ -1390,7 +1390,7 @@
       "id": "b1f71844-de03-4978-9439-0be1991b3de9",
       "is_calculated": true,
       "marker_slug": "whtr",
-      "name": "WHtR — Waist-to-Height Ratio",
+      "name": "WHtR - Waist-to-Height Ratio",
       "tooltip": null,
       "unit_canonical": null,
       "when_to_worry": null,
@@ -1403,7 +1403,7 @@
       "id": "cde88428-162d-4bb1-a94f-d9b9bf7228e4",
       "is_calculated": true,
       "marker_slug": "bmi",
-      "name": "BMI — Body Mass Index",
+      "name": "BMI - Body Mass Index",
       "tooltip": null,
       "unit_canonical": null,
       "when_to_worry": null,
