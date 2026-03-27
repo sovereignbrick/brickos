@@ -122,13 +122,13 @@ function SettingsContent() {
         <div className="flex overflow-x-auto gap-0 mb-0 border-b border-border pb-0 scrollbar-none">
           {TABS.map(tb => {
             const tabLabelMap: Record<Tab, string> = {
-              'Profile': t('tabs.profileShort'),
-              'Devices': t('tabs.devicesShort'),
-              'Thresholds': t('tabs.thresholdsShort'),
-              'Medications': t('tabs.medicationsShort'),
-              'Account': t('tabs.accountShort'),
+              'Profile': t('tabs.healthProfile'),
+              'Devices': t('tabs.devices'),
+              'Thresholds': t('tabs.thresholds'),
+              'Medications': t('tabs.medications'),
+              'Account': t('tabs.accountLicense'),
               'Security': t('tabs.security'),
-              'Data & Privacy': t('tabs.privacyShort'),
+              'Data & Privacy': t('tabs.dataPrivacy'),
             }
             return (
               <button
