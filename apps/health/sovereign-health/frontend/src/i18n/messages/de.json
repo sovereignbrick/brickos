@@ -746,7 +746,10 @@
       "home": "Heimgerät",
       "lab": "Laboranbieter",
       "wearable": "Wearable",
-      "scale": "Smarte Waage"
+      "scale": "Smarte Waage",
+      "fora6": "Fora 6 Connect",
+      "qardio_arm": "QardioArm",
+      "qardio_base": "QardioBase"
     },
     "placeholders": {
       "notes": "z.B. Linker Mittelfinger, Linker Arm",

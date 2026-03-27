@@ -746,7 +746,10 @@
       "home": "Home Device",
       "lab": "Lab Provider",
       "wearable": "Wearable",
-      "scale": "Smart Scale"
+      "scale": "Smart Scale",
+      "fora6": "Fora 6 Connect",
+      "qardio_arm": "QardioArm",
+      "qardio_base": "QardioBase"
     },
     "placeholders": {
       "notes": "e.g. Left middle finger, Left arm",

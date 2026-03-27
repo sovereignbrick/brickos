@@ -1315,8 +1315,14 @@ pub async fn update_consent(
     email_provider: web::Data<std::sync::Arc<dyn brickos_email::EmailProvider>>,
     body: web::Json<serde_json::Value>,
 ) -> Result<HttpResponse, AppError> {
-    let newsletter = body.get("newsletter").and_then(|v| v.as_bool());
-    let partner_offers = body.get("partner_offers").and_then(|v| v.as_bool());
+    let newsletter = body
+        .get("consent_newsletter")
+        .or_else(|| body.get("newsletter"))
+        .and_then(|v| v.as_bool());
+    let partner_offers = body
+        .get("consent_partner_offers")
+        .or_else(|| body.get("partner_offers"))
+        .and_then(|v| v.as_bool());
 
     if newsletter.is_none() && partner_offers.is_none() {
         return Err(AppError::Validation(
