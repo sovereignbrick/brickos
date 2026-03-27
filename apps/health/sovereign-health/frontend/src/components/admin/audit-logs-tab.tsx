@@ -685,21 +685,41 @@ export function AuditLogsTab() {
         </div>
       )}
 
-      {/* Tab 3: pgaudit placeholder */}
+      {/* Tab 3: pgaudit status */}
       {subTab === 'pgaudit' && (
-        <div className="border border-border rounded-lg p-6 bg-card">
-          <p className="text-sm text-muted-foreground leading-relaxed">
-            Database-level audit logging via pgaudit. Logs are stored in PostgreSQL log files and
-            can be viewed via{' '}
-            <code className="bg-muted px-1.5 py-0.5 rounded text-xs font-mono text-foreground">
-              docker logs sh-staging-db
-            </code>{' '}
-            or VPS log files at{' '}
-            <code className="bg-muted px-1.5 py-0.5 rounded text-xs font-mono text-foreground">
-              /var/lib/docker/containers/
+        <div className="space-y-4">
+          <div className="border border-green-800 rounded-lg p-5 bg-green-950/30">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="w-2 h-2 rounded-full bg-green-400"></span>
+              <span className="text-sm font-medium text-green-400">pgAudit Active</span>
+            </div>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Database-level audit logging is enabled via the pgAudit extension. All INSERT, UPDATE, DELETE operations
+              and DDL changes (CREATE, ALTER, DROP) on all tables are logged with timestamps, session IDs, and SQL statements.
+            </p>
+          </div>
+          <div className="border border-border rounded-lg p-5 bg-card">
+            <h4 className="text-sm font-medium mb-2">Configuration</h4>
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              <div className="text-muted-foreground">Log level</div><div><code className="bg-muted px-1 rounded">write, ddl</code></div>
+              <div className="text-muted-foreground">Catalog logging</div><div>Off</div>
+              <div className="text-muted-foreground">Relation logging</div><div>On (table names included)</div>
+              <div className="text-muted-foreground">Statement-once</div><div>On (deduplication)</div>
+              <div className="text-muted-foreground">Parameter logging</div><div>Off (security)</div>
+            </div>
+          </div>
+          <div className="border border-border rounded-lg p-5 bg-card">
+            <h4 className="text-sm font-medium mb-2">Access Logs</h4>
+            <p className="text-sm text-muted-foreground leading-relaxed mb-3">
+              pgAudit logs are written to PostgreSQL stdout and captured by Docker. View via SSH:
+            </p>
+            <code className="block bg-muted px-3 py-2 rounded text-xs font-mono text-foreground">
+              docker logs sh-prod-db 2&gt;&amp;1 | grep AUDIT | tail -50
             </code>
-            . A future update will add log forwarding to make these queryable here.
-          </p>
+            <p className="text-xs text-muted-foreground mt-3">
+              Log forwarding to this panel is planned for a future update (issue #266).
+            </p>
+          </div>
         </div>
       )}
 

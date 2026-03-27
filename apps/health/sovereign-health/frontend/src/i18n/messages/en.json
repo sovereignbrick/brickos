@@ -1598,9 +1598,17 @@
   },
   "offline": {
     "title": "You're offline",
-    "description": "Check your internet connection and try again.",
-    "retry": "Retry",
-    "banner": "You're offline — showing cached data"
+    "description": "Check your internet connection and try again. Previously visited pages may still be available from cache.",
+    "retry": "Retry Connection",
+    "banner": "You're offline - showing cached data",
+    "whatWorks": "Available offline (if previously loaded):",
+    "cachedDashboard": "Dashboard with last-synced zone summaries",
+    "cachedMarkers": "Marker details and reference ranges",
+    "cachedMeasurements": "Recent measurement history",
+    "needsNetwork": "Requires internet connection:",
+    "newMeasurements": "Adding new measurements",
+    "drAlex": "Dr. Alex AI chat",
+    "labImport": "Lab result import"
   },
   "install": {
     "title": "Install Sovereign Health",

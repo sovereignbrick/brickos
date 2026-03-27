@@ -127,6 +127,27 @@ Adding a field to `Config` breaks every test that constructs it directly. Always
 ### Calculated markers use a SEPARATE table
 Standard biomarkers are in `markers`. Calculated markers (GKI, BMI, WHtR, etc.) are in `calculated_markers` with values in `calculated_marker_values`. Any endpoint that looks up a marker by slug MUST check BOTH tables (use `UNION ALL`).
 
+### When replacing a system, grep ALL references first
+Before declaring a legacy system removed, run:
+```bash
+grep -rn "old_function_name\|old_table_name" src/ tests/
+```
+Sprint 014 lesson: `doctor_chat_quota` was still called in 3 places after the "migration" to `ai_credit_usage`. Required 3 iterations to fully clean up. Always grep before committing.
+
+### Seed migrations: use ON CONFLICT DO UPDATE for critical data
+`ON CONFLICT (email) DO NOTHING` silently skips if the row exists with different data.
+For demo users, seed data, and system defaults, use `ON CONFLICT DO UPDATE SET ...` to ensure the expected state.
+
+### Flex scroll pattern for chat/panels
+When a flex child needs internal scrolling:
+```
+parent:   flex flex-col overflow-hidden
+wrapper:  flex-1 min-h-0 overflow-hidden
+content:  flex-1 overflow-y-auto         <-- scrolls here
+footer:   shrink-0                        <-- pinned
+```
+Every ancestor in the chain needs `min-h-0` to break the content-size minimum.
+
 ### Pre-push checklist
 ```bash
 cargo fmt

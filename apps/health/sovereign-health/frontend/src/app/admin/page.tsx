@@ -86,10 +86,10 @@ export default function AdminPage() {
         {/* Mobile sidebar toggle */}
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="lg:hidden fixed bottom-4 right-4 z-50 bg-blue-600 hover:bg-blue-500 text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center text-xl transition-colors"
+          className="lg:hidden fixed bottom-4 right-4 z-50 bg-blue-600 hover:bg-blue-500 text-white h-10 px-4 rounded-full shadow-lg flex items-center justify-center gap-2 text-sm font-medium transition-colors"
           aria-label="Toggle sidebar"
         >
-          {sidebarOpen ? '\u2715' : '\u2630'}
+          {sidebarOpen ? '\u2715 Close' : '\u2630 Menu'}
         </button>
 
         {/* Sidebar */}
