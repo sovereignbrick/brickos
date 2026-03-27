@@ -307,18 +307,41 @@ bash ops/bump-version.sh X.Y.Z
 
 ### Phase 3: Generate release artifacts & commit (localhost)
 
+**MANDATORY:** Release notes must be created BEFORE production deploy. This was missed in Sprint 014.
+
 All artifacts go into `docs/project-files/releases/vX.Y.Z/`:
 
-| File | Purpose |
-|------|---------|
-| `RELEASE_vX.Y.Z.md` | Release notes |
-| `YYYY-MM-DD_manual-testing-checklist_vX.Y.Z.md` | Manual test checklist |
-| `YYYY-MM-DD_testing-report_vX.Y.Z.md` | Test results |
+| File | Purpose | Required |
+|------|---------|----------|
+| `RELEASE_vX.Y.Z.md` | Release notes (highlights, changes, migrations, breaking) | **Yes** |
+| `YYYY-MM-DD_manual-testing-checklist_vX.Y.Z.md` | Manual test checklist | Yes |
+| `YYYY-MM-DD_testing-report_vX.Y.Z.md` | Test results | Recommended |
+
+Release notes checklist:
+- [ ] Highlights section (top 5-7 changes)
+- [ ] Architecture changes (if any)
+- [ ] New migrations listed
+- [ ] Bug fixes listed
+- [ ] Frontend changes listed
+- [ ] Breaking changes (bold, at bottom)
+- [ ] Upgrade notes
 
 ```bash
 git add <files>
 git commit -m "release: vX.Y.Z - summary"
 ```
+
+### Phase 3b: Sprint retrospective (before production deploy)
+
+Run a retrospective after every sprint (per project convention). Document in:
+`docs/project-files/sprint-planning/retrospectives/YYYY-MM-DD_sprint-NNN-retro.md`
+
+### Phase 3c: UI changes -- sketch before implementing
+
+Sprint 014 lesson: settings tab restructure went through 4 iterations. For any UI change that affects layout, tab structure, or navigation:
+1. Describe the change in text (what moves where)
+2. Get user confirmation before writing code
+3. One commit per iteration (not 4 fix-up commits)
 
 ### Phase 4: Deploy to staging
 

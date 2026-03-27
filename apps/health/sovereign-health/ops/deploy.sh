@@ -122,24 +122,23 @@ fi
 # so the version in the UI changes visibly on each deploy.
 
 bump_staging_version() {
-    local lib_rs="${APP_ROOT}/api/src/lib.rs"
-    local current
-    current=$(grep 'pub const VERSION' "$lib_rs" | grep -oP '"\K[^"]+' | head -1)
+    # Sprint 014 lesson: modifying lib.rs breaks snapshot tests and requires
+    # manual VERSION resets. Instead, pass build number via Docker build-arg
+    # and read from BUILD_NUMBER env var at runtime (lib.rs stays clean).
+    local base_ver="$VERSION"
+    local build_num=1
 
-    # Extract base version and current build number
-    local base_ver build_num
-    base_ver=$(echo "$current" | sed 's/-b[0-9]*//')
-    if echo "$current" | grep -qP '\-b\d+'; then
-        build_num=$(echo "$current" | grep -oP '(?<=-b)\d+')
-        build_num=$((build_num + 1))
-    else
-        build_num=1
+    # Check if VPS already has a build number for this version
+    local remote_ver
+    remote_ver=$(ssh "$VPS" "docker exec sh-staging-backend printenv BUILD_NUMBER 2>/dev/null" || echo "0")
+    if [ -n "$remote_ver" ] && [ "$remote_ver" -gt 0 ] 2>/dev/null; then
+        build_num=$((remote_ver + 1))
     fi
 
-    local new_ver="${base_ver}-b${build_num}"
-    sed -i 's|pub const VERSION: &str = "[^"]*"|pub const VERSION: \&str = "'"${new_ver}"'"|' "$lib_rs"
-    VERSION="$new_ver"
-    log "Staging build number: $new_ver"
+    # Pass as Docker build-arg (does NOT modify lib.rs)
+    export BUILD_NUMBER="$build_num"
+    VERSION="${base_ver}-b${build_num}"
+    log "Staging build number: $VERSION"
 }
 
 # Verify Docker image was loaded on VPS and has the expected size
