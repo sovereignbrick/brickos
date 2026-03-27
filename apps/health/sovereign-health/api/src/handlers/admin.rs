@@ -491,9 +491,16 @@ pub async fn backfill_calculated_markers(
     let mut users_processed = 0i64;
 
     for user_id in &user_ids {
-        // Get all distinct timestamps for this user's measurements
+        // Get distinct timestamps where at least one calculated-marker input was measured.
+        // Only these sessions can produce new calculated values.
+        // CALC_INPUT_SLUGS: glucose, ketones, waist_circumference, weight, hematocrit, hemoglobin, insulin, triglycerides, hdl
         let timestamps: Vec<chrono::DateTime<chrono::Utc>> = sqlx::query_scalar(
-            "SELECT DISTINCT timestamp FROM measurements WHERE user_id = $1 AND is_deleted = false AND is_demo = false ORDER BY timestamp"
+            r#"SELECT DISTINCT ms.timestamp
+               FROM measurements ms
+               JOIN markers m ON m.id = ms.marker_id
+               WHERE ms.user_id = $1 AND ms.is_deleted = false AND ms.is_demo = false
+                 AND m.marker_slug IN ('glucose','ketones','waist_circumference','weight','hematocrit','hemoglobin','insulin','triglycerides','hdl')
+               ORDER BY ms.timestamp"#
         )
         .bind(user_id)
         .fetch_all(pool.get_ref())
