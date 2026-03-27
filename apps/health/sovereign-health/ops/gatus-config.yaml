@@ -111,6 +111,13 @@ alerting:
       failure-threshold: 2
       success-threshold: 2
       send-on-resolved: true
+      description: |
+        [ALERT_TRIGGERED_OR_RESOLVED] [ENDPOINT_NAME]
+        Status: [RESULT_CONDITION_RESULTS]
+        Response: [RESULT_HTTP_STATUS] in [RESULT_RESPONSE_TIME]ms
+        Consecutive failures: [ALERT_FAILURE_COUNT]
+        Time: [RESULT_TIMESTAMP]
+        Endpoint: [ENDPOINT_URL]
 
   telegram:
     token: "${TELEGRAM_BOT_TOKEN}"
@@ -119,3 +126,10 @@ alerting:
       failure-threshold: 2
       success-threshold: 2
       send-on-resolved: true
+      description: |
+        [ALERT_TRIGGERED_OR_RESOLVED] [ENDPOINT_NAME]
+        Status: [RESULT_CONDITION_RESULTS]
+        Response: [RESULT_HTTP_STATUS] in [RESULT_RESPONSE_TIME]ms
+        Failures: [ALERT_FAILURE_COUNT]
+        Time: [RESULT_TIMESTAMP]
+        URL: [ENDPOINT_URL]
