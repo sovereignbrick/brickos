@@ -1,6 +1,7 @@
 // Sovereign Health Intelligence -- AGPL-3.0 -- https://sovereignhealth.io/
 
 use actix_web::{web, HttpRequest, HttpResponse};
+use rand::RngExt;
 use serde::Deserialize;
 use serde_json::json;
 use sqlx::{PgPool, Row};
@@ -1171,7 +1172,6 @@ fn eur_cents_to_sats(eur_cents: i32, btc_eur_rate: f64) -> i64 {
 // ---------------------------------------------------------------------------
 
 pub async fn generate_affiliate_code(pool: &PgPool) -> Result<String, AppError> {
-    use rand::Rng;
     let charset: &[u8] = b"abcdefghijklmnopqrstuvwxyz0123456789";
 
     for _ in 0..10 {
