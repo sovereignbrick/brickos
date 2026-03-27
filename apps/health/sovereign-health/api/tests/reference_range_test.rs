@@ -10,7 +10,9 @@ use sqlx::Row;
 
 #[actix_web::test]
 async fn test_all_markers_have_standard_reference_ranges() {
-    let Some((pool, _config)) = common::setup().await else { return };
+    let Some((pool, _config)) = common::setup().await else {
+        return;
+    };
 
     // Count markers without any reference range row (standard protocol)
     let missing: Vec<String> = sqlx::query_scalar(
@@ -33,7 +35,9 @@ async fn test_all_markers_have_standard_reference_ranges() {
 
 #[actix_web::test]
 async fn test_no_null_threshold_ranges() {
-    let Some((pool, _config)) = common::setup().await else { return };
+    let Some((pool, _config)) = common::setup().await else {
+        return;
+    };
 
     // All ranges should have at least green_min and green_max defined
     let incomplete: Vec<String> = sqlx::query_scalar(
@@ -57,7 +61,9 @@ async fn test_no_null_threshold_ranges() {
 
 #[actix_web::test]
 async fn test_green_range_inside_orange_range() {
-    let Some((pool, _config)) = common::setup().await else { return };
+    let Some((pool, _config)) = common::setup().await else {
+        return;
+    };
 
     // Green range should be a subset of orange range (when both are defined)
     let violations: i64 = sqlx::query_scalar(
@@ -72,7 +78,11 @@ async fn test_green_range_inside_orange_range() {
     .await
     .unwrap_or(0);
 
-    assert_eq!(violations, 0, "Found {} ranges where orange_min > green_min", violations);
+    assert_eq!(
+        violations, 0,
+        "Found {} ranges where orange_min > green_min",
+        violations
+    );
 
     let violations2: i64 = sqlx::query_scalar(
         r#"SELECT COUNT(*)
@@ -86,12 +96,18 @@ async fn test_green_range_inside_orange_range() {
     .await
     .unwrap_or(0);
 
-    assert_eq!(violations2, 0, "Found {} ranges where orange_max < green_max", violations2);
+    assert_eq!(
+        violations2, 0,
+        "Found {} ranges where orange_max < green_max",
+        violations2
+    );
 }
 
 #[actix_web::test]
 async fn test_keto_protocol_ranges_exist() {
-    let Some((pool, _config)) = common::setup().await else { return };
+    let Some((pool, _config)) = common::setup().await else {
+        return;
+    };
 
     // At least glucose, ketones, and triglycerides should have keto ranges
     let keto_count: i64 = sqlx::query_scalar(
@@ -113,7 +129,9 @@ async fn test_keto_protocol_ranges_exist() {
 
 #[actix_web::test]
 async fn test_fasting_protocol_ranges_exist() {
-    let Some((pool, _config)) = common::setup().await else { return };
+    let Some((pool, _config)) = common::setup().await else {
+        return;
+    };
 
     // At least glucose, ketones, uric_acid should have fasting ranges
     let fasting_count: i64 = sqlx::query_scalar(
@@ -137,14 +155,32 @@ async fn test_fasting_protocol_ranges_exist() {
 
 #[actix_web::test]
 async fn test_key_markers_have_tooltips() {
-    let Some((pool, _config)) = common::setup().await else { return };
+    let Some((pool, _config)) = common::setup().await else {
+        return;
+    };
 
     // Critical markers that must have tooltips
     let key_markers = vec![
-        "glucose", "ketones", "insulin", "hba1c", "tsh",
-        "ldl_c", "hdl_c", "triglycerides", "apob", "hs_crp",
-        "hemoglobin", "hematocrit", "alt", "ast", "ggt", "egfr",
-        "creatinine", "vitamin_d", "ferritin", "magnesium",
+        "glucose",
+        "ketones",
+        "insulin",
+        "hba1c",
+        "tsh",
+        "ldl_c",
+        "hdl_c",
+        "triglycerides",
+        "apob",
+        "hs_crp",
+        "hemoglobin",
+        "hematocrit",
+        "alt",
+        "ast",
+        "ggt",
+        "egfr",
+        "creatinine",
+        "vitamin_d",
+        "ferritin",
+        "magnesium",
     ];
 
     let missing: Vec<String> = sqlx::query_scalar(
@@ -169,7 +205,9 @@ async fn test_key_markers_have_tooltips() {
 
 #[actix_web::test]
 async fn test_tooltips_contain_loinc() {
-    let Some((pool, _config)) = common::setup().await else { return };
+    let Some((pool, _config)) = common::setup().await else {
+        return;
+    };
 
     // Tooltips that exist should contain LOINC reference
     let without_loinc: i64 = sqlx::query_scalar(
@@ -194,14 +232,22 @@ async fn test_tooltips_contain_loinc() {
 
 #[actix_web::test]
 async fn test_settings_returns_system_reference_ranges() {
-    let Some((pool, config)) = common::setup().await else { return };
+    let Some((pool, config)) = common::setup().await else {
+        return;
+    };
 
     // Need an authenticated user for /settings
     // Use the tier_test helper pattern
     let email = format!("range_test_{}@example.com", uuid::Uuid::new_v4());
-    use argon2::{password_hash::{rand_core::OsRng, SaltString}, Argon2, PasswordHasher};
+    use argon2::{
+        password_hash::{rand_core::OsRng, SaltString},
+        Argon2, PasswordHasher,
+    };
     let salt = SaltString::generate(&mut OsRng);
-    let hash = Argon2::default().hash_password(b"TestPass123!", &salt).unwrap().to_string();
+    let hash = Argon2::default()
+        .hash_password(b"TestPass123!", &salt)
+        .unwrap()
+        .to_string();
 
     let row = sqlx::query("INSERT INTO users (email, password_hash, display_name, tier) VALUES ($1, $2, 'Range Test', 'glimpse') RETURNING id")
         .bind(&email)
@@ -214,17 +260,28 @@ async fn test_settings_returns_system_reference_ranges() {
     let user_id: uuid::Uuid = row.try_get("id").unwrap();
 
     // Create required profile rows
-    let _ = sqlx::query("INSERT INTO user_preferences (user_id) VALUES ($1) ON CONFLICT DO NOTHING").bind(user_id).execute(&pool).await;
-    let _ = sqlx::query("INSERT INTO user_profile (user_id) VALUES ($1) ON CONFLICT DO NOTHING").bind(user_id).execute(&pool).await;
+    let _ =
+        sqlx::query("INSERT INTO user_preferences (user_id) VALUES ($1) ON CONFLICT DO NOTHING")
+            .bind(user_id)
+            .execute(&pool)
+            .await;
+    let _ = sqlx::query("INSERT INTO user_profile (user_id) VALUES ($1) ON CONFLICT DO NOTHING")
+        .bind(user_id)
+        .execute(&pool)
+        .await;
     let _ = sqlx::query("INSERT INTO user_licenses (user_id, tier_id, status, started_at) VALUES ($1, (SELECT id FROM license_tiers WHERE slug = 'glimpse'), 'active', NOW()) ON CONFLICT (user_id) DO NOTHING").bind(user_id).execute(&pool).await;
 
     let token = sovereign_health_backend::services::auth::create_jwt(
-        &user_id.to_string(), "user", "glimpse",
+        &user_id.to_string(),
+        "user",
+        "glimpse",
         &std::env::var("JWT_SECRET").unwrap_or_else(|_| "test_secret_key_32chars_long_xxxx".into()),
         3600,
-    ).unwrap();
+    )
+    .unwrap();
 
-    let app = actix_web::test::init_service(common::build_test_app(pool.clone(), config.clone())).await;
+    let app =
+        actix_web::test::init_service(common::build_test_app(pool.clone(), config.clone())).await;
 
     let req = actix_web::test::TestRequest::get()
         .peer_addr(common::test_peer_addr())
@@ -232,24 +289,56 @@ async fn test_settings_returns_system_reference_ranges() {
         .insert_header(("Authorization", format!("Bearer {}", token)))
         .to_request();
     let resp = actix_web::test::call_service(&app, req).await;
-    assert!(resp.status().is_success(), "Settings should return 200, got {}", resp.status());
+    assert!(
+        resp.status().is_success(),
+        "Settings should return 200, got {}",
+        resp.status()
+    );
 
     let body: serde_json::Value = actix_web::test::read_body_json(resp).await;
     let ranges = body["data"]["system_reference_ranges"].as_array();
-    assert!(ranges.is_some(), "system_reference_ranges should be an array");
+    assert!(
+        ranges.is_some(),
+        "system_reference_ranges should be an array"
+    );
     let ranges = ranges.unwrap();
-    assert!(ranges.len() >= 60, "Should have at least 60 system reference ranges, got {}", ranges.len());
+    assert!(
+        ranges.len() >= 60,
+        "Should have at least 60 system reference ranges, got {}",
+        ranges.len()
+    );
 
     // Verify glucose has a range
     let glucose = ranges.iter().find(|r| r["marker_slug"] == "glucose");
-    assert!(glucose.is_some(), "Glucose should have a system reference range");
+    assert!(
+        glucose.is_some(),
+        "Glucose should have a system reference range"
+    );
     let glucose = glucose.unwrap();
-    assert!(glucose["green_min"].as_f64().is_some(), "Glucose green_min should be numeric");
-    assert!(glucose["green_max"].as_f64().is_some(), "Glucose green_max should be numeric");
+    assert!(
+        glucose["green_min"].as_f64().is_some(),
+        "Glucose green_min should be numeric"
+    );
+    assert!(
+        glucose["green_max"].as_f64().is_some(),
+        "Glucose green_max should be numeric"
+    );
 
     // Cleanup
-    let _ = sqlx::query("DELETE FROM user_licenses WHERE user_id = $1").bind(user_id).execute(&pool).await;
-    let _ = sqlx::query("DELETE FROM user_preferences WHERE user_id = $1").bind(user_id).execute(&pool).await;
-    let _ = sqlx::query("DELETE FROM user_profile WHERE user_id = $1").bind(user_id).execute(&pool).await;
-    let _ = sqlx::query("DELETE FROM users WHERE id = $1").bind(user_id).execute(&pool).await;
+    let _ = sqlx::query("DELETE FROM user_licenses WHERE user_id = $1")
+        .bind(user_id)
+        .execute(&pool)
+        .await;
+    let _ = sqlx::query("DELETE FROM user_preferences WHERE user_id = $1")
+        .bind(user_id)
+        .execute(&pool)
+        .await;
+    let _ = sqlx::query("DELETE FROM user_profile WHERE user_id = $1")
+        .bind(user_id)
+        .execute(&pool)
+        .await;
+    let _ = sqlx::query("DELETE FROM users WHERE id = $1")
+        .bind(user_id)
+        .execute(&pool)
+        .await;
 }

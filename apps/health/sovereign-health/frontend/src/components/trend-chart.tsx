@@ -7,7 +7,7 @@ import {
 import type { TrendPoint } from '@/lib/types'
 import { statusColor } from '@/lib/status'
 import Link from 'next/link'
-import { formatShortDate, formatDate, formatTime } from '@/lib/date-format'
+import { formatShortDate, formatShortDateWithYear, formatDate, formatTime } from '@/lib/date-format'
 import { useTranslations } from 'next-intl'
 
 interface TrendChartProps {
@@ -79,6 +79,10 @@ export function TrendChart({
 
   const hasDual = secondaryPoints && secondaryPoints.length > 0 && secondaryName
 
+  // Detect if data spans multiple years (show year on x-axis if so)
+  const years = new Set(points.map(p => new Date(p.measured_at).getFullYear()))
+  const showYear = years.size > 1 || (points.length > 0 && new Date(points[0].measured_at).getFullYear() !== new Date().getFullYear())
+
   // Build unified chart data keyed by date string
   const dateMap = new Map<string, Record<string, unknown>>()
 
@@ -86,7 +90,7 @@ export function TrendChart({
     const d = new Date(p.measured_at)
     const key = d.toISOString()
     const entry = dateMap.get(key) ?? {
-      date: formatShortDate(d, countryCode),
+      date: showYear ? formatShortDateWithYear(d, countryCode) : formatShortDate(d, countryCode),
       fullDate: formatDate(d, countryCode),
       time: formatTime(d, countryCode),
       ts: d.getTime(),
@@ -280,7 +284,7 @@ export function TrendChart({
               const protocol = entry.protocol_tag as string | undefined
               return (
                 <div style={{ background: 'var(--color-card, #1a1a2e)', border: '1px solid var(--color-border, rgba(255,255,255,0.1))', borderRadius: 8, padding: '8px 12px' }}>
-                  <p style={{ color: 'var(--color-muted-foreground, #a1a1aa)', fontSize: 11, marginBottom: 4 }}>{label}</p>
+                  <p style={{ color: 'var(--color-muted-foreground, #a1a1aa)', fontSize: 11, marginBottom: 4 }}>{(entry.fullDate as string) || label}</p>
                   {value != null && (
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                       <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: color, flexShrink: 0 }} />

@@ -542,7 +542,14 @@ export default function NewMeasurementPage() {
 
   // Visible markers: active markers filtered by search and optionally by device
   const visibleMarkers = useMemo(() => {
-    let active = allMarkers.filter(m => activeSlugs.has(m.marker_slug))
+    // Deduplicate by marker_slug (devices may list a marker that also exists in the catalog)
+    const seen = new Set<string>()
+    let active = allMarkers.filter(m => {
+      if (!activeSlugs.has(m.marker_slug)) return false
+      if (seen.has(m.marker_slug)) return false
+      seen.add(m.marker_slug)
+      return true
+    })
     // When a device is selected, show device markers first, then any others with values
     if (deviceMarkerSet) {
       active = active.filter(m =>
@@ -895,7 +902,7 @@ export default function NewMeasurementPage() {
           </div>
 
           {/* Session overrides — single compact row */}
-          <div className="grid gap-2" style={{ gridTemplateColumns: protocol === 'fasting' ? '2fr 0.8fr 1fr 1fr 1.2fr' : '2fr 0.8fr 1fr 1fr' }}>
+          <div className="grid grid-cols-4 gap-2">
             <div>
               <label htmlFor="meas-new-meal-timing" className="text-[10px] text-muted-foreground block mb-0.5">{t('lifestyle.mealTiming')}</label>
               <select
@@ -957,17 +964,7 @@ export default function NewMeasurementPage() {
                 ))}
               </select>
             </div>
-            {protocol === 'fasting' && (
-              <div>
-                <label className="text-[10px] text-muted-foreground block mb-0.5">{t('lifestyle.fastStarted')}</label>
-                <DateTimePicker
-                  value={fastStart}
-                  onChange={setFastStart}
-                  countryCode={user?.country_code}
-                  className="w-full bg-popover border border-border rounded-lg px-2 py-1 text-xs text-white"
-                />
-              </div>
-            )}
+            {/* Fast started field removed: fasting duration derived from measurement timestamps + protocol settings */}
           </div>
 
           {/* Note */}
