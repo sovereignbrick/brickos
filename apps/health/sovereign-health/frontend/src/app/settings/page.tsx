@@ -119,22 +119,22 @@ function SettingsContent() {
           </span>
         </div>
 
-        <div className="flex flex-wrap gap-1 mb-0 border-b border-border pb-0">
+        <div className="flex overflow-x-auto gap-0 mb-0 border-b border-border pb-0 scrollbar-none">
           {TABS.map(tb => {
             const tabLabelMap: Record<Tab, string> = {
-              'Profile': t('tabs.healthProfile'),
-              'Devices': t('tabs.devices'),
-              'Thresholds': t('tabs.thresholds'),
-              'Medications': t('tabs.medications'),
-              'Account': t('tabs.accountLicense'),
+              'Profile': t('tabs.profileShort'),
+              'Devices': t('tabs.devicesShort'),
+              'Thresholds': t('tabs.thresholdsShort'),
+              'Medications': t('tabs.medicationsShort'),
+              'Account': t('tabs.accountShort'),
               'Security': t('tabs.security'),
-              'Data & Privacy': t('tabs.dataPrivacy'),
+              'Data & Privacy': t('tabs.privacyShort'),
             }
             return (
               <button
                 key={tb}
                 onClick={() => setTab(tb)}
-                className={`px-4 py-2 text-sm whitespace-nowrap transition-colors border-b-2 -mb-px ${
+                className={`px-2.5 py-2 text-sm whitespace-nowrap transition-colors border-b-2 -mb-px ${
                   tab === tb
                     ? 'border-blue-500 text-foreground'
                     : 'border-transparent text-muted-foreground hover:text-foreground'
