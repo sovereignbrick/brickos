@@ -1598,9 +1598,17 @@
   },
   "offline": {
     "title": "Du bist offline",
-    "description": "Überprüfe deine Internetverbindung und versuche es erneut.",
-    "retry": "Erneut versuchen",
-    "banner": "Du bist offline — gespeicherte Daten werden angezeigt"
+    "description": "Überprüfe deine Internetverbindung und versuche es erneut. Zuvor besuchte Seiten sind moeglicherweise aus dem Cache verfuegbar.",
+    "retry": "Verbindung erneut versuchen",
+    "banner": "Du bist offline - gespeicherte Daten werden angezeigt",
+    "whatWorks": "Offline verfuegbar (wenn zuvor geladen):",
+    "cachedDashboard": "Dashboard mit letzten Zonen-Zusammenfassungen",
+    "cachedMarkers": "Marker-Details und Referenzbereiche",
+    "cachedMeasurements": "Letzte Messungen",
+    "needsNetwork": "Internetverbindung erforderlich:",
+    "newMeasurements": "Neue Messungen hinzufuegen",
+    "drAlex": "Dr. Alex KI-Chat",
+    "labImport": "Laborbefund-Import"
   },
   "install": {
     "title": "Sovereign Health installieren",
