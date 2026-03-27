@@ -457,3 +457,147 @@ pub async fn update_user_license(
         })))
     }
 }
+
+// ---------------------------------------------------------------------------
+// POST /admin/backfill-calculated-markers
+// Re-compute calculated markers for ALL historical measurement sessions
+// where inputs exist but computed values are missing.
+// ---------------------------------------------------------------------------
+
+#[derive(Deserialize)]
+pub struct BackfillQuery {
+    pub user_id: Option<uuid::Uuid>,
+}
+
+pub async fn backfill_calculated_markers(
+    pool: web::Data<PgPool>,
+    enc: web::Data<crate::services::encryption::Encryptor>,
+    _admin: AdminUser,
+    query: web::Query<BackfillQuery>,
+) -> Result<HttpResponse, AppError> {
+    use crate::services::calculated::{compute_calculated_markers, enrich_with_latest_values};
+    use sqlx::Row;
+
+    // Get target users (specific user or all)
+    let user_ids: Vec<uuid::Uuid> = if let Some(uid) = query.user_id {
+        vec![uid]
+    } else {
+        sqlx::query_scalar("SELECT DISTINCT user_id FROM measurements WHERE is_deleted = false AND is_demo = false")
+            .fetch_all(pool.get_ref())
+            .await?
+    };
+
+    let mut total_computed = 0i64;
+    let mut users_processed = 0i64;
+
+    for user_id in &user_ids {
+        // Get all distinct timestamps for this user's measurements
+        let timestamps: Vec<chrono::DateTime<chrono::Utc>> = sqlx::query_scalar(
+            "SELECT DISTINCT timestamp FROM measurements WHERE user_id = $1 AND is_deleted = false AND is_demo = false ORDER BY timestamp"
+        )
+        .bind(user_id)
+        .fetch_all(pool.get_ref())
+        .await?;
+
+        // Get user's height
+        let height_cm: Option<f64> =
+            sqlx::query_scalar("SELECT height_cm FROM user_profile WHERE user_id = $1")
+                .bind(user_id)
+                .fetch_optional(pool.get_ref())
+                .await?
+                .flatten()
+                .map(|v: String| enc.decrypt_f64(&v));
+
+        for ts in &timestamps {
+            // Collect all marker values at this timestamp
+            let rows = sqlx::query(
+                r#"SELECT m.marker_slug, ms.value_canonical, ms.protocol_tag, ms.fasting_protocol
+                   FROM measurements ms
+                   JOIN markers m ON m.id = ms.marker_id
+                   WHERE ms.user_id = $1 AND ms.timestamp = $2 AND ms.is_deleted = false"#,
+            )
+            .bind(user_id)
+            .bind(ts)
+            .fetch_all(pool.get_ref())
+            .await?;
+
+            if rows.is_empty() {
+                continue;
+            }
+
+            let mut values_map = std::collections::HashMap::new();
+            let mut protocol_tag = "standard".to_string();
+            let mut fasting_protocol: Option<String> = None;
+
+            for row in &rows {
+                let slug: String = row.try_get("marker_slug").unwrap_or_default();
+                let enc_val: String = row.try_get("value_canonical").unwrap_or_default();
+                if !enc_val.is_empty() {
+                    let val = enc.decrypt_f64(&enc_val);
+                    if val.is_finite() && val > 0.0 {
+                        values_map.insert(slug, val);
+                    }
+                }
+                let pt: Option<String> = row.try_get("protocol_tag").ok().flatten();
+                if let Some(ref pt) = pt {
+                    protocol_tag = pt.clone();
+                }
+                let fp: Option<String> = row.try_get("fasting_protocol").ok().flatten();
+                if fp.is_some() {
+                    fasting_protocol = fp;
+                }
+            }
+
+            // Enrich with latest values from other sessions
+            enrich_with_latest_values(pool.get_ref(), *user_id, &mut values_map, enc.get_ref())
+                .await
+                .ok();
+
+            // Compute calculated markers
+            let computed = compute_calculated_markers(
+                pool.get_ref(),
+                *user_id,
+                &values_map,
+                height_cm,
+                &protocol_tag,
+                fasting_protocol.as_deref(),
+                *ts,
+            )
+            .await?;
+
+            // Upsert results
+            for (cm_id, value, status) in &computed {
+                let result = sqlx::query(
+                    r#"INSERT INTO calculated_marker_values (
+                        user_id, calculated_marker_id, value, status, protocol_tag, fasting_protocol, measured_at
+                    ) VALUES ($1, $2, $3, $4, $5, $6, $7)
+                    ON CONFLICT (user_id, calculated_marker_id, measured_at) WHERE is_deleted = false
+                    DO UPDATE SET value = EXCLUDED.value, status = EXCLUDED.status,
+                                 protocol_tag = EXCLUDED.protocol_tag, fasting_protocol = EXCLUDED.fasting_protocol"#,
+                )
+                .bind(user_id)
+                .bind(cm_id)
+                .bind(value)
+                .bind(status)
+                .bind(&protocol_tag)
+                .bind(&fasting_protocol)
+                .bind(ts)
+                .execute(pool.get_ref())
+                .await;
+
+                if result.is_ok() {
+                    total_computed += 1;
+                }
+            }
+        }
+        users_processed += 1;
+    }
+
+    Ok(HttpResponse::Ok().json(json!({
+        "data": {
+            "users_processed": users_processed,
+            "calculated_values_upserted": total_computed,
+        },
+        "error": null
+    })))
+}

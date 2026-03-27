@@ -940,6 +940,10 @@ pub fn configure_routes(cfg: &mut actix_web::web::ServiceConfig) {
             .route(
                 "/publish-website",
                 actix_web::web::post().to(handlers::admin_publish::publish_website),
+            )
+            .route(
+                "/backfill-calculated-markers",
+                actix_web::web::post().to(handlers::admin::backfill_calculated_markers),
             ),
     )
     .service(actix_web::web::scope("/v1/payments").route(

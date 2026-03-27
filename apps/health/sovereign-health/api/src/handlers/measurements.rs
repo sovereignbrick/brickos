@@ -267,12 +267,15 @@ pub async fn create(
     )
     .await?;
 
-    // Insert calculated marker values
+    // Upsert calculated marker values (idempotent, prevents duplicates)
     for (cm_id, value, status) in &computed {
         sqlx::query(
             r#"INSERT INTO calculated_marker_values (
                 user_id, calculated_marker_id, value, status, protocol_tag, fasting_protocol, measured_at
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7)"#,
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7)
+            ON CONFLICT (user_id, calculated_marker_id, measured_at) WHERE is_deleted = false
+            DO UPDATE SET value = EXCLUDED.value, status = EXCLUDED.status,
+                         protocol_tag = EXCLUDED.protocol_tag, fasting_protocol = EXCLUDED.fasting_protocol"#,
         )
         .bind(auth.user_id)
         .bind(cm_id)
