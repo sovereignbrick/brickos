@@ -773,6 +773,7 @@
       "profile": "Profile",
       "healthProfile": "Health Profile",
       "account": "Account",
+      "accountLicense": "Account / License",
       "devices": "Devices / Labs",
       "thresholds": "Reference Ranges",
       "medications": "Influence Factors",

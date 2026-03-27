@@ -74,13 +74,6 @@ export function AccountTab({
     }
   }
 
-  const tierLabel = (tier: string) => {
-    const map: Record<string, string> = {
-      glimpse: 'Glimpse (Free)', core: 'Core (Self-Hosted)', focus: 'Focus', insight: 'Insight', clarity: 'Clarity', horizon: 'Horizon',
-    }
-    return map[tier] ?? 'Early Access'
-  }
-
   const save = async () => {
     setSaving(true)
     setSaveStatus('saving')
@@ -111,15 +104,12 @@ export function AccountTab({
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 gap-3">
         <Field label={tCommon('email')}>
           <input type="email" value={profile.email} readOnly className={ro} />
         </Field>
         <Field label={t('displayName')}>
           <input type="text" value={form.display_name ?? ''} onChange={e => setForm({ ...form, display_name: e.target.value || null })} className={inp} placeholder={t('displayNamePlaceholder')} />
-        </Field>
-        <Field label={tCommon('license')}>
-          <input type="text" value={tierLabel(profile.tier)} readOnly className={ro} />
         </Field>
       </div>
 
