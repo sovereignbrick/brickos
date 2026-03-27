@@ -83,8 +83,10 @@ export function UsersTab() {
                   <td className="px-4 py-2.5">
                     {user.payment_method === 'strike_btc' ? (
                       <span className="text-amber-400 text-xs font-medium">BTC</span>
-                    ) : (
+                    ) : user.tier && !['glimpse', 'core'].includes(user.tier) ? (
                       <span className="text-muted-foreground text-xs">Card</span>
+                    ) : (
+                      <span className="text-muted-foreground/50 text-xs italic">Free</span>
                     )}
                   </td>
                   <td className="px-4 py-2.5">
