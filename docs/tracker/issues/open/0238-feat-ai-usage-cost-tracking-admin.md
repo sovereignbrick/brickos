@@ -1,5 +1,5 @@
 ---
-number: 238
+github_number: 230
 title: "feat: AI usage cost tracking — per-user, per-feature, with actual API costs"
 labels: [enhancement, ai, admin]
 milestone: ai-smart-features

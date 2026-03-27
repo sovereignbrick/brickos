@@ -47,7 +47,16 @@ pub async fn upload(
     } else {
         "lab_import"
     };
-    tier::check_chat_quota(pool.get_ref(), auth.user_id, quota_type).await?;
+    tier::check_ai_credits(pool.get_ref(), auth.user_id, quota_type).await?;
+
+    // GDPR audit: log PDF import access
+    crate::services::access_log::log_self_access(
+        pool.get_ref(),
+        auth.user_id,
+        "import_lab_pdf",
+        "measurements",
+    )
+    .await;
 
     // Read multipart files (up to 3)
     struct UploadedFile {
@@ -232,9 +241,9 @@ pub async fn upload(
                     .execute(pool.get_ref())
                     .await?;
 
-                    // Increment quota
+                    // Consume AI credits
                     let _ =
-                        tier::increment_chat_quota(pool.get_ref(), auth.user_id, quota_type).await;
+                        tier::consume_ai_credits(pool.get_ref(), auth.user_id, quota_type).await;
 
                     // Count unmatched
                     let unmatched: Vec<&serde_json::Value> = matched
@@ -734,7 +743,16 @@ pub async fn upload_medication(
     mut payload: Multipart,
 ) -> Result<HttpResponse, AppError> {
     // Check tier quota for medication import
-    tier::check_chat_quota(pool.get_ref(), auth.user_id, "med_import").await?;
+    tier::check_ai_credits(pool.get_ref(), auth.user_id, "med_import").await?;
+
+    // GDPR audit: log medication import access
+    crate::services::access_log::log_self_access(
+        pool.get_ref(),
+        auth.user_id,
+        "import_med_pdf",
+        "influence_factors",
+    )
+    .await;
 
     // Read multipart files (up to 3)
     struct UploadedMedFile {
@@ -877,7 +895,7 @@ pub async fn upload_medication(
             .execute(pool.get_ref())
             .await?;
 
-            let _ = tier::increment_chat_quota(pool.get_ref(), auth.user_id, "med_import").await;
+            let _ = tier::consume_ai_credits(pool.get_ref(), auth.user_id, "med_import").await;
 
             // Return extracted data for frontend review -- do NOT create records yet
             Ok(HttpResponse::Ok().json(json!({
@@ -968,11 +986,11 @@ pub async fn confirm_medications(
     .await
     .unwrap_or(0);
 
-    crate::services::tier::check_count_limit(
+    crate::services::tier::check_tier_limit(
         pool.get_ref(),
         auth.user_id,
-        "medications",
-        current_count,
+        "influence_factors",
+        current_count as i64,
     )
     .await?;
 
@@ -1188,7 +1206,16 @@ pub async fn upload_measurements(
     auth: AuthenticatedUser,
     mut payload: Multipart,
 ) -> Result<HttpResponse, AppError> {
-    tier::check_chat_quota(pool.get_ref(), auth.user_id, "measurement_import").await?;
+    tier::check_ai_credits(pool.get_ref(), auth.user_id, "measurement_import").await?;
+
+    // GDPR audit: log measurement import access
+    crate::services::access_log::log_self_access(
+        pool.get_ref(),
+        auth.user_id,
+        "import_measurements",
+        "measurements",
+    )
+    .await;
 
     struct UploadedFile {
         bytes: Vec<u8>,
@@ -1511,7 +1538,7 @@ pub async fn upload_measurements(
                     .execute(pool.get_ref())
                     .await?;
 
-                    let _ = tier::increment_chat_quota(
+                    let _ = tier::consume_ai_credits(
                         pool.get_ref(),
                         auth.user_id,
                         "measurement_import",

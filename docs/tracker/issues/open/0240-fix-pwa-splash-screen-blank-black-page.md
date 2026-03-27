@@ -1,5 +1,5 @@
 ---
-number: 240
+github_number: 228
 title: "fix: PWA splash screen — blank black page on load, add logo animation"
 labels: [bug, pwa, ux]
 milestone: ux-and-onboarding

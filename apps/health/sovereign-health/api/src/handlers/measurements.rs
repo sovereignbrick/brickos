@@ -90,8 +90,21 @@ pub async fn create(
         None
     };
 
-    // Tier: enforce measurement cap
-    crate::services::tier::check_measurement_cap(pool.get_ref(), auth.user_id).await?;
+    // Tier: enforce measurement cap via SSoT (exclude demo data from count)
+    let measurement_count: i64 = sqlx::query_scalar(
+        "SELECT COUNT(*) FROM measurements WHERE user_id = $1 AND is_deleted = false AND is_demo = false",
+    )
+    .bind(auth.user_id)
+    .fetch_one(pool.get_ref())
+    .await
+    .unwrap_or(0);
+    crate::services::tier::check_tier_limit(
+        pool.get_ref(),
+        auth.user_id,
+        "measurements",
+        measurement_count,
+    )
+    .await?;
 
     // Validate all marker values first
     for mv in &body.values {

@@ -1,5 +1,5 @@
 ---
-number: 232
+github_number: 236
 title: "ops: run Lighthouse audit on production + fix issues"
 labels: [testing, performance, pwa, accessibility]
 milestone: release-workflow

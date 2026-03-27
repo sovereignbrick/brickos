@@ -469,8 +469,8 @@
         "tooltip": "Medikamente und Supplemente verfolgen"
       },
       "ai_chats": {
-        "label": "AI-Chats",
-        "tooltip": "Monatliche Gespräche mit Dr. Alex"
+        "label": "AI-Credits",
+        "tooltip": "Monatliche AI-Credits für Chats, Importe und Analysen"
       },
       "trends": {
         "label": "Trendanalysen",

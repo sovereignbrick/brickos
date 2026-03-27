@@ -1,5 +1,5 @@
 ---
-number: 242
+github_number: 226
 title: "fix: GDPR account deletion must cascade all user data or export before delete"
 labels: [bug, security, gdpr, compliance]
 milestone: privacy-and-security

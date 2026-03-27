@@ -1,17 +1,12 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState } from 'react'
 import { useContent } from '@/lib/content-context'
 import { useTranslations } from 'next-intl'
 import { api } from '@/lib/api'
-import { toast } from '@/lib/toast'
 import { InfoTooltip } from '@/components/info-tooltip'
-import { useInstall } from '@/lib/install-context'
-import { usePush } from '@/lib/push-context'
-import { Download, Check, Bell, BellOff } from 'lucide-react'
 import type { UserProfile, UnitPreferences, LifestyleDefaults } from '@/lib/types'
-import { COUNTRIES } from '../countries'
-import { getCountryDefaults, Field, FieldWithInfo } from './shared'
+import { Field, FieldWithInfo } from './shared'
 import type { SaveStatus } from './shared'
 
 export function ProfileTab({
@@ -35,8 +30,6 @@ export function ProfileTab({
   const tFasting = useTranslations('fastingProtocols')
   const tSleep = useTranslations('sleepQuality')
   const tStress = useTranslations('stressLevel')
-  const { canInstall, isInstalled, promptInstall } = useInstall()
-  const { isSupported: pushSupported, permission: pushPermission, isSubscribed: pushSubscribed, subscribe: pushSubscribe, unsubscribe: pushUnsubscribe } = usePush()
   const [form, setForm] = useState(profile)
   const [lForm, setLForm] = useState(lifestyle)
   const [uForm, setUForm] = useState(units)
@@ -45,8 +38,8 @@ export function ProfileTab({
   const [heightUnit, setHeightUnit] = useState<'cm' | 'ft-in'>('cm')
   const [waistUnit, setWaistUnit] = useState<'cm' | 'inches'>('cm')
   const [weightUnit, setWeightUnit] = useState<'kg' | 'lbs'>('kg')
-  const { locale: contentLocale, setLocale: setContentLocale } = useContent()
-  const [locale, setLocale] = useState(contentLocale)
+  const { locale: contentLocale } = useContent()
+  const locale = contentLocale
 
   // Locale-aware decimal: accept both "." and "," as decimal separator
   const parseDecimal = (v: string): number | null => {
@@ -64,28 +57,6 @@ export function ProfileTab({
   // Track raw text for decimal inputs to allow intermediate states like "7,"
   const [weightText, setWeightText] = useState(fmtDec(weightUnit === 'lbs' && form.default_weight_kg ? Math.round(form.default_weight_kg * 2.205 * 10) / 10 : form.default_weight_kg))
   const [sleepText, setSleepText] = useState(fmtDec(lForm.default_sleep_hours))
-
-  const localizedCountries = useMemo(() => {
-    try {
-      const dn = new Intl.DisplayNames([locale], { type: 'region' })
-      return COUNTRIES.map(c => ({ code: c.code, name: dn.of(c.code) ?? c.name }))
-        .sort((a, b) => a.name.localeCompare(b.name, locale))
-    } catch {
-      return COUNTRIES
-    }
-  }, [locale])
-
-  const handleLocaleChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newLocale = e.target.value
-    setLocale(newLocale)
-    setContentLocale(newLocale)
-    // Save locale to backend profile
-    try {
-      await api.settings.updateProfile({ locale: newLocale })
-    } catch {
-      // Non-critical  - locale is also in cookie via setContentLocale
-    }
-  }
 
   const save = async () => {
     setSaving(true)
@@ -133,40 +104,13 @@ export function ProfileTab({
   const displayWeight = weightUnit === 'lbs' && form.default_weight_kg
     ? Math.round(form.default_weight_kg * 2.205 * 10) / 10 : form.default_weight_kg
 
-  const tierLabel = (t: string) => {
-    const map: Record<string, string> = {
-      glimpse: 'Glimpse (Free)', core: 'Core (Self-Hosted)', focus: 'Focus', insight: 'Insight', clarity: 'Clarity', horizon: 'Horizon',
-    }
-    return map[t] ?? 'Early Access'
-  }
-
-  const resetToCountryDefaults = async () => {
-    const defaults = getCountryDefaults(form.country_code)
-    const updates = defaults as Partial<UnitPreferences>
-    setUForm(f => ({ ...f, ...updates }))
-    onUnitsUpdate(updates)
-    setSaveStatus('saving')
-    try {
-      await api.settings.updateUnits(updates)
-      showSaved()
-      toast.success(tToast('unitsReset'))
-    } catch {
-      setSaveStatus('error')
-    }
-  }
-
   const inp = "w-full rounded-lg border border-border bg-card px-2.5 py-1.5 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-blue-500 [&>option]:bg-card [&>option]:text-foreground"
   const ro = "w-full rounded-lg border border-border bg-muted px-2.5 py-1.5 text-sm text-muted-foreground cursor-not-allowed"
 
   return (
     <div className="space-y-4">
+      {/* Gender (health-relevant, stays in Health Profile) */}
       <div className="grid grid-cols-3 gap-3">
-        <Field label={tCommon('email')}>
-          <input type="email" value={profile.email} readOnly className={ro} />
-        </Field>
-        <Field label={t('displayName')}>
-          <input type="text" value={form.display_name ?? ''} onChange={e => setForm({ ...form, display_name: e.target.value || null })} className={inp} placeholder={t('displayNamePlaceholder')} />
-        </Field>
         <Field label={t('gender')}>
           <select value={form.gender ?? ''} onChange={e => setForm({ ...form, gender: e.target.value || null })} className={inp}>
             <option value="">{tCommon('notSet')}</option>
@@ -175,45 +119,6 @@ export function ProfileTab({
             <option value="other">{t('genderOptions.other')}</option>
           </select>
         </Field>
-      </div>
-
-      <div className="grid grid-cols-3 gap-3">
-        <Field label={t('country')}>
-          <select value={form.country_code ?? ''} onChange={e => setForm({ ...form, country_code: e.target.value || null })} className={inp}>
-            <option value="">{tCommon('notSet')}</option>
-            {localizedCountries.map(c => <option key={c.code} value={c.code}>{c.name}</option>)}
-          </select>
-        </Field>
-        <Field label={tCommon('license')}>
-          <input type="text" value={tierLabel(profile.tier)} readOnly className={ro} />
-        </Field>
-        <Field label={t('language')}>
-          <select value={locale} onChange={handleLocaleChange} className={inp}>
-            <option value="en">English</option>
-            <option value="de">Deutsch</option>
-          </select>
-        </Field>
-      </div>
-
-      <div className="grid grid-cols-3 gap-3">
-        <Field label={t('dateFormat')}>
-          <select value={uForm.date_format} onChange={e => setUForm({ ...uForm, date_format: e.target.value })} className={inp}>
-            <option value="DD/MM/YYYY">DD/MM/YYYY</option>
-            <option value="MM/DD/YYYY">MM/DD/YYYY</option>
-            <option value="YYYY-MM-DD">YYYY-MM-DD</option>
-          </select>
-        </Field>
-        <Field label={t('timeFormat')}>
-          <select value={uForm.time_format} onChange={e => setUForm({ ...uForm, time_format: e.target.value })} className={inp}>
-            <option value="24h">{t('timeFormats.24h')}</option>
-            <option value="12h">{t('timeFormats.12h')}</option>
-          </select>
-        </Field>
-        <div className="flex items-end">
-          <button onClick={resetToCountryDefaults} className="text-xs text-muted-foreground hover:text-foreground border border-border px-2.5 py-1.5 rounded-lg transition-colors">
-            {t('resetDefaults')}
-          </button>
-        </div>
       </div>
 
       {/* Body Measurements */}
@@ -391,58 +296,7 @@ export function ProfileTab({
         {msg && <span className={msg === tToast('profileSaved') ? 'text-green-400 text-sm' : 'text-red-400 text-sm'}>{msg}</span>}
       </div>
 
-      {/* Install App */}
-      {(canInstall || isInstalled) && (
-        <div className="border border-border rounded-lg p-4 flex items-center justify-between">
-          <div>
-            <h3 className="text-sm font-medium">{tInstall('title')}</h3>
-            <p className="text-xs text-muted-foreground mt-1">{tInstall('description')}</p>
-          </div>
-          {canInstall ? (
-            <button
-              onClick={promptInstall}
-              className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
-            >
-              <Download className="h-4 w-4" />
-              {tInstall('button')}
-            </button>
-          ) : (
-            <span className="inline-flex items-center gap-1.5 text-sm text-green-400">
-              <Check className="h-4 w-4" />
-              {tInstall('installed')}
-            </span>
-          )}
-        </div>
-      )}
-
-      {/* Push Notifications */}
-      {pushSupported && (
-        <div className="border border-border rounded-lg p-4 flex items-center justify-between">
-          <div>
-            <h3 className="text-sm font-medium">{tPush('title')}</h3>
-            <p className="text-xs text-muted-foreground mt-1">{tPush('description')}</p>
-          </div>
-          {pushPermission === 'denied' ? (
-            <span className="text-xs text-muted-foreground">{tPush('denied')}</span>
-          ) : pushSubscribed ? (
-            <button
-              onClick={pushUnsubscribe}
-              className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground border border-border px-4 py-2 rounded-lg transition-colors"
-            >
-              <BellOff className="h-4 w-4" />
-              {tPush('disable')}
-            </button>
-          ) : (
-            <button
-              onClick={pushSubscribe}
-              className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
-            >
-              <Bell className="h-4 w-4" />
-              {tPush('enable')}
-            </button>
-          )}
-        </div>
-      )}
+      {/* Install App and Push Notifications moved to Account tab */}
     </div>
   )
 }

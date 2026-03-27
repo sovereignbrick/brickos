@@ -1,5 +1,5 @@
 ---
-number: 239
+github_number: 229
 title: "feat: AI model agnostic — fallback models, easy switching, reduce vendor dependency"
 labels: [enhancement, ai, infrastructure]
 milestone: ai-smart-features

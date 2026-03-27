@@ -1,5 +1,5 @@
 ---
-number: 237
+github_number: 231
 title: "feat: consolidate license tier table as single source of truth + implement AI pool counting"
 labels: [enhancement, licensing, ai]
 milestone: infrastructure

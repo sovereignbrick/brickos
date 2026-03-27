@@ -1,5 +1,5 @@
 ---
-number: 222
+github_number: 245
 title: "fix: PWA app name should show 'Sovereign Health Intelligence' everywhere"
 labels: [bug, pwa]
 milestone: ux-and-onboarding

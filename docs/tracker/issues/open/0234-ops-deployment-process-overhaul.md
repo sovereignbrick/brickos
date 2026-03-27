@@ -1,5 +1,5 @@
 ---
-number: 234
+github_number: 234
 title: "ops: deployment process overhaul — root cause analysis + clean redesign"
 labels: [bug, ops, infrastructure, priority-high]
 milestone: release-workflow

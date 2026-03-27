@@ -837,7 +837,8 @@ pub async fn update_reference_range(
     use sqlx::Row;
 
     // Tier check: custom_thresholds
-    crate::services::tier::check_feature(pool.get_ref(), auth.user_id, "custom_thresholds").await?;
+    crate::services::tier::check_tier_feature(pool.get_ref(), auth.user_id, "custom_thresholds")
+        .await?;
 
     let marker_slug = path.into_inner();
     let protocol = body.protocol_context.as_deref().unwrap_or("standard");
@@ -916,7 +917,8 @@ pub async fn update_reference_ranges_bulk(
     use sqlx::Row;
 
     // Tier check: custom_thresholds
-    crate::services::tier::check_feature(pool.get_ref(), auth.user_id, "custom_thresholds").await?;
+    crate::services::tier::check_tier_feature(pool.get_ref(), auth.user_id, "custom_thresholds")
+        .await?;
 
     if body.ranges.len() > 100 {
         return Err(AppError::Validation(
@@ -1313,8 +1315,14 @@ pub async fn update_consent(
     email_provider: web::Data<std::sync::Arc<dyn brickos_email::EmailProvider>>,
     body: web::Json<serde_json::Value>,
 ) -> Result<HttpResponse, AppError> {
-    let newsletter = body.get("newsletter").and_then(|v| v.as_bool());
-    let partner_offers = body.get("partner_offers").and_then(|v| v.as_bool());
+    let newsletter = body
+        .get("consent_newsletter")
+        .or_else(|| body.get("newsletter"))
+        .and_then(|v| v.as_bool());
+    let partner_offers = body
+        .get("consent_partner_offers")
+        .or_else(|| body.get("partner_offers"))
+        .and_then(|v| v.as_bool());
 
     if newsletter.is_none() && partner_offers.is_none() {
         return Err(AppError::Validation(

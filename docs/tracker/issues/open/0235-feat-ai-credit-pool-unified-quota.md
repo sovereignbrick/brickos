@@ -1,5 +1,5 @@
 ---
-number: 235
+github_number: 233
 title: "feat: unified AI credit pool instead of per-feature chat limits"
 labels: [enhancement, ai, dr-alex]
 milestone: ai-smart-features

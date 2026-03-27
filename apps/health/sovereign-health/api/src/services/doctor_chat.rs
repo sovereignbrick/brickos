@@ -1,6 +1,6 @@
 // Sovereign Health Intelligence -- AGPL-3.0 -- https://sovereignhealth.io/
 
-use chrono::{Datelike, Utc};
+use chrono::Utc;
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
 use sqlx::Row;
@@ -8,132 +8,10 @@ use uuid::Uuid;
 
 use crate::error::AppError;
 
-// ── Quota limits per tier ─────────────────────────────────────────────────────
-
-pub fn quota_limit_for_tier(tier: &str) -> i32 {
-    match tier {
-        "focus" => 5,
-        "insight" => 15,
-        "clarity" | "horizon" => 999_999, // unlimited
-        "core" => 999_999,
-        _ => 3, // glimpse / unknown
-    }
-}
-
-fn max_rollover_for_tier(tier: &str) -> i32 {
-    match tier {
-        "focus" => 2,
-        "insight" => 5,
-        "clarity" => 10,
-        _ => 0,
-    }
-}
-
-// ── Quota management ──────────────────────────────────────────────────────────
-
-pub struct QuotaStatus {
-    pub requests_used: i32,
-    pub requests_limit: i32,
-    pub rollover: i32,
-}
-
-impl QuotaStatus {
-    pub fn available(&self) -> i32 {
-        (self.requests_limit + self.rollover - self.requests_used).max(0)
-    }
-}
-
-pub async fn get_or_init_quota(
-    pool: &PgPool,
-    user_id: Uuid,
-    tier: &str,
-) -> Result<QuotaStatus, AppError> {
-    let now = Utc::now();
-    let month_year = format!("{}-{:02}", now.year(), now.month());
-    let limit = quota_limit_for_tier(tier);
-
-    // Compute rollover from previous month
-    let prev = now - chrono::Duration::days(32);
-    let prev_month = format!("{}-{:02}", prev.year(), prev.month());
-    let rollover = compute_rollover(pool, user_id, &prev_month, tier).await?;
-
-    // Upsert quota record for this month
-    sqlx::query(
-        r#"INSERT INTO doctor_chat_quota (user_id, month_year, requests_used, requests_limit, rollover_from_previous)
-           VALUES ($1, $2, 0, $3, $4)
-           ON CONFLICT (user_id, month_year) DO UPDATE
-             SET requests_limit = $3
-           RETURNING requests_used, requests_limit, rollover_from_previous"#,
-    )
-    .bind(user_id)
-    .bind(&month_year)
-    .bind(limit)
-    .bind(rollover)
-    .fetch_one(pool)
-    .await
-    .map(|row| QuotaStatus {
-        requests_used: row.try_get("requests_used").unwrap_or(0),
-        requests_limit: row.try_get("requests_limit").unwrap_or(limit),
-        rollover: row.try_get("rollover_from_previous").unwrap_or(0),
-    })
-    .map_err(|e| {
-        tracing::error!("quota upsert error: {:?}", e);
-        AppError::Internal
-    })
-}
-
-async fn compute_rollover(
-    pool: &PgPool,
-    user_id: Uuid,
-    prev_month: &str,
-    tier: &str,
-) -> Result<i32, AppError> {
-    let max_rollover = max_rollover_for_tier(tier);
-    if max_rollover == 0 {
-        return Ok(0);
-    }
-
-    let row = sqlx::query(
-        "SELECT requests_used, requests_limit FROM doctor_chat_quota WHERE user_id = $1 AND month_year = $2",
-    )
-    .bind(user_id)
-    .bind(prev_month)
-    .fetch_optional(pool)
-    .await?;
-
-    Ok(row
-        .map(|r| {
-            let used: i32 = r.try_get("requests_used").unwrap_or(0);
-            let limit: i32 = r.try_get("requests_limit").unwrap_or(0);
-            let unused = (limit - used).max(0);
-            unused.min(max_rollover)
-        })
-        .unwrap_or(0))
-}
-
-pub async fn increment_quota(pool: &PgPool, user_id: Uuid) -> Result<(i32, i32), AppError> {
-    let now = Utc::now();
-    let month_year = format!("{}-{:02}", now.year(), now.month());
-
-    let row = sqlx::query(
-        r#"UPDATE doctor_chat_quota
-           SET requests_used = requests_used + 1, updated_at = now()
-           WHERE user_id = $1 AND month_year = $2
-           RETURNING requests_used, requests_limit"#,
-    )
-    .bind(user_id)
-    .bind(&month_year)
-    .fetch_one(pool)
-    .await
-    .map_err(|e| {
-        tracing::error!("quota increment error: {:?}", e);
-        AppError::Internal
-    })?;
-
-    let used: i32 = row.try_get("requests_used").unwrap_or(0);
-    let limit: i32 = row.try_get("requests_limit").unwrap_or(5);
-    Ok((used, limit))
-}
+// ── Legacy quota (deprecated -- replaced by ai_credit_usage via tier::consume_ai_credits) ──
+// The doctor_chat_quota table and these functions are no longer used for enforcement.
+// AI credits are managed via tier_features SSoT + ai_credit_usage table.
+// See: services/tier.rs: check_ai_credits(), consume_ai_credits(), get_ai_credit_status()
 
 // ── Context building ──────────────────────────────────────────────────────────
 

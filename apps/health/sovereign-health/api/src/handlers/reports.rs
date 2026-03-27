@@ -659,7 +659,7 @@ pub async fn export_json(
     use sqlx::Row;
 
     // Tier check
-    tier::check_feature(pool.get_ref(), auth.user_id, "json_export").await?;
+    tier::check_tier_feature(pool.get_ref(), auth.user_id, "json_export").await?;
 
     // Log data access (GDPR audit trail)
     crate::services::access_log::log_self_access(

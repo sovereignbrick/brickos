@@ -218,6 +218,7 @@ const CONTENT_CARD_CONFIG: Record<string, { icon: string; bg: string }> = {
   health_facts:     { icon: '📊', bg: 'from-emerald-900/30 to-emerald-800/20' },
   food_for_thought: { icon: '🧠', bg: 'from-purple-900/30 to-purple-800/20' },
   fun_facts:        { icon: '🎯', bg: 'from-pink-900/30 to-pink-800/20' },
+  why_it_matters:   { icon: '❗', bg: 'from-red-900/30 to-red-800/20' },
 }
 
 const FOOD_CATEGORIES: Record<string, { emoji: string; labelKey: string }> = {
@@ -397,8 +398,23 @@ export default function MarkerDetailPage() {
     fetchTrend(p)
   }
 
+  // Build carousel cards: content cards + "Why It Matters" from marker data
+  const carouselCards = (() => {
+    const cards = content
+      .filter(c => c.content_type !== 'how_to_stay_in_range')
+      .map(c => ({ content_type: c.content_type, title: c.title, body_text: c.body_text }))
+    if (marker?.why_it_matters) {
+      cards.push({
+        content_type: 'why_it_matters',
+        title: t('whyItMatters'),
+        body_text: marker.why_it_matters,
+      })
+    }
+    return cards
+  })()
+
   // Auto-rotate content carousel
-  const carouselCardCount = content.filter(c => c.content_type !== 'how_to_stay_in_range').length
+  const carouselCardCount = carouselCards.length
   useEffect(() => {
     if (carouselPaused || carouselCardCount <= 1) return
     const interval = setInterval(() => {
@@ -713,9 +729,8 @@ export default function MarkerDetailPage() {
           </div>
         </div>
 
-        {/* ── SECTION 5: Content Carousel ──────────────────────────────── */}
+        {/* ── SECTION 5: Content Carousel (includes "Why It Matters") ── */}
         {(() => {
-          const carouselCards = content.filter(c => c.content_type !== 'how_to_stay_in_range')
           if (carouselCards.length === 0) return null
           const cfg = CONTENT_CARD_CONFIG[carouselCards[carouselIdx]?.content_type] ?? { icon: '📌', bg: 'from-card to-muted' }
           const card = carouselCards[carouselIdx]
@@ -751,21 +766,8 @@ export default function MarkerDetailPage() {
           )
         })()}
 
-        {/* ── Why It Matters ────────────────────────────────────────────── */}
-        {marker.why_it_matters && (
-          <div className="rounded-2xl border p-5 space-y-2">
-            <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">{t('whyItMatters')}</h2>
-            <p className="text-sm text-muted-foreground leading-relaxed">{marker.why_it_matters}</p>
-          </div>
-        )}
-
-        {/* ── When to Worry ──────────────────────────────────────────────── */}
-        {marker.when_to_worry && (
-          <div className="rounded-2xl border border-amber-200 dark:border-amber-800 p-5 space-y-2">
-            <h2 className="text-sm font-semibold text-amber-600 dark:text-amber-400 uppercase tracking-wider">{t('whenToWorry')}</h2>
-            <p className="text-sm text-muted-foreground leading-relaxed">{marker.when_to_worry}</p>
-          </div>
-        )}
+        {/* "Why It Matters" is now part of the carousel above */}
+        {/* "When to Worry" removed from UI per sprint 014 feedback */}
 
         {/* ── SECTION 6: How to Stay in Range ──────────────────────────── */}
         {(() => {

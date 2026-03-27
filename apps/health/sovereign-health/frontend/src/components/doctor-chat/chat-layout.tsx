@@ -316,7 +316,7 @@ export function ChatLayout({ conversationId }: ChatLayoutProps) {
   }
 
   return (
-    <div className="flex flex-1 min-h-0">
+    <div className="flex flex-1 min-h-0 overflow-hidden">
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <div className="fixed inset-0 z-40 md:hidden" onClick={() => setSidebarOpen(false)}>
@@ -346,7 +346,7 @@ export function ChatLayout({ conversationId }: ChatLayoutProps) {
       </div>
 
       {/* Main chat area */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden">
         {/* Top bar */}
         <div className="flex items-center justify-between px-4 py-2 border-b border-border shrink-0">
           <div className="flex items-center gap-2">
@@ -386,7 +386,7 @@ export function ChatLayout({ conversationId }: ChatLayoutProps) {
         </div>
 
         {/* Home screen, import review, or chat */}
-        <div className="flex-1 overflow-hidden flex flex-col">
+        <div className="flex-1 overflow-y-auto flex flex-col min-h-0">
           {importLoading && !importSession && !medImportSession && !measurementImportSession ? (
             <div className="flex-1 flex items-center justify-center">
               <div className="text-center space-y-3">

@@ -746,7 +746,10 @@
       "home": "Heimgerät",
       "lab": "Laboranbieter",
       "wearable": "Wearable",
-      "scale": "Smarte Waage"
+      "scale": "Smarte Waage",
+      "fora6": "Fora 6 Connect",
+      "qardio_arm": "QardioArm",
+      "qardio_base": "QardioBase"
     },
     "placeholders": {
       "notes": "z.B. Linker Mittelfinger, Linker Arm",
@@ -768,6 +771,16 @@
     "saveFailedStatus": "Speichern fehlgeschlagen",
     "tabs": {
       "profile": "Profil",
+      "healthProfile": "Gesundheitsprofil",
+      "account": "Konto",
+      "accountLicense": "Konto / Lizenz",
+      "profileShort": "Profil",
+      "devicesShort": "Geräte",
+      "thresholdsShort": "Bereiche",
+      "medicationsShort": "Faktoren",
+      "accountShort": "Konto",
+      "privacy": "Datenschutz",
+      "privacyShort": "Datenschutz",
       "devices": "Geräte / Labore",
       "thresholds": "Referenzbereiche",
       "medications": "Einflussfaktoren",

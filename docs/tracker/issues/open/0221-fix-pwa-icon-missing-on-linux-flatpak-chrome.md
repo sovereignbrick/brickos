@@ -1,5 +1,5 @@
 ---
-number: 221
+github_number: 246
 title: "fix: PWA icon missing on Linux (Flatpak Chrome)"
 labels: [bug, pwa]
 milestone: ux-and-onboarding

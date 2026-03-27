@@ -746,7 +746,10 @@
       "home": "Home Device",
       "lab": "Lab Provider",
       "wearable": "Wearable",
-      "scale": "Smart Scale"
+      "scale": "Smart Scale",
+      "fora6": "Fora 6 Connect",
+      "qardio_arm": "QardioArm",
+      "qardio_base": "QardioBase"
     },
     "placeholders": {
       "notes": "e.g. Left middle finger, Left arm",
@@ -768,6 +771,16 @@
     "saveFailedStatus": "Save failed",
     "tabs": {
       "profile": "Profile",
+      "healthProfile": "Health Profile",
+      "account": "Account",
+      "accountLicense": "Account / License",
+      "profileShort": "Profile",
+      "devicesShort": "Devices",
+      "thresholdsShort": "Ranges",
+      "medicationsShort": "Factors",
+      "accountShort": "Account",
+      "privacy": "Privacy",
+      "privacyShort": "Privacy",
       "devices": "Devices / Labs",
       "thresholds": "Reference Ranges",
       "medications": "Influence Factors",

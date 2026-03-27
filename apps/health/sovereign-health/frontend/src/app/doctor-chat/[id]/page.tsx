@@ -16,7 +16,9 @@ export default function DoctorChatConversationPage() {
   return (
     <div className="h-screen flex flex-col overflow-hidden">
       <Navbar />
-      <ChatLayout conversationId={conversationId} />
+      <div className="flex-1 min-h-0 max-w-5xl mx-auto w-full flex flex-col overflow-hidden">
+        <ChatLayout conversationId={conversationId} />
+      </div>
     </div>
   )
 }

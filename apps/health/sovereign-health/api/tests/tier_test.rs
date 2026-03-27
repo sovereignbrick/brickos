@@ -271,6 +271,219 @@ async fn test_license_returns_user_tier() {
     cleanup_user(&pool, user_id).await;
 }
 
+// ─── SSoT: tier_features enforcement ───
+
+#[actix_web::test]
+async fn test_load_tier_features_returns_features() {
+    let Some((pool, _config)) = common::setup().await else {
+        return;
+    };
+
+    use sovereign_health_backend::services::tier;
+    let fs = tier::load_tier_features(&pool, "glimpse").await;
+    assert!(fs.is_ok(), "Should load glimpse tier features");
+    let fs = fs.unwrap();
+    assert_eq!(fs.tier_slug, "glimpse");
+    // Glimpse should NOT include csv_export
+    assert!(!fs.is_included("csv_export"));
+    // Glimpse SHOULD have markers with a limit
+    let markers_limit = fs.get_limit("markers");
+    assert!(
+        markers_limit.is_some(),
+        "Glimpse should have a markers limit"
+    );
+    assert_eq!(markers_limit.unwrap(), 8);
+}
+
+#[actix_web::test]
+async fn test_load_tier_features_focus_includes_csv() {
+    let Some((pool, _config)) = common::setup().await else {
+        return;
+    };
+
+    use sovereign_health_backend::services::tier;
+    let fs = tier::load_tier_features(&pool, "focus").await.unwrap();
+    assert!(
+        fs.is_included("csv_export"),
+        "Focus should include csv_export"
+    );
+    assert!(
+        fs.is_included("custom_thresholds"),
+        "Focus should include custom_thresholds"
+    );
+    assert_eq!(fs.get_limit("markers"), Some(20));
+}
+
+#[actix_web::test]
+async fn test_load_tier_features_unlimited_tiers() {
+    let Some((pool, _config)) = common::setup().await else {
+        return;
+    };
+
+    use sovereign_health_backend::services::tier;
+    // Core and admin should be synthetic unlimited
+    let core = tier::load_tier_features(&pool, "core").await.unwrap();
+    assert_eq!(core.tier_slug, "core");
+
+    let admin = tier::load_tier_features(&pool, "admin").await.unwrap();
+    assert_eq!(admin.tier_slug, "admin");
+}
+
+#[actix_web::test]
+async fn test_check_tier_feature_glimpse_blocked() {
+    let Some((pool, _config)) = common::setup().await else {
+        return;
+    };
+
+    let Some((user_id, _token)) = create_test_user_with_tier(&pool, "glimpse").await else {
+        println!("Skipping - could not create test user");
+        return;
+    };
+
+    use sovereign_health_backend::services::tier;
+    // Glimpse should NOT be allowed csv_export
+    let result = tier::check_tier_feature(&pool, user_id, "csv_export").await;
+    assert!(result.is_err(), "Glimpse should not have csv_export");
+
+    cleanup_user(&pool, user_id).await;
+}
+
+#[actix_web::test]
+async fn test_check_tier_feature_focus_allowed() {
+    let Some((pool, _config)) = common::setup().await else {
+        return;
+    };
+
+    let Some((user_id, _token)) = create_test_user_with_tier(&pool, "focus").await else {
+        println!("Skipping - could not create test user");
+        return;
+    };
+
+    use sovereign_health_backend::services::tier;
+    // Focus SHOULD be allowed csv_export
+    let result = tier::check_tier_feature(&pool, user_id, "csv_export").await;
+    assert!(result.is_ok(), "Focus should have csv_export");
+
+    cleanup_user(&pool, user_id).await;
+}
+
+#[actix_web::test]
+async fn test_check_tier_limit_templates() {
+    let Some((pool, _config)) = common::setup().await else {
+        return;
+    };
+
+    let Some((user_id, _token)) = create_test_user_with_tier(&pool, "glimpse").await else {
+        println!("Skipping - could not create test user");
+        return;
+    };
+
+    use sovereign_health_backend::services::tier;
+    // Glimpse allows 1 template - 0 used should be OK
+    let result = tier::check_tier_limit(&pool, user_id, "measurement_templates", 0).await;
+    assert!(result.is_ok(), "0 templates should be within limit");
+
+    // 1 used = at limit, should be blocked (>= check)
+    let result = tier::check_tier_limit(&pool, user_id, "measurement_templates", 1).await;
+    assert!(
+        result.is_err(),
+        "1 template should hit the limit for Glimpse"
+    );
+
+    cleanup_user(&pool, user_id).await;
+}
+
+#[actix_web::test]
+async fn test_ai_credits_glimpse() {
+    let Some((pool, _config)) = common::setup().await else {
+        return;
+    };
+
+    let Some((user_id, _token)) = create_test_user_with_tier(&pool, "glimpse").await else {
+        println!("Skipping - could not create test user");
+        return;
+    };
+
+    use sovereign_health_backend::services::tier;
+
+    // Glimpse should have limited AI credits
+    let status = tier::check_ai_credits(&pool, user_id, "general").await;
+    assert!(
+        status.is_ok(),
+        "Glimpse should be able to use AI credits initially"
+    );
+    let status = status.unwrap();
+    assert!(status.limit.is_some(), "Glimpse should have a credit limit");
+    assert_eq!(status.used, 0);
+
+    // Consume a credit
+    let consumed = tier::consume_ai_credits(&pool, user_id, "general").await;
+    assert!(consumed.is_ok(), "Should be able to consume a credit");
+    let consumed = consumed.unwrap();
+    assert_eq!(consumed.used, 1);
+
+    // Clean up
+    let _ = sqlx::query("DELETE FROM ai_credit_usage WHERE user_id = $1")
+        .bind(user_id)
+        .execute(&pool)
+        .await;
+    cleanup_user(&pool, user_id).await;
+}
+
+#[actix_web::test]
+async fn test_ai_credits_clarity_unlimited() {
+    let Some((pool, _config)) = common::setup().await else {
+        return;
+    };
+
+    let Some((user_id, _token)) = create_test_user_with_tier(&pool, "clarity").await else {
+        println!("Skipping - could not create test user");
+        return;
+    };
+
+    use sovereign_health_backend::services::tier;
+
+    // Clarity should have unlimited AI credits
+    let status = tier::check_ai_credits(&pool, user_id, "general").await;
+    assert!(status.is_ok(), "Clarity should pass AI credit check");
+    let status = status.unwrap();
+    assert!(
+        status.limit.is_none(),
+        "Clarity should have unlimited credits"
+    );
+
+    cleanup_user(&pool, user_id).await;
+}
+
+// ─── Tiers/features API endpoint ───
+
+#[actix_web::test]
+async fn test_tiers_features_api_returns_matrix() {
+    let Some((pool, config)) = common::setup().await else {
+        return;
+    };
+
+    let app = test::init_service(common::build_test_app(pool.clone(), config.clone())).await;
+
+    let req = test::TestRequest::get()
+        .peer_addr(common::test_peer_addr())
+        .uri("/api/tiers/features")
+        .to_request();
+    let resp = test::call_service(&app, req).await;
+    assert!(
+        resp.status().is_success(),
+        "Expected 200, got {}",
+        resp.status()
+    );
+
+    let body: serde_json::Value = test::read_body_json(resp).await;
+    // Should have tiers and groups
+    assert!(
+        !body["data"]["tiers"].is_null(),
+        "Should have tiers in response"
+    );
+}
+
 // ─── Annual discount consistency ───
 
 #[actix_web::test]

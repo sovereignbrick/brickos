@@ -1,5 +1,5 @@
 ---
-number: 225
+github_number: 243
 title: "feat: vanity code availability check + ability to change existing code"
 labels: [enhancement, sovereign-link]
 milestone: infrastructure

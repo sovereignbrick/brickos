@@ -1,5 +1,5 @@
 ---
-number: 227
+github_number: 241
 title: "ops: move development environment to cloud VPS for location-independent work"
 labels: [enhancement, infrastructure, ops]
 milestone: infrastructure
