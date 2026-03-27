@@ -18,13 +18,13 @@ import { LicenseTab } from './components/license-tab'
 import { SecurityTab } from './components/security-tab'
 import { AccountTab } from './components/account-tab'
 
-const TABS = ['Profile', 'Devices', 'Thresholds', 'Medications', 'Account', 'Security', 'Data & Privacy'] as const
+const TABS = ['Profile', 'Devices', 'Thresholds', 'Medications', 'Account', 'License', 'Security', 'Data & Privacy'] as const
 type Tab = (typeof TABS)[number]
 
 const TAB_SLUGS: Record<string, Tab> = {
   profile: 'Profile',
   account: 'Account',
-  license: 'Account',
+  license: 'License',
   devices: 'Devices',
   thresholds: 'Thresholds',
   medications: 'Medications',
@@ -36,6 +36,7 @@ const TAB_SLUGS: Record<string, Tab> = {
 const TAB_TO_SLUG: Record<Tab, string> = {
   'Profile': 'profile',
   'Account': 'account',
+  'License': 'license',
   'Devices': 'devices',
   'Thresholds': 'thresholds',
   'Medications': 'influence-factors',
@@ -127,6 +128,7 @@ function SettingsContent() {
               'Thresholds': t('tabs.thresholds'),
               'Medications': t('tabs.medications'),
               'Account': t('tabs.account'),
+              'License': tCommon('license'),
               'Security': t('tabs.security'),
               'Data & Privacy': t('tabs.dataPrivacy'),
             }
@@ -191,6 +193,7 @@ function SettingsContent() {
           />
         )}
         {tab === 'Medications' && <MedicationsTab />}
+        {tab === 'License' && <LicenseTab />}
         {tab === 'Data & Privacy' && <DataPrivacyTab shareAnonymousData={settings.share_anonymous_data ?? false} onToggle={(v) => setSettings({ ...settings, share_anonymous_data: v })} />}
         {tab === 'Security' && <SecurityTab />}
         </div>
