@@ -771,6 +771,8 @@
     "saveFailedStatus": "Save failed",
     "tabs": {
       "profile": "Profile",
+      "healthProfile": "Health Profile",
+      "account": "Account",
       "devices": "Devices / Labs",
       "thresholds": "Reference Ranges",
       "medications": "Influence Factors",

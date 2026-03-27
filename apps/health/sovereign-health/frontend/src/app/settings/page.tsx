@@ -16,13 +16,15 @@ import { ThresholdsTab } from './components/thresholds-tab'
 import { DataPrivacyTab } from './components/privacy-tab'
 import { LicenseTab } from './components/license-tab'
 import { SecurityTab } from './components/security-tab'
+import { AccountTab } from './components/account-tab'
 
-const TABS = ['Profile', 'Devices', 'Thresholds', 'Medications', 'License', 'Security', 'Data & Privacy'] as const
+const TABS = ['Profile', 'Devices', 'Thresholds', 'Medications', 'Account', 'Security', 'Data & Privacy'] as const
 type Tab = (typeof TABS)[number]
 
 const TAB_SLUGS: Record<string, Tab> = {
   profile: 'Profile',
-  license: 'License',
+  account: 'Account',
+  license: 'Account',
   devices: 'Devices',
   thresholds: 'Thresholds',
   medications: 'Medications',
@@ -33,7 +35,7 @@ const TAB_SLUGS: Record<string, Tab> = {
 }
 const TAB_TO_SLUG: Record<Tab, string> = {
   'Profile': 'profile',
-  'License': 'license',
+  'Account': 'account',
   'Devices': 'devices',
   'Thresholds': 'thresholds',
   'Medications': 'influence-factors',
@@ -120,11 +122,11 @@ function SettingsContent() {
         <div className="flex flex-wrap gap-1 mb-0 border-b border-border pb-0">
           {TABS.map(tb => {
             const tabLabelMap: Record<Tab, string> = {
-              'Profile': t('tabs.profile'),
+              'Profile': t('tabs.healthProfile'),
               'Devices': t('tabs.devices'),
               'Thresholds': t('tabs.thresholds'),
               'Medications': t('tabs.medications'),
-              'License': tCommon('license'),
+              'Account': t('tabs.account'),
               'Security': t('tabs.security'),
               'Data & Privacy': t('tabs.dataPrivacy'),
             }
@@ -178,7 +180,16 @@ function SettingsContent() {
           />
         )}
         {tab === 'Devices' && <DevicesTab markers={settings.all_markers} />}
-        {tab === 'License' && <LicenseTab />}
+        {tab === 'Account' && (
+          <AccountTab
+            profile={settings.profile}
+            units={settings.units}
+            onUpdate={p => setSettings({ ...settings, profile: { ...settings.profile, ...p } })}
+            onUnitsUpdate={u => setSettings({ ...settings, units: { ...settings.units, ...u } })}
+            setSaveStatus={setSaveStatus}
+            showSaved={showSaved}
+          />
+        )}
         {tab === 'Medications' && <MedicationsTab />}
         {tab === 'Data & Privacy' && <DataPrivacyTab shareAnonymousData={settings.share_anonymous_data ?? false} onToggle={(v) => setSettings({ ...settings, share_anonymous_data: v })} />}
         {tab === 'Security' && <SecurityTab />}

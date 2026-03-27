@@ -771,6 +771,8 @@
     "saveFailedStatus": "Speichern fehlgeschlagen",
     "tabs": {
       "profile": "Profil",
+      "healthProfile": "Gesundheitsprofil",
+      "account": "Konto",
       "devices": "Geräte / Labore",
       "thresholds": "Referenzbereiche",
       "medications": "Einflussfaktoren",
