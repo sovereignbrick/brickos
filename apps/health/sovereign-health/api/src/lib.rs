@@ -35,7 +35,7 @@ pub mod payments;
 pub mod services;
 pub mod templates;
 
-pub const VERSION: &str = "0.29.1";
+pub const VERSION: &str = "0.30.0";
 pub const SERVICE_NAME: &str = "sovereign-health-backend";
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
