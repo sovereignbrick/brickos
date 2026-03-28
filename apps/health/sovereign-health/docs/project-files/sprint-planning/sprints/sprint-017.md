@@ -98,6 +98,14 @@ Sequential (after security):
 6. **Vegan + Mediterranean ranges** seeded and protocol context mapping works
 7. **All tests pass** -- cargo test + pnpm build green
 
+## Added Mid-Sprint
+
+| # | Title | Points | Area |
+|---|-------|--------|------|
+| -- | RC checklist v0.30.0 (update for Sprints 014-017) | 3 | QA |
+| #253 | k6 load testing -- expand beyond health endpoint | 5 | Test |
+| #283 | Build provenance attestation (issue created) | 0 | Backlog |
+
 ## Issues Deferred
 
 | # | Title | Why |
