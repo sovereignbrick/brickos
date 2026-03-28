@@ -79,8 +79,11 @@ pub async fn create(
         .unwrap_or_else(|| "unspecified".to_string());
 
     // Resolve protocol context for reference range lookup
-    let protocol_context =
-        resolve_protocol_context(&protocol_tag, body.fasting_protocol.as_deref());
+    let protocol_context = resolve_protocol_context(
+        &protocol_tag,
+        body.fasting_protocol.as_deref(),
+        body.diet_protocol.as_deref(),
+    );
 
     // Compute fasting_hours
     let fasting_hours: Option<i32> = if let Some(start) = body.fast_start_datetime {
@@ -263,6 +266,7 @@ pub async fn create(
         height_cm,
         &protocol_tag,
         body.fasting_protocol.as_deref(),
+        body.diet_protocol.as_deref(),
         body.measured_at,
     )
     .await?;
@@ -650,7 +654,7 @@ pub async fn update(
 
     // First, fetch the current row to get marker_id + current values
     let current_row = sqlx::query(
-        r#"SELECT marker_id, value_canonical, protocol_tag, fasting_protocol
+        r#"SELECT marker_id, value_canonical, protocol_tag, fasting_protocol, diet_protocol
         FROM measurements
         WHERE id = $1 AND user_id = $2 AND is_deleted = false"#,
     )
@@ -671,15 +675,20 @@ pub async fn update(
         .unwrap_or_else(|_| "standard".to_string());
     let current_fasting_protocol: Option<String> =
         current_row.try_get("fasting_protocol").ok().flatten();
+    let current_diet_protocol: Option<String> = current_row.try_get("diet_protocol").ok().flatten();
 
     // Determine new values
     let new_value = body.value.unwrap_or(current_value);
     let new_protocol_tag = body.protocol_tag.clone().unwrap_or(current_protocol_tag);
     let new_fasting_protocol = body.fasting_protocol.clone().or(current_fasting_protocol);
+    let new_diet_protocol = body.diet_protocol.clone().or(current_diet_protocol);
 
     // Recalculate status
-    let protocol_context =
-        resolve_protocol_context(&new_protocol_tag, new_fasting_protocol.as_deref());
+    let protocol_context = resolve_protocol_context(
+        &new_protocol_tag,
+        new_fasting_protocol.as_deref(),
+        new_diet_protocol.as_deref(),
+    );
     let new_status = calculate_status(
         pool.get_ref(),
         marker_id,

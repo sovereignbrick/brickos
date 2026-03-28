@@ -70,6 +70,7 @@ pub async fn enrich_with_latest_values(
 /// Given a set of measured values (slug → value) and user profile height,
 /// compute all applicable calculated markers.
 /// Returns Vec of (calculated_marker_id, value, status)
+#[allow(clippy::too_many_arguments)]
 pub async fn compute_calculated_markers(
     pool: &PgPool,
     _user_id: Uuid,
@@ -77,12 +78,13 @@ pub async fn compute_calculated_markers(
     height_cm: Option<f64>,
     protocol_tag: &str,
     fasting_protocol: Option<&str>,
+    diet_protocol: Option<&str>,
     _measured_at: DateTime<Utc>,
 ) -> Result<Vec<(Uuid, f64, Option<String>)>, sqlx::Error> {
     let mut results = vec![];
 
     // Resolve protocol context string for threshold lookup
-    let protocol_context = resolve_protocol_context(protocol_tag, fasting_protocol);
+    let protocol_context = resolve_protocol_context(protocol_tag, fasting_protocol, diet_protocol);
 
     // Fetch calculated marker definitions
     let rows = sqlx::query(
@@ -225,7 +227,11 @@ fn compute_calculated_status(value: f64, thresholds: &serde_json::Value) -> Opti
     }
 }
 
-pub fn resolve_protocol_context(protocol_tag: &str, fasting_protocol: Option<&str>) -> String {
+pub fn resolve_protocol_context(
+    protocol_tag: &str,
+    fasting_protocol: Option<&str>,
+    diet_protocol: Option<&str>,
+) -> String {
     if protocol_tag == "fasting" {
         match fasting_protocol {
             Some("16_8") | Some("omad") => "fasting_16_8".to_string(),
@@ -234,6 +240,11 @@ pub fn resolve_protocol_context(protocol_tag: &str, fasting_protocol: Option<&st
             _ => "fasting_16_8".to_string(), // default fasting
         }
     } else {
-        "standard".to_string()
+        match diet_protocol {
+            Some("vegan") => "standard_vegan".to_string(),
+            Some("mediterranean") => "standard_mediterranean".to_string(),
+            Some("keto") | Some("carnivore") => "standard_keto".to_string(),
+            _ => "standard".to_string(),
+        }
     }
 }
