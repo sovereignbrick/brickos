@@ -385,6 +385,7 @@ fn alias_map() -> &'static HashMap<&'static str, &'static str> {
             "sex hormone-binding globulin",
             "sex hormone binding globulin",
             "sexualhormon-bindendes globulin",
+            "sexualhormonbindendes globulin",
         ] {
             m.insert(a, "shbg");
         }
@@ -610,6 +611,7 @@ fn alias_map() -> &'static HashMap<&'static str, &'static str> {
             "gfr (ckd-epi)",
             "egfr (ckd-epi)",
             "gfr ckd-epi",
+            "gfr (ckd-epi-formel)",
             "glomerulare filtrationsrate",
             "glomeruläre filtrationsrate",
         ] {
@@ -641,6 +643,8 @@ fn alias_map() -> &'static HashMap<&'static str, &'static str> {
             "fsh",
             "follitropin",
             "follikelstimulierendes hormon",
+            "follikelstim. hormon",
+            "follikelstim. hormon (fsh)",
             "follicle-stimulating hormone",
             "follicle stimulating hormone",
         ] {
@@ -674,7 +678,13 @@ fn alias_map() -> &'static HashMap<&'static str, &'static str> {
             m.insert(a, "epa");
         }
         // ── Omega-3 Index ──
-        for a in ["omega-3 index", "omega3 index", "omega 3 index"] {
+        for a in [
+            "omega-3 index",
+            "omega3 index",
+            "omega 3 index",
+            "omega-3-index",
+            "omega-3-index (epa und dha)",
+        ] {
             m.insert(a, "omega3_index");
         }
         // ── Transferrin (aliases for existing slug) ──
@@ -754,7 +764,9 @@ fn alias_map() -> &'static HashMap<&'static str, &'static str> {
             "total fatty acids",
             "fatty acids total",
             "fettsäuren gesamt",
+            "fettsäuren, gesamt",
             "fettsauren gesamt",
+            "fettsauren, gesamt",
             "gesamtfettsäuren",
             "gesamtfettsauren",
         ] {

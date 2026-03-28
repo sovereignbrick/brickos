@@ -598,16 +598,16 @@ pub fn configure_routes(cfg: &mut actix_web::web::ServiceConfig) {
                 actix_web::web::post().to(handlers::import::confirm_measurements),
             )
             .route(
+                "/history",
+                actix_web::web::get().to(handlers::import::history),
+            )
+            .route(
                 "/sessions/{id}/rollback",
                 actix_web::web::delete().to(handlers::import::rollback_import),
             )
             .route(
                 "/{id}",
                 actix_web::web::get().to(handlers::import::get_session),
-            )
-            .route(
-                "/history",
-                actix_web::web::get().to(handlers::import::history),
             ),
     )
     .service(

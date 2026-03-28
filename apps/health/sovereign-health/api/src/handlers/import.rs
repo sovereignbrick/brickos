@@ -2125,9 +2125,26 @@ fn extract_field_str(text: &str, field: &str) -> Option<String> {
         .trim_end_matches("```")
         .trim();
 
-    if let Ok(obj) = serde_json::from_str::<serde_json::Value>(cleaned) {
-        if let Some(val) = obj.get(field).and_then(|v| v.as_str()) {
-            return Some(val.to_string());
+    if let Ok(val) = serde_json::from_str::<serde_json::Value>(cleaned) {
+        // Top-level object: { "lab_provider": "...", "markers": [...] }
+        if let Some(s) = val.get(field).and_then(|v| v.as_str()) {
+            return Some(s.to_string());
+        }
+        // Array of markers: search first element that has the field
+        if let Some(arr) = val.as_array() {
+            for item in arr {
+                if let Some(s) = item.get(field).and_then(|v| v.as_str()) {
+                    return Some(s.to_string());
+                }
+            }
+        }
+        // Object with nested markers array
+        if let Some(arr) = val.get("markers").and_then(|v| v.as_array()) {
+            for item in arr {
+                if let Some(s) = item.get(field).and_then(|v| v.as_str()) {
+                    return Some(s.to_string());
+                }
+            }
         }
     }
     None
