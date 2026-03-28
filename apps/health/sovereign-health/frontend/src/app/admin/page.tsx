@@ -19,11 +19,12 @@ import { ContentStringsTab } from '@/components/admin/content-strings-tab'
 import { PaymentGatewaysTab } from '@/components/admin/payment-gateways-tab'
 import { NewsletterTab } from '@/components/admin/newsletter-tab'
 import { LinksTab } from '@/components/admin/links-tab'
+import { RevenueSimulatorTab } from '@/components/admin/revenue-simulator-tab'
 import { useTranslations } from 'next-intl'
 
 const SIDEBAR_KEYS = [
   'dashboard', 'users', 'settings', 'payments', 'promotions', 'affiliates', 'links',
-  'content-app', 'content-web', 'content-strings', 'newsletter', 'ai-usage',
+  'revenue', 'content-app', 'content-web', 'content-strings', 'newsletter', 'ai-usage',
   'audit-logs', 'website',
 ] as const
 
@@ -37,6 +38,7 @@ const TAB_ICONS: Record<TabKey, string> = {
   promotions: '\u{1F3AB}',
   affiliates: '\u{1F91D}',
   links: '\u{1F517}',
+  revenue: '\u{1F4B0}',
   'content-app': '\u{1F4DD}',
   'content-web': '\u{1F310}',
   'content-strings': '\u{1F524}',
@@ -54,6 +56,7 @@ const TAB_I18N_KEYS: Record<TabKey, string> = {
   promotions: 'promotions',
   affiliates: 'affiliates',
   links: 'links',
+  revenue: 'revenue',
   'content-app': 'contentApp',
   'content-web': 'contentWeb',
   'content-strings': 'contentStrings',
@@ -147,6 +150,7 @@ export default function AdminPage() {
           {tab === 'promotions' && <PromotionsTab />}
           {tab === 'affiliates' && <AffiliatesTab />}
           {tab === 'links' && <LinksTab />}
+          {tab === 'revenue' && <RevenueSimulatorTab />}
           {tab === 'payments' && <PaymentGatewaysTab />}
           {tab === 'ai-usage' && <AiUsageTab />}
           {tab === 'audit-logs' && <AuditLogsTab />}
