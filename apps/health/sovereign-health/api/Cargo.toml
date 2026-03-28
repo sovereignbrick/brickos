@@ -12,7 +12,7 @@ tokio = { version = "1", features = ["full"] }
 chrono = { version = "0.4", features = ["serde"] }
 dotenvy = "0.15"
 uuid = { version = "1", features = ["v4", "serde"] }
-jsonwebtoken = "10"
+jsonwebtoken = { version = "10", features = ["rust_crypto"] }
 argon2 = { version = "0.5", features = ["std"] }
 sha2 = "0.10"
 hex = "0.4"

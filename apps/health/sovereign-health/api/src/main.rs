@@ -35,6 +35,11 @@ use tracing_subscriber::EnvFilter;
 async fn main() -> std::io::Result<()> {
     dotenvy::dotenv().ok();
 
+    // jsonwebtoken v10 requires explicit CryptoProvider selection
+    jsonwebtoken::crypto::rust_crypto::DEFAULT_PROVIDER
+        .install_default()
+        .expect("Failed to install JWT CryptoProvider");
+
     tracing_subscriber::fmt()
         .with_env_filter(EnvFilter::from_default_env())
         .json()
