@@ -536,12 +536,16 @@ pub async fn backfill_calculated_markers(
             let mut protocol_tag = "standard".to_string();
             let mut fasting_protocol: Option<String> = None;
 
+            // Track which slugs were DIRECTLY measured in this session
+            let mut session_slugs = std::collections::HashSet::new();
+
             for row in &rows {
                 let slug: String = row.try_get("marker_slug").unwrap_or_default();
                 let enc_val: String = row.try_get("value_canonical").unwrap_or_default();
                 if !enc_val.is_empty() {
                     let val = enc.decrypt_f64(&enc_val);
                     if val.is_finite() && val > 0.0 {
+                        session_slugs.insert(slug.clone());
                         values_map.insert(slug, val);
                     }
                 }
@@ -572,8 +576,37 @@ pub async fn backfill_calculated_markers(
             )
             .await?;
 
-            // Upsert results
+            // Build a lookup: cm_id -> marker_slug
+            let cm_slugs: std::collections::HashMap<uuid::Uuid, String> =
+                sqlx::query("SELECT id, marker_slug FROM calculated_markers")
+                    .fetch_all(pool.get_ref())
+                    .await?
+                    .iter()
+                    .map(|r| {
+                        (
+                            r.try_get("id").unwrap_or_default(),
+                            r.try_get("marker_slug").unwrap_or_default(),
+                        )
+                    })
+                    .collect();
+
+            // Only insert if at least one REQUIRED input was directly measured in this session
             for (cm_id, value, status) in &computed {
+                let slug = cm_slugs.get(cm_id).map(|s| s.as_str()).unwrap_or("");
+                let required: &[&str] = match slug {
+                    "gki" | "dr_boz_ratio" => &["glucose", "ketones"],
+                    "bmi" => &["weight"],
+                    "whtr" => &["waist_circumference"],
+                    "hct_hb_ratio" => &["hematocrit", "hemoglobin"],
+                    "tg_hdl_ratio" => &["triglycerides", "hdl"],
+                    "homa_ir" => &["glucose", "insulin"],
+                    "tyg_index" => &["triglycerides", "glucose"],
+                    _ => &[],
+                };
+                // Skip if none of the required inputs were in the session
+                if !required.is_empty() && !required.iter().any(|s| session_slugs.contains(*s)) {
+                    continue;
+                }
                 let result = sqlx::query(
                     r#"INSERT INTO calculated_marker_values (
                         user_id, calculated_marker_id, value, status, protocol_tag, fasting_protocol, measured_at

@@ -979,12 +979,16 @@ verify() {
 
     if [ -n "$api_version" ]; then
         report_add "INFO" "API version: $api_version"
-        # Version assertion: verify deployed version matches expected VERSION exactly.
-        if [ "$api_version" = "$VERSION" ]; then
+        # Version assertion: compare against base version (strip -bN staging suffix).
+        # Since Sprint 014, bump_staging_version() no longer modifies lib.rs,
+        # so the API always reports the clean version while $VERSION may have -bN.
+        local base_version
+        base_version=$(echo "$VERSION" | sed 's/-b[0-9]*//')
+        if [ "$api_version" = "$VERSION" ] || [ "$api_version" = "$base_version" ]; then
             report_add "OK" "Version assertion passed: $api_version"
         else
-            warn "VERSION MISMATCH: deployed=$api_version expected=$VERSION"
-            report_add "FAIL" "Version mismatch: API reports $api_version but deploy expected $VERSION"
+            warn "VERSION MISMATCH: deployed=$api_version expected=$base_version"
+            report_add "FAIL" "Version mismatch: API reports $api_version but deploy expected $base_version"
         fi
     fi
 
