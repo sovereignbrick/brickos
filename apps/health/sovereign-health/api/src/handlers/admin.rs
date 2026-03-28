@@ -572,6 +572,7 @@ pub async fn backfill_calculated_markers(
                 height_cm,
                 &protocol_tag,
                 fasting_protocol.as_deref(),
+                None,
                 *ts,
             )
             .await?;

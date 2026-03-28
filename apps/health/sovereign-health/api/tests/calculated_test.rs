@@ -8,9 +8,9 @@ use sovereign_health_backend::services::calculated::resolve_protocol_context;
 
 #[test]
 fn test_standard_protocol() {
-    assert_eq!(resolve_protocol_context("standard", None), "standard");
+    assert_eq!(resolve_protocol_context("standard", None, None), "standard");
     assert_eq!(
-        resolve_protocol_context("standard", Some("16_8")),
+        resolve_protocol_context("standard", Some("16_8"), None),
         "standard"
     );
 }
@@ -18,11 +18,11 @@ fn test_standard_protocol() {
 #[test]
 fn test_fasting_16_8_protocol() {
     assert_eq!(
-        resolve_protocol_context("fasting", Some("16_8")),
+        resolve_protocol_context("fasting", Some("16_8"), None),
         "fasting_16_8"
     );
     assert_eq!(
-        resolve_protocol_context("fasting", Some("omad")),
+        resolve_protocol_context("fasting", Some("omad"), None),
         "fasting_16_8"
     );
 }
@@ -30,11 +30,11 @@ fn test_fasting_16_8_protocol() {
 #[test]
 fn test_fasting_48h_protocol() {
     assert_eq!(
-        resolve_protocol_context("fasting", Some("36h")),
+        resolve_protocol_context("fasting", Some("36h"), None),
         "fasting_48h"
     );
     assert_eq!(
-        resolve_protocol_context("fasting", Some("48h")),
+        resolve_protocol_context("fasting", Some("48h"), None),
         "fasting_48h"
     );
 }
@@ -42,11 +42,11 @@ fn test_fasting_48h_protocol() {
 #[test]
 fn test_fasting_extended_protocol() {
     assert_eq!(
-        resolve_protocol_context("fasting", Some("72h")),
+        resolve_protocol_context("fasting", Some("72h"), None),
         "fasting_extended"
     );
     assert_eq!(
-        resolve_protocol_context("fasting", Some("extended")),
+        resolve_protocol_context("fasting", Some("extended"), None),
         "fasting_extended"
     );
 }
@@ -54,10 +54,63 @@ fn test_fasting_extended_protocol() {
 #[test]
 fn test_fasting_default_fallback() {
     // Unknown fasting type defaults to fasting_16_8
-    assert_eq!(resolve_protocol_context("fasting", None), "fasting_16_8");
     assert_eq!(
-        resolve_protocol_context("fasting", Some("unknown")),
+        resolve_protocol_context("fasting", None, None),
         "fasting_16_8"
+    );
+    assert_eq!(
+        resolve_protocol_context("fasting", Some("unknown"), None),
+        "fasting_16_8"
+    );
+}
+
+#[test]
+fn test_vegan_diet_protocol() {
+    assert_eq!(
+        resolve_protocol_context("standard", None, Some("vegan")),
+        "standard_vegan"
+    );
+}
+
+#[test]
+fn test_mediterranean_diet_protocol() {
+    assert_eq!(
+        resolve_protocol_context("standard", None, Some("mediterranean")),
+        "standard_mediterranean"
+    );
+}
+
+#[test]
+fn test_keto_diet_protocol() {
+    // keto and carnivore both map to standard_keto
+    assert_eq!(
+        resolve_protocol_context("standard", None, Some("keto")),
+        "standard_keto"
+    );
+    assert_eq!(
+        resolve_protocol_context("standard", None, Some("carnivore")),
+        "standard_keto"
+    );
+}
+
+#[test]
+fn test_fasting_overrides_diet_protocol() {
+    // Fasting protocol takes precedence over diet protocol
+    assert_eq!(
+        resolve_protocol_context("fasting", Some("16_8"), Some("vegan")),
+        "fasting_16_8"
+    );
+}
+
+#[test]
+fn test_unknown_diet_protocol_falls_back_to_standard() {
+    assert_eq!(
+        resolve_protocol_context("standard", None, Some("paleo")),
+        "standard"
+    );
+    assert_eq!(
+        resolve_protocol_context("standard", None, Some("unknown")),
+        "standard"
     );
 }
 
@@ -79,6 +132,7 @@ async fn test_gki_formula() {
         &values,
         None, // no height
         "standard",
+        None,
         None,
         chrono::Utc::now(),
     )
@@ -114,6 +168,7 @@ async fn test_bmi_formula() {
         Some(182.0), // height_cm
         "standard",
         None,
+        None,
         chrono::Utc::now(),
     )
     .await
@@ -139,6 +194,7 @@ async fn test_whtr_formula() {
         &values,
         Some(182.0),
         "standard",
+        None,
         None,
         chrono::Utc::now(),
     )
@@ -166,6 +222,7 @@ async fn test_homa_ir_formula() {
         &values,
         None,
         "standard",
+        None,
         None,
         chrono::Utc::now(),
     )
@@ -198,6 +255,7 @@ async fn test_dr_boz_ratio_real_values() {
         &values,
         None,
         "standard",
+        None,
         None,
         chrono::Utc::now(),
     )
@@ -237,6 +295,7 @@ async fn test_missing_inputs_skip_marker() {
         None,
         "standard",
         None,
+        None,
         chrono::Utc::now(),
     )
     .await
@@ -267,6 +326,7 @@ async fn test_zero_divisor_safe() {
         &values,
         None,
         "standard",
+        None,
         None,
         chrono::Utc::now(),
     )

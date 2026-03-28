@@ -464,6 +464,7 @@ pub async fn demo_zone_detail(
         height_cm,
         "standard",
         None,
+        None,
         Utc::now(),
     )
     .await

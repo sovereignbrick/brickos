@@ -633,6 +633,7 @@ pub async fn update_profile(
             current_height,
             "standard",
             None,
+            None,
             now,
         )
         .await?;

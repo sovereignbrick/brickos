@@ -579,6 +579,7 @@ pub async fn confirm(
             height_cm,
             &protocol_tag,
             None,
+            None,
             measured_at,
         )
         .await
@@ -1845,6 +1846,7 @@ pub async fn confirm_measurements(
             &values_map,
             height_cm,
             "standard",
+            None,
             None,
             Utc::now(),
         )
