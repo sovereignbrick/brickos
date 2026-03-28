@@ -9,12 +9,14 @@ on:
       - 'apps/health/sovereign-health/**'
       - 'crates/**'
       - 'packages/**'
+      - '.github/workflows/ci-health.yml'
     branches: [main, develop]
   pull_request:
     paths:
       - 'apps/health/sovereign-health/**'
       - 'crates/**'
       - 'packages/**'
+  workflow_dispatch:
 
 env:
   CARGO_TERM_COLOR: always
