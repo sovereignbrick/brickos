@@ -1567,7 +1567,17 @@
     "unmatchedHint": "these markers could not be mapped",
     "selectedCount": "{count} marker(s) selected for import",
     "importing": "Importing...",
-    "importCount": "Import {count} Marker(s)"
+    "importCount": "Import {count} Marker(s)",
+    "historyTitle": "Import History",
+    "historyEmpty": "No imports yet",
+    "historyRollback": "Rollback",
+    "historyRollbackConfirm": "This will delete all measurements from this import. Continue?",
+    "historyRolledBack": "Import rolled back successfully",
+    "historyLabImport": "Lab PDF",
+    "historyMedImport": "Medication",
+    "historyMeasurementImport": "Spreadsheet",
+    "historyMarkersImported": "{count} markers imported",
+    "historyLabDate": "Lab date"
   },
   "measurementImport": {
     "title": "Review Extracted Measurements",

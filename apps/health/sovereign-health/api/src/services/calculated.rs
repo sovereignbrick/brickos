@@ -48,6 +48,7 @@ pub async fn enrich_with_latest_values(
            JOIN markers m ON m.id = ms.marker_id
            WHERE ms.user_id = $1
              AND m.marker_slug = ANY($2)
+             AND ms.is_deleted = false
            ORDER BY m.marker_slug, ms.timestamp DESC"#,
     )
     .bind(user_id)
@@ -225,6 +226,55 @@ fn compute_calculated_status(value: f64, thresholds: &serde_json::Value) -> Opti
     } else {
         Some("orange".to_string())
     }
+}
+
+/// Like `enrich_with_latest_values` but fetches the most recent value
+/// at or before a specific date, so historical calculated markers use
+/// the correct input values for their point in time.
+pub async fn enrich_with_values_at_date(
+    pool: &PgPool,
+    user_id: Uuid,
+    values: &mut std::collections::HashMap<String, f64>,
+    enc: &Encryptor,
+    at: DateTime<Utc>,
+) -> Result<(), sqlx::Error> {
+    let missing: Vec<&str> = CALC_INPUT_SLUGS
+        .iter()
+        .filter(|s| !values.contains_key(**s))
+        .copied()
+        .collect();
+
+    if missing.is_empty() {
+        return Ok(());
+    }
+
+    let rows = sqlx::query(
+        r#"SELECT DISTINCT ON (m.marker_slug)
+               m.marker_slug, ms.value_canonical
+           FROM measurements ms
+           JOIN markers m ON m.id = ms.marker_id
+           WHERE ms.user_id = $1
+             AND m.marker_slug = ANY($2)
+             AND ms.timestamp <= $3
+             AND ms.is_deleted = false
+           ORDER BY m.marker_slug, ms.timestamp DESC"#,
+    )
+    .bind(user_id)
+    .bind(missing.iter().map(|s| s.to_string()).collect::<Vec<_>>())
+    .bind(at)
+    .fetch_all(pool)
+    .await?;
+
+    for row in rows {
+        use sqlx::Row;
+        let slug: String = row.try_get("marker_slug").unwrap_or_default();
+        let enc_val: String = row.try_get("value_canonical").unwrap_or_default();
+        if !enc_val.is_empty() {
+            values.insert(slug, enc.decrypt_f64(&enc_val));
+        }
+    }
+
+    Ok(())
 }
 
 pub fn resolve_protocol_context(

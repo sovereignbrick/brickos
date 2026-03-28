@@ -1567,7 +1567,17 @@
     "unmatchedHint": "Diese Marker konnten nicht zugeordnet werden",
     "selectedCount": "{count} Marker zum Import ausgewählt",
     "importing": "Importiere...",
-    "importCount": "{count} Marker importieren"
+    "importCount": "{count} Marker importieren",
+    "historyTitle": "Import-Verlauf",
+    "historyEmpty": "Noch keine Importe",
+    "historyRollback": "Rückgängig",
+    "historyRollbackConfirm": "Alle Messungen dieses Imports werden gelöscht. Fortfahren?",
+    "historyRolledBack": "Import erfolgreich rückgängig gemacht",
+    "historyLabImport": "Labor-PDF",
+    "historyMedImport": "Medikamente",
+    "historyMeasurementImport": "Tabelle",
+    "historyMarkersImported": "{count} Marker importiert",
+    "historyLabDate": "Labordatum"
   },
   "measurementImport": {
     "title": "Extrahierte Messwerte prüfen",

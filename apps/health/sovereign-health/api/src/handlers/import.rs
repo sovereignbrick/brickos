@@ -3,7 +3,7 @@
 use actix_multipart::Multipart;
 use actix_web::{web, HttpResponse};
 use base64::{engine::general_purpose::STANDARD as BASE64, Engine as _};
-use chrono::Utc;
+use chrono::{DateTime, Utc};
 use futures_util::StreamExt;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -214,6 +214,35 @@ pub async fn upload(
 
                     let markers_count = matched.len() as i32;
 
+                    // Upsert lab record if provider name was extracted
+                    let lab_id: Option<Uuid> = if let Some(ref provider) = lab_provider {
+                        let lab_row = sqlx::query(
+                            r#"INSERT INTO labs (user_id, name, address, postal_code, city, country)
+                               VALUES ($1, $2, $3, $4, $5, $6)
+                               ON CONFLICT (user_id, name) DO UPDATE SET
+                                   address = COALESCE(EXCLUDED.address, labs.address),
+                                   postal_code = COALESCE(EXCLUDED.postal_code, labs.postal_code),
+                                   city = COALESCE(EXCLUDED.city, labs.city),
+                                   country = COALESCE(EXCLUDED.country, labs.country),
+                                   updated_at = NOW()
+                               RETURNING id"#,
+                        )
+                        .bind(auth.user_id)
+                        .bind(provider)
+                        .bind(&lab_address)
+                        .bind(&lab_postal_code)
+                        .bind(&lab_city)
+                        .bind(&lab_country)
+                        .fetch_optional(pool.get_ref())
+                        .await
+                        .ok()
+                        .flatten();
+
+                        lab_row.and_then(|r| r.try_get::<Uuid, _>("id").ok())
+                    } else {
+                        None
+                    };
+
                     // Update session
                     sqlx::query(
                         r#"UPDATE import_sessions
@@ -224,8 +253,9 @@ pub async fn upload(
                                ai_tokens_used = $4,
                                lab_date = $5,
                                lab_provider = $6,
+                               lab_id = $7,
                                updated_at = NOW()
-                           WHERE id = $7"#,
+                           WHERE id = $8"#,
                     )
                     .bind(json!(markers))
                     .bind(json!(matched))
@@ -237,6 +267,7 @@ pub async fn upload(
                             .and_then(|d| chrono::NaiveDate::parse_from_str(d, "%Y-%m-%d").ok()),
                     )
                     .bind(&lab_provider)
+                    .bind(lab_id)
                     .bind(session_id)
                     .execute(pool.get_ref())
                     .await?;
@@ -588,7 +619,10 @@ pub async fn confirm(
                 sqlx::query(
                     r#"INSERT INTO calculated_marker_values (
                         user_id, calculated_marker_id, value, status, protocol_tag, measured_at
-                    ) VALUES ($1, $2, $3, $4, $5, $6)"#,
+                    ) VALUES ($1, $2, $3, $4, $5, $6)
+                    ON CONFLICT (user_id, calculated_marker_id, measured_at) WHERE is_deleted = false
+                    DO UPDATE SET value = EXCLUDED.value, status = EXCLUDED.status,
+                                 protocol_tag = EXCLUDED.protocol_tag"#,
                 )
                 .bind(auth.user_id)
                 .bind(cm_id)
@@ -1683,6 +1717,8 @@ pub async fn confirm_measurements(
 
     let mut created_ids: Vec<Uuid> = Vec::new();
     let mut skipped_dupes = 0i32;
+    let mut imported_timestamps: std::collections::BTreeSet<DateTime<Utc>> =
+        std::collections::BTreeSet::new();
 
     for row_idx in &body.selected_rows {
         let Some(row) = rows.get(*row_idx) else {
@@ -1788,6 +1824,7 @@ pub async fn confirm_measurements(
 
             let measurement_id: Uuid = row_result.try_get("id").map_err(|_| AppError::Internal)?;
             created_ids.push(measurement_id);
+            imported_timestamps.insert(measured_at);
         }
 
         // Update device markers_measured for each device used
@@ -1811,21 +1848,8 @@ pub async fn confirm_measurements(
 
     let created_count = created_ids.len() as i32;
 
-    // Compute calculated markers from imported + existing data
+    // Compute calculated markers at each imported timestamp
     {
-        let mut values_map: std::collections::HashMap<String, f64> =
-            std::collections::HashMap::new();
-
-        // Fetch all latest values (includes just-imported ones)
-        crate::services::calculated::enrich_with_latest_values(
-            pool.get_ref(),
-            auth.user_id,
-            &mut values_map,
-            enc.get_ref(),
-        )
-        .await
-        .ok();
-
         let height_row = sqlx::query("SELECT height_cm FROM user_profile WHERE user_id = $1")
             .bind(auth.user_id)
             .fetch_optional(pool.get_ref())
@@ -1840,33 +1864,52 @@ pub async fn confirm_measurements(
                 .map(|v| enc.decrypt_f64(&v))
         });
 
-        if let Ok(computed) = crate::services::calculated::compute_calculated_markers(
-            pool.get_ref(),
-            auth.user_id,
-            &values_map,
-            height_cm,
-            "standard",
-            None,
-            None,
-            Utc::now(),
-        )
-        .await
-        {
-            for (cm_id, value, status) in &computed {
-                sqlx::query(
-                    r#"INSERT INTO calculated_marker_values (
-                        user_id, calculated_marker_id, value, status, protocol_tag, measured_at
-                    ) VALUES ($1, $2, $3, $4, $5, $6)"#,
-                )
-                .bind(auth.user_id)
-                .bind(cm_id)
-                .bind(value)
-                .bind(status)
-                .bind("standard")
-                .bind(Utc::now())
-                .execute(pool.get_ref())
-                .await
-                .ok();
+        for &ts in &imported_timestamps {
+            let mut values_map: std::collections::HashMap<String, f64> =
+                std::collections::HashMap::new();
+
+            // Fetch values at this specific date (not latest overall)
+            crate::services::calculated::enrich_with_values_at_date(
+                pool.get_ref(),
+                auth.user_id,
+                &mut values_map,
+                enc.get_ref(),
+                ts,
+            )
+            .await
+            .ok();
+
+            if let Ok(computed) = crate::services::calculated::compute_calculated_markers(
+                pool.get_ref(),
+                auth.user_id,
+                &values_map,
+                height_cm,
+                "standard",
+                None,
+                None,
+                ts,
+            )
+            .await
+            {
+                for (cm_id, value, status) in &computed {
+                    sqlx::query(
+                        r#"INSERT INTO calculated_marker_values (
+                            user_id, calculated_marker_id, value, status, protocol_tag, measured_at
+                        ) VALUES ($1, $2, $3, $4, $5, $6)
+                        ON CONFLICT (user_id, calculated_marker_id, measured_at) WHERE is_deleted = false
+                        DO UPDATE SET value = EXCLUDED.value, status = EXCLUDED.status,
+                                     protocol_tag = EXCLUDED.protocol_tag"#,
+                    )
+                    .bind(auth.user_id)
+                    .bind(cm_id)
+                    .bind(value)
+                    .bind(status)
+                    .bind("standard")
+                    .bind(ts)
+                    .execute(pool.get_ref())
+                    .await
+                    .ok();
+                }
             }
         }
     }

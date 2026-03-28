@@ -380,7 +380,12 @@ fn alias_map() -> &'static HashMap<&'static str, &'static str> {
         for a in ["estradiol", "ostradiol", "östradiol", "e2"] {
             m.insert(a, "estradiol");
         }
-        for a in ["shbg", "sex hormone-binding globulin"] {
+        for a in [
+            "shbg",
+            "sex hormone-binding globulin",
+            "sex hormone binding globulin",
+            "sexualhormon-bindendes globulin",
+        ] {
             m.insert(a, "shbg");
         }
         for a in ["dhea-s", "dheas", "dhea sulfate", "dhea-sulfat"] {
@@ -930,6 +935,13 @@ mod tests {
         assert_eq!(match_marker("HCT"), Some("hematocrit"));
         // SHBG still works
         assert_eq!(match_marker("SHBG"), Some("shbg"));
+        // Sex Hormone Binding Globulin (lab PDF format, no hyphen)
+        assert_eq!(match_marker("Sex Hormone Binding Globulin"), Some("shbg"));
+        // German lab format
+        assert_eq!(
+            match_marker("Sexualhormon-bindendes Globulin"),
+            Some("shbg")
+        );
     }
 
     #[test]
