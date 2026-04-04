@@ -630,6 +630,7 @@ export interface AdminUser {
   admin_override_at: string | null
   created_at: string
   last_login_at: string | null
+  last_active_at: string | null
 }
 
 export interface WebPage {

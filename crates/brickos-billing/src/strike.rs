@@ -107,9 +107,11 @@ impl StrikeService {
             webhook_secret,
             base_url,
             http: reqwest::ClientBuilder::new()
+                .timeout(std::time::Duration::from_secs(15))
+                .connect_timeout(std::time::Duration::from_secs(5))
                 .use_rustls_tls()
                 .build()
-                .expect("Failed to create HTTP client"),
+                .expect("Failed to create Strike HTTP client"),
         }
     }
 

@@ -24,7 +24,12 @@ impl StripeService {
         Self {
             secret_key: config.secret_key.clone(),
             webhook_secret: config.webhook_secret.clone(),
-            http: reqwest::Client::new(),
+            http: reqwest::ClientBuilder::new()
+                .timeout(std::time::Duration::from_secs(10))
+                .connect_timeout(std::time::Duration::from_secs(5))
+                .use_rustls_tls()
+                .build()
+                .expect("Failed to create Stripe HTTP client"),
             config: config.clone(),
         }
     }

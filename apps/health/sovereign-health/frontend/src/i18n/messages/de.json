@@ -1680,5 +1680,25 @@
     "enabled": "Benachrichtigungen aktiviert",
     "denied": "Benachrichtigungen vom Browser blockiert",
     "unsupported": "Push-Benachrichtigungen nicht unterstützt"
+  },
+  "errors": {
+    "serviceOverloaded": "Dieser Dienst ist vorübergehend nicht verfügbar. Bitte versuche es in einem Moment erneut.",
+    "rateLimited": "Zu viele Anfragen. Bitte warte einen Moment und versuche es erneut.",
+    "upstreamError": "Etwas ist schiefgelaufen. Bitte versuche es erneut.",
+    "timeout": "Die Anfrage dauert länger als erwartet. Bitte versuche es erneut.",
+    "networkError": "Keine Verbindung möglich. Überprüfe deine Internetverbindung.",
+    "sessionExpired": "Deine Sitzung ist abgelaufen. Bitte melde dich erneut an.",
+    "quotaExhausted": "Dein monatliches Kontingent ist aufgebraucht. Upgrade deinen Plan für mehr Anfragen.",
+    "notFound": "Die angeforderte Ressource wurde nicht gefunden.",
+    "forbidden": "Du hast keine Berechtigung für diese Aktion.",
+    "unknown": "Ein unerwarteter Fehler ist aufgetreten. Bitte versuche es erneut.",
+    "tryAgain": "Erneut versuchen",
+    "contactSupport": "Falls das Problem weiterhin besteht, kontaktiere den Support.",
+    "importCreditsExhausted": "Import vorübergehend nicht verfügbar. Bitte versuche es später erneut.",
+    "importTimeout": "Der Import dauert länger als erwartet. Bitte versuche es erneut.",
+    "importInvalidFile": "Dieser Dateityp wird nicht unterstützt. Bitte lade ein PDF oder Bild hoch.",
+    "importFileTooLarge": "Die Datei ist zu groß. Maximale Größe beträgt 10 MB.",
+    "importNoMarkers": "In diesem Dokument konnten keine Gesundheitsmarker identifiziert werden.",
+    "importNotConfigured": "Der Import-Dienst ist nicht konfiguriert. Kontaktiere den Support."
   }
 }

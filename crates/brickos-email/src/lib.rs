@@ -52,7 +52,12 @@ impl MailgunProvider {
         list_address: String,
     ) -> Self {
         Self {
-            client: reqwest::Client::new(),
+            client: reqwest::ClientBuilder::new()
+                .timeout(std::time::Duration::from_secs(10))
+                .connect_timeout(std::time::Duration::from_secs(5))
+                .use_rustls_tls()
+                .build()
+                .expect("Failed to create Mailgun HTTP client"),
             api_key,
             domain,
             api_base,

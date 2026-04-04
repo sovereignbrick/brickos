@@ -80,6 +80,21 @@ fn extract_user(req: &HttpRequest) -> Result<AuthenticatedUser, AppError> {
 
     let user_id = Uuid::parse_str(&claims.sub).map_err(|_| AppError::Unauthorized)?;
 
+    // Update last_active_at (throttled: only if >5 min since last update)
+    if let Some(pool) = req.app_data::<web::Data<sqlx::PgPool>>() {
+        let pool = pool.get_ref().clone();
+        let uid = user_id;
+        tokio::spawn(async move {
+            let _ = sqlx::query(
+                "UPDATE users SET last_active_at = NOW() \
+                 WHERE id = $1 AND (last_active_at IS NULL OR last_active_at < NOW() - INTERVAL '5 minutes')",
+            )
+            .bind(uid)
+            .execute(&pool)
+            .await;
+        });
+    }
+
     Ok(AuthenticatedUser {
         user_id,
         role: claims.role,

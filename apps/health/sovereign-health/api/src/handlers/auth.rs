@@ -1074,6 +1074,12 @@ pub async fn login(
         .execute(pool.get_ref())
         .await?;
 
+    // Update last_login_at
+    let _ = sqlx::query("UPDATE users SET last_login_at = NOW() WHERE id = $1")
+        .bind(user.id)
+        .execute(pool.get_ref())
+        .await;
+
     // Audit log: successful login
     crate::services::audit::log(
         pool.get_ref(),

@@ -2,6 +2,51 @@ import Cookies from 'js-cookie'
 import type { ImportSession, ImportMedication, ImportHistoryEntry, UserMedicationFull, CreateMedicationInput, AiUsageResponse, InfluenceFactor, CreateInfluenceFactorInput, MedImportSession, MeasurementImportSession } from './types'
 import { APP_CONFIG } from './config'
 
+// Error codes returned by the backend API
+export type ApiErrorCode =
+  | 'network_error'
+  | 'session_expired'
+  | 'service_overloaded'
+  | 'rate_limited'
+  | 'upstream_error'
+  | 'timeout'
+  | 'quota_exceeded'
+  | 'validation_error'
+  | 'not_found'
+  | 'forbidden'
+  | 'upgrade_required'
+  | 'unknown'
+
+export class ApiError extends Error {
+  code: ApiErrorCode
+  constructor(code: ApiErrorCode, message: string) {
+    super(message)
+    this.code = code
+    this.name = 'ApiError'
+  }
+}
+
+/** Classify a backend error code string into a typed ApiErrorCode */
+export function classifyApiError(code: string | undefined, message: string): ApiErrorCode {
+  if (code) {
+    const known: ApiErrorCode[] = [
+      'service_overloaded', 'rate_limited', 'upstream_error', 'timeout',
+      'quota_exceeded', 'validation_error', 'not_found', 'forbidden', 'upgrade_required',
+    ]
+    if (known.includes(code as ApiErrorCode)) return code as ApiErrorCode
+    if (code === 'service_unavailable') return 'service_overloaded'
+    if (code === 'internal_error') return 'upstream_error'
+  }
+  // Fallback: classify from message text
+  const msg = message.toLowerCase()
+  if (msg.includes('offline') || msg.includes('connect')) return 'network_error'
+  if (msg.includes('unauthorized') || msg.includes('session')) return 'session_expired'
+  if (msg.includes('overloaded') || msg.includes('temporarily')) return 'service_overloaded'
+  if (msg.includes('rate') || msg.includes('too many')) return 'rate_limited'
+  if (msg.includes('timeout') || msg.includes('timed out')) return 'timeout'
+  return 'unknown'
+}
+
 // On .onion domains, the API is served from the same origin via nginx routing.
 // NEXT_PUBLIC_API_URL is baked at build time and points to the clearnet API,
 // so we override it at runtime when accessed via Tor.
@@ -54,7 +99,8 @@ async function request<T>(
   try {
     res = await fetch(`${API_BASE}${path}`, { ...options, headers })
   } catch {
-    throw new Error(
+    throw new ApiError(
+      'network_error',
       navigator.onLine === false
         ? 'You are offline. Please check your connection.'
         : 'Unable to connect to the server. Please try again.'
@@ -75,12 +121,13 @@ async function request<T>(
       }
     }
 
-    throw new Error(message)
+    throw new ApiError('session_expired', message)
   }
 
   const json = await res.json()
   if (!res.ok) {
-    throw new Error(json?.error?.message || `HTTP ${res.status}`)
+    const code = classifyApiError(json?.error?.code, json?.error?.message || '')
+    throw new ApiError(code, json?.error?.message || `HTTP ${res.status}`)
   }
   return json
 }

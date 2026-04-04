@@ -1680,5 +1680,25 @@
     "enabled": "Notifications enabled",
     "denied": "Notifications blocked by browser",
     "unsupported": "Push notifications not supported"
+  },
+  "errors": {
+    "serviceOverloaded": "This service is temporarily unavailable. Please try again in a moment.",
+    "rateLimited": "Too many requests. Please wait a moment and try again.",
+    "upstreamError": "Something went wrong. Please try again.",
+    "timeout": "The request is taking longer than expected. Please try again.",
+    "networkError": "Could not connect. Check your internet connection.",
+    "sessionExpired": "Your session has expired. Please sign in again.",
+    "quotaExhausted": "Your monthly quota has been reached. Upgrade your plan for more requests.",
+    "notFound": "The requested resource could not be found.",
+    "forbidden": "You do not have permission to perform this action.",
+    "unknown": "An unexpected error occurred. Please try again.",
+    "tryAgain": "Try again",
+    "contactSupport": "If this persists, contact support.",
+    "importCreditsExhausted": "Import temporarily unavailable. Please try again later.",
+    "importTimeout": "Import is taking longer than expected. Please try again.",
+    "importInvalidFile": "This file type is not supported. Please upload a PDF or image.",
+    "importFileTooLarge": "File is too large. Maximum size is 10 MB.",
+    "importNoMarkers": "No health markers could be identified in this document.",
+    "importNotConfigured": "Import service is not configured. Contact support."
   }
 }

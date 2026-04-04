@@ -64,6 +64,7 @@ export function UsersTab() {
               <th className="text-left px-4 py-2 text-muted-foreground font-medium">Pay</th>
               <th className="text-left px-4 py-2 text-muted-foreground font-medium">Override</th>
               <th className="text-left px-4 py-2 text-muted-foreground font-medium">Joined</th>
+              <th className="text-left px-4 py-2 text-muted-foreground font-medium">Last Active</th>
               <th className="text-right px-4 py-2 text-muted-foreground font-medium">Actions</th>
             </tr>
           </thead>
@@ -99,6 +100,13 @@ export function UsersTab() {
                   <td className="px-4 py-2.5 text-muted-foreground text-xs">
                     {new Date(user.created_at).toLocaleDateString()}
                   </td>
+                  <td className="px-4 py-2.5 text-muted-foreground text-xs">
+                    {user.last_active_at
+                      ? new Date(user.last_active_at).toLocaleDateString()
+                      : user.last_login_at
+                        ? new Date(user.last_login_at).toLocaleDateString()
+                        : <span className="text-muted-foreground/40 italic">Never</span>}
+                  </td>
                   <td className="px-4 py-2.5 text-right">
                     <button
                       onClick={() => setExpandedUserId(expandedUserId === user.id ? null : user.id)}
@@ -110,7 +118,7 @@ export function UsersTab() {
                 </tr>
                 {expandedUserId === user.id && (
                   <tr>
-                    <td colSpan={6} className="px-4 py-4 bg-accent">
+                    <td colSpan={7} className="px-4 py-4 bg-accent">
                       <LicenseManager
                         user={user}
                         onUpdate={() => fetchUsers()}

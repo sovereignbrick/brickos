@@ -39,6 +39,9 @@ pub enum AppError {
     #[error("Too many requests — please wait a moment and try again")]
     RateLimited,
 
+    #[error("Request timed out")]
+    Timeout,
+
     #[error("Upgrade required")]
     UpgradeRequired(Box<crate::services::tier::TierError>),
 
@@ -104,6 +107,11 @@ impl ResponseError for AppError {
                 "rate_limited",
                 self.to_string(),
             ),
+            AppError::Timeout => (
+                actix_web::http::StatusCode::GATEWAY_TIMEOUT,
+                "timeout",
+                self.to_string(),
+            ),
             AppError::Forbidden => (
                 actix_web::http::StatusCode::FORBIDDEN,
                 "forbidden",
@@ -136,8 +144,32 @@ impl ResponseError for AppError {
 
 impl From<sqlx::Error> for AppError {
     fn from(e: sqlx::Error) -> Self {
-        tracing::error!("Database error: {:?}", e);
-        AppError::Internal
+        match &e {
+            sqlx::Error::Database(db_err) => {
+                let code = db_err.code().unwrap_or_default();
+                match code.as_ref() {
+                    "23505" => AppError::EmailConflict, // unique_violation
+                    "23503" => AppError::Validation(
+                        "Referenced resource does not exist".into(),
+                    ),
+                    "23514" => AppError::Validation(
+                        "Value violates constraint".into(),
+                    ),
+                    _ => {
+                        tracing::error!("Database error ({}): {:?}", code, e);
+                        AppError::Internal
+                    }
+                }
+            }
+            sqlx::Error::PoolTimedOut => {
+                tracing::error!("Database pool exhausted");
+                AppError::ServiceOverloaded
+            }
+            _ => {
+                tracing::error!("Database error: {:?}", e);
+                AppError::Internal
+            }
+        }
     }
 }
 
@@ -145,5 +177,42 @@ impl From<anyhow::Error> for AppError {
     fn from(e: anyhow::Error) -> Self {
         tracing::error!("Application error: {:?}", e);
         AppError::Internal
+    }
+}
+
+/// Classify an upstream HTTP error into an AppError variant.
+/// Use this for all external service calls (Anthropic, Stripe, Strike, Mailgun).
+pub fn classify_upstream_error(service: &str, status: u16) -> AppError {
+    match status {
+        401 | 403 => {
+            tracing::error!(service = service, status = status, "External service auth error");
+            AppError::MissingApiKey
+        }
+        429 => {
+            tracing::warn!(service = service, status = status, "External service rate limited");
+            AppError::RateLimited
+        }
+        503 | 529 => {
+            tracing::warn!(service = service, status = status, "External service overloaded");
+            AppError::ServiceOverloaded
+        }
+        _ => {
+            tracing::error!(service = service, status = status, "External service error");
+            AppError::UpstreamError
+        }
+    }
+}
+
+/// Classify a reqwest error (timeout, connection failure, etc.) into an AppError.
+pub fn classify_request_error(service: &str, err: &reqwest::Error) -> AppError {
+    if err.is_timeout() {
+        tracing::error!(service = service, "External service request timed out");
+        AppError::Timeout
+    } else if err.is_connect() {
+        tracing::error!(service = service, "Could not connect to external service");
+        AppError::UpstreamError
+    } else {
+        tracing::error!(service = service, error = %err, "External service request failed");
+        AppError::UpstreamError
     }
 }

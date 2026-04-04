@@ -155,7 +155,7 @@ pub async fn list_users(
 
         let sql = format!(
             r#"SELECT u.id, u.email, u.display_name, u.role, u.email_verified,
-                      u.created_at, u.updated_at as last_login_at,
+                      u.created_at, u.last_login_at, u.last_active_at,
                       COALESCE(lt.slug, 'glimpse') as tier,
                       COALESCE(ul.admin_override, false) as admin_override,
                       ul.admin_override_note, ul.admin_override_by, ul.admin_override_at,
@@ -186,7 +186,7 @@ pub async fn list_users(
 
         let sql = format!(
             r#"SELECT u.id, u.email, u.display_name, u.role, u.email_verified,
-                      u.created_at, u.updated_at as last_login_at,
+                      u.created_at, u.last_login_at, u.last_active_at,
                       COALESCE(lt.slug, 'glimpse') as tier,
                       COALESCE(ul.admin_override, false) as admin_override,
                       ul.admin_override_note, ul.admin_override_by, ul.admin_override_at,
@@ -230,6 +230,8 @@ pub async fn list_users(
                 "created_at": r.try_get::<chrono::DateTime<chrono::Utc>, _>("created_at")
                     .unwrap_or_else(|_| chrono::Utc::now()).to_rfc3339(),
                 "last_login_at": r.try_get::<Option<chrono::DateTime<chrono::Utc>>, _>("last_login_at")
+                    .ok().flatten().map(|d| d.to_rfc3339()),
+                "last_active_at": r.try_get::<Option<chrono::DateTime<chrono::Utc>>, _>("last_active_at")
                     .ok().flatten().map(|d| d.to_rfc3339()),
             })
         })
