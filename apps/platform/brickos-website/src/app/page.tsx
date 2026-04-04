@@ -23,7 +23,7 @@ function ContactForm() {
     e.preventDefault()
     setStatus('sending')
     try {
-      const res = await fetch(`${API_URL}/contact`, {
+      const res = await fetch(`${API_URL}/api/contact`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form),
@@ -94,7 +94,7 @@ export default function Home() {
         <h1 className="font-serif text-white text-5xl sm:text-7xl font-light tracking-tight mt-8 text-center leading-[0.9]">
           Brick<span className="text-dim">OS</span>
         </h1>
-        <p className="text-dim text-xs tracking-[0.4em] uppercase mt-6">
+        <p className="text-text text-xs tracking-[0.4em] uppercase mt-6">
           Building sovereignty, brick by brick
         </p>
         <div className="flex gap-6 mt-12">
@@ -111,7 +111,7 @@ export default function Home() {
             View Source
           </a>
         </div>
-        <div className="absolute bottom-8 text-dim text-xs tracking-widest uppercase animate-bounce">
+        <div className="absolute bottom-8 text-text/60 text-xs tracking-widest uppercase animate-bounce">
           Scroll
         </div>
       </section>
@@ -238,11 +238,15 @@ export default function Home() {
             <a href="https://sovereignhealth.io/terms/" className="hover:text-hi transition-colors">Terms</a>
             <a href="https://app.sovereignhealth.io/donate" className="hover:text-hi transition-colors">Donate</a>
           </div>
-          <p className="text-dim text-xs">
+          <blockquote className="border-t border-border-hi pt-6 mt-4">
+            <p className="font-serif text-hi text-base sm:text-lg italic leading-relaxed">
+              &ldquo;Bitcoin introduced Proof of Work.<br />
+              Health needs Proof of Blood.<br />
+              Infrastructure needs Proof of Ownership.&rdquo;
+            </p>
+          </blockquote>
+          <p className="text-text/40 text-xs mt-6">
             &copy; {new Date().getFullYear()} Sovereign Brick. AGPL-3.0.
-          </p>
-          <p className="text-border-hi text-[10px] italic font-serif">
-            Bitcoin introduced Proof of Work. Health needs Proof of Blood. Infrastructure needs Proof of Ownership.
           </p>
         </div>
       </footer>
