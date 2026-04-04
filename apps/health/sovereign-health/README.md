@@ -10,7 +10,7 @@
 
 <p align="center">
   <a href="https://app.sovereignhealth.io"><img src="https://img.shields.io/badge/live-app.sovereignhealth.io-green.svg" alt="Live" /></a>
-  <a href="https://demo.sovereignhealth.io"><img src="https://img.shields.io/badge/demo-try%20it-blue.svg" alt="Demo" /></a>
+  <a href="https://sovereignhealth.io"><img src="https://img.shields.io/badge/website-sovereignhealth.io-blue.svg" alt="Website" /></a>
   <img src="https://img.shields.io/badge/version-0.33.0-orange.svg" alt="Version" />
 </p>
 
@@ -108,11 +108,14 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ## Links
 
-- **App:** [app.sovereignhealth.io](https://app.sovereignhealth.io)
-- **Demo:** [demo.sovereignhealth.io](https://demo.sovereignhealth.io) (3 sample profiles, no signup needed)
+- **App:** [app.sovereignhealth.io](https://app.sovereignhealth.io) -- free registration with a free license
 - **Website:** [sovereignhealth.io](https://sovereignhealth.io)
 - **Platform:** [brickos.io](https://brickos.io)
 
 ## License
 
 [AGPL-3.0](../../../LICENSE)
+
+---
+
+*BrickOS -- Bitcoin introduced Proof of Work. Health needs Proof of Blood. Infrastructure needs Proof of Ownership.*

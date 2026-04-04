@@ -30,7 +30,12 @@ Rust + Next.js + PostgreSQL. Encrypted at rest, row-level security, GDPR complia
 
 ### Get Involved
 
-- [Try the demo](https://demo.sovereignhealth.io) -- no signup needed
-- [Read the code](https://github.com/sovereignbrick/brickos) -- AGPL-3.0
+- [Get started free](https://sovereignhealth.io) -- free registration with a free license
+- [Read the code](https://github.com/sovereignbrick/brickos) -- AGPL-3.0, fully open
 - [Contribute](https://github.com/sovereignbrick/brickos/blob/main/CONTRIBUTING.md) -- PRs welcome
 - [Report security issues](https://github.com/sovereignbrick/brickos/blob/main/SECURITY.md) -- responsible disclosure
+- [Support with Bitcoin](https://app.sovereignhealth.io/donate)
+
+---
+
+*BrickOS -- Bitcoin introduced Proof of Work. Health needs Proof of Blood. Infrastructure needs Proof of Ownership.*

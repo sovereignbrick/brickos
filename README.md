@@ -144,11 +144,10 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ## Links
 
-- **App:** [app.sovereignhealth.io](https://app.sovereignhealth.io)
-- **Demo:** [demo.sovereignhealth.io](https://demo.sovereignhealth.io)
+- **App:** [app.sovereignhealth.io](https://app.sovereignhealth.io) -- free registration with a free license
 - **Website:** [sovereignhealth.io](https://sovereignhealth.io)
 - **Platform:** [brickos.io](https://brickos.io)
 
 ---
 
-*Your body is the operating system of your life. Blood is its diagnostic interface.*
+*BrickOS -- Bitcoin introduced Proof of Work. Health needs Proof of Blood. Infrastructure needs Proof of Ownership.*
