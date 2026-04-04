@@ -261,9 +261,12 @@ fn alias_map() -> &'static HashMap<&'static str, &'static str> {
         }
         // ── Body Fat ──
         for a in [
+            "fat",
             "body fat",
             "body fat %",
             "body fat percentage",
+            "fat %",
+            "fat percentage",
             "korperfett",
             "körperfett",
         ] {
