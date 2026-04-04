@@ -1,7 +1,7 @@
 # Sprint 023 -- Search, Data Reset, AI Evolution & DevOps
 
 **Started:** 2026-04-05
-**Duration:** multi-day
+**Duration:** 2 days (2026-04-05 to 2026-04-06)
 **Status:** PLANNED
 **Goal:** Global search across the app, data reset feature, AI credit pool redesign, unit preference fix, dependency updates, Lighthouse audit, and E2E test foundation.
 
@@ -15,14 +15,18 @@
 | #310 | Reset all data / start fresh (keep account) | Full-stack | 5 |
 | #312 | Signup channel tracking (UTM, source in admin) | Backend | 3 |
 
-**#308 sub-tasks:**
-1. Backend: `GET /api/v1/search?q=...` endpoint with PostgreSQL full-text search
-2. Search across: markers, calculated_markers, marker_aliases (EN + DE)
+**#308 sub-tasks (Google-style search):**
+1. Backend: `GET /api/v1/search?q=...&type=all` endpoint with PostgreSQL full-text search (ts_vector/ts_query)
+2. Search across: markers, calculated_markers, marker_aliases, food, supplements (EN + DE)
 3. Relationship search: glucose -> GKI, HOMA-IR; vitamin D -> supplements
-4. Frontend: search icon in navbar + Ctrl+K shortcut
-5. Results page at `/search?q=...` grouped by type with badges
+4. Frontend: search icon in navbar + Ctrl+K / Cmd+K keyboard shortcut
+5. Google-style results page at `/search?q=...`:
+   - Tab bar: All | Markers | Food | Supplements | Calculated (like Google's All | Images | Videos)
+   - Each result: title, type badge, snippet with highlighted match, action link
+   - Result cards with marker zone color accent
 6. Debounced input (300ms), recent searches in localStorage
-7. i18n: EN + DE
+7. "No results" state with suggestions
+8. i18n: EN + DE
 
 **#310 sub-tasks:**
 1. Backend: `POST /settings/reset-data` endpoint
@@ -44,7 +48,7 @@
 |---|-------|------|-----|
 | #235 | Unified AI credit pool (replace 8 per-feature counters) | Full-stack | 5 |
 | #238 | AI usage cost tracking in admin (per-user, per-feature) | Full-stack | 5 |
-| #226 | Dr. Alex document analysis (prescriptions, articles) | Full-stack | 8 |
+| #226 | Dr. Alex document analysis -- DESIGN DOC ONLY | Design | 3 |
 
 **#235 sub-tasks:**
 1. Migration: add `ai_credits_monthly` to license_tiers, `ai_credits_used` to user tracking
@@ -61,13 +65,13 @@
 4. Feature breakdown: which AI features cost most
 5. Flag high-usage users
 
-**#226 sub-tasks:**
-1. New table: `consultation_documents` (encrypted)
-2. Upload flow in Dr. Alex: document type picker (prescription, article, lab report, advice)
-3. Extract text from uploaded doc (reuse import OCR pipeline)
-4. AI cross-references document with user's biomarker data
-5. Save as consultation record linked to chat conversation
-6. Tier-gated: Insight and above
+**#226 sub-tasks (design doc only -- implementation in future sprint):**
+1. Write design doc: `docs/project-files/design/018-dr-alex-document-analysis.md`
+2. Define: data model (consultation_documents table), upload flow, AI prompt design
+3. Define: document types (prescription, article, lab report, advice)
+4. Define: tier gating, credit cost, privacy/encryption
+5. Define: UI mockup (upload button, type picker, consultation history)
+6. Reference existing: import OCR pipeline, Dr. Alex context injection
 
 ### M3: Tech Debt & DevOps
 
@@ -175,12 +179,12 @@ PHASE 4 -- RC Testing + Deploy
   Deploy to production
 ```
 
-## Total Points: 56
+## Total Points: 51
 
 ## Risk Assessment
 
 - **#308 (search):** Full-text search in PostgreSQL needs proper ts_vector setup. May need to index marker_translations. Keep scope to markers first, food/supplements later if time-consuming.
-- **#226 (doc analysis):** Reusing OCR pipeline helps but the AI cross-referencing prompt needs careful design. Scope to MVP: extract text + ask Dr. Alex about it.
+- **#226 (doc analysis):** Design doc only this sprint. Implementation is a large chunk for a future sprint.
 - **#235 (credit pool):** Migration path from 8 counters to 1 pool. Keep old columns during transition, remove in later sprint.
 - **Unit preference redesign:** Adding columns to user_preferences requires migration + updating all read/write paths. Test all 27 marker unit toggles.
 - **#72 (E2E):** Scope to foundation only (4-5 tests). Full coverage is a multi-sprint effort.
