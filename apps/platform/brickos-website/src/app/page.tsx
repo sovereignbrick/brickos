@@ -119,10 +119,9 @@ export default function Home() {
       {/* ── PHILOSOPHY ──────────────────────────────────────────── */}
       <section className="border-t border-border py-24 px-6">
         <div className="max-w-3xl mx-auto">
-          <p className="text-dim text-[9px] tracking-[0.45em] uppercase mb-8">Philosophy</p>
-          <h2 className="font-serif text-white text-3xl sm:text-4xl font-light mb-8 leading-snug">
-            Your most sensitive data should live<br />
-            on servers <em className="text-dim italic">you</em> control.
+          <p className="text-text text-[9px] tracking-[0.45em] uppercase mb-8">Philosophy</p>
+          <h2 className="font-serif text-white text-2xl sm:text-4xl font-light mb-8 leading-snug">
+            Your most sensitive data should live on servers <em className="text-dim italic">you</em> control.
           </h2>
           <div className="grid sm:grid-cols-2 gap-8 mt-12">
             {[
@@ -143,7 +142,7 @@ export default function Home() {
       {/* ── PRODUCTS ────────────────────────────────────────────── */}
       <section className="border-t border-border py-24 px-6">
         <div className="max-w-3xl mx-auto">
-          <p className="text-dim text-[9px] tracking-[0.45em] uppercase mb-8">Products</p>
+          <p className="text-text text-[9px] tracking-[0.45em] uppercase mb-8">Products</p>
 
           {/* Sovereign Health */}
           <div className="border border-border rounded p-8 mb-6 hover:border-border-hi transition-colors">
@@ -198,7 +197,7 @@ export default function Home() {
       {/* ── TECH STACK ──────────────────────────────────────────── */}
       <section className="border-t border-border py-24 px-6">
         <div className="max-w-3xl mx-auto">
-          <p className="text-dim text-[9px] tracking-[0.45em] uppercase mb-8">Technology</p>
+          <p className="text-text text-[9px] tracking-[0.45em] uppercase mb-8">Technology</p>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-px bg-border">
             {[
               { label: 'Backend', value: 'Rust' },
@@ -222,7 +221,7 @@ export default function Home() {
       {/* ── CONTACT ─────────────────────────────────────────────── */}
       <section className="border-t border-border py-24 px-6">
         <div className="max-w-3xl mx-auto">
-          <p className="text-dim text-[9px] tracking-[0.45em] uppercase mb-8">Contact</p>
+          <p className="text-text text-[9px] tracking-[0.45em] uppercase mb-8">Contact</p>
           <h2 className="font-serif text-white text-3xl font-light mb-8 text-center">Get in touch</h2>
           <ContactForm />
         </div>
