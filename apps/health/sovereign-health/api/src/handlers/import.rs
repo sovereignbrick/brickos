@@ -2443,7 +2443,9 @@ pub async fn rollback_import(
     .execute(pool.get_ref())
     .await?;
 
-    Ok(HttpResponse::Ok().json(json!({
+    Ok(HttpResponse::Ok()
+        .insert_header(("Cache-Control", "no-store"))
+        .json(json!({
         "data": {
             "session_id": session_id,
             "measurements_deleted": deleted_count,

@@ -555,15 +555,18 @@ pub async fn list(
         })
         .collect();
 
-    Ok(HttpResponse::Ok().json(json!({
-        "data": measurements,
-        "meta": {
-            "page": page,
-            "per_page": per_page,
-            "total": total_count
-        },
-        "error": null
-    })))
+    Ok(HttpResponse::Ok()
+        .insert_header(("Cache-Control", "no-store, no-cache, must-revalidate"))
+        .insert_header(("Pragma", "no-cache"))
+        .json(json!({
+            "data": measurements,
+            "meta": {
+                "page": page,
+                "per_page": per_page,
+                "total": total_count
+            },
+            "error": null
+        })))
 }
 
 pub async fn get_one(
