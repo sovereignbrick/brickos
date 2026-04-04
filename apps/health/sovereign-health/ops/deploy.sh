@@ -542,6 +542,15 @@ git_push() {
         git push origin --all --tags 2>&1 | tail -3
         log "brickos pushed to GitHub"
         report_add "OK" "Git push brickos to GitHub"
+
+        # GitLab sovereign backup mirror (optional)
+        if git remote get-url gitlab >/dev/null 2>&1; then
+            log "Pushing to GitLab backup..."
+            git push gitlab --all 2>&1 | tail -3
+            git push gitlab --tags 2>&1 | tail -3
+            log "brickos pushed to GitLab"
+            report_add "OK" "Git push brickos to GitLab (backup mirror)"
+        fi
     fi
 }
 
