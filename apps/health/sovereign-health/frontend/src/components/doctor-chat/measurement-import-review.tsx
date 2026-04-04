@@ -34,6 +34,9 @@ export function MeasurementImportReview({ session, onConfirm, onCancel, isLoadin
     deviceId: '', labId: '', labName: '', labAddress: '', labPostalCode: '', labCity: '', labCountry: '',
   })
 
+  // Unmatched column reassignment (column index → marker_slug)
+  const [unmatchedAssignments, setUnmatchedAssignments] = useState<Record<number, string>>({})
+
   // Row selection
   const [selectedRows, setSelectedRows] = useState<Record<number, boolean>>(() => {
     const init: Record<number, boolean> = {}
@@ -64,13 +67,23 @@ export function MeasurementImportReview({ session, onConfirm, onCancel, isLoadin
   const selectableRows = session.rows.filter(r => r.values && Object.keys(r.values).length > 0)
 
   const handleConfirm = () => {
-    const mapping = matchedColumns
-      .filter(c => c.marker_slug)
-      .map(c => ({
-        marker_slug: c.marker_slug!,
-        device_id: importCtx.deviceId || c.device_id || null,
-        unit: c.unit,
-      }))
+    // Include matched columns + user-reassigned unmatched columns
+    const mapping = [
+      ...matchedColumns
+        .filter(c => c.marker_slug)
+        .map(c => ({
+          marker_slug: c.marker_slug!,
+          device_id: importCtx.deviceId || c.device_id || null,
+          unit: c.unit,
+        })),
+      ...Object.entries(unmatchedAssignments)
+        .filter(([, slug]) => slug)
+        .map(([idx, slug]) => ({
+          marker_slug: slug,
+          device_id: importCtx.deviceId || null,
+          unit: unmatchedColumns[parseInt(idx)]?.unit || undefined,
+        })),
+    ]
 
     const rows = Object.entries(selectedRows)
       .filter(([, v]) => v)
@@ -153,19 +166,33 @@ export function MeasurementImportReview({ session, onConfirm, onCancel, isLoadin
           </div>
         )}
 
-        {/* Unmatched Columns */}
+        {/* Unmatched Columns — user can reassign */}
         {unmatchedColumns.length > 0 && (
           <div>
             <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
               {t('unmatchedColumns')} ({unmatchedColumns.length})
             </h3>
-            <div className="border border-border rounded-xl overflow-hidden opacity-50">
+            <div className="border border-border rounded-xl overflow-hidden">
               <table className="w-full text-sm">
                 <tbody>
                   {unmatchedColumns.map((col, i) => (
                     <tr key={i} className="border-t border-border first:border-t-0">
                       <td className="py-2 px-3 text-muted-foreground">{col.source_name}</td>
-                      <td className="py-2 px-3 text-muted-foreground text-xs">{t('skipped')}</td>
+                      <td className="py-2 px-3">
+                        <select
+                          value={unmatchedAssignments[i] || ''}
+                          onChange={e => setUnmatchedAssignments(prev => ({ ...prev, [i]: e.target.value }))}
+                          className={selectCls}
+                        >
+                          <option value="">{t('skipped')}</option>
+                          {Object.entries(contentMarkers)
+                            .sort(([, a], [, b]) => (a.name || '').localeCompare(b.name || ''))
+                            .map(([slug, info]) => (
+                              <option key={slug} value={slug}>{info.name || slug}</option>
+                            ))
+                          }
+                        </select>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
