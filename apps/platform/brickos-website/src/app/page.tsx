@@ -26,7 +26,7 @@ function ContactForm() {
       const res = await fetch(`${API_URL}/api/contact`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, subject: 'general' }),
       })
       if (!res.ok) throw new Error()
       setStatus('sent')
