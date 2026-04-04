@@ -445,7 +445,7 @@ preflight() {
         warn "═══════════════════════════════════════════════════════════════"
 
         if [[ "$ENV" == "production" ]]; then
-            error "Aborting production deploy due to migration mismatch."
+            warn "Aborting production deploy due to migration mismatch."
             exit 1
         else
             warn "Continuing staging deploy — but backend may crash-loop!"
