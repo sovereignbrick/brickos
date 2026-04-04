@@ -883,18 +883,18 @@ export default function NewMeasurementPage() {
         {/* ── Row 2: Lifestyle context (compact) ─────────────── */}
         <div className="rounded-xl border px-4 py-3 mb-3 space-y-3">
           {/* Profile defaults — collapsed into a single text line */}
-          <div className="flex items-center gap-2 text-xs text-muted-foreground bg-white/[0.02] rounded-lg px-3 py-2">
-            <span className="shrink-0">
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground bg-white/[0.02] rounded-lg px-3 py-2">
+            <span>
               {tCommon('dietProtocol')}: <span className="text-foreground">{dietProtocol ? (dietProtocol === 'only_fish' ? tProtocols('onlyFish') : dietProtocol === 'standard' ? tProtocols('standard') : tCommon(dietProtocol)) : '–'}</span>
             </span>
             <span className="text-zinc-700">·</span>
-            <span className="shrink-0">
+            <span>
               {tCommon('fastingProtocol')}: <span className="text-foreground">{protocol === 'fasting' && fastingProtocol
                 ? (['none', '18_6', '20_4'].includes(fastingProtocol) ? tCommon(fastingProtocol) : tFasting(fastingProtocol))
                 : tCommon('none')}</span>
             </span>
             <span className="text-zinc-700">·</span>
-            <span className="shrink-0">
+            <span>
               {t('lifestyle.exercise')}: <span className="text-foreground">{exercise ? (['cardio', 'cycling', 'hiit', 'none', 'pilates', 'rest', 'strength', 'swimming', 'walking', 'yoga'].includes(exercise) ? tCommon(exercise) : tExercise(exercise)) : '–'}</span>
             </span>
             <span className="flex-1" />

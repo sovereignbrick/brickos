@@ -136,6 +136,8 @@ function MobileMenu({
   pathname,
   user,
   logout,
+  theme,
+  toggleTheme,
 }: {
   navItems: NavItem[]
   isDemo: boolean
@@ -144,6 +146,8 @@ function MobileMenu({
   pathname: string
   user: { email: string; display_name: string | null; tier?: string; role?: string } | null
   logout: () => void
+  theme: 'dark' | 'light'
+  toggleTheme: () => void
 }) {
   const t = useTranslations('nav')
   const [open, setOpen] = useState(false)
@@ -320,12 +324,25 @@ function MobileMenu({
                     <p className="text-sm font-medium truncate">{user.display_name ?? 'User'}</p>
                     <p className="text-xs text-muted-foreground truncate">{user.email}</p>
                   </div>
-                  <button
-                    onClick={() => { setOpen(false); logout() }}
-                    className="w-full text-left text-sm text-red-400 hover:text-red-300 transition-colors py-2"
-                  >
-                    {t('signOut')}
-                  </button>
+                  <div className="flex items-center justify-between">
+                    <button
+                      onClick={toggleTheme}
+                      className="text-sm text-muted-foreground hover:text-foreground transition-colors py-2 flex items-center gap-2"
+                    >
+                      {theme === 'dark' ? (
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+                      ) : (
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                      )}
+                      {t('theme')}
+                    </button>
+                    <button
+                      onClick={() => { setOpen(false); logout() }}
+                      className="text-sm text-red-400 hover:text-red-300 transition-colors py-2"
+                    >
+                      {t('signOut')}
+                    </button>
+                  </div>
                 </div>
               ) : null}
             </div>
@@ -345,6 +362,7 @@ export function Navbar() {
   const t = useTranslations('nav')
   const tCommon = useTranslations('common')
   const { locale: contentLocale, setLocale: setContentLocale } = useContent()
+  const { theme, toggleTheme } = useTheme()
   const [registrationEnabled, setRegistrationEnabled] = useState(false)
   const [langOpen, setLangOpen] = useState(false)
   const langRef = useRef<HTMLDivElement>(null)
@@ -536,6 +554,8 @@ export function Navbar() {
             pathname={pathname}
             user={user}
             logout={logout}
+            theme={theme}
+            toggleTheme={toggleTheme}
           />
         </div>
       </div>

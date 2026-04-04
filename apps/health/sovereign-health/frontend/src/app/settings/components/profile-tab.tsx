@@ -125,7 +125,7 @@ export function ProfileTab({
       <div className="border border-border rounded-lg p-4 space-y-3">
         <h3 className="text-sm font-medium">{t('bodyMeasurements')}</h3>
         <p className="text-xs text-muted-foreground">{t('bodyMeasurementsDesc')}</p>
-        <div className="grid grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <div>
             <div className="flex items-center gap-1 mb-1">
               <label htmlFor="settings-age" className="text-sm text-muted-foreground">{t('age')}</label>
@@ -134,7 +134,7 @@ export function ProfileTab({
             <input id="settings-age" type="text" inputMode="numeric" pattern="[0-9]*" value={form.age ?? ''} onChange={e => {
               const v = e.target.value.replace(/[^0-9]/g, '')
               setForm({ ...form, age: v ? Number(v) : null })
-            }} className={"w-16 " + inp} />
+            }} className={"w-full " + inp} />
           </div>
           <div>
             <div className="flex items-center gap-1 mb-1">
@@ -146,8 +146,8 @@ export function ProfileTab({
                 const filtered = filterDecimal(e.target.value)
                 const v = parseDecimal(filtered)
                 setForm({ ...form, height_cm: heightUnit === 'ft-in' && v ? Math.round(v * 2.54 * 10) / 10 : v })
-              }} className={"w-16 " + inp} />
-              <select value={heightUnit} onChange={e => setHeightUnit(e.target.value as 'cm' | 'ft-in')} className="w-14 rounded-lg border border-border bg-card px-1 py-1.5 text-xs text-foreground">
+              }} className={"flex-1 min-w-0 " + inp} />
+              <select value={heightUnit} onChange={e => setHeightUnit(e.target.value as 'cm' | 'ft-in')} className="w-14 shrink-0 rounded-lg border border-border bg-card px-1 py-1.5 text-xs text-foreground">
                 <option value="cm">cm</option><option value="ft-in">in</option>
               </select>
             </div>
@@ -162,8 +162,8 @@ export function ProfileTab({
                 const filtered = filterDecimal(e.target.value)
                 const v = parseDecimal(filtered)
                 setForm({ ...form, default_waist_cm: waistUnit === 'inches' && v ? Math.round(v * 2.54 * 10) / 10 : v })
-              }} className={"w-20 " + inp} />
-              <select value={waistUnit} onChange={e => setWaistUnit(e.target.value as 'cm' | 'inches')} className="w-14 rounded-lg border border-border bg-card px-1 py-1.5 text-xs text-foreground">
+              }} className={"flex-1 min-w-0 " + inp} />
+              <select value={waistUnit} onChange={e => setWaistUnit(e.target.value as 'cm' | 'inches')} className="w-14 shrink-0 rounded-lg border border-border bg-card px-1 py-1.5 text-xs text-foreground">
                 <option value="cm">cm</option><option value="inches">in</option>
               </select>
             </div>
@@ -179,8 +179,8 @@ export function ProfileTab({
                 setWeightText(filtered)
                 const v = parseDecimal(filtered)
                 setForm({ ...form, default_weight_kg: weightUnit === 'lbs' && v ? Math.round(v / 2.205 * 10) / 10 : v })
-              }} className={"w-16 " + inp} />
-              <select value={weightUnit} onChange={e => setWeightUnit(e.target.value as 'kg' | 'lbs')} className="w-14 rounded-lg border border-border bg-card px-1 py-1.5 text-xs text-foreground">
+              }} className={"flex-1 min-w-0 " + inp} />
+              <select value={weightUnit} onChange={e => setWeightUnit(e.target.value as 'kg' | 'lbs')} className="w-14 shrink-0 rounded-lg border border-border bg-card px-1 py-1.5 text-xs text-foreground">
                 <option value="kg">kg</option><option value="lbs">lbs</option>
               </select>
             </div>
