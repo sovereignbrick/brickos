@@ -1,8 +1,9 @@
 # Sprint 021 -- Error Handling, Monitoring, Unit Conversion & Mobile UX
 
 **Started:** 2026-04-04
-**Duration:** multi-day
-**Status:** IN PROGRESS
+**Completed:** 2026-04-04
+**Duration:** 1 day
+**Status:** CLOSED — deployed to production as v0.33.0
 **Goal:** Comprehensive error handling with admin monitoring integration, DSGVO-compliant logging, user unit preference display conversion across the app, and mobile/PWA UX optimization.
 
 ## Sprint Backlog
