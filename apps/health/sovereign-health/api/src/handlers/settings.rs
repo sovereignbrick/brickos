@@ -1271,6 +1271,18 @@ pub async fn update_anonymous_data(
         .execute(pool.get_ref())
         .await?;
 
+    // Audit: consent change (DSGVO Art. 7)
+    crate::services::audit::log(
+        pool.get_ref(),
+        Some(auth.user_id),
+        "consent.update",
+        Some("user_preferences"),
+        None,
+        None,
+        Some(serde_json::json!({ "share_anonymous_data": enabled })),
+    )
+    .await;
+
     Ok(HttpResponse::Ok().json(json!({
         "data": { "updated": true },
         "error": null
@@ -1421,6 +1433,25 @@ pub async fn update_consent(
             }
         }
     }
+
+    // Audit: consent change (DSGVO Art. 7 — record who changed what, when)
+    let mut changes = serde_json::Map::new();
+    if let Some(v) = newsletter {
+        changes.insert("consent_newsletter".to_string(), serde_json::json!(v));
+    }
+    if let Some(v) = partner_offers {
+        changes.insert("consent_partner_offers".to_string(), serde_json::json!(v));
+    }
+    crate::services::audit::log(
+        pool.get_ref(),
+        Some(auth.user_id),
+        "consent.update",
+        Some("user_profile"),
+        None,
+        None,
+        Some(serde_json::Value::Object(changes)),
+    )
+    .await;
 
     Ok(HttpResponse::Ok().json(json!({
         "data": { "updated": true },

@@ -88,7 +88,11 @@ async fn main() -> std::io::Result<()> {
         let notifier_clone = notifier.clone();
         tokio::spawn(async move {
             match sqlx::migrate!("./migrations").run(&pool_clone).await {
-                Ok(_) => tracing::info!("Migrations ran successfully"),
+                Ok(_) => {
+                    tracing::info!("Migrations ran successfully");
+                    // Auto-purge expired audit/access logs (DSGVO compliance)
+                    sovereign_health_backend::services::audit::auto_purge(&pool_clone).await;
+                }
                 Err(e) => {
                     tracing::error!("Migration failure: {e}");
                     notifier_clone.send(

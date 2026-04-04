@@ -18,6 +18,7 @@ import { formatDateTime } from '@/lib/date-format'
 import { useTranslations } from 'next-intl'
 import { useContent } from '@/lib/content-context'
 import { MultiSelect } from '@brickos/ui'
+import { useUnitPreferences } from '@/hooks/use-unit-preferences'
 
 const PER_PAGE = 20
 
@@ -45,6 +46,7 @@ function MeasurementsContent() {
   const tFasting = useTranslations('fastingProtocols')
   const tImport = useTranslations('import')
   const { markers: contentMarkers } = useContent()
+  const { formatDisplay } = useUnitPreferences()
   const [measurements, setMeasurements] = useState<Measurement[]>([])
   const [page, setPage] = useState(1)
   const [total, setTotal] = useState(0)
@@ -458,10 +460,10 @@ function MeasurementsContent() {
                           )}
                         </td>
                         <td className="px-3 py-2.5 text-right font-semibold tabular-nums whitespace-nowrap">
-                          {m.value}
+                          {formatDisplay(m.marker_slug, m.value, m.unit).formatted.split(' ')[0]}
                         </td>
                         <td className="px-3 py-2.5 text-muted-foreground text-xs whitespace-nowrap">
-                          {m.unit}
+                          {formatDisplay(m.marker_slug, m.value, m.unit).unit}
                         </td>
                         <td className="px-1 py-2.5">
                           <StatusBadge status={m.status as 'green' | 'orange' | 'red' | null} />
@@ -486,7 +488,7 @@ function MeasurementsContent() {
                       </p>
                     </div>
                     <div className="flex items-center gap-3 ml-3 shrink-0">
-                      <span className="text-sm font-semibold">{m.value} {m.unit}</span>
+                      <span className="text-sm font-semibold">{formatDisplay(m.marker_slug, m.value, m.unit).formatted}</span>
                       <StatusBadge status={m.status as 'green' | 'orange' | 'red' | null} />
                     </div>
                   </div>
@@ -502,7 +504,7 @@ function MeasurementsContent() {
                       </p>
                     </div>
                     <div className="flex items-center gap-3 ml-3 shrink-0">
-                      <span className="text-sm font-semibold">{m.value} {m.unit}</span>
+                      <span className="text-sm font-semibold">{formatDisplay(m.marker_slug, m.value, m.unit).formatted}</span>
                       <StatusBadge status={m.status as 'green' | 'orange' | 'red' | null} />
                     </div>
                   </Link>

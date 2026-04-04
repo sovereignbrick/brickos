@@ -158,6 +158,23 @@ pub async fn upload(
 
     let session_id: Uuid = session_row.try_get("id").map_err(|_| AppError::Internal)?;
 
+    // Audit: import started
+    crate::services::audit::log(
+        pool.get_ref(),
+        Some(auth.user_id),
+        "import.start",
+        Some("import_session"),
+        Some(session_id),
+        None,
+        Some(serde_json::json!({
+            "import_type": import_type,
+            "file_type": detected_type,
+            "file_size": file_size,
+            "file_count": files.len(),
+        })),
+    )
+    .await;
+
     // Classify document format before extraction
     // Skip classifier when user explicitly chose an import type (saves an API call + latency)
     let (detected_category, detected_language) = match import_type.as_str() {
@@ -998,6 +1015,20 @@ pub async fn confirm(
     .await?;
 
     let _ = now; // suppress unused
+
+    // Audit: import confirmed
+    crate::services::audit::log(
+        pool.get_ref(),
+        Some(auth.user_id),
+        "import.confirm",
+        Some("import_session"),
+        Some(body.session_id),
+        None,
+        Some(serde_json::json!({
+            "measurements_created": created_count,
+        })),
+    )
+    .await;
 
     Ok(HttpResponse::Ok().json(json!({
         "data": {
@@ -2442,6 +2473,20 @@ pub async fn rollback_import(
     .bind(session_id)
     .execute(pool.get_ref())
     .await?;
+
+    // Audit: import rolled back
+    crate::services::audit::log(
+        pool.get_ref(),
+        Some(auth.user_id),
+        "import.rollback",
+        Some("import_session"),
+        Some(session_id),
+        None,
+        Some(serde_json::json!({
+            "measurements_deleted": deleted_count,
+        })),
+    )
+    .await;
 
     Ok(HttpResponse::Ok()
         .insert_header(("Cache-Control", "no-store"))

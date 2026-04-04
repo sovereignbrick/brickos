@@ -11,6 +11,7 @@ import { useDemoProfile } from '@/lib/demo-profile-context'
 import { DEFAULT_RANGES } from '@/lib/status'
 import { Breadcrumb } from '@/components/breadcrumb'
 import { useContent } from '@/lib/content-context'
+import { useUnitPreferences } from '@/hooks/use-unit-preferences'
 
 
 // ── Period selector matching marker detail page ─────────────────────────────
@@ -154,6 +155,7 @@ export default function TrendsPage() {
   const { profile } = useDemoProfile()
   const t = useTranslations('trends')
   const { markers: contentMarkers } = useContent()
+  const { displayUnit, displayValue } = useUnitPreferences()
   const [markerSlug, setMarkerSlug] = useState('glucose')
   const [secondarySlug, setSecondarySlug] = useState('')
   const [period, setPeriod] = useState<Period>('30d')
@@ -360,16 +362,16 @@ export default function TrendsPage() {
             </div>
           ) : (
             <TrendChart
-              points={points}
+              points={points.map(p => ({ ...p, value: displayValue(markerSlug, p.value, trendData?.unit ?? '') }))}
               markerName={availableMarkers.find(m => m.slug === markerSlug)?.name ?? markerSlug}
-              unit={trendData?.unit ?? ''}
-              greenMin={greenMin}
-              greenMax={greenMax}
-              fastingGreenMin={fastingGreenMin}
-              fastingGreenMax={fastingGreenMax}
-              secondaryPoints={secondaryTrend?.points}
+              unit={displayUnit(markerSlug, trendData?.unit ?? '')}
+              greenMin={greenMin != null ? displayValue(markerSlug, greenMin, trendData?.unit ?? '') : greenMin}
+              greenMax={greenMax != null ? displayValue(markerSlug, greenMax, trendData?.unit ?? '') : greenMax}
+              fastingGreenMin={fastingGreenMin != null ? displayValue(markerSlug, fastingGreenMin, trendData?.unit ?? '') : fastingGreenMin}
+              fastingGreenMax={fastingGreenMax != null ? displayValue(markerSlug, fastingGreenMax, trendData?.unit ?? '') : fastingGreenMax}
+              secondaryPoints={secondaryTrend?.points?.map(p => ({ ...p, value: displayValue(secondarySlug, p.value, secondaryTrend?.unit ?? '') }))}
               secondaryName={availableMarkers.find(m => m.slug === secondarySlug)?.name}
-              secondaryUnit={secondaryTrend?.unit}
+              secondaryUnit={secondarySlug && secondaryTrend?.unit ? displayUnit(secondarySlug, secondaryTrend.unit) : secondaryTrend?.unit}
               markerSlug={markerSlug}
               countryCode={user?.country_code}
             />

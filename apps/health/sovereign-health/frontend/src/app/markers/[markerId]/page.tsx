@@ -18,6 +18,7 @@ import { useTranslations } from 'next-intl'
 import { formatDate, formatShortDate, formatTime } from '@/lib/date-format'
 import { useContent } from '@/lib/content-context'
 import { useMemo } from 'react'
+import { useUnitPreferences } from '@/hooks/use-unit-preferences'
 
 // ── Reference Range Bar ───────────────────────────────────────────────────────
 
@@ -298,6 +299,7 @@ export default function MarkerDetailPage() {
   const tMealTiming = useTranslations('common.mealTimingLabels')
   const tNav = useTranslations('nav')
 
+  const { formatDisplay, displayUnit, displayValue } = useUnitPreferences()
   const [marker, setMarker] = useState<MarkerDetail | null>(null)
   const [measurements, setMeasurements] = useState<MarkerMeasurement[]>([])
   const [trend, setTrend] = useState<TrendData | null>(null)
@@ -489,8 +491,8 @@ export default function MarkerDetailPage() {
               {/* Latest value */}
               {marker.latest ? (
                 <div className="flex items-center gap-2 mt-1 flex-wrap">
-                  <span className="text-3xl font-bold tabular-nums">{marker.latest.value}</span>
-                  <span className="text-muted-foreground text-sm">{marker.latest.unit}</span>
+                  <span className="text-3xl font-bold tabular-nums">{formatDisplay(markerId, marker.latest.value, marker.latest.unit).formatted.split(' ')[0]}</span>
+                  <span className="text-muted-foreground text-sm">{displayUnit(markerId, marker.latest.unit)}</span>
                   <StatusBadge status={marker.latest.status as 'green' | 'orange' | 'red' | null} showLabel />
                   <span className="text-xs text-muted-foreground">
                     {formatDate(marker.latest.timestamp, user?.country_code)}
@@ -631,13 +633,13 @@ export default function MarkerDetailPage() {
             <div className="h-[240px] flex items-center justify-center text-muted-foreground text-sm">{tCommon('loading')}</div>
           ) : (
             <TrendChart
-              points={trendPoints}
+              points={trendPoints.map(p => ({ ...p, value: displayValue(markerId, p.value, marker.unit) }))}
               markerName={marker.name}
-              unit={marker.unit}
-              greenMin={marker.reference_range?.green_min}
-              greenMax={marker.reference_range?.green_max}
-              fastingGreenMin={marker.fasting_range?.green_min}
-              fastingGreenMax={marker.fasting_range?.green_max}
+              unit={displayUnit(markerId, marker.unit)}
+              greenMin={marker.reference_range?.green_min != null ? displayValue(markerId, marker.reference_range.green_min, marker.unit) : undefined}
+              greenMax={marker.reference_range?.green_max != null ? displayValue(markerId, marker.reference_range.green_max, marker.unit) : undefined}
+              fastingGreenMin={marker.fasting_range?.green_min != null ? displayValue(markerId, marker.fasting_range.green_min, marker.unit) : undefined}
+              fastingGreenMax={marker.fasting_range?.green_max != null ? displayValue(markerId, marker.fasting_range.green_max, marker.unit) : undefined}
               countryCode={user?.country_code}
             />
           )}
