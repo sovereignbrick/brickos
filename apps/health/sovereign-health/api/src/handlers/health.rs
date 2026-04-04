@@ -85,9 +85,7 @@ pub async fn hello() -> impl Responder {
 
 /// GET /api/v1/health/metrics — external API monitoring endpoint.
 /// Returns live system metrics for admin dashboard and external uptime monitors.
-pub async fn metrics(
-    pool: Option<web::Data<PgPool>>,
-) -> impl Responder {
+pub async fn metrics(pool: Option<web::Data<PgPool>>) -> impl Responder {
     let pool = match pool {
         Some(p) => p,
         None => {

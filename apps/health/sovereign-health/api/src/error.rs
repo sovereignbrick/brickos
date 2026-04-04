@@ -149,12 +149,8 @@ impl From<sqlx::Error> for AppError {
                 let code = db_err.code().unwrap_or_default();
                 match code.as_ref() {
                     "23505" => AppError::EmailConflict, // unique_violation
-                    "23503" => AppError::Validation(
-                        "Referenced resource does not exist".into(),
-                    ),
-                    "23514" => AppError::Validation(
-                        "Value violates constraint".into(),
-                    ),
+                    "23503" => AppError::Validation("Referenced resource does not exist".into()),
+                    "23514" => AppError::Validation("Value violates constraint".into()),
                     _ => {
                         tracing::error!("Database error ({}): {:?}", code, e);
                         AppError::Internal
@@ -185,15 +181,27 @@ impl From<anyhow::Error> for AppError {
 pub fn classify_upstream_error(service: &str, status: u16) -> AppError {
     match status {
         401 | 403 => {
-            tracing::error!(service = service, status = status, "External service auth error");
+            tracing::error!(
+                service = service,
+                status = status,
+                "External service auth error"
+            );
             AppError::MissingApiKey
         }
         429 => {
-            tracing::warn!(service = service, status = status, "External service rate limited");
+            tracing::warn!(
+                service = service,
+                status = status,
+                "External service rate limited"
+            );
             AppError::RateLimited
         }
         503 | 529 => {
-            tracing::warn!(service = service, status = status, "External service overloaded");
+            tracing::warn!(
+                service = service,
+                status = status,
+                "External service overloaded"
+            );
             AppError::ServiceOverloaded
         }
         _ => {
