@@ -2446,13 +2446,13 @@ pub async fn rollback_import(
     Ok(HttpResponse::Ok()
         .insert_header(("Cache-Control", "no-store"))
         .json(json!({
-        "data": {
-            "session_id": session_id,
-            "measurements_deleted": deleted_count,
-            "message": format!("{} measurements rolled back", deleted_count)
-        },
-        "error": null
-    })))
+            "data": {
+                "session_id": session_id,
+                "measurements_deleted": deleted_count,
+                "message": format!("{} measurements rolled back", deleted_count)
+            },
+            "error": null
+        })))
 }
 
 // ---------------------------------------------------------------------------
