@@ -82,3 +82,106 @@ pub async fn hello() -> impl Responder {
         version: VERSION.to_string(),
     })
 }
+
+/// GET /api/v1/health/metrics — external API monitoring endpoint.
+/// Returns live system metrics for admin dashboard and external uptime monitors.
+pub async fn metrics(
+    pool: Option<web::Data<PgPool>>,
+) -> impl Responder {
+    let pool = match pool {
+        Some(p) => p,
+        None => {
+            return HttpResponse::ServiceUnavailable().json(serde_json::json!({
+                "status": "unavailable",
+                "error": "Database not connected"
+            }));
+        }
+    };
+
+    // Database health + latency
+    let db_start = std::time::Instant::now();
+    let db_ok = sqlx::query_scalar::<_, i32>("SELECT 1")
+        .fetch_one(pool.get_ref())
+        .await
+        .is_ok();
+    let db_latency_ms = db_start.elapsed().as_millis() as i64;
+
+    // Active users (last 5 min, last 24h)
+    let active_5m: i64 = sqlx::query_scalar(
+        "SELECT COUNT(*) FROM users WHERE last_active_at > NOW() - INTERVAL '5 minutes' AND is_deleted = false",
+    )
+    .fetch_one(pool.get_ref())
+    .await
+    .unwrap_or(0);
+
+    let active_24h: i64 = sqlx::query_scalar(
+        "SELECT COUNT(*) FROM users WHERE last_active_at > NOW() - INTERVAL '24 hours' AND is_deleted = false",
+    )
+    .fetch_one(pool.get_ref())
+    .await
+    .unwrap_or(0);
+
+    // Import stats (last 24h)
+    let imports_24h = sqlx::query_as::<_, (i64, i64, i64)>(
+        r#"SELECT
+             COUNT(*) as total,
+             COUNT(*) FILTER (WHERE status = 'confirmed') as confirmed,
+             COUNT(*) FILTER (WHERE status = 'error') as errors
+           FROM import_sessions
+           WHERE created_at > NOW() - INTERVAL '24 hours'"#,
+    )
+    .fetch_one(pool.get_ref())
+    .await
+    .unwrap_or((0, 0, 0));
+
+    // AI API usage (last 24h)
+    let ai_stats = sqlx::query_as::<_, (i64, i64)>(
+        r#"SELECT
+             COUNT(*) as total_calls,
+             COALESCE(SUM(total_tokens), 0) as total_tokens
+           FROM ai_usage_log
+           WHERE created_at > NOW() - INTERVAL '24 hours'"#,
+    )
+    .fetch_one(pool.get_ref())
+    .await
+    .unwrap_or((0, 0));
+
+    // Error rate (last 1h from audit_log)
+    let errors_1h: i64 = sqlx::query_scalar(
+        "SELECT COUNT(*) FROM audit_log WHERE action LIKE '%.error' AND created_at > NOW() - INTERVAL '1 hour'",
+    )
+    .fetch_one(pool.get_ref())
+    .await
+    .unwrap_or(0);
+
+    // Audit log stats
+    let audit_total: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM audit_log")
+        .fetch_one(pool.get_ref())
+        .await
+        .unwrap_or(0);
+
+    HttpResponse::Ok().json(serde_json::json!({
+        "status": if db_ok { "ok" } else { "degraded" },
+        "version": VERSION,
+        "timestamp": Utc::now().to_rfc3339(),
+        "database": {
+            "status": if db_ok { "ok" } else { "down" },
+            "latency_ms": db_latency_ms,
+        },
+        "users": {
+            "active_5m": active_5m,
+            "active_24h": active_24h,
+        },
+        "imports_24h": {
+            "total": imports_24h.0,
+            "confirmed": imports_24h.1,
+            "errors": imports_24h.2,
+        },
+        "ai_api_24h": {
+            "total_calls": ai_stats.0,
+            "total_tokens": ai_stats.1,
+        },
+        "errors_1h": errors_1h,
+        "audit_log_total": audit_total,
+    }))
+}

@@ -1537,6 +1537,7 @@
       "newsletter": "Newsletter",
       "aiUsage": "AI Usage",
       "auditLogs": "Audit Logs",
+      "metrics": "API Monitoring",
       "earlyAccess": "Early Access",
       "website": "Website"
     }

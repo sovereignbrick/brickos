@@ -854,6 +854,12 @@ export const api = {
         method: 'PUT',
       }),
   },
+  healthMetrics: async () => {
+    const res = await rawRequest('/api/v1/health/metrics')
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    return res.json()
+  },
+
   admin: {
     dashboard: () =>
       request<{ data: {

@@ -94,6 +94,10 @@ pub fn configure_routes(cfg: &mut actix_web::web::ServiceConfig) {
         actix_web::web::get().to(handlers::health::hello),
     )
     .route(
+        "/api/v1/health/metrics",
+        actix_web::web::get().to(handlers::health::metrics),
+    )
+    .route(
         "/early-access",
         actix_web::web::post().to(handlers::early_access::submit),
     )

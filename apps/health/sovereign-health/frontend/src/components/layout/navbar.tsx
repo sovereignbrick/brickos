@@ -1,5 +1,5 @@
 'use client'
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import { createPortal } from 'react-dom'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -350,6 +350,26 @@ export function Navbar() {
   const langRef = useRef<HTMLDivElement>(null)
   const [mounted, setMounted] = useState(false)
 
+  // Auto-hide header on scroll down (mobile only)
+  const [headerVisible, setHeaderVisible] = useState(true)
+  const lastScrollY = useRef(0)
+
+  useEffect(() => {
+    const onScroll = () => {
+      const y = window.scrollY
+      if (y < 56) {
+        setHeaderVisible(true)
+      } else if (y > lastScrollY.current + 10) {
+        setHeaderVisible(false) // scrolling down
+      } else if (y < lastScrollY.current - 10) {
+        setHeaderVisible(true) // scrolling up
+      }
+      lastScrollY.current = y
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
   // Prevent hydration mismatch: render a neutral skeleton until client mount
   // completes and auth state is resolved. Server and client both render the
   // same static navbar shell, avoiding React error #418.
@@ -467,7 +487,7 @@ export function Navbar() {
   const navItems = isDemo ? DEMO_NAV : NAV
 
   return (
-    <div className="sticky top-0 z-50">
+    <div className={`sticky top-0 z-50 transition-transform duration-300 sm:translate-y-0 ${headerVisible ? 'translate-y-0' : '-translate-y-full'}`}>
       <InfoBar />
       <nav className="border-b bg-background/80 backdrop-blur">
         <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">

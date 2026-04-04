@@ -34,6 +34,9 @@ function applyTheme(theme: Theme) {
   } else {
     root.classList.remove('dark')
   }
+  // Update meta theme-color for PWA status bar
+  const color = theme === 'dark' ? '#09090b' : '#ffffff'
+  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', color)
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
