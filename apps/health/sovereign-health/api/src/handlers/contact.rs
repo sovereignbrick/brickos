@@ -203,6 +203,7 @@ use sqlx::PgPool;
 
 pub async fn admin_list(
     pool: web::Data<PgPool>,
+    enc: web::Data<crate::services::encryption::Encryptor>,
     _admin: AdminUser,
 ) -> Result<HttpResponse, AppError> {
     use sqlx::Row;
@@ -219,12 +220,15 @@ pub async fn admin_list(
     let entries: Vec<serde_json::Value> = rows
         .iter()
         .map(|r| {
+            let raw_name = r.try_get::<String, _>("name").unwrap_or_default();
+            let raw_email = r.try_get::<String, _>("email").unwrap_or_default();
+            let raw_message = r.try_get::<String, _>("message").unwrap_or_default();
             json!({
                 "id": r.try_get::<uuid::Uuid, _>("id").unwrap_or_default(),
-                "name": r.try_get::<String, _>("name").unwrap_or_default(),
-                "email": r.try_get::<String, _>("email").unwrap_or_default(),
+                "name": enc.decrypt(&raw_name).unwrap_or(raw_name),
+                "email": enc.decrypt(&raw_email).unwrap_or(raw_email),
                 "subject": r.try_get::<String, _>("subject").unwrap_or_default(),
-                "message": r.try_get::<String, _>("message").unwrap_or_default(),
+                "message": enc.decrypt(&raw_message).unwrap_or(raw_message),
                 "status": r.try_get::<String, _>("status").unwrap_or_default(),
                 "created_at": r.try_get::<chrono::DateTime<chrono::Utc>, _>("created_at")
                     .map(|d| d.to_rfc3339()).unwrap_or_default(),
