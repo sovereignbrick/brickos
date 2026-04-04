@@ -397,6 +397,63 @@ preflight() {
         fi
     fi
 
+    # Migration checksum verification — detect modified migrations before deploy
+    log "Checking migration checksums against ${ENV} database..."
+    local db_container
+    if [[ "$ENV" == "staging" ]]; then
+        db_container="sh-staging-db"
+        db_name="sovereign_health_staging"
+    else
+        db_container="sovereign-health-db-1"
+        db_name="sovereign_health"
+    fi
+
+    local mismatch_found=0
+    local migrations_dir="${APP_ROOT}/api/migrations"
+    for sql_file in "${migrations_dir}"/*.sql; do
+        local version
+        version=$(basename "$sql_file" | grep -oP '^\d+')
+        local local_checksum
+        local_checksum=$(sha384sum "$sql_file" | awk '{print $1}')
+
+        # Check if this migration was already applied on the remote DB
+        local remote_checksum
+        remote_checksum=$(ssh -o ConnectTimeout=10 "$VPS" \
+            "docker exec $db_container psql -U sovereign_health -d $db_name -t -A -c \
+            \"SELECT encode(checksum, 'hex') FROM _sqlx_migrations WHERE version = $version;\"" 2>/dev/null | tr -d '[:space:]')
+
+        if [[ -n "$remote_checksum" && "$remote_checksum" != "$local_checksum" ]]; then
+            warn "MIGRATION CHECKSUM MISMATCH: $version"
+            warn "  Local:  $local_checksum"
+            warn "  Remote: $remote_checksum"
+            warn "  File:   $(basename "$sql_file")"
+            mismatch_found=1
+        fi
+    done
+
+    if [[ "$mismatch_found" -eq 1 ]]; then
+        report_add "WARN" "Migration checksum mismatch detected — backend will fail to start!"
+        warn "═══════════════════════════════════════════════════════════════"
+        warn "MIGRATION CHECKSUM MISMATCH DETECTED!"
+        warn "The backend will refuse to start until this is resolved."
+        warn ""
+        warn "Fix: Update the remote checksum before deploying:"
+        warn "  ssh $VPS \"docker exec $db_container psql -U sovereign_health -d $db_name -c"
+        warn "    \\\"UPDATE _sqlx_migrations SET checksum = decode('<local_hex>', 'hex') WHERE version = <N>;\\\"\""
+        warn ""
+        warn "Or: Create a NEW migration instead of modifying the existing one."
+        warn "═══════════════════════════════════════════════════════════════"
+
+        if [[ "$ENV" == "production" ]]; then
+            error "Aborting production deploy due to migration mismatch."
+            exit 1
+        else
+            warn "Continuing staging deploy — but backend may crash-loop!"
+        fi
+    else
+        log "Migration checksums OK"
+    fi
+
     report_add "OK" "Pre-flight passed (local: ${local_free}G free, VPS: ${vps_free:-?}G free)"
 }
 
