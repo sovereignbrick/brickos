@@ -28,13 +28,13 @@ export function Footer() {
           &copy; {year} {APP_NAME}. {t('copyright')}
         </p>
         <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
-          <Link href="/terms" className="hover:text-foreground transition-colors">
+          <a href="https://sovereignhealth.io/terms/" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors">
             {t('terms')}
-          </Link>
+          </a>
           <span className="hidden sm:inline">&middot;</span>
-          <Link href="/privacy" className="hover:text-foreground transition-colors">
+          <a href="https://sovereignhealth.io/privacy/" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors">
             {t('privacy')}
-          </Link>
+          </a>
           <span className="hidden sm:inline">&middot;</span>
           {version && <span>{version}</span>}
           <span className="hidden sm:inline">&middot;</span>

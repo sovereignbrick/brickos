@@ -270,21 +270,37 @@ export function ThresholdsTab({
 
     const oldUnit = getUnit(m)
 
-    // Update unit preference
+    // Update unit preference locally
     const updates = { [info.group]: newUnit } as Partial<UnitPreferences>
     setUnitForm(f => ({ ...f, ...updates }))
     onUnitsUpdate(updates)
 
-    // Auto-save unit change
-    if (unitSaveTimerRef.current) clearTimeout(unitSaveTimerRef.current)
-    unitSaveTimerRef.current = setTimeout(async () => {
-      try {
-        await api.settings.updateUnits(updates)
-        invalidateUnitCache()
-      } catch {
-        toast.error(tToast('unitSaveFailed'))
-      }
-    }, 300)
+    // Only persist to backend if the unit is compatible with the preference field.
+    // Markers like insulin (mU/L↔pmol/L), HbA1c (%↔mmol/mol), vitamin_d (nmol/L↔ng/mL)
+    // share a group with glucose but have incompatible unit values.
+    const BACKEND_ALLOWED: Record<string, string[]> = {
+      glucose_unit: ['mmol/L', 'mg/dL'],
+      cholesterol_unit: ['mmol/L', 'mg/dL'],
+      uric_acid_unit: ['µmol/L', 'mg/dL'],
+      hemoglobin_unit: ['mmol/L', 'g/dL'],
+      weight_unit: ['kg', 'lbs'],
+      height_unit: ['cm', 'in'],
+      waist_unit: ['cm', 'in'],
+      bp_unit: ['mmHg'],
+      ketones_unit: ['mmol/L'],
+    }
+    const allowed = BACKEND_ALLOWED[info.group]
+    if (allowed && allowed.includes(newUnit)) {
+      if (unitSaveTimerRef.current) clearTimeout(unitSaveTimerRef.current)
+      unitSaveTimerRef.current = setTimeout(async () => {
+        try {
+          await api.settings.updateUnits(updates)
+          invalidateUnitCache()
+        } catch {
+          toast.error(tToast('unitSaveFailed'))
+        }
+      }, 300)
+    }
 
     // Convert threshold values for ALL markers in the same unit group
     if (oldUnit !== newUnit && info.convert?.[oldUnit]?.[newUnit]) {

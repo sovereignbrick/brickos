@@ -24,7 +24,7 @@ function useCarouselCards(): CarouselCard[] {
     { icon: '💡', title: t('didYouKnow'), description: t('didYouKnowDesc'), link: '/markers/iron' },
     { icon: '🎯', title: t('whatIsApoB'), description: t('whatIsApoBDesc'), link: '/markers/apob' },
     { icon: '⚡', title: t('gkiRatio'), description: t('gkiRatioDesc'), link: '/markers/gki' },
-    { icon: '🛡️', title: t('privacyFirst'), description: t('privacyFirstDesc'), link: '/privacy' },
+    { icon: '🛡️', title: t('privacyFirst'), description: t('privacyFirstDesc'), link: 'https://sovereignhealth.io/privacy/' },
   ]
 }
 
