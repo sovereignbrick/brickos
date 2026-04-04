@@ -2349,6 +2349,12 @@ pub async fn rollback_import(
 ) -> Result<HttpResponse, AppError> {
     let session_id = path.into_inner();
 
+    tracing::info!(
+        user_id = %auth.user_id,
+        session_id = %session_id,
+        "Rollback requested"
+    );
+
     let session = sqlx::query(
         "SELECT id, status, measurement_ids, markers_imported FROM import_sessions WHERE id = $1 AND user_id = $2",
     )
@@ -2360,6 +2366,7 @@ pub async fn rollback_import(
 
     let status: String = session.try_get("status").unwrap_or_default();
     if status != "confirmed" {
+        tracing::warn!(session_id = %session_id, status = %status, "Rollback rejected: not confirmed");
         return Err(AppError::Validation(
             "Only confirmed imports can be rolled back.".to_string(),
         ));
@@ -2369,7 +2376,14 @@ pub async fn rollback_import(
         .try_get("measurement_ids")
         .unwrap_or_else(|_| Vec::new());
 
+    tracing::info!(
+        session_id = %session_id,
+        measurement_ids_count = measurement_ids.len(),
+        "Rollback: deleting measurements"
+    );
+
     if measurement_ids.is_empty() {
+        tracing::warn!(session_id = %session_id, "Rollback: no measurement_ids to delete");
         return Err(AppError::Validation(
             "No measurements to roll back.".to_string(),
         ));
@@ -2383,6 +2397,13 @@ pub async fn rollback_import(
         .await?;
 
     let deleted_count = deleted.rows_affected() as i32;
+
+    tracing::info!(
+        session_id = %session_id,
+        requested = measurement_ids.len(),
+        deleted = deleted_count,
+        "Rollback: measurements deleted"
+    );
 
     // Also delete calculated marker values that were computed from these measurements
     // (they reference the same timestamps)

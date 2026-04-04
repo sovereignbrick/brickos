@@ -70,6 +70,19 @@ function MeasurementsContent() {
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
+  // Show rollback success toast if redirected from import history
+  useEffect(() => {
+    const rollbackCount = searchParams.get('rollback')
+    if (rollbackCount) {
+      toast.success(`${rollbackCount} measurements rolled back`)
+      // Clean up URL param
+      const url = new URL(window.location.href)
+      url.searchParams.delete('rollback')
+      window.history.replaceState({}, '', url.toString())
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   // Fetch filter options
   useEffect(() => {
     if (loading) return

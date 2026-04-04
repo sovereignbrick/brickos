@@ -32,14 +32,14 @@ export default function ImportHistoryPage() {
     if (!confirm(tImport('historyRollbackConfirm'))) return
     setRollingBack(entry.id)
     try {
-      await api.import.rollbackImport(entry.session_id)
-      setEntries(prev => prev.filter(e => e.id !== entry.id))
-      // Force full reload to bust any cached measurement data across the app
-      window.location.reload()
+      const res = await api.import.rollbackImport(entry.session_id)
+      const count = res.data?.measurements_deleted ?? 0
+      // Navigate to measurements page with full reload to show fresh data
+      // The ?rollback param triggers a toast on the measurements page
+      window.location.href = `/measurements?rollback=${count}`
     } catch {
-      // keep entry in list on failure
-    } finally {
       setRollingBack(null)
+      // keep entry in list on failure
     }
   }
 
