@@ -374,7 +374,7 @@ pub async fn list(
         JOIN markers mk ON mk.id = m.marker_id
         LEFT JOIN devices d ON d.id = m.device_id
         LEFT JOIN labs l ON l.id = m.lab_id
-        WHERE m.user_id = $1 AND m.is_deleted = false"#,
+        WHERE m.user_id = $1 AND m.is_deleted = false AND m.is_demo = false"#,
     );
 
     let mut bind_idx = 2u32;
@@ -881,7 +881,7 @@ pub async fn filters(
         r#"SELECT mk.marker_slug, mk.marker_name, COUNT(*) as count
         FROM measurements m
         JOIN markers mk ON mk.id = m.marker_id
-        WHERE m.user_id = $1 AND m.is_deleted = false
+        WHERE m.user_id = $1 AND m.is_deleted = false AND m.is_demo = false
         GROUP BY mk.marker_slug, mk.marker_name
         ORDER BY mk.marker_name"#,
     )
