@@ -1,11 +1,11 @@
 {
   "locale": "de",
-  "fetchedAt": "2026-04-04T06:32:33.155Z",
+  "fetchedAt": "2026-04-04T10:31:34.153Z",
   "zones": [
     {
       "description": "Kannst du den ganzen Tag über Energie aufrechterhalten, ohne Einbrüche? Diese Zone verfolgt deinen Glukose-, Insulin-, Keton- und Schilddrüsenstatus. Diese Marker bilden den Motor deiner Stoffwechselgesundheit. Bringe diese Zone zuerst in Ordnung, und der Rest wird einfacher.",
       "display_order": 1,
-      "id": "f6cdf016-d407-4f39-948c-4eb870173128",
+      "id": "40896a4a-1c8e-4de7-b783-11a302182d78",
       "name": "Energie & Stoffwechsel",
       "short_description": "Glukose, Insulin, Ketone und Schilddrüsenfunktion",
       "zone_color": "#FF9500",
@@ -15,7 +15,7 @@
     {
       "description": "Sind deine Knochen, Muskeln und dein Bindegewebe stark? Kalzium, Magnesium, Protein und Vitamin D bilden dein strukturelles Gerüst. In dieser Zone geht es um Langlebigkeit und körperliche Belastbarkeit.",
       "display_order": 2,
-      "id": "17a415cb-e53a-47ea-b213-396ca4438743",
+      "id": "0ac3f0f3-28be-4bc6-93ae-02afcb7db3d2",
       "name": "Strukturell",
       "short_description": "Knochen-, Muskel- und Bindegewebsstärke",
       "zone_color": "#2196F3",
@@ -25,7 +25,7 @@
     {
       "description": "Wie stark ist dein Herz und dein Kreislauf? Diese Zone konzentriert sich auf das tatsächliche kardiovaskuläre Risiko durch Partikelanzahl (ApoB), Blutdruck und Lipidverhältnisse. Nicht nur Cholesterinwerte, sondern was Herzerkrankungen wirklich vorhersagt.",
       "display_order": 3,
-      "id": "82b20210-7c47-465c-8445-28ed8e215671",
+      "id": "7057148c-caa5-4f1b-ab43-ffcbbe56c81b",
       "name": "Herz-Kreislauf",
       "short_description": "Herzgesundheit und Kreislaufmarker",
       "zone_color": "#E91E63",
@@ -35,7 +35,7 @@
     {
       "description": "Ist dein Gehirn scharf, dein Gedächtnis klar und deine Stimmung stabil? B-Vitamine, Magnesium, Schilddrüsenhormone und Sexualhormone beeinflussen direkt Kognition, Gedächtnis und Stimmung. Diese Zone dient der Prävention von kognitivem Abbau.",
       "display_order": 4,
-      "id": "c99d489d-3181-44e6-bb21-bd7114f3d36d",
+      "id": "fe96b41d-b639-496e-b500-3a677c6e312a",
       "name": "Kognitiv",
       "short_description": "Gehirnfunktion, Gedächtnis und Stimmung",
       "zone_color": "#7C4DFF",
@@ -45,7 +45,7 @@
     {
       "description": "Ist dein Immunsystem im Gleichgewicht? Zu viel Entzündung verursacht Krankheit, zu wenig Immunität bedeutet Infektionen. Weiße Blutkörperchen, Vitamin D, Zink und Selen bestimmen deine Immunresilienz.",
       "display_order": 5,
-      "id": "8307422d-a539-4a79-9c14-db47a501bd24",
+      "id": "e07d8dce-0b9f-48d4-b97f-125ebf6b0189",
       "name": "Immunsystem",
       "short_description": "Immunbalance und Entzündungsmarker",
       "zone_color": "#009688",
@@ -55,7 +55,7 @@
     {
       "description": "Hast du genug Mikronährstoffe, um deine Zellen optimal zu betreiben? Vitamine und Mineralstoffe sind Kofaktoren für Tausende von Enzymen. Mängel kaskadieren leise zu Müdigkeit, schwacher Immunität und langsamer Erholung.",
       "display_order": 6,
-      "id": "42fd711f-899b-4cda-adfb-d4f7c24270b6",
+      "id": "8cd7e482-250a-44d9-850e-e959106aa9f7",
       "name": "Ernährung",
       "short_description": "Vitamin- und Mineralstoffspiegel",
       "zone_color": "#8BC34A",
@@ -65,7 +65,7 @@
     {
       "description": "Sind deine Hormone für dein Alter optimiert? Sexualhormone, Stresshormone und Reproduktionsmarker orchestrieren Stoffwechsel, Stimmung, Libido und Erholung. In dieser Zone geht es darum, zu blühen, nicht nur zu überleben.",
       "display_order": 7,
-      "id": "70ed2967-fec3-4a18-92ad-ec097284fa8e",
+      "id": "e9f95146-e532-449c-8f48-777171e29168",
       "name": "Hormonell",
       "short_description": "Sexualhormone, Stresshormone und Reproduktionsmarker",
       "zone_color": "#AB47BC",
@@ -75,7 +75,7 @@
     {
       "description": "Kann dein Körper Abfallprodukte effizient verarbeiten und ausscheiden? Leber und Nieren bilden das Filtersystem. ALT, GGT, Kreatinin, eGFR und Harnsäure zeigen, wie gut deine Entgiftungswege funktionieren.",
       "display_order": 8,
-      "id": "70c69083-9363-4047-a0eb-a13c9d1b0830",
+      "id": "6ce27149-8e32-4122-b17e-afbf58a4d0ff",
       "name": "Entgiftung",
       "short_description": "Leber- und Nierenfiltration",
       "zone_color": "#00BCD4",
@@ -87,7 +87,7 @@
     {
       "description": "Blutzucker ist die primäre Energiequelle des Körpers. Erhöhte Nüchternwerte können auf Insulinresistenz oder Diabetes hinweisen.",
       "display_order": 1,
-      "id": "ac4ffc96-38e8-46a0-824b-62a000eb4771",
+      "id": "717e7a2b-015c-4afd-bcf0-12d1c72150f3",
       "is_calculated": false,
       "marker_slug": "glucose",
       "name": "Glukose",
@@ -100,7 +100,7 @@
     {
       "description": "Beta-Hydroxybutyrat ist der Hauptketonkörper im Blut. Erhöhte Werte zeigen Fettverbrennung an, typisch bei Fasten oder ketogener Ernährung.",
       "display_order": 2,
-      "id": "fe96bb12-1edf-4ad8-91ad-ebdf249bf766",
+      "id": "8c3a20e3-58f1-4736-a8f2-ff12961e59e2",
       "is_calculated": false,
       "marker_slug": "ketones",
       "name": "Ketone",
@@ -113,7 +113,7 @@
     {
       "description": "Gesamtcholesterin umfasst HDL, LDL und VLDL. Als Einzelwert wenig aussagekräftig — die Verhältnisse und Partikelgrößen sind entscheidender.",
       "display_order": 3,
-      "id": "f60807a4-a53b-4376-b8f8-9e2af87ce7b9",
+      "id": "50be6896-d1fd-4116-97b0-a8cc44ea06d4",
       "is_calculated": false,
       "marker_slug": "total_cholesterol",
       "name": "Gesamtcholesterin",
@@ -126,7 +126,7 @@
     {
       "description": "Harnsäure entsteht beim Abbau von Purinen. Erhöhte Werte können Gicht auslösen und korrelieren mit metabolischem Syndrom und Nierensteinen.",
       "display_order": 4,
-      "id": "2a2bc05f-8995-4a07-a5a5-db42940d76f5",
+      "id": "5a5d6e0c-6815-4c4b-8976-d898c81a8a2f",
       "is_calculated": false,
       "marker_slug": "uric_acid",
       "name": "Harnsäure",
@@ -139,7 +139,7 @@
     {
       "description": "Hämoglobin transportiert Sauerstoff im Blut. Niedrige Werte deuten auf Anämie hin, hohe können auf Dehydration oder andere Ursachen hinweisen.",
       "display_order": 5,
-      "id": "087c586d-237b-4548-94b1-9c41c6eadd6a",
+      "id": "b4ec8ac1-3b32-43cc-8757-412eeef509cf",
       "is_calculated": false,
       "marker_slug": "hemoglobin",
       "name": "Hämoglobin",
@@ -152,7 +152,7 @@
     {
       "description": "Der Hämatokrit gibt den Anteil der roten Blutkörperchen am Gesamtblutvolumen an. Veränderte Werte können auf Dehydration, Anämie oder Bluterkrankungen hinweisen.",
       "display_order": 6,
-      "id": "4c12a58d-e3c1-4e59-b159-233ad9422c92",
+      "id": "9e735ffc-b5ec-4188-b77d-c4997c635d07",
       "is_calculated": false,
       "marker_slug": "hematocrit",
       "name": "Hämatokrit",
@@ -165,7 +165,7 @@
     {
       "description": "Der systolische Blutdruck misst den Druck beim Herzschlag. Dauerhaft erhöhte Werte schädigen Blutgefäße und erhöhen das Risiko für Herzinfarkt und Schlaganfall.",
       "display_order": 7,
-      "id": "166e495b-1b13-4912-a18f-75d1619c7788",
+      "id": "a651c417-da6b-41fa-95a9-625a877a8700",
       "is_calculated": false,
       "marker_slug": "bp_systolic",
       "name": "Systolischer Blutdruck",
@@ -178,7 +178,7 @@
     {
       "description": "Der diastolische Blutdruck misst den Druck zwischen den Herzschlägen. Erhöhte Werte deuten auf erhöhten Gefäßwiderstand hin.",
       "display_order": 8,
-      "id": "154ab230-1883-4826-bcb9-b295d11909cd",
+      "id": "df22b5dc-a98c-4bb8-a851-3206e86b4302",
       "is_calculated": false,
       "marker_slug": "bp_diastolic",
       "name": "Diastolischer Blutdruck",
@@ -191,7 +191,7 @@
     {
       "description": "Die Ruheherzfrequenz spiegelt die kardiovaskuläre Fitness wider. Niedrigere Werte in Ruhe deuten auf ein effizienteres Herz hin.",
       "display_order": 9,
-      "id": "03ab18dc-c106-4156-a502-5920939d0635",
+      "id": "1c98bce6-3377-415f-a640-a7c3cd0a4f87",
       "is_calculated": false,
       "marker_slug": "heart_rate",
       "name": "Herzfrequenz",
@@ -204,7 +204,7 @@
     {
       "description": "Das Körpergewicht allein sagt wenig über die Gesundheit aus. In Kombination mit Körperzusammensetzung und WHtR wird es aussagekräftiger.",
       "display_order": 10,
-      "id": "39c6b97a-b025-4721-a18e-20ea9eab25e7",
+      "id": "70a48534-0abb-4cd3-893e-19e14e6c2ea0",
       "is_calculated": false,
       "marker_slug": "weight",
       "name": "Gewicht",
@@ -217,7 +217,7 @@
     {
       "description": "Der Taillenumfang ist ein direktes Maß für viszerales Fett. Er korreliert stärker mit metabolischem Risiko als BMI allein.",
       "display_order": 11,
-      "id": "64127911-9dc1-4a2e-841a-8d97e99b374d",
+      "id": "c173a66a-f61c-4aae-b708-3c2326b2ee32",
       "is_calculated": false,
       "marker_slug": "waist_circumference",
       "name": "Taillenumfang",
@@ -230,7 +230,7 @@
     {
       "description": "Insulin reguliert den Blutzuckerspiegel. Erhöhte Nüchternwerte deuten auf Insulinresistenz hin, oft lange bevor der Blutzucker steigt.",
       "display_order": 12,
-      "id": "462ca60b-debc-4b57-a08e-be48abb4031c",
+      "id": "f2e95080-08c1-4d75-957c-7cd3122ff555",
       "is_calculated": false,
       "marker_slug": "insulin",
       "name": "Insulin (Nüchtern)",
@@ -243,7 +243,7 @@
     {
       "description": "Glykiertes Hämoglobin zeigt den durchschnittlichen Blutzucker der letzten 2–3 Monate. Werte über 5,7 % weisen auf Prädiabetes hin.",
       "display_order": 13,
-      "id": "9a963511-57d0-4ede-9725-5f314817d91c",
+      "id": "5be7c784-d3e3-44b7-8c88-2fa4f273b5a3",
       "is_calculated": false,
       "marker_slug": "hba1c",
       "name": "HbA1c",
@@ -256,7 +256,7 @@
     {
       "description": "Thyreoidea-stimulierendes Hormon steuert die Schilddrüse. Erhöhte Werte deuten auf eine Unterfunktion hin, niedrige auf eine Überfunktion.",
       "display_order": 14,
-      "id": "edd15ed1-fb66-4204-9f09-96aede6c694e",
+      "id": "f9478538-f0a1-4f05-ba9f-ffdf32b775f6",
       "is_calculated": false,
       "marker_slug": "tsh",
       "name": "TSH",
@@ -269,7 +269,7 @@
     {
       "description": "Freies Thyroxin ist das Haupthormon der Schilddrüse. Es wird in das aktivere T3 umgewandelt und beeinflusst den gesamten Stoffwechsel.",
       "display_order": 15,
-      "id": "e22eba06-2c36-4599-a587-fc0b244c3b6a",
+      "id": "6bfb2369-6882-4a17-93b1-a502429b6e5c",
       "is_calculated": false,
       "marker_slug": "ft4",
       "name": "Freies T4",
@@ -282,7 +282,7 @@
     {
       "description": "Freies Trijodthyronin ist das biologisch aktivste Schilddrüsenhormon. Es bestimmt die Stoffwechselrate auf zellulärer Ebene.",
       "display_order": 16,
-      "id": "3cdbdbcf-ef1e-49cd-afab-7c4e77e95604",
+      "id": "6fe96f97-75cf-4385-b8a5-975134400ec4",
       "is_calculated": false,
       "marker_slug": "ft3",
       "name": "Freies T3",
@@ -295,7 +295,7 @@
     {
       "description": "Low-Density-Lipoprotein transportiert Cholesterin zu den Zellen. Erhöhte Werte korrelieren mit Arterioskleroserisiko, besonders in Kombination mit hohem ApoB.",
       "display_order": 17,
-      "id": "d1a1b48f-c274-4b3c-8b3f-913100bd55ed",
+      "id": "dbb23c3f-6827-4212-897d-11c5d8e06d44",
       "is_calculated": false,
       "marker_slug": "ldl_c",
       "name": "LDL-Cholesterin",
@@ -308,7 +308,7 @@
     {
       "description": "High-Density-Lipoprotein transportiert überschüssiges Cholesterin zur Leber zurück. Höhere Werte gelten als kardiovaskulär schützend.",
       "display_order": 18,
-      "id": "80a8beb5-6481-4a31-92e6-7b53fa7d6339",
+      "id": "be48e0b5-2718-49ac-bd87-86248a0f4971",
       "is_calculated": false,
       "marker_slug": "hdl_c",
       "name": "HDL-Cholesterin",
@@ -321,7 +321,7 @@
     {
       "description": "Triglyzeride sind Blutfette, die aus der Nahrung stammen. Erhöhte Nüchternwerte weisen auf metabolisches Syndrom und Insulinresistenz hin.",
       "display_order": 19,
-      "id": "20275c82-b340-446c-ba7d-12de7c10bc8a",
+      "id": "1504e2e6-e742-436f-afc7-b15483f37261",
       "is_calculated": false,
       "marker_slug": "triglycerides",
       "name": "Triglyzeride",
@@ -334,7 +334,7 @@
     {
       "description": "Apolipoprotein B ist der beste Einzelmarker für atherogenes Risiko. Jedes LDL-, VLDL- und Lp(a)-Partikel trägt genau ein ApoB-Molekül.",
       "display_order": 20,
-      "id": "a6ef8f9f-326b-4e3e-a0ff-e0e5070a21b4",
+      "id": "5961090d-0744-4494-a413-f9362969f784",
       "is_calculated": false,
       "marker_slug": "apob",
       "name": "ApoB",
@@ -347,7 +347,7 @@
     {
       "description": "Lipoprotein(a) ist genetisch bestimmt und ein unabhängiger Risikofaktor für Herzerkrankungen. Er lässt sich durch Lebensstil kaum beeinflussen.",
       "display_order": 21,
-      "id": "3da6f820-be60-4c48-aff0-3627db1cdd5a",
+      "id": "2d6e7332-5e49-4630-a5e9-9eb98279a664",
       "is_calculated": false,
       "marker_slug": "lpa",
       "name": "Lp(a)",
@@ -360,7 +360,7 @@
     {
       "description": "Hochsensitives C-reaktives Protein misst systemische Entzündung. Dauerhaft erhöhte Werte erhöhen das kardiovaskuläre und metabolische Risiko.",
       "display_order": 22,
-      "id": "1f6e0114-49c5-434e-9fe3-5319524889ad",
+      "id": "d9d7861c-7ae8-4301-991c-aa36dc8a5817",
       "is_calculated": false,
       "marker_slug": "hs_crp",
       "name": "hs-CRP",
@@ -373,7 +373,7 @@
     {
       "description": "Non-HDL-Cholesterin umfasst alle atherogenen Lipoproteine. Es ist ein besserer Risikoprediktor als LDL-Cholesterin allein.",
       "display_order": 23,
-      "id": "3174ced5-57fa-453e-97ab-911fefb7e509",
+      "id": "58cf4970-9494-4552-b127-91462bd8b081",
       "is_calculated": false,
       "marker_slug": "non_hdl_c",
       "name": "Non-HDL-Cholesterin",
@@ -386,7 +386,7 @@
     {
       "description": "Albumin ist das häufigste Blutprotein und ein Marker für Ernährungsstatus und Leberfunktion. Niedrige Werte können auf Mangelernährung oder chronische Erkrankungen hinweisen.",
       "display_order": 24,
-      "id": "4d080985-4ee6-4615-8223-a47143d5eefd",
+      "id": "911c2263-e487-4328-8138-c6c9a8f2417a",
       "is_calculated": false,
       "marker_slug": "albumin",
       "name": "Albumin",
@@ -399,7 +399,7 @@
     {
       "description": "Gesamtprotein im Blut umfasst Albumin und Globuline. Es gibt Aufschluss über Ernährungs- und Immunstatus.",
       "display_order": 25,
-      "id": "ba7a348f-3032-4236-838c-a203082cc0a8",
+      "id": "eb6fffe7-6492-46c2-a40d-d3f8c683ded8",
       "is_calculated": false,
       "marker_slug": "total_protein",
       "name": "Gesamtprotein",
@@ -412,7 +412,7 @@
     {
       "description": "Kalzium ist essentiell für Knochen, Muskelfunktion und Nervenleitung. Der Blutspiegel wird streng reguliert — Abweichungen können auf Nebenschilddrüsen- oder Knochenprobleme hinweisen.",
       "display_order": 26,
-      "id": "53f67074-de50-42f4-a3b5-e98747cc5a18",
+      "id": "f90912b8-9e5e-4444-89de-615ec6496c1b",
       "is_calculated": false,
       "marker_slug": "calcium",
       "name": "Kalzium",
@@ -425,7 +425,7 @@
     {
       "description": "Magnesium ist an über 300 enzymatischen Reaktionen beteiligt. Mangel ist weit verbreitet und kann Muskelkrämpfe, Schlafstörungen und Herzrhythmusstörungen verursachen.",
       "display_order": 27,
-      "id": "f6501443-f86f-4fc6-9891-cbcf3b2f7304",
+      "id": "bcd64b6f-2f9e-4e37-badf-6bdeb63a2ce1",
       "is_calculated": false,
       "marker_slug": "magnesium",
       "name": "Magnesium",
@@ -438,7 +438,7 @@
     {
       "description": "Kalium ist entscheidend für Herzfunktion und Muskelkontraktionen. Sowohl zu hohe als auch zu niedrige Werte können gefährlich sein.",
       "display_order": 28,
-      "id": "921bf943-1248-451d-9ec9-dd6b9f9b45a7",
+      "id": "37afdf0c-f3ae-4b0d-99ec-29a8cdc7a468",
       "is_calculated": false,
       "marker_slug": "potassium",
       "name": "Kalium",
@@ -451,7 +451,7 @@
     {
       "description": "Phosphat ist wichtig für Knochen, Energiestoffwechsel und DNA-Synthese. Abweichungen können auf Nieren- oder Nebenschilddrüsenprobleme hinweisen.",
       "display_order": 29,
-      "id": "28692b9e-6728-4f18-a74f-dda118662ba1",
+      "id": "6c577004-853e-4ac9-b1fc-0cbf54582232",
       "is_calculated": false,
       "marker_slug": "phosphate",
       "name": "Phosphat",
@@ -464,7 +464,7 @@
     {
       "description": "Kreatinin ist ein Abbauprodukt des Muskelstoffwechsels und wird über die Nieren ausgeschieden. Erhöhte Werte deuten auf eingeschränkte Nierenfunktion hin.",
       "display_order": 30,
-      "id": "9d81a035-2324-4078-a5f0-a4cbeda2ad5f",
+      "id": "0c97447e-22a0-4fc8-93e1-b548a28db277",
       "is_calculated": false,
       "marker_slug": "creatinine",
       "name": "Kreatinin",
@@ -477,7 +477,7 @@
     {
       "description": "Die geschätzte glomeruläre Filtrationsrate zeigt, wie gut die Nieren Abfallstoffe filtern. Niedrige Werte weisen auf Niereninsuffizienz hin.",
       "display_order": 31,
-      "id": "9df686f3-c658-4553-a8ca-7fc957d90fb1",
+      "id": "ed9741d3-1da8-4856-838b-01ad2316a75d",
       "is_calculated": false,
       "marker_slug": "egfr",
       "name": "eGFR",
@@ -490,7 +490,7 @@
     {
       "description": "Cystatin C ist ein präziserer Marker für die Nierenfunktion als Kreatinin, da er weniger von Muskelmasse beeinflusst wird.",
       "display_order": 32,
-      "id": "b93a780e-2ab6-428e-803a-845c6f0c18dd",
+      "id": "ac31b01a-0130-42c1-82e8-60fb5fed146b",
       "is_calculated": false,
       "marker_slug": "cystatin_c",
       "name": "Cystatin C",
@@ -503,7 +503,7 @@
     {
       "description": "Alanin-Aminotransferase ist ein Leberenzym. Erhöhte Werte deuten auf Leberzellschäden hin, z. B. durch Fettleber, Medikamente oder Alkohol.",
       "display_order": 33,
-      "id": "20436b91-aa6b-48dd-ad5e-c9383ec0d8af",
+      "id": "ddf5498f-011c-4634-9e6f-e6e67e2f6f9b",
       "is_calculated": false,
       "marker_slug": "alt",
       "name": "ALT (GPT)",
@@ -516,7 +516,7 @@
     {
       "description": "Aspartat-Aminotransferase kommt in Leber, Herz und Muskeln vor. Erhöhte Werte können auf Leber- oder Muskelschäden hinweisen.",
       "display_order": 34,
-      "id": "1519d5f3-1046-4877-95f7-127525ae5db9",
+      "id": "83f9c41a-44d1-40b3-b6e7-b9dfc231e18d",
       "is_calculated": false,
       "marker_slug": "ast",
       "name": "AST (GOT)",
@@ -529,7 +529,7 @@
     {
       "description": "Gamma-Glutamyltransferase ist ein empfindlicher Lebermarker. Erhöhte Werte deuten auf Gallenstau, Alkoholkonsum oder oxidativen Stress hin.",
       "display_order": 35,
-      "id": "ad814b56-f4d9-41df-ab33-b1990162763a",
+      "id": "b5d1414a-ac57-4ebe-9e52-333ed130787e",
       "is_calculated": false,
       "marker_slug": "ggt",
       "name": "GGT",
@@ -542,7 +542,7 @@
     {
       "description": "Alkalische Phosphatase findet sich in Leber, Knochen und Darm. Erhöhte Werte können auf Knochenerkrankungen oder Gallenwegsprobleme hinweisen.",
       "display_order": 36,
-      "id": "a90f415e-befc-4f5f-81d6-93f0c6872d95",
+      "id": "af8f489c-531c-49e4-bdce-31fd1a9ce386",
       "is_calculated": false,
       "marker_slug": "alp",
       "name": "AP (Alkalische Phosphatase)",
@@ -555,7 +555,7 @@
     {
       "description": "Laktatdehydrogenase ist ein unspezifischer Marker für Gewebeschäden. Erhöhte Werte können auf Zellzerfall in verschiedenen Organen hinweisen.",
       "display_order": 37,
-      "id": "cbe3b946-1062-4757-93bc-286ea159c494",
+      "id": "101429e4-35ef-4378-a651-06b52186f8dc",
       "is_calculated": false,
       "marker_slug": "ldh",
       "name": "LDH",
@@ -568,7 +568,7 @@
     {
       "description": "Gesamtbilirubin entsteht beim Abbau roter Blutkörperchen. Leicht erhöhte Werte können antioxidativ wirken, stark erhöhte deuten auf Leberprobleme hin.",
       "display_order": 38,
-      "id": "147cb248-f113-436a-8683-5d1eb6c1d324",
+      "id": "fd42ef6e-eee1-48db-8148-84f18f34ee78",
       "is_calculated": false,
       "marker_slug": "bilirubin_total",
       "name": "Bilirubin (Gesamt)",
@@ -581,7 +581,7 @@
     {
       "description": "Direktes Bilirubin ist die wasserlösliche Form, die von der Leber verarbeitet wurde. Erhöhte Werte weisen auf Gallenwegsprobleme hin.",
       "display_order": 39,
-      "id": "4aa6d0f6-0b0b-4220-ba6b-9b6d8ac17e69",
+      "id": "23bcd223-5341-4bb5-85b8-512041c0a84d",
       "is_calculated": false,
       "marker_slug": "bilirubin_direct",
       "name": "Bilirubin (Direkt)",
@@ -594,7 +594,7 @@
     {
       "description": "Testosteron beeinflusst Muskelmasse, Knochendichte, Stimmung und Libido. Sowohl bei Männern als auch Frauen ein wichtiger Gesundheitsmarker.",
       "display_order": 40,
-      "id": "430f625a-68e3-4cc8-9d8b-c6fff8ef0dff",
+      "id": "2ddff7bd-1af7-4d5c-afb7-294f1f66bab0",
       "is_calculated": false,
       "marker_slug": "testosterone",
       "name": "Testosteron",
@@ -607,7 +607,7 @@
     {
       "description": "Freies Testosteron ist die biologisch aktive Form. Nur 1–3 % des Gesamttestosterons zirkulieren ungebunden und sind sofort wirksam.",
       "display_order": 41,
-      "id": "818b3701-9bcd-4531-8f95-9e7072d56f3b",
+      "id": "556cf469-a6d4-40bd-bb7e-3a3100f8f6db",
       "is_calculated": false,
       "marker_slug": "free_testosterone",
       "name": "Freies Testosteron",
@@ -620,7 +620,7 @@
     {
       "description": "Durchschnittliches Volumen der roten Blutkörperchen. Hilft bei der Klassifizierung von Anämien.",
       "display_order": 41,
-      "id": "50049c4e-040d-4e86-b877-3cc7b56f2b5d",
+      "id": "504c89ac-d740-4374-b9fa-95ad033ffeec",
       "is_calculated": false,
       "marker_slug": "mcv",
       "name": "Mittleres Zellvolumen",
@@ -633,7 +633,7 @@
     {
       "description": "Der freie Androgenindex berechnet sich aus Testosteron und SHBG. Er gibt Aufschluss über die tatsächliche Androgenwirkung im Körper.",
       "display_order": 42,
-      "id": "ff9a605d-6687-4c07-9f61-f926bb4b5e13",
+      "id": "caaabf0c-3f1b-4d5a-8743-ea682bf0f903",
       "is_calculated": false,
       "marker_slug": "free_androgen_index",
       "name": "Freier Androgenindex",
@@ -646,7 +646,7 @@
     {
       "description": "Durchschnittliche Hämoglobinmenge pro rotem Blutkörperchen. Niedrige Werte deuten auf Eisenmangel hin.",
       "display_order": 42,
-      "id": "ed93fd41-9a32-49b5-814f-442665b3bbcf",
+      "id": "6ba7c825-f2c5-4b77-87d5-b6715019a59d",
       "is_calculated": false,
       "marker_slug": "mch",
       "name": "Mittleres Zellhämoglobin",
@@ -657,22 +657,9 @@
       "zone_slug": "structural"
     },
     {
-      "description": "Sexualhormon-bindendes Globulin bindet Testosteron und Östradiol im Blut. Hohe Werte reduzieren die Verfügbarkeit freier Hormone.",
-      "display_order": 43,
-      "id": "a15ba964-3e22-43db-9e97-0ab27068b7fa",
-      "is_calculated": false,
-      "marker_slug": "shbg",
-      "name": "SHBG",
-      "tooltip": "Sexualhormon-bindendes Globulin bindet Testosteron und Östradiol im Blut. Hohe Werte reduzieren die Verfügbarkeit freier Hormone.",
-      "unit_canonical": "nmol/L",
-      "when_to_worry": "Sehr hohes SHBG kann bioverfügbares Testosteron senken. Sehr niedriges SHBG kann auf Insulinresistenz hinweisen.",
-      "why_it_matters": "SHBG bindet Sexualhormone und reguliert deren Verfügbarkeit. Abweichungen beeinflussen das Gleichgewicht von Testosteron und Östrogen.",
-      "zone_slug": "hormonal"
-    },
-    {
       "description": "Durchschnittliche Hämoglobinkonzentration in roten Blutkörperchen. Hilft bei der Unterscheidung von Anämietypen.",
       "display_order": 43,
-      "id": "4e3986a6-b0d1-4ba2-9f2e-b575bfaf57f3",
+      "id": "8b2e32b7-ac13-40c0-abbf-bcd2e38ca0d1",
       "is_calculated": false,
       "marker_slug": "mchc",
       "name": "Mittlere Hämoglobinkonzentration",
@@ -683,9 +670,22 @@
       "zone_slug": "structural"
     },
     {
+      "description": "Sexualhormon-bindendes Globulin bindet Testosteron und Östradiol im Blut. Hohe Werte reduzieren die Verfügbarkeit freier Hormone.",
+      "display_order": 43,
+      "id": "f94ec532-bc40-46c8-98ea-3d67e536aa50",
+      "is_calculated": false,
+      "marker_slug": "shbg",
+      "name": "SHBG",
+      "tooltip": "Sexualhormon-bindendes Globulin bindet Testosteron und Östradiol im Blut. Hohe Werte reduzieren die Verfügbarkeit freier Hormone.",
+      "unit_canonical": "nmol/L",
+      "when_to_worry": "Sehr hohes SHBG kann bioverfügbares Testosteron senken. Sehr niedriges SHBG kann auf Insulinresistenz hinweisen.",
+      "why_it_matters": "SHBG bindet Sexualhormone und reguliert deren Verfügbarkeit. Abweichungen beeinflussen das Gleichgewicht von Testosteron und Östrogen.",
+      "zone_slug": "hormonal"
+    },
+    {
       "description": "Östradiol ist das wichtigste Östrogen. Es beeinflusst Knochendichte, Gehirnfunktion und kardiovaskuläre Gesundheit bei beiden Geschlechtern.",
       "display_order": 44,
-      "id": "8b363dcc-af46-437f-9645-1c439913ea9b",
+      "id": "ac9a694a-59a9-4244-8f55-837330f6e735",
       "is_calculated": false,
       "marker_slug": "estradiol",
       "name": "Östradiol",
@@ -698,7 +698,7 @@
     {
       "description": "Misst die Variation der Größe roter Blutkörperchen. Erhöht bei Eisen-, B12- oder Folatmangel.",
       "display_order": 44,
-      "id": "5fdb1104-39ac-4754-b301-d2d8c82dff5e",
+      "id": "f50b7e56-a285-4240-ac19-b1364eaac233",
       "is_calculated": false,
       "marker_slug": "rdw",
       "name": "Erythrozytenverteilungsbreite",
@@ -711,7 +711,7 @@
     {
       "description": "Progesteron ist wichtig für den Menstruationszyklus und die Schwangerschaft. Es wirkt auch beruhigend auf das Nervensystem.",
       "display_order": 45,
-      "id": "69eb7704-acab-40e9-9136-0923632813cd",
+      "id": "207bc90e-957b-47ce-9969-6447342f4a3f",
       "is_calculated": false,
       "marker_slug": "progesterone",
       "name": "Progesteron",
@@ -724,7 +724,7 @@
     {
       "description": "Prolaktin reguliert die Milchproduktion. Erhöhte Werte außerhalb der Stillzeit können auf Hypophysenprobleme oder Medikamentenwirkungen hinweisen.",
       "display_order": 46,
-      "id": "ad476dcb-3140-4c21-b52a-b0c0df6a8bd6",
+      "id": "8e14fe74-d9c0-432a-b8b1-53cc86dbb00c",
       "is_calculated": false,
       "marker_slug": "prolactin",
       "name": "Prolaktin",
@@ -737,7 +737,7 @@
     {
       "description": "Follikelstimulierendes Hormon steuert die Reifung von Eizellen und Spermien. Erhöhte Werte bei Frauen können auf nahende Menopause hinweisen.",
       "display_order": 47,
-      "id": "a7afff28-58b0-4193-b466-5d007d1e5b8d",
+      "id": "fa6a078b-b7ce-4900-a3af-d832b38d31a3",
       "is_calculated": false,
       "marker_slug": "fsh",
       "name": "FSH",
@@ -750,7 +750,7 @@
     {
       "description": "Luteinisierendes Hormon löst den Eisprung aus und stimuliert die Testosteronproduktion. Das LH/FSH-Verhältnis ist diagnostisch relevant.",
       "display_order": 48,
-      "id": "415ab70c-e7f6-41cb-8863-e7776c49a602",
+      "id": "b63ba9fb-c638-40d2-a43d-541b806f2aea",
       "is_calculated": false,
       "marker_slug": "lh",
       "name": "LH",
@@ -763,7 +763,7 @@
     {
       "description": "DHEA-Sulfat ist eine Vorstufe von Sexualhormonen und ein Marker für Nebennierengesundheit. Die Produktion nimmt mit dem Alter ab.",
       "display_order": 49,
-      "id": "5c356322-1eec-48c0-964b-bce6291ab57a",
+      "id": "d7f659de-2598-4498-b7d3-fa0354d94e9f",
       "is_calculated": false,
       "marker_slug": "dheas",
       "name": "DHEA-S",
@@ -776,7 +776,7 @@
     {
       "description": "Eisen ist essentiell für den Sauerstofftransport im Blut. Sowohl Mangel als auch Überladung können gesundheitsschädlich sein.",
       "display_order": 50,
-      "id": "1cd66f6a-d56b-47ee-b438-f4c19ca1eda6",
+      "id": "8ef4036f-9a4a-456b-b928-353bce63cfd0",
       "is_calculated": false,
       "marker_slug": "iron",
       "name": "Eisen",
@@ -789,7 +789,7 @@
     {
       "description": "Ferritin spiegelt die Eisenspeicher des Körpers wider. Niedrige Werte deuten auf Eisenmangel hin, hohe können auf Entzündung oder Eisenüberladung hinweisen.",
       "display_order": 51,
-      "id": "1557cd4b-ef35-4f27-aef7-51284144767e",
+      "id": "429db26c-ea14-4853-9b9a-288e3db7dc10",
       "is_calculated": false,
       "marker_slug": "ferritin",
       "name": "Ferritin",
@@ -802,7 +802,7 @@
     {
       "description": "Transferrin transportiert Eisen im Blut. Erhöhte Werte können auf Eisenmangel hinweisen, da der Körper mehr Transportprotein produziert.",
       "display_order": 52,
-      "id": "9731ab5a-947d-4b47-83af-2a14909fbc63",
+      "id": "41dccd7f-d3c9-446e-a5e6-affc2c44f385",
       "is_calculated": false,
       "marker_slug": "transferrin",
       "name": "Transferrin",
@@ -815,7 +815,7 @@
     {
       "description": "Die Transferrinsättigung zeigt, wie viel des Transportproteins mit Eisen beladen ist. Werte unter 20 % deuten auf Eisenmangel hin.",
       "display_order": 53,
-      "id": "4de12cfe-20b0-4ec7-abb8-dcfb27f6b8c7",
+      "id": "9fc28a5a-6282-4da6-8bbe-d4465a6e5449",
       "is_calculated": false,
       "marker_slug": "transferrin_sat",
       "name": "Transferrinsättigung",
@@ -828,7 +828,7 @@
     {
       "description": "Vitamin D ist eigentlich ein Hormon und beeinflusst Knochen, Immunsystem und Stimmung. Mangel ist in nördlichen Breiten weit verbreitet.",
       "display_order": 54,
-      "id": "9f172110-ef9c-4091-8603-c01d8fd149ef",
+      "id": "e4ee892a-e2be-4f02-9f60-3432e5972903",
       "is_calculated": false,
       "marker_slug": "vitamin_d",
       "name": "Vitamin D (25-OH)",
@@ -841,7 +841,7 @@
     {
       "description": "Vitamin B12 ist essentiell für Nervenfunktion und Blutbildung. Mangel verursacht Anämie und neurologische Symptome. Besonders Veganer sind gefährdet.",
       "display_order": 55,
-      "id": "6ef97022-6177-47be-8d13-93fa7ce6645d",
+      "id": "7e980420-9485-4924-ab05-9c12852a2688",
       "is_calculated": false,
       "marker_slug": "vitamin_b12",
       "name": "Vitamin B12",
@@ -854,7 +854,7 @@
     {
       "description": "Holotranscobalamin ist der aktivste B12-Marker und zeigt den tatsächlich verfügbaren B12-Anteil. Er erkennt Mangel früher als Gesamt-B12.",
       "display_order": 56,
-      "id": "6583c76c-ecbf-4641-a81c-4467f1b19e73",
+      "id": "ba2a8345-bcf7-4b56-8cba-bbbdf1f59cd5",
       "is_calculated": false,
       "marker_slug": "holo_tc",
       "name": "Holotranscobalamin",
@@ -867,7 +867,7 @@
     {
       "description": "Thiamin ist entscheidend für den Energiestoffwechsel und die Nervenfunktion. Schwerer Mangel kann zu Beriberi oder Wernicke-Enzephalopathie führen.",
       "display_order": 57,
-      "id": "c01e37d9-ec92-4721-bcd2-674214afea63",
+      "id": "fa3951e3-4e90-4bc1-bf74-3353a8b565f4",
       "is_calculated": false,
       "marker_slug": "vitamin_b1",
       "name": "Vitamin B1 (Thiamin)",
@@ -880,7 +880,7 @@
     {
       "description": "Riboflavin ist wichtig für den Energiestoffwechsel und wirkt als Antioxidans. Mangel kann sich durch rissige Mundwinkel und Lichtempfindlichkeit äußern.",
       "display_order": 58,
-      "id": "5c580787-4b8a-47be-82e7-f8898aff1923",
+      "id": "e052ea62-8b11-4f08-a679-cf8f170192cc",
       "is_calculated": false,
       "marker_slug": "vitamin_b2",
       "name": "Vitamin B2 (Riboflavin)",
@@ -893,7 +893,7 @@
     {
       "description": "Niacin ist an über 400 enzymatischen Reaktionen beteiligt. Es spielt eine Rolle im Energie- und Fettstoffwechsel und bei der DNA-Reparatur.",
       "display_order": 59,
-      "id": "4aaac386-3479-4d03-b4b5-af87ffeef64d",
+      "id": "43958b20-7bd1-4d3f-a9f4-05bd9c1dd3e3",
       "is_calculated": false,
       "marker_slug": "vitamin_b3",
       "name": "Vitamin B3 (Niacin)",
@@ -906,7 +906,7 @@
     {
       "description": "Pantothensäure ist ein Bestandteil von Coenzym A und damit an zahllosen Stoffwechselwegen beteiligt. Mangel ist selten, aber möglich.",
       "display_order": 60,
-      "id": "80e363a3-3154-480b-bc66-522e2d19e7b3",
+      "id": "6f69f184-a317-4799-8faa-033d3fc70404",
       "is_calculated": false,
       "marker_slug": "vitamin_b5",
       "name": "Vitamin B5 (Pantothensäure)",
@@ -919,7 +919,7 @@
     {
       "description": "Vitamin B6 ist wichtig für Aminosäurestoffwechsel, Neurotransmitterproduktion und Immunfunktion. Mangel kann Stimmungsschwankungen und Anämie verursachen.",
       "display_order": 61,
-      "id": "327e1d72-6772-4301-bf25-f0b6eb30f3f4",
+      "id": "00a278a3-522b-48d0-8999-27c0b53c1d2c",
       "is_calculated": false,
       "marker_slug": "vitamin_b6",
       "name": "Vitamin B6",
@@ -932,7 +932,7 @@
     {
       "description": "Folat (Vitamin B9) ist essentiell für Zellteilung und DNA-Synthese. Mangel erhöht das Homocystein und ist in der Schwangerschaft besonders riskant.",
       "display_order": 62,
-      "id": "2d167d9b-4b41-450f-9a28-ba39b6becaf1",
+      "id": "47d8e47b-6f0e-4bda-b0ce-8165e16523ea",
       "is_calculated": false,
       "marker_slug": "folate",
       "name": "Folat",
@@ -945,7 +945,7 @@
     {
       "description": "Vitamin A ist wichtig für Sehkraft, Immunfunktion und Hautgesundheit. Sowohl Mangel als auch Überdosierung können schädlich sein.",
       "display_order": 63,
-      "id": "ec8a5fe7-cd3a-401b-ac08-09395c5b8c53",
+      "id": "9a3b9b61-e114-4102-a822-a0dd689de717",
       "is_calculated": false,
       "marker_slug": "vitamin_a",
       "name": "Vitamin A (Retinol)",
@@ -958,7 +958,7 @@
     {
       "description": "Vitamin E ist ein starkes Antioxidans, das Zellmembranen vor oxidativem Stress schützt. Es wird am besten über die Nahrung aufgenommen.",
       "display_order": 64,
-      "id": "ba2231d7-2124-4176-b577-678b69d78577",
+      "id": "92492963-7bd1-4f85-8bee-5932e0370eab",
       "is_calculated": false,
       "marker_slug": "vitamin_e",
       "name": "Vitamin E (Alpha-Tocopherol)",
@@ -971,7 +971,7 @@
     {
       "description": "Natrium reguliert den Flüssigkeitshaushalt und den Blutdruck. Sowohl Hypo- als auch Hypernatriämie können gefährlich sein.",
       "display_order": 65,
-      "id": "d637c6d5-5dc6-475d-94dd-9baa4356f2e2",
+      "id": "158a40df-d050-48b8-a088-05feee35d275",
       "is_calculated": false,
       "marker_slug": "sodium",
       "name": "Natrium",
@@ -984,7 +984,7 @@
     {
       "description": "Zink ist entscheidend für Immunfunktion, Wundheilung und Testosteronproduktion. Mangel ist häufig und beeinträchtigt über 300 Enzyme.",
       "display_order": 66,
-      "id": "94350eef-b74c-4ed3-8ba5-930e50e9fc5f",
+      "id": "d35e296b-7f70-4268-a1c1-7befbb1ae9c9",
       "is_calculated": false,
       "marker_slug": "zinc",
       "name": "Zink",
@@ -997,7 +997,7 @@
     {
       "description": "Selen ist ein essentielles Spurenelement für die Schilddrüsenfunktion und das Immunsystem. Es wirkt als Bestandteil von Selenoproteinen antioxidativ.",
       "display_order": 67,
-      "id": "c561a7b3-223e-4bd2-ad16-9e2920e3e1d6",
+      "id": "118a9712-d6cc-4503-873a-5b4f3f0036f2",
       "is_calculated": false,
       "marker_slug": "selenium",
       "name": "Selen",
@@ -1010,7 +1010,7 @@
     {
       "description": "Homocystein ist eine Aminosäure, deren erhöhte Werte auf B-Vitamin-Mangel und erhöhtes kardiovaskuläres Risiko hinweisen.",
       "display_order": 68,
-      "id": "a0ba1b66-77cf-479c-be93-59a1a2cff211",
+      "id": "f4ec67af-ff99-485f-8dcc-3f2397c5641d",
       "is_calculated": false,
       "marker_slug": "homocysteine",
       "name": "Homocystein",
@@ -1023,7 +1023,7 @@
     {
       "description": "Eicosapentaensäure ist eine entzündungshemmende Omega-3-Fettsäure. Sie kommt hauptsächlich in fettem Fisch vor und schützt das Herz-Kreislauf-System.",
       "display_order": 69,
-      "id": "460ace05-65b0-4096-a248-cd63aef8a3b0",
+      "id": "e745c8b7-fb21-42b6-9c5f-87e7bf9d0056",
       "is_calculated": false,
       "marker_slug": "epa",
       "name": "EPA",
@@ -1036,7 +1036,7 @@
     {
       "description": "Docosahexaensäure ist die wichtigste Omega-3-Fettsäure für das Gehirn. Sie macht einen großen Teil der Gehirnfettmasse aus und unterstützt die kognitive Funktion.",
       "display_order": 70,
-      "id": "b9235440-1610-41c2-a304-1c0363ef6bef",
+      "id": "d719e14a-cc76-4632-90e7-ad5cbc2c6300",
       "is_calculated": false,
       "marker_slug": "dha",
       "name": "DHA",
@@ -1049,7 +1049,7 @@
     {
       "description": "Der Omega-3-Index misst den EPA+DHA-Anteil in den Erythrozytenmembranen. Ein Index über 8 % gilt als kardiovaskulär schützend.",
       "display_order": 71,
-      "id": "99c3a8be-6456-44c0-9854-1ee5d11cfa98",
+      "id": "4a820e56-5c8d-4a3f-b391-25179d293c34",
       "is_calculated": false,
       "marker_slug": "omega3_index",
       "name": "Omega-3-Index",
@@ -1062,7 +1062,7 @@
     {
       "description": "Weiße Blutkörperchen sind die Hauptakteure des Immunsystems. Erhöhte Werte deuten auf Infektionen oder Entzündungen hin, niedrige auf Immunschwäche.",
       "display_order": 72,
-      "id": "6af2ff0d-01e5-4a5c-b3c2-635fcf4c54bc",
+      "id": "677d0de6-10bb-4401-8669-0eb88cf83a1c",
       "is_calculated": false,
       "marker_slug": "wbc",
       "name": "Leukozyten",
@@ -1075,7 +1075,7 @@
     {
       "description": "Rote Blutkörperchen transportieren Sauerstoff zu den Geweben. Abweichungen können auf Anämie, Dehydration oder Knochenmarkprobleme hinweisen.",
       "display_order": 73,
-      "id": "8aa4eab2-5054-41f3-b2c2-ac9545bbe041",
+      "id": "1f7f17f9-4cea-4947-baa5-d6c21691ca65",
       "is_calculated": false,
       "marker_slug": "rbc",
       "name": "Erythrozyten",
@@ -1088,7 +1088,7 @@
     {
       "description": "Blutplättchen sind für die Blutgerinnung verantwortlich. Zu niedrige Werte erhöhen das Blutungsrisiko, zu hohe das Thromboserisiko.",
       "display_order": 74,
-      "id": "84ae539e-3908-4724-a9a9-6f11f5f73a3a",
+      "id": "2f909cf1-9f64-4274-9350-e6721871530e",
       "is_calculated": false,
       "marker_slug": "platelets",
       "name": "Thrombozyten",
@@ -1101,7 +1101,7 @@
     {
       "description": "Neutrophile Granulozyten sind die häufigsten weißen Blutkörperchen und die erste Verteidigungslinie gegen bakterielle Infektionen.",
       "display_order": 75,
-      "id": "cad671ba-28c1-4b19-b1db-d64608683cad",
+      "id": "1a44d8f5-aaf7-462e-b34a-f5a9e6ef66ed",
       "is_calculated": false,
       "marker_slug": "neutrophils_pct",
       "name": "Neutrophile %",
@@ -1114,7 +1114,7 @@
     {
       "description": "Die absolute Neutrophilenzahl zeigt die tatsächliche Anzahl im Blut. Niedrige Werte (Neutropenie) erhöhen das Infektionsrisiko erheblich.",
       "display_order": 76,
-      "id": "e160ce95-ba49-4a61-800f-126ad3de1c74",
+      "id": "cb3c6db4-3674-440d-ba68-25fdde155c0b",
       "is_calculated": false,
       "marker_slug": "neutrophils_abs",
       "name": "Neutrophile (Absolut)",
@@ -1127,7 +1127,7 @@
     {
       "description": "Lymphozyten umfassen T-Zellen, B-Zellen und NK-Zellen. Sie sind zentral für die adaptive Immunantwort und das immunologische Gedächtnis.",
       "display_order": 77,
-      "id": "e50742a3-3a06-4063-8de6-d65ee1691092",
+      "id": "67245afa-86a0-48f1-b8d6-19b589e06a2b",
       "is_calculated": false,
       "marker_slug": "lymphocytes_pct",
       "name": "Lymphozyten %",
@@ -1140,7 +1140,7 @@
     {
       "description": "Die absolute Lymphozytenzahl gibt Aufschluss über die Stärke der adaptiven Immunabwehr. Niedrige Werte können auf Immunschwäche hinweisen.",
       "display_order": 78,
-      "id": "cab89a0f-b6d1-4eec-ac07-774b1585bd8c",
+      "id": "86396ae9-3ea5-4be0-aaa0-7cb83bd482e0",
       "is_calculated": false,
       "marker_slug": "lymphocytes_abs",
       "name": "Lymphozyten (Absolut)",
@@ -1153,7 +1153,7 @@
     {
       "description": "Monozyten sind Vorläufer von Makrophagen und dendritischen Zellen. Sie spielen eine wichtige Rolle bei der Abwehr und Gewebereparatur.",
       "display_order": 79,
-      "id": "d922037f-d83c-4479-8578-917802571ac9",
+      "id": "7dbd693f-5604-4ea8-b114-f36a79a331ca",
       "is_calculated": false,
       "marker_slug": "monocytes_pct",
       "name": "Monozyten %",
@@ -1166,7 +1166,7 @@
     {
       "description": "Die absolute Monozytenzahl hilft bei der Beurteilung chronischer Entzündungen und Infektionen. Erhöhte Werte können auf aktive Immunprozesse hinweisen.",
       "display_order": 80,
-      "id": "5c60d789-fe68-4b0d-af37-85dd5e6cfa32",
+      "id": "c753f16a-b0b4-4e50-bc14-571149cacb17",
       "is_calculated": false,
       "marker_slug": "monocytes_abs",
       "name": "Monozyten (Absolut)",
@@ -1179,7 +1179,7 @@
     {
       "description": "Eosinophile Granulozyten bekämpfen Parasiten und sind an allergischen Reaktionen beteiligt. Erhöhte Werte deuten auf Allergien oder parasitäre Infektionen hin.",
       "display_order": 81,
-      "id": "a72a5351-716e-4de8-b017-451d70253572",
+      "id": "b6c8ddcb-e110-4be7-972e-8d6eceaa3605",
       "is_calculated": false,
       "marker_slug": "eosinophils_pct",
       "name": "Eosinophile %",
@@ -1192,7 +1192,7 @@
     {
       "description": "Die absolute Eosinophilenzahl ist aussagekräftiger als der Prozentanteil. Dauerhaft erhöhte Werte erfordern weitere Abklärung.",
       "display_order": 82,
-      "id": "1d0a2c09-19eb-4a1f-836a-3e8ac46a49ce",
+      "id": "3608c5a4-4448-4867-bc43-68792d4e4966",
       "is_calculated": false,
       "marker_slug": "eosinophils_abs",
       "name": "Eosinophile (Absolut)",
@@ -1205,7 +1205,7 @@
     {
       "description": "Basophile Granulozyten sind die seltensten weißen Blutkörperchen. Sie spielen eine Rolle bei allergischen Reaktionen und der Immunregulation.",
       "display_order": 83,
-      "id": "81734d54-3f56-45fe-8823-a5143d61bf9e",
+      "id": "898fe419-1502-4dd0-806d-89f8be9da780",
       "is_calculated": false,
       "marker_slug": "basophils_pct",
       "name": "Basophile %",
@@ -1218,7 +1218,7 @@
     {
       "description": "Die absolute Basophilenzahl ist normalerweise sehr gering. Erhöhungen können bei allergischen Reaktionen oder bestimmten Bluterkrankungen auftreten.",
       "display_order": 84,
-      "id": "9f7f9ada-bfc7-462f-a7d2-a04a88760015",
+      "id": "8b7f42bc-d208-44ac-943d-5f0464dbc501",
       "is_calculated": false,
       "marker_slug": "basophils_abs",
       "name": "Basophile (Absolut)",
@@ -1231,7 +1231,7 @@
     {
       "description": null,
       "display_order": 85,
-      "id": "ffe7656b-657f-4358-99a1-e2a8143cfd8f",
+      "id": "2de80770-dba2-4b26-9910-5377a3ac068b",
       "is_calculated": false,
       "marker_slug": "amylase",
       "name": "Amylase (Pancreatic)",
@@ -1244,7 +1244,7 @@
     {
       "description": null,
       "display_order": 86,
-      "id": "3282860f-2ab0-45a8-9af8-8daef5d2f731",
+      "id": "e4a32c72-7438-4a94-b752-ca300a6fb6d9",
       "is_calculated": false,
       "marker_slug": "lipase",
       "name": "Lipase",
@@ -1257,7 +1257,7 @@
     {
       "description": null,
       "display_order": 87,
-      "id": "dbcd7715-0017-4783-88bb-0e06b46950e2",
+      "id": "50163525-a288-49f1-bbbc-dbda7069f714",
       "is_calculated": false,
       "marker_slug": "bun",
       "name": "Urea (BUN)",
@@ -1270,7 +1270,7 @@
     {
       "description": null,
       "display_order": 88,
-      "id": "88058505-a98c-481b-9029-c226055a544a",
+      "id": "0e0de85a-0fd4-4d8e-bd6e-861d08771bfa",
       "is_calculated": false,
       "marker_slug": "igg",
       "name": "IgG",
@@ -1283,7 +1283,7 @@
     {
       "description": null,
       "display_order": 89,
-      "id": "4dca5065-dbbd-4786-88b6-d1ed1bafb31c",
+      "id": "ac70fdda-4113-4d05-b93c-0acdeffaa3f8",
       "is_calculated": false,
       "marker_slug": "vldl_c",
       "name": "VLDL Cholesterol",
@@ -1294,22 +1294,9 @@
       "zone_slug": "cardiovascular"
     },
     {
-      "description": "Der Körperfettanteil zeigt den prozentualen Fettanteil am Gesamtgewicht. Er ist aussagekräftiger als das Gewicht allein und unterscheidet zwischen Fett- und Magermasse.",
-      "display_order": 90,
-      "id": "6dc5b333-9261-4a39-b07c-b4c8175c32ef",
-      "is_calculated": false,
-      "marker_slug": "body_fat_pct",
-      "name": "Körperfettanteil",
-      "tooltip": "Der Körperfettanteil zeigt den prozentualen Fettanteil am Gesamtgewicht. Er ist aussagekräftiger als das Gewicht allein und unterscheidet zwischen Fett- und Magermasse.",
-      "unit_canonical": "%",
-      "when_to_worry": "Sehr hoher Körperfettanteil erhöht das Risiko für metabolisches Syndrom, Typ-2-Diabetes und Herz-Kreislauf-Erkrankungen.",
-      "why_it_matters": "Der Körperfettanteil unterscheidet zwischen Fett- und Magermasse  -  ein genaueres Bild als das Gewicht allein.",
-      "zone_slug": "structural"
-    },
-    {
       "description": null,
       "display_order": 90,
-      "id": "98c96773-26f0-4f7a-8d57-859300ce11f2",
+      "id": "5605420b-fd7d-4076-b78c-350a1bda5f5a",
       "is_calculated": false,
       "marker_slug": "total_fatty_acids",
       "name": "Total Fatty Acids",
@@ -1320,9 +1307,22 @@
       "zone_slug": "nutritional"
     },
     {
+      "description": "Der Körperfettanteil zeigt den prozentualen Fettanteil am Gesamtgewicht. Er ist aussagekräftiger als das Gewicht allein und unterscheidet zwischen Fett- und Magermasse.",
+      "display_order": 90,
+      "id": "dee72bc3-4680-4652-a996-fe3041c6ab33",
+      "is_calculated": false,
+      "marker_slug": "body_fat_pct",
+      "name": "Körperfettanteil",
+      "tooltip": "Der Körperfettanteil zeigt den prozentualen Fettanteil am Gesamtgewicht. Er ist aussagekräftiger als das Gewicht allein und unterscheidet zwischen Fett- und Magermasse.",
+      "unit_canonical": "%",
+      "when_to_worry": "Sehr hoher Körperfettanteil erhöht das Risiko für metabolisches Syndrom, Typ-2-Diabetes und Herz-Kreislauf-Erkrankungen.",
+      "why_it_matters": "Der Körperfettanteil unterscheidet zwischen Fett- und Magermasse  -  ein genaueres Bild als das Gewicht allein.",
+      "zone_slug": "structural"
+    },
+    {
       "description": "Der Körperwasseranteil gibt an, wie viel Prozent des Körpergewichts Wasser ist. Ausreichende Hydration ist essentiell für Zellfunktion und Stoffwechsel.",
       "display_order": 91,
-      "id": "8f5bb563-a652-4307-8095-8f70e8cb0168",
+      "id": "91cf2e27-a694-403f-ad4d-2724d9ce50e5",
       "is_calculated": false,
       "marker_slug": "body_water_pct",
       "name": "Körperwasseranteil",
@@ -1335,7 +1335,7 @@
     {
       "description": "Der Muskelmasseanteil zeigt den Anteil der Skelettmuskulatur am Körpergewicht. Höhere Muskelmasse verbessert Insulinsensitivität und Stoffwechselgesundheit.",
       "display_order": 92,
-      "id": "544bc958-312d-4fc3-bb22-316d07184d25",
+      "id": "fcb5ab3c-61f6-4b71-b2fb-2adb4839b29d",
       "is_calculated": false,
       "marker_slug": "muscle_pct",
       "name": "Muskelmasse",
@@ -1348,7 +1348,7 @@
     {
       "description": "Der Knochenmasseanteil zeigt den mineralischen Knochenanteil am Körpergewicht. Ausreichende Knochendichte schützt vor Osteoporose und Frakturen.",
       "display_order": 93,
-      "id": "bfce0bde-c817-4479-9ab1-6ea561439c92",
+      "id": "27f5bdb6-f08e-4ba4-8dcf-2bee4db62350",
       "is_calculated": false,
       "marker_slug": "bone_mass_pct",
       "name": "Knochenmasse",
@@ -1361,7 +1361,7 @@
     {
       "description": "Anteil der Skelettmuskulatur am Körpergewicht. Höhere Werte deuten auf bessere Fitness und metabolische Gesundheit hin.",
       "display_order": 94,
-      "id": "5ddda376-7600-424f-874c-5dec7f746b30",
+      "id": "bf4b3165-a1f0-4c1d-b0c4-89871909c26f",
       "is_calculated": false,
       "marker_slug": "skeletal_muscle_pct",
       "name": "Skelettmuskel",
@@ -1374,7 +1374,7 @@
     {
       "description": "Absolute Skelettmuskelmasse in Kilogramm. Verfolgen Sie den Trend — absolute Werte hängen stark von der Körpergröße ab.",
       "display_order": 95,
-      "id": "b8f11196-dbef-4218-9717-a1db28818f8b",
+      "id": "c33382cc-57a1-4339-be44-0369d6462e66",
       "is_calculated": false,
       "marker_slug": "muscle_mass_kg",
       "name": "Muskelmasse",
@@ -1387,7 +1387,7 @@
     {
       "description": "Fett unter der Haut. Überschuss ist unerwünscht, aber subkutanes Fett ist weniger schädlich als viszerales Fett.",
       "display_order": 96,
-      "id": "b7d6da1d-b334-464c-9d98-4c0e624671ed",
+      "id": "1ca0a181-9574-48e0-9333-d42b68367335",
       "is_calculated": false,
       "marker_slug": "subcutaneous_fat_pct",
       "name": "Subkutanes Fett",
@@ -1400,7 +1400,7 @@
     {
       "description": "Fett um die inneren Organe, gemessen als Stufe (1-59). Werte über 12 weisen auf ein erhöhtes Gesundheitsrisiko hin.",
       "display_order": 97,
-      "id": "b08ff7d9-4d29-44a1-b718-9047d98c130d",
+      "id": "67d24956-7fd5-4754-9fa8-c51dd6bde7e6",
       "is_calculated": false,
       "marker_slug": "visceral_fat",
       "name": "Viszeralfett",
@@ -1413,7 +1413,7 @@
     {
       "description": "Gesamtkörpergewicht minus Fettmasse, einschließlich Muskeln, Knochen, Wasser und Organe. Verfolgen Sie den Trend.",
       "display_order": 98,
-      "id": "31ee7733-9a76-447f-af5e-0fc19de61cfe",
+      "id": "8daa2652-cc50-4410-aeb1-f6bd1062bad0",
       "is_calculated": false,
       "marker_slug": "fat_free_mass",
       "name": "Fettfreie Masse",
@@ -1426,7 +1426,7 @@
     {
       "description": "Fäkales Calprotectin — Entzündungsmarker für die Darmgesundheit",
       "display_order": 99,
-      "id": "4121613d-14d0-4e4b-b190-72f8a2b49138",
+      "id": "1d977849-c676-4366-b703-8df1bb6d8cf5",
       "is_calculated": false,
       "marker_slug": "calprotectin",
       "name": "Calprotectin",
@@ -1439,7 +1439,7 @@
     {
       "description": "Kalorien, die Ihr Körper in Ruhe verbrennt. Ein höherer Grundumsatz deutet auf mehr stoffwechselaktives Gewebe (Muskeln) hin.",
       "display_order": 99,
-      "id": "c73a6fad-2a95-4492-a510-482eb8a20558",
+      "id": "70b54a0b-ccb1-47c7-a969-19ce8d51d663",
       "is_calculated": false,
       "marker_slug": "bmr",
       "name": "Grundumsatz",
@@ -1450,22 +1450,9 @@
       "zone_slug": "structural"
     },
     {
-      "description": "Chlorid ist ein Elektrolyt, das den Flüssigkeitshaushalt und das Säure-Basen-Gleichgewicht reguliert.",
-      "display_order": 100,
-      "id": "ba6b8a85-79a9-4b92-b6cb-e4240b75a38e",
-      "is_calculated": false,
-      "marker_slug": "chloride",
-      "name": "Chlorid",
-      "tooltip": null,
-      "unit_canonical": "mmol/L",
-      "when_to_worry": null,
-      "why_it_matters": null,
-      "zone_slug": "detoxification"
-    },
-    {
       "description": "Geschätztes biologisches Alter basierend auf dem Grundumsatz im Vergleich zu Altersgruppen-Durchschnittswerten. Niedriger als Ihr tatsächliches Alter ist gut.",
       "display_order": 100,
-      "id": "119bce77-0370-46d8-a351-6dc7feec27d9",
+      "id": "df43856c-c6c9-40a9-a6d9-e81047fc4ba4",
       "is_calculated": false,
       "marker_slug": "metabolic_age",
       "name": "Stoffwechselalter",
@@ -1476,9 +1463,22 @@
       "zone_slug": "structural"
     },
     {
+      "description": "Chlorid ist ein Elektrolyt, das den Flüssigkeitshaushalt und das Säure-Basen-Gleichgewicht reguliert.",
+      "display_order": 100,
+      "id": "ced55fa0-a315-4627-8fd9-b75496841bd1",
+      "is_calculated": false,
+      "marker_slug": "chloride",
+      "name": "Chlorid",
+      "tooltip": null,
+      "unit_canonical": "mmol/L",
+      "when_to_worry": null,
+      "why_it_matters": null,
+      "zone_slug": "detoxification"
+    },
+    {
       "description": "Anteil des Körpergewichts aus Protein. Ausreichende Proteinwerte unterstützen Muskelerhalt, Immunfunktion und Gewebereparatur.",
       "display_order": 101,
-      "id": "9cb536c5-b7b9-4201-93d3-4852fe1aea0c",
+      "id": "359c833c-8de6-490a-b59f-c2b6f1e5185c",
       "is_calculated": false,
       "marker_slug": "body_protein_pct",
       "name": "Körperprotein",
@@ -1491,7 +1491,7 @@
     {
       "description": "Absolute Knochenmineralmasse in Kilogramm. Wichtig für die Frakturrisikobewertung. Gewichtstragende Übungen und Kalzium/Vitamin D unterstützen die Knochengesundheit.",
       "display_order": 102,
-      "id": "4035c359-305a-4f81-8159-24c873d64e66",
+      "id": "05b5bc87-1045-44e2-ab2c-ad5e564557b0",
       "is_calculated": false,
       "marker_slug": "bone_mass_kg",
       "name": "Knochenmasse",
@@ -1504,7 +1504,7 @@
     {
       "description": "Glucose (mmol/L) ÷ Ketones (mmol/L)",
       "display_order": 1001,
-      "id": "cdf887f4-5251-461c-8387-d28aabb95dca",
+      "id": "b206b07a-8e1e-44ac-bb38-1dc9d33c8a99",
       "is_calculated": true,
       "marker_slug": "gki",
       "name": "GKI - Glucose-Ketone Index",
@@ -1517,7 +1517,7 @@
     {
       "description": "Glucose (mg/dL) ÷ Ketones (mmol/L)  [= GKI × 18]",
       "display_order": 1002,
-      "id": "edb63b0e-d2ef-40da-8879-6dcc7e9e27b2",
+      "id": "40d12050-0972-4981-a27b-07f314fd24e4",
       "is_calculated": true,
       "marker_slug": "dr_boz_ratio",
       "name": "Dr. Boz Ratio",
@@ -1530,7 +1530,7 @@
     {
       "description": "Waist Circumference (cm) ÷ Height (cm)",
       "display_order": 1003,
-      "id": "b6501756-c66d-424d-817c-3fafc72a03e4",
+      "id": "b1f71844-de03-4978-9439-0be1991b3de9",
       "is_calculated": true,
       "marker_slug": "whtr",
       "name": "WHtR - Waist-to-Height Ratio",
@@ -1543,7 +1543,7 @@
     {
       "description": "Weight (kg) ÷ Height² (m²)",
       "display_order": 1004,
-      "id": "2025a9ac-2e7c-46bd-9f82-4b37cae62448",
+      "id": "cde88428-162d-4bb1-a94f-d9b9bf7228e4",
       "is_calculated": true,
       "marker_slug": "bmi",
       "name": "BMI - Body Mass Index",
@@ -1556,7 +1556,7 @@
     {
       "description": "Hematocrit (%) ÷ Hemoglobin (g/dL)  [HB mmol/L × 1.61 → g/dL first]",
       "display_order": 1005,
-      "id": "3981c8c4-c0c8-49cf-a305-2d2caeaac45b",
+      "id": "d6e4f363-5afd-47eb-919e-89a9fac50802",
       "is_calculated": true,
       "marker_slug": "hct_hb_ratio",
       "name": "HCT/HB Ratio",
@@ -1569,7 +1569,7 @@
     {
       "description": "Triglycerides ÷ HDL (both in mmol/L)",
       "display_order": 1006,
-      "id": "fb1ae523-7770-45cb-ba3f-c4c4c668b609",
+      "id": "ba42b354-52b9-43ca-bd76-47791d507933",
       "is_calculated": true,
       "marker_slug": "tg_hdl_ratio",
       "name": "TG/HDL Ratio",
@@ -1582,7 +1582,7 @@
     {
       "description": "(Glucose mg/dL × Insulin µIU/mL) ÷ 405  [glucose mmol/L × 18.018 to convert]",
       "display_order": 1007,
-      "id": "b9bd0b8e-a400-4469-afbc-6160981b0f99",
+      "id": "462e8402-7793-4fcf-bd51-f272c2522f46",
       "is_calculated": true,
       "marker_slug": "homa_ir",
       "name": "HOMA-IR",
@@ -1595,7 +1595,7 @@
     {
       "description": "ln(Triglycerides mg/dL × Glucose mg/dL ÷ 2)  [convert mmol/L: TG×88.57, Glu×18.018]",
       "display_order": 1008,
-      "id": "e62e77cf-1b6c-40c7-9ae6-6634a40dc32b",
+      "id": "b919aa5c-115a-421e-a118-2243c37029ea",
       "is_calculated": true,
       "marker_slug": "tyg_index",
       "name": "TyG Index",
@@ -1612,7 +1612,7 @@
       "display_order": 0,
       "features_summary": "Alle Marker, Self-Hosting, API-Zugang, Volle Datenkontrolle",
       "highlight": false,
-      "id": "adc7ef2d-dfa3-4cc4-b518-1c518c0e4eb7",
+      "id": "3defe3bb-a178-4b20-8ef7-8295ebac7ddd",
       "is_active": true,
       "name": "Core",
       "price_annual_eur": null,
@@ -1625,7 +1625,7 @@
       "display_order": 1,
       "features_summary": "10 Marker, Basis-Dashboard, 3 KI-Fragen/Monat",
       "highlight": false,
-      "id": "cad00c81-8286-48df-aa46-458d88e0f4e2",
+      "id": "c3b83016-6a3c-485b-9fb0-bf9d79f40318",
       "is_active": true,
       "name": "Glimpse",
       "price_annual_eur": 0,
@@ -1638,7 +1638,7 @@
       "display_order": 2,
       "features_summary": "75+ Marker, KI-Einblicke, Cloud-Sync, 5 KI-Fragen/Monat",
       "highlight": true,
-      "id": "9250aa74-0a27-434c-a239-e4b379b568c7",
+      "id": "b1bfa574-4d5c-4880-b747-767c4f4dc465",
       "is_active": true,
       "name": "Focus",
       "price_annual_eur": 99.9,
@@ -1651,7 +1651,7 @@
       "display_order": 3,
       "features_summary": "Alles in Focus plus Experimente, Vergleiche, 15 KI-Fragen/Monat",
       "highlight": false,
-      "id": "83633766-4cf2-4e6d-bd08-b9d392c6628e",
+      "id": "2d8e6f39-9ec2-4e83-8cd0-ba400098d0c8",
       "is_active": true,
       "name": "Insight",
       "price_annual_eur": 249.9,
@@ -1664,7 +1664,7 @@
       "display_order": 4,
       "features_summary": "Alles in Insight plus unbegrenzte KI, Coaching, API-Zugang",
       "highlight": false,
-      "id": "1bf0763e-c2a0-4683-ab3f-2d18a2dfb61f",
+      "id": "d345af7b-5bea-4dd0-ba78-0f9a5e7ab45a",
       "is_active": true,
       "name": "Clarity",
       "price_annual_eur": 499.9,
@@ -1677,7 +1677,7 @@
       "display_order": 5,
       "features_summary": "Alles in Clarity plus White-Label, Multi-Nutzer, Unternehmensfunktionen",
       "highlight": false,
-      "id": "2f2a1336-59d6-4fd6-8c30-b0a0c4609388",
+      "id": "5be79bfb-aa94-40d3-98fc-ebd4cb0926b4",
       "is_active": true,
       "name": "Horizon",
       "price_annual_eur": 999.9,
@@ -1690,7 +1690,7 @@
     {
       "category": "balanced",
       "category_label": "Balanced",
-      "id": "68824132-5a71-4dcc-bdca-493bc9e49c7c",
+      "id": "095fc02d-3abc-40ee-a835-8e7ff89f75a0",
       "is_active": true,
       "name": "Standard",
       "short_description": "Normal eating without specific dietary restrictions",
@@ -1700,7 +1700,7 @@
     {
       "category": "animal_based",
       "category_label": "Animal-Based",
-      "id": "33a82449-a3a8-4c1b-9c5f-53eb37798954",
+      "id": "eff81ab0-2cba-4ad9-9106-b1ffab97e290",
       "is_active": true,
       "name": "Karnivor",
       "short_description": "Animal products only — meat, fish, eggs, dairy",
@@ -1710,7 +1710,7 @@
     {
       "category": "low_carb",
       "category_label": "Low Carb",
-      "id": "f897dfdc-610d-41d2-aad7-c466488b0108",
+      "id": "068157bb-d56a-4495-9c54-af622ca841a9",
       "is_active": true,
       "name": "Ketogen",
       "short_description": "Very low carb, high fat — typically under 20-50g carbs/day",
@@ -1720,7 +1720,7 @@
     {
       "category": "low_carb",
       "category_label": "Low Carb",
-      "id": "16ccfb6b-7887-434e-b380-cc7443b36a89",
+      "id": "b93e61ce-7a77-4536-8f9e-5eb4b87c3e73",
       "is_active": true,
       "name": "Low Carb",
       "short_description": "Reduced carbohydrate intake — typically under 100g carbs/day",
@@ -1730,7 +1730,7 @@
     {
       "category": "evolutionary",
       "category_label": "Evolutionary",
-      "id": "8f74cb1f-1a83-4bef-8a9c-e6ac7a42277f",
+      "id": "503b67f3-7557-4a4a-83c8-b771a1c86302",
       "is_active": true,
       "name": "Paleo",
       "short_description": "Whole foods based on what our ancestors ate — no grains, legumes, dairy",
@@ -1740,7 +1740,7 @@
     {
       "category": "evolutionary",
       "category_label": "Evolutionary",
-      "id": "a7174cf7-1a45-43f5-8bd8-aad95a89d9ee",
+      "id": "6f4a648b-18b0-42a7-9f5d-5728f34bed94",
       "is_active": true,
       "name": "Primal",
       "short_description": "Similar to Paleo but allows some dairy and more flexibility",
@@ -1750,7 +1750,7 @@
     {
       "category": "balanced",
       "category_label": "Balanced",
-      "id": "a3954913-e8f7-43a5-a1ad-c659b5ccb9e4",
+      "id": "1de422ab-e0a4-481e-bb5f-41c835e65859",
       "is_active": true,
       "name": "Mediterran",
       "short_description": "Rich in olive oil, fish, vegetables, and whole grains",
@@ -1760,7 +1760,7 @@
     {
       "category": "plant_based",
       "category_label": "Plant-Based",
-      "id": "424260bc-9b3f-42a6-89cf-ddeccab5213c",
+      "id": "a3c95b48-5d9f-48cb-b60b-e35b60fd4a26",
       "is_active": true,
       "name": "Vegan",
       "short_description": "No animal products of any kind",
@@ -1770,7 +1770,7 @@
     {
       "category": "plant_forward",
       "category_label": "Plant-Forward",
-      "id": "9fead798-58e6-4df6-97f5-14c73132c565",
+      "id": "d07fcb55-08ad-49f2-aa53-e51859f74806",
       "is_active": true,
       "name": "Vegetarisch",
       "short_description": "No meat or fish, but includes eggs and dairy",
@@ -1780,7 +1780,7 @@
     {
       "category": "plant_forward",
       "category_label": "Plant-Forward",
-      "id": "d2bc9965-ebd0-4dc2-9830-f4cafcbc9049",
+      "id": "ced920fa-8819-49c3-beb6-9a5c01331110",
       "is_active": true,
       "name": "Pescetarisch",
       "short_description": "Vegetarian plus fish and seafood",
@@ -1790,7 +1790,7 @@
     {
       "category": "plant_forward",
       "category_label": "Plant-Forward",
-      "id": "a9e79a8f-eb21-4e94-8259-b31bef2f2ab4",
+      "id": "f905041d-661d-4584-b03d-60fca3b9d81f",
       "is_active": true,
       "name": "Nur Fisch",
       "short_description": "Fish as primary animal protein source",
@@ -1800,7 +1800,7 @@
     {
       "category": "balanced",
       "category_label": "Balanced",
-      "id": "7fd6a2e9-b843-45ec-9b6f-cf60b0f43898",
+      "id": "6e5773ac-c2c1-40a3-8214-c3fb6e5baf04",
       "is_active": true,
       "name": "Gemischt",
       "short_description": "Flexible eating combining multiple dietary approaches",
@@ -1810,7 +1810,7 @@
     {
       "category": "alternative",
       "category_label": "Alternative",
-      "id": "21070523-a19c-465f-a24f-ec71a209b8a3",
+      "id": "642f01ca-a3c5-4a77-915d-1054b82f4aeb",
       "is_active": true,
       "name": "Individuell",
       "short_description": "A personalized dietary approach",
@@ -1821,7 +1821,7 @@
   "eatingPatterns": [
     {
       "description": "Fast for 16 hours, eat within an 8-hour window",
-      "id": "c79f98bc-e6c0-44ff-9e5c-88efddc51664",
+      "id": "724a64dd-82a0-4cdd-86cb-ebfabb86991a",
       "is_active": true,
       "name": "16:8 Intervallfasten",
       "slug": "16_8",
@@ -1829,7 +1829,7 @@
     },
     {
       "description": "Eat one large meal per day, fast the rest",
-      "id": "43501ce7-0f5d-4fee-9557-ecd436434d93",
+      "id": "a7e2acf5-d692-4ec1-910f-54d1eddc6950",
       "is_active": true,
       "name": "OMAD (Eine Mahlzeit pro Tag)",
       "slug": "omad",
@@ -1837,7 +1837,7 @@
     },
     {
       "description": "A day-and-a-half fast for deeper metabolic benefits",
-      "id": "fea8ec11-a7e3-4979-afdd-fa42d0782316",
+      "id": "6544a695-c3a7-4221-8f2a-516b520d02f5",
       "is_active": true,
       "name": "36-Stunden-Fasten",
       "slug": "36h",
@@ -1845,7 +1845,7 @@
     },
     {
       "description": "A two-day fast for autophagy and metabolic reset",
-      "id": "3d6425da-5fa5-4174-b8e3-a08c51a10d03",
+      "id": "1d1f7025-1447-45b3-ac8d-e27b5df3c7ac",
       "is_active": true,
       "name": "48-Stunden-Fasten",
       "slug": "48h",
@@ -1853,7 +1853,7 @@
     },
     {
       "description": "A three-day fast for immune system regeneration",
-      "id": "3255af1f-3f52-4e32-bb79-fd963fcd87dd",
+      "id": "7d3e457f-f374-452c-87c9-f76189fd75ea",
       "is_active": true,
       "name": "72-Stunden-Fasten",
       "slug": "72h",
@@ -1861,7 +1861,7 @@
     },
     {
       "description": "Fasts longer than 72 hours — for experienced fasters only",
-      "id": "830cf93f-692d-4b19-bef2-e84ff1f63454",
+      "id": "7f1a29b9-cdc6-4ab2-aff2-ca0387b60c60",
       "is_active": true,
       "name": "Langzeitfasten (72h+)",
       "slug": "extended",
@@ -1869,7 +1869,7 @@
     },
     {
       "description": "A personalized fasting schedule",
-      "id": "458ede02-ab90-481b-a27c-d04385e9207a",
+      "id": "e0bedad9-714d-4f26-9430-04e3221bb930",
       "is_active": true,
       "name": "Individuelles Fastenprotokoll",
       "slug": "custom",
@@ -1879,119 +1879,119 @@
   "foodCategories": [
     {
       "icon": "🥩",
-      "id": "7d03b57f-b0a9-4257-a76d-0d6cb34da2bd",
+      "id": "93a84f9d-a181-4117-a1d5-0f825a73216a",
       "name": "Rotes Fleisch",
       "slug": "meat",
       "sort_order": 1
     },
     {
       "icon": "🍗",
-      "id": "5e546134-b471-4b8c-afa4-9c24fadded4c",
+      "id": "03e5aa43-5d15-41a6-bd68-59a1ace5f83d",
       "name": "Geflügel",
       "slug": "poultry",
       "sort_order": 2
     },
     {
       "icon": "🐟",
-      "id": "22f14b5e-1e01-43ae-835e-9bf282e1b74b",
+      "id": "cc514638-aa68-4401-baaa-ff5c6acb6464",
       "name": "Fisch",
       "slug": "fish",
       "sort_order": 3
     },
     {
       "icon": "🦐",
-      "id": "01ddf74a-b631-431c-bc91-fcde4929ed7e",
+      "id": "da33504f-9bd5-4c31-923b-405647089ba4",
       "name": "Meeresfrüchte",
       "slug": "seafood",
       "sort_order": 4
     },
     {
       "icon": "🫀",
-      "id": "e987a3ee-d2b8-48e7-8bd1-27afbd8ed1a6",
+      "id": "c10bde18-0cf8-449e-975c-992bab139fc1",
       "name": "Innereien",
       "slug": "organ_meat",
       "sort_order": 5
     },
     {
       "icon": "🥚",
-      "id": "1d341fe6-f871-4025-bc65-e3b0fb2e1062",
+      "id": "5f54d503-5089-42e2-b923-dd863e011c1a",
       "name": "Eier",
       "slug": "egg",
       "sort_order": 6
     },
     {
       "icon": "🧀",
-      "id": "60bba8ac-1bbe-4339-9409-f9f1f99a7335",
+      "id": "8e9451db-ad04-4652-ad25-23973add6cdb",
       "name": "Milchprodukte",
       "slug": "dairy",
       "sort_order": 7
     },
     {
       "icon": "🥬",
-      "id": "258852b3-ed93-4dc6-9bae-1d175ba16c73",
+      "id": "5abcba00-4d6b-4896-b345-1d666c37b278",
       "name": "Gemüse",
       "slug": "vegetable",
       "sort_order": 8
     },
     {
       "icon": "🍎",
-      "id": "950fff95-c023-4520-8e9e-77ddd2871f50",
+      "id": "d8052555-5737-4c76-859e-0ff437b8ac35",
       "name": "Obst",
       "slug": "fruit",
       "sort_order": 9
     },
     {
       "icon": "🥜",
-      "id": "f5ecec21-a602-4d11-9e04-b2812c533017",
+      "id": "573d2183-a946-4046-83db-65439ddf461d",
       "name": "Nüsse & Samen",
       "slug": "nut_seed",
       "sort_order": 10
     },
     {
       "icon": "🫘",
-      "id": "694998df-701e-40eb-bb50-e3d5d9574886",
+      "id": "7a77872c-0d77-4c85-b72e-5e501283c427",
       "name": "Hülsenfrüchte",
       "slug": "legume",
       "sort_order": 11
     },
     {
       "icon": "🌾",
-      "id": "e98637b7-ba8e-433c-9cee-fc5c265249bc",
+      "id": "ece556d6-ba89-4bfd-9be6-3e44ddbf586c",
       "name": "Getreide",
       "slug": "grain",
       "sort_order": 12
     },
     {
       "icon": "🫙",
-      "id": "92aee50e-5726-494c-abfa-32ce61abcb0e",
+      "id": "237b106c-fc23-48b3-8cf0-dd91b9a56ef9",
       "name": "Fermentierte Lebensmittel",
       "slug": "fermented",
       "sort_order": 13
     },
     {
       "icon": "🌿",
-      "id": "e86381d3-048d-412e-a1e4-7e5a7fb05018",
+      "id": "a080b223-49ea-441f-84ae-dde613c60d42",
       "name": "Kräuter & Gewürze",
       "slug": "herb_spice",
       "sort_order": 14
     },
     {
       "icon": "🫒",
-      "id": "d89a2c73-08f2-4780-9170-af043bb1ee70",
+      "id": "a9520111-df44-4f94-918f-723ad92cfbc9",
       "name": "Öle & Fette",
       "slug": "oil_fat",
       "sort_order": 15
     },
     {
       "icon": "☕",
-      "id": "5176d5e1-e424-4d2a-adf5-7c30c1d906b4",
+      "id": "22201650-3716-417c-8131-bfc2e84e926a",
       "name": "Getränke",
       "slug": "beverage",
       "sort_order": 16
     },
     {
       "icon": "🍽️",
-      "id": "8a9871b3-110b-4d65-925a-2df90de19c32",
+      "id": "d712536b-c6f3-4beb-bca2-3aaa86b1e0a6",
       "name": "Sonstiges",
       "slug": "other",
       "sort_order": 17
