@@ -18,11 +18,18 @@ export const metadata: Metadata = {
     description: 'Privacy-first software platform for health, finance, and infrastructure.',
     url: 'https://brickos.io',
     siteName: 'BrickOS',
+    images: [{
+      url: 'https://brickos.io/og-image.png',
+      width: 1280,
+      height: 640,
+      alt: 'BrickOS - Privacy-first sovereignty platform',
+    }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'BrickOS - Building sovereignty, brick by brick',
     description: 'Privacy-first software platform for health, finance, and infrastructure.',
+    images: ['https://brickos.io/og-image.png'],
   },
   icons: {
     icon: '/blockos-favicon.ico',
