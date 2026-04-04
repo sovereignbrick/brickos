@@ -4,6 +4,7 @@ packages:
   - 'platform/website'
   - 'apps/health/*/frontend'
   - 'apps/health/*/website'
+  - 'apps/platform/*'
   - 'apps/finance/*/frontend'
   - 'apps/node/*/frontend'
 
