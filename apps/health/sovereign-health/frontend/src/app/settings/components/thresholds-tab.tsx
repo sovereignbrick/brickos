@@ -187,7 +187,14 @@ export function ThresholdsTab({
   const [collapsedZones, setCollapsedZones] = useState<Set<string>>(new Set())
   const [editedRanges, setEditedRanges] = useState<Map<string, CustomReferenceRange>>(new Map())
   const [rowSaveStatus, setRowSaveStatus] = useState<Map<string, 'saved' | 'error'>>(new Map())
-  const [showPresetBanner, setShowPresetBanner] = useState(true)
+  const [showPresetBanner, setShowPresetBanner] = useState(() => {
+    // Only show banner if diet protocol changed since last dismissal
+    if (typeof window === 'undefined' || !dietProtocol) return false
+    try {
+      const dismissed = localStorage.getItem('sh_preset_dismissed_for')
+      return dismissed !== dietProtocol
+    } catch { return false }
+  })
   // Per-marker alternative unit selections (display-only, slug -> selected alt unit)
   const [altUnitSelections, setAltUnitSelections] = useState<Map<string, string>>(new Map())
   const [unitForm, setUnitForm] = useState(units)
@@ -436,6 +443,7 @@ export function ThresholdsTab({
         toast.success(tToast('thresholdResetAll'))
       } catch { toast.error(tToast('thresholdResetAllFailed')) }
       setShowPresetBanner(false)
+    try { localStorage.setItem('sh_preset_dismissed_for', dietProtocol ?? '') } catch {}
       return
     }
 
@@ -459,6 +467,7 @@ export function ThresholdsTab({
       toast.error(tToast('presetFailed'))
     }
     setShowPresetBanner(false)
+    try { localStorage.setItem('sh_preset_dismissed_for', dietProtocol ?? '') } catch {}
   }, [dietProtocol, onRefresh, setSaveStatus, showSaved])
 
   const filterLower = filter.toLowerCase()
@@ -489,7 +498,7 @@ export function ThresholdsTab({
             {t('applyPreset', { protocol: dietProtocol ?? '' })}
           </p>
           <button onClick={applyDietPreset} className="bg-blue-600 hover:bg-blue-500 text-white text-xs px-3 py-1.5 rounded-lg transition-colors">{t('applyButton')}</button>
-          <button onClick={() => setShowPresetBanner(false)} className="text-xs text-muted-foreground hover:text-foreground transition-colors">{tCommon('keepCurrent')}</button>
+          <button onClick={() => { setShowPresetBanner(false); try { localStorage.setItem('sh_preset_dismissed_for', dietProtocol ?? '') } catch {} }} className="text-xs text-muted-foreground hover:text-foreground transition-colors">{tCommon('keepCurrent')}</button>
         </div>
       )}
 
