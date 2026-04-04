@@ -6,6 +6,7 @@ import { useContent } from '@/lib/content-context'
 import { api } from '@/lib/api'
 import { toast } from '@/lib/toast'
 import type { UnitPreferences, CustomReferenceRange, MarkerWithZone, CalculatedMarkerDef } from '@/lib/types'
+import { invalidateUnitCache } from '@/hooks/use-unit-preferences'
 import {
   groupByZone,
   getMarkerUnitInfo,
@@ -272,6 +273,7 @@ export function ThresholdsTab({
     unitSaveTimerRef.current = setTimeout(async () => {
       try {
         await api.settings.updateUnits(updates)
+        invalidateUnitCache()
       } catch {
         toast.error(tToast('unitSaveFailed'))
       }

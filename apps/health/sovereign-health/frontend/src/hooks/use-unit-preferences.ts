@@ -9,25 +9,24 @@ import { getDisplayUnit, convertValue } from '@/lib/units'
 let cachedPrefs: UnitPreferences | null = null
 let fetchPromise: Promise<UnitPreferences | null> | null = null
 
+/** Invalidate the unit preferences cache and notify all hooks to re-fetch. */
+export function invalidateUnitCache() {
+  cachedPrefs = null
+  fetchPromise = null
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('unit-prefs-changed'))
+  }
+}
+
 /**
  * Hook providing user unit preferences with conversion helpers.
- * Caches preferences in memory — fetched once per session.
- *
- * Usage:
- *   const { displayValue, displayUnit } = useUnitPreferences()
- *   const val = displayValue('glucose', 5.5, 'mmol/L')  // converts if user prefers mg/dL
- *   const unit = displayUnit('glucose', 'mmol/L')         // returns user's preferred unit
+ * Listens for 'unit-prefs-changed' events to auto-refresh when units are saved.
  */
 export function useUnitPreferences() {
   const { user } = useAuth()
   const [prefs, setPrefs] = useState<UnitPreferences | null>(cachedPrefs)
 
-  useEffect(() => {
-    if (!user || cachedPrefs) {
-      if (cachedPrefs) setPrefs(cachedPrefs)
-      return
-    }
-
+  const fetchPrefs = useCallback(() => {
     if (!fetchPromise) {
       fetchPromise = api.settings.get()
         .then(res => {
@@ -37,11 +36,29 @@ export function useUnitPreferences() {
         .catch(() => null)
         .finally(() => { fetchPromise = null })
     }
-
     fetchPromise.then(p => {
       if (p) setPrefs(p)
     })
-  }, [user])
+  }, [])
+
+  useEffect(() => {
+    if (!user) return
+    if (cachedPrefs) {
+      setPrefs(cachedPrefs)
+    } else {
+      fetchPrefs()
+    }
+  }, [user, fetchPrefs])
+
+  // Listen for cache invalidation events (fired when units are saved)
+  useEffect(() => {
+    const handler = () => {
+      cachedPrefs = null
+      fetchPrefs()
+    }
+    window.addEventListener('unit-prefs-changed', handler)
+    return () => window.removeEventListener('unit-prefs-changed', handler)
+  }, [fetchPrefs])
 
   const dUnit = useCallback(
     (slug: string, canonicalUnit: string): string =>
@@ -77,6 +94,6 @@ export function useUnitPreferences() {
     displayUnit: dUnit,
     displayValue: dValue,
     formatDisplay,
-    invalidateCache: () => { cachedPrefs = null },
+    invalidateCache: invalidateUnitCache,
   }
 }
