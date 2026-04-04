@@ -1,7 +1,10 @@
 # Sprint 018 -- Import Pipeline Reliability
 
-**Started:** 2026-03-29
-**Duration:** 1 day (2026-03-29)
+**Started:** 2026-03-28
+**Completed:** 2026-03-28
+**Duration:** 1 day (2026-03-28)
+**Status:** CLOSED -- deployed as v0.31.0
+**Delivered:** 16 / 16 pts
 **Goal:** Fix calculated marker computation during import (historical dates + dedup), add SHBG marker alias, extract lab metadata from PDFs, and build import history page.
 
 ## Context

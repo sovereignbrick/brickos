@@ -4584,6 +4584,7 @@ dependencies = [
  "sha2",
  "sovereign-link",
  "sqlx",
+ "strsim",
  "thiserror 2.0.18",
  "tokio",
  "totp-rs",

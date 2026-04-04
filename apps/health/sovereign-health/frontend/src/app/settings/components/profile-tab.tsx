@@ -226,6 +226,23 @@ export function ProfileTab({
                   <p className="text-[11px] text-muted-foreground mt-1 leading-snug">{t(`fastingDescs.${lForm.default_fasting_protocol}`)}</p>
                 )}
               </FieldWithInfo>
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-1">
+                  <label className="text-sm text-muted-foreground">{t('mealTimingLabel')}</label>
+                </div>
+                <select value={lForm.default_meal_timing ?? ''} onChange={e => setLForm({ ...lForm, default_meal_timing: e.target.value || null })} className={inp}>
+                  <option value="">{tCommon('notSet')}</option>
+                  <option value="fasting">{t('mealTimings.fasting')}</option>
+                  <option value="before">{t('mealTimings.before')}</option>
+                  <option value="30m_after">{t('mealTimings.30mAfter')}</option>
+                  <option value="1h_after">{t('mealTimings.1hAfter')}</option>
+                  <option value="2h_after">{t('mealTimings.2hAfter')}</option>
+                  <option value="3h_after">{t('mealTimings.3hAfter')}</option>
+                </select>
+                {lForm.default_meal_timing && (
+                  <p className="text-[11px] text-muted-foreground mt-1 leading-snug">{t(`mealTimingDescs.${lForm.default_meal_timing}`)}</p>
+                )}
+              </div>
               <FieldWithInfo label={t('exerciseLevel')} items={['strength','cardio','walking','hiit','yoga','swimming','cycling','pilates','rest'].map(k => ({ name: tCommon(k as 'strength'), desc: t(`exerciseDescs.${k}` as 'exerciseDescs.strength') }))}>
                 <select value={lForm.default_exercise ?? ''} onChange={e => setLForm({ ...lForm, default_exercise: e.target.value || null })} className={inp}>
                   <option value="">{tCommon('none')}</option>

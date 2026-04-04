@@ -81,6 +81,7 @@ export function formatTime(date: Date | string, countryCode?: string | null): st
     hour: "2-digit",
     minute: "2-digit",
     hour12: !use24,
+    timeZone: "UTC",
   });
 
   return fmt.format(d);

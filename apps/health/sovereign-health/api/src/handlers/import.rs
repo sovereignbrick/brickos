@@ -18,7 +18,7 @@ use crate::{
     services::{
         doctor_chat::{
             call_claude_csv_extraction, call_claude_vision, call_claude_vision_multi,
-            compress_image_if_needed,
+            classify_document, compress_image_if_needed,
         },
         marker_matcher, tier,
     },
@@ -158,11 +158,48 @@ pub async fn upload(
 
     let session_id: Uuid = session_row.try_get("id").map_err(|_| AppError::Internal)?;
 
+    // Classify document format before extraction
+    // Skip classifier when user explicitly chose an import type (saves an API call + latency)
+    let (detected_category, detected_language) = match import_type.as_str() {
+        "lab_import" => ("lab_report".to_string(), "de".to_string()),
+        "med_import" => ("medication".to_string(), "en".to_string()),
+        _ if files.len() == 1 => {
+            let (compressed, _ct) =
+                compress_image_if_needed(&files[0].bytes, &files[0].content_type);
+            let file_base64 = BASE64.encode(&compressed);
+            classify_document(
+                &config.anthropic_api_key,
+                &file_base64,
+                &files[0].content_type,
+            )
+            .await
+        }
+        _ => ("general_health".to_string(), "en".to_string()),
+    };
+
+    // Store classification result
+    let _ = sqlx::query(
+        "UPDATE import_sessions SET detected_category = $1, detected_language = $2 WHERE id = $3",
+    )
+    .bind(&detected_category)
+    .bind(&detected_language)
+    .bind(session_id)
+    .execute(pool.get_ref())
+    .await;
+
     // Compress images before sending to AI (Anthropic 5 MB per-image limit)
     let vision_result = if files.len() == 1 {
         let (compressed, ct) = compress_image_if_needed(&files[0].bytes, &files[0].content_type);
         let file_base64 = BASE64.encode(&compressed);
-        call_claude_vision(&config.anthropic_api_key, &file_base64, &ct, &import_type).await
+        call_claude_vision(
+            &config.anthropic_api_key,
+            &file_base64,
+            &ct,
+            &import_type,
+            Some(&detected_category),
+            Some(&detected_language),
+        )
+        .await
     } else {
         let file_data: Vec<(String, String)> = files
             .iter()
@@ -171,12 +208,27 @@ pub async fn upload(
                 (BASE64.encode(&compressed), ct)
             })
             .collect();
-        call_claude_vision_multi(&config.anthropic_api_key, &file_data, &import_type).await
+        call_claude_vision_multi(
+            &config.anthropic_api_key,
+            &file_data,
+            &import_type,
+            Some(&detected_category),
+            Some(&detected_language),
+        )
+        .await
     };
 
     match vision_result {
         Ok(response) => {
             // Log raw response for debugging extraction failures
+            if let Some(ref ti) = response.tool_input {
+                let ti_str = serde_json::to_string(ti).unwrap_or_default();
+                tracing::info!(
+                    "Claude tool_use response length: {} chars, first 2000: {}",
+                    ti_str.len(),
+                    &ti_str[..ti_str.len().min(2000)]
+                );
+            }
             tracing::info!(
                 "Claude vision response length: {} chars, first 1000: {}",
                 response.text.len(),
@@ -186,8 +238,76 @@ pub async fn upload(
                 "Claude vision response last 200: {}",
                 &response.text[response.text.len().saturating_sub(200)..]
             );
-            // Parse JSON from response text
-            let extracted = parse_extraction_response(&response.text);
+            // Try structured tool_use output first, fall back to text parsing
+            let (
+                markers_result,
+                lab_date,
+                lab_provider,
+                lab_address,
+                lab_postal_code,
+                lab_city,
+                lab_country,
+            ) = if let Some(ref tool_input) = response.tool_input {
+                tracing::info!("Using structured tool_use extraction");
+                let markers = tool_input
+                    .get("markers")
+                    .and_then(|m| m.as_array())
+                    .cloned()
+                    .unwrap_or_default();
+                let lab_date = tool_input
+                    .get("lab_date")
+                    .and_then(|v| v.as_str())
+                    .map(String::from);
+                let lab_provider = tool_input
+                    .get("lab_provider")
+                    .and_then(|v| v.as_str())
+                    .map(String::from);
+                let lab_address = tool_input
+                    .get("lab_address")
+                    .and_then(|v| v.as_str())
+                    .map(String::from);
+                let lab_postal_code = tool_input
+                    .get("lab_postal_code")
+                    .and_then(|v| v.as_str())
+                    .map(String::from);
+                let lab_city = tool_input
+                    .get("lab_city")
+                    .and_then(|v| v.as_str())
+                    .map(String::from);
+                let lab_country = tool_input
+                    .get("lab_country")
+                    .and_then(|v| v.as_str())
+                    .map(String::from);
+                (
+                    Ok(markers),
+                    lab_date,
+                    lab_provider,
+                    lab_address,
+                    lab_postal_code,
+                    lab_city,
+                    lab_country,
+                )
+            } else {
+                tracing::info!("Falling back to text-based extraction parsing");
+                let markers = parse_extraction_response(&response.text);
+                let lab_date = extract_field_str(&response.text, "lab_date");
+                let lab_provider = extract_field_str(&response.text, "lab_provider");
+                let lab_address = extract_field_str(&response.text, "lab_address");
+                let lab_postal_code = extract_field_str(&response.text, "lab_postal_code");
+                let lab_city = extract_field_str(&response.text, "lab_city");
+                let lab_country = extract_field_str(&response.text, "lab_country");
+                (
+                    markers,
+                    lab_date,
+                    lab_provider,
+                    lab_address,
+                    lab_postal_code,
+                    lab_city,
+                    lab_country,
+                )
+            };
+
+            let extracted = markers_result;
 
             match extracted {
                 Ok(markers) if !markers.is_empty() => {
@@ -204,13 +324,6 @@ pub async fn upload(
 
                     // Match markers to our catalog
                     let matched = match_extracted_markers(pool.get_ref(), &markers).await;
-
-                    let lab_date = extract_field_str(&response.text, "lab_date");
-                    let lab_provider = extract_field_str(&response.text, "lab_provider");
-                    let lab_address = extract_field_str(&response.text, "lab_address");
-                    let lab_postal_code = extract_field_str(&response.text, "lab_postal_code");
-                    let lab_city = extract_field_str(&response.text, "lab_city");
-                    let lab_country = extract_field_str(&response.text, "lab_country");
 
                     let markers_count = matched.len() as i32;
 
@@ -243,6 +356,34 @@ pub async fn upload(
                         None
                     };
 
+                    // Compute quality metrics
+                    let metrics_matched = matched
+                        .iter()
+                        .filter(|m| m.get("matched_marker").and_then(|v| v.as_str()).is_some())
+                        .count() as i32;
+                    let metrics_fuzzy = matched
+                        .iter()
+                        .filter(|m| m.get("match_tier").and_then(|v| v.as_str()) == Some("fuzzy"))
+                        .count() as i32;
+                    let metrics_unmatched = matched
+                        .iter()
+                        .filter(|m| m.get("matched_marker").and_then(|v| v.as_str()).is_none())
+                        .count() as i32;
+                    let metrics_validation_warnings = matched
+                        .iter()
+                        .filter(|m| {
+                            m.get("validation_warnings")
+                                .and_then(|v| v.as_array())
+                                .map(|a| !a.is_empty())
+                                .unwrap_or(false)
+                        })
+                        .count() as i32;
+                    let extraction_method = if response.tool_input.is_some() {
+                        "tool_use"
+                    } else {
+                        "text"
+                    };
+
                     // Update session
                     sqlx::query(
                         r#"UPDATE import_sessions
@@ -254,6 +395,11 @@ pub async fn upload(
                                lab_date = $5,
                                lab_provider = $6,
                                lab_id = $7,
+                               markers_matched = $9,
+                               markers_fuzzy_matched = $10,
+                               markers_unmatched = $11,
+                               validation_warnings_count = $12,
+                               extraction_method = $13,
                                updated_at = NOW()
                            WHERE id = $8"#,
                     )
@@ -269,6 +415,11 @@ pub async fn upload(
                     .bind(&lab_provider)
                     .bind(lab_id)
                     .bind(session_id)
+                    .bind(metrics_matched)
+                    .bind(metrics_fuzzy)
+                    .bind(metrics_unmatched)
+                    .bind(metrics_validation_warnings)
+                    .bind(extraction_method)
                     .execute(pool.get_ref())
                     .await?;
 
@@ -277,31 +428,128 @@ pub async fn upload(
                         tier::consume_ai_credits(pool.get_ref(), auth.user_id, quota_type).await;
 
                     // Count unmatched
-                    let unmatched: Vec<&serde_json::Value> = matched
+                    let unmatched_count = matched
                         .iter()
                         .filter(|m| m.get("matched_marker").and_then(|v| v.as_str()).is_none())
-                        .collect();
+                        .count();
 
-                    if !unmatched.is_empty() {
-                        let names: Vec<&str> = unmatched
+                    if unmatched_count > 0 {
+                        let names: Vec<&str> = matched
                             .iter()
+                            .filter(|m| m.get("matched_marker").and_then(|v| v.as_str()).is_none())
                             .filter_map(|m| m.get("original_name").and_then(|v| v.as_str()))
                             .collect();
                         tracing::warn!(
                             user_id = %auth.user_id,
                             import_type = "lab_import",
-                            unmatched_count = unmatched.len(),
+                            unmatched_count = unmatched_count,
                             unmatched_names = ?names,
                             "Unmatched markers during import"
                         );
                     }
+
+                    // AI-assisted suggestions for unmatched markers
+                    let mut matched = matched;
+                    if unmatched_count > 0 {
+                        let unmatched_items: Vec<(String, f64, String)> = matched
+                            .iter()
+                            .filter(|m| m.get("matched_marker").and_then(|v| v.as_str()).is_none())
+                            .filter_map(|m: &serde_json::Value| {
+                                let name = m.get("original_name")?.as_str()?.to_string();
+                                let value = m
+                                    .get("value_original")
+                                    .and_then(|v| v.as_f64())
+                                    .unwrap_or(0.0);
+                                let unit = m
+                                    .get("unit_original")
+                                    .and_then(|v| v.as_str())
+                                    .unwrap_or("")
+                                    .to_string();
+                                Some((name, value, unit))
+                            })
+                            .collect();
+
+                        // Get available marker slugs for the AI
+                        let marker_rows = sqlx::query(
+                            "SELECT marker_slug, marker_name FROM markers ORDER BY marker_slug",
+                        )
+                        .fetch_all(pool.get_ref())
+                        .await
+                        .unwrap_or_default();
+                        let available: Vec<(String, String)> = marker_rows
+                            .iter()
+                            .filter_map(|r| {
+                                let slug: String = r.try_get("marker_slug").ok()?;
+                                let name: String = r.try_get("marker_name").ok()?;
+                                Some((slug, name))
+                            })
+                            .collect();
+
+                        let suggestions = crate::services::doctor_chat::suggest_marker_matches(
+                            &config.anthropic_api_key,
+                            &unmatched_items,
+                            &available,
+                        )
+                        .await;
+
+                        // Attach suggestions to unmatched markers in the response
+                        for (orig_name, suggested_slug, confidence) in &suggestions {
+                            if let Some(m) = matched.iter_mut().find(|m| {
+                                m.get("original_name").and_then(|v| v.as_str()) == Some(orig_name)
+                                    && m.get("matched_marker").and_then(|v| v.as_str()).is_none()
+                            }) {
+                                if let Some(obj) = m.as_object_mut() {
+                                    obj.insert("ai_suggestion".to_string(), json!(suggested_slug));
+                                    obj.insert(
+                                        "ai_suggestion_confidence".to_string(),
+                                        json!(confidence),
+                                    );
+                                }
+                            }
+                        }
+                    }
+
+                    // Fetch existing labs for dropdown + suggest match
+                    let existing_labs = sqlx::query(
+                        "SELECT id, name, address, city FROM labs WHERE user_id = $1 ORDER BY name",
+                    )
+                    .bind(auth.user_id)
+                    .fetch_all(pool.get_ref())
+                    .await
+                    .unwrap_or_default();
+
+                    let existing_labs_json: Vec<serde_json::Value> = existing_labs
+                        .iter()
+                        .map(|r| {
+                            json!({
+                                "id": r.try_get::<Uuid, _>("id").unwrap_or_default(),
+                                "name": r.try_get::<String, _>("name").unwrap_or_default(),
+                                "address": r.try_get::<Option<String>, _>("address").ok().flatten(),
+                                "city": r.try_get::<Option<String>, _>("city").ok().flatten(),
+                            })
+                        })
+                        .collect();
+
+                    // Try to match extracted lab_provider to existing labs by normalized name
+                    let suggested_lab_id: Option<Uuid> =
+                        lab_provider.as_ref().and_then(|provider| {
+                            let normalized = normalize_lab_name(provider);
+                            existing_labs.iter().find_map(|r| {
+                                let name: String = r.try_get("name").unwrap_or_default();
+                                if normalize_lab_name(&name) == normalized {
+                                    r.try_get::<Uuid, _>("id").ok()
+                                } else {
+                                    None
+                                }
+                            })
+                        });
 
                     Ok(HttpResponse::Ok().json(json!({
                         "data": {
                             "session_id": session_id,
                             "file_name": file_name,
                             "extracted": matched,
-                            "unmatched_count": unmatched.len(),
+                            "unmatched_count": unmatched_count,
                             "total_count": markers_count,
                             "lab_date": lab_date,
                             "lab_provider": lab_provider,
@@ -309,6 +557,8 @@ pub async fn upload(
                             "lab_postal_code": lab_postal_code,
                             "lab_city": lab_city,
                             "lab_country": lab_country,
+                            "suggested_lab_id": suggested_lab_id,
+                            "existing_labs": existing_labs_json,
                             "status": "extracted"
                         },
                         "error": null
@@ -367,6 +617,9 @@ pub struct ConfirmRequest {
     pub markers: Vec<ConfirmMarker>,
     pub measured_at: Option<chrono::DateTime<Utc>>,
     pub protocol_tag: Option<String>,
+    pub meal_timing_tag: Option<String>,
+    pub diet_protocol: Option<String>,
+    pub fasting_protocol: Option<String>,
     pub device_id: Option<Uuid>,
     pub lab_id: Option<Uuid>,
     pub lab_name: Option<String>,
@@ -443,7 +696,24 @@ pub async fn confirm(
     };
 
     // Also create/find a lab device so it appears in Settings > Devices
-    let device_id: Option<Uuid> = if let Some(ref lab_name) = body.lab_name {
+    // Resolve lab name: from body.lab_name or from the selected lab_id
+    let resolved_lab_name: Option<String> = if let Some(ref ln) = body.lab_name {
+        if ln.trim().is_empty() {
+            None
+        } else {
+            Some(ln.trim().to_string())
+        }
+    } else if let Some(lid) = lab_id {
+        sqlx::query("SELECT name FROM labs WHERE id = $1")
+            .bind(lid)
+            .fetch_optional(pool.get_ref())
+            .await?
+            .and_then(|r| r.try_get::<String, _>("name").ok())
+    } else {
+        None
+    };
+
+    let device_id: Option<Uuid> = if let Some(ref lab_name) = resolved_lab_name {
         if !lab_name.trim().is_empty() {
             // Check if a lab device with this name already exists
             let existing = sqlx::query(
@@ -502,6 +772,7 @@ pub async fn confirm(
     };
 
     let mut created_count = 0i32;
+    let mut created_measurement_ids: Vec<Uuid> = Vec::new();
 
     for cm in &body.markers {
         // Look up marker
@@ -531,11 +802,16 @@ pub async fn confirm(
         .await?;
 
         // Insert measurement
-        sqlx::query(
+        let meal_timing = body.meal_timing_tag.as_deref().unwrap_or("no_tag");
+        let diet_proto = body.diet_protocol.as_deref();
+        let fasting_proto = body.fasting_protocol.as_deref();
+
+        let row = sqlx::query(
             r#"INSERT INTO measurements (
                 user_id, marker_id, timestamp, value_canonical, unit_canonical, status,
-                protocol_tag, device_id, lab_id
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)"#,
+                protocol_tag, meal_timing_tag, diet_protocol, fasting_protocol, device_id, lab_id
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+            RETURNING id"#,
         )
         .bind(auth.user_id)
         .bind(marker_id)
@@ -544,11 +820,17 @@ pub async fn confirm(
         .bind(&unit_canonical)
         .bind(&status)
         .bind(&protocol_tag)
+        .bind(meal_timing)
+        .bind(diet_proto)
+        .bind(fasting_proto)
         .bind(device_id)
         .bind(lab_id)
-        .execute(pool.get_ref())
+        .fetch_one(pool.get_ref())
         .await?;
 
+        if let Ok(mid) = row.try_get::<Uuid, _>("id") {
+            created_measurement_ids.push(mid);
+        }
         created_count += 1;
     }
 
@@ -637,17 +919,70 @@ pub async fn confirm(
         }
     }
 
-    // Update session
+    // Update session with measurement_ids for rollback support
     sqlx::query(
         r#"UPDATE import_sessions
-           SET status = 'confirmed', markers_imported = $1, confirmed_data = $2, updated_at = NOW()
+           SET status = 'confirmed', markers_imported = $1, confirmed_data = $2,
+               measurement_ids = $4, updated_at = NOW()
            WHERE id = $3"#,
     )
     .bind(created_count)
     .bind(json!(body.markers))
     .bind(body.session_id)
+    .bind(&created_measurement_ids)
     .execute(pool.get_ref())
     .await?;
+
+    // Detect user corrections: compare confirmed markers vs AI-extracted matches
+    if let Ok(Some(session_row)) =
+        sqlx::query("SELECT matched_data FROM import_sessions WHERE id = $1")
+            .bind(body.session_id)
+            .fetch_optional(pool.get_ref())
+            .await
+    {
+        if let Ok(Some(matched_data)) =
+            session_row.try_get::<Option<serde_json::Value>, _>("matched_data")
+        {
+            if let Some(extracted_arr) = matched_data.as_array() {
+                // Build map: original_name → matched_marker (what AI suggested)
+                let ai_matches: std::collections::HashMap<String, Option<String>> = extracted_arr
+                    .iter()
+                    .filter_map(|m| {
+                        let name = m.get("original_name")?.as_str()?.to_string();
+                        let matched = m
+                            .get("matched_marker")
+                            .and_then(|v| v.as_str())
+                            .map(String::from);
+                        Some((name, matched))
+                    })
+                    .collect();
+
+                // Check if user confirmed a different slug than AI suggested
+                for cm in &body.markers {
+                    for (original_name, ai_match) in &ai_matches {
+                        let ai_slug = ai_match.as_deref();
+                        // If AI matched to something different than what user confirmed
+                        if ai_slug != Some(cm.marker_slug.as_str()) {
+                            // Check if this original_name was the source for this confirmed slug
+                            // (heuristic: the AI extracted this name and the user corrected it)
+                            if ai_slug.is_none() || ai_slug == Some("") {
+                                // Unmatched marker that user manually assigned
+                                marker_matcher::log_correction(
+                                    pool.get_ref(),
+                                    auth.user_id,
+                                    original_name,
+                                    ai_slug,
+                                    &cm.marker_slug,
+                                    Some(body.session_id),
+                                )
+                                .await;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     // Insert import history
     let now = Utc::now();
@@ -685,7 +1020,7 @@ pub async fn history(
     let rows = sqlx::query(
         r#"SELECT ih.id, ih.import_type, ih.source_type, ih.markers_extracted,
                   ih.markers_imported, ih.lab_date, ih.lab_provider, ih.created_at,
-                  iss.file_name, iss.status
+                  iss.file_name, iss.status, iss.id AS session_id
            FROM import_history ih
            LEFT JOIN import_sessions iss ON iss.id = (
                SELECT id FROM import_sessions
@@ -693,6 +1028,8 @@ pub async fn history(
                ORDER BY created_at DESC LIMIT 1
            )
            WHERE ih.user_id = $1
+             AND (iss.status IS NULL OR iss.status != 'rolled_back')
+             AND ih.markers_imported > 0
            ORDER BY ih.created_at DESC
            LIMIT 50"#,
     )
@@ -705,6 +1042,7 @@ pub async fn history(
         .map(|r| {
             json!({
                 "id": r.try_get::<Uuid, _>("id").unwrap_or_default(),
+                "session_id": r.try_get::<Option<Uuid>, _>("session_id").ok().flatten(),
                 "import_type": r.try_get::<String, _>("import_type").unwrap_or_default(),
                 "source_type": r.try_get::<String, _>("source_type").unwrap_or_default(),
                 "markers_extracted": r.try_get::<i32, _>("markers_extracted").unwrap_or(0),
@@ -890,7 +1228,15 @@ pub async fn upload_medication(
     let vision_result = if files.len() == 1 {
         let (compressed, ct) = compress_image_if_needed(&files[0].bytes, &files[0].content_type);
         let file_base64 = BASE64.encode(&compressed);
-        call_claude_vision(&config.anthropic_api_key, &file_base64, &ct, "med_import").await
+        call_claude_vision(
+            &config.anthropic_api_key,
+            &file_base64,
+            &ct,
+            "med_import",
+            None,
+            None,
+        )
+        .await
     } else {
         let file_data: Vec<(String, String)> = files
             .iter()
@@ -899,7 +1245,14 @@ pub async fn upload_medication(
                 (BASE64.encode(&compressed), ct)
             })
             .collect();
-        call_claude_vision_multi(&config.anthropic_api_key, &file_data, "med_import").await
+        call_claude_vision_multi(
+            &config.anthropic_api_key,
+            &file_data,
+            "med_import",
+            None,
+            None,
+        )
+        .await
     };
 
     match vision_result {
@@ -1228,6 +1581,21 @@ Return ONLY valid JSON (no markdown fences) with this structure:
     { "date": "2026-03-20", "time": "05:55", "protocol": "standard", "diet": null, "notes": null, "values": { "weight": 68.7 } }
   ]
 }
+
+SMART SCALE / BODY COMPOSITION APPS (Renpho, Withings, Xiaomi):
+- Grid layouts with value + label pairs in 3x4 or similar grids
+- German labels: Gewicht, BMI, Körperfett, Körperwasser, Muskelmasse, Skelettmuskel,
+  Knochenmasse, Viszeralfett, Subkutanes Fett, Grundumsatz, Stoffwechselalter,
+  Fettfreie Masse, Körperprotein, Protein
+- CRITICAL kg vs % disambiguation:
+  "Knochenmasse 2.04 kg" → marker_slug: "bone_mass_kg", unit: "kg"
+  "Knochenmasse 6%" → marker_slug: "bone_mass_pct", unit: "%"
+  "Muskelmasse 25.3 kg" → marker_slug: "muscle_mass_kg", unit: "kg"
+  "Muskelmasse 38%" → marker_slug: "muscle_pct", unit: "%"
+  If unit is ambiguous, set confidence below 0.6
+- Comparison views (before/after): extract the most recent column values
+- Visceral fat level is unitless (1-59 scale), use unit: "level"
+- BMR in kcal, Metabolic Age in years
 
 IMPORTANT:
 - values keys must use marker_slug from the user's marker list
@@ -1645,6 +2013,10 @@ pub struct ConfirmMeasurementsRequest {
     pub selected_rows: Vec<usize>,
     pub skip_duplicates: Option<bool>,
     pub protocol_overrides: Option<HashMap<String, String>>,
+    pub measured_at_override: Option<chrono::DateTime<Utc>>,
+    pub diet_protocol: Option<String>,
+    pub fasting_protocol: Option<String>,
+    pub meal_timing_tag: Option<String>,
 }
 
 #[derive(Deserialize, Serialize)]
@@ -1727,19 +2099,28 @@ pub async fn confirm_measurements(
 
         let date_str = row.get("date").and_then(|v| v.as_str()).unwrap_or("");
         let time_str = row.get("time").and_then(|v| v.as_str()).unwrap_or("08:00");
-        let raw_protocol = row
-            .get("protocol")
-            .and_then(|v| v.as_str())
-            .unwrap_or("standard");
+
+        // If user set a fasting protocol, use 'fasting' as protocol_tag
+        let raw_protocol = if body.fasting_protocol.is_some() {
+            "fasting"
+        } else {
+            row.get("protocol")
+                .and_then(|v| v.as_str())
+                .unwrap_or("standard")
+        };
         let protocol_str = protocol_remap
             .get(raw_protocol)
             .map(|s| s.as_str())
             .unwrap_or(raw_protocol);
 
-        // Parse timestamp
-        let measured_at = parse_measurement_timestamp(date_str, time_str);
-        let Some(measured_at) = measured_at else {
-            continue;
+        // Parse timestamp — use header override if set, otherwise per-row date
+        let measured_at = if let Some(override_dt) = body.measured_at_override {
+            override_dt
+        } else {
+            let Some(dt) = parse_measurement_timestamp(date_str, time_str) else {
+                continue;
+            };
+            dt
         };
 
         let values = row
@@ -1804,11 +2185,15 @@ pub async fn confirm_measurements(
             )
             .await?;
 
+            let meal_timing = body.meal_timing_tag.as_deref().unwrap_or("no_tag");
+            let diet_proto = body.diet_protocol.as_deref();
+            let fasting_proto = body.fasting_protocol.as_deref();
+
             let row_result = sqlx::query(
                 r#"INSERT INTO measurements (
                     user_id, marker_id, timestamp, value_canonical, unit_canonical, status,
-                    protocol_tag, device_id
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+                    protocol_tag, meal_timing_tag, diet_protocol, fasting_protocol, device_id
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
                 RETURNING id"#,
             )
             .bind(auth.user_id)
@@ -1818,6 +2203,9 @@ pub async fn confirm_measurements(
             .bind(&unit_canonical)
             .bind(&status)
             .bind(protocol_str)
+            .bind(meal_timing)
+            .bind(diet_proto)
+            .bind(fasting_proto)
             .bind(col_cfg.device_id)
             .fetch_one(pool.get_ref())
             .await?;
@@ -1996,6 +2384,34 @@ pub async fn rollback_import(
 
     let deleted_count = deleted.rows_affected() as i32;
 
+    // Also delete calculated marker values that were computed from these measurements
+    // (they reference the same timestamps)
+    let _ = sqlx::query(
+        r#"DELETE FROM calculated_marker_values
+           WHERE user_id = $1 AND is_demo = false
+           AND measured_at IN (
+               SELECT DISTINCT timestamp FROM measurements WHERE id = ANY($2)
+           )"#,
+    )
+    .bind(auth.user_id)
+    .bind(&measurement_ids)
+    .execute(pool.get_ref())
+    .await;
+
+    // Delete import_history record for this session
+    let _ = sqlx::query(
+        r#"DELETE FROM import_history
+           WHERE user_id = $1 AND created_at >= (
+               SELECT created_at FROM import_sessions WHERE id = $2
+           ) AND created_at <= (
+               SELECT COALESCE(updated_at, created_at) FROM import_sessions WHERE id = $2
+           )"#,
+    )
+    .bind(auth.user_id)
+    .bind(session_id)
+    .execute(pool.get_ref())
+    .await;
+
     // Update session status
     sqlx::query(
         r#"UPDATE import_sessions
@@ -2038,6 +2454,23 @@ fn detect_media_type(bytes: &[u8], hint: &str) -> String {
     }
     // Fall back to content-type hint
     hint.to_string()
+}
+
+/// Normalize a lab name for matching: lowercase, strip academic titles, collapse whitespace.
+fn normalize_lab_name(name: &str) -> String {
+    let lower = name.to_lowercase();
+    // Strip common German academic/medical titles
+    let stripped = lower
+        .replace("dr.", "")
+        .replace("dr ", "")
+        .replace("med.", "")
+        .replace("med ", "")
+        .replace("prof.", "")
+        .replace("prof ", "")
+        .replace("dipl.", "")
+        .replace("dipl ", "");
+    // Collapse whitespace and trim
+    stripped.split_whitespace().collect::<Vec<_>>().join(" ")
 }
 
 fn parse_extraction_response(text: &str) -> Result<Vec<serde_json::Value>, String> {
@@ -2138,6 +2571,18 @@ fn extract_field_str(text: &str, field: &str) -> Option<String> {
                 }
             }
         }
+        // Check nested lab_metadata object
+        if let Some(meta) = val.get("lab_metadata").and_then(|v| v.as_object()) {
+            if let Some(s) = meta.get(field).and_then(|v| v.as_str()) {
+                return Some(s.to_string());
+            }
+        }
+        // Also check nested metadata object (tool_use variant)
+        if let Some(meta) = val.get("metadata").and_then(|v| v.as_object()) {
+            if let Some(s) = meta.get(field).and_then(|v| v.as_str()) {
+                return Some(s.to_string());
+            }
+        }
         // Object with nested markers array
         if let Some(arr) = val.get("markers").and_then(|v| v.as_array()) {
             for item in arr {
@@ -2154,11 +2599,17 @@ async fn match_extracted_markers(
     pool: &PgPool,
     markers: &[serde_json::Value],
 ) -> Vec<serde_json::Value> {
+    use crate::services::measurement::validate_marker_comprehensive;
     use sqlx::Row;
     let mut matched = Vec::new();
 
     for m in markers {
-        let ai_name = m.get("marker_name").and_then(|v| v.as_str()).unwrap_or("");
+        let ai_name = m
+            .get("marker_name")
+            .or_else(|| m.get("name"))
+            .or_else(|| m.get("marker"))
+            .and_then(|v| v.as_str())
+            .unwrap_or("");
         let value = m.get("value").and_then(|v| v.as_f64()).unwrap_or(0.0);
         let unit = m.get("unit").and_then(|v| v.as_str()).unwrap_or("");
         let ref_range = m
@@ -2168,9 +2619,12 @@ async fn match_extracted_markers(
         let flag = m.get("flag").and_then(|v| v.as_str()).unwrap_or("normal");
         let confidence = m.get("confidence").and_then(|v| v.as_f64()).unwrap_or(0.5);
 
-        let slug = marker_matcher::match_marker(ai_name);
+        // Try static + learned aliases + fuzzy matching
+        let match_result = marker_matcher::match_marker_with_learned(pool, ai_name).await;
 
-        if let Some(slug) = slug {
+        if let Some(result) = match_result {
+            let slug = result.slug;
+
             // Look up canonical unit + abbreviation from DB
             let marker_row = sqlx::query(
                 "SELECT unit_canonical, abbreviation FROM markers WHERE marker_slug = $1",
@@ -2195,19 +2649,35 @@ async fn match_extracted_markers(
                 .map(|(v, u)| (v, u.to_string()))
                 .unwrap_or((value, canonical_unit_str.clone()));
 
-            let match_confidence = if confidence > 0.9 {
-                "high"
-            } else if confidence > 0.7 {
-                "medium"
-            } else {
-                "low"
+            // Determine confidence from AI extraction + match tier
+            let match_confidence = match result.tier {
+                marker_matcher::MatchTier::Fuzzy => "fuzzy",
+                _ if confidence > 0.9 => "high",
+                _ if confidence > 0.7 => "medium",
+                _ => "low",
             };
+
+            let match_tier = match result.tier {
+                marker_matcher::MatchTier::Exact => "exact",
+                marker_matcher::MatchTier::Contains => "contains",
+                marker_matcher::MatchTier::ReverseContains => "reverse_contains",
+                marker_matcher::MatchTier::Fuzzy => "fuzzy",
+            };
+
+            // Physiological validation
+            let validation = validate_marker_comprehensive(slug, converted_value, &converted_unit);
+            let validation_warnings: Vec<serde_json::Value> = validation
+                .warnings
+                .iter()
+                .map(|w| json!({"level": w.level, "code": w.code, "message": w.message}))
+                .collect();
 
             matched.push(json!({
                 "original_name": ai_name,
                 "matched_marker": slug,
                 "abbreviation": abbreviation,
                 "match_confidence": match_confidence,
+                "match_tier": match_tier,
                 "value_original": value,
                 "unit_original": unit,
                 "value_converted": (converted_value * 100.0).round() / 100.0,
@@ -2215,6 +2685,7 @@ async fn match_extracted_markers(
                 "reference_range": ref_range,
                 "flag": flag,
                 "extraction_confidence": confidence,
+                "validation_warnings": validation_warnings,
             }));
         } else {
             tracing::warn!(
@@ -2238,7 +2709,86 @@ async fn match_extracted_markers(
         }
     }
 
-    matched
+    // Deduplicate matched markers:
+    // 1. Filter out entries with unknown/empty units when a proper-unit entry exists for the same slug
+    // 2. Then deduplicate by slug — keep one per slug with highest confidence, preferring known units
+    let pre_dedup_count = matched.len();
+
+    // Collect slugs that have at least one entry with a known unit
+    let slugs_with_known_unit: std::collections::HashSet<String> = matched
+        .iter()
+        .filter(|m| {
+            let unit = m
+                .get("unit_original")
+                .and_then(|v| v.as_str())
+                .unwrap_or("");
+            !unit.is_empty() && !unit.contains("UNKNOWN") && !unit.contains("unknown")
+        })
+        .filter_map(|m| {
+            m.get("matched_marker")
+                .and_then(|v| v.as_str())
+                .map(String::from)
+        })
+        .collect();
+
+    // Filter: remove entries with unknown units if a known-unit entry exists for that slug
+    let filtered: Vec<serde_json::Value> = matched
+        .into_iter()
+        .filter(|m| {
+            let slug = m
+                .get("matched_marker")
+                .and_then(|v| v.as_str())
+                .unwrap_or("");
+            let unit = m
+                .get("unit_original")
+                .and_then(|v| v.as_str())
+                .unwrap_or("");
+            if slug.is_empty() {
+                return true; // keep unmatched
+            }
+            // If this entry has unknown unit AND the slug has a known-unit entry, drop it
+            if (unit.is_empty() || unit.contains("UNKNOWN") || unit.contains("unknown"))
+                && slugs_with_known_unit.contains(slug)
+            {
+                return false;
+            }
+            true
+        })
+        .collect();
+
+    // Deduplicate by slug + converted unit — keep first occurrence
+    let mut seen: std::collections::HashSet<String> = std::collections::HashSet::new();
+    let deduped: Vec<serde_json::Value> = filtered
+        .into_iter()
+        .filter(|m| {
+            let slug = m
+                .get("matched_marker")
+                .and_then(|v| v.as_str())
+                .unwrap_or("");
+            if slug.is_empty() {
+                return true; // keep unmatched
+            }
+            // Use converted unit for dedup key (after unit conversion, e.g. mmol/mol → %)
+            let unit = m
+                .get("unit_converted")
+                .and_then(|v| v.as_str())
+                .or_else(|| m.get("unit_original").and_then(|v| v.as_str()))
+                .unwrap_or("");
+            let key = format!("{}:{}", slug, unit);
+            seen.insert(key)
+        })
+        .collect();
+
+    if deduped.len() < pre_dedup_count {
+        tracing::info!(
+            "Deduplicated {} → {} markers (removed {} duplicates)",
+            pre_dedup_count,
+            deduped.len(),
+            pre_dedup_count - deduped.len()
+        );
+    }
+
+    deduped
 }
 
 // ---------------------------------------------------------------------------
@@ -2584,11 +3134,12 @@ async fn call_claude_vision_for_measurements(
     });
 
     let client = reqwest::Client::builder()
-        .timeout(std::time::Duration::from_secs(60))
+        .timeout(std::time::Duration::from_secs(120))
+        .pool_idle_timeout(std::time::Duration::from_secs(10))
         .build()
         .unwrap_or_else(|_| reqwest::Client::new());
 
-    let resp = client
+    let resp = match client
         .post(crate::config::Config::anthropic_api_url_static())
         .header("x-api-key", api_key)
         .header(
@@ -2599,15 +3150,44 @@ async fn call_claude_vision_for_measurements(
         .json(&req_body)
         .send()
         .await
-        .map_err(|e| {
-            tracing::error!("Vision measurement request failed: {:?}", e);
-            AppError::UpstreamError
-        })?;
+    {
+        Ok(r) => r,
+        Err(e) => {
+            tracing::warn!(
+                "Vision measurement request failed (attempt 1), retrying: {:?}",
+                e
+            );
+            let retry_client = reqwest::Client::builder()
+                .timeout(std::time::Duration::from_secs(180))
+                .build()
+                .unwrap_or_else(|_| reqwest::Client::new());
+            retry_client
+                .post(crate::config::Config::anthropic_api_url_static())
+                .header("x-api-key", api_key)
+                .header(
+                    "anthropic-version",
+                    &crate::config::Config::anthropic_api_version_static(),
+                )
+                .header("content-type", "application/json")
+                .json(&req_body)
+                .send()
+                .await
+                .map_err(|e2| {
+                    tracing::error!("Vision measurement request failed (attempt 2): {:?}", e2);
+                    AppError::UpstreamError
+                })?
+        }
+    };
 
     let status = resp.status();
     if !status.is_success() {
         let body = resp.text().await.unwrap_or_default();
         tracing::error!("Anthropic Vision API error {}: {}", status, body);
+        if body.contains("credit balance is too low") {
+            return Err(AppError::Validation(
+                "AI service credits exhausted. Please check Anthropic API billing.".to_string(),
+            ));
+        }
         return Err(AppError::UpstreamError);
     }
 
@@ -2632,6 +3212,7 @@ async fn call_claude_vision_for_measurements(
 
     Ok(crate::services::doctor_chat::ClaudeResponse {
         text,
+        tool_input: None,
         total_tokens,
         input_tokens,
         output_tokens,
@@ -2671,11 +3252,12 @@ async fn call_claude_vision_multi_for_measurements(
     });
 
     let client = reqwest::Client::builder()
-        .timeout(std::time::Duration::from_secs(60))
+        .timeout(std::time::Duration::from_secs(120))
+        .pool_idle_timeout(std::time::Duration::from_secs(10))
         .build()
         .unwrap_or_else(|_| reqwest::Client::new());
 
-    let resp = client
+    let resp = match client
         .post(crate::config::Config::anthropic_api_url_static())
         .header("x-api-key", api_key)
         .header(
@@ -2686,10 +3268,37 @@ async fn call_claude_vision_multi_for_measurements(
         .json(&req_body)
         .send()
         .await
-        .map_err(|e| {
-            tracing::error!("Vision multi measurement request failed: {:?}", e);
-            AppError::UpstreamError
-        })?;
+    {
+        Ok(r) => r,
+        Err(e) => {
+            tracing::warn!(
+                "Vision multi measurement request failed (attempt 1), retrying: {:?}",
+                e
+            );
+            let retry_client = reqwest::Client::builder()
+                .timeout(std::time::Duration::from_secs(180))
+                .build()
+                .unwrap_or_else(|_| reqwest::Client::new());
+            retry_client
+                .post(crate::config::Config::anthropic_api_url_static())
+                .header("x-api-key", api_key)
+                .header(
+                    "anthropic-version",
+                    &crate::config::Config::anthropic_api_version_static(),
+                )
+                .header("content-type", "application/json")
+                .json(&req_body)
+                .send()
+                .await
+                .map_err(|e2| {
+                    tracing::error!(
+                        "Vision multi measurement request failed (attempt 2): {:?}",
+                        e2
+                    );
+                    AppError::UpstreamError
+                })?
+        }
+    };
 
     let status = resp.status();
     if !status.is_success() {
@@ -2719,9 +3328,153 @@ async fn call_claude_vision_multi_for_measurements(
 
     Ok(crate::services::doctor_chat::ClaudeResponse {
         text,
+        tool_input: None,
         total_tokens,
         input_tokens,
         output_tokens,
         model: "claude-sonnet-4-20250514".to_string(),
     })
+}
+
+// ── Tests ────────────────────────────────────────────────────────────────────
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_normalize_lab_name_strips_titles() {
+        assert_eq!(normalize_lab_name("Dr. med. Martin Seidl"), "martin seidl");
+        assert_eq!(normalize_lab_name("Prof. Dr. Schmidt"), "schmidt");
+    }
+
+    #[test]
+    fn test_normalize_lab_name_case_insensitive() {
+        assert_eq!(
+            normalize_lab_name("SYNLAB München"),
+            normalize_lab_name("synlab münchen")
+        );
+    }
+
+    #[test]
+    fn test_normalize_lab_name_collapses_whitespace() {
+        assert_eq!(normalize_lab_name("Labor   Dr.   Seidl"), "labor seidl");
+        assert_eq!(normalize_lab_name("  Synlab  München  "), "synlab münchen");
+    }
+
+    #[test]
+    fn test_normalize_lab_name_matching() {
+        // Same lab, different formatting
+        let a = normalize_lab_name("Dr. med. Martin Seidl Laborpraxis");
+        let b = normalize_lab_name("dr. med. martin seidl laborpraxis");
+        assert_eq!(a, b);
+        // Different labs
+        assert_ne!(
+            normalize_lab_name("Synlab München"),
+            normalize_lab_name("Labor Becker")
+        );
+    }
+
+    #[test]
+    fn test_parse_extraction_response_valid_json() {
+        let input = r#"[{"marker_name": "Glucose", "value": 95, "unit": "mg/dL"}]"#;
+        let result = parse_extraction_response(input);
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap().len(), 1);
+    }
+
+    #[test]
+    fn test_parse_extraction_response_markdown_fenced() {
+        let input = "```json\n[{\"marker_name\": \"Glucose\", \"value\": 95}]\n```";
+        let result = parse_extraction_response(input);
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap().len(), 1);
+    }
+
+    #[test]
+    fn test_parse_extraction_response_empty_array() {
+        let result = parse_extraction_response("[]");
+        assert!(result.is_ok());
+        assert!(result.unwrap().is_empty());
+    }
+
+    // ── Sprint 020 regression: parsing edge cases ──
+
+    #[test]
+    fn test_parse_with_surrounding_text() {
+        let input = "Here are the markers I found:\n[{\"marker_name\": \"Glucose\", \"value\": 95}]\nThat's all.";
+        let result = parse_extraction_response(input);
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap().len(), 1);
+    }
+
+    #[test]
+    fn test_parse_nested_markers_object() {
+        let input = r#"{"markers": [{"marker_name": "Glucose", "value": 95}]}"#;
+        let result = parse_extraction_response(input);
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap().len(), 1);
+    }
+
+    #[test]
+    fn test_parse_multiple_markers() {
+        let input = r#"[
+            {"marker_name": "Glucose", "value": 95, "unit": "mg/dL"},
+            {"marker_name": "HbA1c", "value": 5.7, "unit": "%"},
+            {"marker_name": "Total Cholesterol", "value": 200, "unit": "mg/dL"}
+        ]"#;
+        let result = parse_extraction_response(input);
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap().len(), 3);
+    }
+
+    #[test]
+    fn test_parse_invalid_json() {
+        let result = parse_extraction_response("This is not JSON at all.");
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_parse_code_fence_with_language() {
+        let input = "```json\n[{\"marker_name\": \"TSH\", \"value\": 2.5}]\n```";
+        let result = parse_extraction_response(input);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_parse_code_fence_without_language() {
+        let input = "```\n[{\"marker_name\": \"TSH\", \"value\": 2.5}]\n```";
+        let result = parse_extraction_response(input);
+        assert!(result.is_ok());
+    }
+
+    // ── Lab name normalization edge cases ──
+
+    #[test]
+    fn test_normalize_empty_string() {
+        assert_eq!(normalize_lab_name(""), "");
+    }
+
+    #[test]
+    fn test_normalize_only_titles() {
+        assert_eq!(normalize_lab_name("Dr. med. Prof."), "");
+    }
+
+    #[test]
+    fn test_normalize_preserves_non_title_words() {
+        assert_eq!(normalize_lab_name("Synlab Analytics"), "synlab analytics");
+        assert_eq!(normalize_lab_name("Quest Diagnostics"), "quest diagnostics");
+    }
+
+    #[test]
+    fn test_normalize_german_special_chars() {
+        assert_eq!(normalize_lab_name("Dr. Müller"), "müller");
+        assert_eq!(normalize_lab_name("Prof. Böhm"), "böhm");
+        assert_eq!(normalize_lab_name("Ärztezentrum Wien"), "ärztezentrum wien");
+    }
+
+    #[test]
+    fn test_normalize_dipl_title() {
+        assert_eq!(normalize_lab_name("Dipl. Chem. Weber"), "chem. weber");
+    }
 }

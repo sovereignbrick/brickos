@@ -742,10 +742,10 @@ export const api = {
       files.forEach(file => fd.append('files', file))
       return uploadRequest<{ data: MeasurementImportSession }>('/import/upload-measurements', fd)
     },
-    confirmMeasurements: (sessionId: string, columnMapping: Array<{ marker_slug: string; device_id?: string | null; unit?: string }>, selectedRows: number[], skipDuplicates?: boolean, protocolOverrides?: Record<string, string>) =>
+    confirmMeasurements: (sessionId: string, columnMapping: Array<{ marker_slug: string; device_id?: string | null; unit?: string }>, selectedRows: number[], skipDuplicates?: boolean, protocolOverrides?: Record<string, string>, context?: { measured_at_override?: string; diet_protocol?: string; fasting_protocol?: string; meal_timing_tag?: string }) =>
       request<{ data: { session_id: string; measurements_created: number; duplicates_skipped: number; message: string } }>('/import/confirm-measurements', {
         method: 'POST',
-        body: JSON.stringify({ session_id: sessionId, column_mapping: columnMapping, selected_rows: selectedRows, skip_duplicates: skipDuplicates ?? true, ...(protocolOverrides ? { protocol_overrides: protocolOverrides } : {}) }),
+        body: JSON.stringify({ session_id: sessionId, column_mapping: columnMapping, selected_rows: selectedRows, skip_duplicates: skipDuplicates ?? true, ...(protocolOverrides ? { protocol_overrides: protocolOverrides } : {}), ...(context || {}) }),
       }),
     rollbackImport: (sessionId: string) =>
       request<{ data: { session_id: string; measurements_deleted: number; message: string } }>(`/import/sessions/${sessionId}/rollback`, {

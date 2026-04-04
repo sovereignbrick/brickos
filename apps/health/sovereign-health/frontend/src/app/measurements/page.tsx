@@ -430,7 +430,7 @@ function MeasurementsContent() {
                           {contentMarkers[m.marker_slug]?.name ?? m.marker_name}
                         </td>
                         <td className="px-3 py-2.5 text-muted-foreground text-xs truncate">
-                          {m.device_name || '-'}
+                          {m.device_name || m.lab_name || '-'}
                         </td>
                         <td className="px-3 py-2.5 text-xs whitespace-nowrap text-muted-foreground">
                           {m.diet_protocol ? tryTranslate(tCommon, m.diet_protocol) : '-'}

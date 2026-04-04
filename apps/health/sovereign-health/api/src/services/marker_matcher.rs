@@ -1,5 +1,6 @@
 // Sovereign Health Intelligence -- AGPL-3.0 -- https://sovereignhealth.io/
 
+use sqlx::Row;
 use std::collections::HashMap;
 use std::sync::OnceLock;
 
@@ -57,6 +58,10 @@ fn alias_map() -> &'static HashMap<&'static str, &'static str> {
             "glycated haemoglobin",
             "glykiertes hamoglobin",
             "glykiertes hämoglobin",
+            "hba1c (hplc)",
+            "hba1c (ifcc)",
+            "hba1c hplc",
+            "hba1c ifcc",
         ] {
             m.insert(a, "hba1c");
         }
@@ -76,6 +81,8 @@ fn alias_map() -> &'static HashMap<&'static str, &'static str> {
             "cholesterin",
             "cholesterin gesamt",
             "gesamtcholesterin",
+            "cholesterin ges.",
+            "cholesterin ges",
         ] {
             m.insert(a, "total_cholesterol");
         }
@@ -337,6 +344,8 @@ fn alias_map() -> &'static HashMap<&'static str, &'static str> {
             "alkaline phosphatase",
             "alkalische phosphatase",
             "ap",
+            "alkal. phosphatase",
+            "alkal phosphatase",
         ] {
             m.insert(a, "alp");
         }
@@ -346,6 +355,8 @@ fn alias_map() -> &'static HashMap<&'static str, &'static str> {
             "bilirubin gesamt",
             "total bilirubin",
             "gesamtbilirubin",
+            "bilirubin ges.",
+            "bilirubin ges",
         ] {
             m.insert(a, "bilirubin_total");
         }
@@ -422,17 +433,94 @@ fn alias_map() -> &'static HashMap<&'static str, &'static str> {
         ] {
             m.insert(a, "body_water_pct");
         }
-        for a in [
-            "muscle mass",
-            "muscle %",
-            "muscle percentage",
-            "muskelmasse",
-            "muskelanteil",
-        ] {
+        for a in ["muscle %", "muscle percentage", "muskelanteil"] {
             m.insert(a, "muscle_pct");
         }
-        for a in ["bone mass", "bone mass %", "bone mineral", "knochenmasse"] {
+        for a in ["bone mass %", "bone mineral", "knochenmasse %"] {
             m.insert(a, "bone_mass_pct");
+        }
+        // ── Skeletal Muscle % ──
+        for a in [
+            "skeletal muscle",
+            "skeletal muscle %",
+            "skeletal muscle percentage",
+            "skelettmuskel",
+            "skelettmuskelanteil",
+        ] {
+            m.insert(a, "skeletal_muscle_pct");
+        }
+        // ── Muscle Mass (kg) ──
+        for a in [
+            "muscle mass",
+            "muscle mass kg",
+            "muskelmasse",
+            "muskelmasse kg",
+        ] {
+            m.insert(a, "muscle_mass_kg");
+        }
+        // ── Subcutaneous Fat ──
+        for a in [
+            "subcutaneous fat",
+            "subcutaneous fat %",
+            "subkutanes fett",
+            "subkutan",
+            "unterhautfett",
+        ] {
+            m.insert(a, "subcutaneous_fat_pct");
+        }
+        // ── Visceral Fat ──
+        for a in [
+            "visceral fat",
+            "visceral fat level",
+            "viszeralfett",
+            "viszerales fett",
+        ] {
+            m.insert(a, "visceral_fat");
+        }
+        // ── Fat-Free Mass ──
+        for a in [
+            "fat-free mass",
+            "fat free mass",
+            "lean mass",
+            "lean body mass",
+            "fettfreie masse",
+            "fettfreies körpergewicht",
+            "fettfreies korpergewicht",
+        ] {
+            m.insert(a, "fat_free_mass");
+        }
+        // ── BMR ──
+        for a in [
+            "bmr",
+            "basal metabolic rate",
+            "grundumsatz",
+            "resting metabolic rate",
+        ] {
+            m.insert(a, "bmr");
+        }
+        // ── Metabolic Age ──
+        for a in ["metabolic age", "stoffwechselalter"] {
+            m.insert(a, "metabolic_age");
+        }
+        // ── Body Protein % ──
+        for a in [
+            "body protein",
+            "body protein %",
+            "body protein percentage",
+            "körperprotein",
+            "korperprotein",
+            "protein %",
+        ] {
+            m.insert(a, "body_protein_pct");
+        }
+        // ── Bone Mass (kg) ──
+        for a in [
+            "bone mass",
+            "bone mass kg",
+            "knochenmasse",
+            "knochenmasse kg",
+        ] {
+            m.insert(a, "bone_mass_kg");
         }
         for a in [
             "waist circumference",
@@ -614,8 +702,15 @@ fn alias_map() -> &'static HashMap<&'static str, &'static str> {
             "gfr (ckd-epi-formel)",
             "glomerulare filtrationsrate",
             "glomeruläre filtrationsrate",
+            "gfr (mdrd-kurz)",
+            "gfr (mdrd)",
+            "gfr mdrd",
         ] {
             m.insert(a, "egfr");
+        }
+        // ── Chloride ──
+        for a in ["chloride", "chlorid", "cld-e", "cl", "serum chloride"] {
+            m.insert(a, "chloride");
         }
         // ── LDH ──
         for a in ["ldh", "lactate dehydrogenase", "laktatdehydrogenase"] {
@@ -759,6 +854,18 @@ fn alias_map() -> &'static HashMap<&'static str, &'static str> {
         for a in ["vldl", "vldl-c", "vldl cholesterol", "vldl-cholesterin"] {
             m.insert(a, "vldl_c");
         }
+        // ── Calprotectin ──
+        for a in [
+            "calprotectin",
+            "calprotectin i.st.",
+            "calprotectin (clia)",
+            "fäkales calprotectin",
+            "fecal calprotectin",
+            "calprotectin i. st.",
+            "calprotectin im stuhl",
+        ] {
+            m.insert(a, "calprotectin");
+        }
         // ── Total Fatty Acids ──
         for a in [
             "total fatty acids",
@@ -795,14 +902,38 @@ pub fn aliases_by_slug() -> HashMap<&'static str, Vec<&'static str>> {
     grouped
 }
 
+/// Match tier for detailed matching results.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum MatchTier {
+    Exact,
+    Contains,
+    ReverseContains,
+    Fuzzy,
+}
+
+/// Detailed match result with tier and slug.
+#[derive(Debug, Clone)]
+pub struct MatchResult {
+    pub slug: &'static str,
+    pub tier: MatchTier,
+}
+
 /// Match an AI-extracted marker name to a system marker slug.
 pub fn match_marker(ai_name: &str) -> Option<&'static str> {
+    match_marker_detailed(ai_name).map(|r| r.slug)
+}
+
+/// Match with detailed tier information for confidence scoring.
+pub fn match_marker_detailed(ai_name: &str) -> Option<MatchResult> {
     let normalized = ai_name.trim().to_lowercase();
     let map = alias_map();
 
     // 1. Exact match — always preferred
     if let Some(slug) = map.get(normalized.as_str()) {
-        return Some(slug);
+        return Some(MatchResult {
+            slug,
+            tier: MatchTier::Exact,
+        });
     }
 
     // 2. The normalized name contains a known alias (e.g., "fasting glucose level" contains "glucose")
@@ -817,7 +948,10 @@ pub fn match_marker(ai_name: &str) -> Option<&'static str> {
         }
     }
     if let Some((slug, _)) = best {
-        return Some(slug);
+        return Some(MatchResult {
+            slug,
+            tier: MatchTier::Contains,
+        });
     }
 
     // 3. A known alias contains the normalized name — only if input is long enough
@@ -825,8 +959,34 @@ pub fn match_marker(ai_name: &str) -> Option<&'static str> {
     if normalized.len() >= 4 {
         for (alias, slug) in map.iter() {
             if alias.contains(normalized.as_str()) {
-                return Some(slug);
+                return Some(MatchResult {
+                    slug,
+                    tier: MatchTier::ReverseContains,
+                });
             }
+        }
+    }
+
+    // 4. Fuzzy match — Levenshtein distance ≤ 2, only for inputs ≥ 6 chars
+    if normalized.len() >= 6 {
+        let mut best_fuzzy: Option<(&str, usize)> = None;
+        for (alias, slug) in map.iter() {
+            if alias.len() >= 6 {
+                let dist = strsim::levenshtein(&normalized, alias);
+                // Max distance 2, and distance must be < input_len / 3 to avoid wild matches
+                if dist <= 2
+                    && dist < normalized.len() / 3
+                    && (best_fuzzy.is_none() || dist < best_fuzzy.unwrap().1)
+                {
+                    best_fuzzy = Some((slug, dist));
+                }
+            }
+        }
+        if let Some((slug, _)) = best_fuzzy {
+            return Some(MatchResult {
+                slug,
+                tier: MatchTier::Fuzzy,
+            });
         }
     }
 
@@ -835,6 +995,94 @@ pub fn match_marker(ai_name: &str) -> Option<&'static str> {
 
 /// Unit conversion: convert a value from one unit to canonical.
 /// Returns (converted_value, canonical_unit) or None if no conversion needed/possible.
+/// Try matching via learned aliases from the database (promoted corrections).
+/// Falls back to static match_marker_detailed if no learned alias found.
+pub async fn match_marker_with_learned(pool: &sqlx::PgPool, ai_name: &str) -> Option<MatchResult> {
+    // 1. Try static alias map first (always takes priority)
+    if let Some(result) = match_marker_detailed(ai_name) {
+        return Some(result);
+    }
+
+    // 2. Check learned aliases (promoted only)
+    let normalized = ai_name.trim().to_lowercase();
+    let row = sqlx::query(
+        "SELECT target_slug FROM learned_aliases WHERE alias_text = $1 AND promoted_at IS NOT NULL",
+    )
+    .bind(&normalized)
+    .fetch_optional(pool)
+    .await
+    .ok()
+    .flatten();
+
+    if let Some(row) = row {
+        if let Ok(slug) = row.try_get::<String, _>("target_slug") {
+            // Leak the string to get a 'static reference (safe: small, finite set of learned aliases)
+            let leaked: &'static str = Box::leak(slug.into_boxed_str());
+            return Some(MatchResult {
+                slug: leaked,
+                tier: MatchTier::Exact, // Learned aliases are user-verified, treat as high confidence
+            });
+        }
+    }
+
+    None
+}
+
+/// Log a user correction and update the learned_aliases table.
+pub async fn log_correction(
+    pool: &sqlx::PgPool,
+    user_id: uuid::Uuid,
+    original_name: &str,
+    original_match: Option<&str>,
+    corrected_slug: &str,
+    session_id: Option<uuid::Uuid>,
+) {
+    let normalized = original_name.trim().to_lowercase();
+
+    // Log the individual correction
+    let _ = sqlx::query(
+        r#"INSERT INTO marker_corrections (user_id, original_name, original_match, corrected_slug, import_session_id)
+           VALUES ($1, $2, $3, $4, $5)"#,
+    )
+    .bind(user_id)
+    .bind(&normalized)
+    .bind(original_match)
+    .bind(corrected_slug)
+    .bind(session_id)
+    .execute(pool)
+    .await;
+
+    // Upsert learned_aliases with aggregated counts
+    let _ = sqlx::query(
+        r#"INSERT INTO learned_aliases (alias_text, target_slug, correction_count, distinct_users)
+           VALUES ($1, $2, 1, 1)
+           ON CONFLICT (alias_text) DO UPDATE SET
+               target_slug = CASE
+                   WHEN learned_aliases.correction_count >= (
+                       SELECT COUNT(*) FROM marker_corrections
+                       WHERE lower(original_name) = $1 AND corrected_slug = $2
+                   ) THEN learned_aliases.target_slug
+                   ELSE $2
+               END,
+               correction_count = (
+                   SELECT COUNT(*) FROM marker_corrections WHERE lower(original_name) = $1 AND corrected_slug = $2
+               ),
+               distinct_users = (
+                   SELECT COUNT(DISTINCT user_id) FROM marker_corrections WHERE lower(original_name) = $1 AND corrected_slug = $2
+               ),
+               promoted_at = CASE
+                   WHEN (SELECT COUNT(DISTINCT user_id) FROM marker_corrections WHERE lower(original_name) = $1 AND corrected_slug = $2) >= 5
+                   THEN COALESCE(learned_aliases.promoted_at, NOW())
+                   ELSE learned_aliases.promoted_at
+               END,
+               updated_at = NOW()"#,
+    )
+    .bind(&normalized)
+    .bind(corrected_slug)
+    .execute(pool)
+    .await;
+}
+
 pub fn convert_unit(marker_slug: &str, value: f64, from_unit: &str) -> Option<(f64, &'static str)> {
     let from = from_unit.trim().to_lowercase();
 
@@ -872,6 +1120,14 @@ pub fn convert_unit(marker_slug: &str, value: f64, from_unit: &str) -> Option<(f
                 Some((value / 1.61, "mmol/L"))
             } else {
                 None
+            }
+        }
+        "hba1c" => {
+            if from.contains("mmol") {
+                // IFCC mmol/mol → DCCT %: % = mmol/mol × 0.0915 + 2.15
+                Some((value * 0.0915 + 2.15, "%"))
+            } else {
+                None // already %
             }
         }
         "creatinine" => {
@@ -1082,9 +1338,342 @@ mod tests {
     }
 
     #[test]
+    fn test_match_german_lab_abbreviations() {
+        // GFR MDRD variants → egfr
+        assert_eq!(match_marker("GFR (MDRD-kurz)"), Some("egfr"));
+        assert_eq!(match_marker("GFR (MDRD)"), Some("egfr"));
+        assert_eq!(match_marker("GFR MDRD"), Some("egfr"));
+        // HbA1c with method suffix
+        assert_eq!(match_marker("HbA1c (HPLC)"), Some("hba1c"));
+        assert_eq!(match_marker("HbA1c (IFCC)"), Some("hba1c"));
+        assert_eq!(match_marker("HbA1c HPLC"), Some("hba1c"));
+        // German abbreviations
+        assert_eq!(match_marker("Cholesterin Ges."), Some("total_cholesterol"));
+        assert_eq!(match_marker("Cholesterin ges"), Some("total_cholesterol"));
+        assert_eq!(match_marker("Alkal. Phosphatase"), Some("alp"));
+        assert_eq!(match_marker("Bilirubin Ges."), Some("bilirubin_total"));
+        assert_eq!(match_marker("Bilirubin ges"), Some("bilirubin_total"));
+    }
+
+    #[test]
+    fn test_match_body_composition_new() {
+        // Skeletal muscle
+        assert_eq!(match_marker("Skeletal Muscle"), Some("skeletal_muscle_pct"));
+        assert_eq!(match_marker("Skelettmuskel"), Some("skeletal_muscle_pct"));
+        // Muscle mass (kg) vs muscle % disambiguation
+        assert_eq!(match_marker("Muscle Mass"), Some("muscle_mass_kg"));
+        assert_eq!(match_marker("Muskelmasse"), Some("muscle_mass_kg"));
+        assert_eq!(match_marker("Muscle %"), Some("muscle_pct"));
+        assert_eq!(match_marker("Muskelanteil"), Some("muscle_pct"));
+        // Subcutaneous fat
+        assert_eq!(
+            match_marker("Subcutaneous Fat"),
+            Some("subcutaneous_fat_pct")
+        );
+        assert_eq!(
+            match_marker("Subkutanes Fett"),
+            Some("subcutaneous_fat_pct")
+        );
+        // Visceral fat
+        assert_eq!(match_marker("Visceral Fat"), Some("visceral_fat"));
+        assert_eq!(match_marker("Viszeralfett"), Some("visceral_fat"));
+        // Fat-free mass
+        assert_eq!(match_marker("Fat-Free Mass"), Some("fat_free_mass"));
+        assert_eq!(match_marker("Lean Mass"), Some("fat_free_mass"));
+        assert_eq!(match_marker("Fettfreie Masse"), Some("fat_free_mass"));
+        // BMR
+        assert_eq!(match_marker("BMR"), Some("bmr"));
+        assert_eq!(match_marker("Grundumsatz"), Some("bmr"));
+        assert_eq!(match_marker("Basal Metabolic Rate"), Some("bmr"));
+        // Metabolic age
+        assert_eq!(match_marker("Metabolic Age"), Some("metabolic_age"));
+        assert_eq!(match_marker("Stoffwechselalter"), Some("metabolic_age"));
+        // Body protein
+        assert_eq!(match_marker("Body Protein"), Some("body_protein_pct"));
+        assert_eq!(match_marker("Körperprotein"), Some("body_protein_pct"));
+        // Bone mass (kg) vs bone mass (%)
+        assert_eq!(match_marker("Bone Mass"), Some("bone_mass_kg"));
+        assert_eq!(match_marker("Knochenmasse"), Some("bone_mass_kg"));
+        assert_eq!(match_marker("Bone Mass %"), Some("bone_mass_pct"));
+        assert_eq!(match_marker("Knochenmasse %"), Some("bone_mass_pct"));
+    }
+
+    #[test]
+    fn test_match_calprotectin() {
+        assert_eq!(match_marker("Calprotectin"), Some("calprotectin"));
+        assert_eq!(match_marker("Calprotectin i.St."), Some("calprotectin"));
+        assert_eq!(match_marker("Fäkales Calprotectin"), Some("calprotectin"));
+        assert_eq!(match_marker("Fecal Calprotectin"), Some("calprotectin"));
+        assert_eq!(match_marker("Calprotectin (CLIA)"), Some("calprotectin"));
+    }
+
+    #[test]
+    fn test_body_comp_kg_vs_pct_no_cross_contamination() {
+        // "muscle mass kg" must NOT match muscle_pct
+        assert_eq!(match_marker("Muscle Mass kg"), Some("muscle_mass_kg"));
+        assert_ne!(match_marker("Muscle Mass kg"), Some("muscle_pct"));
+        // "Muskelmasse kg" must NOT match muscle_pct
+        assert_eq!(match_marker("Muskelmasse kg"), Some("muscle_mass_kg"));
+        // "bone mass kg" must NOT match bone_mass_pct
+        assert_eq!(match_marker("Bone Mass kg"), Some("bone_mass_kg"));
+        assert_ne!(match_marker("Bone Mass kg"), Some("bone_mass_pct"));
+        // Existing % markers still work
+        assert_eq!(match_marker("Body Fat %"), Some("body_fat_pct"));
+        assert_eq!(match_marker("Body Water %"), Some("body_water_pct"));
+    }
+
+    #[test]
+    fn test_renpho_smart_scale_labels() {
+        // Labels as they appear in Renpho app screenshots (German)
+        assert_eq!(match_marker("Gewicht"), Some("weight"));
+        assert_eq!(match_marker("Körperfett"), Some("body_fat_pct"));
+        assert_eq!(match_marker("Körperwasser"), Some("body_water_pct"));
+        assert_eq!(match_marker("Skelettmuskel"), Some("skeletal_muscle_pct"));
+        assert_eq!(match_marker("Viszeralfett"), Some("visceral_fat"));
+        assert_eq!(match_marker("Grundumsatz"), Some("bmr"));
+        assert_eq!(match_marker("Stoffwechselalter"), Some("metabolic_age"));
+        assert_eq!(
+            match_marker("Subkutanes Fett"),
+            Some("subcutaneous_fat_pct")
+        );
+        assert_eq!(match_marker("Fettfreie Masse"), Some("fat_free_mass"));
+        assert_eq!(match_marker("Körperprotein"), Some("body_protein_pct"));
+    }
+
+    #[test]
+    fn test_german_lab_report_real_world() {
+        // Real strings from German lab reports (Laborbefund)
+        assert_eq!(match_marker("GFR (MDRD-kurz)"), Some("egfr"));
+        assert_eq!(match_marker("HbA1c (HPLC)"), Some("hba1c"));
+        assert_eq!(match_marker("Cholesterin Ges."), Some("total_cholesterol"));
+        assert_eq!(match_marker("Alkal. Phosphatase"), Some("alp"));
+        assert_eq!(match_marker("Bilirubin Ges."), Some("bilirubin_total"));
+        assert_eq!(match_marker("Calprotectin i.St."), Some("calprotectin"));
+        // These should NOT match the wrong marker
+        assert_ne!(match_marker("Calprotectin i.St."), Some("calcium"));
+        assert_ne!(match_marker("GFR (MDRD)"), Some("ggt"));
+    }
+
+    #[test]
+    fn test_chloride_aliases() {
+        assert_eq!(match_marker("Chloride"), Some("chloride"));
+        assert_eq!(match_marker("Chlorid"), Some("chloride"));
+        assert_eq!(match_marker("CLD-E"), Some("chloride"));
+    }
+
+    #[test]
+    fn test_protein_disambiguation() {
+        // "Body Protein" → body_protein_pct (scale), NOT total_protein (blood test)
+        assert_eq!(match_marker("Body Protein"), Some("body_protein_pct"));
+        assert_eq!(match_marker("Protein %"), Some("body_protein_pct"));
+        // "Total Protein" → total_protein (blood test)
+        assert_eq!(match_marker("Total Protein"), Some("total_protein"));
+        assert_eq!(match_marker("Gesamtprotein"), Some("total_protein"));
+    }
+
+    #[test]
+    fn test_aliases_by_slug_includes_new_markers() {
+        let grouped = aliases_by_slug();
+        // New body comp markers should have aliases
+        assert!(grouped.contains_key("skeletal_muscle_pct"));
+        assert!(grouped.contains_key("visceral_fat"));
+        assert!(grouped.contains_key("bmr"));
+        assert!(grouped.contains_key("metabolic_age"));
+        assert!(grouped.contains_key("calprotectin"));
+        // Each should have at least 1 alias
+        assert!(!grouped["skeletal_muscle_pct"].is_empty());
+        assert!(!grouped["visceral_fat"].is_empty());
+        assert!(!grouped["calprotectin"].is_empty());
+    }
+
+    #[test]
+    fn test_fuzzy_match_typos() {
+        // 1-char typos should match
+        assert_eq!(match_marker("Glucoss"), Some("glucose")); // extra s
+        assert_eq!(match_marker("Hemoglobn"), Some("hemoglobin")); // missing i
+        assert_eq!(match_marker("Creatinin"), Some("creatinine")); // missing e
+        assert_eq!(match_marker("Triglyzerid"), Some("triglycerides")); // close to triglyzeride alias
+    }
+
+    #[test]
+    fn test_fuzzy_match_returns_correct_tier() {
+        let result = match_marker_detailed("Glucoss");
+        assert!(result.is_some());
+        assert_eq!(result.unwrap().tier, MatchTier::Fuzzy);
+
+        let result = match_marker_detailed("Glucose");
+        assert!(result.is_some());
+        assert_eq!(result.unwrap().tier, MatchTier::Exact);
+    }
+
+    #[test]
+    fn test_fuzzy_no_false_positive_short() {
+        // Short inputs (< 6 chars) should NOT trigger fuzzy
+        // "Glu" matches via exact/contains, not fuzzy
+        let result = match_marker_detailed("Glu");
+        assert!(result.is_some());
+        assert_ne!(result.unwrap().tier, MatchTier::Fuzzy);
+    }
+
+    #[test]
+    fn test_fuzzy_no_wild_matches() {
+        // Very different strings should NOT match
+        assert_eq!(match_marker("RandomTestMarker"), None);
+        assert_eq!(match_marker("XYZABC"), None);
+    }
+
+    #[test]
     fn test_convert_glucose() {
         let (val, unit) = convert_unit("glucose", 90.0, "mg/dL").unwrap();
         assert!((val - 5.0).abs() < 0.01);
         assert_eq!(unit, "mmol/L");
+    }
+
+    // ── Sprint 020 regression suite: comprehensive marker coverage ──
+
+    #[test]
+    fn test_regression_all_common_english_lab_markers() {
+        let cases = [
+            ("Glucose", "glucose"),
+            ("Fasting Glucose", "glucose"),
+            ("HbA1c", "hba1c"),
+            ("Hemoglobin A1c", "hba1c"),
+            ("Total Cholesterol", "total_cholesterol"),
+            ("LDL Cholesterol", "ldl_c"),
+            ("HDL Cholesterol", "hdl_c"),
+            ("Triglycerides", "triglycerides"),
+            ("Creatinine", "creatinine"),
+            ("Uric Acid", "uric_acid"),
+            ("Iron", "iron"),
+            ("Ferritin", "ferritin"),
+            ("Hemoglobin", "hemoglobin"),
+            ("Hematocrit", "hematocrit"),
+            ("White Blood Cells", "wbc"),
+            ("Red Blood Cells", "rbc"),
+            ("Platelets", "platelets"),
+            ("TSH", "tsh"),
+            ("Free T4", "free_t4"),
+            ("Free T3", "free_t3"),
+            ("Vitamin D", "vitamin_d"),
+            ("Vitamin B12", "vitamin_b12"),
+            ("Folate", "folate"),
+            ("AST", "ast"),
+            ("ALT", "alt"),
+            ("GGT", "ggt"),
+            ("Alkaline Phosphatase", "alp"),
+            ("Bilirubin Total", "bilirubin_total"),
+            ("Total Protein", "total_protein"),
+            ("Albumin", "albumin"),
+            ("C-Reactive Protein", "hs_crp"),
+            ("Testosterone", "testosterone"),
+            ("Cortisol", "cortisol"),
+            ("Insulin", "insulin"),
+        ];
+        for (input, expected) in &cases {
+            assert_eq!(
+                match_marker(input),
+                Some(*expected),
+                "Failed: '{}' should match '{}'",
+                input,
+                expected
+            );
+        }
+    }
+
+    #[test]
+    fn test_regression_all_common_german_lab_markers() {
+        let cases = [
+            ("Blutzucker", "glucose"),
+            ("Nüchternglukose", "glucose"),
+            ("Harnsäure", "uric_acid"),
+            ("Kreatinin", "creatinine"),
+            ("Eisen", "iron"),
+            ("Hämoglobin", "hemoglobin"),
+            ("Hämatokrit", "hematocrit"),
+            ("Leukozyten", "wbc"),
+            ("Erythrozyten", "rbc"),
+            ("Thrombozyten", "platelets"),
+            ("Cholesterin gesamt", "total_cholesterol"),
+            ("Folsäure", "folate"),
+            ("Kalzium", "calcium"),
+            ("Kalium", "potassium"),
+            ("Natrium", "sodium"),
+            ("Harnstoff", "bun"),
+            ("Testosteron", "testosterone"),
+            ("Progesteron", "progesterone"),
+            ("Prolaktin", "prolactin"),
+            ("Homocystein", "homocysteine"),
+        ];
+        for (input, expected) in &cases {
+            assert_eq!(
+                match_marker(input),
+                Some(*expected),
+                "Failed: '{}' should match '{}'",
+                input,
+                expected
+            );
+        }
+    }
+
+    #[test]
+    fn test_regression_unit_conversions() {
+        // Glucose mg/dL → mmol/L
+        let (v, u) = convert_unit("glucose", 100.0, "mg/dL").unwrap();
+        assert!((v - 5.556).abs() < 0.01);
+        assert_eq!(u, "mmol/L");
+
+        // Cholesterol mg/dL → mmol/L
+        let (v, u) = convert_unit("total_cholesterol", 200.0, "mg/dL").unwrap();
+        assert!((v - 5.174).abs() < 0.01);
+        assert_eq!(u, "mmol/L");
+
+        // Triglycerides mg/dL → mmol/L
+        let (v, u) = convert_unit("triglycerides", 150.0, "mg/dL").unwrap();
+        assert!((v - 1.693).abs() < 0.01);
+        assert_eq!(u, "mmol/L");
+
+        // Vitamin D ng/mL → nmol/L
+        let (v, u) = convert_unit("vitamin_d", 30.0, "ng/mL").unwrap();
+        assert!((v - 74.88).abs() < 0.1);
+        assert_eq!(u, "nmol/L");
+
+        // HbA1c mmol/mol → %
+        let (v, u) = convert_unit("hba1c", 37.0, "mmol/mol").unwrap();
+        assert!((v - 5.54).abs() < 0.1);
+        assert_eq!(u, "%");
+
+        // HbA1c already in % — no conversion
+        assert!(convert_unit("hba1c", 5.5, "%").is_none());
+
+        // No conversion needed (already canonical)
+        assert!(convert_unit("glucose", 5.5, "mmol/L").is_none());
+        assert!(convert_unit("weight", 70.0, "kg").is_none());
+    }
+
+    #[test]
+    fn test_regression_no_false_positives_short_strings() {
+        // 2-char inputs should match via exact only, not reverse-contains
+        // "Fe" → iron (exact match)
+        assert_eq!(match_marker("Fe"), Some("iron"));
+        // "Ca" → calcium (exact match)
+        assert_eq!(match_marker("Ca"), Some("calcium"));
+        // "Mg" → magnesium (exact match)
+        assert_eq!(match_marker("Mg"), Some("magnesium"));
+    }
+
+    #[test]
+    fn test_regression_whitespace_handling() {
+        assert_eq!(match_marker("  Glucose  "), Some("glucose"));
+        assert_eq!(match_marker("\tHbA1c\n"), Some("hba1c"));
+        assert_eq!(match_marker("Total Cholesterol"), Some("total_cholesterol"));
+    }
+
+    #[test]
+    fn test_regression_case_insensitivity() {
+        assert_eq!(match_marker("GLUCOSE"), Some("glucose"));
+        assert_eq!(match_marker("glucose"), Some("glucose"));
+        assert_eq!(match_marker("Glucose"), Some("glucose"));
+        assert_eq!(match_marker("HBA1C"), Some("hba1c"));
+        assert_eq!(match_marker("hba1c"), Some("hba1c"));
     }
 }

@@ -1,9 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import { MeasurementImportSession, MeasurementImportColumn } from '@/lib/types'
+import { MeasurementImportSession } from '@/lib/types'
 import { useTranslations } from 'next-intl'
 import { useContent } from '@/lib/content-context'
+import { ImportReviewHeader, ImportContext } from './import-review-header'
 
 interface MeasurementImportReviewProps {
   session: MeasurementImportSession
@@ -11,7 +12,8 @@ interface MeasurementImportReviewProps {
     columnMapping: Array<{ marker_slug: string; device_id?: string | null; unit?: string }>,
     selectedRows: number[],
     skipDuplicates: boolean,
-    protocolOverrides?: Record<string, string>
+    protocolOverrides?: Record<string, string>,
+    context?: { measured_at_override?: string; diet_protocol?: string; fasting_protocol?: string; meal_timing_tag?: string }
   ) => void
   onCancel: () => void
   isLoading: boolean
@@ -26,65 +28,24 @@ export function MeasurementImportReview({ session, onConfirm, onCancel, isLoadin
   const calculatedColumns = (session.columns || []).filter(c => c.match_confidence === 'calculated_skip')
   const unmatchedColumns = (session.columns || []).filter(c => !c.marker_slug && c.match_confidence !== 'calculated_skip')
 
-  // Column device assignment (editable)
-  const [columnDevices, setColumnDevices] = useState<Record<string, string | null>>(() => {
-    const init: Record<string, string | null> = {}
-    matchedColumns.forEach(c => {
-      if (c.marker_slug) init[c.marker_slug] = c.device_id
-    })
-    return init
+  // Import context from shared header
+  const [importCtx, setImportCtx] = useState<ImportContext>({
+    measuredAt: '', dietProtocol: 'none', fastingProtocol: 'none', mealTiming: 'no_tag',
+    deviceId: '', labId: '', labName: '', labAddress: '', labPostalCode: '', labCity: '', labCountry: '',
   })
-
-  // Editable protocol mapping
-  const [protocolOverrides, setProtocolOverrides] = useState<Record<string, string>>(() => {
-    const init: Record<string, string> = {}
-    if (session.protocols) {
-      Object.entries(session.protocols).forEach(([source, mapped]) => {
-        init[source] = mapped
-      })
-    }
-    return init
-  })
-
-  // Protocol options matching the measurement form (Messzeitpunkt)
-  const tMeal = useTranslations('newMeasurement.mealTiming')
-  const protocolOptions = [
-    { value: 'standard', label: tMeal('noTag') },
-    { value: 'fasting', label: tMeal('fasting') },
-    { value: 'before', label: tMeal('before') },
-    { value: '30m_after', label: tMeal('30mAfter') },
-    { value: '1h_after', label: tMeal('1hAfter') },
-    { value: '2h_after', label: tMeal('2hAfter') },
-    { value: '3h_after', label: tMeal('3hAfter') },
-  ]
 
   // Row selection
   const [selectedRows, setSelectedRows] = useState<Record<number, boolean>>(() => {
     const init: Record<number, boolean> = {}
     session.rows.forEach((row, i) => {
-      // Only select rows that have at least one value
-      if (row.values && Object.keys(row.values).length > 0) {
-        init[i] = true
-      }
+      if (row.values && Object.keys(row.values).length > 0) init[i] = true
     })
     return init
   })
 
   const [skipDuplicates, setSkipDuplicates] = useState(true)
 
-  // Build protocol remap: original mapped value -> user's override
-  const protocolRemap = new Map<string, string>()
-  if (session.protocols) {
-    Object.entries(session.protocols).forEach(([source, originalMapped]) => {
-      const override = protocolOverrides[source]
-      if (override && override !== originalMapped) {
-        protocolRemap.set(originalMapped, override)
-      }
-    })
-  }
-  const remapProtocol = (tag: string): string => protocolRemap.get(tag) ?? tag
-
-  // Detect duplicate rows (same date + time + values)
+  // Detect duplicate rows
   const duplicateRows = new Set<number>()
   const rowFingerprints = new Map<string, number[]>()
   session.rows.forEach((row, i) => {
@@ -107,7 +68,7 @@ export function MeasurementImportReview({ session, onConfirm, onCancel, isLoadin
       .filter(c => c.marker_slug)
       .map(c => ({
         marker_slug: c.marker_slug!,
-        device_id: columnDevices[c.marker_slug!] || null,
+        device_id: importCtx.deviceId || c.device_id || null,
         unit: c.unit,
       }))
 
@@ -115,11 +76,13 @@ export function MeasurementImportReview({ session, onConfirm, onCancel, isLoadin
       .filter(([, v]) => v)
       .map(([k]) => parseInt(k))
 
-    // Only pass overrides if the user actually changed something
-    const hasOverrides = Object.entries(protocolOverrides).some(
-      ([source, val]) => session.protocols && session.protocols[source] !== val
-    )
-    onConfirm(mapping, rows, skipDuplicates, hasOverrides ? protocolOverrides : undefined)
+    const ctx = {
+      measured_at_override: importCtx.measuredAt ? new Date(importCtx.measuredAt + 'T08:00:00Z').toISOString() : undefined,
+      diet_protocol: importCtx.dietProtocol !== 'none' ? importCtx.dietProtocol : undefined,
+      fasting_protocol: importCtx.fastingProtocol !== 'none' ? importCtx.fastingProtocol : undefined,
+      meal_timing_tag: importCtx.mealTiming !== 'no_tag' ? importCtx.mealTiming : undefined,
+    }
+    onConfirm(mapping, rows, skipDuplicates, undefined, ctx)
   }
 
   const allSelected = selectedCount === selectableRows.length && selectableRows.length > 0
@@ -127,48 +90,26 @@ export function MeasurementImportReview({ session, onConfirm, onCancel, isLoadin
     const next: Record<number, boolean> = {}
     const val = !allSelected
     session.rows.forEach((row, i) => {
-      if (row.values && Object.keys(row.values).length > 0) {
-        next[i] = val
-      }
+      if (row.values && Object.keys(row.values).length > 0) next[i] = val
     })
     setSelectedRows(next)
   }
 
-  // Translate protocol tags to current locale
-  const translateProtocol = (tag: string): string => {
-    const opt = protocolOptions.find(o => o.value === tag)
-    return opt ? opt.label : tag
-  }
-
-  // Unique devices from columns for display
-  const uniqueDevices = new Map<string, string>()
-  matchedColumns.forEach(c => {
-    if (c.device_id && c.device_name) {
-      uniqueDevices.set(c.device_id, c.device_name)
-    }
-  })
-
-  // Protocol labels
-  const protocols = session.protocols || {}
-
-  const inputCls = "bg-card border border-border rounded-lg px-3 py-1.5 text-sm text-foreground"
   const selectCls = "bg-card border border-border rounded-lg px-2 py-1 text-xs text-foreground [&>option]:bg-card [&>option]:text-foreground"
 
   return (
     <div className="flex-1 overflow-y-auto">
       <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-lg font-semibold text-foreground">{t('title')}</h2>
-            <p className="text-sm text-muted-foreground mt-1">
-              {session.file_name} - {session.total_rows} {t('rowsFound')}, {session.total_markers} {t('markersDetected')}
-            </p>
-          </div>
-          <button onClick={onCancel} className="text-sm text-muted-foreground hover:text-foreground">
-            {tCommon('cancel')}
-          </button>
-        </div>
+        {/* Shared header with all dropdowns */}
+        <ImportReviewHeader
+          fileName={session.file_name}
+          markerCount={session.total_markers}
+          rowCount={session.total_rows}
+          showLabSection={false}
+          showDatePicker={true}
+          onChange={setImportCtx}
+          onCancel={onCancel}
+        />
 
         {/* Column Mapping */}
         {matchedColumns.length > 0 && (
@@ -183,7 +124,6 @@ export function MeasurementImportReview({ session, onConfirm, onCancel, isLoadin
                     <th className="py-2 px-3 text-left">{t('sourceColumn')}</th>
                     <th className="py-2 px-3 text-left">{t('matchedMarker')}</th>
                     <th className="py-2 px-3 text-left">{t('unit')}</th>
-                    <th className="py-2 px-3 text-left">{t('device')}</th>
                     <th className="py-2 px-3 text-center">{t('confidence')}</th>
                   </tr>
                 </thead>
@@ -195,29 +135,11 @@ export function MeasurementImportReview({ session, onConfirm, onCancel, isLoadin
                         {contentMarkers[col.marker_slug!]?.name ?? col.marker_slug}
                       </td>
                       <td className="py-2 px-3 text-muted-foreground">{col.unit}</td>
-                      <td className="py-2 px-3">
-                        {uniqueDevices.size > 0 ? (
-                          <select
-                            value={columnDevices[col.marker_slug!] || ''}
-                            onChange={e => setColumnDevices(prev => ({
-                              ...prev,
-                              [col.marker_slug!]: e.target.value || null,
-                            }))}
-                            className={selectCls}
-                          >
-                            <option value="">{t('noDevice')}</option>
-                            {Array.from(uniqueDevices).map(([id, name]) => (
-                              <option key={id} value={id}>{name}</option>
-                            ))}
-                          </select>
-                        ) : (
-                          <span className="text-xs text-muted-foreground">{col.device_name || t('noDevice')}</span>
-                        )}
-                      </td>
                       <td className="py-2 px-3 text-center">
                         <span className={`text-xs px-1.5 py-0.5 rounded ${
                           col.match_confidence === 'high' ? 'bg-green-500/20 text-green-400' :
                           col.match_confidence === 'medium' ? 'bg-yellow-500/20 text-yellow-400' :
+                          col.match_confidence === 'fuzzy' ? 'bg-purple-500/20 text-purple-400' :
                           'bg-red-500/20 text-red-400'
                         }`}>
                           {col.match_confidence}
@@ -273,63 +195,21 @@ export function MeasurementImportReview({ session, onConfirm, onCancel, isLoadin
           </div>
         )}
 
-        {/* Protocol Mapping */}
-        {Object.keys(protocols).length > 0 && (
-          <div>
-            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-              {t('protocolMapping')}
-            </h3>
-            <div className="border border-border rounded-xl overflow-hidden">
-              <table className="w-full text-sm">
-                <tbody>
-                  {Object.entries(protocols).map(([source], i) => (
-                    <tr key={i} className="border-t border-border first:border-t-0">
-                      <td className="py-2 px-3 text-muted-foreground">"{source}"</td>
-                      <td className="py-2 px-3">
-                        <select
-                          value={protocolOverrides[source] || 'standard'}
-                          onChange={e => setProtocolOverrides(prev => ({
-                            ...prev,
-                            [source]: e.target.value,
-                          }))}
-                          className={selectCls}
-                        >
-                          {protocolOptions.map(opt => (
-                            <option key={opt.value} value={opt.value}>{opt.label}</option>
-                          ))}
-                        </select>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-
-        {/* Row Preview */}
+        {/* Data Row Preview */}
         <div>
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-              {t('rowPreview')} ({session.rows.length})
-            </h3>
-          </div>
+          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+            {t('rowPreview')} ({session.rows.length})
+          </h3>
           <div className="border border-border rounded-xl overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="bg-accent text-muted-foreground text-xs">
                     <th className="py-2 px-3 text-left w-8">
-                      <input
-                        type="checkbox"
-                        checked={allSelected}
-                        onChange={toggleAll}
-                        className="rounded"
-                      />
+                      <input type="checkbox" checked={allSelected} onChange={toggleAll} className="rounded" />
                     </th>
                     <th className="py-2 px-2 text-left">{t('date')}</th>
                     <th className="py-2 px-2 text-left">{t('time')}</th>
-                    <th className="py-2 px-2 text-left">{t('protocol')}</th>
                     {matchedColumns.map((col, i) => (
                       <th key={i} className="py-2 px-2 text-right whitespace-nowrap">
                         {col.abbreviation || contentMarkers[col.marker_slug!]?.name || col.marker_slug}
@@ -358,7 +238,6 @@ export function MeasurementImportReview({ session, onConfirm, onCancel, isLoadin
                           )}
                         </td>
                         <td className="py-1.5 px-2 text-muted-foreground text-xs">{row.time}</td>
-                        <td className="py-1.5 px-2 text-muted-foreground text-xs">{row.protocol ? translateProtocol(remapProtocol(row.protocol)) : ''}</td>
                         {matchedColumns.map((col, ci) => {
                           const val = col.marker_slug ? row.values[col.marker_slug] : undefined
                           return (
@@ -378,12 +257,7 @@ export function MeasurementImportReview({ session, onConfirm, onCancel, isLoadin
 
         {/* Duplicate toggle */}
         <label className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer">
-          <input
-            type="checkbox"
-            checked={skipDuplicates}
-            onChange={e => setSkipDuplicates(e.target.checked)}
-            className="rounded"
-          />
+          <input type="checkbox" checked={skipDuplicates} onChange={e => setSkipDuplicates(e.target.checked)} className="rounded" />
           {t('skipDuplicates')}
         </label>
 
@@ -393,10 +267,7 @@ export function MeasurementImportReview({ session, onConfirm, onCancel, isLoadin
             {t('selectedCount', { count: selectedCount })} / {selectableRows.length}
           </p>
           <div className="flex gap-3">
-            <button
-              onClick={onCancel}
-              className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground border border-border rounded-lg transition-colors"
-            >
+            <button onClick={onCancel} className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground border border-border rounded-lg transition-colors">
               {tCommon('cancel')}
             </button>
             <button

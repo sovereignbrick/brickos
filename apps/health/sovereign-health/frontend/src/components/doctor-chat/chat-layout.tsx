@@ -221,7 +221,7 @@ export function ChatLayout({ conversationId }: ChatLayoutProps) {
     }
   }
 
-  const handleImportConfirm = async (markers: Array<{ marker_slug: string; value: number }>, opts: { measured_at?: string; protocol_tag?: string; lab_name?: string; lab_address?: string; lab_postal_code?: string; lab_city?: string; lab_country?: string }) => {
+  const handleImportConfirm = async (markers: Array<{ marker_slug: string; value: number }>, opts: { measured_at?: string; protocol_tag?: string; meal_timing_tag?: string; diet_protocol?: string; fasting_protocol?: string; device_id?: string; lab_id?: string; lab_name?: string; lab_address?: string; lab_postal_code?: string; lab_city?: string; lab_country?: string }) => {
     if (!importSession) return
     setImportLoading(true)
     try {
@@ -263,7 +263,8 @@ export function ChatLayout({ conversationId }: ChatLayoutProps) {
     columnMapping: Array<{ marker_slug: string; device_id?: string | null; unit?: string }>,
     selectedRows: number[],
     skipDuplicates: boolean,
-    protocolOverrides?: Record<string, string>
+    protocolOverrides?: Record<string, string>,
+    context?: { measured_at_override?: string; diet_protocol?: string; fasting_protocol?: string; meal_timing_tag?: string }
   ) => {
     if (!measurementImportSession) return
     setImportLoading(true)
@@ -273,7 +274,8 @@ export function ChatLayout({ conversationId }: ChatLayoutProps) {
         columnMapping,
         selectedRows,
         skipDuplicates,
-        protocolOverrides
+        protocolOverrides,
+        context
       )
       toast.success(res.data.message, {
         action: {

@@ -55,7 +55,7 @@ pub async fn build_health_context(
            JOIN markers mk ON mk.id = m.marker_id
            WHERE m.user_id = $1
              AND m.is_deleted = false
-             AND m.timestamp >= now() - INTERVAL '30 days'
+             AND m.timestamp >= now() - INTERVAL '360 days'
            ORDER BY m.timestamp DESC
            LIMIT 200"#,
     )
@@ -711,6 +711,13 @@ struct AnthropicContent {
     #[serde(rename = "type")]
     content_type: String,
     text: Option<String>,
+    #[serde(default)]
+    #[allow(dead_code)]
+    id: Option<String>,
+    #[serde(default)]
+    name: Option<String>,
+    #[serde(default)]
+    input: Option<serde_json::Value>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -721,10 +728,47 @@ struct AnthropicUsage {
 
 pub struct ClaudeResponse {
     pub text: String,
+    pub tool_input: Option<serde_json::Value>,
     pub total_tokens: Option<i32>,
     pub input_tokens: Option<i32>,
     pub output_tokens: Option<i32>,
     pub model: String,
+}
+
+/// Tool schema for structured marker extraction via Claude tool_use.
+pub fn extraction_tool_definition() -> serde_json::Value {
+    serde_json::json!({
+        "name": "submit_extraction",
+        "description": "Submit all health markers extracted from the document/image",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "markers": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "marker_name": { "type": "string", "description": "Full marker name (not abbreviation)" },
+                            "value": { "type": "number", "description": "Numeric value (use dot notation for decimals)" },
+                            "unit": { "type": "string", "description": "Unit as printed (e.g. mg/dL, mmol/L, %, kg, level)" },
+                            "reference_range": { "type": "string", "description": "Reference range as printed (e.g. 70-100)" },
+                            "flag": { "type": "string", "enum": ["normal", "high", "low", "critical"], "description": "Status flag from report" },
+                            "confidence": { "type": "number", "minimum": 0, "maximum": 1, "description": "OCR clarity confidence" },
+                            "measured_at": { "type": "string", "description": "Date of measurement if visible (YYYY-MM-DD)" }
+                        },
+                        "required": ["marker_name", "value", "unit", "confidence"]
+                    }
+                },
+                "lab_date": { "type": "string", "description": "Lab report date (YYYY-MM-DD)" },
+                "lab_provider": { "type": "string", "description": "Lab/provider name from letterhead" },
+                "lab_address": { "type": "string", "description": "Lab street address" },
+                "lab_postal_code": { "type": "string", "description": "Lab postal code" },
+                "lab_city": { "type": "string", "description": "Lab city" },
+                "lab_country": { "type": "string", "description": "Lab country code (e.g. DE, AT, US)" }
+            },
+            "required": ["markers"]
+        }
+    })
 }
 
 pub async fn call_claude(
@@ -760,7 +804,7 @@ pub async fn call_claude(
         .timeout(std::time::Duration::from_secs(30))
         .build()
         .unwrap_or_else(|_| reqwest::Client::new());
-    let resp = client
+    let request = client
         .post(crate::config::Config::anthropic_api_url_static())
         .header("x-api-key", api_key)
         .header(
@@ -768,13 +812,36 @@ pub async fn call_claude(
             &crate::config::Config::anthropic_api_version_static(),
         )
         .header("content-type", "application/json")
-        .json(&req_body)
-        .send()
-        .await
-        .map_err(|e| {
-            tracing::error!("Anthropic request failed: {:?}", e);
-            AppError::UpstreamError
-        })?;
+        .json(&req_body);
+
+    let resp = match request.send().await {
+        Ok(r) => r,
+        Err(e) => {
+            tracing::warn!(
+                "Anthropic chat request failed (attempt 1), retrying: {:?}",
+                e
+            );
+            let retry_client = reqwest::Client::builder()
+                .timeout(std::time::Duration::from_secs(60))
+                .build()
+                .unwrap_or_else(|_| reqwest::Client::new());
+            retry_client
+                .post(crate::config::Config::anthropic_api_url_static())
+                .header("x-api-key", api_key)
+                .header(
+                    "anthropic-version",
+                    &crate::config::Config::anthropic_api_version_static(),
+                )
+                .header("content-type", "application/json")
+                .json(&req_body)
+                .send()
+                .await
+                .map_err(|e2| {
+                    tracing::error!("Anthropic chat request failed (attempt 2): {:?}", e2);
+                    AppError::UpstreamError
+                })?
+        }
+    };
 
     let status = resp.status();
     if !status.is_success() {
@@ -812,6 +879,7 @@ pub async fn call_claude(
 
     Ok(ClaudeResponse {
         text,
+        tool_input: None,
         total_tokens,
         input_tokens,
         output_tokens,
@@ -821,7 +889,7 @@ pub async fn call_claude(
 
 // ── Vision API for lab report extraction ─────────────────────────────────────
 
-const EXTRACTION_SYSTEM_PROMPT: &str = r#"You are a medical lab report data extractor. Extract all health markers and their values from this lab report image.
+const EXTRACTION_SYSTEM_PROMPT: &str = r#"You are a health data extractor. Extract all health markers and their values from this image. The source can be a lab report, smart scale app screenshot, blood glucose meter, or any health measurement display.
 
 Return a JSON array of extracted markers:
 [
@@ -836,7 +904,7 @@ Return a JSON array of extracted markers:
 ]
 
 Rules:
-- Extract every marker visible in the report
+- Extract every marker visible in the image
 - Include the exact value, unit, and reference range as printed
 - Set confidence 0.0-1.0 based on how clearly you can read the value
 - Flag: normal, high, low, critical (as indicated on the report)
@@ -858,6 +926,38 @@ Rules:
   FERR = Ferritin, TSAT = Transferrin Saturation, VitD/25OHD = Vitamin D,
   BPM = Heart Rate (Pulse), SYS = Systolic Blood Pressure, DIA = Diastolic Blood Pressure
 - If the source appears to be a summary table or screenshot (not a full lab report), match abbreviations against the list above
+
+SMART SCALE / BODY COMPOSITION APPS (Renpho, Withings, Xiaomi, etc.):
+- These show body composition data in grid layouts, comparison views, or detail cards
+- Common markers: Gewicht/Weight (kg), BMI, Körperfett/Body Fat (%), Körperwasser/Body Water (%),
+  Muskelmasse/Muscle Mass (kg or %), Skelettmuskel/Skeletal Muscle (%), Knochenmasse/Bone Mass (kg or %),
+  Viszeralfett/Visceral Fat (level), Subkutanes Fett/Subcutaneous Fat (%),
+  Grundumsatz/BMR (kcal), Stoffwechselalter/Metabolic Age (years),
+  Fettfreie Masse/Fat-Free Mass (kg), Körperprotein/Body Protein (%), Protein (%)
+- CRITICAL: Distinguish kg vs % carefully by reading the unit next to the value:
+  "Knochenmasse 2.04 kg" → marker_name: "Bone Mass", unit: "kg"
+  "Knochenmasse 6%" → marker_name: "Bone Mass %", unit: "%"
+  "Muskelmasse 25.3 kg" → marker_name: "Muscle Mass", unit: "kg"
+  "Muskelmasse 38%" → marker_name: "Muscle %", unit: "%"
+- If the unit is ambiguous or missing, set confidence below 0.6
+- German comma decimals: "69,20" means 69.20, "20,7" means 20.7 — convert to dot notation in the value field
+- Grid layouts: parse each cell as a separate marker, associating value with its label
+- If multiple dates are shown (e.g. comparison view), extract only the most recent values unless all dates are relevant
+- If a date row like "27.03.26" is shown, include it as "measured_at": "2026-03-27"
+
+BLOOD GLUCOSE METERS:
+- German date format: "Freitag, 20. Februar 2026" → "2026-02-20"
+- Each entry may have time, glucose value (mg/dL or mmol/L), and meal context (fasting, before/after meal)
+- Extract each reading as a separate marker entry with its own measured_at timestamp
+
+GERMAN LAB REPORTS:
+- GFR (MDRD-kurz), GFR (MDRD) → use marker_name "eGFR"
+- HbA1c (HPLC) = HbA1c in % (value typically 4-7), HbA1c (IFCC) = HbA1c in mmol/mol (value typically 20-53) — extract BOTH with correct units and values
+- CLD-E = Chloride, GLU-E = Glucose
+- Cholesterin Ges., Bilirubin Ges. → "Ges." means "gesamt" (total)
+- Alkal. Phosphatase → Alkaline Phosphatase
+- Calprotectin i.St. → Calprotectin (fecal inflammation marker)
+
 - Return valid JSON only. No markdown, no explanations, just the JSON."#;
 
 const MEDICATION_EXTRACTION_PROMPT: &str = r#"Extract all medications and supplements from this image.
@@ -971,13 +1071,21 @@ pub async fn call_claude_vision(
     file_base64: &str,
     media_type: &str,
     import_type: &str,
+    category: Option<&str>,
+    language: Option<&str>,
 ) -> Result<ClaudeResponse, AppError> {
     if api_key.is_empty() {
         return Err(AppError::MissingApiKey);
     }
 
+    // Use category-based prompt when available, fall back to monolithic prompt
+    let category_prompt_owned;
     let system_prompt = if import_type == "med_import" {
         MEDICATION_EXTRACTION_PROMPT
+    } else if let Some(cat) = category {
+        category_prompt_owned =
+            crate::services::extraction_prompts::prompt_for_category(cat, language.unwrap_or("en"));
+        &category_prompt_owned
     } else {
         EXTRACTION_SYSTEM_PROMPT
     };
@@ -1000,11 +1108,18 @@ pub async fn call_claude_vision(
         },
         {
             "type": "text",
-            "text": "Extract all markers/values from this document. Return JSON only."
+            "text": if media_type == "application/pdf" {
+                "Extract all markers/values from this document. Return JSON only."
+            } else {
+                "Extract all markers/values from this document."
+            }
         }
     ]);
 
-    let req_body = serde_json::json!({
+    // Use tool_use for structured extraction (images only, not PDFs — PDFs with tool_choice can timeout)
+    let use_tool = import_type != "med_import" && media_type != "application/pdf";
+
+    let mut req_body = serde_json::json!({
         "model": "claude-sonnet-4-20250514",
         "max_tokens": 16384,
         "system": system_prompt,
@@ -1014,7 +1129,16 @@ pub async fn call_claude_vision(
         }]
     });
 
-    let client = reqwest::Client::new();
+    if use_tool {
+        req_body["tools"] = serde_json::json!([extraction_tool_definition()]);
+        req_body["tool_choice"] = serde_json::json!({"type": "tool", "name": "submit_extraction"});
+    }
+
+    let client = reqwest::Client::builder()
+        .timeout(std::time::Duration::from_secs(120))
+        .pool_idle_timeout(std::time::Duration::from_secs(10))
+        .build()
+        .unwrap_or_else(|_| reqwest::Client::new());
     let mut request = client
         .post(crate::config::Config::anthropic_api_url_static())
         .header("x-api-key", api_key)
@@ -1029,10 +1153,36 @@ pub async fn call_claude_vision(
         request = request.header("anthropic-beta", "pdfs-2024-09-25");
     }
 
-    let resp = request.json(&req_body).send().await.map_err(|e| {
-        tracing::error!("Anthropic vision request failed: {:?}", e);
-        AppError::UpstreamError
-    })?;
+    // Send with retry on timeout/connection errors
+    let resp = match request.json(&req_body).send().await {
+        Ok(r) => r,
+        Err(e) => {
+            tracing::warn!(
+                "Anthropic vision request failed (attempt 1), retrying: {:?}",
+                e
+            );
+            // Retry once with a fresh client
+            let retry_client = reqwest::Client::builder()
+                .timeout(std::time::Duration::from_secs(180))
+                .build()
+                .unwrap_or_else(|_| reqwest::Client::new());
+            let mut retry_req = retry_client
+                .post(crate::config::Config::anthropic_api_url_static())
+                .header("x-api-key", api_key)
+                .header(
+                    "anthropic-version",
+                    &crate::config::Config::anthropic_api_version_static(),
+                )
+                .header("content-type", "application/json");
+            if media_type == "application/pdf" {
+                retry_req = retry_req.header("anthropic-beta", "pdfs-2024-09-25");
+            }
+            retry_req.json(&req_body).send().await.map_err(|e2| {
+                tracing::error!("Anthropic vision request failed (attempt 2): {:?}", e2);
+                AppError::UpstreamError
+            })?
+        }
+    };
 
     let status = resp.status();
     if !status.is_success() {
@@ -1040,6 +1190,11 @@ pub async fn call_claude_vision(
         tracing::error!("Anthropic Vision API error {}: {}", status, body);
         if status == 401 || status == 403 {
             return Err(AppError::MissingApiKey);
+        }
+        if body.contains("credit balance is too low") {
+            return Err(AppError::Validation(
+                "AI service credits exhausted. Please check Anthropic API billing.".to_string(),
+            ));
         }
         return Err(AppError::UpstreamError);
     }
@@ -1049,11 +1204,18 @@ pub async fn call_claude_vision(
         AppError::UpstreamError
     })?;
 
+    // Extract tool_use input (structured) or text (fallback)
+    let tool_input = parsed
+        .content
+        .iter()
+        .find(|c| c.content_type == "tool_use" && c.name.as_deref() == Some("submit_extraction"))
+        .and_then(|c| c.input.clone());
+
     let text = parsed
         .content
-        .into_iter()
+        .iter()
         .find(|c| c.content_type == "text")
-        .and_then(|c| c.text)
+        .and_then(|c| c.text.clone())
         .unwrap_or_else(|| "[]".to_string());
 
     let input_tokens = parsed.usage.as_ref().and_then(|u| u.input_tokens);
@@ -1064,6 +1226,7 @@ pub async fn call_claude_vision(
 
     Ok(ClaudeResponse {
         text,
+        tool_input,
         total_tokens,
         input_tokens,
         output_tokens,
@@ -1075,13 +1238,20 @@ pub async fn call_claude_vision_multi(
     api_key: &str,
     files: &[(String, String)], // Vec of (base64_data, media_type)
     import_type: &str,
+    category: Option<&str>,
+    language: Option<&str>,
 ) -> Result<ClaudeResponse, AppError> {
     if api_key.is_empty() {
         return Err(AppError::MissingApiKey);
     }
 
+    let category_prompt_owned;
     let system_prompt = if import_type == "med_import" {
         MEDICATION_EXTRACTION_PROMPT
+    } else if let Some(cat) = category {
+        category_prompt_owned =
+            crate::services::extraction_prompts::prompt_for_category(cat, language.unwrap_or("en"));
+        &category_prompt_owned
     } else {
         EXTRACTION_SYSTEM_PROMPT
     };
@@ -1105,16 +1275,18 @@ pub async fn call_claude_vision_multi(
     }
 
     let text_prompt = if import_type == "med_import" {
-        "Extract all medications/supplements from these images. Return a single combined JSON array."
+        "Extract all medications/supplements from these images."
     } else {
-        "Extract all markers/values from these documents. Return a single combined JSON array."
+        "Extract all markers/values from these documents."
     };
     content_blocks.push(serde_json::json!({
         "type": "text",
         "text": text_prompt
     }));
 
-    let req_body = serde_json::json!({
+    let use_tool = import_type != "med_import";
+
+    let mut req_body = serde_json::json!({
         "model": "claude-sonnet-4-20250514",
         "max_tokens": 16384,
         "system": system_prompt,
@@ -1123,6 +1295,11 @@ pub async fn call_claude_vision_multi(
             "content": content_blocks
         }]
     });
+
+    if use_tool {
+        req_body["tools"] = serde_json::json!([extraction_tool_definition()]);
+        req_body["tool_choice"] = serde_json::json!({"type": "tool", "name": "submit_extraction"});
+    }
 
     let client = reqwest::Client::new();
     let has_pdf = files.iter().any(|(_, mt)| mt == "application/pdf");
@@ -1135,15 +1312,41 @@ pub async fn call_claude_vision_multi(
         )
         .header("content-type", "application/json");
 
-    // PDF documents require the beta header
     if has_pdf {
         request = request.header("anthropic-beta", "pdfs-2024-09-25");
     }
 
-    let resp = request.json(&req_body).send().await.map_err(|e| {
-        tracing::error!("Anthropic vision multi request failed: {:?}", e);
-        AppError::UpstreamError
-    })?;
+    let resp = match request.json(&req_body).send().await {
+        Ok(r) => r,
+        Err(e) => {
+            tracing::warn!(
+                "Anthropic vision multi request failed (attempt 1), retrying: {:?}",
+                e
+            );
+            let retry_client = reqwest::Client::builder()
+                .timeout(std::time::Duration::from_secs(180))
+                .build()
+                .unwrap_or_else(|_| reqwest::Client::new());
+            let mut retry_req = retry_client
+                .post(crate::config::Config::anthropic_api_url_static())
+                .header("x-api-key", api_key)
+                .header(
+                    "anthropic-version",
+                    &crate::config::Config::anthropic_api_version_static(),
+                )
+                .header("content-type", "application/json");
+            if has_pdf {
+                retry_req = retry_req.header("anthropic-beta", "pdfs-2024-09-25");
+            }
+            retry_req.json(&req_body).send().await.map_err(|e2| {
+                tracing::error!(
+                    "Anthropic vision multi request failed (attempt 2): {:?}",
+                    e2
+                );
+                AppError::UpstreamError
+            })?
+        }
+    };
 
     let status = resp.status();
     if !status.is_success() {
@@ -1151,6 +1354,11 @@ pub async fn call_claude_vision_multi(
         tracing::error!("Anthropic Vision API error {}: {}", status, body);
         if status == 401 || status == 403 {
             return Err(AppError::MissingApiKey);
+        }
+        if body.contains("credit balance is too low") {
+            return Err(AppError::Validation(
+                "AI service credits exhausted. Please check Anthropic API billing.".to_string(),
+            ));
         }
         return Err(AppError::UpstreamError);
     }
@@ -1160,11 +1368,17 @@ pub async fn call_claude_vision_multi(
         AppError::UpstreamError
     })?;
 
+    let tool_input = parsed
+        .content
+        .iter()
+        .find(|c| c.content_type == "tool_use" && c.name.as_deref() == Some("submit_extraction"))
+        .and_then(|c| c.input.clone());
+
     let text = parsed
         .content
-        .into_iter()
+        .iter()
         .find(|c| c.content_type == "text")
-        .and_then(|c| c.text)
+        .and_then(|c| c.text.clone())
         .unwrap_or_else(|| "[]".to_string());
 
     let input_tokens = parsed.usage.as_ref().and_then(|u| u.input_tokens);
@@ -1175,6 +1389,7 @@ pub async fn call_claude_vision_multi(
 
     Ok(ClaudeResponse {
         text,
+        tool_input,
         total_tokens,
         input_tokens,
         output_tokens,
@@ -1207,10 +1422,11 @@ pub async fn call_claude_csv_extraction(
 
     let client = reqwest::Client::builder()
         .timeout(std::time::Duration::from_secs(120))
+        .pool_idle_timeout(std::time::Duration::from_secs(10))
         .build()
         .unwrap_or_else(|_| reqwest::Client::new());
 
-    let resp = client
+    let resp = match client
         .post(crate::config::Config::anthropic_api_url_static())
         .header("x-api-key", api_key)
         .header(
@@ -1221,10 +1437,34 @@ pub async fn call_claude_csv_extraction(
         .json(&req_body)
         .send()
         .await
-        .map_err(|e| {
-            tracing::error!("Anthropic CSV extraction request failed: {:?}", e);
-            AppError::UpstreamError
-        })?;
+    {
+        Ok(r) => r,
+        Err(e) => {
+            tracing::warn!(
+                "CSV extraction request failed (attempt 1), retrying: {:?}",
+                e
+            );
+            let retry_client = reqwest::Client::builder()
+                .timeout(std::time::Duration::from_secs(180))
+                .build()
+                .unwrap_or_else(|_| reqwest::Client::new());
+            retry_client
+                .post(crate::config::Config::anthropic_api_url_static())
+                .header("x-api-key", api_key)
+                .header(
+                    "anthropic-version",
+                    &crate::config::Config::anthropic_api_version_static(),
+                )
+                .header("content-type", "application/json")
+                .json(&req_body)
+                .send()
+                .await
+                .map_err(|e2| {
+                    tracing::error!("CSV extraction request failed (attempt 2): {:?}", e2);
+                    AppError::UpstreamError
+                })?
+        }
+    };
 
     let status = resp.status();
     if !status.is_success() {
@@ -1262,9 +1502,256 @@ pub async fn call_claude_csv_extraction(
 
     Ok(ClaudeResponse {
         text,
+        tool_input: None,
         total_tokens,
         input_tokens,
         output_tokens,
         model: "claude-sonnet-4-20250514".to_string(),
     })
+}
+
+// ---------------------------------------------------------------------------
+// Document format classifier (lightweight, ~100 tokens)
+// ---------------------------------------------------------------------------
+
+/// Classify a health document into a category + detected language.
+/// Returns (category, language, confidence) or defaults on failure.
+pub async fn classify_document(
+    api_key: &str,
+    file_base64: &str,
+    media_type: &str,
+) -> (String, String) {
+    if api_key.is_empty() {
+        return ("general_health".to_string(), "en".to_string());
+    }
+
+    let source_type = if media_type == "application/pdf" {
+        "document"
+    } else {
+        "image"
+    };
+
+    let classify_tool = serde_json::json!({
+        "name": "classify_document",
+        "description": "Classify this health document by category and language",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "category": {
+                    "type": "string",
+                    "enum": ["lab_report", "body_composition", "glucose_meter", "blood_pressure", "medication", "general_health"],
+                    "description": "lab_report: clinical lab results with reference ranges. body_composition: smart scale output (weight, body fat, muscle, BMI). glucose_meter: blood sugar readings with timestamps. blood_pressure: BP readings with systolic/diastolic. medication: supplement/drug packaging. general_health: anything else."
+                },
+                "language": {
+                    "type": "string",
+                    "description": "ISO 639-1 language code of the document text (e.g. de, en, fr, es, it)"
+                }
+            },
+            "required": ["category", "language"]
+        }
+    });
+
+    let req_body = serde_json::json!({
+        "model": "claude-sonnet-4-20250514",
+        "max_tokens": 200,
+        "system": "Classify this health document. Look at the layout, letterhead, labels, and content to determine the category and language.",
+        "tools": [classify_tool],
+        "tool_choice": {"type": "tool", "name": "classify_document"},
+        "messages": [{
+            "role": "user",
+            "content": [{
+                "type": source_type,
+                "source": {
+                    "type": "base64",
+                    "media_type": media_type,
+                    "data": file_base64
+                }
+            }, {
+                "type": "text",
+                "text": "Classify this document."
+            }]
+        }]
+    });
+
+    let client = reqwest::Client::builder()
+        .timeout(std::time::Duration::from_secs(120))
+        .pool_idle_timeout(std::time::Duration::from_secs(10))
+        .build()
+        .unwrap_or_else(|_| reqwest::Client::new());
+    let mut request = client
+        .post(crate::config::Config::anthropic_api_url_static())
+        .header("x-api-key", api_key)
+        .header(
+            "anthropic-version",
+            &crate::config::Config::anthropic_api_version_static(),
+        )
+        .header("content-type", "application/json");
+
+    if media_type == "application/pdf" {
+        request = request.header("anthropic-beta", "pdfs-2024-09-25");
+    }
+
+    let resp = match request.json(&req_body).send().await {
+        Ok(r) => r,
+        Err(e) => {
+            tracing::warn!("Document classifier failed: {:?}", e);
+            return ("general_health".to_string(), "en".to_string());
+        }
+    };
+
+    if !resp.status().is_success() {
+        tracing::warn!("Document classifier returned {}", resp.status());
+        return ("general_health".to_string(), "en".to_string());
+    }
+
+    let parsed: serde_json::Value = match resp.json().await {
+        Ok(v) => v,
+        Err(_) => return ("general_health".to_string(), "en".to_string()),
+    };
+
+    // Extract from tool_use response
+    let tool_input = parsed["content"]
+        .as_array()
+        .and_then(|arr| arr.iter().find(|c| c["type"] == "tool_use"))
+        .and_then(|c| c["input"].as_object());
+
+    if let Some(input) = tool_input {
+        let category = input
+            .get("category")
+            .and_then(|v| v.as_str())
+            .unwrap_or("general_health")
+            .to_string();
+        let language = input
+            .get("language")
+            .and_then(|v| v.as_str())
+            .unwrap_or("en")
+            .to_string();
+        tracing::info!(
+            "Document classified: category={}, language={}",
+            category,
+            language
+        );
+        (category, language)
+    } else {
+        ("general_health".to_string(), "en".to_string())
+    }
+}
+
+// ---------------------------------------------------------------------------
+// AI-assisted marker suggestions for unmatched markers
+// ---------------------------------------------------------------------------
+
+/// Suggest marker matches for unmatched extracted markers using a batch AI call.
+/// Returns Vec of (original_name, suggested_slug, confidence).
+/// Only called when there are unmatched markers (cost control).
+pub async fn suggest_marker_matches(
+    api_key: &str,
+    unmatched: &[(String, f64, String)],  // (name, value, unit)
+    available_slugs: &[(String, String)], // (slug, display_name)
+) -> Vec<(String, Option<String>, f64)> {
+    if api_key.is_empty() || unmatched.is_empty() {
+        return Vec::new();
+    }
+
+    let unmatched_list: String = unmatched
+        .iter()
+        .map(|(name, val, unit)| format!("- \"{}\" (value: {} {})", name, val, unit))
+        .collect::<Vec<_>>()
+        .join("\n");
+
+    let available_list: String = available_slugs
+        .iter()
+        .map(|(slug, name)| format!("{} ({})", slug, name))
+        .collect::<Vec<_>>()
+        .join(", ");
+
+    let suggest_tool = serde_json::json!({
+        "name": "suggest_matches",
+        "description": "Suggest which system markers the unmatched items correspond to",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "suggestions": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "original_name": { "type": "string" },
+                            "suggested_slug": { "type": ["string", "null"], "description": "null if this is not a trackable biomarker" },
+                            "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+                            "reason": { "type": "string" }
+                        },
+                        "required": ["original_name", "confidence"]
+                    }
+                }
+            },
+            "required": ["suggestions"]
+        }
+    });
+
+    let req_body = serde_json::json!({
+        "model": "claude-sonnet-4-20250514",
+        "max_tokens": 1024,
+        "system": format!(
+            "You are a health marker matching assistant. For each unmatched marker, suggest the best match from our system markers, or null if it's not a trackable biomarker (e.g., culture tests, pathogen screens).\n\nAvailable markers: {}",
+            available_list
+        ),
+        "tools": [suggest_tool],
+        "tool_choice": {"type": "tool", "name": "suggest_matches"},
+        "messages": [{
+            "role": "user",
+            "content": format!("These markers were not automatically matched:\n{}\n\nSuggest the best match for each.", unmatched_list)
+        }]
+    });
+
+    let client = reqwest::Client::new();
+    let resp = match client
+        .post(crate::config::Config::anthropic_api_url_static())
+        .header("x-api-key", api_key)
+        .header(
+            "anthropic-version",
+            &crate::config::Config::anthropic_api_version_static(),
+        )
+        .header("content-type", "application/json")
+        .json(&req_body)
+        .send()
+        .await
+    {
+        Ok(r) => r,
+        Err(e) => {
+            tracing::warn!("AI suggestion call failed: {:?}", e);
+            return Vec::new();
+        }
+    };
+
+    if !resp.status().is_success() {
+        tracing::warn!("AI suggestion returned {}", resp.status());
+        return Vec::new();
+    }
+
+    let parsed: serde_json::Value = match resp.json().await {
+        Ok(v) => v,
+        Err(_) => return Vec::new(),
+    };
+
+    let tool_input = parsed["content"]
+        .as_array()
+        .and_then(|arr| arr.iter().find(|c| c["type"] == "tool_use"))
+        .and_then(|c| c["input"]["suggestions"].as_array());
+
+    match tool_input {
+        Some(suggestions) => suggestions
+            .iter()
+            .filter_map(|s| {
+                let name = s.get("original_name")?.as_str()?.to_string();
+                let slug = s
+                    .get("suggested_slug")
+                    .and_then(|v| v.as_str())
+                    .map(String::from);
+                let confidence = s.get("confidence").and_then(|v| v.as_f64()).unwrap_or(0.0);
+                Some((name, slug, confidence))
+            })
+            .collect(),
+        None => Vec::new(),
+    }
 }

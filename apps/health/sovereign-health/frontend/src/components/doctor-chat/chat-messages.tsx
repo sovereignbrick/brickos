@@ -189,7 +189,7 @@ export function ChatMessages({ messages, conversationId, isLoading, onRate, erro
                   <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold mb-2">
                     {t('smartImport')}
                   </p>
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="flex flex-wrap gap-2">
                     {[
                       { handler: handleLabUpload, icon: '📄', label: 'uploadMenuLab', tooltip: 'importUploadDesc' },
                       { handler: handleMedUpload, icon: '💊', label: 'uploadMenuMed', tooltip: 'importTrackDesc' },

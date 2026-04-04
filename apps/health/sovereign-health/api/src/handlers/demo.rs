@@ -254,6 +254,7 @@ pub async fn demo_measurements(
             lifestyle_note: enc.decrypt_opt(row.try_get("lifestyle_note").ok().flatten()),
             device_id: row.try_get("device_id").ok().flatten(),
             device_name: row.try_get("device_name").ok().flatten(),
+            lab_name: row.try_get("lab_name").ok().flatten(),
             created_at: row.try_get("created_at").unwrap_or_else(|_| Utc::now()),
         })
         .collect();

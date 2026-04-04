@@ -107,7 +107,7 @@ pub async fn get_settings(
         "SELECT date_format, time_format, glucose_unit, ketones_unit, cholesterol_unit, \
          uric_acid_unit, hemoglobin_unit, weight_unit, height_unit, bp_unit, waist_unit, \
          extended_entry_enabled, \
-         show_extended_lifestyle, default_diet_protocol, default_fasting_protocol, \
+         show_extended_lifestyle, default_diet_protocol, default_fasting_protocol, default_meal_timing, \
          default_exercise, default_sleep_hours::float8 as default_sleep_hours, default_sleep_quality, default_stress_level, \
          COALESCE(share_anonymous_data, true) as share_anonymous_data \
          FROM user_preferences WHERE user_id = $1",
@@ -141,6 +141,7 @@ pub async fn get_settings(
                 "show_extended_lifestyle": row.try_get::<bool, _>("show_extended_lifestyle").unwrap_or(true),
                 "default_diet_protocol": row.try_get::<Option<String>, _>("default_diet_protocol").ok().flatten(),
                 "default_fasting_protocol": row.try_get::<Option<String>, _>("default_fasting_protocol").ok().flatten(),
+                "default_meal_timing": row.try_get::<Option<String>, _>("default_meal_timing").ok().flatten(),
                 "default_exercise": row.try_get::<Option<String>, _>("default_exercise").ok().flatten(),
                 "default_sleep_hours": row.try_get::<Option<f64>, _>("default_sleep_hours").ok().flatten(),
                 "default_sleep_quality": row.try_get::<Option<String>, _>("default_sleep_quality").ok().flatten(),
@@ -763,6 +764,7 @@ pub struct LifestyleDefaultsUpdate {
     pub show_extended_lifestyle: Option<bool>,
     pub default_diet_protocol: Option<String>,
     pub default_fasting_protocol: Option<String>,
+    pub default_meal_timing: Option<String>,
     pub default_exercise: Option<String>,
     pub default_sleep_hours: Option<f64>,
     pub default_sleep_quality: Option<String>,
@@ -795,16 +797,18 @@ pub async fn update_lifestyle(
          show_extended_lifestyle = COALESCE($1, show_extended_lifestyle), \
          default_diet_protocol = COALESCE($2, default_diet_protocol), \
          default_fasting_protocol = COALESCE($3, default_fasting_protocol), \
-         default_exercise = COALESCE($4, default_exercise), \
-         default_sleep_hours = COALESCE($5, default_sleep_hours), \
-         default_sleep_quality = COALESCE($6, default_sleep_quality), \
-         default_stress_level = COALESCE($7, default_stress_level), \
+         default_meal_timing = COALESCE($4, default_meal_timing), \
+         default_exercise = COALESCE($5, default_exercise), \
+         default_sleep_hours = COALESCE($6, default_sleep_hours), \
+         default_sleep_quality = COALESCE($7, default_sleep_quality), \
+         default_stress_level = COALESCE($8, default_stress_level), \
          updated_at = now() \
-         WHERE user_id = $8",
+         WHERE user_id = $9",
     )
     .bind(body.show_extended_lifestyle)
     .bind(&body.default_diet_protocol)
     .bind(&body.default_fasting_protocol)
+    .bind(&body.default_meal_timing)
     .bind(&body.default_exercise)
     .bind(body.default_sleep_hours)
     .bind(&body.default_sleep_quality)
@@ -1072,7 +1076,7 @@ pub async fn export_all(
         "SELECT date_format, time_format, glucose_unit, ketones_unit, cholesterol_unit, \
          uric_acid_unit, hemoglobin_unit, weight_unit, height_unit, bp_unit, waist_unit, \
          extended_entry_enabled, show_extended_lifestyle, default_diet_protocol, \
-         default_fasting_protocol, default_exercise, default_sleep_hours, \
+         default_fasting_protocol, default_meal_timing, default_exercise, default_sleep_hours, \
          default_sleep_quality, default_stress_level FROM user_preferences WHERE user_id = $1",
     )
     .bind(auth.user_id)
@@ -1096,6 +1100,7 @@ pub async fn export_all(
             "show_extended_lifestyle": row.try_get::<bool, _>("show_extended_lifestyle").unwrap_or(true),
             "default_diet_protocol": row.try_get::<Option<String>, _>("default_diet_protocol").ok().flatten(),
             "default_fasting_protocol": row.try_get::<Option<String>, _>("default_fasting_protocol").ok().flatten(),
+            "default_meal_timing": row.try_get::<Option<String>, _>("default_meal_timing").ok().flatten(),
             "default_exercise": row.try_get::<Option<String>, _>("default_exercise").ok().flatten(),
             "default_sleep_hours": row.try_get::<Option<f64>, _>("default_sleep_hours").ok().flatten(),
             "default_sleep_quality": row.try_get::<Option<String>, _>("default_sleep_quality").ok().flatten(),

@@ -45,6 +45,7 @@ qrcode = { version = "0.14", default-features = false, features = ["svg"] }
 genpdf = { version = "0.2", features = ["images"] }
 rust_decimal = { version = "1", features = ["serde"] }
 rust_decimal_macros = "1"
+strsim = "0.11"
 
 [dev-dependencies]
 proptest = "1"

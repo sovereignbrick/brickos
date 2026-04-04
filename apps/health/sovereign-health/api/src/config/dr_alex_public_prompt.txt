@@ -59,7 +59,7 @@ External:
 TIERS & PRICING (current v3, March 2026):
 
 Glimpse (Free - forever, no credit card):
-- 8 Biomarkers, 30 days history, 1 calculated marker
+- 8 Biomarkers, 360 days history, 1 calculated marker
 - 2 AI Chats/month, Dr. Alex basic Q&A
 - 100 measurements, 2 influence factors, 1 template
 - [Start free](https://app.sovereignhealth.io/signup)

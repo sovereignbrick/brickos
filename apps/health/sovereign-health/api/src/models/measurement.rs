@@ -77,6 +77,7 @@ pub struct MeasurementResponse {
     pub lifestyle_note: Option<String>,
     pub device_id: Option<Uuid>,
     pub device_name: Option<String>,
+    pub lab_name: Option<String>,
     pub created_at: DateTime<Utc>,
 }
 

@@ -232,6 +232,7 @@ pub async fn create(
             lifestyle_note: body.lifestyle_note.clone(),
             device_id: body.device_id,
             device_name: None,
+            lab_name: None,
             created_at: Utc::now(),
         });
     }
@@ -367,10 +368,12 @@ pub async fn list(
             m.sleep_quality, m.stress_level, m.lifestyle_note, m.is_deleted, m.created_at,
             mk.marker_slug, mk.marker_name,
             d.device_name,
+            l.name as lab_name,
             COUNT(*) OVER() as total_count
         FROM measurements m
         JOIN markers mk ON mk.id = m.marker_id
         LEFT JOIN devices d ON d.id = m.device_id
+        LEFT JOIN labs l ON l.id = m.lab_id
         WHERE m.user_id = $1 AND m.is_deleted = false"#,
     );
 
@@ -547,6 +550,7 @@ pub async fn list(
             lifestyle_note: enc.decrypt_opt(row.try_get("lifestyle_note").ok().flatten()),
             device_id: row.try_get("device_id").ok().flatten(),
             device_name: row.try_get("device_name").ok().flatten(),
+            lab_name: row.try_get("lab_name").ok().flatten(),
             created_at: row.try_get("created_at").unwrap_or_else(|_| Utc::now()),
         })
         .collect();
@@ -576,10 +580,12 @@ pub async fn get_one(
                m.protocol_tag, m.diet_protocol, m.fasting_protocol, m.fast_start_datetime,
                m.fasting_hours, m.meal_timing_tag, m.exercise_activity, m.sleep_hours,
                m.sleep_quality, m.stress_level, m.lifestyle_note, m.is_deleted, m.created_at,
-               mk.marker_slug, mk.marker_name, m.device_id, d.device_name
+               mk.marker_slug, mk.marker_name, m.device_id, d.device_name,
+               l.name as lab_name
         FROM measurements m
         JOIN markers mk ON mk.id = m.marker_id
         LEFT JOIN devices d ON d.id = m.device_id
+        LEFT JOIN labs l ON l.id = m.lab_id
         WHERE m.id = $1 AND m.user_id = $2 AND m.is_deleted = false"#,
     )
     .bind(measurement_id)
@@ -616,6 +622,7 @@ pub async fn get_one(
         lifestyle_note: enc.decrypt_opt(row.try_get("lifestyle_note").ok().flatten()),
         device_id: row.try_get("device_id").ok().flatten(),
         device_name: row.try_get("device_name").ok().flatten(),
+        lab_name: row.try_get("lab_name").ok().flatten(),
         created_at: row.try_get("created_at").unwrap_or_else(|_| Utc::now()),
     };
 
@@ -759,10 +766,12 @@ pub async fn update(
                m.protocol_tag, m.diet_protocol, m.fasting_protocol, m.fast_start_datetime,
                m.fasting_hours, m.meal_timing_tag, m.exercise_activity, m.sleep_hours,
                m.sleep_quality, m.stress_level, m.lifestyle_note, m.is_deleted, m.created_at,
-               mk.marker_slug, mk.marker_name, m.device_id, d.device_name
+               mk.marker_slug, mk.marker_name, m.device_id, d.device_name,
+               l.name as lab_name
         FROM measurements m
         JOIN markers mk ON mk.id = m.marker_id
         LEFT JOIN devices d ON d.id = m.device_id
+        LEFT JOIN labs l ON l.id = m.lab_id
         WHERE m.id = $1 AND m.user_id = $2 AND m.is_deleted = false"#,
     )
     .bind(measurement_id)
@@ -797,6 +806,7 @@ pub async fn update(
         lifestyle_note: enc.decrypt_opt(row.try_get("lifestyle_note").ok().flatten()),
         device_id: row.try_get("device_id").ok().flatten(),
         device_name: row.try_get("device_name").ok().flatten(),
+        lab_name: row.try_get("lab_name").ok().flatten(),
         created_at: row.try_get("created_at").unwrap_or_else(|_| Utc::now()),
     };
 

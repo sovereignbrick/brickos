@@ -49,6 +49,7 @@ export interface Measurement {
   lifestyle_note: string | null
   device_id: string | null
   device_name: string | null
+  lab_name: string | null
   created_at: string
 }
 
@@ -328,6 +329,7 @@ export interface LifestyleDefaults {
   show_extended_lifestyle: boolean
   default_diet_protocol: string | null
   default_fasting_protocol: string | null
+  default_meal_timing: string | null
   default_exercise: string | null
   default_sleep_hours: number | null
   default_sleep_quality: string | null
@@ -510,7 +512,7 @@ export interface LicenseInfo {
 export interface ImportExtractedMarker {
   original_name: string
   matched_marker: string | null
-  match_confidence: 'high' | 'medium' | 'low' | 'unmatched' | 'calculated_skip'
+  match_confidence: 'high' | 'medium' | 'low' | 'fuzzy' | 'unmatched' | 'calculated_skip'
   value_original: number
   unit_original: string
   value_converted: number | null
@@ -535,6 +537,8 @@ export interface ImportSession {
   lab_postal_code: string | null
   lab_city: string | null
   lab_country: string | null
+  suggested_lab_id?: string | null
+  existing_labs?: Array<{ id: string; name: string; address?: string | null; city?: string | null }>
   markers_extracted?: number
   markers_imported?: number
   error_message?: string | null
@@ -543,6 +547,7 @@ export interface ImportSession {
 
 export interface ImportHistoryEntry {
   id: string
+  session_id: string | null
   import_type: string
   source_type: string
   markers_extracted: number
@@ -588,7 +593,7 @@ export interface MeasurementImportColumn {
   unit: string
   device_id: string | null
   device_name: string | null
-  match_confidence: 'high' | 'medium' | 'low' | 'unmatched' | 'calculated_skip'
+  match_confidence: 'high' | 'medium' | 'low' | 'fuzzy' | 'unmatched' | 'calculated_skip'
 }
 
 export interface MeasurementImportRow {

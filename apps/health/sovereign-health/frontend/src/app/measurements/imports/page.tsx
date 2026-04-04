@@ -28,11 +28,14 @@ export default function ImportHistoryPage() {
   }, [user, loading])
 
   const handleRollback = async (entry: ImportHistoryEntry) => {
+    if (!entry.session_id) return
     if (!confirm(tImport('historyRollbackConfirm'))) return
     setRollingBack(entry.id)
     try {
-      await api.import.rollbackImport(entry.id)
+      await api.import.rollbackImport(entry.session_id)
       setEntries(prev => prev.filter(e => e.id !== entry.id))
+      // Force full reload to bust any cached measurement data across the app
+      window.location.reload()
     } catch {
       // keep entry in list on failure
     } finally {
@@ -71,42 +74,50 @@ export default function ImportHistoryPage() {
           </div>
         ) : (
           <div className="space-y-3">
-            {entries.map(entry => (
-              <div
-                key={entry.id}
-                className="rounded-xl border p-4 flex items-center justify-between"
-              >
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-sm font-semibold">
-                      {importTypeLabel(entry.import_type)}
-                    </span>
-                    {entry.lab_provider && (
-                      <span className="text-xs text-muted-foreground">
-                        {entry.lab_provider}
-                      </span>
-                    )}
+            {entries
+              .filter(entry => entry.markers_imported > 0)
+              .map(entry => {
+                const importDate = new Date(entry.created_at)
+                const dateStr = importDate.toLocaleDateString(user?.country_code === 'US' ? 'en-US' : 'de-DE', {
+                  year: 'numeric', month: 'short', day: 'numeric',
+                })
+                const timeStr = importDate.toLocaleTimeString(user?.country_code === 'US' ? 'en-US' : 'de-DE', {
+                  hour: '2-digit', minute: '2-digit',
+                })
+                return (
+                  <div
+                    key={entry.id}
+                    className="rounded-xl border p-4 flex items-center justify-between"
+                  >
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-sm font-semibold">
+                          {importTypeLabel(entry.import_type)}
+                        </span>
+                        {entry.lab_provider && (
+                          <span className="text-xs text-muted-foreground">
+                            {entry.lab_provider}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                        <span>{tImport('historyMarkersImported', { count: entry.markers_imported })}</span>
+                        {entry.file_name && (
+                          <span className="truncate max-w-[200px]">{entry.file_name}</span>
+                        )}
+                        <span>{dateStr} {timeStr}</span>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => handleRollback(entry)}
+                      disabled={rollingBack === entry.id || !entry.session_id}
+                      className="shrink-0 text-xs px-3 py-1.5 rounded-lg border border-red-500/30 text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-50"
+                    >
+                      {rollingBack === entry.id ? '...' : tImport('historyRollback')}
+                    </button>
                   </div>
-                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                    <span>{tImport('historyMarkersImported', { count: entry.markers_imported })}</span>
-                    {entry.lab_date && (
-                      <span>{tImport('historyLabDate')}: {entry.lab_date}</span>
-                    )}
-                    {entry.file_name && (
-                      <span className="truncate max-w-[200px]">{entry.file_name}</span>
-                    )}
-                    <span>{formatShortDate(entry.created_at, user?.country_code)}</span>
-                  </div>
-                </div>
-                <button
-                  onClick={() => handleRollback(entry)}
-                  disabled={rollingBack === entry.id}
-                  className="shrink-0 text-xs px-3 py-1.5 rounded-lg border border-red-500/30 text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-50"
-                >
-                  {rollingBack === entry.id ? '...' : tImport('historyRollback')}
-                </button>
-              </div>
-            ))}
+                )
+              })}
           </div>
         )}
       </main>
