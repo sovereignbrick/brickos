@@ -774,6 +774,10 @@ pub fn configure_routes(cfg: &mut actix_web::web::ServiceConfig) {
                 actix_web::web::delete().to(handlers::admin_audit::purge_logs),
             )
             .route(
+                "/audit/db-audit",
+                actix_web::web::get().to(handlers::admin_audit::db_audit_logs),
+            )
+            .route(
                 "/content/web-pages",
                 actix_web::web::get().to(handlers::web_content::admin_list_web_pages),
             )

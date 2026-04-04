@@ -229,6 +229,164 @@ function Pagination({
 }
 
 // ---------------------------------------------------------------------------
+// DB Audit Panel (pgaudit trigger logs)
+// ---------------------------------------------------------------------------
+
+interface DbAuditEntry {
+  id: number
+  table_name: string
+  operation: string
+  row_id: string | null
+  user_id: string | null
+  user_email: string | null
+  changed_fields: string[] | null
+  created_at: string
+}
+
+const OP_COLORS: Record<string, string> = {
+  INSERT: 'bg-green-600/20 text-green-400',
+  UPDATE: 'bg-blue-600/20 text-blue-400',
+  DELETE: 'bg-red-600/20 text-red-400',
+}
+
+function DbAuditPanel() {
+  const [entries, setEntries] = useState<DbAuditEntry[]>([])
+  const [total, setTotal] = useState(0)
+  const [page, setPage] = useState(1)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [tableFilter, setTableFilter] = useState('')
+  const [opFilter, setOpFilter] = useState('')
+  const [dateRange, setDateRange] = useState<DateRange>('30d')
+
+  const fetchDbAudit = useCallback(async () => {
+    setLoading(true)
+    try {
+      const params: Record<string, string> = {
+        page: String(page),
+        per_page: String(PER_PAGE),
+        sort: 'created_at',
+        order: 'desc',
+      }
+      if (tableFilter) params.search = tableFilter
+      if (opFilter) params.action = opFilter
+      const since = dateRangeToParam(dateRange)
+      if (since) params.from = since
+
+      const res = await fetchAudit<{ data: { entries: DbAuditEntry[]; total: number } }>(
+        '/admin/audit/db-audit',
+        params,
+      )
+      setEntries(res.data.entries || [])
+      setTotal(res.data.total ?? 0)
+      setError(null)
+    } catch (err) {
+      setEntries([])
+      setTotal(0)
+      setError(err instanceof Error ? err.message : 'Failed to load DB audit logs')
+    } finally {
+      setLoading(false)
+    }
+  }, [page, tableFilter, opFilter, dateRange])
+
+  useEffect(() => { fetchDbAudit() }, [fetchDbAudit])
+  useEffect(() => { setPage(1) }, [tableFilter, opFilter, dateRange])
+
+  return (
+    <div className="space-y-4">
+      {/* pgAudit info card */}
+      <div className="border border-green-800 rounded-lg p-4 bg-green-950/30">
+        <div className="flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-green-400"></span>
+          <span className="text-sm font-medium text-green-400">pgAudit + DB Triggers Active</span>
+        </div>
+        <p className="text-xs text-muted-foreground mt-1">
+          INSERT, UPDATE, DELETE on key tables logged via trigger. pgAudit logs DDL to Docker stdout.
+        </p>
+      </div>
+
+      {/* Filters */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+        <input
+          type="text"
+          placeholder="Filter by table name..."
+          value={tableFilter}
+          onChange={e => setTableFilter(e.target.value)}
+          className="flex-1 bg-card border border-border rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-blue-500"
+        />
+        <select
+          value={opFilter}
+          onChange={e => setOpFilter(e.target.value)}
+          className="bg-card border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-blue-500"
+        >
+          <option value="">All operations</option>
+          <option value="INSERT">INSERT</option>
+          <option value="UPDATE">UPDATE</option>
+          <option value="DELETE">DELETE</option>
+        </select>
+        <select
+          value={dateRange}
+          onChange={e => setDateRange(e.target.value as DateRange)}
+          className="bg-card border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-blue-500"
+        >
+          {(Object.keys(DATE_RANGE_LABELS) as DateRange[]).map(k => (
+            <option key={k} value={k}>{DATE_RANGE_LABELS[k]}</option>
+          ))}
+        </select>
+      </div>
+
+      {/* Table */}
+      <div className="border border-border rounded-lg overflow-hidden">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-border bg-accent">
+              <th className="text-left px-4 py-2 text-muted-foreground font-medium">Timestamp</th>
+              <th className="text-left px-4 py-2 text-muted-foreground font-medium">Table</th>
+              <th className="text-left px-4 py-2 text-muted-foreground font-medium">Op</th>
+              <th className="text-left px-4 py-2 text-muted-foreground font-medium">User</th>
+              <th className="text-left px-4 py-2 text-muted-foreground font-medium">Changed Fields</th>
+            </tr>
+          </thead>
+          <tbody>
+            {loading ? (
+              <tr><td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">Loading...</td></tr>
+            ) : error ? (
+              <tr><td colSpan={5} className="px-4 py-8 text-center">
+                <span className="text-red-400 text-sm">Error: {error}</span>
+              </td></tr>
+            ) : entries.length === 0 ? (
+              <tr><td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">No DB audit entries found.</td></tr>
+            ) : entries.map((e, i) => (
+              <tr key={e.id} className={`border-b border-border hover:bg-accent transition-colors ${i % 2 === 1 ? 'bg-muted/30' : ''}`}>
+                <td className="px-4 py-2.5 text-muted-foreground whitespace-nowrap text-xs">{formatTs(e.created_at)}</td>
+                <td className="px-4 py-2.5 font-mono text-xs">{e.table_name}</td>
+                <td className="px-4 py-2.5">
+                  <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${OP_COLORS[e.operation] || 'bg-accent text-foreground'}`}>
+                    {e.operation}
+                  </span>
+                </td>
+                <td className="px-4 py-2.5 text-xs">{e.user_email || <span className="text-muted-foreground italic">system</span>}</td>
+                <td className="px-4 py-2.5 text-xs text-muted-foreground">
+                  {e.changed_fields?.length ? e.changed_fields.join(', ') : <span className="italic">{e.operation === 'UPDATE' ? 'none' : '\u2014'}</span>}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <Pagination
+        page={page}
+        totalPages={Math.max(1, Math.ceil(total / PER_PAGE))}
+        total={total}
+        perPage={PER_PAGE}
+        onPage={setPage}
+      />
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
 // Main component
 // ---------------------------------------------------------------------------
 
@@ -685,42 +843,9 @@ export function AuditLogsTab() {
         </div>
       )}
 
-      {/* Tab 3: pgaudit status */}
+      {/* Tab 3: DB Audit (trigger-based) */}
       {subTab === 'pgaudit' && (
-        <div className="space-y-4">
-          <div className="border border-green-800 rounded-lg p-5 bg-green-950/30">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="w-2 h-2 rounded-full bg-green-400"></span>
-              <span className="text-sm font-medium text-green-400">pgAudit Active</span>
-            </div>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              Database-level audit logging is enabled via the pgAudit extension. All INSERT, UPDATE, DELETE operations
-              and DDL changes (CREATE, ALTER, DROP) on all tables are logged with timestamps, session IDs, and SQL statements.
-            </p>
-          </div>
-          <div className="border border-border rounded-lg p-5 bg-card">
-            <h4 className="text-sm font-medium mb-2">Configuration</h4>
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              <div className="text-muted-foreground">Log level</div><div><code className="bg-muted px-1 rounded">write, ddl</code></div>
-              <div className="text-muted-foreground">Catalog logging</div><div>Off</div>
-              <div className="text-muted-foreground">Relation logging</div><div>On (table names included)</div>
-              <div className="text-muted-foreground">Statement-once</div><div>On (deduplication)</div>
-              <div className="text-muted-foreground">Parameter logging</div><div>Off (security)</div>
-            </div>
-          </div>
-          <div className="border border-border rounded-lg p-5 bg-card">
-            <h4 className="text-sm font-medium mb-2">Access Logs</h4>
-            <p className="text-sm text-muted-foreground leading-relaxed mb-3">
-              pgAudit logs are written to PostgreSQL stdout and captured by Docker. View via SSH:
-            </p>
-            <code className="block bg-muted px-3 py-2 rounded text-xs font-mono text-foreground">
-              docker logs sh-prod-db 2&gt;&amp;1 | grep AUDIT | tail -50
-            </code>
-            <p className="text-xs text-muted-foreground mt-3">
-              Log forwarding to this panel is planned for a future update (issue #266).
-            </p>
-          </div>
-        </div>
+        <DbAuditPanel />
       )}
 
       {/* Retention section */}

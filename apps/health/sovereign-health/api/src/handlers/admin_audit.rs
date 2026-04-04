@@ -283,3 +283,117 @@ pub async fn purge_logs(
         "error": null
     })))
 }
+
+// ---------------------------------------------------------------------------
+// GET /admin/audit/db-audit — pgaudit / DB trigger audit log
+// ---------------------------------------------------------------------------
+
+pub async fn db_audit_logs(
+    pool: web::Data<PgPool>,
+    _admin: AuthenticatedUser,
+    query: web::Query<AuditQuery>,
+) -> Result<HttpResponse, AppError> {
+    use sqlx::Row;
+
+    let page = query.page.unwrap_or(1).max(1);
+    let per_page = query.per_page.unwrap_or(25).min(100);
+    let offset = (page - 1) * per_page;
+
+    // Build WHERE clauses
+    let mut conditions = Vec::new();
+    let mut param_idx = 1;
+
+    if query.search.is_some() {
+        conditions.push(format!(
+            "(d.table_name ILIKE ${p} OR d.operation ILIKE ${p} OR d.row_id::text ILIKE ${p})",
+            p = param_idx
+        ));
+        param_idx += 1;
+    }
+    if query.action.is_some() {
+        conditions.push(format!("d.operation = ${}", param_idx));
+        param_idx += 1;
+    }
+    if query.from.is_some() {
+        conditions.push(format!("d.created_at >= ${}::timestamptz", param_idx));
+        param_idx += 1;
+    }
+    let _ = param_idx;
+
+    let where_clause = if conditions.is_empty() {
+        String::new()
+    } else {
+        format!("WHERE {}", conditions.join(" AND "))
+    };
+
+    // Sort
+    let sort_col = match query.sort.as_deref() {
+        Some("table_name") => "d.table_name",
+        Some("operation") => "d.operation",
+        _ => "d.created_at",
+    };
+    let sort_dir = match query.order.as_deref() {
+        Some("asc") => "ASC",
+        _ => "DESC",
+    };
+
+    // Count query
+    let count_sql = format!("SELECT COUNT(*) FROM db_audit_log d {}", where_clause);
+    let data_sql = format!(
+        r#"SELECT d.id, d.table_name, d.operation, d.row_id,
+                  d.user_id, u.email as user_email,
+                  d.changed_fields, d.created_at
+           FROM db_audit_log d
+           LEFT JOIN users u ON u.id = d.user_id
+           {}
+           ORDER BY {} {}
+           LIMIT {} OFFSET {}"#,
+        where_clause, sort_col, sort_dir, per_page, offset
+    );
+
+    // Bind parameters dynamically
+    let mut count_q = sqlx::query_scalar::<_, i64>(&count_sql);
+    let mut data_q = sqlx::query(&data_sql);
+
+    if let Some(ref search) = query.search {
+        let pattern = format!("%{}%", search);
+        count_q = count_q.bind(pattern.clone());
+        data_q = data_q.bind(pattern);
+    }
+    if let Some(ref action) = query.action {
+        count_q = count_q.bind(action.clone());
+        data_q = data_q.bind(action.clone());
+    }
+    if let Some(ref from) = query.from {
+        count_q = count_q.bind(from.clone());
+        data_q = data_q.bind(from.clone());
+    }
+
+    let total: i64 = count_q.fetch_one(pool.get_ref()).await.unwrap_or(0);
+    let rows = data_q.fetch_all(pool.get_ref()).await?;
+
+    let entries: Vec<serde_json::Value> = rows
+        .iter()
+        .map(|r| {
+            json!({
+                "id": r.try_get::<i64, _>("id").unwrap_or(0),
+                "table_name": r.try_get::<String, _>("table_name").unwrap_or_default(),
+                "operation": r.try_get::<String, _>("operation").unwrap_or_default(),
+                "row_id": r.try_get::<Option<uuid::Uuid>, _>("row_id").ok().flatten(),
+                "user_id": r.try_get::<Option<uuid::Uuid>, _>("user_id").ok().flatten(),
+                "user_email": r.try_get::<Option<String>, _>("user_email").ok().flatten(),
+                "changed_fields": r.try_get::<Option<Vec<String>>, _>("changed_fields").ok().flatten(),
+                "created_at": r.try_get::<chrono::DateTime<chrono::Utc>, _>("created_at")
+                    .map(|d| d.to_rfc3339()).unwrap_or_default(),
+            })
+        })
+        .collect();
+
+    Ok(HttpResponse::Ok().json(json!({
+        "data": {
+            "entries": entries,
+            "total": total,
+        },
+        "error": null
+    })))
+}
