@@ -1,68 +1,71 @@
-<!--
-============================================================================
- SOVEREIGN BRICK OU -- BrickOS Platform
+<p align="center">
+  <img src="docs/screenshots/demo.gif" alt="Sovereign Health Intelligence" width="800" />
+</p>
 
- Building sovereignty, brick by brick.
+<h1 align="center">BrickOS</h1>
 
- Your apps. Your data. Your server.
+<p align="center">
+  <strong>Building sovereignty, brick by brick.</strong><br />
+  Privacy-first software platform for people who want control over their data.
+</p>
 
- https://brickos.io/
- AGPL-3.0 -- https://github.com/sovereignbrick
-============================================================================
--->
+<p align="center">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-AGPL--3.0-blue.svg" alt="License" /></a>
+  <img src="https://img.shields.io/badge/rust-1.80+-orange.svg" alt="Rust" />
+  <img src="https://img.shields.io/badge/next.js-16-black.svg" alt="Next.js" />
+  <img src="https://img.shields.io/badge/postgresql-16-336791.svg" alt="PostgreSQL" />
+  <img src="https://img.shields.io/badge/docker-ready-2496ED.svg" alt="Docker" />
+  <a href="https://app.sovereignhealth.io"><img src="https://img.shields.io/badge/live-app.sovereignhealth.io-green.svg" alt="Live" /></a>
+</p>
 
-# BrickOS
+---
 
-**Building sovereignty, brick by brick.**
+## What is BrickOS?
 
-Privacy-first software platform for people who want control over their data. Cloud SaaS with a self-hosted option -- every app can run on your own hardware via StartOS, works over Tor, and ships as a PWA.
+BrickOS is a modular platform for building sovereign applications -- software where users own their data and choose where it runs. Cloud SaaS with a self-hosted escape hatch: every app can run on your own hardware via Docker, StartOS, or Tor.
 
-## Philosophy
+Your most sensitive data -- health records, financial history, personal communications -- shouldn't live on servers you don't control.
 
-BrickOS exists because your most sensitive data -- health records, financial history, personal communications -- shouldn't live on servers you don't control. The platform is built on five principles:
+### Principles
 
-1. **Sovereign-first** -- You own your data. Export it, self-host it, delete it. No vendor lock-in, no data hostage.
-2. **Brick architecture** -- Modular apps composed from shared platform crates and packages. Each "brick" is independent but stronger together.
-3. **Privacy by design** -- AES-256-GCM encryption at rest, Row-Level Security in PostgreSQL, field-level encryption for health data. No third-party analytics, no tracking pixels.
-4. **Self-hostable** -- Every app runs in Docker on any Linux machine -- your VPS, a Raspberry Pi via Start9, or your laptop. The cloud version is a convenience, not a requirement.
-5. **Open source core** -- AGPL-3.0 licensed. Read the code, audit the security, fork it. Commercial licenses available for organizations that need proprietary modifications.
-
-```
-┌─────────────────────────────────────────────────────────┐
-│  L1: BrickOS Platform                                    │
-│  Shared crates (auth, crypto, billing, email, db)        │
-│  Defines tiers, features, pricing -- the sovereign        │
-│  authority for all apps.                                 │
-├─────────────────────────────────────────────────────────┤
-│  L2: Organizations                                       │
-│  Personal accounts, clinics, enterprises.                │
-│  Subscribe per product. Billing anchor.                  │
-├─────────────────────────────────────────────────────────┤
-│  L3: Apps                                                │
-│  Health (live) · Finance (planned) · Infrastructure      │
-│  Each app enforces its product's tier config and         │
-│  runs independently on any deployment target.            │
-└─────────────────────────────────────────────────────────┘
-```
+- **Sovereign-first** -- You own your data. Export it, self-host it, delete it. No vendor lock-in.
+- **Brick architecture** -- Modular apps composed from shared platform crates. Each "brick" is independent but stronger together.
+- **Privacy by design** -- AES-256-GCM encryption at rest, Row-Level Security, field-level encryption. Zero third-party tracking.
+- **Self-hostable** -- Docker-based. Runs on a VPS, Raspberry Pi via Start9, or your laptop.
+- **Open source** -- AGPL-3.0 licensed. Read the code, audit the security, fork it.
 
 ## Products
 
-| Product | Domain | Status | Links |
-|---------|--------|--------|-------|
-| **Sovereign Health Intelligence** | Health | Live (v0.28.0) | [app.sovereignhealth.io](https://app.sovereignhealth.io) |
-| **Sovereign Link** | Infrastructure | Live | URL shortener + QR codes ([brickos.io/r/](https://brickos.io)) |
-| **Sovereign Proposal Platform** | Infrastructure | Design | Decentralized governance on Nostr + Bitcoin |
-| **BTC Tracker** | Finance | Planned | Bitcoin portfolio tracking |
+| Product | Domain | Status |
+|---------|--------|--------|
+| [**Sovereign Health Intelligence**](apps/health/sovereign-health/) | Health | **Live** -- [app.sovereignhealth.io](https://app.sovereignhealth.io) |
+| [**Sovereign Link**](apps/infrastructure/sovereign-link/) | Infrastructure | **Live** -- URL shortener + QR codes |
+| **BTC Tracker** | Finance | Planned |
 
-## Distribution
+### Sovereign Health Intelligence
 
-| Target | Status | Technology |
-|--------|--------|-----------|
-| **Cloud SaaS** | Live | Docker on Hetzner VPS, Cloudflare CDN |
-| **PWA** | Live | Installable on desktop + mobile, offline-first, push notifications |
-| **Flatpak** | Planned | Linux desktop app via Tauri ([design 025](apps/health/sovereign-health/docs/project-files/design/025-flatpak-deployment.md)) |
-| **Start9** | Planned | Self-hosted on personal hardware ([design 022](apps/health/sovereign-health/docs/project-files/design/022-deployment-architecture-scaling.md)) |
-| **Tor** | Live | `.onion` hidden service for censorship-resistant access |
+Personal health data platform for biomarker tracking. Import lab PDFs, track 100+ biomarkers across 8 health zones, get AI-powered insights from Dr. Alex.
+
+<p align="center">
+  <img src="docs/screenshots/dashboard.png" alt="Dashboard" width="400" />
+  <img src="docs/screenshots/marker-detail.png" alt="Marker Detail" width="400" />
+</p>
+<p align="center">
+  <img src="docs/screenshots/trends.png" alt="Trends" width="400" />
+  <img src="docs/screenshots/dr-alex.png" alt="Dr. Alex AI Chat" width="400" />
+</p>
+
+## Quick Start
+
+```bash
+git clone https://github.com/sovereignbrick/brickos.git
+cd brickos/apps/health/sovereign-health/ops
+docker compose -f docker-compose.dev.yml up -d
+```
+
+Then open [http://localhost:3000](http://localhost:3000).
+
+For development setup, see individual README files in each app directory.
 
 ## Architecture
 
@@ -70,32 +73,32 @@ BrickOS exists because your most sensitive data -- health records, financial his
 brickos/
 ├── apps/
 │   ├── health/
-│   │   └── sovereign-health/         Sovereign Health Intelligence
-│   │       ├── api/                  Rust Actix-web backend (v0.28.0)
-│   │       ├── frontend/             Next.js 16 PWA frontend
-│   │       ├── website/              Marketing website (sovereignhealth.io)
-│   │       ├── ops/                  Deploy scripts, nginx configs, smoke tests
-│   │       └── docs/                 Design docs, sprint planning, releases
+│   │   └── sovereign-health/        Sovereign Health Intelligence
+│   │       ├── api/                 Rust Actix-web backend
+│   │       ├── frontend/            Next.js 16 PWA
+│   │       ├── website/             Marketing website
+│   │       └── ops/                 Deploy scripts, Docker configs
 │   ├── finance/
-│   │   └── btc-tracker/              Bitcoin portfolio tracking (planned)
+│   │   └── btc-tracker/             BTC portfolio tracking (planned)
 │   └── infrastructure/
-│       └── sovereign-link/           URL shortener, QR codes, affiliate links
+│       └── sovereign-link/          URL shortener + affiliate links
 │
-├── crates/                           Shared Rust libraries
-│   ├── brickos-auth/                 JWT, MFA, session management
-│   ├── brickos-crypto/               AES-GCM encryption at rest
-│   ├── brickos-db/                   Database pool, migrations
-│   ├── brickos-billing/              Stripe + BTC Lightning payments
-│   └── brickos-email/                Transactional email (Mailgun)
+├── crates/                          Shared Rust libraries
+│   ├── brickos-auth/                JWT, MFA, session management
+│   ├── brickos-crypto/              AES-256-GCM encryption at rest
+│   ├── brickos-db/                  Database pool, migrations
+│   ├── brickos-billing/             Stripe + BTC Lightning payments
+│   ├── brickos-email/               Transactional email (Mailgun)
+│   ├── brickos-backup/              Backup gateway service
+│   └── brickos-startos/             Start9 integration
 │
-├── packages/                         Shared Node packages
-│   ├── ui/                           @brickos/ui -- React component library
-│   └── tokens/                       @brickos/tokens -- design tokens (CSS)
+├── packages/                        Shared Node packages
+│   ├── ui/                          @brickos/ui component library
+│   └── tokens/                      @brickos/tokens design tokens
 │
-├── docs/
-│   └── tracker/                      Local-first issue tracker (80 open, 72 closed)
-│
-└── ops/                              Platform-wide deploy scripts
+└── docs/                            Platform documentation
+    ├── tracker/                     Local-first issue tracker
+    └── screenshots/                 App screenshots + demo GIF
 ```
 
 ## Tech Stack
@@ -104,69 +107,48 @@ brickos/
 |-------|-----------|
 | **Backend** | Rust, Actix-web 4, SQLx 0.8 |
 | **Frontend** | Next.js 16, React 19, Tailwind CSS 4, shadcn/ui |
-| **Database** | PostgreSQL 16 (pgAudit, Row-Level Security) |
+| **Database** | PostgreSQL 16 (pgAudit, Row-Level Security, field-level encryption) |
 | **AI** | Anthropic Claude API (Dr. Alex health assistant) |
 | **Payments** | Stripe + Strike (Bitcoin Lightning) |
-| **PWA** | @serwist/next (service worker), idb (IndexedDB), Web Push API |
-| **Infrastructure** | Docker, Hetzner VPS, Cloudflare (CDN + DNS + WAF) |
-| **Monitoring** | Gatus (uptime), ntfy (push alerts), Sentry (error tracking) |
-| **CI/CD** | GitHub Actions, deploy.sh (SSH-based Docker deploy) |
+| **PWA** | Serwist (service worker), IndexedDB (offline write queue), Web Push |
+| **Infrastructure** | Docker, Hetzner VPS, Cloudflare CDN/DNS/WAF |
+| **Monitoring** | Gatus (uptime), ntfy (alerts), in-app API metrics dashboard |
 
-## PWA Capabilities
+## Distribution
 
-Sovereign Health ships as a full Progressive Web App:
+| Target | Status | Notes |
+|--------|--------|-------|
+| **Cloud SaaS** | Live | Docker on Hetzner VPS, Cloudflare CDN |
+| **PWA** | Live | Installable, offline-first, push notifications, background sync |
+| **Tor** | Live | `.onion` hidden service for censorship-resistant access |
+| **Start9** | Planned | Self-hosted on personal hardware |
+| **Flatpak** | Planned | Linux desktop app |
 
-- **Installable** -- add to home screen on Android, iOS, desktop (Chrome/Edge)
-- **Offline fallback** -- dedicated offline page when network is unavailable
-- **Service worker caching** -- static assets precached, API responses cached (cache-first for content, network-first for user data)
-- **Offline write** -- measurements can be created offline, queued in IndexedDB, synced on reconnect
-- **Push notifications** -- Web Push API with VAPID, subscription management in settings
-- **Graceful degradation** -- offline banner, disabled write actions, friendly error messages
+## Security & Privacy
 
-## Getting Started
+- **Encryption at rest** -- AES-256-GCM for all health measurements
+- **Row-Level Security** -- PostgreSQL RLS policies on all user data tables
+- **pgAudit** -- Database-level audit logging for all write operations
+- **DB audit triggers** -- Application-level audit trail with changed fields
+- **DSGVO/GDPR** -- Data export (Art. 20), deletion cascade (Art. 17), consent management (Art. 7), access logs (Art. 15)
+- **IP hashing** -- SHA-256 pseudonymization in audit logs
+- **No tracking** -- Zero third-party analytics, no ad networks
 
-```bash
-# Clone
-git clone https://github.com/sovereignbrick/brickos.git
-cd brickos
+## Contributing
 
-# Backend
-cd apps/health/sovereign-health/api
-cp .env.example .env          # Configure database URL, JWT secret
-cargo build                    # Build all Rust crates
-cargo test --test smoke        # Fast sanity check
-
-# Frontend
-cd ../frontend
-pnpm install                   # Install all dependencies
-pnpm build                     # Production build (includes service worker)
-pnpm test                      # Run 223 tests
-
-# Docker (full stack)
-cd ../ops
-docker compose up -d           # Start backend + frontend + postgres
-```
-
-See individual CLAUDE.md files in each app directory for detailed development instructions.
-
-## Design Documents
-
-| # | Title | Status |
-|---|-------|--------|
-| [021](apps/health/sovereign-health/docs/project-files/design/021-multi-tenant-platform-offering.md) | Multi-Tenant Platform Offering | Draft |
-| [022](apps/health/sovereign-health/docs/project-files/design/022-deployment-architecture-scaling.md) | Deployment Architecture & Scaling | Draft |
-| [023](apps/health/sovereign-health/docs/project-files/design/023-progressive-web-app.md) | Progressive Web App | Shipped (Sprint 011) |
-| [024](apps/health/sovereign-health/docs/project-files/design/024-url-shortener-service.md) | Sovereign Link | Shipped (Sprint 010) |
-| [025](apps/health/sovereign-health/docs/project-files/design/025-flatpak-deployment.md) | Flatpak Desktop Deployment | Draft |
-| [026](apps/health/sovereign-health/docs/project-files/design/026-sovereign-proposal-platform.md) | Sovereign Proposal Platform | Draft |
-| [027](apps/health/sovereign-health/docs/project-files/design/027-multi-region-infrastructure.md) | Multi-Region Infrastructure | Draft |
+See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ## License
 
-AGPL-3.0 -- see [LICENSE](LICENSE) for details.
+[AGPL-3.0](LICENSE) -- Open source core. Commercial licenses available for organizations needing proprietary modifications.
 
-Open source core. Premium tiers for SaaS features (billing, AI quotas, advanced import).
+## Links
+
+- **App:** [app.sovereignhealth.io](https://app.sovereignhealth.io)
+- **Demo:** [demo.sovereignhealth.io](https://demo.sovereignhealth.io)
+- **Website:** [sovereignhealth.io](https://sovereignhealth.io)
+- **Platform:** [brickos.io](https://brickos.io)
 
 ---
 
-*BrickOS -- Bitcoin introduced Proof of Work. Health needs Proof of Blood. Infrastructure needs Proof of Ownership.*
+*Your body is the operating system of your life. Blood is its diagnostic interface.*

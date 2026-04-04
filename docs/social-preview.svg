@@ -1,0 +1,27 @@
+<svg width="1280" height="640" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#09090b"/>
+      <stop offset="100%" stop-color="#18181b"/>
+    </linearGradient>
+  </defs>
+  <rect width="1280" height="640" fill="url(#bg)"/>
+
+  <!-- Title -->
+  <text x="640" y="200" text-anchor="middle" fill="#e4e4e7" font-family="system-ui, -apple-system, sans-serif" font-size="72" font-weight="bold">BrickOS</text>
+
+  <!-- Subtitle -->
+  <text x="640" y="270" text-anchor="middle" fill="#a1a1aa" font-family="system-ui, sans-serif" font-size="28">Building sovereignty, brick by brick.</text>
+
+  <!-- Tagline -->
+  <text x="640" y="340" text-anchor="middle" fill="#71717a" font-family="system-ui, sans-serif" font-size="20">Privacy-first platform for health, finance, and infrastructure.</text>
+
+  <!-- Tech badges -->
+  <text x="640" y="420" text-anchor="middle" fill="#3b82f6" font-family="monospace" font-size="18">Rust  |  Next.js  |  PostgreSQL  |  Docker  |  PWA</text>
+
+  <!-- URL -->
+  <text x="640" y="520" text-anchor="middle" fill="#22c55e" font-family="monospace" font-size="22">github.com/sovereignbrick/brickos</text>
+
+  <!-- License -->
+  <text x="640" y="570" text-anchor="middle" fill="#525252" font-family="system-ui, sans-serif" font-size="16">AGPL-3.0  |  Open Source</text>
+</svg>

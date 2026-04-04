@@ -1,0 +1,27 @@
+name: Security Vulnerability
+description: Report a security issue (use private reporting for sensitive vulnerabilities)
+labels: [security]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **For sensitive vulnerabilities, please use [private vulnerability reporting](https://github.com/sovereignbrick/brickos/security/advisories/new) instead of this public form.**
+
+        This template is for non-sensitive security improvements (e.g., missing headers, dependency updates).
+  - type: dropdown
+    id: severity
+    label: Severity
+    options:
+      - Low - Minor improvement
+      - Medium - Missing security control
+      - High - Potential data exposure
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    label: Description
+    validations:
+      required: true
+  - type: textarea
+    id: impact
+    label: Potential impact

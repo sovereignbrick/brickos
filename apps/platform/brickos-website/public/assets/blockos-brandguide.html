@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BlockOS — Brand Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap" rel="stylesheet">
+<style>
+/* ─── Reset & Base ─────────────────────────────────── */
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+:root {
+  --bg:        #070707;
+  --surface:   #0e0e0e;
+  --lift:      #131313;
+  --border:    #1a1a1a;
+  --border-hi: #272727;
+  --dim:       #333;
+  --text:      #888;
+  --hi:        #b8b8b8;
+  --white:     #e8e8e8;
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+}
+html { scroll-behavior:smooth; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Space Mono', monospace;
+  font-size: 13px;
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+}
+body::before {
+  content:''; position:fixed; inset:0;
+  background: var(--grain);
+  pointer-events:none; z-index:9999;
+}
+
+/* ─── Layout ───────────────────────────────────────── */
+.wrap      { max-width: 960px; margin: 0 auto; padding: 0 48px 120px; }
+.chapter   { border-top: 1px solid var(--border); padding: 80px 0 0; margin-top: 80px; }
+.chapter:first-child { border-top: none; margin-top: 0; }
+.col2      { display:grid; grid-template-columns:1fr 1fr; gap:2px; }
+.col3      { display:grid; grid-template-columns:1fr 1fr 1fr; gap:2px; }
+.col2-3    { display:grid; grid-template-columns:2fr 3fr; gap:48px; align-items:start; }
+
+/* ─── Cover ────────────────────────────────────────── */
+.cover {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 0 48px 64px;
+  border-bottom: 1px solid var(--border);
+  position: relative;
+}
+.cover-mark {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%,-56%);
+  opacity: 0.06;
+}
+.cover-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+.cover-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(64px,10vw,120px);
+  font-weight: 300;
+  color: var(--white);
+  line-height: 0.88;
+  letter-spacing: -0.02em;
+}
+.cover-title em { font-style:italic; color: var(--dim); }
+.cover-sub {
+  font-size: 9px;
+  letter-spacing: .4em;
+  text-transform: uppercase;
+  color: var(--dim);
+  text-align: right;
+  line-height: 2.2;
+}
+
+/* ─── Navigation ───────────────────────────────────── */
+.nav-strip {
+  position: sticky; top:0; z-index:100;
+  background: rgba(7,7,7,0.92);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 48px;
+  display: flex;
+  align-items: center;
+  gap: 0;
+  height: 48px;
+  overflow-x: auto;
+}
+.nav-strip a {
+  color: var(--dim);
+  text-decoration: none;
+  font-size: 9px;
+  letter-spacing: .3em;
+  text-transform: uppercase;
+  padding: 0 20px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  border-right: 1px solid var(--border);
+  white-space: nowrap;
+  transition: color .2s;
+  flex-shrink: 0;
+}
+.nav-strip a:first-child { padding-left:0; }
+.nav-strip a:hover { color: var(--hi); }
+
+/* ─── Section labels ───────────────────────────────── */
+.sec-label {
+  font-size: 9px;
+  letter-spacing: .45em;
+  text-transform: uppercase;
+  color: var(--dim);
+  margin-bottom: 40px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+.sec-label::after { content:''; flex:1; height:1px; background:var(--border); }
+.sec-num { color: var(--border-hi); }
+
+.sec-heading {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(36px,5vw,60px);
+  font-weight: 300;
+  color: var(--white);
+  line-height: 1.0;
+  letter-spacing: -0.02em;
+  margin-bottom: 20px;
+}
+.sec-body {
+  font-size: 12px;
+  line-height: 1.9;
+  color: var(--text);
+  max-width: 560px;
+  margin-bottom: 48px;
+}
+
+/* ─── Boxes ────────────────────────────────────────── */
+.box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 32px;
+}
+.box-dark {
+  background: #040404;
+  border: 1px solid var(--border);
+  padding: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.box-light {
+  background: #eeece8;
+  border: 1px solid #dedad4;
+  padding: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ─── Logo specimens ───────────────────────────────── */
+.logo-row { display:flex; gap:2px; margin-bottom: 2px; }
+.logo-cell {
+  flex:1; padding:48px 32px;
+  display:flex; align-items:center; justify-content:center;
+  border:1px solid var(--border);
+  position:relative;
+}
+.logo-cell.on-dark  { background:#040404; }
+.logo-cell.on-light { background:#eeece8; }
+.logo-cell.on-mid   { background:#1a1a1a; }
+.cell-label {
+  position:absolute; top:12px; left:14px;
+  font-size:8px; letter-spacing:.3em; color:var(--border-hi); text-transform:uppercase;
+}
+.on-light .cell-label { color:#c8c5c0; }
+
+/* ─── Color swatches ───────────────────────────────── */
+.swatch-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:2px; }
+.swatch {
+  aspect-ratio: 1;
+  position:relative;
+  cursor:default;
+}
+.swatch-info {
+  padding: 14px 0 0;
+}
+.swatch-name { font-size:10px; color:var(--hi); font-weight:700; letter-spacing:.05em; }
+.swatch-hex  { font-size:9px; color:var(--dim); margin-top:2px; letter-spacing:.1em; }
+.swatch-use  { font-size:9px; color:var(--dim); margin-top:4px; line-height:1.5; }
+
+/* ─── Typography specimens ─────────────────────────── */
+.type-specimen {
+  border:1px solid var(--border);
+  padding:32px;
+  margin-bottom:2px;
+  background:var(--surface);
+}
+.type-specimen + .type-specimen { border-top: none; }
+.type-meta {
+  font-size:9px; letter-spacing:.3em; color:var(--dim);
+  text-transform:uppercase; margin-bottom:20px;
+  display:flex; justify-content:space-between;
+}
+.type-sample-sm { margin-top:16px; font-size:12px; color:var(--text); line-height:1.8; }
+
+.mono-head  { font-family:'Space Mono',monospace; font-weight:700; color:var(--white); line-height:1; }
+.mono-body  { font-family:'Space Mono',monospace; font-weight:400; color:var(--text); line-height:1.7; }
+.serif-head { font-family:'Cormorant Garamond',serif; font-weight:300; color:var(--white); line-height:.9; letter-spacing:-0.02em; }
+.serif-it   { font-family:'Cormorant Garamond',serif; font-style:italic; font-weight:300; color:var(--hi); line-height:.9; letter-spacing:-0.02em; }
+
+/* ─── Usage rules ──────────────────────────────────── */
+.rule-grid { display:grid; grid-template-columns:1fr 1fr; gap:2px; }
+.rule-box {
+  border:1px solid var(--border);
+  padding:28px;
+  position:relative;
+}
+.rule-tag {
+  font-size:9px; letter-spacing:.3em; text-transform:uppercase;
+  margin-bottom:16px; font-weight:700;
+}
+.rule-tag.do   { color:#4a7a50; }
+.rule-tag.dont { color:#7a4a4a; }
+.rule-box ul { list-style:none; display:flex; flex-direction:column; gap:8px; }
+.rule-box li {
+  font-size:11px; color:var(--text);
+  padding-left:18px; position:relative; line-height:1.6;
+}
+.rule-box li::before { content:'—'; position:absolute; left:0; color:var(--border-hi); }
+
+/* ─── Isometric explainer ──────────────────────────── */
+.iso-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:2px; }
+.iso-cell {
+  border:1px solid var(--border);
+  background:var(--surface);
+  padding:32px 24px;
+  text-align:center;
+}
+.iso-cell svg { display:block; margin:0 auto 20px; }
+.iso-cell-name { font-size:10px; letter-spacing:.2em; color:var(--hi); text-transform:uppercase; margin-bottom:6px; }
+.iso-cell-desc { font-size:10px; color:var(--dim); line-height:1.7; }
+
+/* ─── Space & clearzone ────────────────────────────── */
+.clearzone-demo {
+  border:1px solid var(--border);
+  background: var(--surface);
+  padding:48px;
+  display:flex; align-items:center; justify-content:center;
+  position:relative;
+}
+.clearzone-inner {
+  position:relative;
+  display:inline-block;
+}
+.clearzone-box {
+  position:absolute;
+  inset:-20px;
+  border:1px dashed var(--border-hi);
+  pointer-events:none;
+}
+.clearzone-arrow {
+  position:absolute;
+  font-size:9px; color:var(--border-hi); letter-spacing:.1em;
+}
+
+/* ─── Spec table ───────────────────────────────────── */
+.spec-table { width:100%; border-collapse:collapse; }
+.spec-table th {
+  font-size:9px; letter-spacing:.3em; text-transform:uppercase;
+  color:var(--dim); text-align:left; padding:10px 0;
+  border-bottom:1px solid var(--border);
+  font-weight:400;
+}
+.spec-table td {
+  font-size:11px; color:var(--text);
+  padding:12px 0; border-bottom:1px solid var(--border);
+  vertical-align:top;
+}
+.spec-table td:first-child { color:var(--hi); font-weight:700; min-width:160px; }
+.spec-table td code {
+  background:var(--lift); border:1px solid var(--border);
+  padding:1px 6px; font-family:'Space Mono',monospace;
+  font-size:10px; color:var(--hi);
+}
+
+/* ─── Footer ───────────────────────────────────────── */
+.footer {
+  border-top:1px solid var(--border);
+  margin-top:80px; padding:32px 48px;
+  display:flex; justify-content:space-between; align-items:center;
+}
+.footer-brand { font-size:10px; letter-spacing:.3em; color:var(--dim); }
+.footer-ver   { font-size:9px; color:var(--border-hi); }
+
+/* ─── Inline code / labels ─────────────────────────── */
+.tag {
+  display:inline-block;
+  font-size:8px; letter-spacing:.2em; text-transform:uppercase;
+  border:1px solid var(--border); padding:2px 8px;
+  color:var(--dim); margin-right:6px;
+}
+</style>
+</head>
+<body>
+
+<!-- ════════════════════ COVER ════════════════════ -->
+<div class="cover">
+  <div class="cover-mark">
+    <svg id="cover-mark-bg" viewBox="-76 -76 152 132" width="520" height="450" xmlns="http://www.w3.org/2000/svg"></svg>
+  </div>
+  <div class="cover-meta">
+    <div>
+      <div class="cover-title">Block<em>OS</em><br>Brand<br>Guide</div>
+    </div>
+    <div class="cover-sub">
+      Version 1.2<br>
+      2026<br>
+      blockos.io<br>
+      Confidential
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════ NAV ════════════════════ -->
+<nav class="nav-strip">
+  <a href="#brand">Brand</a>
+  <a href="#logo">Logo</a>
+  <a href="#color">Color</a>
+  <a href="#type">Typography</a>
+  <a href="#system">Isometric System</a>
+  <a href="#usage">Usage</a>
+  <a href="#specs">Specs</a>
+</nav>
+
+<div class="wrap">
+
+<!-- ════════════════════ 01 BRAND ════════════════════ -->
+<section class="chapter" id="brand">
+  <div class="sec-label"><span class="sec-num">01</span> Brand Foundation</div>
+
+  <div class="col2-3">
+    <div>
+      <h2 class="sec-heading">What<br>BlockOS<br><em style="font-style:italic;color:var(--dim)">stands for</em></h2>
+    </div>
+    <div>
+      <p class="sec-body">
+        BlockOS is a sovereign application platform — an operating layer for individuals and organisations
+        who refuse to compromise on privacy, ownership, and digital autonomy. Built brick by brick,
+        block by block, it assembles composable sovereign applications across the five dimensions
+        of a free life: Money, Health, Technology, Data, and Attention.
+      </p>
+      <p class="sec-body" style="margin-top:-24px">
+        The brand reflects this architecture: precise, austere, and purposefully constructed.
+        Nothing decorative. Everything structural.
+      </p>
+    </div>
+  </div>
+
+  <div class="col3" style="margin-top:8px">
+    <div class="box">
+      <div style="font-size:9px;letter-spacing:.35em;text-transform:uppercase;color:var(--dim);margin-bottom:16px">Principle 01</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:300;color:var(--white);line-height:1.1;margin-bottom:14px">Sovereign<br>by Design</div>
+      <div style="font-size:11px;color:var(--dim);line-height:1.8">Every element earns its place. No gradients, no decoration, no permission asked. The brand communicates control.</div>
+    </div>
+    <div class="box" style="border-left:none">
+      <div style="font-size:9px;letter-spacing:.35em;text-transform:uppercase;color:var(--dim);margin-bottom:16px">Principle 02</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:300;color:var(--white);line-height:1.1;margin-bottom:14px">Brick<br>by Brick</div>
+      <div style="font-size:11px;color:var(--dim);line-height:1.8">Composable. Incremental. Each module is self-contained and auditable. The brand grows the same way — no shortcuts.</div>
+    </div>
+    <div class="box" style="border-left:none">
+      <div style="font-size:9px;letter-spacing:.35em;text-transform:uppercase;color:var(--dim);margin-bottom:16px">Principle 03</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:300;color:var(--white);line-height:1.1;margin-bottom:14px">Radical<br>Simplicity</div>
+      <div style="font-size:11px;color:var(--dim);line-height:1.8">Black. White. Geometry. No colour trends, no fashion cycles. The mark works at 16px and at 1600px — forever.</div>
+    </div>
+  </div>
+
+  <!-- Voice -->
+  <div class="box" style="margin-top:2px">
+    <div style="font-size:9px;letter-spacing:.35em;text-transform:uppercase;color:var(--dim);margin-bottom:24px">Brand Voice</div>
+    <div class="col2" style="gap:40px">
+      <div>
+        <div style="font-size:11px;color:var(--border-hi);letter-spacing:.2em;text-transform:uppercase;margin-bottom:12px">Tone</div>
+        <div style="font-size:12px;color:var(--text);line-height:1.9">
+          Declarative. Architectural. Precise. BlockOS does not pitch — it states.
+          Write in short, complete sentences. Never hedging. Never corporate.
+          Prefer the active voice and the concrete noun.
+        </div>
+      </div>
+      <div>
+        <div style="font-size:11px;color:var(--border-hi);letter-spacing:.2em;text-transform:uppercase;margin-bottom:12px">Words We Use</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px">
+          <span class="tag">Sovereign</span><span class="tag">Stack</span><span class="tag">Own</span>
+          <span class="tag">Build</span><span class="tag">Platform</span><span class="tag">Brick</span>
+          <span class="tag">Block</span><span class="tag">Free</span><span class="tag">Design</span>
+        </div>
+        <div style="font-size:11px;color:var(--border-hi);letter-spacing:.2em;text-transform:uppercase;margin-bottom:8px">Words We Avoid</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px">
+          <span class="tag" style="border-color:#3a2020;color:#6a4040">Disruptive</span>
+          <span class="tag" style="border-color:#3a2020;color:#6a4040">Innovative</span>
+          <span class="tag" style="border-color:#3a2020;color:#6a4040">Seamless</span>
+          <span class="tag" style="border-color:#3a2020;color:#6a4040">Empower</span>
+          <span class="tag" style="border-color:#3a2020;color:#6a4040">Journey</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════ 02 LOGO ════════════════════ -->
+<section class="chapter" id="logo">
+  <div class="sec-label"><span class="sec-num">02</span> Logo & Mark</div>
+
+  <div class="col2-3" style="margin-bottom:40px">
+    <div>
+      <h2 class="sec-heading">The<br>Mark</h2>
+    </div>
+    <div>
+      <p class="sec-body">
+        The BlockOS mark is a 3 × 2 isometric block grid seen from a fixed 26.565° viewpoint.
+        Six blocks represent the six sovereign pillars. A checkerboard pattern of three filled
+        and three outline blocks references the binary nature of sovereignty: owned versus
+        available, built versus open. The platform slab beneath them is BlockOS itself —
+        the foundation on which everything else rests.
+      </p>
+    </div>
+  </div>
+
+  <!-- Primary variants -->
+  <div class="logo-row">
+    <div class="logo-cell on-dark">
+      <span class="cell-label">Primary · Dark</span>
+      <svg id="lv1" viewBox="-80 -76 160 188" width="200" height="236" xmlns="http://www.w3.org/2000/svg"></svg>
+    </div>
+    <div class="logo-cell on-light">
+      <span class="cell-label">Primary · Light</span>
+      <svg id="lv2" viewBox="-80 -76 160 188" width="200" height="236" xmlns="http://www.w3.org/2000/svg"></svg>
+    </div>
+    <div class="logo-cell on-mid">
+      <span class="cell-label">Mark only · Dark</span>
+      <svg id="lv3" viewBox="-76 -76 152 132" width="140" height="120" xmlns="http://www.w3.org/2000/svg"></svg>
+    </div>
+  </div>
+
+  <!-- Horizontal lockup -->
+  <div class="logo-cell on-dark" style="margin-top:2px;min-height:120px">
+    <span class="cell-label">Horizontal lockup</span>
+    <svg id="lv4" viewBox="-78 -44 320 88" width="400" height="110" xmlns="http://www.w3.org/2000/svg"></svg>
+  </div>
+
+  <!-- Clearzone -->
+  <div style="margin-top:40px">
+    <div style="font-size:9px;letter-spacing:.35em;text-transform:uppercase;color:var(--dim);margin-bottom:20px">Clear Space</div>
+    <div class="col2" style="gap:40px;align-items:start">
+      <div class="clearzone-demo">
+        <div class="clearzone-inner" style="padding:24px">
+          <div class="clearzone-box"></div>
+          <svg viewBox="-76 -76 152 132" width="100" height="86" xmlns="http://www.w3.org/2000/svg" id="cz-mark"></svg>
+          <!-- arrows -->
+          <div style="position:absolute;top:-14px;left:50%;transform:translateX(-50%);font-size:8px;letter-spacing:.15em;color:var(--border-hi)">½ mark height</div>
+        </div>
+      </div>
+      <div style="padding-top:8px">
+        <p style="font-size:12px;color:var(--text);line-height:1.9;margin-bottom:16px">
+          Maintain a minimum clear space equal to <strong style="color:var(--hi)">half the mark height</strong> on all four sides.
+          The dashed boundary must remain free of all other graphic elements, text, and borders.
+        </p>
+        <p style="font-size:12px;color:var(--text);line-height:1.9">
+          The minimum reproduction size for the mark alone is <strong style="color:var(--hi)">16 × 16px</strong>.
+          The full stacked lockup should never appear smaller than <strong style="color:var(--hi)">120px wide</strong>.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════ 03 COLOR ════════════════════ -->
+<section class="chapter" id="color">
+  <div class="sec-label"><span class="sec-num">03</span> Color</div>
+
+  <div class="col2-3" style="margin-bottom:40px">
+    <div><h2 class="sec-heading">Black<br>&amp; White<br><em style="font-style:italic;color:var(--dim)">only</em></h2></div>
+    <div>
+      <p class="sec-body">
+        BlockOS uses no brand colour. The palette is a precise greyscale ramp — from absolute
+        black to near-white — applied consistently across all surfaces. This is not minimalism
+        as a trend: it is a deliberate statement that sovereignty needs no decoration.
+        Colour is introduced exclusively through context (e.g. status indicators in product UI).
+      </p>
+    </div>
+  </div>
+
+  <!-- Dark swatches -->
+  <div style="font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:var(--dim);margin-bottom:16px">Dark Theme</div>
+  <div class="swatch-grid" style="margin-bottom:40px">
+    <div>
+      <div class="swatch" style="background:#070707;border:1px solid #1a1a1a"></div>
+      <div class="swatch-info"><div class="swatch-name">Void</div><div class="swatch-hex">#070707</div><div class="swatch-use">Page background</div></div>
+    </div>
+    <div>
+      <div class="swatch" style="background:#0e0e0e;border:1px solid #1a1a1a"></div>
+      <div class="swatch-info"><div class="swatch-name">Surface</div><div class="swatch-hex">#0e0e0e</div><div class="swatch-use">Cards, panels</div></div>
+    </div>
+    <div>
+      <div class="swatch" style="background:#1a1a1a"></div>
+      <div class="swatch-info"><div class="swatch-name">Border</div><div class="swatch-hex">#1a1a1a</div><div class="swatch-use">Dividers, outlines</div></div>
+    </div>
+    <div>
+      <div class="swatch" style="background:#888888"></div>
+      <div class="swatch-info"><div class="swatch-name">Body</div><div class="swatch-hex">#888888</div><div class="swatch-use">Body text</div></div>
+    </div>
+    <div>
+      <div class="swatch" style="background:#e8e8e8"></div>
+      <div class="swatch-info"><div class="swatch-name">White</div><div class="swatch-hex">#e8e8e8</div><div class="swatch-use">Headlines, mark top face</div></div>
+    </div>
+  </div>
+
+  <!-- Light swatches -->
+  <div style="font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:var(--dim);margin-bottom:16px">Light Theme</div>
+  <div class="swatch-grid">
+    <div>
+      <div class="swatch" style="background:#eeece8;border:1px solid #dedad4"></div>
+      <div class="swatch-info"><div class="swatch-name">Paper</div><div class="swatch-hex">#eeece8</div><div class="swatch-use">Page background</div></div>
+    </div>
+    <div>
+      <div class="swatch" style="background:#dedad4;border:1px solid #ccc8c2"></div>
+      <div class="swatch-info"><div class="swatch-name">Stone</div><div class="swatch-hex">#dedad4</div><div class="swatch-use">Platform top face</div></div>
+    </div>
+    <div>
+      <div class="swatch" style="background:#b5b2ac"></div>
+      <div class="swatch-info"><div class="swatch-name">Mortar</div><div class="swatch-hex">#b5b2ac</div><div class="swatch-use">Borders, dividers</div></div>
+    </div>
+    <div>
+      <div class="swatch" style="background:#f0f0ee;border:1px solid #dedad4"></div>
+      <div class="swatch-info"><div class="swatch-name">Block</div><div class="swatch-hex">#f0f0ee</div><div class="swatch-use">Block top faces</div></div>
+    </div>
+    <div>
+      <div class="swatch" style="background:#1c1c1c"></div>
+      <div class="swatch-info"><div class="swatch-name">Ink</div><div class="swatch-hex">#1c1c1c</div><div class="swatch-use">Headlines on light</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════ 04 TYPOGRAPHY ════════════════════ -->
+<section class="chapter" id="type">
+  <div class="sec-label"><span class="sec-num">04</span> Typography</div>
+
+  <div class="col2-3" style="margin-bottom:40px">
+    <div><h2 class="sec-heading">Two<br>Voices</h2></div>
+    <div>
+      <p class="sec-body">
+        BlockOS uses exactly two typefaces. <strong style="color:var(--hi)">Space Mono</strong> is the primary voice —
+        technical, precise, monospaced. It appears in all UI labels, product copy, code, and the wordmark.
+        <strong style="color:var(--hi)">Cormorant Garamond</strong> is the editorial voice — refined, literary, slow.
+        It appears in large headlines, manifestos, and long-form content only. Never mix them in the same
+        typographic role.
+      </p>
+    </div>
+  </div>
+
+  <!-- Space Mono specimens -->
+  <div class="type-specimen">
+    <div class="type-meta">
+      <span>Space Mono — Primary</span>
+      <span>Google Fonts · Monospaced</span>
+    </div>
+    <div class="mono-head" style="font-size:52px;letter-spacing:-.01em">BlockOS</div>
+    <div class="mono-head" style="font-size:32px;margin-top:16px;letter-spacing:.05em">OWN YOUR STACK</div>
+    <div class="type-sample-sm mono-body">
+      The sovereign stack assembles brick by brick — each module self-contained, auditable, and yours.
+      No cloud dependency. No third-party lock-in. Every block on the platform is owned by the operator.
+    </div>
+  </div>
+
+  <div class="type-specimen">
+    <div class="type-meta">
+      <span>Space Mono — Weights & Roles</span>
+      <span>700 · 400 · 400 Italic</span>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:32px">
+      <div>
+        <div style="font-size:9px;letter-spacing:.3em;color:var(--dim);margin-bottom:12px;text-transform:uppercase">700 Bold — Headlines, wordmark, labels</div>
+        <div class="mono-head" style="font-size:22px">BlockOS</div>
+        <div class="mono-head" style="font-size:15px;margin-top:8px;letter-spacing:.4em">SOVEREIGN STACK</div>
+        <div class="mono-head" style="font-size:11px;margin-top:6px;color:var(--hi);letter-spacing:.3em">01 / Finance · Health · Tech</div>
+      </div>
+      <div>
+        <div style="font-size:9px;letter-spacing:.3em;color:var(--dim);margin-bottom:12px;text-transform:uppercase">400 Regular — Body, captions, code</div>
+        <div class="mono-body" style="font-size:13px">Own Your Stack<br>Own Your Life</div>
+        <div class="mono-body" style="font-size:11px;margin-top:10px;color:var(--dim);font-style:italic">Build sovereign. Stack blocks.</div>
+        <div class="mono-body" style="font-size:10px;margin-top:10px;color:var(--dim)">&lt;sovereign-health /&gt;</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cormorant specimens -->
+  <div class="type-specimen">
+    <div class="type-meta">
+      <span>Cormorant Garamond — Editorial</span>
+      <span>Google Fonts · Serif · 300 Light only</span>
+    </div>
+    <div class="serif-head" style="font-size:72px">Sovereign</div>
+    <div class="serif-it"   style="font-size:72px">by Design</div>
+    <div class="type-sample-sm" style="font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:300;color:var(--text);margin-top:20px;line-height:1.6;max-width:600px">
+      Sovereignty is not a feature. It is the architecture. BlockOS assembles open,
+      composable applications into a unified sovereign platform — each block independent,
+      each stack a declaration of ownership.
+    </div>
+  </div>
+
+  <!-- Type scale table -->
+  <div style="margin-top:40px">
+    <div style="font-size:9px;letter-spacing:.35em;text-transform:uppercase;color:var(--dim);margin-bottom:20px">Type Scale</div>
+    <table class="spec-table">
+      <tr><th>Role</th><th>Typeface</th><th>Weight</th><th>Size</th><th>Letter-spacing</th><th>Use</th></tr>
+      <tr><td>Display</td><td>Cormorant Garamond</td><td>300</td><td>72–120px</td><td>−0.02em</td><td>Hero headlines, manifesto</td></tr>
+      <tr><td>H1</td><td>Cormorant Garamond</td><td>300</td><td>40–60px</td><td>−0.02em</td><td>Section headings</td></tr>
+      <tr><td>Wordmark</td><td>Space Mono</td><td>700</td><td>22–28px</td><td>0.05–0.08em</td><td>Logo lockup only</td></tr>
+      <tr><td>UI Label</td><td>Space Mono</td><td>700</td><td>9–11px</td><td>0.25–0.45em</td><td>Caps labels, nav, tags</td></tr>
+      <tr><td>Body</td><td>Space Mono</td><td>400</td><td>12–13px</td><td>0em</td><td>Running copy</td></tr>
+      <tr><td>Caption</td><td>Space Mono</td><td>400</td><td>9–10px</td><td>0.2em</td><td>Metadata, footnotes</td></tr>
+      <tr><td>Slogan</td><td>Space Mono</td><td>400</td><td>8–9px</td><td>spacing-adjusted</td><td>Logo lockup, tagline</td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- ════════════════════ 05 ISOMETRIC SYSTEM ════════════════════ -->
+<section class="chapter" id="system">
+  <div class="sec-label"><span class="sec-num">05</span> Isometric System</div>
+
+  <div class="col2-3" style="margin-bottom:40px">
+    <div><h2 class="sec-heading">The<br>Grid<br><em style="font-style:italic;color:var(--dim)">system</em></h2></div>
+    <div>
+      <p class="sec-body">
+        The mark is constructed on a precise isometric grid at a <strong style="color:var(--hi)">26.565° projection angle</strong>
+        (arctan 0.5 — the standard dimetric isometric). This angle produces tiles where the height is
+        exactly half the width, making all proportions derivable from a single unit.
+        The system is fully parametric: every dimension follows from the tile width <code style="background:var(--lift);padding:1px 5px;font-size:11px;color:var(--hi)">TW</code>.
+      </p>
+    </div>
+  </div>
+
+  <div class="iso-grid">
+    <div class="iso-cell">
+      <svg viewBox="-45 -40 90 80" width="90" height="80" xmlns="http://www.w3.org/2000/svg">
+        <path d="M0,-21 L42,0 L0,21 L-42,0 Z" fill="none" stroke="#2a2a2a" stroke-width="1"/>
+        <line x1="-42" y1="0" x2="42" y2="0" stroke="#333" stroke-width="0.5" stroke-dasharray="3,3"/>
+        <line x1="0" y1="-21" x2="0" y2="21" stroke="#333" stroke-width="0.5" stroke-dasharray="3,3"/>
+        <text x="0" y="30" text-anchor="middle" font-family="Space Mono" font-size="7" fill="#333" letter-spacing="1">TW = 84</text>
+        <text x="48" y="4" font-family="Space Mono" font-size="7" fill="#333">TH = 42</text>
+      </svg>
+      <div class="iso-cell-name">Tile</div>
+      <div class="iso-cell-desc">Base rhombus. TH = TW ÷ 2. Projection angle 26.565°.</div>
+    </div>
+    <div class="iso-cell">
+      <svg viewBox="-45 -55 90 110" width="90" height="110" xmlns="http://www.w3.org/2000/svg" id="iso-block-demo"></svg>
+      <div class="iso-cell-name">Block</div>
+      <div class="iso-cell-desc">Cube on tile. BH = TH (cube) or 1.25 × TH (tall). Three visible faces.</div>
+    </div>
+    <div class="iso-cell">
+      <svg viewBox="-45 -25 90 50" width="90" height="50" xmlns="http://www.w3.org/2000/svg">
+        <path d="M0,-14 L28,0 L0,14 L-28,0 Z" fill="#181818" stroke="#222" stroke-width="1"/>
+        <path d="M0,14 L28,0 L28,9 L0,23 Z" fill="#111" stroke="#222" stroke-width="1"/>
+        <path d="M-28,0 L0,14 L0,23 L-28,9 Z" fill="#0d0d0d" stroke="#222" stroke-width="1"/>
+        <text x="0" y="33" text-anchor="middle" font-family="Space Mono" font-size="6" fill="#333" letter-spacing="1">PH = 9</text>
+      </svg>
+      <div class="iso-cell-name">Platform</div>
+      <div class="iso-cell-desc">Slab beneath all blocks. PH = TH ÷ 4.7. Foundation = BlockOS.</div>
+    </div>
+  </div>
+
+  <!-- Grid dimensions table -->
+  <div style="margin-top:40px">
+    <div style="font-size:9px;letter-spacing:.35em;text-transform:uppercase;color:var(--dim);margin-bottom:20px">Grid Dimensions (user units)</div>
+    <table class="spec-table">
+      <tr><th>Variable</th><th>Value</th><th>Derivation</th><th>Description</th></tr>
+      <tr><td><code>TW</code></td><td>54</td><td>Base unit</td><td>Tile width in SVG user units</td></tr>
+      <tr><td><code>TH</code></td><td>27</td><td>TW ÷ 2</td><td>Tile height (isometric ratio)</td></tr>
+      <tr><td><code>BH</code></td><td>34</td><td>TH × 1.26</td><td>Block height — slightly taller than cube for visual weight</td></tr>
+      <tr><td><code>PH</code></td><td>9</td><td>TH ÷ 3</td><td>Platform slab height</td></tr>
+      <tr><td><code>COLS</code></td><td>3</td><td>Fixed</td><td>Number of block columns (= number of pillar pairs)</td></tr>
+      <tr><td><code>ROWS</code></td><td>2</td><td>Fixed</td><td>Number of block rows</td></tr>
+      <tr><td>Mark width</td><td>±67.5</td><td>(COLS−1) × TW/2 + TW/2 + OX</td><td>Total screen width of mark in user units</td></tr>
+    </table>
+  </div>
+
+  <!-- Pillar mapping -->
+  <div style="margin-top:48px">
+    <div style="font-size:9px;letter-spacing:.35em;text-transform:uppercase;color:var(--dim);margin-bottom:20px">Block → Pillar Mapping</div>
+    <table class="spec-table">
+      <tr><th>Position</th><th>Col, Row</th><th>Style</th><th>Sovereign Pillar</th><th>Application</th></tr>
+      <tr><td>Back-left</td><td>0, 0</td><td>Filled</td><td>Finance / Money</td><td>Sovereign Wallet, Lightning Manager</td></tr>
+      <tr><td>Back-centre</td><td>1, 0</td><td>Outline</td><td>Health / Vitality</td><td>Sovereign Health Intelligence</td></tr>
+      <tr><td>Back-right</td><td>2, 0</td><td>Filled</td><td>Technology / Code</td><td>Sovereign Link, BrickOS Core</td></tr>
+      <tr><td>Front-left</td><td>0, 1</td><td>Outline</td><td>Data / Privacy</td><td>Sovereign Identity, Data Vault</td></tr>
+      <tr><td>Front-centre</td><td>1, 1</td><td>Filled</td><td>Attention / Focus</td><td>Sovereign Feed</td></tr>
+      <tr><td>Front-right</td><td>2, 1</td><td>Outline</td><td>Energy / Autonomy</td><td>Sovereign Energy Stack</td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- ════════════════════ 06 USAGE ════════════════════ -->
+<section class="chapter" id="usage">
+  <div class="sec-label"><span class="sec-num">06</span> Usage Rules</div>
+
+  <div class="col2-3" style="margin-bottom:40px">
+    <div><h2 class="sec-heading">Do &amp;<br>Don't</h2></div>
+    <div>
+      <p class="sec-body">
+        The mark's power comes from its consistency. Any distortion, recolouring, or
+        unauthorised modification undermines the precision that the brand communicates.
+        When in doubt: do less.
+      </p>
+    </div>
+  </div>
+
+  <div class="rule-grid">
+    <div class="rule-box">
+      <div class="rule-tag do">✓ Do</div>
+      <ul>
+        <li>Use the mark on pure black, near-black, or pure white / warm-white backgrounds only</li>
+        <li>Maintain minimum clear space on all sides (½ mark height)</li>
+        <li>Scale uniformly — the mark is always square-proportioned</li>
+        <li>Use Space Mono 700 for the wordmark — no substitutions</li>
+        <li>Use the provided dark or light variant as supplied — do not create intermediate versions</li>
+        <li>Allow the slogan lines to span the full wordmark width via <code>textLength</code></li>
+        <li>Reproduce the mark as SVG wherever possible for crispness</li>
+      </ul>
+    </div>
+    <div class="rule-box" style="border-left:none">
+      <div class="rule-tag dont">✗ Don't</div>
+      <ul>
+        <li>Do not recolour the mark — no tints, no colour fills, no gradients</li>
+        <li>Do not rotate or skew the isometric mark</li>
+        <li>Do not place the mark on busy photographs or patterned backgrounds</li>
+        <li>Do not stretch or distort the wordmark — use <code>lengthAdjust="spacing"</code> only</li>
+        <li>Do not add drop shadows, glows, or embossing to the mark</li>
+        <li>Do not use Cormorant Garamond for the wordmark or slogan</li>
+        <li>Do not reproduce the mark below 16px or the full lockup below 120px wide</li>
+        <li>Do not add decorative punctuation to the slogan</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Digital usage -->
+  <div class="box" style="margin-top:2px">
+    <div style="font-size:9px;letter-spacing:.35em;text-transform:uppercase;color:var(--dim);margin-bottom:24px">Digital Usage</div>
+    <div class="col3" style="gap:32px">
+      <div>
+        <div style="font-size:10px;color:var(--hi);letter-spacing:.2em;text-transform:uppercase;margin-bottom:10px">Web</div>
+        <div style="font-size:11px;color:var(--dim);line-height:1.8">Always deliver the mark as inline SVG or <code style="background:var(--lift);padding:1px 5px;color:var(--hi);font-size:10px">.svg</code> file. PNG only as fallback. Minimum: 2× resolution for retina screens.</div>
+      </div>
+      <div>
+        <div style="font-size:10px;color:var(--hi);letter-spacing:.2em;text-transform:uppercase;margin-bottom:10px">Favicon</div>
+        <div style="font-size:11px;color:var(--dim);line-height:1.8">Use the mark-only variant at 16 × 16, 32 × 32, and 64 × 64px. On dark browser chrome, the dark variant. Use a <code style="background:var(--lift);padding:1px 5px;color:var(--hi);font-size:10px">#070707</code> background tile.</div>
+      </div>
+      <div>
+        <div style="font-size:10px;color:var(--hi);letter-spacing:.2em;text-transform:uppercase;margin-bottom:10px">Social / OG</div>
+        <div style="font-size:11px;color:var(--dim);line-height:1.8">Open Graph image: 1200 × 630px, dark background, centred full lockup at 40% canvas width. Export as PNG 1× from the brand SVG.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════ 07 SPECS ════════════════════ -->
+<section class="chapter" id="specs">
+  <div class="sec-label"><span class="sec-num">07</span> Technical Specs</div>
+
+  <div class="col2" style="gap:2px;margin-bottom:2px">
+    <div class="box">
+      <div style="font-size:9px;letter-spacing:.35em;text-transform:uppercase;color:var(--dim);margin-bottom:20px">Fonts — Web Embed</div>
+      <div style="font-size:11px;color:var(--dim);line-height:2">
+        <div style="color:var(--hi);margin-bottom:4px">Google Fonts URL</div>
+        <code style="background:var(--lift);border:1px solid var(--border);padding:8px 12px;display:block;font-size:9px;color:var(--hi);line-height:1.8;word-break:break-all">
+          https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Cormorant+Garamond:ital,wght@0,300;0,600;1,300&display=swap
+        </code>
+      </div>
+    </div>
+    <div class="box" style="border-left:none">
+      <div style="font-size:9px;letter-spacing:.35em;text-transform:uppercase;color:var(--dim);margin-bottom:20px">CSS Variables — Dark Theme</div>
+      <code style="background:var(--lift);border:1px solid var(--border);padding:12px;display:block;font-size:9px;color:var(--hi);line-height:2">
+        --bg:        #070707;<br>
+        --surface:   #0e0e0e;<br>
+        --border:    #1a1a1a;<br>
+        --border-hi: #272727;<br>
+        --text:      #888888;<br>
+        --hi:        #b8b8b8;<br>
+        --white:     #e8e8e8;
+      </code>
+    </div>
+  </div>
+
+  <div class="box" style="margin-top:2px">
+    <div style="font-size:9px;letter-spacing:.35em;text-transform:uppercase;color:var(--dim);margin-bottom:20px">SVG Mark Parameters</div>
+    <table class="spec-table">
+      <tr><th>Parameter</th><th>Value</th><th>Notes</th></tr>
+      <tr><td>ViewBox (mark only)</td><td><code>-76 -76 152 132</code></td><td>Centred, with 8-unit padding on all sides</td></tr>
+      <tr><td>ViewBox (full stacked)</td><td><code>-80 -76 160 188</code></td><td>Includes wordmark + two-line slogan</td></tr>
+      <tr><td>Wordmark font-size</td><td><code>28</code></td><td>Space Mono 700, textLength 135, lengthAdjust spacing</td></tr>
+      <tr><td>Slogan font-size</td><td><code>8.5</code></td><td>Space Mono 400, textLength 135, lengthAdjust spacing</td></tr>
+      <tr><td>Slogan line 1</td><td>Own Your Stack</td><td>No trailing punctuation</td></tr>
+      <tr><td>Slogan line 2</td><td>Own Your Life</td><td>No trailing punctuation</td></tr>
+      <tr><td>Stroke width (filled)</td><td><code>1.5</code></td><td>All filled block faces</td></tr>
+      <tr><td>Stroke width (outline)</td><td><code>1.2</code></td><td>All ghost/outline block faces</td></tr>
+      <tr><td>Stroke color (dark)</td><td><code>#1e1e1e</code> / <code>#2c2c2c</code></td><td>Filled / outline respectively</td></tr>
+      <tr><td>Projection angle</td><td>26.565°</td><td>arctan(0.5) — standard dimetric</td></tr>
+    </table>
+  </div>
+</section>
+
+</div><!-- /wrap -->
+
+<!-- ════════════════════ FOOTER ════════════════════ -->
+<div class="footer">
+  <span class="footer-brand">BlockOS.io — Brand Guide v1.2</span>
+  <span class="footer-ver">© 2026 BlockOS · Own Your Stack · Own Your Life</span>
+</div>
+
+<!-- ════════════════════ LOGO RENDER SCRIPT ════════════════════ -->
+<script>
+const NS = 'http://www.w3.org/2000/svg';
+const TW=54,TH=27,BH=34,PH=9;
+const OX=-0.5*TW/2, OY=-1.5*TH/2;
+const LOGO_W=135;
+const PLAT_BOT = OY+1.5*TH+TH/2+PH;
+
+const TILES=[];
+for(let c=0;c<3;c++) for(let r=0;r<2;r++) TILES.push({col:c,row:r});
+const ZT=[...TILES].sort((a,b)=>{const d=(a.col+a.row)-(b.col+b.row);return d!==0?d:b.col-a.col;});
+
+function tc(col,row){return{x:(col-row)*TW/2+OX,y:(col+row)*TH/2+OY};}
+const f=n=>Math.round(n*100)/100;
+function dTop(x,y){return`M${f(x)},${f(y-TH/2)} L${f(x+TW/2)},${f(y)} L${f(x)},${f(y+TH/2)} L${f(x-TW/2)},${f(y)} Z`;}
+function dLeft(x,y,h){return`M${f(x-TW/2)},${f(y)} L${f(x)},${f(y+TH/2)} L${f(x)},${f(y+TH/2+h)} L${f(x-TW/2)},${f(y+h)} Z`;}
+function dRight(x,y,h){return`M${f(x)},${f(y+TH/2)} L${f(x+TW/2)},${f(y)} L${f(x+TW/2)},${f(y+h)} L${f(x)},${f(y+TH/2+h)} Z`;}
+
+function el(tag,a){const n=document.createElementNS(NS,tag);for(const[k,v]of Object.entries(a||{}))n.setAttribute(k,String(v));return n;}
+function fp(d,fill,stroke,sw=1.5){return el('path',{d,fill,stroke,'stroke-width':sw,'stroke-linejoin':'round','stroke-linecap':'round'});}
+
+function buildMark(theme){
+  const dk=theme!=='light';
+  const p=dk?{
+    pT:'#181818',pR:'#0f0f0f',pL:'#0b0b0b',pS:'#1e1e1e',
+    fT:'#d4d4d4',fL:'#111',fR:'#1a1a1a',fS:'#1e1e1e',oS:'#2c2c2c',oW:1.2
+  }:{
+    pT:'#dedad4',pR:'#ccc8c2',pL:'#c4c0ba',pS:'#b5b2ac',
+    fT:'#f0f0ee',fL:'#d8d8d4',fR:'#e4e4e0',fS:'#c0bebe',oS:'#c8c6c2',oW:1.2
+  };
+  const g=el('g');
+  for(const{col,row}of ZT){const{x,y}=tc(col,row);g.appendChild(fp(dTop(x,y),p.pT,p.pS,1));}
+  for(const t of ZT.filter(t=>t.col===2)){const{x,y}=tc(t.col,t.row);g.appendChild(fp(dRight(x,y,PH),p.pR,p.pS,1));}
+  for(const t of ZT.filter(t=>t.row===1)){const{x,y}=tc(t.col,t.row);g.appendChild(fp(dLeft(x,y,PH),p.pL,p.pS,1));}
+  for(const{col,row}of ZT){
+    const{x,y}=tc(col,row);const by=y-BH;
+    if((col+row)%2===0){
+      g.appendChild(fp(dRight(x,by,BH),p.fR,p.fS));
+      g.appendChild(fp(dLeft(x,by,BH),p.fL,p.fS));
+      g.appendChild(fp(dTop(x,by),p.fT,p.fS));
+    }else{
+      g.appendChild(fp(dRight(x,by,BH),'none',p.oS,p.oW));
+      g.appendChild(fp(dLeft(x,by,BH),'none',p.oS,p.oW));
+      g.appendChild(fp(dTop(x,by),'none',p.oS,p.oW));
+    }
+  }
+  return g;
+}
+
+function txt(s,x,y,sz,fill,extra={}){
+  const t=el('text',{x,y,'text-anchor':'middle','dominant-baseline':'alphabetic','font-family':'Space Mono, monospace','font-size':sz,fill,...extra});
+  t.textContent=s;return t;
+}
+
+function addFullLogo(svgEl,theme){
+  const dk=theme!=='light';
+  const cM=dk?'#d8d8d8':'#1c1c1c';
+  const cS=dk?'#2e2e2e':'#b0adaa';
+  svgEl.appendChild(buildMark(theme));
+  svgEl.appendChild(txt('BlockOS',0,PLAT_BOT+30,28,cM,{'font-weight':'700','letter-spacing':'2',textLength:LOGO_W,lengthAdjust:'spacing'}));
+  svgEl.appendChild(txt('Own Your Stack',0,PLAT_BOT+48,8.5,cS,{'font-weight':'400','letter-spacing':'0',textLength:LOGO_W,lengthAdjust:'spacing'}));
+  svgEl.appendChild(txt('Own Your Life',0,PLAT_BOT+62,8.5,cS,{'font-weight':'400','letter-spacing':'0',textLength:LOGO_W,lengthAdjust:'spacing'}));
+}
+
+function addHorzLogo(svgEl,theme){
+  const dk=theme!=='light';
+  const cM=dk?'#d8d8d8':'#1c1c1c';
+  const cS=dk?'#2a2a2a':'#b0adaa';
+  const sc=0.52,mg=buildMark(theme);
+  mg.setAttribute('transform',`scale(${sc})`);svgEl.appendChild(mg);
+  const tx=67.5*sc+14;
+  const wm=txt('BlockOS',tx+55,2,24,cM,{'font-weight':'700','letter-spacing':'1.5','text-anchor':'start','dominant-baseline':'middle'});
+  svgEl.appendChild(wm);
+  const sl=txt('Own Your Stack  ·  Own Your Life',tx+55,22,6.5,cS,{'font-weight':'400','letter-spacing':'1.2','text-anchor':'start','dominant-baseline':'middle'});
+  svgEl.appendChild(sl);
+}
+
+// Render all instances
+addFullLogo(document.getElementById('lv1'),'dark');
+addFullLogo(document.getElementById('lv2'),'light');
+
+const lv3=document.getElementById('lv3');
+lv3.appendChild(buildMark('dark'));
+
+addHorzLogo(document.getElementById('lv4'),'dark');
+
+// Cover background mark
+const cvMark=document.getElementById('cover-mark-bg');
+cvMark.appendChild(buildMark('dark'));
+
+// Clearzone demo
+document.getElementById('cz-mark').appendChild(buildMark('dark'));
+
+// Isometric block demo (single block)
+(function(){
+  const s=document.getElementById('iso-block-demo');
+  const x=0,y=0,bh=32,tw=54,th=27;
+  function path(d,fill,stroke,sw=1){
+    const p=document.createElementNS(NS,'path');
+    p.setAttribute('d',d);p.setAttribute('fill',fill);
+    p.setAttribute('stroke',stroke);p.setAttribute('stroke-width',sw);
+    p.setAttribute('stroke-linejoin','round');return p;
+  }
+  const by=y-bh;
+  const w=tw/2,h=th/2;
+  s.appendChild(path(`M${x},${by-h} L${x+w},${by} L${x},${by+h} L${x-w},${by} Z`,'#d4d4d4','#1e1e1e',1.5));
+  s.appendChild(path(`M${x},${by+h} L${x+w},${by} L${x+w},${by+bh} L${x},${by+h+bh} Z`,'#1a1a1a','#1e1e1e',1.5));
+  s.appendChild(path(`M${x-w},${by} L${x},${by+h} L${x},${by+h+bh} L${x-w},${by+bh} Z`,'#111','#1e1e1e',1.5));
+  // dimension lines
+  const dl=document.createElementNS(NS,'line');
+  dl.setAttribute('x1',String(x+w+4));dl.setAttribute('y1',String(by));
+  dl.setAttribute('x2',String(x+w+4));dl.setAttribute('y2',String(by+bh));
+  dl.setAttribute('stroke','#2a2a2a');dl.setAttribute('stroke-width','0.5');
+  s.appendChild(dl);
+  const dt=document.createElementNS(NS,'text');
+  dt.setAttribute('x',String(x+w+10));dt.setAttribute('y',String(by+bh/2));
+  dt.setAttribute('dominant-baseline','middle');dt.setAttribute('font-family','Space Mono,monospace');
+  dt.setAttribute('font-size','7');dt.setAttribute('fill','#2a2a2a');
+  dt.textContent='BH';s.appendChild(dt);
+})();
+</script>
+</body>
+</html>

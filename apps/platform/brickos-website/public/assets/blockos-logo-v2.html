@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BlockOS</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html, body {
+  width:100%; height:100%;
+  background:#060606;
+  display:flex; align-items:center; justify-content:center;
+  overflow:hidden;
+}
+body::before {
+  content:''; position:fixed; inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.78' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='260' height='260' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events:none; z-index:9999;
+}
+</style>
+</head>
+<body>
+
+<!--
+  ┌──────────────────────────────────────────────────────────────┐
+  │  BlockOS — Isometric Logo Animation                          │
+  │  Embed: <iframe src="blockos-logo-v2.html" ...>              │
+  │  viewBox centred at grid origin; content ±100 × (−102..64)  │
+  │  Auto-repeats: assembly → float → fade → restart (≈22s)     │
+  └──────────────────────────────────────────────────────────────┘
+-->
+<svg id="logo"
+     viewBox="-124 -124 248 208"
+     width="744" height="624"
+     xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style id="anim-style">
+      /* ── Entrance ── */
+      @keyframes platformRise {
+        0%   { opacity:0; transform:translateY(32px); }
+        100% { opacity:1; transform:translateY(0);    }
+      }
+      @keyframes blockDrop {
+        0%   { opacity:0; transform:translateY(-96px); }
+        50%  { opacity:1; transform:translateY(8px);   }
+        70%  { transform:translateY(-5px);              }
+        88%  { transform:translateY(3px);               }
+        100% { opacity:1; transform:translateY(0);      }
+      }
+      /* ── Sustain ── */
+      @keyframes floatScene {
+        0%, 100% { transform:translateY(0);   }
+        50%       { transform:translateY(-7px); }
+      }
+      /* ── Labels ── */
+      /* ── Exit ── */
+      @keyframes sceneFade {
+        0%   { opacity:1; }
+        100% { opacity:0; }
+      }
+    </style>
+  </defs>
+  <!-- Content injected by JS -->
+</svg>
+
+<script>
+(function () {
+  'use strict';
+  const NS  = 'http://www.w3.org/2000/svg';
+  const SVG = document.getElementById('logo');
+
+  /* ── Geometry ─────────────────────────────────────────────
+     3 × 2 isometric grid, centred at SVG origin.
+     Tile width TW=80, height TH=40 (isometric ratio 2:1).
+     Block height BH=52 (slightly taller than a perfect cube).
+     Platform slab height PH=14.
+     Grid centre offset: OX = −(avg col−row)·TW/2 = −20
+                         OY = −(avg col+row)·TH/2 = −30    */
+  const TW=80, TH=40, BH=52, PH=14;
+  const OX = -0.5 * TW/2;   // −20
+  const OY = -1.5 * TH/2;   // −30
+
+  /* ── Timings (all in seconds) ─────────────────────────────
+     Deliberately slow for a premium, considered feel.        */
+  const T = {
+    platDelay:  0.15,
+    platDur:    1.10,
+    dropDur:    0.95,
+    blockGap:   1.30,   // gap between successive block drops
+    blockFirst: 1.10,   // delay before first block
+    floatDelay: 1.50,   // after last block lands
+    floatDur:   7,      // gentle float period
+    floatHold:  11,     // how long to float before exit
+    fadeDur:    1.6,    // scene fade-out
+    restartGap: 0.4,    // dark pause before restart
+  };
+
+  /* ── Pillar definitions (geometry + top-face colour) ─────
+     Checkerboard: (col+row) even → filled solid block
+                   (col+row) odd  → outline ghost block      */
+  const PILLARS = [
+    {col:0,row:0, top:'#d4d4d4'},
+    {col:1,row:0, top:'#c0c0c0'},
+    {col:2,row:0, top:'#cacaca'},
+    {col:0,row:1, top:'#b8b8b8'},
+    {col:1,row:1, top:'#c0c0c0'},
+    {col:2,row:1, top:'#cccccc'},
+  ];
+
+  /* ── Utilities ──────────────────────────────────────────── */
+
+  // Isometric tile centre (centred at SVG origin)
+  function tc(col, row) {
+    return { x: (col-row)*TW/2 + OX, y: (col+row)*TH/2 + OY };
+  }
+
+  // Z-order: (col+row) asc, col desc within same sum
+  function zSort(arr) {
+    return [...arr].sort((a,b) => {
+      const d = (a.col+a.row) - (b.col+b.row);
+      return d !== 0 ? d : b.col - a.col;
+    });
+  }
+
+  // SVG element factory
+  function el(tag, attrs, cssText) {
+    const e = document.createElementNS(NS, tag);
+    for (const [k,v] of Object.entries(attrs||{})) e.setAttribute(k, String(v));
+    if (cssText) e.style.cssText = cssText;
+    return e;
+  }
+
+  // Isometric face path builders
+  function dTop(x,y)    { return `M${x},${y-TH/2} L${x+TW/2},${y} L${x},${y+TH/2} L${x-TW/2},${y} Z`; }
+  function dLeft(x,y,h) { return `M${x-TW/2},${y} L${x},${y+TH/2} L${x},${y+TH/2+h} L${x-TW/2},${y+h} Z`; }
+  function dRight(x,y,h){ return `M${x},${y+TH/2} L${x+TW/2},${y} L${x+TW/2},${y+h} L${x},${y+TH/2+h} Z`; }
+
+  function face(d, fill, stroke, sw=1.5) {
+    return el('path', {d, fill, stroke, 'stroke-width':sw, 'stroke-linejoin':'round', 'stroke-linecap':'round'});
+  }
+
+  /* ── Timers (cleared on each restart) ──────────────────── */
+  let floatTid, fadeTid, restartTid;
+  function clearTimers() {
+    [floatTid, fadeTid, restartTid].forEach(t => clearTimeout(t));
+  }
+
+  /* ════════════════════════════════════════════════════════
+     BUILD — removes old scene, constructs a fresh one.
+     All CSS animations restart automatically because the
+     elements are new DOM nodes.
+     ════════════════════════════════════════════════════════ */
+  function build() {
+    clearTimers();
+
+    const old = SVG.getElementById('scene');
+    if (old) old.remove();
+
+    const scene = el('g', {id:'scene'});
+
+    /* ── 1. Platform slab ── */
+    const platG = el('g', null,
+      `animation: platformRise ${T.platDur}s ease ${T.platDelay}s both`);
+
+    // Top faces (back → front z-order)
+    for (const {col,row} of zSort(PILLARS)) {
+      const {x,y} = tc(col,row);
+      platG.appendChild(face(dTop(x,y), '#181818', '#242424', 1));
+    }
+    // Right boundary (col 2)
+    for (const p of zSort(PILLARS.filter(p=>p.col===2))) {
+      const {x,y} = tc(p.col,p.row);
+      platG.appendChild(face(dRight(x,y,PH), '#0f0f0f', '#222', 1));
+    }
+    // Front face (row 1, col desc for correct z)
+    for (const p of zSort(PILLARS.filter(p=>p.row===1))) {
+      const {x,y} = tc(p.col,p.row);
+      platG.appendChild(face(dLeft(x,y,PH), '#0b0b0b', '#222', 1));
+    }
+
+    scene.appendChild(platG);
+
+    /* ── 3. App blocks (checkerboard: filled / outline) ── */
+    const blocksG = el('g', {id:'blocks'});
+    let landed = 0;
+
+    for (const [i, pillar] of zSort(PILLARS).entries()) {
+      const {x,y} = tc(pillar.col, pillar.row);
+      const by     = y - BH;
+      const delay  = T.blockFirst + i * T.blockGap;
+      const filled = (pillar.col + pillar.row) % 2 === 0;
+
+      const bg = el('g', {class:'blk'},
+        `animation: blockDrop ${T.dropDur}s cubic-bezier(0.34,1.38,0.64,1) ${delay}s both`);
+
+      if (filled) {
+        bg.appendChild(face(dRight(x,by,BH), '#111',    '#1e1e1e'));
+        bg.appendChild(face(dLeft(x,by,BH),  '#090909', '#1e1e1e'));
+        bg.appendChild(face(dTop(x,by),       pillar.top,'#1e1e1e'));
+      } else {
+        bg.appendChild(face(dRight(x,by,BH), 'none', '#2a2a2a', 1.2));
+        bg.appendChild(face(dLeft(x,by,BH),  'none', '#222',    1.1));
+        bg.appendChild(face(dTop(x,by),       'none', '#2a2a2a', 1.2));
+      }
+
+      // Track landings to know when all are placed
+      bg.addEventListener('animationend', () => {
+        if (++landed === PILLARS.length) onAllPlaced(scene);
+      }, {once:true});
+
+      blocksG.appendChild(bg);
+    }
+
+    scene.appendChild(blocksG);
+    SVG.appendChild(scene);
+  }
+
+  /* ── Post-assembly sequence ──────────────────────────── */
+  function onAllPlaced(scene) {
+    // Begin gentle float
+    floatTid = setTimeout(() => {
+      if (scene.parentNode)
+        scene.style.animation = `floatScene ${T.floatDur}s ease-in-out infinite`;
+    }, T.floatDelay * 1000);
+
+    // After floating hold time, fade the scene out
+    const fadeStart = (T.floatDelay + T.floatHold) * 1000;
+
+    fadeTid = setTimeout(() => {
+      if (scene.parentNode)
+        scene.style.animation =
+          `sceneFade ${T.fadeDur}s ease forwards`;
+    }, fadeStart);
+
+    // Restart after fade completes + a brief dark pause
+    restartTid = setTimeout(() => {
+      build();
+    }, fadeStart + (T.fadeDur + T.restartGap) * 1000);
+  }
+
+  /* ── Init ─────────────────────────────────────────────── */
+  build();
+
+})();
+</script>
+</body>
+</html>

@@ -7,11 +7,9 @@ body:
     label: Which product?
     options:
       - Sovereign Health Intelligence
-      - BTC Tracker
-      - Tax Exam Trainer
-      - Bitcoin Node Manager
+      - Sovereign Link
       - BrickOS Platform
-      - Shared Libraries
+      - Shared Crates (auth, billing, crypto, email)
     validations:
       required: true
   - type: textarea
