@@ -193,3 +193,75 @@ pub async fn submit(
         "error": null
     })))
 }
+
+// ---------------------------------------------------------------------------
+// Admin: list contact submissions
+// ---------------------------------------------------------------------------
+
+use crate::middleware::auth::AdminUser;
+use sqlx::PgPool;
+
+pub async fn admin_list(
+    pool: web::Data<PgPool>,
+    _admin: AdminUser,
+) -> Result<HttpResponse, AppError> {
+    use sqlx::Row;
+
+    let rows = sqlx::query(
+        r#"SELECT id, name, email, subject, message, status, created_at
+           FROM contact_submissions
+           ORDER BY created_at DESC
+           LIMIT 100"#,
+    )
+    .fetch_all(pool.get_ref())
+    .await?;
+
+    let entries: Vec<serde_json::Value> = rows
+        .iter()
+        .map(|r| {
+            json!({
+                "id": r.try_get::<uuid::Uuid, _>("id").unwrap_or_default(),
+                "name": r.try_get::<String, _>("name").unwrap_or_default(),
+                "email": r.try_get::<String, _>("email").unwrap_or_default(),
+                "subject": r.try_get::<String, _>("subject").unwrap_or_default(),
+                "message": r.try_get::<String, _>("message").unwrap_or_default(),
+                "status": r.try_get::<String, _>("status").unwrap_or_default(),
+                "created_at": r.try_get::<chrono::DateTime<chrono::Utc>, _>("created_at")
+                    .map(|d| d.to_rfc3339()).unwrap_or_default(),
+            })
+        })
+        .collect();
+
+    Ok(HttpResponse::Ok().json(json!({
+        "data": entries,
+        "error": null
+    })))
+}
+
+pub async fn admin_update_status(
+    pool: web::Data<PgPool>,
+    _admin: AdminUser,
+    path: web::Path<uuid::Uuid>,
+    body: web::Json<serde_json::Value>,
+) -> Result<HttpResponse, AppError> {
+    let id = path.into_inner();
+    let status = body
+        .get("status")
+        .and_then(|v| v.as_str())
+        .ok_or_else(|| AppError::Validation("status required".into()))?;
+
+    if !["new", "read", "replied", "archived"].contains(&status) {
+        return Err(AppError::Validation("Invalid status".into()));
+    }
+
+    sqlx::query("UPDATE contact_submissions SET status = $1, processed_at = CASE WHEN $1 != 'new' THEN NOW() ELSE processed_at END WHERE id = $2")
+        .bind(status)
+        .bind(id)
+        .execute(pool.get_ref())
+        .await?;
+
+    Ok(HttpResponse::Ok().json(json!({
+        "data": { "updated": true },
+        "error": null
+    })))
+}

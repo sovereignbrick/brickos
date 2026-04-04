@@ -778,6 +778,14 @@ pub fn configure_routes(cfg: &mut actix_web::web::ServiceConfig) {
                 actix_web::web::get().to(handlers::admin_audit::db_audit_logs),
             )
             .route(
+                "/contact-submissions",
+                actix_web::web::get().to(handlers::contact::admin_list),
+            )
+            .route(
+                "/contact-submissions/{id}/status",
+                actix_web::web::put().to(handlers::contact::admin_update_status),
+            )
+            .route(
                 "/content/web-pages",
                 actix_web::web::get().to(handlers::web_content::admin_list_web_pages),
             )

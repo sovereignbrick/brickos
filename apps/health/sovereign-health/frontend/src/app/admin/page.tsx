@@ -21,12 +21,13 @@ import { NewsletterTab } from '@/components/admin/newsletter-tab'
 import { LinksTab } from '@/components/admin/links-tab'
 import { RevenueSimulatorTab } from '@/components/admin/revenue-simulator-tab'
 import { MetricsTab } from '@/components/admin/metrics-tab'
+import { ContactTab } from '@/components/admin/contact-tab'
 import { useTranslations } from 'next-intl'
 
 const SIDEBAR_KEYS = [
   'dashboard', 'users', 'settings', 'payments', 'promotions', 'affiliates', 'links',
   'revenue', 'content-app', 'content-web', 'content-strings', 'newsletter', 'ai-usage',
-  'audit-logs', 'metrics', 'website',
+  'audit-logs', 'metrics', 'contact', 'website',
 ] as const
 
 type TabKey = (typeof SIDEBAR_KEYS)[number]
@@ -47,6 +48,7 @@ const TAB_ICONS: Record<TabKey, string> = {
   'ai-usage': '\u{1F916}',
   'audit-logs': '\u{1F50D}',
   metrics: '\u{1F4C8}',
+  contact: '\u{1F4E9}',
   website: '\u{1F30D}',
 }
 
@@ -66,6 +68,7 @@ const TAB_I18N_KEYS: Record<TabKey, string> = {
   'ai-usage': 'aiUsage',
   'audit-logs': 'auditLogs',
   metrics: 'metrics',
+  contact: 'contact',
   website: 'website',
 }
 
@@ -158,6 +161,7 @@ export default function AdminPage() {
           {tab === 'ai-usage' && <AiUsageTab />}
           {tab === 'audit-logs' && <AuditLogsTab />}
           {tab === 'metrics' && <MetricsTab />}
+          {tab === 'contact' && <ContactTab />}
           {tab === 'settings' && <SettingsTab />}
           {tab === 'website' && <WebsiteTab />}
         </main>
