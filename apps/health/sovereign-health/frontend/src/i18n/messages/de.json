@@ -1750,5 +1750,27 @@
     "results": "{count} Ergebnisse",
     "suggestTitle": "Vorschläge",
     "backToDashboard": "Zurück zum Dashboard"
+  },
+  "learn": {
+    "title": "Sovereign Health entdecken",
+    "subtitle": "Alle Funktionen der Plattform erkunden",
+    "dashboard": "Dashboard-Übersicht",
+    "dashboardDesc": "Ihre Gesundheitszonen auf einen Blick mit Statusanzeigen",
+    "markerDetail": "Marker-Detail",
+    "markerDetailDesc": "Detaillierte Ansicht jedes Biomarkers mit Trends, Lebensmitteln und Nahrungsergänzungsmitteln",
+    "zones": "Gesundheitszonen",
+    "zonesDesc": "8 funktionale Gesundheitskategorien für Ihre Marker",
+    "search": "Globale Suche",
+    "searchDesc": "Finden Sie sofort jeden Marker, jedes Lebensmittel oder jede Gesundheitsinformation",
+    "trends": "Trends & Analyse",
+    "trendsDesc": "Verfolgen Sie Ihre Biomarker-Trends über die Zeit",
+    "measurements": "Messungshistorie",
+    "measurementsDesc": "Vollständiges Protokoll aller Ihrer Gesundheitsmessungen",
+    "videosTitle": "Video-Anleitungen",
+    "videosComingSoon": "Video-Tutorials folgen in Kürze",
+    "categoryDashboard": "Dashboard & Übersicht",
+    "categoryMarkers": "Marker & Gesundheitszonen",
+    "categorySearch": "Suche & Entdeckung",
+    "categoryMeasurements": "Messungen & Trends"
   }
 }

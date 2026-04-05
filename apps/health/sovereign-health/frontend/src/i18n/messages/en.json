@@ -1750,5 +1750,27 @@
     "results": "{count} results",
     "suggestTitle": "Suggestions",
     "backToDashboard": "Back to Dashboard"
+  },
+  "learn": {
+    "title": "Learn Sovereign Health",
+    "subtitle": "Explore all features of the platform",
+    "dashboard": "Dashboard Overview",
+    "dashboardDesc": "Your health zones at a glance with status indicators",
+    "markerDetail": "Marker Detail",
+    "markerDetailDesc": "Deep dive into any biomarker with trends, foods, and supplements",
+    "zones": "Health Zones",
+    "zonesDesc": "8 functional health categories organizing your markers",
+    "search": "Global Search",
+    "searchDesc": "Find any marker, food, supplement, or health information instantly",
+    "trends": "Trends & Analysis",
+    "trendsDesc": "Track your biomarker trends over time",
+    "measurements": "Measurement History",
+    "measurementsDesc": "Complete log of all your health measurements",
+    "videosTitle": "Video Walkthroughs",
+    "videosComingSoon": "Video tutorials coming soon",
+    "categoryDashboard": "Dashboard & Overview",
+    "categoryMarkers": "Markers & Health Zones",
+    "categorySearch": "Search & Discovery",
+    "categoryMeasurements": "Measurements & Trends"
   }
 }
