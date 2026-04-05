@@ -14,7 +14,12 @@ import { useContent } from '@/lib/content-context'
 import { useTheme } from '@/lib/theme-context'
 import { locales, localeNames, type Locale } from '@/i18n/config'
 import { Search } from 'lucide-react'
-import { SearchOverlay } from '@/components/search/search-overlay'
+import dynamic from 'next/dynamic'
+
+const SearchOverlay = dynamic(
+  () => import('@/components/search/search-overlay').then(m => ({ default: m.SearchOverlay })),
+  { ssr: false }
+)
 
 type NavItem = { href: string; labelKey: string }
 
@@ -475,7 +480,7 @@ export function Navbar() {
       <nav className="border-b bg-background/80 backdrop-blur">
         <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 font-bold tracking-tight">
-            <Image src="/logo.png" alt="SHI" width={28} height={28} className="rounded-sm" />
+            <Image src="/logo.png" alt="SHI" width={28} height={28} className="rounded-sm" priority />
             <span className="text-xs sm:text-sm whitespace-nowrap">{APP_NAME}</span>
           </Link>
           <div className="flex items-center gap-2">
@@ -492,7 +497,7 @@ export function Navbar() {
       <nav className="border-b bg-background/80 backdrop-blur">
         <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 font-bold tracking-tight">
-            <Image src="/logo.png" alt="SHI" width={28} height={28} className="rounded-sm" />
+            <Image src="/logo.png" alt="SHI" width={28} height={28} className="rounded-sm" priority />
             <span className="text-xs sm:text-sm whitespace-nowrap">{APP_NAME}</span>
           </Link>
           <div className="flex items-center gap-2">
@@ -525,7 +530,7 @@ export function Navbar() {
       <nav className="border-b bg-background/80 backdrop-blur">
         <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
         <Link href={isDemo ? demoHref('/dashboard') : '/dashboard'} className="flex items-center gap-2 font-bold text-sm tracking-tight">
-          <Image src="/logo.png" alt="SHI" width={28} height={28} className="rounded-sm" />
+          <Image src="/logo.png" alt="SHI" width={28} height={28} className="rounded-sm" priority />
           <span className="text-xs sm:text-sm whitespace-nowrap">{APP_NAME}</span>
         </Link>
         <div className="hidden sm:flex items-center gap-1">
