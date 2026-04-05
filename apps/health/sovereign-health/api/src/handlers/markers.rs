@@ -324,54 +324,108 @@ pub async fn marker_measurements(
         return Err(AppError::NotFound);
     }
 
-    let rows = sqlx::query(
-        r#"SELECT
-               m.id, m.value_canonical as value, m.unit_canonical,
-               m.timestamp, m.status, m.protocol_tag,
-               m.fasting_protocol, m.fasting_hours, m.diet_protocol,
-               m.meal_timing_tag,
-               m.exercise_activity, m.sleep_hours, m.sleep_quality,
-               m.stress_level, m.lifestyle_note,
-               d.device_name, l.name as lab_name
-           FROM measurements m
-           JOIN markers mk ON mk.id = m.marker_id
-           LEFT JOIN devices d ON d.id = m.device_id
-           LEFT JOIN labs l ON l.id = m.lab_id
-           WHERE m.user_id = $1 AND mk.marker_slug = $2 AND m.is_deleted = false
-           ORDER BY m.timestamp DESC
-           LIMIT $3"#,
-    )
-    .bind(auth.user_id)
-    .bind(&marker_slug)
-    .bind(limit)
-    .fetch_all(pool.get_ref())
-    .await?;
+    // Check if this is a calculated marker
+    let is_calculated = sqlx::query("SELECT 1 FROM calculated_markers WHERE marker_slug = $1")
+        .bind(&marker_slug)
+        .fetch_optional(pool.get_ref())
+        .await?
+        .is_some();
 
-    let items: Vec<serde_json::Value> = rows
-        .iter()
-        .map(|r| {
-            json!({
-                "id":                r.try_get::<uuid::Uuid, _>("id").map(|u| u.to_string()).unwrap_or_default(),
-                "value":             enc.decrypt_f64(&r.try_get::<String, _>("value").unwrap_or_default()),
-                "unit":              r.try_get::<String, _>("unit_canonical").unwrap_or_default(),
-                "timestamp":         r.try_get::<chrono::DateTime<chrono::Utc>, _>("timestamp")
-                                      .map(|t| t.to_rfc3339()).unwrap_or_default(),
-                "status":            r.try_get::<Option<String>, _>("status").unwrap_or(None),
-                "protocol_tag":      r.try_get::<String, _>("protocol_tag").unwrap_or_default(),
-                "fasting_protocol":  r.try_get::<Option<String>, _>("fasting_protocol").unwrap_or(None),
-                "fasting_hours":     r.try_get::<Option<i32>, _>("fasting_hours").unwrap_or(None),
-                "diet_protocol":     r.try_get::<Option<String>, _>("diet_protocol").unwrap_or(None),
-                "meal_timing_tag":   r.try_get::<String, _>("meal_timing_tag").unwrap_or_else(|_| "unspecified".to_string()),
-                "exercise_activity": r.try_get::<Option<String>, _>("exercise_activity").unwrap_or(None),
-                "sleep_hours":       r.try_get::<Option<f64>, _>("sleep_hours").unwrap_or(None),
-                "sleep_quality":     r.try_get::<Option<String>, _>("sleep_quality").unwrap_or(None),
-                "stress_level":      r.try_get::<Option<i32>, _>("stress_level").unwrap_or(None),
-                "lifestyle_note":    enc.decrypt_opt(r.try_get::<Option<String>, _>("lifestyle_note").unwrap_or(None)),
-                "device_name":       r.try_get::<Option<String>, _>("device_name").unwrap_or(None),
-                "lab_name":          r.try_get::<Option<String>, _>("lab_name").unwrap_or(None),
+    let items: Vec<serde_json::Value> = if is_calculated {
+        // Calculated markers: query calculated_marker_values
+        let rows = sqlx::query(
+            r#"SELECT cmv.id, cmv.value::text as value, cmv.status,
+                      cmv.measured_at as timestamp,
+                      COALESCE(cmv.protocol_tag, 'standard') as protocol_tag,
+                      cmv.fasting_protocol
+               FROM calculated_marker_values cmv
+               JOIN calculated_markers cm ON cm.id = cmv.calculated_marker_id
+               WHERE cmv.user_id = $1 AND cm.marker_slug = $2
+                 AND (cmv.is_deleted = false OR cmv.is_deleted IS NULL)
+               ORDER BY cmv.measured_at DESC
+               LIMIT $3"#,
+        )
+        .bind(auth.user_id)
+        .bind(&marker_slug)
+        .bind(limit)
+        .fetch_all(pool.get_ref())
+        .await?;
+
+        let unit = calc_unit(&marker_slug).to_string();
+        rows.iter()
+            .map(|r| {
+                json!({
+                    "id":                r.try_get::<uuid::Uuid, _>("id").map(|u| u.to_string()).unwrap_or_default(),
+                    "value":             r.try_get::<String, _>("value").ok().and_then(|s| s.parse::<f64>().ok()),
+                    "unit":              unit,
+                    "timestamp":         r.try_get::<chrono::DateTime<chrono::Utc>, _>("timestamp")
+                                          .map(|t| t.to_rfc3339()).unwrap_or_default(),
+                    "status":            r.try_get::<Option<String>, _>("status").unwrap_or(None),
+                    "protocol_tag":      r.try_get::<String, _>("protocol_tag").unwrap_or_default(),
+                    "fasting_protocol":  r.try_get::<Option<String>, _>("fasting_protocol").unwrap_or(None),
+                    "fasting_hours":     null,
+                    "diet_protocol":     null,
+                    "meal_timing_tag":   "unspecified",
+                    "exercise_activity": null,
+                    "sleep_hours":       null,
+                    "sleep_quality":     null,
+                    "stress_level":      null,
+                    "lifestyle_note":    null,
+                    "device_name":       null,
+                    "lab_name":          null,
+                })
             })
-        })
-        .collect();
+            .collect()
+    } else {
+        // Standard markers: query measurements table
+        let rows = sqlx::query(
+            r#"SELECT
+                   m.id, m.value_canonical as value, m.unit_canonical,
+                   m.timestamp, m.status, m.protocol_tag,
+                   m.fasting_protocol, m.fasting_hours, m.diet_protocol,
+                   m.meal_timing_tag,
+                   m.exercise_activity, m.sleep_hours, m.sleep_quality,
+                   m.stress_level, m.lifestyle_note,
+                   d.device_name, l.name as lab_name
+               FROM measurements m
+               JOIN markers mk ON mk.id = m.marker_id
+               LEFT JOIN devices d ON d.id = m.device_id
+               LEFT JOIN labs l ON l.id = m.lab_id
+               WHERE m.user_id = $1 AND mk.marker_slug = $2 AND m.is_deleted = false
+               ORDER BY m.timestamp DESC
+               LIMIT $3"#,
+        )
+        .bind(auth.user_id)
+        .bind(&marker_slug)
+        .bind(limit)
+        .fetch_all(pool.get_ref())
+        .await?;
+
+        rows.iter()
+            .map(|r| {
+                json!({
+                    "id":                r.try_get::<uuid::Uuid, _>("id").map(|u| u.to_string()).unwrap_or_default(),
+                    "value":             enc.decrypt_f64(&r.try_get::<String, _>("value").unwrap_or_default()),
+                    "unit":              r.try_get::<String, _>("unit_canonical").unwrap_or_default(),
+                    "timestamp":         r.try_get::<chrono::DateTime<chrono::Utc>, _>("timestamp")
+                                          .map(|t| t.to_rfc3339()).unwrap_or_default(),
+                    "status":            r.try_get::<Option<String>, _>("status").unwrap_or(None),
+                    "protocol_tag":      r.try_get::<String, _>("protocol_tag").unwrap_or_default(),
+                    "fasting_protocol":  r.try_get::<Option<String>, _>("fasting_protocol").unwrap_or(None),
+                    "fasting_hours":     r.try_get::<Option<i32>, _>("fasting_hours").unwrap_or(None),
+                    "diet_protocol":     r.try_get::<Option<String>, _>("diet_protocol").unwrap_or(None),
+                    "meal_timing_tag":   r.try_get::<String, _>("meal_timing_tag").unwrap_or_else(|_| "unspecified".to_string()),
+                    "exercise_activity": r.try_get::<Option<String>, _>("exercise_activity").unwrap_or(None),
+                    "sleep_hours":       r.try_get::<Option<f64>, _>("sleep_hours").unwrap_or(None),
+                    "sleep_quality":     r.try_get::<Option<String>, _>("sleep_quality").unwrap_or(None),
+                    "stress_level":      r.try_get::<Option<i32>, _>("stress_level").unwrap_or(None),
+                    "lifestyle_note":    enc.decrypt_opt(r.try_get::<Option<String>, _>("lifestyle_note").unwrap_or(None)),
+                    "device_name":       r.try_get::<Option<String>, _>("device_name").unwrap_or(None),
+                    "lab_name":          r.try_get::<Option<String>, _>("lab_name").unwrap_or(None),
+                })
+            })
+            .collect()
+    };
 
     Ok(HttpResponse::Ok().json(json!({ "data": items, "error": null })))
 }
