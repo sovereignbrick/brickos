@@ -132,6 +132,7 @@ pub async fn list_users(
         let sort_col = match query.sort.as_deref() {
             Some("email") => "u.email",
             Some("tier") => "tier",
+            Some("referred_by") => "u.referred_by",
             Some("created_at") | None => "u.created_at",
             _ => "u.created_at",
         };
@@ -160,7 +161,10 @@ pub async fn list_users(
                       COALESCE(ul.admin_override, false) as admin_override,
                       ul.admin_override_note, ul.admin_override_by, ul.admin_override_at,
                       COALESCE(ul.payment_method, 'stripe') as payment_method,
-                      (SELECT COUNT(*) FROM measurements m WHERE m.user_id = u.id AND m.is_deleted = false) as measurement_count
+                      (SELECT COUNT(*) FROM measurements m WHERE m.user_id = u.id AND m.is_deleted = false) as measurement_count,
+                      u.affiliate_code,
+                      u.referred_by,
+                      (SELECT u2.email FROM users u2 WHERE u2.affiliate_code = u.referred_by LIMIT 1) as referrer_email
                FROM users u
                LEFT JOIN user_licenses ul ON ul.user_id = u.id
                LEFT JOIN license_tiers lt ON lt.id = ul.tier_id
@@ -191,7 +195,10 @@ pub async fn list_users(
                       COALESCE(ul.admin_override, false) as admin_override,
                       ul.admin_override_note, ul.admin_override_by, ul.admin_override_at,
                       COALESCE(ul.payment_method, 'stripe') as payment_method,
-                      (SELECT COUNT(*) FROM measurements m WHERE m.user_id = u.id AND m.is_deleted = false) as measurement_count
+                      (SELECT COUNT(*) FROM measurements m WHERE m.user_id = u.id AND m.is_deleted = false) as measurement_count,
+                      u.affiliate_code,
+                      u.referred_by,
+                      (SELECT u2.email FROM users u2 WHERE u2.affiliate_code = u.referred_by LIMIT 1) as referrer_email
                FROM users u
                LEFT JOIN user_licenses ul ON ul.user_id = u.id
                LEFT JOIN license_tiers lt ON lt.id = ul.tier_id
@@ -233,6 +240,10 @@ pub async fn list_users(
                     .ok().flatten().map(|d| d.to_rfc3339()),
                 "last_active_at": r.try_get::<Option<chrono::DateTime<chrono::Utc>>, _>("last_active_at")
                     .ok().flatten().map(|d| d.to_rfc3339()),
+                "affiliate_code": r.try_get::<Option<String>, _>("affiliate_code").ok().flatten(),
+                "referred_by": r.try_get::<Option<String>, _>("referred_by").ok().flatten(),
+                "referrer_email": r.try_get::<Option<String>, _>("referrer_email").ok().flatten(),
+                "acquisition_channel": if r.try_get::<Option<String>, _>("referred_by").ok().flatten().is_some() { "affiliate" } else { "direct" },
             })
         })
         .collect();
@@ -640,6 +651,81 @@ pub async fn backfill_calculated_markers(
         "data": {
             "users_processed": users_processed,
             "calculated_values_upserted": total_computed,
+        },
+        "error": null
+    })))
+}
+
+// ---------------------------------------------------------------------------
+// GET /admin/affiliate-summary
+// ---------------------------------------------------------------------------
+
+pub async fn affiliate_summary(
+    pool: web::Data<PgPool>,
+    _admin: AdminUser,
+) -> Result<HttpResponse, AppError> {
+    use sqlx::Row;
+
+    let stats = sqlx::query(
+        r#"SELECT
+             (SELECT COUNT(*) FROM users WHERE is_deleted = false AND referred_by IS NOT NULL) as affiliate_users,
+             (SELECT COUNT(*) FROM users WHERE is_deleted = false AND referred_by IS NULL) as direct_users,
+             (SELECT COUNT(DISTINCT affiliate_code) FROM users WHERE is_deleted = false AND affiliate_code IS NOT NULL) as total_affiliates,
+             (SELECT COUNT(*) FROM affiliate_conversions WHERE status = 'approved') as total_conversions"#,
+    )
+    .fetch_one(pool.get_ref())
+    .await?;
+
+    let affiliate_users = stats.try_get::<i64, _>("affiliate_users").unwrap_or(0);
+    let direct_users = stats.try_get::<i64, _>("direct_users").unwrap_or(0);
+    let total_affiliates = stats.try_get::<i64, _>("total_affiliates").unwrap_or(0);
+    let total_conversions = stats.try_get::<i64, _>("total_conversions").unwrap_or(0);
+    let total_users = affiliate_users + direct_users;
+    let conversion_rate = if total_users > 0 {
+        affiliate_users as f64 / total_users as f64
+    } else {
+        0.0
+    };
+
+    let top_rows = sqlx::query(
+        r#"SELECT u.affiliate_code, u.email, u.display_name,
+             COUNT(u2.id) as referral_count,
+             o.name as org_name, o.org_type
+           FROM users u
+           JOIN users u2 ON u2.referred_by = u.affiliate_code AND u2.is_deleted = false
+           LEFT JOIN org_members om ON om.user_id = u.id AND om.role = 'org_owner'
+           LEFT JOIN organizations o ON o.id = om.org_id AND o.org_type != 'personal'
+           WHERE u.is_deleted = false
+           GROUP BY u.affiliate_code, u.email, u.display_name, o.name, o.org_type
+           ORDER BY referral_count DESC
+           LIMIT 5"#,
+    )
+    .fetch_all(pool.get_ref())
+    .await?;
+
+    let top_affiliates: Vec<serde_json::Value> = top_rows
+        .iter()
+        .map(|r| {
+            json!({
+                "affiliate_code": r.try_get::<Option<String>, _>("affiliate_code").ok().flatten(),
+                "email": r.try_get::<String, _>("email").unwrap_or_default(),
+                "display_name": r.try_get::<Option<String>, _>("display_name").ok().flatten(),
+                "referral_count": r.try_get::<i64, _>("referral_count").unwrap_or(0),
+                "org_name": r.try_get::<Option<String>, _>("org_name").ok().flatten(),
+                "org_type": r.try_get::<Option<String>, _>("org_type").ok().flatten(),
+            })
+        })
+        .collect();
+
+    Ok(HttpResponse::Ok().json(json!({
+        "data": {
+            "total_users": total_users,
+            "affiliate_users": affiliate_users,
+            "direct_users": direct_users,
+            "total_affiliates": total_affiliates,
+            "total_conversions": total_conversions,
+            "conversion_rate": conversion_rate,
+            "top_affiliates": top_affiliates,
         },
         "error": null
     })))

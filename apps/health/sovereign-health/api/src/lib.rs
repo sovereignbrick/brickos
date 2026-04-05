@@ -977,6 +977,10 @@ pub fn configure_routes(cfg: &mut actix_web::web::ServiceConfig) {
             .route(
                 "/backfill-calculated-markers",
                 actix_web::web::post().to(handlers::admin::backfill_calculated_markers),
+            )
+            .route(
+                "/affiliate-summary",
+                actix_web::web::get().to(handlers::admin::affiliate_summary),
             ),
     )
     .service(actix_web::web::scope("/v1/payments").route(

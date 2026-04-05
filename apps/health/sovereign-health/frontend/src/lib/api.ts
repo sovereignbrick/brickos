@@ -1133,6 +1133,8 @@ export const api = {
       request<{ data: { id: string; short_link: string; code: string; target_url: string; created_at: string } }>('/admin/links/campaign', {
         method: 'POST', body: JSON.stringify(body),
       }),
+    affiliateSummary: () =>
+      request<{ data: { total_users: number; affiliate_users: number; direct_users: number; total_affiliates: number; total_conversions: number; conversion_rate: number; top_affiliates: Array<{ affiliate_code: string; email: string; display_name: string | null; referral_count: number; org_name: string | null }> } }>('/admin/affiliate-summary'),
   },
   affiliate: {
     me: () =>

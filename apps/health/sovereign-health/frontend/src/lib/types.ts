@@ -628,6 +628,10 @@ export interface AdminUser {
   admin_override_note: string | null
   admin_override_by: string | null
   admin_override_at: string | null
+  affiliate_code: string | null
+  referred_by: string | null
+  referrer_email: string | null
+  acquisition_channel: string
   created_at: string
   last_login_at: string | null
   last_active_at: string | null

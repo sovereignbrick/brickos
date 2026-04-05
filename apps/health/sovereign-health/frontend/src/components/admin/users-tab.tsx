@@ -24,6 +24,11 @@ export function UsersTab() {
   const [search, setSearch] = useState('')
   const [loading, setLoading] = useState(true)
   const [expandedUserId, setExpandedUserId] = useState<string | null>(null)
+  const [summary, setSummary] = useState<{
+    total_users: number; affiliate_users: number; direct_users: number;
+    total_affiliates: number; conversion_rate: number;
+    top_affiliates: Array<{ affiliate_code: string; email: string; referral_count: number; org_name: string | null }>
+  } | null>(null)
 
   const fetchUsers = useCallback(async () => {
     setLoading(true)
@@ -40,8 +45,34 @@ export function UsersTab() {
 
   useEffect(() => { fetchUsers() }, [fetchUsers])
 
+  useEffect(() => {
+    api.admin.affiliateSummary().then(res => setSummary(res.data)).catch(() => {})
+  }, [])
+
   return (
     <div className="space-y-4">
+      {/* Acquisition summary */}
+      {summary && (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
+          <div className="bg-card border border-border rounded-lg p-3">
+            <div className="text-muted-foreground text-xs">Direct</div>
+            <div className="font-medium">{summary.direct_users}</div>
+          </div>
+          <div className="bg-card border border-border rounded-lg p-3">
+            <div className="text-muted-foreground text-xs">Affiliate</div>
+            <div className="font-medium text-emerald-400">{summary.affiliate_users}</div>
+          </div>
+          <div className="bg-card border border-border rounded-lg p-3">
+            <div className="text-muted-foreground text-xs">Affiliates</div>
+            <div className="font-medium">{summary.total_affiliates}</div>
+          </div>
+          <div className="bg-card border border-border rounded-lg p-3">
+            <div className="text-muted-foreground text-xs">Conv. Rate</div>
+            <div className="font-medium">{(summary.conversion_rate * 100).toFixed(1)}%</div>
+          </div>
+        </div>
+      )}
+
       {/* Search bar */}
       <div className="flex items-center gap-3">
         <input
@@ -63,6 +94,7 @@ export function UsersTab() {
               <th className="text-left px-4 py-2 text-muted-foreground font-medium">Tier</th>
               <th className="text-left px-4 py-2 text-muted-foreground font-medium">Pay</th>
               <th className="text-left px-4 py-2 text-muted-foreground font-medium">Override</th>
+              <th className="text-left px-4 py-2 text-muted-foreground font-medium">Source</th>
               <th className="text-left px-4 py-2 text-muted-foreground font-medium">Joined</th>
               <th className="text-left px-4 py-2 text-muted-foreground font-medium">Last Active</th>
               <th className="text-right px-4 py-2 text-muted-foreground font-medium">Actions</th>
@@ -97,6 +129,18 @@ export function UsersTab() {
                       <span className="text-muted-foreground/40 text-xs">&mdash;</span>
                     )}
                   </td>
+                  <td className="px-4 py-2.5">
+                    {user.referred_by ? (
+                      <div>
+                        <span className="text-emerald-400 text-xs font-medium">Affiliate</span>
+                        <div className="text-muted-foreground text-[10px] truncate max-w-[100px]" title={user.referrer_email || user.referred_by}>
+                          {user.referrer_email ? user.referrer_email.split('@')[0] : user.referred_by}
+                        </div>
+                      </div>
+                    ) : (
+                      <span className="text-muted-foreground/50 text-xs italic">Direct</span>
+                    )}
+                  </td>
                   <td className="px-4 py-2.5 text-muted-foreground text-xs">
                     {new Date(user.created_at).toLocaleDateString()}
                   </td>
@@ -118,7 +162,7 @@ export function UsersTab() {
                 </tr>
                 {expandedUserId === user.id && (
                   <tr>
-                    <td colSpan={7} className="px-4 py-4 bg-accent">
+                    <td colSpan={8} className="px-4 py-4 bg-accent">
                       <LicenseManager
                         user={user}
                         onUpdate={() => fetchUsers()}
