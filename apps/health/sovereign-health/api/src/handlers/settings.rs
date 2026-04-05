@@ -1221,6 +1221,17 @@ pub async fn delete_account(
     auth: AuthenticatedUser,
     notifier: web::Data<crate::services::notify::Notifier>,
 ) -> Result<HttpResponse, AppError> {
+    // Guard: protect demo/system accounts from accidental deletion
+    let email: String = sqlx::query_scalar("SELECT email FROM users WHERE id = $1")
+        .bind(auth.user_id)
+        .fetch_one(pool.get_ref())
+        .await?;
+    if email.ends_with("@sovereignhealth.io") {
+        return Err(AppError::Validation(
+            "Cannot delete system accounts. Use a personal account for testing.".to_string(),
+        ));
+    }
+
     // Soft delete: set is_deleted = true, deleted_at = now()
     sqlx::query(
         "UPDATE users SET is_deleted = true, deleted_at = now(), updated_at = now() WHERE id = $1",
@@ -1509,6 +1520,17 @@ pub async fn reset_data(
     notifier: web::Data<crate::services::notify::Notifier>,
 ) -> Result<HttpResponse, AppError> {
     use sqlx::Row;
+
+    // Guard: protect demo/system accounts from accidental reset
+    let email: String = sqlx::query_scalar("SELECT email FROM users WHERE id = $1")
+        .bind(auth.user_id)
+        .fetch_one(pool.get_ref())
+        .await?;
+    if email.ends_with("@sovereignhealth.io") {
+        return Err(AppError::Validation(
+            "Cannot reset data for system accounts. Use a personal account for testing.".to_string(),
+        ));
+    }
 
     // 1. Count records that will be deleted
     let counts_row = sqlx::query(

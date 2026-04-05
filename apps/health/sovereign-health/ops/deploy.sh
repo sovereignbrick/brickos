@@ -1219,6 +1219,13 @@ case "$ENV" in
         reset_staging_db
         ;;
 
+    # ── Refresh staging demo data ────────────────────────────────────────
+    # Re-seeds demo profiles from CSV fixtures via the API.
+    staging-refresh-demo)
+        log "Refreshing staging demo data from CSV fixtures..."
+        bash "$APP_ROOT/ops/seed-demo-profiles.sh" staging
+        ;;
+
     # ── Help ──────────────────────────────────────────────────────────────
     *)
         echo "Usage: bash ops/deploy.sh <environment> [component] [--confirm]"
@@ -1239,6 +1246,7 @@ case "$ENV" in
         echo "  promote              Merge develop -> main (does not deploy)"
         echo "  status               Show VPS container status"
         echo "  staging-reset-db     Reset staging database"
+        echo "  staging-refresh-demo Re-seed demo profiles from CSV fixtures"
         echo ""
         echo "Examples:"
         echo "  bash ops/deploy.sh staging                     # Full staging deploy"
