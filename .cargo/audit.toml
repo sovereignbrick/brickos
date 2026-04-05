@@ -9,4 +9,16 @@ ignore = [
     "RUSTSEC-2023-0071",
 
     # RUSTSEC-2024-0363 (sqlx binary protocol) -- RESOLVED by upgrade to sqlx 0.8
+
+    # genpdf 0.2.0 transitive dependency chain -- all "unmaintained" warnings, no
+    # actual vulnerabilities. genpdf has no newer release (last: 0.2.0, 2021).
+    # Used only for server-side PDF report generation; no user input reaches these
+    # crates directly. Accepted risk -- revisit if genpdf 0.3+ ships or we switch
+    # to a maintained PDF library. (#280, 2026-04-05)
+    "RUSTSEC-2025-0056",  # adler -> use adler2
+    "RUSTSEC-2021-0153",  # encoding -> unmaintained
+    "RUSTSEC-2020-0144",  # lzw -> unmaintained
+    "RUSTSEC-2021-0140",  # rusttype -> unmaintained
+    "RUSTSEC-2020-0020",  # stb_truetype -> use ttf-parser
+    "RUSTSEC-2020-0056",  # stdweb -> unmaintained
 ]
