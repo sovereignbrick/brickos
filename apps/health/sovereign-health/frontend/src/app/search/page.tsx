@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { Navbar } from '@/components/layout/navbar'
+import { useContent } from '@/lib/content-context'
 import { api } from '@/lib/api'
 import type { SearchResult } from '@/lib/api'
 
@@ -125,6 +126,8 @@ export default function SearchPage() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const t = useTranslations('search')
+  const tCommon = useTranslations('common')
+  const { locale } = useContent()
   const initialQuery = searchParams.get('q') || ''
 
   const [query, setQuery] = useState(initialQuery)
@@ -146,6 +149,7 @@ export default function SearchPage() {
       const res = await api.search.query({
         q: q.trim(),
         type_filter: typeFilter || undefined,
+        locale,
       })
       setData(res)
     } catch {
@@ -153,15 +157,15 @@ export default function SearchPage() {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [locale])
 
-  // Initial search from URL params
+  // Initial search from URL params + re-fetch on locale change
   useEffect(() => {
-    if (initialQuery) {
-      doSearch(initialQuery, activeTab)
+    if (initialQuery || query.trim()) {
+      doSearch(query || initialQuery, activeTab)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [locale])
 
   const handleInputChange = (value: string) => {
     setQuery(value)
@@ -330,11 +334,17 @@ export default function SearchPage() {
           </div>
         )}
 
-        {/* No query yet */}
-        {!loading && !error && !data && !query.trim() && (
+        {/* No query yet / cleared query */}
+        {!loading && !error && !query.trim() && (
           <div className="text-center py-12">
             <Search className="w-8 h-8 text-muted-foreground mx-auto mb-3" />
-            <p className="text-sm text-muted-foreground">{t('placeholder')}</p>
+            <p className="text-sm text-muted-foreground mb-4">{t('placeholder')}</p>
+            <a
+              href="/dashboard"
+              className="inline-flex text-sm text-blue-400 hover:text-blue-300 transition-colors"
+            >
+              &larr; {t('backToDashboard')}
+            </a>
           </div>
         )}
       </main>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from '@/lib/toast'
 import { api } from '@/lib/api'
@@ -17,9 +17,10 @@ import { useTranslations } from 'next-intl'
 
 interface ChatLayoutProps {
   conversationId?: string
+  initialPrompt?: string
 }
 
-export function ChatLayout({ conversationId }: ChatLayoutProps) {
+export function ChatLayout({ conversationId, initialPrompt }: ChatLayoutProps) {
   const tChat = useTranslations('doctorChat')
   const tMed = useTranslations('medications')
   const router = useRouter()
@@ -61,6 +62,17 @@ export function ChatLayout({ conversationId }: ChatLayoutProps) {
     fetchQuota()
     fetchConversations()
   }, [fetchQuota, fetchConversations])
+
+  // Auto-send initial prompt from search (?q= parameter)
+  const initialPromptSent = useRef(false)
+  useEffect(() => {
+    if (!initialPrompt || initialPromptSent.current || conversationId) return
+    initialPromptSent.current = true
+    // Small delay to ensure component is ready
+    const timer = setTimeout(() => handleSend(initialPrompt), 500)
+    return () => clearTimeout(timer)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialPrompt])
 
   // Load conversation from URL param
   useEffect(() => {

@@ -1748,6 +1748,7 @@
     "staleData": "Veraltet",
     "blindSpotMissing": "Sie haben diesen Marker noch nicht gemessen",
     "results": "{count} Ergebnisse",
-    "suggestTitle": "Vorschläge"
+    "suggestTitle": "Vorschläge",
+    "backToDashboard": "Zurück zum Dashboard"
   }
 }

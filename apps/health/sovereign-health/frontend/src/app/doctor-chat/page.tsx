@@ -1,5 +1,6 @@
 'use client'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { useAuth } from '@/lib/auth-context'
 import { ChatLayout } from '@/components/doctor-chat/chat-layout'
@@ -9,6 +10,8 @@ import { Breadcrumb } from '@/components/breadcrumb'
 
 export default function DoctorChatPage() {
   const { loading, isDemo } = useAuth()
+  const searchParams = useSearchParams()
+  const initialPrompt = searchParams.get('q') || undefined
   const t = useTranslations('doctorChat')
   const tNav = useTranslations('nav')
   const tCommon = useTranslations('common')
@@ -58,7 +61,7 @@ export default function DoctorChatPage() {
     <div className="h-screen flex flex-col overflow-hidden">
       <Navbar />
       <div className="flex-1 min-h-0 max-w-5xl mx-auto w-full flex flex-col overflow-hidden">
-        <ChatLayout />
+        <ChatLayout initialPrompt={initialPrompt} />
       </div>
     </div>
   )

@@ -1748,6 +1748,7 @@
     "staleData": "Stale",
     "blindSpotMissing": "You haven't measured this marker yet",
     "results": "{count} results",
-    "suggestTitle": "Suggestions"
+    "suggestTitle": "Suggestions",
+    "backToDashboard": "Back to Dashboard"
   }
 }
