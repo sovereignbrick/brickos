@@ -621,7 +621,11 @@ deploy_backend() {
 
     log "Building backend ($env)..."
     cd "$PROJECT_ROOT"
-    docker build --no-cache -f apps/health/sovereign-health/api/Dockerfile -t "${BACKEND_IMAGE}:${image_tag}" .
+    local cache_flag=""
+    if [ "$env" = "production" ]; then
+        cache_flag="--no-cache"
+    fi
+    docker build $cache_flag -f apps/health/sovereign-health/api/Dockerfile -t "${BACKEND_IMAGE}:${image_tag}" .
 
     log "Transferring backend to VPS..."
     docker save "${BACKEND_IMAGE}:${image_tag}" | ssh $VPS "docker load"
