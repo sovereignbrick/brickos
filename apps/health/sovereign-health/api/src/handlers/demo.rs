@@ -43,6 +43,28 @@ fn profile_or_default(p: &Option<String>) -> &str {
     p.as_deref().unwrap_or("optimized")
 }
 
+/// Map demo profile name to the corresponding real user account email.
+fn demo_profile_email(profile: &str) -> &'static str {
+    match profile {
+        "optimized" => "optimized@sovereignhealth.io",
+        "average" => "average@sovereignhealth.io",
+        "at_risk" => "atrisk@sovereignhealth.io",
+        _ => "optimized@sovereignhealth.io",
+    }
+}
+
+/// Resolve demo profile name to user UUID.
+pub async fn resolve_demo_user_id(pool: &PgPool, profile: &str) -> Result<uuid::Uuid, AppError> {
+    let email = demo_profile_email(profile);
+    sqlx::query_scalar::<_, uuid::Uuid>(
+        "SELECT id FROM users WHERE email = $1 AND is_deleted = false",
+    )
+    .bind(email)
+    .fetch_optional(pool)
+    .await?
+    .ok_or(AppError::NotFound)
+}
+
 fn extract_locale(req: &HttpRequest, query_locale: Option<&str>) -> String {
     let accept_lang = req
         .headers()
@@ -59,6 +81,7 @@ pub async fn demo_zones(
 ) -> Result<HttpResponse, AppError> {
     let locale = extract_locale(&req, None);
     let profile = profile_or_default(&query.profile);
+    let user_id = resolve_demo_user_id(pool.get_ref(), profile).await?;
     let rows = sqlx::query(
         r#"SELECT
             z.zone_slug,
@@ -76,14 +99,14 @@ pub async fn demo_zones(
         LEFT JOIN markers mk ON mk.marker_slug = zm.marker_slug
         LEFT JOIN LATERAL (
             SELECT value_canonical as value, status FROM measurements
-            WHERE is_demo = true AND demo_profile = $1 AND marker_id = mk.id AND is_deleted = false
+            WHERE user_id = $1 AND marker_id = mk.id AND is_deleted = false
             ORDER BY timestamp DESC
             LIMIT 1
         ) latest ON mk.id IS NOT NULL
         GROUP BY z.zone_slug, COALESCE(zt.name, zte.name, z.zone_name), z.zone_icon, z.zone_color, z.display_order
         ORDER BY z.display_order"#,
     )
-    .bind(profile)
+    .bind(user_id)
     .bind(&locale)
     .fetch_all(pool.get_ref())
     .await?;
@@ -121,6 +144,7 @@ pub async fn demo_measurements(
     let per_page = query.per_page.unwrap_or(50).clamp(1, 200);
     let offset = (page - 1) * per_page;
     let profile = profile_or_default(&query.profile);
+    let user_id = resolve_demo_user_id(pool.get_ref(), profile).await?;
 
     // Parse comma-separated marker slugs
     let marker_slugs: Option<Vec<String>> = query.marker.as_ref().map(|m| {
@@ -146,7 +170,7 @@ pub async fn demo_measurements(
         LEFT JOIN marker_translations mt ON mt.marker_id = mk.id AND mt.locale = $2
         LEFT JOIN marker_translations mte ON mte.marker_id = mk.id AND mte.locale = 'en'
         LEFT JOIN devices d ON d.id = m.device_id
-        WHERE m.is_demo = true AND m.demo_profile = $1 AND m.is_deleted = false"#,
+        WHERE m.user_id = $1 AND m.is_deleted = false"#,
     );
 
     let mut bind_idx = 3u32;
@@ -192,7 +216,7 @@ pub async fn demo_measurements(
         bind_idx + 1
     ));
 
-    let mut q = sqlx::query(&sql).bind(profile).bind(&locale);
+    let mut q = sqlx::query(&sql).bind(user_id).bind(&locale);
 
     if let Some(from) = query.from {
         q = q.bind(from);
@@ -277,6 +301,7 @@ pub async fn demo_trends(
     let marker_slug = path.into_inner();
     let days = query.days.unwrap_or(30);
     let profile = profile_or_default(&query.profile);
+    let user_id = resolve_demo_user_id(pool.get_ref(), profile).await?;
     if !(1..=365).contains(&days) {
         return Err(AppError::Validation(
             "days must be between 1 and 365".to_string(),
@@ -309,14 +334,14 @@ pub async fn demo_trends(
             m.protocol_tag
         FROM measurements m
         JOIN markers mk ON mk.id = m.marker_id
-        WHERE m.is_demo = true AND m.demo_profile = $3 AND mk.marker_slug = $1 AND m.is_deleted = false
+        WHERE m.user_id = $3 AND mk.marker_slug = $1 AND m.is_deleted = false
           AND m.timestamp >= now() - $2::interval
         ORDER BY m.timestamp ASC
         LIMIT 1000"#,
     )
     .bind(&marker_slug)
     .bind(&days_str)
-    .bind(profile)
+    .bind(user_id)
     .fetch_all(pool.get_ref())
     .await?;
 
@@ -352,6 +377,7 @@ pub async fn demo_zone_detail(
     let locale = extract_locale(&req, None);
     let zone_slug = path.into_inner();
     let profile = profile_or_default(&query.profile);
+    let user_id = resolve_demo_user_id(pool.get_ref(), profile).await?;
 
     let zone_row = sqlx::query(
         r#"SELECT z.zone_slug,
@@ -387,7 +413,7 @@ pub async fn demo_zone_detail(
                    dv.device_name, dv.is_deleted as device_archived
             FROM measurements ms
             LEFT JOIN devices dv ON dv.id = ms.device_id
-            WHERE ms.is_demo = true AND ms.demo_profile = $2 AND ms.marker_id = mk.id AND ms.is_deleted = false
+            WHERE ms.user_id = $2 AND ms.marker_id = mk.id AND ms.is_deleted = false
             ORDER BY ms.timestamp DESC
             LIMIT 1
         ) m ON true
@@ -395,7 +421,7 @@ pub async fn demo_zone_detail(
         ORDER BY zm.display_order"#,
     )
     .bind(&zone_slug)
-    .bind(profile)
+    .bind(user_id)
     .bind(&locale)
     .fetch_all(pool.get_ref())
     .await?;
@@ -431,12 +457,11 @@ pub async fn demo_zone_detail(
                m.marker_slug, ms.value_canonical
            FROM measurements ms
            JOIN markers m ON m.id = ms.marker_id
-           WHERE ms.user_id = '00000000-0000-0000-0000-000000000001'
-             AND ms.is_demo = true AND ms.demo_profile = $1
+           WHERE ms.user_id = $1
              AND ms.is_deleted = false
            ORDER BY m.marker_slug, ms.timestamp DESC"#,
     )
-    .bind(profile)
+    .bind(user_id)
     .fetch_all(pool.get_ref())
     .await?;
 
@@ -451,16 +476,16 @@ pub async fn demo_zone_detail(
     }
 
     // Get height from demo user profile
-    let height_cm: Option<f64> = sqlx::query_scalar(
-        "SELECT height_cm::float8 FROM user_profile WHERE user_id = '00000000-0000-0000-0000-000000000001'",
-    )
-    .fetch_optional(pool.get_ref())
-    .await?;
+    let height_cm: Option<f64> =
+        sqlx::query_scalar("SELECT height_cm::float8 FROM user_profile WHERE user_id = $1")
+            .bind(user_id)
+            .fetch_optional(pool.get_ref())
+            .await?;
 
     // Compute using production formulas
     let computed = crate::services::calculated::compute_calculated_markers(
         pool.get_ref(),
-        Uuid::parse_str("00000000-0000-0000-0000-000000000001").unwrap_or_default(),
+        user_id,
         &values_map,
         height_cm,
         "standard",
@@ -542,15 +567,16 @@ pub async fn demo_measurements_filters(
     use sqlx::Row;
     let locale = extract_locale(&req, None);
     let profile = profile_or_default(&query.profile);
+    let user_id = resolve_demo_user_id(pool.get_ref(), profile).await?;
 
     let device_rows = sqlx::query(
         r#"SELECT DISTINCT d.id, d.device_name, d.device_type
         FROM measurements m
         JOIN devices d ON d.id = m.device_id
-        WHERE m.is_demo = true AND m.demo_profile = $1 AND m.is_deleted = false AND m.device_id IS NOT NULL
+        WHERE m.user_id = $1 AND m.is_deleted = false AND m.device_id IS NOT NULL
         ORDER BY d.device_type, d.device_name"#,
     )
-    .bind(profile)
+    .bind(user_id)
     .fetch_all(pool.get_ref())
     .await?;
 
@@ -574,11 +600,11 @@ pub async fn demo_measurements_filters(
         JOIN markers mk ON mk.id = m.marker_id
         LEFT JOIN marker_translations mt ON mt.marker_id = mk.id AND mt.locale = $2
         LEFT JOIN marker_translations mte ON mte.marker_id = mk.id AND mte.locale = 'en'
-        WHERE m.is_demo = true AND m.demo_profile = $1 AND m.is_deleted = false
+        WHERE m.user_id = $1 AND m.is_deleted = false
         GROUP BY mk.marker_slug, COALESCE(mt.name, mte.name, mk.marker_name)
         ORDER BY COALESCE(mt.name, mte.name, mk.marker_name)"#,
     )
-    .bind(profile)
+    .bind(user_id)
     .bind(&locale)
     .fetch_all(pool.get_ref())
     .await?;
@@ -597,10 +623,10 @@ pub async fn demo_measurements_filters(
     let protocol_rows = sqlx::query(
         r#"SELECT DISTINCT protocol_tag
         FROM measurements
-        WHERE is_demo = true AND demo_profile = $1 AND is_deleted = false AND protocol_tag IS NOT NULL
+        WHERE user_id = $1 AND is_deleted = false AND protocol_tag IS NOT NULL
         ORDER BY protocol_tag"#,
     )
-    .bind(profile)
+    .bind(user_id)
     .fetch_all(pool.get_ref())
     .await?;
 
@@ -613,10 +639,10 @@ pub async fn demo_measurements_filters(
         r#"SELECT DISTINCT mk.source_type
         FROM measurements m
         JOIN markers mk ON mk.id = m.marker_id
-        WHERE m.is_demo = true AND m.demo_profile = $1 AND m.is_deleted = false
+        WHERE m.user_id = $1 AND m.is_deleted = false
         ORDER BY mk.source_type"#,
     )
-    .bind(profile)
+    .bind(user_id)
     .fetch_all(pool.get_ref())
     .await?;
 
@@ -628,9 +654,9 @@ pub async fn demo_measurements_filters(
     let range_row = sqlx::query(
         r#"SELECT MIN(timestamp) as earliest, MAX(timestamp) as latest
         FROM measurements
-        WHERE is_demo = true AND demo_profile = $1 AND is_deleted = false"#,
+        WHERE user_id = $1 AND is_deleted = false"#,
     )
-    .bind(profile)
+    .bind(user_id)
     .fetch_optional(pool.get_ref())
     .await?;
 

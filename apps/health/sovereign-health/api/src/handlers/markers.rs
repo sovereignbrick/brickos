@@ -4,7 +4,9 @@ use actix_web::{web, HttpRequest, HttpResponse};
 use serde_json::json;
 use sqlx::PgPool;
 
-use crate::{error::AppError, middleware::auth::AuthenticatedUser};
+use crate::{
+    error::AppError, handlers::demo::resolve_demo_user_id, middleware::auth::AuthenticatedUser,
+};
 
 fn resolve_locale_from_req(req: &HttpRequest) -> String {
     let al = req
@@ -648,6 +650,7 @@ pub async fn demo_detail(
 ) -> Result<HttpResponse, AppError> {
     let marker_slug = path.into_inner();
     let profile = demo_profile(&query.profile);
+    let user_id = resolve_demo_user_id(pool.get_ref(), profile).await?;
     let locale = resolve_locale_from_req(&req);
     use sqlx::Row;
 
@@ -676,7 +679,7 @@ pub async fn demo_detail(
         let rr = fetch_system_range(pool.get_ref(), marker_id, "standard", &unit).await?;
         let fasting = fetch_system_range(pool.get_ref(), marker_id, "fasting", &unit).await?;
         let latest =
-            fetch_latest_demo_measurement(pool.get_ref(), marker_id, &unit, profile, enc.get_ref())
+            fetch_latest_demo_measurement(pool.get_ref(), marker_id, &unit, user_id, enc.get_ref())
                 .await?;
         let description = fetch_description(pool.get_ref(), &marker_slug, &locale).await?;
         let fasting_explanation =
@@ -775,6 +778,7 @@ pub async fn demo_marker_measurements(
     let marker_slug = path.into_inner();
     let limit = query.limit.unwrap_or(5).clamp(1, 50);
     let profile = demo_profile(&query.profile);
+    let user_id = resolve_demo_user_id(pool.get_ref(), profile).await?;
     use sqlx::Row;
 
     // Check both standard and calculated markers
@@ -801,13 +805,13 @@ pub async fn demo_marker_measurements(
                       cmv.measured_at as timestamp, 'standard' as protocol_tag
                FROM calculated_marker_values cmv
                JOIN calculated_markers cm ON cm.id = cmv.calculated_marker_id
-               WHERE cmv.is_demo = true AND cmv.demo_profile = $3 AND cm.marker_slug = $1 AND cmv.is_deleted = false
+               WHERE cmv.user_id = $3 AND cm.marker_slug = $1 AND cmv.is_deleted = false
                ORDER BY cmv.measured_at DESC
                LIMIT $2"#,
         )
         .bind(&marker_slug)
         .bind(limit)
-        .bind(profile)
+        .bind(user_id)
         .fetch_all(pool.get_ref())
         .await?;
 
@@ -836,13 +840,13 @@ pub async fn demo_marker_measurements(
                FROM measurements m
                JOIN markers mk ON mk.id = m.marker_id
                LEFT JOIN devices d ON d.id = m.device_id
-               WHERE m.is_demo = true AND m.demo_profile = $3 AND mk.marker_slug = $1 AND m.is_deleted = false
+               WHERE m.user_id = $3 AND mk.marker_slug = $1 AND m.is_deleted = false
                ORDER BY m.timestamp DESC
                LIMIT $2"#,
         )
         .bind(&marker_slug)
         .bind(limit)
-        .bind(profile)
+        .bind(user_id)
         .fetch_all(pool.get_ref())
         .await?;
 
@@ -881,6 +885,7 @@ pub async fn demo_marker_trend(
     let marker_slug = path.into_inner();
     let period = query.period.as_deref().unwrap_or("3m");
     let profile = demo_profile(&query.profile);
+    let user_id = resolve_demo_user_id(pool.get_ref(), profile).await?;
     use sqlx::Row;
 
     let days = period_to_days(period).ok_or_else(|| {
@@ -925,13 +930,13 @@ pub async fn demo_marker_trend(
                       cmv.status, 'standard' as protocol_tag
                FROM calculated_marker_values cmv
                JOIN calculated_markers cm ON cm.id = cmv.calculated_marker_id
-               WHERE cmv.is_demo = true AND cmv.demo_profile = $3 AND cm.marker_slug = $1 AND cmv.is_deleted = false
+               WHERE cmv.user_id = $3 AND cm.marker_slug = $1 AND cmv.is_deleted = false
                  AND cmv.measured_at >= now() - $2::interval
                ORDER BY cmv.measured_at ASC"#,
         )
         .bind(&marker_slug)
         .bind(&days_str)
-        .bind(profile)
+        .bind(user_id)
         .fetch_all(pool.get_ref())
         .await?
     } else {
@@ -940,13 +945,13 @@ pub async fn demo_marker_trend(
                       m.status, m.protocol_tag
                FROM measurements m
                JOIN markers mk ON mk.id = m.marker_id
-               WHERE m.is_demo = true AND m.demo_profile = $3 AND mk.marker_slug = $1 AND m.is_deleted = false
+               WHERE m.user_id = $3 AND mk.marker_slug = $1 AND m.is_deleted = false
                  AND m.timestamp >= now() - $2::interval
                ORDER BY m.timestamp ASC"#,
         )
         .bind(&marker_slug)
         .bind(&days_str)
-        .bind(profile)
+        .bind(user_id)
         .fetch_all(pool.get_ref())
         .await?
     };
@@ -1330,7 +1335,7 @@ async fn fetch_latest_demo_measurement(
     pool: &PgPool,
     marker_id: uuid::Uuid,
     unit: &str,
-    profile: &str,
+    user_id: uuid::Uuid,
     enc: &crate::services::encryption::Encryptor,
 ) -> Result<Option<serde_json::Value>, AppError> {
     use sqlx::Row;
@@ -1339,11 +1344,11 @@ async fn fetch_latest_demo_measurement(
                   d.device_name
            FROM measurements m
            LEFT JOIN devices d ON d.id = m.device_id
-           WHERE m.is_demo = true AND m.demo_profile = $2 AND m.marker_id = $1 AND m.is_deleted = false
+           WHERE m.user_id = $2 AND m.marker_id = $1 AND m.is_deleted = false
            ORDER BY m.timestamp DESC LIMIT 1"#,
     )
     .bind(marker_id)
-    .bind(profile)
+    .bind(user_id)
     .fetch_optional(pool)
     .await?;
 
