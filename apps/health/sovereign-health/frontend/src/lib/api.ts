@@ -465,6 +465,11 @@ export const api = {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       })
     },
+    resetData: (confirm?: string) =>
+      request<{ data: { confirmed: boolean; deleted: Record<string, number> } }>('/settings/reset-data', {
+        method: 'POST',
+        body: JSON.stringify({ confirm: confirm || '' }),
+      }),
     deleteAccount: () =>
       request<{ data: { deleted: boolean; message: string } }>(
         '/settings/account', { method: 'DELETE' }

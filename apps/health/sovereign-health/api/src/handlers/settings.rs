@@ -1496,3 +1496,156 @@ pub async fn get_access_log(
         "error": null
     })))
 }
+
+// ---------------------------------------------------------------------------
+// Data reset (keeps account, subscription, settings)
+// ---------------------------------------------------------------------------
+
+/// POST /settings/reset-data -- delete all health data, keep account
+pub async fn reset_data(
+    pool: web::Data<PgPool>,
+    auth: AuthenticatedUser,
+    body: web::Json<serde_json::Value>,
+    notifier: web::Data<crate::services::notify::Notifier>,
+) -> Result<HttpResponse, AppError> {
+    use sqlx::Row;
+
+    // 1. Count records that will be deleted
+    let counts_row = sqlx::query(
+        "SELECT \
+         (SELECT COUNT(*) FROM measurements WHERE user_id = $1 AND is_deleted = false) as measurements, \
+         (SELECT COUNT(*) FROM calculated_marker_values WHERE user_id = $1 AND (is_deleted = false OR is_deleted IS NULL)) as calculated, \
+         (SELECT COUNT(*) FROM import_sessions WHERE user_id = $1) as imports, \
+         (SELECT COUNT(*) FROM devices WHERE user_id = $1 AND is_deleted = false) as devices, \
+         (SELECT COUNT(*) FROM labs WHERE user_id = $1) as labs, \
+         (SELECT COUNT(*) FROM user_medications WHERE user_id = $1) as medications, \
+         (SELECT COUNT(*) FROM doctor_chat_conversations WHERE user_id = $1) as chats, \
+         (SELECT COUNT(*) FROM measurement_templates WHERE user_id = $1) as templates, \
+         (SELECT COUNT(*) FROM reference_ranges WHERE user_id = $1) as custom_ranges",
+    )
+    .bind(auth.user_id)
+    .fetch_one(pool.get_ref())
+    .await?;
+
+    let measurements: i64 = counts_row.try_get("measurements").unwrap_or(0);
+    let calculated: i64 = counts_row.try_get("calculated").unwrap_or(0);
+    let imports: i64 = counts_row.try_get("imports").unwrap_or(0);
+    let devices: i64 = counts_row.try_get("devices").unwrap_or(0);
+    let labs: i64 = counts_row.try_get("labs").unwrap_or(0);
+    let medications: i64 = counts_row.try_get("medications").unwrap_or(0);
+    let chats: i64 = counts_row.try_get("chats").unwrap_or(0);
+    let templates: i64 = counts_row.try_get("templates").unwrap_or(0);
+    let custom_ranges: i64 = counts_row.try_get("custom_ranges").unwrap_or(0);
+
+    let counts = json!({
+        "measurements": measurements,
+        "calculated": calculated,
+        "imports": imports,
+        "devices": devices,
+        "labs": labs,
+        "medications": medications,
+        "chats": chats,
+        "templates": templates,
+        "custom_ranges": custom_ranges,
+    });
+
+    // 2. Check confirmation
+    let confirm = body
+        .get("confirm")
+        .and_then(|v| v.as_str())
+        .unwrap_or("");
+
+    if confirm != "RESET" {
+        return Ok(HttpResponse::Ok().json(json!({
+            "data": { "confirmed": false, "deleted": counts },
+            "error": null
+        })));
+    }
+
+    // 3. Delete in a transaction (child tables first for FK safety)
+    let mut tx = pool.begin().await?;
+
+    sqlx::query("DELETE FROM calculated_marker_values WHERE user_id = $1")
+        .bind(auth.user_id)
+        .execute(&mut *tx)
+        .await?;
+    sqlx::query("DELETE FROM measurement_templates WHERE user_id = $1")
+        .bind(auth.user_id)
+        .execute(&mut *tx)
+        .await?;
+    sqlx::query("DELETE FROM influence_factors WHERE user_id = $1")
+        .bind(auth.user_id)
+        .execute(&mut *tx)
+        .await?;
+    sqlx::query("DELETE FROM import_sessions WHERE user_id = $1")
+        .bind(auth.user_id)
+        .execute(&mut *tx)
+        .await?;
+    sqlx::query("DELETE FROM measurements WHERE user_id = $1")
+        .bind(auth.user_id)
+        .execute(&mut *tx)
+        .await?;
+    sqlx::query("DELETE FROM devices WHERE user_id = $1")
+        .bind(auth.user_id)
+        .execute(&mut *tx)
+        .await?;
+    sqlx::query("DELETE FROM labs WHERE user_id = $1")
+        .bind(auth.user_id)
+        .execute(&mut *tx)
+        .await?;
+    sqlx::query("DELETE FROM user_medications WHERE user_id = $1")
+        .bind(auth.user_id)
+        .execute(&mut *tx)
+        .await?;
+    sqlx::query("DELETE FROM doctor_chat_conversations WHERE user_id = $1")
+        .bind(auth.user_id)
+        .execute(&mut *tx)
+        .await?;
+    sqlx::query("DELETE FROM reference_ranges WHERE user_id = $1")
+        .bind(auth.user_id)
+        .execute(&mut *tx)
+        .await?;
+    sqlx::query("DELETE FROM ai_credit_usage WHERE user_id = $1")
+        .bind(auth.user_id)
+        .execute(&mut *tx)
+        .await?;
+    sqlx::query("DELETE FROM chat_agent_quota WHERE user_id = $1")
+        .bind(auth.user_id)
+        .execute(&mut *tx)
+        .await?;
+    sqlx::query("DELETE FROM user_search_index WHERE user_id = $1")
+        .bind(auth.user_id)
+        .execute(&mut *tx)
+        .await?;
+
+    tx.commit().await?;
+
+    // 4. Audit log
+    crate::services::audit::log(
+        pool.get_ref(),
+        Some(auth.user_id),
+        "data_reset",
+        Some("user"),
+        None,
+        None,
+        Some(counts.clone()),
+    )
+    .await;
+
+    // 5. Notify admins
+    notifier.send(
+        crate::services::notify::Channel::Users,
+        crate::services::notify::Priority::High,
+        "Data reset",
+        &format!(
+            "user_id={} reset all health data ({} measurements, {} chats)",
+            auth.user_id, measurements, chats
+        ),
+    );
+
+    // 6. Return success
+    Ok(HttpResponse::Ok().json(json!({
+        "data": { "confirmed": true, "deleted": counts },
+        "error": null
+    })))
+}

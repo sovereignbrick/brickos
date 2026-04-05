@@ -374,6 +374,10 @@ pub fn configure_routes(cfg: &mut actix_web::web::ServiceConfig) {
                 actix_web::web::post().to(handlers::settings::export_all),
             )
             .route(
+                "/reset-data",
+                actix_web::web::post().to(handlers::settings::reset_data),
+            )
+            .route(
                 "/account",
                 actix_web::web::delete().to(handlers::settings::delete_account),
             )

@@ -15,6 +15,9 @@ export function DataPrivacyTab({ shareAnonymousData, onToggle }: { shareAnonymou
   const [exporting, setExporting] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const [resetCounts, setResetCounts] = useState<Record<string, number> | null>(null)
+  const [resetInput, setResetInput] = useState('')
+  const [resetting, setResetting] = useState(false)
   const [toggling, setToggling] = useState(false)
   // Consent state
   const [consentNewsletter, setConsentNewsletter] = useState(false)
@@ -148,6 +151,33 @@ export function DataPrivacyTab({ shareAnonymousData, onToggle }: { shareAnonymou
       toast.error(e instanceof Error ? e.message : tCommon('exportFailed'))
     } finally {
       setExporting(false)
+    }
+  }
+
+  const handleResetData = async () => {
+    try {
+      const res = await api.settings.resetData()
+      setResetCounts(res.data.deleted)
+      setResetInput('')
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : t('updateFailed'))
+    }
+  }
+
+  const handleConfirmReset = async () => {
+    setResetting(true)
+    try {
+      const res = await api.settings.resetData('RESET')
+      if (res.data.confirmed) {
+        toast.success(t('resetDataSuccess'))
+        setResetCounts(null)
+        setResetInput('')
+        window.location.reload()
+      }
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : t('updateFailed'))
+    } finally {
+      setResetting(false)
     }
   }
 
@@ -360,6 +390,52 @@ export function DataPrivacyTab({ shareAnonymousData, onToggle }: { shareAnonymou
         </button>
       </div>
 
+      {/* Reset All Data */}
+      <div className="border border-red-900/50 rounded-lg p-6 space-y-3">
+        <h3 className="font-medium text-red-400">{t('resetDataTitle')}</h3>
+        <p className="text-sm text-muted-foreground">{t('resetDataDesc')}</p>
+        {!resetCounts ? (
+          <button onClick={handleResetData} className="px-4 py-2 rounded-lg text-sm bg-red-600/20 text-red-400 border border-red-800 hover:bg-red-600/30 transition-colors">{t('resetDataButton')}</button>
+        ) : (
+          <div className="space-y-3">
+            <p className="text-sm text-red-300 font-medium">{t('resetDataConfirmTitle')}</p>
+            <p className="text-sm text-muted-foreground">{t('resetDataConfirmDesc')}</p>
+            <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
+              {resetCounts.measurements > 0 && <li>{t('resetDataMeasurements', { count: resetCounts.measurements })}</li>}
+              {resetCounts.calculated > 0 && <li>{t('resetDataCalculated', { count: resetCounts.calculated })}</li>}
+              {resetCounts.devices > 0 && <li>{t('resetDataDevices', { count: resetCounts.devices })}</li>}
+              {resetCounts.labs > 0 && <li>{t('resetDataLabs', { count: resetCounts.labs })}</li>}
+              {resetCounts.medications > 0 && <li>{t('resetDataMedications', { count: resetCounts.medications })}</li>}
+              {resetCounts.chats > 0 && <li>{t('resetDataChats', { count: resetCounts.chats })}</li>}
+              {resetCounts.templates > 0 && <li>{t('resetDataTemplates', { count: resetCounts.templates })}</li>}
+              {resetCounts.custom_ranges > 0 && <li>{t('resetDataRanges', { count: resetCounts.custom_ranges })}</li>}
+              {resetCounts.imports > 0 && <li>{t('resetDataImports', { count: resetCounts.imports })}</li>}
+            </ul>
+            <div>
+              <label className="text-sm text-muted-foreground block mb-1">{t('resetDataTypeConfirm')}</label>
+              <input
+                type="text"
+                value={resetInput}
+                onChange={e => setResetInput(e.target.value)}
+                className="bg-card border border-border rounded-lg px-3 py-1.5 text-sm w-full max-w-[200px]"
+                placeholder="RESET"
+              />
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={handleConfirmReset}
+                disabled={resetting || resetInput !== 'RESET'}
+                className="px-4 py-2 rounded-lg text-sm bg-red-600 text-white hover:bg-red-500 disabled:opacity-50 transition-colors"
+              >
+                {resetting ? t('resettingData') : t('resetDataConfirmButton')}
+              </button>
+              <button onClick={() => { setResetCounts(null); setResetInput('') }} className="border border-border text-muted-foreground hover:text-foreground hover:bg-accent text-sm font-medium px-4 py-2 rounded-lg transition-colors">{tCommon('cancel')}</button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Delete Account */}
       <div className="border border-red-900/50 rounded-lg p-6 space-y-3">
         <h3 className="font-medium text-red-400">{t('deleteAccountTitle')}</h3>
         <p className="text-sm text-muted-foreground">{t('deleteAccountDesc')}</p>
