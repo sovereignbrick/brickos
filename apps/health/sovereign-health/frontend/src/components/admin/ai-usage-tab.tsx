@@ -91,6 +91,11 @@ export function AiUsageTab() {
     ? [...data.by_user].sort((a, b) => b[sortBy] - a[sortBy])
     : []
 
+  const avgCostPerUser = sortedUsers.length > 0
+    ? sortedUsers.reduce((sum, u) => sum + u.cost_eur, 0) / sortedUsers.length
+    : 0
+  const highUsageThreshold = avgCostPerUser * 2
+
   return (
     <div className="space-y-6">
       {/* Period selector + navigation */}
@@ -143,7 +148,7 @@ export function AiUsageTab() {
       ) : (
         <>
           {/* Stat cards */}
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <StatCard
               label="Total Cost"
               value={formatEur(data.total_cost_eur)}
@@ -151,6 +156,11 @@ export function AiUsageTab() {
             <StatCard
               label="Total Calls"
               value={formatNumber(data.total_calls)}
+            />
+            <StatCard
+              label="Avg Cost/User"
+              value={formatEur(avgCostPerUser)}
+              sub={`${sortedUsers.length} active users`}
             />
             <StatCard
               label="Total Tokens"
@@ -200,13 +210,22 @@ export function AiUsageTab() {
                     </tr>
                   </thead>
                   <tbody>
-                    {sortedUsers.map((u, i) => (
-                      <tr key={u.user_id || i} className="border-b border-border/50 hover:bg-accent">
+                    {sortedUsers.map((u, i) => {
+                      const isHighUsage = highUsageThreshold > 0 && u.cost_eur > highUsageThreshold
+                      return (
+                      <tr key={u.user_id || i} className={`border-b border-border/50 hover:bg-accent ${isHighUsage ? 'bg-red-950/20' : ''}`}>
                         <td className="py-2 px-4">
-                          <div>
-                            <p className="text-xs font-mono">{u.email}</p>
-                            {u.display_name && (
-                              <p className="text-xs text-muted-foreground">{u.display_name}</p>
+                          <div className="flex items-center gap-2">
+                            <div>
+                              <p className="text-xs font-mono">{u.email}</p>
+                              {u.display_name && (
+                                <p className="text-xs text-muted-foreground">{u.display_name}</p>
+                              )}
+                            </div>
+                            {isHighUsage && (
+                              <span className="shrink-0 px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-600/20 text-red-400 border border-red-800" title={`Cost > 2x average (${formatEur(avgCostPerUser)})`}>
+                                HIGH
+                              </span>
                             )}
                           </div>
                         </td>
@@ -225,7 +244,8 @@ export function AiUsageTab() {
                           {formatEur(u.cost_eur)}
                         </td>
                       </tr>
-                    ))}
+                      )
+                    })}
                   </tbody>
                 </table>
               </div>
