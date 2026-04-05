@@ -816,8 +816,9 @@ async fn compute_blind_spots(
         .map(|r| {
             let slug: String = r.try_get("slug").unwrap_or_default();
             json!({
-                "marker_slug": slug,
-                "reason": "never_measured",
+                "type": "never_measured",
+                "message": format!("You haven't measured {} yet", slug.replace('_', " ")),
+                "action_url": format!("/markers/{}", slug),
             })
         })
         .collect();
