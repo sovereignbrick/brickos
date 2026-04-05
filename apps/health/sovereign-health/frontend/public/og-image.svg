@@ -14,13 +14,6 @@
   <rect width="1200" height="627" fill="url(#bg)"/>
 
   <!-- Subtle grid pattern -->
-  <g opacity="0.03" stroke="#ffffff" stroke-width="1">
-    <line x1="0" y1="0" x2="1200" y2="627"/>
-    <line x1="400" y1="0" x2="400" y2="627"/>
-    <line x1="800" y1="0" x2="800" y2="627"/>
-    <line x1="0" y1="209" x2="1200" y2="209"/>
-    <line x1="0" y1="418" x2="1200" y2="418"/>
-  </g>
 
   <!-- Accent line top -->
   <rect x="0" y="0" width="1200" height="4" fill="url(#accent)"/>
