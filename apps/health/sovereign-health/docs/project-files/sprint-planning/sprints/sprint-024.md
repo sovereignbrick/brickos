@@ -144,65 +144,70 @@ Videos (user journey walkthroughs):
 - [ ] Plan recording setup: screen capture tool, AI voiceover (EN + DE)
 - [ ] Host on website or embed from privacy-friendly platform
 
-## Dependency Graph
+## Dependency Analysis
 
 ```
-P0 (do first):
-  #306 Demo data separation (unblocks staging QA)
-  #280 Security audit (parallel)
-  lucide-react bump (parallel)
-       |
-P1 (after P0):
-  #072 E2E suites 3-6 (needs staging test user from #306)
-  #288 ZAP scan (needs staging running)
-  Performance (independent)
-  #166 Terms (independent)
-       |
-P2 (if time):
-  #307 Deploy speed
-  #099 WCAG
-  #022 Learn page
+INDEPENDENT (can run in parallel, no dependencies):
+═══════════════════════════════════════════════════
+
+  #280 Audit fixes ────── 6 Rust unmaintained warnings (genpdf chain), 0 npm vulns
+  lucide-react bump ───── 9 import statements, 8 files, all common icon names
+  #288 ZAP headers ────── CSP, HSTS, X-Content-Type-Options (nginx config only)
+  #166 Terms page ─────── Content/legal, no code deps
+  Performance LCP/TBT ─── Frontend bundle analysis, no backend deps
+  #307 Deploy speed ───── Ops-only
+  #099 WCAG fixes ─────── Frontend CSS/HTML only
+
+SEQUENTIAL (has dependencies):
+══════════════════════════════
+
+  #306 Demo data ──────── CRITICAL PATH. Blocks:
+         │
+         ├──> #072 E2E suites 3-6 (needs staging-test user)
+         └──> #022 Learn page (needs demo profiles for screenshots)
+
+RISK DEPENDENCIES (not blocking but related):
+═════════════════════════════════════════════
+
+  lucide-react ──may affect──> #022 Learn page (icon rendering)
+  Performance ───may affect──> #022 Learn page (slow pages = bad screenshots)
+  #288 ZAP CSP ──may affect──> E2E tests (CSP could block inline scripts)
 ```
 
 ## Execution Order
 
 ```
-PHASE 0 -- Housekeeping
-========================
-  cargo fmt
-  #280 Dependabot fixes
-  lucide-react major bump
+DAY 1 MORNING -- Parallel tracks
+══════════════════════════════════
 
-PHASE 1 -- Demo Data Separation (#306)
-=======================================
-  Create demo accounts + CSV fixtures
-  Import script (ops/seed-demo-profiles.sh)
-  Guard reset-data for @sovereignhealth.io
-  staging-refresh-demo command
-  Staging test user setup
+  Track A (quick wins):      Track B (frontend):      Track C (critical path):
+  ──────────────────────     ─────────────────────    ────────────────────────
+  cargo fmt                  lucide-react 1.7 bump   #306 Demo data:
+  #280 Audit fixes (30m)     (1-2 hrs)                 - Guard reset-data
+  #288 ZAP headers (1 hr)   #166 Terms page            - Create 3 accounts
+                             (1-2 hrs)                  - Import CSV fixtures
+                                                        - staging-refresh cmd
+                                                        - staging-test user
+                                                       (half day)
 
-PHASE 2 -- Security + Legal
-============================
-  #288 ZAP scan + fixes
-  #166 Terms & Fair Use
+DAY 1 AFTERNOON
+════════════════
 
-PHASE 3 -- Testing + Performance
-==================================
-  #072 E2E suites 3-6
-  Performance: LCP/TBT optimization
+  Performance: LCP/TBT (bundle analysis, dynamic imports)
+  #072 E2E suites 3-4 (devices, measurements -- needs #306 done)
 
-PHASE 4 -- Polish
-=================
+DAY 2 MORNING
+══════════════
+
+  #072 E2E suites 5-6 (import, Dr. Alex)
   #099 WCAG fixes
-  #022 Learn page screenshots
   #307 Deploy optimization
 
-PHASE 5 -- RC + Deploy
-========================
-  cargo fmt + clippy + tests
-  pnpm build
-  Localhost container test
-  Staging deploy + manual test
+DAY 2 AFTERNOON
+════════════════
+
+  #022 Learn page (screenshots from demo profiles -- needs #306 done)
+  RC testing + staging deploy
   Production deploy
 ```
 
@@ -210,7 +215,9 @@ PHASE 5 -- RC + Deploy
 
 ## Risk Assessment
 
-- **#306 (demo data):** Most complex item. The API import approach is better than DB seeds but requires fixture preparation. Risk: import pipeline may need tweaks for batch CSV import without a UI.
-- **lucide-react 1.7:** Major version jump. Some icons were renamed/removed between 0.x and 1.x. Need to check the changelog carefully.
-- **Performance:** LCP improvement depends on what's causing the delay (server response? image? JS blocking?). May need CDN setup which is infrastructure work beyond this sprint.
-- **#022 (learn page):** Screenshot capture is manual work. Video recording + AI voiceover is a separate effort -- plan the approach this sprint, record in a future sprint.
+- **#306 (demo data):** Critical path -- blocks E2E and learn page. CSV fixtures already exported (ops/demo-data/). Risk: import pipeline may need tweaks for batch CSV import without a UI.
+- **lucide-react 1.7:** Major version jump but only 16 icons used across 9 import statements. All are common icons (Search, Copy, Check, Download, etc.) -- unlikely to break. Check changelog for renames.
+- **#280 Audit:** Rust advisories are all "unmaintained" warnings in genpdf dependency chain (PDF report generation) -- not actual vulnerabilities. npm has zero vulns. Low effort, low risk.
+- **#288 ZAP:** All findings are missing HTTP headers (CSP, HSTS, X-Content-Type-Options). Nginx config changes only -- no application code. Risk: CSP policy may block legitimate inline styles from Tailwind.
+- **Performance:** LCP 4.7s is likely server response time + JS bundle blocking. Dynamic imports for recharts and doctor-chat can help TBT. LCP may need CDN/caching which is infrastructure beyond this sprint.
+- **#022 (learn page):** Screenshot capture from demo profiles. Video recording + AI voiceover planned but not executed this sprint -- record in future sprint.
