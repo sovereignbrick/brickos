@@ -346,18 +346,17 @@ Sprint 014 lesson: settings tab restructure went through 4 iterations. For any U
 ### Phase 4: Deploy to staging
 
 ```bash
-# Backend: ALWAYS use --no-cache for code changes
-docker build --no-cache -f apps/health/sovereign-health/api/Dockerfile \
-  -t sovereign-health-backend:staging .
+# Full staging deploy (backend + frontend + website)
+bash ops/deploy.sh staging
 
-# Remove old image on VPS, transfer new one
-ssh root@VPS "docker rmi sovereign-health-backend:staging 2>/dev/null"
-docker save sovereign-health-backend:staging | ssh root@VPS 'docker load'
-
-# Deploy via script
-bash ops/deploy.sh staging backend
-bash ops/deploy.sh staging frontend
+# Component-only deploys (faster for iterative fixes)
+bash ops/deploy.sh staging backend     # Backend only (~5 min with cache)
+bash ops/deploy.sh staging frontend    # Frontend only (~3 min)
+bash ops/deploy.sh staging website     # Website only (~30s)
 ```
+
+**Note:** Staging uses Docker layer caching (cargo-chef). Only source code changes
+trigger recompilation. Production uses `--no-cache` for full reproducibility.
 
 ### Phase 5: Post-deploy verification (staging)
 
@@ -375,22 +374,27 @@ Walk through the manual testing checklist. Latest checklist:
 
 ### Phase 7: Promote to production
 
+**CRITICAL:** Production deploy MUST run from the `main` branch. The script rejects
+any other branch. Follow these steps exactly -- do NOT skip or reorder.
+
 ```bash
-# 1. Merge develop -> main
-bash ops/deploy.sh promote
+# 1. Stash any uncommitted work (deploy requires clean tree)
+git stash --include-untracked
 
-# 2. Switch to main branch (REQUIRED for production deploy)
+# 2. Switch to main and merge develop
 git checkout main
+git merge develop --no-edit
 
-# 3. Deploy to production
+# 3. Push main to all remotes
+git push origin main
+git push gitlab main
+
+# 4. Deploy to production (MUST be on main branch)
 bash ops/deploy.sh production --confirm
 
-# 4. Push both branches
-git push origin main
+# 5. Return to develop branch
 git checkout develop
-
-# 5. Push git repos
-bash ops/deploy.sh git
+git stash pop
 
 # 6. Tag release
 git tag -a vX.Y.Z -m "Sovereign Health Intelligence vX.Y.Z"
@@ -399,6 +403,10 @@ git push origin --tags
 # 7. Purge Cloudflare cache
 # (automatic if CF_ZONE_ID and CF_API_TOKEN are set, otherwise manual)
 ```
+
+**Common mistake:** Running `deploy.sh production` from `develop` branch. The script
+will pass all pre-flight checks, build Docker images (~14 min), then reject at the
+branch check -- wasting the entire build. Always `git checkout main` FIRST.
 
 ---
 
