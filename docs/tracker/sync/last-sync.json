@@ -1,7 +1,7 @@
 {
-  "last_sync": "2026-03-26T13:56:00Z",
-  "note": "Bulk sync: 15 local issues (#249-#263) created on GitHub as #247-#261. All labels applied.",
-  "issues_synced": 15,
+  "last_sync": "2026-04-05T07:30:00Z",
+  "note": "Sprint 023: 8 issues created on GitHub (#298-#305). Local tracker files use GitHub numbers directly. Note: issues created on GitHub first (should be local-first per convention).",
+  "issues_synced": 8,
   "milestones_synced": 0,
   "local_to_github_map": {
     "249": 247,
@@ -45,6 +45,14 @@
     "225": 243,
     "223": 244,
     "222": 245,
-    "221": 246
+    "221": 246,
+    "298": 298,
+    "299": 299,
+    "300": 300,
+    "301": 301,
+    "302": 302,
+    "303": 303,
+    "304": 304,
+    "305": 305
   }
 }
