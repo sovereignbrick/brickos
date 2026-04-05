@@ -1,3 +1,37 @@
+```
+// ============================================================================
+//                            SOVEREIGN HEALTH
+//
+//                       BLOOD . BIOMARKERS . INSIGHT
+//
+//   Your body is the operating system of your life.
+//   Blood is the diagnostic interface.
+//
+//   Modern medicine produces data.
+//   But most people do not control it.
+//
+//   Sovereign Health is a platform to collect,
+//   analyze and understand blood markers while
+//   preserving personal data sovereignty.
+//
+//   Bitcoin introduced Proof of Work.
+//   This project introduces:
+//
+//                         PROOF OF BLOOD
+//
+//   Real biological signals instead of abstract metrics.
+//
+//   Inspired by the philosophy of sovereignty and the
+//   ideas explored in the book "Brick by Brick".
+//
+//   Understand your biology.
+//   Own your data.
+//   Build health sovereignty.
+//
+//   https://www.sovereignhealth.io/
+// ============================================================================
+```
+
 # Health Pillar (BrickOS)
 
 *"Can I own and access my medical data?"*

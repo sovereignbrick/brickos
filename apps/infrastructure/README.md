@@ -1,3 +1,38 @@
+```
+// ============================================================================
+//                      SOVEREIGN INFRASTRUCTURE
+//
+//                     IDENTITY . NODES . TRANSPORT
+//
+//   Infrastructure is the ground you stand on.
+//   If someone else owns it, you are a tenant.
+//
+//   Cloud providers read your data. ISPs log your traffic.
+//   App stores decide what software you may run.
+//
+//   Sovereign Infrastructure is the foundation layer --
+//   self-hosted nodes, censorship-resistant networks,
+//   and identity you control with your own keys.
+//
+//   Bitcoin introduced Proof of Work.
+//   NOSTR introduced Proof of Publication.
+//   This project introduces:
+//
+//                       PROOF OF OWNERSHIP
+//
+//   Your keys, your node, your identity, your rules.
+//
+//   Inspired by the philosophy of sovereignty and the
+//   ideas explored in the book "Brick by Brick".
+//
+//   Run your own node.
+//   Own your identity.
+//   Build infrastructure sovereignty.
+//
+//   https://brickos.io/
+// ============================================================================
+```
+
 # Technology & Privacy Pillar (BrickOS)
 
 *"Is my infrastructure sovereign?"*

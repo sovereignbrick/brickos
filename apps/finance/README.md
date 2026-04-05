@@ -1,3 +1,39 @@
+```
+// ============================================================================
+//                           SOVEREIGN FINANCE
+//
+//                      TRADE . SAVE . EXCHANGE
+//
+//   Money is the language of economic cooperation.
+//   But the language has been captured.
+//
+//   Banks freeze accounts. Governments inflate savings.
+//   Payment processors censor transactions.
+//
+//   Sovereign Finance is a suite of tools to transact,
+//   trade and store value without permission from
+//   institutions that do not serve you.
+//
+//   Bitcoin introduced Proof of Work.
+//   Cashu introduced blind signatures.
+//   This project introduces:
+//
+//                        PROOF OF EXCHANGE
+//
+//   Peer-to-peer barter and trade with reputation,
+//   escrow and private ecash -- no bank required.
+//
+//   Inspired by the philosophy of sovereignty and the
+//   ideas explored in the book "Brick by Brick".
+//
+//   Trade freely.
+//   Save privately.
+//   Build financial sovereignty.
+//
+//   https://brickos.io/
+// ============================================================================
+```
+
 # Finance Pillar (BrickOS)
 
 *"Can I transact, save, and trade without banks?"*

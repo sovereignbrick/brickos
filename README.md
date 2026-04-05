@@ -1,3 +1,49 @@
+```
+// ============================================================================
+//
+//                           B R I C K O S
+//
+//                  Building sovereignty, brick by brick.
+//
+//         FINANCE . HEALTH . DATA . ATTENTION . ENERGY
+//
+//   The systems you depend on were not built for you.
+//   Banks freeze accounts. Hospitals lock records.
+//   Platforms censor speech. Governments inflate savings.
+//   App stores decide what you may run.
+//
+//   BrickOS is a sovereign software platform --
+//   a modular stack of applications where users own
+//   their data, their identity, and their keys.
+//
+//   Each app is a brick. Independent, but stronger together.
+//   Daily-use first. Emergency-ready by design.
+//
+//   When centralized systems fail, the sovereign stack
+//   does not notice -- because it never depended on them.
+//
+//   Bitcoin introduced Proof of Work.
+//   NOSTR introduced Proof of Publication.
+//   Cashu introduced Proof of Privacy.
+//   BrickOS introduces:
+//
+//                    PROOF OF SOVEREIGNTY
+//
+//   7 pillars. One identity. No permission required.
+//
+//   Inspired by the philosophy of self-reliance and the
+//   ideas explored in the book "Brick by Brick".
+//
+//   Own your health. Trade without banks.
+//   Speak without censorship. Learn without gatekeepers.
+//   Connect without surveillance. Govern without rulers.
+//
+//   Build sovereignty, brick by brick.
+//
+//   https://brickos.io/
+// ============================================================================
+```
+
 <p align="center">
   <img src="docs/screenshots/demo.gif" alt="Sovereign Health Intelligence" width="800" />
 </p>
