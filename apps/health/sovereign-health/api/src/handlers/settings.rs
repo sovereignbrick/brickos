@@ -1221,14 +1221,15 @@ pub async fn delete_account(
     auth: AuthenticatedUser,
     notifier: web::Data<crate::services::notify::Notifier>,
 ) -> Result<HttpResponse, AppError> {
-    // Guard: protect demo/system accounts from accidental deletion
-    let email: String = sqlx::query_scalar("SELECT email FROM users WHERE id = $1")
-        .bind(auth.user_id)
-        .fetch_one(pool.get_ref())
-        .await?;
-    if email.ends_with("@sovereignhealth.io") {
+    // Guard: protect demo/system/admin accounts from accidental deletion
+    let is_protected: bool =
+        sqlx::query_scalar("SELECT COALESCE(is_protected, false) FROM users WHERE id = $1")
+            .bind(auth.user_id)
+            .fetch_one(pool.get_ref())
+            .await?;
+    if is_protected {
         return Err(AppError::Validation(
-            "Cannot delete system accounts. Use a personal account for testing.".to_string(),
+            "This account is protected and cannot be deleted.".to_string(),
         ));
     }
 
@@ -1521,14 +1522,15 @@ pub async fn reset_data(
 ) -> Result<HttpResponse, AppError> {
     use sqlx::Row;
 
-    // Guard: protect demo/system accounts from accidental reset
-    let email: String = sqlx::query_scalar("SELECT email FROM users WHERE id = $1")
-        .bind(auth.user_id)
-        .fetch_one(pool.get_ref())
-        .await?;
-    if email.ends_with("@sovereignhealth.io") {
+    // Guard: protect demo/system/admin accounts from accidental reset
+    let is_protected: bool =
+        sqlx::query_scalar("SELECT COALESCE(is_protected, false) FROM users WHERE id = $1")
+            .bind(auth.user_id)
+            .fetch_one(pool.get_ref())
+            .await?;
+    if is_protected {
         return Err(AppError::Validation(
-            "Cannot reset data for system accounts. Use a personal account for testing.".to_string(),
+            "This account is protected and cannot be reset.".to_string(),
         ));
     }
 
