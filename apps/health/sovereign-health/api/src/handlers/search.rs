@@ -88,21 +88,25 @@ pub async fn search(
 
     let results = if type_filter == "all" {
         sqlx::query(
-            r#"SELECT DISTINCT ON (entity_type, entity_id)
-                      entity_type, entity_id, title, subtitle, snippet, url_path,
-                      external_url, category_weight, metadata, parent_marker_slug, requires_auth,
-                      GREATEST(
-                        ts_rank_cd(tsv_document, plainto_tsquery($1::regconfig, $2)),
-                        ts_rank_cd(tsv_document, plainto_tsquery($5::regconfig, $2))
-                      ) * category_weight
-                      * CASE WHEN locale = $3 THEN 1.2 ELSE 1.0 END AS score
-               FROM search_index
-               WHERE (tsv_document @@ plainto_tsquery($1::regconfig, $2)
-                  OR  tsv_document @@ plainto_tsquery($5::regconfig, $2))
-                 AND ($4 OR requires_auth = false)
-               ORDER BY entity_type, entity_id,
-                        CASE WHEN locale = $3 THEN 0 ELSE 1 END,
-                        score DESC
+            r#"SELECT entity_type, entity_id, title, subtitle, snippet, url_path,
+                      external_url, category_weight, metadata, parent_marker_slug, requires_auth, score
+               FROM (
+                 SELECT DISTINCT ON (entity_type, entity_id)
+                        entity_type, entity_id, title, subtitle, snippet, url_path,
+                        external_url, category_weight, metadata, parent_marker_slug, requires_auth,
+                        locale,
+                        GREATEST(
+                          ts_rank_cd(tsv_document, plainto_tsquery($1::regconfig, $2)),
+                          ts_rank_cd(tsv_document, plainto_tsquery($5::regconfig, $2))
+                        ) * category_weight AS score
+                 FROM search_index
+                 WHERE (tsv_document @@ plainto_tsquery($1::regconfig, $2)
+                    OR  tsv_document @@ plainto_tsquery($5::regconfig, $2))
+                   AND ($4 OR requires_auth = false)
+                 ORDER BY entity_type, entity_id,
+                          CASE WHEN locale = $3 THEN 0 ELSE 1 END
+               ) deduped
+               ORDER BY score DESC
                LIMIT $6 OFFSET $7"#,
         )
         .bind(config)
@@ -116,22 +120,26 @@ pub async fn search(
         .await?
     } else {
         sqlx::query(
-            r#"SELECT DISTINCT ON (entity_type, entity_id)
-                      entity_type, entity_id, title, subtitle, snippet, url_path,
-                      external_url, category_weight, metadata, parent_marker_slug, requires_auth,
-                      GREATEST(
-                        ts_rank_cd(tsv_document, plainto_tsquery($1::regconfig, $2)),
-                        ts_rank_cd(tsv_document, plainto_tsquery($6::regconfig, $2))
-                      ) * category_weight
-                      * CASE WHEN locale = $3 THEN 1.2 ELSE 1.0 END AS score
-               FROM search_index
-               WHERE (tsv_document @@ plainto_tsquery($1::regconfig, $2)
-                  OR  tsv_document @@ plainto_tsquery($6::regconfig, $2))
-                 AND entity_type = $4
-                 AND ($5 OR requires_auth = false)
-               ORDER BY entity_type, entity_id,
-                        CASE WHEN locale = $3 THEN 0 ELSE 1 END,
-                        score DESC
+            r#"SELECT entity_type, entity_id, title, subtitle, snippet, url_path,
+                      external_url, category_weight, metadata, parent_marker_slug, requires_auth, score
+               FROM (
+                 SELECT DISTINCT ON (entity_type, entity_id)
+                        entity_type, entity_id, title, subtitle, snippet, url_path,
+                        external_url, category_weight, metadata, parent_marker_slug, requires_auth,
+                        locale,
+                        GREATEST(
+                          ts_rank_cd(tsv_document, plainto_tsquery($1::regconfig, $2)),
+                          ts_rank_cd(tsv_document, plainto_tsquery($6::regconfig, $2))
+                        ) * category_weight AS score
+                 FROM search_index
+                 WHERE (tsv_document @@ plainto_tsquery($1::regconfig, $2)
+                    OR  tsv_document @@ plainto_tsquery($6::regconfig, $2))
+                   AND entity_type = $4
+                   AND ($5 OR requires_auth = false)
+                 ORDER BY entity_type, entity_id,
+                          CASE WHEN locale = $3 THEN 0 ELSE 1 END
+               ) deduped
+               ORDER BY score DESC
                LIMIT $7 OFFSET $8"#,
         )
         .bind(config)
@@ -371,19 +379,22 @@ pub async fn suggest(
     };
 
     let rows = sqlx::query(
-        r#"SELECT DISTINCT ON (entity_type, entity_id) entity_type, title, url_path,
-                  GREATEST(
-                    ts_rank_cd(tsv_document, to_tsquery($1::regconfig, $2)),
-                    ts_rank_cd(tsv_document, to_tsquery($5::regconfig, $2))
-                  ) * category_weight
-                  * CASE WHEN locale = $3 THEN 1.2 ELSE 1.0 END AS score
-           FROM search_index
-           WHERE (tsv_document @@ to_tsquery($1::regconfig, $2)
-              OR  tsv_document @@ to_tsquery($5::regconfig, $2))
-             AND ($4 OR requires_auth = false)
-           ORDER BY entity_type, entity_id,
-                    CASE WHEN locale = $3 THEN 0 ELSE 1 END,
-                    score DESC
+        r#"SELECT entity_type, title, url_path, score
+           FROM (
+             SELECT DISTINCT ON (entity_type, entity_id)
+                    entity_type, entity_id, title, url_path,
+                    GREATEST(
+                      ts_rank_cd(tsv_document, to_tsquery($1::regconfig, $2)),
+                      ts_rank_cd(tsv_document, to_tsquery($5::regconfig, $2))
+                    ) * category_weight AS score
+             FROM search_index
+             WHERE (tsv_document @@ to_tsquery($1::regconfig, $2)
+                OR  tsv_document @@ to_tsquery($5::regconfig, $2))
+               AND ($4 OR requires_auth = false)
+             ORDER BY entity_type, entity_id,
+                      CASE WHEN locale = $3 THEN 0 ELSE 1 END
+           ) deduped
+           ORDER BY score DESC
            LIMIT $6"#,
     )
     .bind(config)
