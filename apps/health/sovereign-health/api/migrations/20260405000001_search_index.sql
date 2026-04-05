@@ -61,9 +61,9 @@ SELECT 'marker', m.marker_slug, mt.locale, mt.name,
   COALESCE(mt.description, mt.tooltip, ''),
   '/markers/' || m.marker_slug,
   1.5,
-  setweight(to_tsvector(CASE WHEN mt.locale = 'de' THEN 'german' ELSE 'english' END, COALESCE(mt.name, '')), 'A') ||
-  setweight(to_tsvector(CASE WHEN mt.locale = 'de' THEN 'german' ELSE 'english' END, COALESCE(mt.description, '') || ' ' || COALESCE(mt.tooltip, '')), 'B') ||
-  setweight(to_tsvector(CASE WHEN mt.locale = 'de' THEN 'german' ELSE 'english' END, COALESCE(mt.why_it_matters, '') || ' ' || COALESCE(mt.when_to_worry, '')), 'C'),
+  setweight(to_tsvector((CASE WHEN mt.locale = 'de' THEN 'german' ELSE 'english' END)::regconfig, COALESCE(mt.name, '')), 'A') ||
+  setweight(to_tsvector((CASE WHEN mt.locale = 'de' THEN 'german' ELSE 'english' END)::regconfig, COALESCE(mt.description, '') || ' ' || COALESCE(mt.tooltip, '')), 'B') ||
+  setweight(to_tsvector((CASE WHEN mt.locale = 'de' THEN 'german' ELSE 'english' END)::regconfig, COALESCE(mt.why_it_matters, '') || ' ' || COALESCE(mt.when_to_worry, '')), 'C'),
   jsonb_build_object('source_type', m.source_type, 'unit_canonical', m.unit_canonical, 'loinc_code', m.loinc_code, 'zone_id', m.zone_id::text),
   m.marker_slug
 FROM markers m
@@ -84,9 +84,9 @@ SELECT 'calculated_marker', cm.marker_slug, t.locale,
   cm.formula_description,
   '/markers/' || cm.marker_slug,
   1.5,
-  setweight(to_tsvector(CASE WHEN t.locale = 'de' THEN 'german' ELSE 'english' END, COALESCE(t.name, cm.marker_name, '')), 'A') ||
-  setweight(to_tsvector(CASE WHEN t.locale = 'de' THEN 'german' ELSE 'english' END, COALESCE(cm.formula_description, '')), 'B') ||
-  setweight(to_tsvector(CASE WHEN t.locale = 'de' THEN 'german' ELSE 'english' END, COALESCE(t.description, '')), 'C'),
+  setweight(to_tsvector((CASE WHEN t.locale = 'de' THEN 'german' ELSE 'english' END)::regconfig, COALESCE(t.name, cm.marker_name, '')), 'A') ||
+  setweight(to_tsvector((CASE WHEN t.locale = 'de' THEN 'german' ELSE 'english' END)::regconfig, COALESCE(cm.formula_description, '')), 'B') ||
+  setweight(to_tsvector((CASE WHEN t.locale = 'de' THEN 'german' ELSE 'english' END)::regconfig, COALESCE(t.description, '')), 'C'),
   jsonb_build_object('source_type', cm.source_type, 'base_markers', cm.base_markers_required, 'formula', cm.formula_description)
 FROM calculated_markers cm
 LEFT JOIN marker_translations t ON t.marker_id = cm.id
@@ -101,8 +101,8 @@ SELECT 'zone', z.zone_slug, zt.locale, zt.name,
   COALESCE(zt.short_description, zt.description, ''),
   '/dashboard#' || z.zone_slug,
   1.3,
-  setweight(to_tsvector(CASE WHEN zt.locale = 'de' THEN 'german' ELSE 'english' END, COALESCE(zt.name, '')), 'A') ||
-  setweight(to_tsvector(CASE WHEN zt.locale = 'de' THEN 'german' ELSE 'english' END, COALESCE(zt.description, '') || ' ' || COALESCE(zt.short_description, '')), 'B')
+  setweight(to_tsvector((CASE WHEN zt.locale = 'de' THEN 'german' ELSE 'english' END)::regconfig, COALESCE(zt.name, '')), 'A') ||
+  setweight(to_tsvector((CASE WHEN zt.locale = 'de' THEN 'german' ELSE 'english' END)::regconfig, COALESCE(zt.description, '') || ' ' || COALESCE(zt.short_description, '')), 'B')
 FROM zones z
 JOIN zone_translations zt ON zt.zone_id = z.id
 ON CONFLICT (entity_type, entity_id, locale) DO UPDATE SET
@@ -116,8 +116,8 @@ SELECT 'content', mc.marker_id || '-' || mc.content_type, mc.language, mc.title,
   LEFT(mc.body_text, 300),
   '/markers/' || mc.marker_id || '#' || mc.content_type,
   1.0,
-  setweight(to_tsvector(CASE WHEN mc.language = 'de' THEN 'german' ELSE 'english' END, COALESCE(mc.title, '')), 'A') ||
-  setweight(to_tsvector(CASE WHEN mc.language = 'de' THEN 'german' ELSE 'english' END, COALESCE(mc.body_text, '')), 'B'),
+  setweight(to_tsvector((CASE WHEN mc.language = 'de' THEN 'german' ELSE 'english' END)::regconfig, COALESCE(mc.title, '')), 'A') ||
+  setweight(to_tsvector((CASE WHEN mc.language = 'de' THEN 'german' ELSE 'english' END)::regconfig, COALESCE(mc.body_text, '')), 'B'),
   mc.marker_id
 FROM marker_content mc
 ON CONFLICT (entity_type, entity_id, locale) DO UPDATE SET
@@ -268,7 +268,7 @@ SELECT 'web_content', wct.id::text, wct.locale,
   LEFT(wct.value, 300),
   'https://sovereignhealth.io/' || wp.slug,
   0.5,
-  to_tsvector(CASE WHEN wct.locale = 'de' THEN 'german' ELSE 'english' END, COALESCE(wct.value, ''))
+  to_tsvector((CASE WHEN wct.locale = 'de' THEN 'german' ELSE 'english' END)::regconfig, COALESCE(wct.value, ''))
 FROM web_content_translations wct
 JOIN web_content_sections wcs ON wcs.id = wct.section_id
 JOIN web_pages wp ON wp.id = wcs.page_id
@@ -282,8 +282,8 @@ INSERT INTO search_index (entity_type, entity_id, locale, title, snippet, catego
 SELECT 'diet_protocol', dp.slug, dpt.locale, dpt.name,
   COALESCE(dpt.short_description, dpt.long_description, ''),
   0.8,
-  setweight(to_tsvector(CASE WHEN dpt.locale = 'de' THEN 'german' ELSE 'english' END, COALESCE(dpt.name, '')), 'A') ||
-  setweight(to_tsvector(CASE WHEN dpt.locale = 'de' THEN 'german' ELSE 'english' END, COALESCE(dpt.short_description, '') || ' ' || COALESCE(dpt.long_description, '')), 'B')
+  setweight(to_tsvector((CASE WHEN dpt.locale = 'de' THEN 'german' ELSE 'english' END)::regconfig, COALESCE(dpt.name, '')), 'A') ||
+  setweight(to_tsvector((CASE WHEN dpt.locale = 'de' THEN 'german' ELSE 'english' END)::regconfig, COALESCE(dpt.short_description, '') || ' ' || COALESCE(dpt.long_description, '')), 'B')
 FROM diet_protocols dp
 JOIN diet_protocol_translations dpt ON dpt.protocol_id = dp.id
 ON CONFLICT (entity_type, entity_id, locale) DO UPDATE SET
@@ -296,8 +296,8 @@ INSERT INTO search_index (entity_type, entity_id, locale, title, snippet, catego
 SELECT 'eating_pattern', ep.slug, ept.locale, ept.name,
   ept.description,
   0.8,
-  setweight(to_tsvector(CASE WHEN ept.locale = 'de' THEN 'german' ELSE 'english' END, COALESCE(ept.name, '')), 'A') ||
-  setweight(to_tsvector(CASE WHEN ept.locale = 'de' THEN 'german' ELSE 'english' END, COALESCE(ept.description, '')), 'B')
+  setweight(to_tsvector((CASE WHEN ept.locale = 'de' THEN 'german' ELSE 'english' END)::regconfig, COALESCE(ept.name, '')), 'A') ||
+  setweight(to_tsvector((CASE WHEN ept.locale = 'de' THEN 'german' ELSE 'english' END)::regconfig, COALESCE(ept.description, '')), 'B')
 FROM eating_patterns ep
 JOIN eating_pattern_translations ept ON ept.pattern_id = ep.id
 ON CONFLICT (entity_type, entity_id, locale) DO UPDATE SET
