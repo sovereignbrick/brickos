@@ -1,0 +1,30 @@
+{
+  "standard": {
+    "gender": "male",
+    "age": 35,
+    "height_cm": 180,
+    "diet_protocol": "standard",
+    "eating_pattern": null
+  },
+  "keto_faster": {
+    "gender": "female",
+    "age": 42,
+    "height_cm": 165,
+    "diet_protocol": "keto",
+    "eating_pattern": "16_8"
+  },
+  "carnivore": {
+    "gender": "male",
+    "age": 50,
+    "height_cm": 175,
+    "diet_protocol": "carnivore",
+    "eating_pattern": "omad"
+  },
+  "vegan": {
+    "gender": "female",
+    "age": 28,
+    "height_cm": 170,
+    "diet_protocol": "vegan",
+    "eating_pattern": null
+  }
+}

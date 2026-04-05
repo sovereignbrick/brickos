@@ -1,0 +1,8 @@
+{
+  "glucose": { "value": 5.2, "unit": "mmol/L", "device_type": "fora6" },
+  "ketones": { "value": 1.8, "unit": "mmol/L", "device_type": "fora6" },
+  "weight": { "value": 73.5, "unit": "kg", "device_type": "scale" },
+  "bp_systolic": { "value": 120, "unit": "mmHg", "device_type": "bp_monitor" },
+  "bp_diastolic": { "value": 80, "unit": "mmHg", "device_type": "bp_monitor" },
+  "heart_rate": { "value": 65, "unit": "bpm", "device_type": "bp_monitor" }
+}
