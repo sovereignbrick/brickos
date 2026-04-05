@@ -71,7 +71,7 @@ Note: The affiliate system already tracks `users.referred_by` (affiliate code), 
 5. Flag high-usage users
 
 **#303 sub-tasks (design doc only -- implementation in future sprint):**
-1. Write design doc: `docs/project-files/design/018-dr-alex-document-analysis.md`
+1. Write design doc: `docs/project-files/design/037-dr-alex-document-analysis.md`
 2. Define: data model (consultation_documents table), upload flow, AI prompt design
 3. Define: document types (prescription, article, lab report, advice)
 4. Define: tier gating, credit cost, privacy/encryption
