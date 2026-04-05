@@ -428,9 +428,9 @@ async fn seed_search_index(pool: &PgPool) -> Result<i64, AppError> {
              (SELECT zt.name FROM zone_translations zt JOIN zones z ON z.id = zt.zone_id JOIN zone_markers zm ON zm.zone_slug = z.zone_slug WHERE zm.marker_slug = m.marker_slug AND zt.locale = mt.locale LIMIT 1),
              COALESCE(mt.description, mt.tooltip, ''),
              '/markers/' || m.marker_slug, 1.5,
-             setweight(to_tsvector(CASE WHEN mt.locale = 'de' THEN 'german' ELSE 'english' END, COALESCE(mt.name, '')), 'A') ||
-             setweight(to_tsvector(CASE WHEN mt.locale = 'de' THEN 'german' ELSE 'english' END, COALESCE(mt.description, '') || ' ' || COALESCE(mt.tooltip, '')), 'B') ||
-             setweight(to_tsvector(CASE WHEN mt.locale = 'de' THEN 'german' ELSE 'english' END, COALESCE(mt.why_it_matters, '') || ' ' || COALESCE(mt.when_to_worry, '')), 'C'),
+             setweight(to_tsvector((CASE WHEN mt.locale = 'de' THEN 'german' ELSE 'english' END)::regconfig, COALESCE(mt.name, '')), 'A') ||
+             setweight(to_tsvector((CASE WHEN mt.locale = 'de' THEN 'german' ELSE 'english' END)::regconfig, COALESCE(mt.description, '') || ' ' || COALESCE(mt.tooltip, '')), 'B') ||
+             setweight(to_tsvector((CASE WHEN mt.locale = 'de' THEN 'german' ELSE 'english' END)::regconfig, COALESCE(mt.why_it_matters, '') || ' ' || COALESCE(mt.when_to_worry, '')), 'C'),
              jsonb_build_object('source_type', m.source_type, 'unit_canonical', m.unit_canonical, 'loinc_code', m.loinc_code, 'zone_id', m.zone_id::text),
              m.marker_slug
            FROM markers m JOIN marker_translations mt ON mt.marker_id = m.id
@@ -449,9 +449,9 @@ async fn seed_search_index(pool: &PgPool) -> Result<i64, AppError> {
              COALESCE(t.name, cm.marker_name),
              (SELECT zt.name FROM zone_translations zt JOIN zones z ON z.id = zt.zone_id JOIN zone_markers zm ON zm.zone_slug = z.zone_slug WHERE zm.marker_slug = cm.marker_slug AND zt.locale = t.locale LIMIT 1),
              cm.formula_description, '/markers/' || cm.marker_slug, 1.5,
-             setweight(to_tsvector(CASE WHEN t.locale = 'de' THEN 'german' ELSE 'english' END, COALESCE(t.name, cm.marker_name, '')), 'A') ||
-             setweight(to_tsvector(CASE WHEN t.locale = 'de' THEN 'german' ELSE 'english' END, COALESCE(cm.formula_description, '')), 'B') ||
-             setweight(to_tsvector(CASE WHEN t.locale = 'de' THEN 'german' ELSE 'english' END, COALESCE(t.description, '')), 'C'),
+             setweight(to_tsvector((CASE WHEN t.locale = 'de' THEN 'german' ELSE 'english' END)::regconfig, COALESCE(t.name, cm.marker_name, '')), 'A') ||
+             setweight(to_tsvector((CASE WHEN t.locale = 'de' THEN 'german' ELSE 'english' END)::regconfig, COALESCE(cm.formula_description, '')), 'B') ||
+             setweight(to_tsvector((CASE WHEN t.locale = 'de' THEN 'german' ELSE 'english' END)::regconfig, COALESCE(t.description, '')), 'C'),
              jsonb_build_object('source_type', cm.source_type, 'base_markers', cm.base_markers_required, 'formula', cm.formula_description)
            FROM calculated_markers cm LEFT JOIN marker_translations t ON t.marker_id = cm.id
            WHERE t.locale IS NOT NULL
@@ -468,8 +468,8 @@ async fn seed_search_index(pool: &PgPool) -> Result<i64, AppError> {
            SELECT 'zone', z.zone_slug, zt.locale, zt.name,
              COALESCE(zt.short_description, zt.description, ''),
              '/dashboard#' || z.zone_slug, 1.3,
-             setweight(to_tsvector(CASE WHEN zt.locale = 'de' THEN 'german' ELSE 'english' END, COALESCE(zt.name, '')), 'A') ||
-             setweight(to_tsvector(CASE WHEN zt.locale = 'de' THEN 'german' ELSE 'english' END, COALESCE(zt.description, '') || ' ' || COALESCE(zt.short_description, '')), 'B')
+             setweight(to_tsvector((CASE WHEN zt.locale = 'de' THEN 'german' ELSE 'english' END)::regconfig, COALESCE(zt.name, '')), 'A') ||
+             setweight(to_tsvector((CASE WHEN zt.locale = 'de' THEN 'german' ELSE 'english' END)::regconfig, COALESCE(zt.description, '') || ' ' || COALESCE(zt.short_description, '')), 'B')
            FROM zones z JOIN zone_translations zt ON zt.zone_id = z.id
            ON CONFLICT (entity_type, entity_id, locale) DO UPDATE SET
              title = EXCLUDED.title, snippet = EXCLUDED.snippet, tsv_document = EXCLUDED.tsv_document, updated_at = now()"#,
@@ -484,8 +484,8 @@ async fn seed_search_index(pool: &PgPool) -> Result<i64, AppError> {
            SELECT 'content', mc.marker_id || '-' || mc.content_type, mc.language, mc.title,
              LEFT(mc.body_text, 300),
              '/markers/' || mc.marker_id || '#' || mc.content_type, 1.0,
-             setweight(to_tsvector(CASE WHEN mc.language = 'de' THEN 'german' ELSE 'english' END, COALESCE(mc.title, '')), 'A') ||
-             setweight(to_tsvector(CASE WHEN mc.language = 'de' THEN 'german' ELSE 'english' END, COALESCE(mc.body_text, '')), 'B'),
+             setweight(to_tsvector((CASE WHEN mc.language = 'de' THEN 'german' ELSE 'english' END)::regconfig, COALESCE(mc.title, '')), 'A') ||
+             setweight(to_tsvector((CASE WHEN mc.language = 'de' THEN 'german' ELSE 'english' END)::regconfig, COALESCE(mc.body_text, '')), 'B'),
              mc.marker_id
            FROM marker_content mc
            ON CONFLICT (entity_type, entity_id, locale) DO UPDATE SET
@@ -602,11 +602,11 @@ async fn seed_search_index(pool: &PgPool) -> Result<i64, AppError> {
     .await?;
     total += r.rows_affected() as i64;
 
-    // Relations
+    // Relations (deep link to first marker)
     let r = sqlx::query(
-        r#"INSERT INTO search_index (entity_type, entity_id, locale, title, snippet, category_weight, tsv_document, metadata)
+        r#"INSERT INTO search_index (entity_type, entity_id, locale, title, snippet, url_path, category_weight, tsv_document, metadata)
            SELECT 'relation', mr.id::text, 'en',
-             mr.marker_slug_a || ' <-> ' || mr.marker_slug_b, mr.description, 1.0,
+             mr.marker_slug_a || ' <-> ' || mr.marker_slug_b, mr.description, '/markers/' || mr.marker_slug_a, 1.0,
              setweight(to_tsvector('english', COALESCE(mr.marker_slug_a, '') || ' ' || COALESCE(mr.marker_slug_b, '')), 'A') ||
              setweight(to_tsvector('english', COALESCE(mr.description, '')), 'B'),
              jsonb_build_object('marker_slug_a', mr.marker_slug_a, 'marker_slug_b', mr.marker_slug_b, 'direction', mr.direction, 'clinical_significance', mr.clinical_significance)
@@ -618,11 +618,11 @@ async fn seed_search_index(pool: &PgPool) -> Result<i64, AppError> {
     .await?;
     total += r.rows_affected() as i64;
 
-    // Protocol effects
+    // Protocol effects (deep link to affected marker)
     let r = sqlx::query(
-        r#"INSERT INTO search_index (entity_type, entity_id, locale, title, snippet, category_weight, tsv_document, metadata)
+        r#"INSERT INTO search_index (entity_type, entity_id, locale, title, snippet, url_path, category_weight, tsv_document, metadata)
            SELECT 'protocol_effect', pe.id::text, 'en',
-             pe.protocol_name || ' - ' || pe.marker_slug, pe.detail, 0.7,
+             pe.protocol_name || ' - ' || pe.marker_slug, pe.detail, '/markers/' || pe.marker_slug, 0.7,
              setweight(to_tsvector('english', COALESCE(pe.protocol_name, '') || ' ' || COALESCE(pe.marker_slug, '')), 'A') ||
              setweight(to_tsvector('english', COALESCE(pe.detail, '')), 'B'),
              jsonb_build_object('protocol_slug', pe.protocol_slug, 'marker_slug', pe.marker_slug, 'effect', pe.effect)
@@ -634,13 +634,13 @@ async fn seed_search_index(pool: &PgPool) -> Result<i64, AppError> {
     .await?;
     total += r.rows_affected() as i64;
 
-    // Web content
+    // Web content (use content value as title, deep link with section anchor)
     let r = sqlx::query(
         r#"INSERT INTO search_index (entity_type, entity_id, locale, title, snippet, external_url, category_weight, tsv_document)
-           SELECT 'web_content', wct.id::text, wct.locale, wcs.key,
+           SELECT 'web_content', wct.id::text, wct.locale, LEFT(wct.value, 100),
              LEFT(wct.value, 300),
-             'https://sovereignhealth.io/' || wp.slug, 0.5,
-             to_tsvector(CASE WHEN wct.locale = 'de' THEN 'german' ELSE 'english' END, COALESCE(wct.value, ''))
+             'https://sovereignhealth.io/' || wp.slug || '#' || wcs.key, 0.5,
+             to_tsvector((CASE WHEN wct.locale = 'de' THEN 'german' ELSE 'english' END)::regconfig, COALESCE(wct.value, ''))
            FROM web_content_translations wct
            JOIN web_content_sections wcs ON wcs.id = wct.section_id
            JOIN web_pages wp ON wp.id = wcs.page_id
@@ -657,8 +657,8 @@ async fn seed_search_index(pool: &PgPool) -> Result<i64, AppError> {
         r#"INSERT INTO search_index (entity_type, entity_id, locale, title, snippet, category_weight, tsv_document)
            SELECT 'diet_protocol', dp.slug, dpt.locale, dpt.name,
              COALESCE(dpt.short_description, dpt.long_description, ''), 0.8,
-             setweight(to_tsvector(CASE WHEN dpt.locale = 'de' THEN 'german' ELSE 'english' END, COALESCE(dpt.name, '')), 'A') ||
-             setweight(to_tsvector(CASE WHEN dpt.locale = 'de' THEN 'german' ELSE 'english' END, COALESCE(dpt.short_description, '') || ' ' || COALESCE(dpt.long_description, '')), 'B')
+             setweight(to_tsvector((CASE WHEN dpt.locale = 'de' THEN 'german' ELSE 'english' END)::regconfig, COALESCE(dpt.name, '')), 'A') ||
+             setweight(to_tsvector((CASE WHEN dpt.locale = 'de' THEN 'german' ELSE 'english' END)::regconfig, COALESCE(dpt.short_description, '') || ' ' || COALESCE(dpt.long_description, '')), 'B')
            FROM diet_protocols dp JOIN diet_protocol_translations dpt ON dpt.protocol_id = dp.id
            ON CONFLICT (entity_type, entity_id, locale) DO UPDATE SET
              title = EXCLUDED.title, snippet = EXCLUDED.snippet, tsv_document = EXCLUDED.tsv_document, updated_at = now()"#,
@@ -672,8 +672,8 @@ async fn seed_search_index(pool: &PgPool) -> Result<i64, AppError> {
         r#"INSERT INTO search_index (entity_type, entity_id, locale, title, snippet, category_weight, tsv_document)
            SELECT 'eating_pattern', ep.slug, ept.locale, ept.name,
              ept.description, 0.8,
-             setweight(to_tsvector(CASE WHEN ept.locale = 'de' THEN 'german' ELSE 'english' END, COALESCE(ept.name, '')), 'A') ||
-             setweight(to_tsvector(CASE WHEN ept.locale = 'de' THEN 'german' ELSE 'english' END, COALESCE(ept.description, '')), 'B')
+             setweight(to_tsvector((CASE WHEN ept.locale = 'de' THEN 'german' ELSE 'english' END)::regconfig, COALESCE(ept.name, '')), 'A') ||
+             setweight(to_tsvector((CASE WHEN ept.locale = 'de' THEN 'german' ELSE 'english' END)::regconfig, COALESCE(ept.description, '')), 'B')
            FROM eating_patterns ep JOIN eating_pattern_translations ept ON ept.pattern_id = ep.id
            ON CONFLICT (entity_type, entity_id, locale) DO UPDATE SET
              title = EXCLUDED.title, snippet = EXCLUDED.snippet, tsv_document = EXCLUDED.tsv_document, updated_at = now()"#,

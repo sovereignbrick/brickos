@@ -55,7 +55,7 @@ function StatusDot({ status }: { status: string | null }) {
 function ResultCard({ result, t }: { result: SearchResult; t: ReturnType<typeof useTranslations<'search'>> }) {
   const router = useRouter()
   const isExternal = !!result.external_url
-  const href = result.url_path || result.external_url || '#'
+  const hasLink = !!(result.url_path || result.external_url)
 
   const handleClick = () => {
     if (isExternal && result.external_url) {
@@ -74,9 +74,10 @@ function ResultCard({ result, t }: { result: SearchResult; t: ReturnType<typeof 
     : 'border-l-transparent'
 
   return (
-    <button
-      onClick={handleClick}
-      className={`w-full text-left bg-card border border-border rounded-xl p-4 border-l-4 ${borderColor} hover:bg-accent/50 transition-colors`}
+    <div
+      onClick={hasLink ? handleClick : undefined}
+      className={`w-full text-left bg-card border border-border rounded-xl p-4 border-l-4 ${borderColor} ${hasLink ? 'cursor-pointer hover:bg-accent/50' : ''} transition-colors`}
+      role={hasLink ? 'button' : undefined}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
@@ -103,18 +104,20 @@ function ResultCard({ result, t }: { result: SearchResult; t: ReturnType<typeof 
             </p>
           )}
         </div>
-        <div className="flex-shrink-0 flex items-center gap-1 text-xs text-muted-foreground">
-          {isExternal ? (
-            <span className="flex items-center gap-1">
-              <ExternalLink className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">{t('opensWebsite')}</span>
-            </span>
-          ) : (
-            <span className="text-blue-400">{result.entity_type === 'marker' || result.entity_type === 'calculated_marker' ? t('viewMarker') : t('viewDetails')}</span>
-          )}
-        </div>
+        {hasLink && (
+          <div className="flex-shrink-0 flex items-center gap-1 text-xs text-muted-foreground">
+            {isExternal ? (
+              <span className="flex items-center gap-1">
+                <ExternalLink className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">{t('opensWebsite')}</span>
+              </span>
+            ) : (
+              <span className="text-blue-400">{result.entity_type === 'marker' || result.entity_type === 'calculated_marker' ? t('viewMarker') : t('viewDetails')}</span>
+            )}
+          </div>
+        )}
       </div>
-    </button>
+    </div>
   )
 }
 
@@ -285,7 +288,7 @@ export default function SearchPage() {
                 </p>
                 <p className="text-xs text-muted-foreground mb-4">{t('trySuggestion')}</p>
                 <a
-                  href="/doctor-chat"
+                  href={`/doctor-chat?q=${encodeURIComponent(`Tell me about ${query} and what I can do to optimize it.`)}`}
                   className="inline-flex items-center gap-2 text-sm text-blue-400 hover:text-blue-300"
                 >
                   <MessageCircle className="w-4 h-4" />
@@ -300,9 +303,9 @@ export default function SearchPage() {
                 <div className="flex items-start gap-3">
                   <MessageCircle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
                   <div className="flex-1">
-                    <p className="text-sm text-foreground">{data.dr_alex_cta.message}</p>
+                    <p className="text-sm text-foreground">{t('askDrAlexAbout', { topic: query })}</p>
                     <a
-                      href={data.dr_alex_cta.url}
+                      href={`/doctor-chat?q=${encodeURIComponent(`Tell me about my ${query} levels and what I can do to optimize them.`)}`}
                       className="inline-flex items-center gap-1 text-sm text-blue-400 hover:text-blue-300 mt-2"
                     >
                       {t('startConsultation')} &rarr;

@@ -544,7 +544,6 @@ export function Navbar() {
           ))}
         </div>
         <div className="flex items-center gap-1">
-          {languageSelector}
           <button
             onClick={() => setSearchOpen(true)}
             className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
@@ -555,6 +554,7 @@ export function Navbar() {
               {typeof window !== 'undefined' && navigator?.platform?.includes('Mac') ? '\u2318K' : 'Ctrl+K'}
             </kbd>
           </button>
+          {languageSelector}
           {isDemo ? (
             isDemoOnly ? (
               <div className="hidden sm:block w-8" />
