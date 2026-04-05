@@ -165,7 +165,7 @@ export default function SearchPage() {
       doSearch(query || initialQuery, activeTab)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [locale])
+  }, [doSearch])
 
   const handleInputChange = (value: string) => {
     setQuery(value)

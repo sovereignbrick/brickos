@@ -11,6 +11,7 @@ interface ChatInputProps {
   disabled: boolean
   quotaExhausted: boolean
   tier?: string
+  initialValue?: string
 }
 
 const MAX_CHARS = 500
@@ -22,13 +23,13 @@ function isTierAtLeast(userTier: string, minTier: string): boolean {
   return TIER_ORDER.indexOf(userTier) >= TIER_ORDER.indexOf(minTier)
 }
 
-export function ChatInput({ onSend, onFileUpload, disabled, quotaExhausted: rawQuotaExhausted, tier }: ChatInputProps) {
+export function ChatInput({ onSend, onFileUpload, disabled, quotaExhausted: rawQuotaExhausted, tier, initialValue }: ChatInputProps) {
   const t = useTranslations('doctorChat')
   const { isOffline } = useOffline()
   // Never show exhausted state for unlimited tiers
   const isUnlimited = tier && UNLIMITED_TIERS.includes(tier)
   const quotaExhausted = isUnlimited ? false : rawQuotaExhausted
-  const [value, setValue] = useState('')
+  const [value, setValue] = useState(initialValue || '')
   const [uploadMenuOpen, setUploadMenuOpen] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const uploadMenuRef = useRef<HTMLDivElement>(null)
