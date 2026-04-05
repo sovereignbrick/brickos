@@ -192,13 +192,13 @@ function SectionEditor({ section, locale, onDelete }: { section: WebSection; loc
       <div className="flex items-center justify-between mb-1.5">
         <div className="flex items-center gap-2">
           <span className="text-xs font-mono text-muted-foreground">{section.key}</span>
-          <span className="text-[10px] text-muted-foreground/40 bg-muted px-1.5 py-0.5 rounded">{section.section_type}</span>
+          <span className="text-[10px] text-muted-foreground/60 bg-muted px-1.5 py-0.5 rounded">{section.section_type}</span>
           {isMissing && <span className="text-[10px] text-amber-400">missing</span>}
           {saving && <span className="text-[10px] text-blue-400">saving...</span>}
         </div>
         <button
           onClick={onDelete}
-          className="text-[10px] text-muted-foreground/40 hover:text-red-400 transition-colors"
+          className="text-[10px] text-muted-foreground/60 hover:text-red-400 transition-colors"
           title={t('deleteSection')}
         >
           delete

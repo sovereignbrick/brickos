@@ -31,7 +31,7 @@ function MarkerTooltip({ slug }: { slug: string }) {
         ref={ref}
         onMouseEnter={() => { if (ref.current) { const r = ref.current.getBoundingClientRect(); setPos({ x: r.right + 8, y: r.top + r.height / 2 }) } setShow(true) }}
         onMouseLeave={() => setShow(false)}
-        className="text-blue-500 dark:text-muted-foreground/50 hover:text-blue-600 dark:hover:text-muted-foreground cursor-help shrink-0 text-xs ml-1"
+        className="text-blue-500 dark:text-muted-foreground hover:text-blue-600 dark:hover:text-muted-foreground cursor-help shrink-0 text-xs ml-1"
       >
         ⓘ
       </span>

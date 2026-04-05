@@ -222,7 +222,7 @@ export default function SearchPage() {
               <button
                 key={tab.key}
                 onClick={() => handleTabChange(tab.filter)}
-                className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-sm transition-colors whitespace-nowrap ${
+                className={`flex-shrink-0 px-3 py-2.5 min-h-[44px] rounded-lg text-sm transition-colors whitespace-nowrap ${
                   isActive
                     ? 'bg-white/10 text-foreground'
                     : 'text-muted-foreground hover:text-foreground'

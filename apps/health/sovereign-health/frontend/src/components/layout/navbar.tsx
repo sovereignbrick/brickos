@@ -71,7 +71,8 @@ function UserMenu({ user, logout }: { user: { email: string; display_name: strin
       <button
         onClick={() => setOpen(o => !o)}
         title={user?.email ?? ''}
-        className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-xs font-bold text-white hover:bg-blue-500 transition-colors"
+        aria-label={user?.email ?? 'User menu'}
+        className="w-10 h-10 min-w-[44px] min-h-[44px] rounded-full bg-blue-600 flex items-center justify-center text-xs font-bold text-white hover:bg-blue-500 transition-colors"
       >
         {initials || '?'}
       </button>
@@ -444,7 +445,7 @@ export function Navbar() {
     <div className="relative" ref={langRef}>
       <button
         onClick={() => setLangOpen(o => !o)}
-        className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+        className="flex items-center gap-1 px-2 py-2.5 min-h-[44px] rounded-lg text-xs text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
         aria-label={tCommon('changeLanguage')}
       >
         {contentLocale.toUpperCase()}
@@ -551,7 +552,8 @@ export function Navbar() {
         <div className="flex items-center gap-1">
           <button
             onClick={() => setSearchOpen(true)}
-            className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+            className="flex items-center gap-1.5 px-2 py-2.5 min-h-[44px] rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+            aria-label={t('search')}
             title={t('search')}
           >
             <Search className="w-4 h-4" />
