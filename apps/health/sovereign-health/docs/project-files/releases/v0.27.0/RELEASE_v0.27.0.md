@@ -58,7 +58,7 @@
 - VAPID keys via env vars (`VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`)
 
 ### Sovereign Link (#151 -- 26pts)
-- New crate: `apps/infrastructure/sovereign-link/` (library, 10 source files)
+- New crate: `apps/technology/sovereign-link/` (library, 10 source files)
 - `GET /r/{code}` redirect handler with click tracking
 - `GET /r/{code}.qr` SVG QR code generation
 - Auto-created short links for existing affiliate codes (backfill)

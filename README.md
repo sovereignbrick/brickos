@@ -122,7 +122,7 @@ Sovereignty is not one thing. It is a stack of capabilities -- each a brick in a
 | Product | Pillar | Status |
 |---------|--------|--------|
 | [**Sovereign Health Intelligence**](apps/health/sovereign-health/) | Health | **Live** -- [app.sovereignhealth.io](https://app.sovereignhealth.io) |
-| [**Sovereign Link**](apps/infrastructure/sovereign-link/) | Technology | **Live** -- URL shortener + QR codes |
+| [**Sovereign Link**](apps/technology/sovereign-link/) | Technology | **Live** -- URL shortener + QR codes |
 | **BTC Tracker** | Finance | In progress |
 | **Sovereign Proposal Platform** | Data | Planned -- NOSTR-native governance, Bitcoin-anchored |
 | **Sovereign Exchange** | Finance | Planned -- P2P marketplace, barter + Bitcoin + Cashu |

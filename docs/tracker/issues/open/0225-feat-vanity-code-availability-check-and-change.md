@@ -34,4 +34,4 @@ brickos.io/r/ [helmut        ] [Check] [Save]
 
 - `apps/health/sovereign-health/frontend/src/app/affiliate/page.tsx` — vanity code UI
 - `apps/health/sovereign-health/api/src/handlers/affiliate.rs` — vanity code validation + tier check
-- `apps/infrastructure/sovereign-link/src/handlers/api.rs` — link CRUD
+- `apps/technology/sovereign-link/src/handlers/api.rs` — link CRUD

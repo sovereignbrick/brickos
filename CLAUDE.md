@@ -23,7 +23,7 @@ Apps are organized into pillars: Finance, Health, Data, Attention, Energy + foun
 - `apps/data/` -- Sovereign Proposal Platform (SPP)
 - `apps/attention/` -- Sovereign Signal
 - `apps/energy/` -- Sovereign Almanac
-- `apps/infrastructure/` -- Sovereign Link, Identity, NOSTR Relay
+- `apps/technology/` -- Sovereign Link, Identity, NOSTR Relay
 - `apps/governance/` -- Sovereign Vote
 - `apps/distribution/` -- Zapstore relay
 

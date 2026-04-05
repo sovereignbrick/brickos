@@ -17,7 +17,7 @@ Design doc: `docs/project-files/design/024-url-shortener-service.md`
 | # | Title | Points | Commits |
 |---|-------|--------|---------|
 | - | chore: create `packages/tokens/` design token system | 2 | 7ece9b6 |
-| #151 | chore: scaffold `apps/infrastructure/sovereign-link/` crate | 3 | 7ece9b6 |
+| #151 | chore: scaffold `apps/technology/sovereign-link/` crate | 3 | 7ece9b6 |
 | #151 | feat: `short_links` + `short_link_clicks` + `app_prefixes` migrations | 2 | 7ece9b6 |
 | #151 | feat: `GET /r/{code}` redirect handler + click tracking | 3 | 7ece9b6 |
 | #151 | feat: auto-create short links for existing affiliate codes (backfill) | 2 | 7ece9b6 |
@@ -43,7 +43,7 @@ Design doc: `docs/project-files/design/024-url-shortener-service.md`
 | docs: design 021 multi-tenant platform offering | 0 | 29941b5 |
 | docs: design 023 progressive web app (Sprint 011 prep) | 0 | 29941b5 |
 | docs: design 024 URL shortener + Sovereign Link (full spec) | 0 | 29941b5 |
-| chore: rename `apps/node/` → `apps/infrastructure/` | 0 | 29941b5 |
+| chore: rename `apps/node/` → `apps/technology/` | 0 | 29941b5 |
 | chore: add AGPL-3.0 LICENSE file | 0 | 29941b5 |
 | **Unplanned Total** | **3** | |
 
@@ -71,7 +71,7 @@ None — all planned items completed.
 ## Architecture Delivered
 
 ```
-apps/infrastructure/sovereign-link/     ← NEW crate (library)
+apps/technology/sovereign-link/     ← NEW crate (library)
 ├── src/
 │   ├── lib.rs                          ← configure_routes() for host API
 │   ├── models.rs                       ← ShortLink, AppPrefix, ClickMeta, LinkStats

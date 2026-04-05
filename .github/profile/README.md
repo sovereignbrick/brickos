@@ -22,7 +22,7 @@
 | Product | What it does | Status |
 |---------|-------------|--------|
 | **[Sovereign Health Intelligence](https://app.sovereignhealth.io)** | Biomarker tracking, lab PDF import, AI health assistant | Live |
-| **[Sovereign Link](https://github.com/sovereignbrick/brickos/tree/main/apps/infrastructure/sovereign-link)** | URL shortener + QR codes + affiliate links | Live |
+| **[Sovereign Link](https://github.com/sovereignbrick/brickos/tree/main/apps/technology/sovereign-link)** | URL shortener + QR codes + affiliate links | Live |
 
 ### Tech
 

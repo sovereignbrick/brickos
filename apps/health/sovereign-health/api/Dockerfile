@@ -24,7 +24,7 @@ COPY platform ./platform
 COPY apps/health/sovereign-health/api/Cargo.toml apps/health/sovereign-health/api/Cargo.toml
 COPY apps/health/sovereign-health/api/src ./apps/health/sovereign-health/api/src
 COPY apps/health/sovereign-health/api/benches ./apps/health/sovereign-health/api/benches
-COPY apps/infrastructure/sovereign-link ./apps/infrastructure/sovereign-link
+COPY apps/technology/sovereign-link ./apps/technology/sovereign-link
 # Stub fuzz target (not in normal builds but referenced in Cargo.toml)
 RUN mkdir -p apps/health/sovereign-health/api/fuzz/fuzz_targets \
     && echo 'fn main(){}' > apps/health/sovereign-health/api/fuzz/fuzz_targets/fuzz_health.rs
@@ -46,7 +46,7 @@ COPY Cargo.toml Cargo.lock ./
 COPY crates ./crates
 COPY platform ./platform
 COPY apps/health/sovereign-health/api ./apps/health/sovereign-health/api
-COPY apps/infrastructure/sovereign-link ./apps/infrastructure/sovereign-link
+COPY apps/technology/sovereign-link ./apps/technology/sovereign-link
 # Stub fuzz target
 RUN mkdir -p apps/health/sovereign-health/api/fuzz/fuzz_targets \
     && echo 'fn main(){}' > apps/health/sovereign-health/api/fuzz/fuzz_targets/fuzz_health.rs

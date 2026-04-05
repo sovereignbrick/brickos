@@ -13,7 +13,7 @@ The root `README.md` needs a refresh to reflect the current BrickOS architecture
 
 ### 1. Remove stale directories
 - [ ] Delete `apps/finance/tax-trainer/` — empty placeholder, no planned work
-- [ ] Delete `apps/infrastructure/bitcoin-node/` — empty placeholder, no planned work
+- [ ] Delete `apps/technology/bitcoin-node/` — empty placeholder, no planned work
 - [ ] Keep `apps/finance/btc-tracker/` — future planned app
 
 ### 2. Update README.md architecture section
@@ -65,4 +65,4 @@ brickos/
 
 - `README.md` — root README
 - `apps/finance/tax-trainer/` — DELETE
-- `apps/infrastructure/bitcoin-node/` — DELETE
+- `apps/technology/bitcoin-node/` — DELETE
