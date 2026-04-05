@@ -2,161 +2,148 @@ import { chromium } from '@playwright/test'
 import path from 'path'
 import fs from 'fs'
 
-const BASE = process.env.SCREENSHOT_URL || 'https://app.sovereignhealth.io'
-const API = process.env.SCREENSHOT_API || 'https://api.sovereignhealth.io'
-const OUTPUT = path.join(__dirname, '../public/screenshots')
-
+const APP_URL = process.env.SCREENSHOT_URL || 'https://demo.sovereignhealth.io'
 const EMAIL = 'optimized@sovereignhealth.io'
 const PASSWORD = 'SovereignOptimal2026!'
-
-interface ScreenshotDef {
-  name: string
-  path: string
-  scrollY?: number
-  /** Optional: click this selector before capturing */
-  click?: string
-  /** Extra wait time after navigation */
-  extraWait?: number
-}
-
-const SCREENSHOTS: ScreenshotDef[] = [
-  // Group 1: Dashboard & Overview
-  { name: 'dashboard_zones', path: '/dashboard' },
-  { name: 'dashboard_zone_energy', path: '/zones/energy_metabolic' },
-  { name: 'dashboard_zone_scroll', path: '/zones/energy_metabolic', scrollY: 600 },
-
-  // Group 2: Markers & Health Zones
-  { name: 'marker_glucose', path: '/markers/glucose' },
-  { name: 'marker_glucose_scroll1', path: '/markers/glucose', scrollY: 600 },
-  { name: 'marker_glucose_scroll2', path: '/markers/glucose', scrollY: 1200 },
-
-  // Group 3: Dr. Alex & Search
-  { name: 'dr_alex_main', path: '/doctor-chat' },
-  { name: 'dr_alex_chat', path: '/doctor-chat', extraWait: 2000, click: '[data-testid="conversation-item"]:first-child, .conversation-list a:first-child, .chat-list button:first-child' },
-  { name: 'search_results', path: '/search?q=glucose' },
-
-  // Group 4: Measurements & Trends
-  { name: 'measurements_history', path: '/measurements' },
-  { name: 'trends_chart', path: '/trends' },
-  { name: 'measurements_new', path: '/measurements/new' },
-
-  // Group 5: User Settings
-  { name: 'settings_profile', path: '/settings' },
-  { name: 'settings_devices', path: '/settings?tab=devices' },
-  { name: 'settings_lifestyle', path: '/settings', scrollY: 800 },
-]
-
-async function getAuthToken(): Promise<string> {
-  const res = await fetch(`${API}/auth/login`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email: EMAIL, password: PASSWORD }),
-  })
-  if (!res.ok) {
-    throw new Error(`Login failed: ${res.status} ${await res.text()}`)
-  }
-  const body = await res.json()
-  return body.data.token
-}
+const OUTPUT = path.join(__dirname, '../public/screenshots')
+const WEBSITE_OUTPUT = path.join(__dirname, '../../../website/public/screenshots')
 
 async function main() {
-  // Clean old screenshots
-  if (fs.existsSync(OUTPUT)) {
-    const oldFiles = fs.readdirSync(OUTPUT).filter(f => f.endsWith('.png'))
-    for (const f of oldFiles) {
-      fs.unlinkSync(path.join(OUTPUT, f))
-      console.log(`Deleted old: ${f}`)
-    }
-  } else {
-    fs.mkdirSync(OUTPUT, { recursive: true })
+  for (const dir of [OUTPUT, WEBSITE_OUTPUT]) {
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
   }
-
-  // Get auth token via API
-  console.log('Logging in...')
-  const token = await getAuthToken()
-  console.log('Login successful')
 
   const browser = await chromium.launch({ headless: true })
 
   for (const locale of ['en', 'de'] as const) {
     const suffix = locale === 'de' ? '_DE' : '_EN'
-    console.log(`\n--- Capturing ${locale.toUpperCase()} screenshots ---`)
+    console.log(`\n=== ${locale.toUpperCase()} ===`)
+
+    // Wait between sessions to avoid rate limiting
+    if (locale === 'de') {
+      console.log('Waiting 10s to avoid rate limit...')
+      await new Promise(r => setTimeout(r, 10000))
+    }
 
     const context = await browser.newContext({
       viewport: { width: 1280, height: 800 },
-      locale,
-      extraHTTPHeaders: { 'Accept-Language': locale },
     })
-
-    const domain = new URL(BASE).hostname
-
-    // Set auth token and locale cookies
-    await context.addCookies([
-      { name: 'locale', value: locale, domain, path: '/' },
-      { name: 'auth_token', value: token, domain, path: '/' },
-    ])
-
     const page = await context.newPage()
 
-    // Navigate to dashboard first to ensure auth state is loaded
+    // LOGIN via UI
+    console.log('Logging in...')
+    await page.goto(`${APP_URL}/login`, { waitUntil: 'networkidle', timeout: 30000 })
+    await page.waitForSelector('input[type="email"]', { timeout: 10000 })
+    await page.fill('input[type="email"]', EMAIL)
+    await page.fill('input[type="password"]', PASSWORD)
+    await page.waitForTimeout(500)
+    await page.click('button[type="submit"]')
     try {
-      await page.goto(`${BASE}/dashboard`, { waitUntil: 'networkidle', timeout: 30000 })
-      await page.waitForTimeout(3000)
-    } catch (err) {
-      console.error(`Initial page load failed, trying UI login...`)
-      // Fallback: login via UI
-      await page.goto(`${BASE}/login`, { waitUntil: 'networkidle', timeout: 15000 })
-      await page.fill('input[type="email"]', EMAIL)
-      await page.fill('input[type="password"]', PASSWORD)
-      await page.click('button[type="submit"]')
-      try {
-        await page.waitForURL('**/dashboard', { timeout: 15000 })
-      } catch {
-        console.error('UI login failed, continuing anyway...')
-      }
-      await page.waitForTimeout(3000)
+      await page.waitForURL('**/dashboard', { timeout: 15000 })
+      console.log('Logged in')
+    } catch {
+      console.error('Login failed')
+      await context.close()
+      continue
     }
 
-    for (const shot of SCREENSHOTS) {
-      try {
-        // Only navigate if the URL is different from current
-        const targetUrl = `${BASE}${shot.path}`
-        if (page.url() !== targetUrl) {
-          await page.goto(targetUrl, { waitUntil: 'networkidle', timeout: 30000 })
-        }
+    // Now set locale cookie for this session
+    await context.addCookies([{
+      name: 'locale', value: locale,
+      domain: new URL(APP_URL).hostname, path: '/',
+    }])
+    await page.waitForTimeout(2000)
 
-        await page.waitForTimeout(shot.extraWait || 3000)
-
-        if (shot.click) {
-          try {
-            await page.click(shot.click, { timeout: 5000 })
-            await page.waitForTimeout(2000)
-          } catch {
-            console.log(`    Click selector not found for ${shot.name}, using current view`)
-          }
-        }
-
-        if (shot.scrollY) {
-          await page.evaluate((y) => window.scrollTo(0, y), shot.scrollY)
-          await page.waitForTimeout(1000)
-        }
-
-        await page.screenshot({
-          path: `${OUTPUT}/${shot.name}${suffix}.png`,
-          fullPage: false,
-        })
-        console.log(`  Captured: ${shot.name}${suffix}.png`)
-      } catch (err) {
-        console.error(`  Failed: ${shot.name}${suffix} - ${err}`)
-        // Create a placeholder image (1x1 dark pixel PNG)
-        const placeholder = Buffer.from(
-          'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
-          'base64'
-        )
-        fs.writeFileSync(`${OUTPUT}/${shot.name}${suffix}.png`, placeholder)
-        console.log(`  Created placeholder: ${shot.name}${suffix}.png`)
-      }
+    // Helper: capture + copy
+    async function capture(name: string) {
+      const file = path.join(OUTPUT, `${name}.png`)
+      await page.screenshot({ path: file, fullPage: false })
+      fs.copyFileSync(file, path.join(WEBSITE_OUTPUT, `${name}.png`))
+      console.log(`  ${name}.png (${Math.round(fs.statSync(file).size / 1024)}KB)`)
     }
+
+    // GROUP 1: Dashboard & Overview
+    await page.goto(`${APP_URL}/dashboard`, { waitUntil: 'networkidle', timeout: 20000 })
+    await page.waitForTimeout(3000)
+    await capture(`dashboard_zones${suffix}`)
+
+    await page.goto(`${APP_URL}/zones/energy_metabolic`, { waitUntil: 'networkidle', timeout: 20000 })
+    await page.waitForTimeout(3000)
+    await capture(`dashboard_zone_energy${suffix}`)
+
+    await page.evaluate(() => window.scrollBy(0, 600))
+    await page.waitForTimeout(1000)
+    await capture(`dashboard_zone_scroll${suffix}`)
+
+    // GROUP 2: Markers & Health Zones
+    await page.goto(`${APP_URL}/markers/glucose`, { waitUntil: 'networkidle', timeout: 20000 })
+    await page.waitForTimeout(3000)
+    await capture(`marker_glucose${suffix}`)
+
+    await page.evaluate(() => window.scrollBy(0, 800))
+    await page.waitForTimeout(1000)
+    await capture(`marker_glucose_scroll1${suffix}`)
+
+    await page.evaluate(() => window.scrollBy(0, 800))
+    await page.waitForTimeout(1000)
+    await capture(`marker_glucose_scroll2${suffix}`)
+
+    // GROUP 3: Dr. Alex & Search
+    await page.goto(`${APP_URL}/doctor-chat`, { waitUntil: 'networkidle', timeout: 20000 })
+    await page.waitForTimeout(3000)
+    await capture(`dr_alex_main${suffix}`)
+
+    // Try clicking first conversation for chat view
+    try {
+      const conv = page.locator('.truncate, [class*="conversation"]').first()
+      if (await conv.isVisible({ timeout: 2000 })) {
+        await conv.click()
+        await page.waitForTimeout(2000)
+      }
+    } catch { /* no conversations */ }
+    await capture(`dr_alex_chat${suffix}`)
+
+    await page.goto(`${APP_URL}/search?q=glucose`, { waitUntil: 'networkidle', timeout: 20000 })
+    await page.waitForTimeout(3000)
+    await capture(`search_results${suffix}`)
+
+    // GROUP 4: Measurements & Trends
+    await page.goto(`${APP_URL}/measurements`, { waitUntil: 'networkidle', timeout: 20000 })
+    await page.waitForTimeout(3000)
+    await capture(`measurements_history${suffix}`)
+
+    await page.goto(`${APP_URL}/trends`, { waitUntil: 'networkidle', timeout: 20000 })
+    await page.waitForTimeout(3000)
+    await capture(`trends_chart${suffix}`)
+
+    await page.goto(`${APP_URL}/measurements/new`, { waitUntil: 'networkidle', timeout: 20000 })
+    await page.waitForTimeout(2000)
+    await capture(`measurements_new${suffix}`)
+
+    // GROUP 5: Settings
+    await page.goto(`${APP_URL}/settings`, { waitUntil: 'networkidle', timeout: 20000 })
+    await page.waitForTimeout(3000)
+    await capture(`settings_profile${suffix}`)
+
+    // Click Devices tab
+    try {
+      const devTab = page.locator('button').filter({ hasText: /Devices|Geräte/i }).first()
+      if (await devTab.isVisible({ timeout: 2000 })) {
+        await devTab.click()
+        await page.waitForTimeout(2000)
+      }
+    } catch { /* */ }
+    await capture(`settings_devices${suffix}`)
+
+    // Click Thresholds/Privacy tab for variety
+    try {
+      const tab = page.locator('button').filter({ hasText: /Thresholds|Schwellenwerte|Privacy|Datenschutz/i }).first()
+      if (await tab.isVisible({ timeout: 2000 })) {
+        await tab.click()
+        await page.waitForTimeout(2000)
+      }
+    } catch { /* */ }
+    await capture(`settings_lifestyle${suffix}`)
 
     await context.close()
   }
@@ -165,4 +152,4 @@ async function main() {
   console.log('\nDone!')
 }
 
-main()
+main().catch(console.error)
