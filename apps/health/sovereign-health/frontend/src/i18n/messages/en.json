@@ -586,7 +586,7 @@
     "units": {
       "mg": "mg",
       "g": "g",
-      "mcg": "\u00b5g",
+      "mcg": "µg",
       "ml": "ml",
       "iu": "IU",
       "pct": "%",
@@ -1252,7 +1252,7 @@
     "colStatus": "Status",
     "methodEur": "Euro",
     "methodBtc": "Bitcoin",
-    "showing": "Showing {from}\u2013{to} of {total}"
+    "showing": "Showing {from}–{to} of {total}"
   },
   "markers": {
     "measurementDeleted": "Measurement deleted",
@@ -1481,9 +1481,18 @@
     "errorMessage": "Something went wrong. Please try again.",
     "dismissBanner": "Dismiss demo banner",
     "profiles": {
-      "optimized": { "name": "Optimized", "desc": "Keto/carnivore, excellent metabolic health" },
-      "average": { "name": "Average", "desc": "Standard diet, borderline markers" },
-      "at_risk": { "name": "At Risk", "desc": "Pre-diabetic, metabolic syndrome" }
+      "optimized": {
+        "name": "Optimized",
+        "desc": "Keto/carnivore, excellent metabolic health"
+      },
+      "average": {
+        "name": "Average",
+        "desc": "Standard diet, borderline markers"
+      },
+      "at_risk": {
+        "name": "At Risk",
+        "desc": "Pre-diabetic, metabolic syndrome"
+      }
     }
   },
   "tiers": {
@@ -1754,23 +1763,35 @@
   "learn": {
     "title": "Learn Sovereign Health",
     "subtitle": "Explore all features of the platform",
-    "dashboard": "Dashboard Overview",
-    "dashboardDesc": "Your health zones at a glance with status indicators",
-    "markerDetail": "Marker Detail",
-    "markerDetailDesc": "Deep dive into any biomarker with trends, foods, and supplements",
-    "zones": "Health Zones",
-    "zonesDesc": "8 functional health categories organizing your markers",
-    "search": "Global Search",
-    "searchDesc": "Find any marker, food, supplement, or health information instantly",
-    "trends": "Trends & Analysis",
-    "trendsDesc": "Track your biomarker trends over time",
-    "measurements": "Measurement History",
-    "measurementsDesc": "Complete log of all your health measurements",
     "videosTitle": "Video Walkthroughs",
     "videosComingSoon": "Video tutorials coming soon",
     "categoryDashboard": "Dashboard & Overview",
+    "categoryDashboardSubtitle": "Your health command center at a glance",
     "categoryMarkers": "Markers & Health Zones",
-    "categorySearch": "Search & Discovery",
-    "categoryMeasurements": "Measurements & Trends"
+    "categoryMarkersSubtitle": "Deep dive into your biomarkers",
+    "categoryDrAlex": "Dr. Alex & Search",
+    "categoryDrAlexSubtitle": "AI-powered health consultations and search",
+    "categoryMeasurements": "Measurements & Trends",
+    "categoryMeasurementsSubtitle": "Track and analyze your health data",
+    "categorySettings": "User Settings",
+    "categorySettingsSubtitle": "Personalize your health experience",
+    "dashboardZonesDesc": "Your health dashboard shows all 8 health zones with real-time status indicators. Green means optimal, orange needs attention, red requires action.",
+    "dashboardZoneEnergyDesc": "Click any zone to see all markers in that category. Energy & Metabolic tracks glucose, ketones, HbA1c, and related biomarkers.",
+    "dashboardZoneScrollDesc": "Each zone shows your latest measurement values, status, and trends for every marker.",
+    "markerGlucoseDesc": "The marker detail page shows your current value, status, and trend chart with reference ranges highlighted.",
+    "markerGlucoseScroll1Desc": "Scroll down for curated health content: Did You Know facts, tips to stay in range, and relevant food recommendations.",
+    "markerGlucoseScroll2Desc": "Every marker includes food suggestions, supplement recommendations, and scientific references.",
+    "drAlexMainDesc": "Dr. Alex offers specialized health consultations: general health, nutrition, supplements, lab interpretation, and more.",
+    "drAlexChatDesc": "Ask Dr. Alex any health question. Responses are personalized based on your actual biomarker data.",
+    "searchResultsDesc": "Global search finds markers, foods, supplements, and health content instantly. Press Ctrl+K anywhere.",
+    "measurementsHistoryDesc": "Your complete measurement history with filters by marker, device, date range, and protocol.",
+    "trendsChartDesc": "Track multiple biomarkers over time. Compare glucose and ketones to spot correlations.",
+    "measurementsNewDesc": "Add measurements manually or import from devices and lab reports.",
+    "settingsProfileDesc": "Configure your health profile: age, gender, height, dietary protocol, and fasting schedule.",
+    "settingsDevicesDesc": "Manage your measurement devices and lab providers for organized tracking.",
+    "settingsLifestyleDesc": "Set your lifestyle defaults: diet protocol, fasting schedule, exercise habits, and sleep patterns.",
+    "shareTooltip": "Copy image link",
+    "shareCopied": "Link copied!",
+    "closeLightbox": "Close"
   }
 }

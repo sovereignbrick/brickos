@@ -15,43 +15,55 @@ interface Tutorial {
 
 const TUTORIALS: Tutorial[] = [
   {
-    key: "gettingStarted",
-    icon: "🚀",
+    key: "dashboardOverview",
+    icon: "📊",
     screenshots: [
-      { base: "/screenshots/01-add-your-devices", key: "addDevices" },
+      { base: "/screenshots/dashboard_zones", key: "dashboardZones" },
+      { base: "/screenshots/dashboard_zone_energy", key: "dashboardZoneEnergy" },
+      { base: "/screenshots/dashboard_zone_scroll", key: "dashboardZoneScroll" },
     ],
   },
   {
-    key: "healthZonesExplained",
+    key: "markersHealthZones",
     icon: "🔬",
-    screenshots: [],
+    screenshots: [
+      { base: "/screenshots/marker_glucose", key: "markerGlucose" },
+      { base: "/screenshots/marker_glucose_scroll1", key: "markerGlucoseScroll1" },
+      { base: "/screenshots/marker_glucose_scroll2", key: "markerGlucoseScroll2" },
+    ],
   },
   {
-    key: "usingDrAlex",
+    key: "drAlexSearch",
     icon: "💬",
     screenshots: [
-      { base: "/screenshots/02-dr-alex-medication-import", key: "drAlexMedication" },
+      { base: "/screenshots/dr_alex_main", key: "drAlexMain" },
+      { base: "/screenshots/dr_alex_chat", key: "drAlexChat" },
+      { base: "/screenshots/search_results", key: "searchResults" },
     ],
   },
   {
-    key: "selfHostedSetup",
-    icon: "🖥️",
-    screenshots: [],
+    key: "measurementsTrends",
+    icon: "📈",
+    screenshots: [
+      { base: "/screenshots/measurements_history", key: "measurementsHistory" },
+      { base: "/screenshots/trends_chart", key: "trendsChart" },
+      { base: "/screenshots/measurements_new", key: "measurementsNew" },
+    ],
   },
   {
-    key: "customizingThresholds",
-    icon: "🎯",
+    key: "userSettings",
+    icon: "⚙️",
     screenshots: [
-      { base: "/screenshots/03-your-influence-factors", key: "influenceFactors" },
+      { base: "/screenshots/settings_profile", key: "settingsProfile" },
+      { base: "/screenshots/settings_devices", key: "settingsDevices" },
+      { base: "/screenshots/settings_lifestyle", key: "settingsLifestyle" },
     ],
   },
 ];
 
 function screenshotSrc(base: string, locale: string): string {
-  if (locale !== "en") {
-    return `${base}-${locale.toUpperCase()}.png`;
-  }
-  return `${base}-EN.png`;
+  const suffix = locale === "de" ? "_DE" : "_EN";
+  return `${base}${suffix}.png`;
 }
 
 export default function LearnPage() {
@@ -128,7 +140,7 @@ export default function LearnPage() {
                   <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                     {tutorial.screenshots.map((shot) => {
                       const src = screenshotSrc(shot.base, locale);
-                      const caption = t(`home.demo.screenshots.${shot.key}` as any) || shot.key;
+                      const caption = t(`learn.screenshots.${shot.key}` as any) || shot.key;
                       return (
                         <button
                           key={shot.key}
@@ -145,7 +157,7 @@ export default function LearnPage() {
                               className="aspect-[8/5] w-full object-cover"
                               onError={(e) => {
                                 const img = e.currentTarget;
-                                const enFallback = img.src.replace(/-[A-Z]{2}\.png/, "-EN.png");
+                                const enFallback = img.src.replace(/_[A-Z]{2}\.png/, "_EN.png");
                                 if (img.src !== enFallback) img.src = enFallback;
                               }}
                             />

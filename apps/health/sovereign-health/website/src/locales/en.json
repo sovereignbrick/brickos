@@ -1187,34 +1187,50 @@
   },
   "learn": {
     "hero": {
-      "title": "Learn",
-      "subtitle": "Tutorials and guides to help you get the most out of Sovereign Health."
+      "title": "Learn Sovereign Health",
+      "subtitle": "Explore all features of the platform with guided screenshots and tutorials."
     },
     "tutorials": {
-      "gettingStarted": {
-        "title": "Getting Started",
-        "description": "Set up your account, connect your first device, and record your first measurement."
+      "dashboardOverview": {
+        "title": "Dashboard & Overview",
+        "description": "Your health dashboard shows all 8 health zones with real-time status indicators. Click any zone to explore the markers within."
       },
-      "healthZonesExplained": {
-        "title": "Health Zones Explained",
-        "description": "Understand the 8 health zones and how they organize your biomarkers."
+      "markersHealthZones": {
+        "title": "Markers & Health Zones",
+        "description": "Deep dive into any biomarker with trends, reference ranges, curated foods, supplements, and scientific references."
       },
-      "usingDrAlex": {
-        "title": "Using Dr. Alex",
-        "description": "Get the most out of your AI health assistant with effective questions and prompts."
+      "drAlexSearch": {
+        "title": "Dr. Alex & Search",
+        "description": "Your AI health consultant analyzes your biomarker data and provides personalized insights. Global search finds anything instantly."
       },
-      "selfHostedSetup": {
-        "title": "Self-Hosted Setup",
-        "description": "Deploy Sovereign Health on your own server with Docker in under 5 minutes."
+      "measurementsTrends": {
+        "title": "Measurements & Trends",
+        "description": "Track your biomarkers over time, import from devices and lab reports, and spot correlations between markers."
       },
-      "customizingThresholds": {
-        "title": "Customizing Reference Ranges",
-        "description": "Set your own reference ranges based on your health goals and protocol."
+      "userSettings": {
+        "title": "User Settings",
+        "description": "Configure your health profile, manage devices and labs, and set your dietary protocol and lifestyle defaults."
       }
     },
-    "videoComingSoon": "Video coming soon",
-    "unsupportedProvider": "Unsupported video provider",
-    "note": "Videos are being produced. Check back soon."
+    "screenshots": {
+      "dashboardZones": "Your health dashboard shows all 8 health zones with real-time status indicators. Green means optimal, orange needs attention, red requires action.",
+      "dashboardZoneEnergy": "Click any zone to see all markers in that category. Energy & Metabolic tracks glucose, ketones, HbA1c, and related biomarkers.",
+      "dashboardZoneScroll": "Each zone shows your latest measurement values, status, and trends for every marker in the category.",
+      "markerGlucose": "The marker detail page shows your current value, status, and trend chart with reference ranges highlighted.",
+      "markerGlucoseScroll1": "Scroll down for curated health content: Did You Know facts, tips to stay in range, and food recommendations filtered by your diet.",
+      "markerGlucoseScroll2": "Every marker includes food suggestions, supplement recommendations, lab test information, and scientific references.",
+      "drAlexMain": "Dr. Alex offers specialized health consultations: general health, nutrition, supplements, lab interpretation, and more.",
+      "drAlexChat": "Ask Dr. Alex any health question. Responses are personalized based on your actual biomarker data and health profile.",
+      "searchResults": "Global search finds markers, foods, supplements, and health content instantly. Press Ctrl+K anywhere in the app.",
+      "measurementsHistory": "Your complete measurement history with filters by marker, device, date range, and protocol context.",
+      "trendsChart": "Track multiple biomarkers over time. Compare glucose and ketones to spot correlations and optimize your health.",
+      "measurementsNew": "Add measurements manually with lifestyle context: exercise, sleep quality, stress level, and meal timing.",
+      "settingsProfile": "Configure your health profile: age, gender, height, dietary protocol, and fasting schedule for personalized reference ranges.",
+      "settingsDevices": "Manage your measurement devices and lab providers for organized tracking and accurate device-specific calibration.",
+      "settingsLifestyle": "Set your lifestyle defaults: diet protocol, fasting schedule, exercise habits, and sleep patterns for context-aware analysis."
+    },
+    "videoComingSoon": "Video tutorial coming soon",
+    "note": "Ready to take control of your health data? Start your journey today."
   },
   "partners": {
     "hero": {

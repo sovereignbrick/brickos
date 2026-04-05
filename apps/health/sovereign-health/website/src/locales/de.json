@@ -1187,34 +1187,50 @@
   },
   "learn": {
     "hero": {
-      "title": "Lernen",
-      "subtitle": "Anleitungen und Leitfäden, die Ihnen helfen, das Beste aus Sovereign Health herauszuholen."
+      "title": "Sovereign Health entdecken",
+      "subtitle": "Alle Funktionen der Plattform mit Screenshots und Anleitungen erkunden."
     },
     "tutorials": {
-      "gettingStarted": {
-        "title": "Erste Schritte",
-        "description": "Richten Sie Ihr Konto ein, verbinden Sie Ihr erstes Gerät und erfassen Sie Ihre erste Messung."
+      "dashboardOverview": {
+        "title": "Dashboard & Übersicht",
+        "description": "Ihr Gesundheits-Dashboard zeigt alle 8 Gesundheitszonen mit Echtzeit-Statusanzeigen. Klicken Sie auf eine Zone, um die Marker zu erkunden."
       },
-      "healthZonesExplained": {
-        "title": "Gesundheitszonen erklärt",
-        "description": "Verstehen Sie die 8 Gesundheitszonen und wie sie Ihre Biomarker organisieren."
+      "markersHealthZones": {
+        "title": "Marker & Gesundheitszonen",
+        "description": "Detaillierte Ansicht jedes Biomarkers mit Trends, Referenzbereichen, Lebensmitteln, Nahrungsergänzungsmitteln und wissenschaftlichen Referenzen."
       },
-      "usingDrAlex": {
-        "title": "Dr. Alex verwenden",
-        "description": "Holen Sie das Beste aus Ihrem AI-Gesundheitsassistenten heraus - mit effektiven Fragen und Eingaben."
+      "drAlexSearch": {
+        "title": "Dr. Alex & Suche",
+        "description": "Ihr KI-Gesundheitsberater analysiert Ihre Biomarker-Daten und gibt personalisierte Einblicke. Die globale Suche findet alles sofort."
       },
-      "selfHostedSetup": {
-        "title": "Selbst gehostete Einrichtung",
-        "description": "Stellen Sie Sovereign Health auf Ihrem eigenen Server mit Docker in unter 5 Minuten bereit."
+      "measurementsTrends": {
+        "title": "Messungen & Trends",
+        "description": "Verfolgen Sie Ihre Biomarker über die Zeit, importieren Sie von Geräten und Laborberichten und erkennen Sie Zusammenhänge."
       },
-      "customizingThresholds": {
-        "title": "Referenzbereiche anpassen",
-        "description": "Legen Sie Ihre eigenen Referenzbereiche basierend auf Ihren Gesundheitszielen und Ihrem Protokoll fest."
+      "userSettings": {
+        "title": "Benutzereinstellungen",
+        "description": "Konfigurieren Sie Ihr Gesundheitsprofil, verwalten Sie Geräte und Labore und legen Sie Ihre Ernährungs- und Lebensstil-Standardwerte fest."
       }
     },
-    "videoComingSoon": "Video demnächst verfügbar",
-    "unsupportedProvider": "Nicht unterstützter Videoanbieter",
-    "note": "Videos sind in Produktion. Schauen Sie bald wieder vorbei."
+    "screenshots": {
+      "dashboardZones": "Ihr Gesundheits-Dashboard zeigt alle 8 Gesundheitszonen mit Echtzeit-Statusanzeigen. Grün bedeutet optimal, Orange erfordert Aufmerksamkeit, Rot erfordert Handlung.",
+      "dashboardZoneEnergy": "Klicken Sie auf eine Zone, um alle Marker in dieser Kategorie zu sehen. Energie & Stoffwechsel verfolgt Glukose, Ketone, HbA1c und verwandte Biomarker.",
+      "dashboardZoneScroll": "Jede Zone zeigt Ihre neuesten Messwerte, Status und Trends für jeden Marker in der Kategorie.",
+      "markerGlucose": "Die Marker-Detailseite zeigt Ihren aktuellen Wert, Status und Trenddiagramm mit hervorgehobenen Referenzbereichen.",
+      "markerGlucoseScroll1": "Scrollen Sie nach unten für kuratierte Gesundheitsinhalte: Wussten Sie schon, Tipps zum Einhalten des Bereichs und Lebensmittelempfehlungen nach Ihrer Ernährung.",
+      "markerGlucoseScroll2": "Jeder Marker enthält Lebensmittelvorschläge, Nahrungsergänzungsmittel-Empfehlungen, Labortestinformationen und wissenschaftliche Referenzen.",
+      "drAlexMain": "Dr. Alex bietet spezialisierte Gesundheitsberatungen: allgemeine Gesundheit, Ernährung, Nahrungsergänzungsmittel, Laborinterpretation und mehr.",
+      "drAlexChat": "Stellen Sie Dr. Alex jede Gesundheitsfrage. Antworten sind personalisiert basierend auf Ihren tatsächlichen Biomarker-Daten und Ihrem Gesundheitsprofil.",
+      "searchResults": "Die globale Suche findet Marker, Lebensmittel, Nahrungsergänzungsmittel und Gesundheitsinhalte sofort. Drücken Sie Strg+K überall in der App.",
+      "measurementsHistory": "Ihre vollständige Messhistorie mit Filtern nach Marker, Gerät, Zeitraum und Protokollkontext.",
+      "trendsChart": "Verfolgen Sie mehrere Biomarker über die Zeit. Vergleichen Sie Glukose und Ketone, um Zusammenhänge zu erkennen und Ihre Gesundheit zu optimieren.",
+      "measurementsNew": "Fügen Sie Messungen manuell mit Lebensstil-Kontext hinzu: Bewegung, Schlafqualität, Stresslevel und Mahlzeitenzeit.",
+      "settingsProfile": "Konfigurieren Sie Ihr Gesundheitsprofil: Alter, Geschlecht, Größe, Ernährungsprotokoll und Fastenplan für personalisierte Referenzbereiche.",
+      "settingsDevices": "Verwalten Sie Ihre Messgeräte und Laboranbieter für organisierte Nachverfolgung und genaue gerätespezifische Kalibrierung.",
+      "settingsLifestyle": "Legen Sie Ihre Lebensstil-Standardwerte fest: Ernährungsprotokoll, Fastenplan, Bewegungsgewohnheiten und Schlafmuster für kontextbewusste Analyse."
+    },
+    "videoComingSoon": "Video-Tutorial folgt in Kürze",
+    "note": "Bereit, die Kontrolle über Ihre Gesundheitsdaten zu übernehmen? Starten Sie noch heute."
   },
   "partners": {
     "hero": {
