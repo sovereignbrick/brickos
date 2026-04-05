@@ -61,7 +61,7 @@ export function ZoneCard({ zone }: { zone: Zone }) {
         }
       </p>
       {description && (
-        <p className="text-xs text-muted-foreground/70 mt-1.5 line-clamp-2 leading-snug">
+        <p className="text-xs text-muted-foreground mt-1.5 line-clamp-2 leading-snug">
           {description}
         </p>
       )}
