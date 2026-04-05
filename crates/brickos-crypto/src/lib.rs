@@ -9,6 +9,9 @@
 //  AGPL-3.0 — https://github.com/sovereignbrick/brickos
 // ============================================================================
 
+// generic-array 0.14.9 deprecated from_slice; fix requires aes-gcm upgrade to generic-array 1.x
+#![allow(deprecated)]
+
 use aes_gcm::aead::rand_core::RngCore;
 use aes_gcm::aead::{Aead, KeyInit, OsRng};
 use aes_gcm::{Aes256Gcm, Key, Nonce};
