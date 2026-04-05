@@ -9,8 +9,6 @@ interface Tutorial {
   key: string;
   icon: string;
   screenshots: { base: string; key: string }[];
-  videoUrl?: string;
-  videoPoster?: string;
 }
 
 const TUTORIALS: Tutorial[] = [
@@ -106,35 +104,6 @@ export default function LearnPage() {
                   </div>
                 </div>
 
-                {/* Video placeholder */}
-                {tutorial.videoUrl ? (
-                  <div className="mt-6">
-                    <div
-                      className="relative overflow-hidden rounded-xl border border-[var(--border)] bg-black"
-                      style={{ aspectRatio: "16/9" }}
-                    >
-                      <iframe
-                        src={tutorial.videoUrl}
-                        title={title}
-                        className="absolute inset-0 h-full w-full"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowFullScreen
-                      />
-                    </div>
-                  </div>
-                ) : (
-                  <div className="mt-6">
-                    <div
-                      className="flex items-center justify-center rounded-xl border border-dashed border-[var(--border)] bg-[var(--bg)]/50"
-                      style={{ aspectRatio: "16/9", maxHeight: "200px" }}
-                    >
-                      <p className="text-sm text-[var(--muted)]">
-                        {t("learn.videoComingSoon")}
-                      </p>
-                    </div>
-                  </div>
-                )}
-
                 {/* Screenshots */}
                 {tutorial.screenshots.length > 0 && (
                   <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -145,7 +114,8 @@ export default function LearnPage() {
                         <button
                           key={shot.key}
                           onClick={() => setLightbox(src)}
-                          className="group overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--card)] transition-transform hover:scale-[1.02] text-left"
+                          title={caption}
+                          className="group overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--card)] transition-transform hover:scale-[1.02]"
                         >
                           <div className="relative">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -167,7 +137,6 @@ export default function LearnPage() {
                               </svg>
                             </div>
                           </div>
-                          <p className="px-4 py-3 text-sm text-[var(--muted)]">{caption}</p>
                         </button>
                       );
                     })}

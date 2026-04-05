@@ -32,7 +32,7 @@ const SCREENSHOTS: ScreenshotDef[] = [
 
   // Group 3: Dr. Alex & Search
   { name: 'dr_alex_main', path: '/doctor-chat' },
-  { name: 'dr_alex_chat', path: '/doctor-chat', extraWait: 2000 },
+  { name: 'dr_alex_chat', path: '/doctor-chat', extraWait: 2000, click: '[data-testid="conversation-item"]:first-child, .conversation-list a:first-child, .chat-list button:first-child' },
   { name: 'search_results', path: '/search?q=glucose' },
 
   // Group 4: Measurements & Trends
@@ -43,7 +43,7 @@ const SCREENSHOTS: ScreenshotDef[] = [
   // Group 5: User Settings
   { name: 'settings_profile', path: '/settings' },
   { name: 'settings_devices', path: '/settings?tab=devices' },
-  { name: 'settings_lifestyle', path: '/settings?tab=lifestyle' },
+  { name: 'settings_lifestyle', path: '/settings', scrollY: 800 },
 ]
 
 async function getAuthToken(): Promise<string> {
@@ -93,7 +93,7 @@ async function main() {
     // Set auth token and locale cookies
     await context.addCookies([
       { name: 'locale', value: locale, domain, path: '/' },
-      { name: 'token', value: token, domain, path: '/' },
+      { name: 'auth_token', value: token, domain, path: '/' },
     ])
 
     const page = await context.newPage()
@@ -128,8 +128,12 @@ async function main() {
         await page.waitForTimeout(shot.extraWait || 3000)
 
         if (shot.click) {
-          await page.click(shot.click, { timeout: 5000 })
-          await page.waitForTimeout(2000)
+          try {
+            await page.click(shot.click, { timeout: 5000 })
+            await page.waitForTimeout(2000)
+          } catch {
+            console.log(`    Click selector not found for ${shot.name}, using current view`)
+          }
         }
 
         if (shot.scrollY) {
