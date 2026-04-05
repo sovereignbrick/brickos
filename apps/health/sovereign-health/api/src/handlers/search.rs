@@ -77,45 +77,69 @@ pub async fn search(
     let type_filter = &params.type_filter;
     let config = ts_config(locale);
 
-    // Build the public search results
+    // Build the public search results.
+    // Search across BOTH locales (bilingual): try user's locale config first,
+    // fall back to opposite locale. Deduplicate by entity_id, prefer user's locale.
+    let other_config = if config == "english" {
+        "german"
+    } else {
+        "english"
+    };
+
     let results = if type_filter == "all" {
         sqlx::query(
-            r#"SELECT entity_type, entity_id, title, subtitle, snippet, url_path,
+            r#"SELECT DISTINCT ON (entity_type, entity_id)
+                      entity_type, entity_id, title, subtitle, snippet, url_path,
                       external_url, category_weight, metadata, parent_marker_slug, requires_auth,
-                      ts_rank_cd(tsv_document, plainto_tsquery($1::regconfig, $2)) * category_weight AS score
+                      GREATEST(
+                        ts_rank_cd(tsv_document, plainto_tsquery($1::regconfig, $2)),
+                        ts_rank_cd(tsv_document, plainto_tsquery($5::regconfig, $2))
+                      ) * category_weight
+                      * CASE WHEN locale = $3 THEN 1.2 ELSE 1.0 END AS score
                FROM search_index
-               WHERE tsv_document @@ plainto_tsquery($1::regconfig, $2)
-                 AND locale = $3
+               WHERE (tsv_document @@ plainto_tsquery($1::regconfig, $2)
+                  OR  tsv_document @@ plainto_tsquery($5::regconfig, $2))
                  AND ($4 OR requires_auth = false)
-               ORDER BY score DESC
-               LIMIT $5 OFFSET $6"#,
+               ORDER BY entity_type, entity_id,
+                        CASE WHEN locale = $3 THEN 0 ELSE 1 END,
+                        score DESC
+               LIMIT $6 OFFSET $7"#,
         )
         .bind(config)
         .bind(q)
         .bind(locale)
         .bind(auth.is_some())
+        .bind(other_config)
         .bind(limit as i64)
         .bind(offset as i64)
         .fetch_all(pool.get_ref())
         .await?
     } else {
         sqlx::query(
-            r#"SELECT entity_type, entity_id, title, subtitle, snippet, url_path,
+            r#"SELECT DISTINCT ON (entity_type, entity_id)
+                      entity_type, entity_id, title, subtitle, snippet, url_path,
                       external_url, category_weight, metadata, parent_marker_slug, requires_auth,
-                      ts_rank_cd(tsv_document, plainto_tsquery($1::regconfig, $2)) * category_weight AS score
+                      GREATEST(
+                        ts_rank_cd(tsv_document, plainto_tsquery($1::regconfig, $2)),
+                        ts_rank_cd(tsv_document, plainto_tsquery($6::regconfig, $2))
+                      ) * category_weight
+                      * CASE WHEN locale = $3 THEN 1.2 ELSE 1.0 END AS score
                FROM search_index
-               WHERE tsv_document @@ plainto_tsquery($1::regconfig, $2)
-                 AND locale = $3
+               WHERE (tsv_document @@ plainto_tsquery($1::regconfig, $2)
+                  OR  tsv_document @@ plainto_tsquery($6::regconfig, $2))
                  AND entity_type = $4
                  AND ($5 OR requires_auth = false)
-               ORDER BY score DESC
-               LIMIT $6 OFFSET $7"#,
+               ORDER BY entity_type, entity_id,
+                        CASE WHEN locale = $3 THEN 0 ELSE 1 END,
+                        score DESC
+               LIMIT $7 OFFSET $8"#,
         )
         .bind(config)
         .bind(q)
         .bind(locale)
         .bind(type_filter.as_str())
         .bind(auth.is_some())
+        .bind(other_config)
         .bind(limit as i64)
         .bind(offset as i64)
         .fetch_all(pool.get_ref())
@@ -157,21 +181,21 @@ pub async fn search(
         vec![]
     };
 
-    // Compute facets (counts by entity_type)
+    // Compute facets (counts by entity_type, deduplicated across locales)
     let facet_rows = if type_filter == "all" {
         sqlx::query(
-            r#"SELECT entity_type, COUNT(*) AS cnt
+            r#"SELECT entity_type, COUNT(DISTINCT entity_id) AS cnt
                FROM search_index
-               WHERE tsv_document @@ plainto_tsquery($1::regconfig, $2)
-                 AND locale = $3
-                 AND ($4 OR requires_auth = false)
+               WHERE (tsv_document @@ plainto_tsquery($1::regconfig, $2)
+                  OR  tsv_document @@ plainto_tsquery($4::regconfig, $2))
+                 AND ($3 OR requires_auth = false)
                GROUP BY entity_type
                ORDER BY cnt DESC"#,
         )
         .bind(config)
         .bind(q)
-        .bind(locale)
         .bind(auth.is_some())
+        .bind(other_config)
         .fetch_all(pool.get_ref())
         .await?
     } else {
@@ -339,20 +363,34 @@ pub async fn suggest(
         })));
     }
 
+    // Bilingual suggest: search both locale configs, prefer user's locale
+    let other_config = if config == "english" {
+        "german"
+    } else {
+        "english"
+    };
+
     let rows = sqlx::query(
-        r#"SELECT entity_type, title, url_path,
-                  ts_rank_cd(tsv_document, to_tsquery($1::regconfig, $2)) * category_weight AS score
+        r#"SELECT DISTINCT ON (entity_type, entity_id) entity_type, title, url_path,
+                  GREATEST(
+                    ts_rank_cd(tsv_document, to_tsquery($1::regconfig, $2)),
+                    ts_rank_cd(tsv_document, to_tsquery($5::regconfig, $2))
+                  ) * category_weight
+                  * CASE WHEN locale = $3 THEN 1.2 ELSE 1.0 END AS score
            FROM search_index
-           WHERE tsv_document @@ to_tsquery($1::regconfig, $2)
-             AND locale = $3
+           WHERE (tsv_document @@ to_tsquery($1::regconfig, $2)
+              OR  tsv_document @@ to_tsquery($5::regconfig, $2))
              AND ($4 OR requires_auth = false)
-           ORDER BY score DESC
-           LIMIT $5"#,
+           ORDER BY entity_type, entity_id,
+                    CASE WHEN locale = $3 THEN 0 ELSE 1 END,
+                    score DESC
+           LIMIT $6"#,
     )
     .bind(config)
     .bind(&prefix_query)
     .bind(locale)
     .bind(auth.is_some())
+    .bind(other_config)
     .bind(limit as i64)
     .fetch_all(pool.get_ref())
     .await?;
