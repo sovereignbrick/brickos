@@ -387,9 +387,10 @@ preflight() {
         fi
         log "ntfy connectivity verified (HTTP ${ntfy_status})"
     else
-        # Check VPS-side token if local doesn't have one
+        # Check VPS-side token if local doesn't have one.
+        # Use grep to extract vars safely (source can fail on unquoted special chars).
         local vps_ntfy_status
-        vps_ntfy_status=$(ssh "$VPS_SSH" 'source /opt/sovereign-health/.env.staging 2>/dev/null; curl -s -o /dev/null -w "%{http_code}" -m 5 -H "Authorization: Bearer ${NTFY_TOKEN}" "${NTFY_BASE_URL}/sh-info"' 2>/dev/null || echo "000")
+        vps_ntfy_status=$(ssh "$VPS" 'export $(grep -E "^NTFY_(BASE_URL|TOKEN)=" /opt/sovereign-health/.env.staging | xargs) && curl -s -o /dev/null -w "%{http_code}" -m 5 -H "Authorization: Bearer ${NTFY_TOKEN}" "${NTFY_BASE_URL}/sh-info"' 2>/dev/null || echo "000")
         if [ "$vps_ntfy_status" = "302" ] || [ "$vps_ntfy_status" = "401" ] || [ "$vps_ntfy_status" = "000" ]; then
             warn "ntfy pre-flight failed from VPS (HTTP ${vps_ntfy_status}). Check NTFY_TOKEN in .env.staging on VPS."
         else
