@@ -188,13 +188,14 @@ interface SearchResult {
 }
 
 interface SearchResponse {
-  query: string
-  total: number
-  authenticated: boolean
+  total_results: number
+  limit: number
+  offset: number
   results: SearchResult[]
-  facets: Record<string, number>
+  user_results: SearchResult[]
+  facets: Array<{ type: string; count: number }>
   blind_spots: Array<{ type: string; message: string; action_url: string }>
-  dr_alex_cta: { prompt: string; url: string } | null
+  dr_alex_cta: { message: string; url: string } | null
   login_cta: { message: string; url: string } | null
 }
 
@@ -1213,14 +1214,14 @@ export const api = {
       if (params.locale) qs.set('locale', params.locale)
       if (params.limit) qs.set('limit', String(params.limit))
       if (params.offset) qs.set('offset', String(params.offset))
-      return request<SearchResponse>(`/api/v1/search?${qs}`)
+      return request<{ data: SearchResponse }>(`/api/v1/search?${qs}`).then(r => r.data)
     },
     suggest: (params: { q: string; locale?: string; limit?: number }) => {
       const qs = new URLSearchParams()
       qs.set('q', params.q)
       if (params.locale) qs.set('locale', params.locale)
       if (params.limit) qs.set('limit', String(params.limit))
-      return request<SuggestResponse>(`/api/v1/search/suggest?${qs}`)
+      return request<{ data: SuggestResponse }>(`/api/v1/search/suggest?${qs}`).then(r => r.data)
     },
   },
 }

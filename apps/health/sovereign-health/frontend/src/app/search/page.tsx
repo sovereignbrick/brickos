@@ -5,7 +5,17 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { Navbar } from '@/components/layout/navbar'
 import { api } from '@/lib/api'
-import type { SearchResponse, SearchResult } from '@/lib/api'
+import type { SearchResult } from '@/lib/api'
+
+interface SearchData {
+  total_results: number
+  results: SearchResult[]
+  user_results: SearchResult[]
+  facets: Array<{ type: string; count: number }>
+  blind_spots: Array<{ type: string; message: string; action_url: string }>
+  dr_alex_cta: { message: string; url: string } | null
+  login_cta: { message: string; url: string } | null
+}
 import { Search, ExternalLink, Loader2, AlertTriangle, MessageCircle } from 'lucide-react'
 
 const TABS = [
@@ -116,7 +126,7 @@ export default function SearchPage() {
 
   const [query, setQuery] = useState(initialQuery)
   const [activeTab, setActiveTab] = useState('')
-  const [data, setData] = useState<SearchResponse | null>(null)
+  const [data, setData] = useState<SearchData | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -197,7 +207,9 @@ export default function SearchPage() {
         {/* Tab bar */}
         <div className="flex items-center gap-1 mb-6 overflow-x-auto scrollbar-none -mx-4 px-4">
           {TABS.map(tab => {
-            const count = data?.facets?.[tab.filter] ?? (tab.filter === '' ? data?.total : undefined)
+            const count = tab.filter === ''
+              ? data?.total_results
+              : data?.facets?.find(f => f.type === tab.filter)?.count
             const isActive = activeTab === tab.filter
             return (
               <button
@@ -254,9 +266,9 @@ export default function SearchPage() {
             ))}
 
             {/* Result count */}
-            {data.total > 0 && (
+            {data.total_results > 0 && (
               <p className="text-xs text-muted-foreground">
-                {t('results', { count: data.total })}
+                {t('results', { count: data.total_results })}
               </p>
             )}
 
@@ -288,7 +300,7 @@ export default function SearchPage() {
                 <div className="flex items-start gap-3">
                   <MessageCircle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
                   <div className="flex-1">
-                    <p className="text-sm text-foreground">{data.dr_alex_cta.prompt}</p>
+                    <p className="text-sm text-foreground">{data.dr_alex_cta.message}</p>
                     <a
                       href={data.dr_alex_cta.url}
                       className="inline-flex items-center gap-1 text-sm text-blue-400 hover:text-blue-300 mt-2"
