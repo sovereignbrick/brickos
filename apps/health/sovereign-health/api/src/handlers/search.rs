@@ -82,9 +82,9 @@ pub async fn search(
         sqlx::query(
             r#"SELECT entity_type, entity_id, title, subtitle, snippet, url_path,
                       external_url, category_weight, metadata, parent_marker_slug, requires_auth,
-                      ts_rank_cd(tsv_document, plainto_tsquery($1, $2)) * category_weight AS score
+                      ts_rank_cd(tsv_document, plainto_tsquery($1::regconfig, $2)) * category_weight AS score
                FROM search_index
-               WHERE tsv_document @@ plainto_tsquery($1, $2)
+               WHERE tsv_document @@ plainto_tsquery($1::regconfig, $2)
                  AND locale = $3
                  AND ($4 OR requires_auth = false)
                ORDER BY score DESC
@@ -102,9 +102,9 @@ pub async fn search(
         sqlx::query(
             r#"SELECT entity_type, entity_id, title, subtitle, snippet, url_path,
                       external_url, category_weight, metadata, parent_marker_slug, requires_auth,
-                      ts_rank_cd(tsv_document, plainto_tsquery($1, $2)) * category_weight AS score
+                      ts_rank_cd(tsv_document, plainto_tsquery($1::regconfig, $2)) * category_weight AS score
                FROM search_index
-               WHERE tsv_document @@ plainto_tsquery($1, $2)
+               WHERE tsv_document @@ plainto_tsquery($1::regconfig, $2)
                  AND locale = $3
                  AND entity_type = $4
                  AND ($5 OR requires_auth = false)
@@ -126,9 +126,9 @@ pub async fn search(
     let user_results = if let Some(ref auth) = auth {
         let rows = sqlx::query(
             r#"SELECT entity_type, entity_id::text AS entity_id, title, snippet, url_path,
-                      ts_rank_cd(tsv_document, plainto_tsquery($1, $2)) AS score
+                      ts_rank_cd(tsv_document, plainto_tsquery($1::regconfig, $2)) AS score
                FROM user_search_index
-               WHERE tsv_document @@ plainto_tsquery($1, $2)
+               WHERE tsv_document @@ plainto_tsquery($1::regconfig, $2)
                  AND user_id = $3
                ORDER BY score DESC
                LIMIT $4"#,
@@ -162,7 +162,7 @@ pub async fn search(
         sqlx::query(
             r#"SELECT entity_type, COUNT(*) AS cnt
                FROM search_index
-               WHERE tsv_document @@ plainto_tsquery($1, $2)
+               WHERE tsv_document @@ plainto_tsquery($1::regconfig, $2)
                  AND locale = $3
                  AND ($4 OR requires_auth = false)
                GROUP BY entity_type
@@ -341,9 +341,9 @@ pub async fn suggest(
 
     let rows = sqlx::query(
         r#"SELECT entity_type, title, url_path,
-                  ts_rank_cd(tsv_document, to_tsquery($1, $2)) * category_weight AS score
+                  ts_rank_cd(tsv_document, to_tsquery($1::regconfig, $2)) * category_weight AS score
            FROM search_index
-           WHERE tsv_document @@ to_tsquery($1, $2)
+           WHERE tsv_document @@ to_tsquery($1::regconfig, $2)
              AND locale = $3
              AND ($4 OR requires_auth = false)
            ORDER BY score DESC
