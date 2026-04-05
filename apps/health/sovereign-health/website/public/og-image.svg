@@ -65,7 +65,7 @@
   <text x="600" y="535" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="15" fill="#71717a" letter-spacing="2">BLOOD  &#183;  BIOMARKERS  &#183;  INSIGHT</text>
 
   <!-- Domain -->
-  <text x="600" y="575" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="19" fill="#22c55e" letter-spacing="1" font-weight="600">app.sovereignhealth.io</text>
+  <text x="600" y="575" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="19" fill="#22c55e" letter-spacing="1" font-weight="600">sovereignhealth.io</text>
 
   <!-- Accent line bottom -->
   <rect x="0" y="623" width="1200" height="4" fill="url(#accent)"/>
