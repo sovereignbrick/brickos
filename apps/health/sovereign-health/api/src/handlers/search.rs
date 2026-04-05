@@ -253,13 +253,10 @@ pub async fn search(
 
     // Dr Alex CTA: if any result is a marker, suggest asking Dr Alex
     let dr_alex_cta = if auth.is_some()
-        && results
-            .iter()
-            .any(|r| {
-                let et: String = r.try_get("entity_type").unwrap_or_default();
-                et == "marker" || et == "calculated_marker"
-            })
-    {
+        && results.iter().any(|r| {
+            let et: String = r.try_get("entity_type").unwrap_or_default();
+            et == "marker" || et == "calculated_marker"
+        }) {
         Some(json!({
             "message": "Ask Dr. Alex about these markers",
             "url": "/doctor-chat",

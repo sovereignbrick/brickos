@@ -1550,10 +1550,7 @@ pub async fn reset_data(
     });
 
     // 2. Check confirmation
-    let confirm = body
-        .get("confirm")
-        .and_then(|v| v.as_str())
-        .unwrap_or("");
+    let confirm = body.get("confirm").and_then(|v| v.as_str()).unwrap_or("");
 
     if confirm != "RESET" {
         return Ok(HttpResponse::Ok().json(json!({
