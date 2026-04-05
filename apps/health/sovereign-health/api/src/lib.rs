@@ -125,6 +125,19 @@ pub fn configure_routes(cfg: &mut actix_web::web::ServiceConfig) {
         "/api/tiers/features",
         actix_web::web::get().to(handlers::license::tiers_features),
     )
+    // Search (public for Tier 1, authenticated for Tier 2 + user content)
+    .service(
+        actix_web::web::scope("/api/v1/search")
+            .route("", actix_web::web::get().to(handlers::search::search))
+            .route(
+                "/suggest",
+                actix_web::web::get().to(handlers::search::suggest),
+            )
+            .route(
+                "/reindex",
+                actix_web::web::post().to(handlers::search::reindex),
+            ),
+    )
     // Info bar config (public — no auth)
     .route(
         "/api/config/infobar",

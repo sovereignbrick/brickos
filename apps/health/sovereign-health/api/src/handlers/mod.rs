@@ -38,6 +38,7 @@ pub mod promotions;
 pub mod public_chat;
 pub mod push;
 pub mod reports;
+pub mod search;
 pub mod settings;
 pub mod sync;
 pub mod templates;
