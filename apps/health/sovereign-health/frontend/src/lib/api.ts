@@ -173,6 +173,37 @@ async function uploadRequest<T>(path: string, formData: FormData): Promise<T> {
   return json
 }
 
+interface SearchResult {
+  entity_type: string
+  entity_id: string
+  title: string
+  subtitle: string | null
+  snippet: string | null
+  url_path: string | null
+  external_url: string | null
+  score: number
+  metadata: Record<string, unknown> | null
+  user_context: { status: string | null; last_measured: string | null; is_stale: boolean } | null
+  related_calculated: string[] | null
+}
+
+interface SearchResponse {
+  query: string
+  total: number
+  authenticated: boolean
+  results: SearchResult[]
+  facets: Record<string, number>
+  blind_spots: Array<{ type: string; message: string; action_url: string }>
+  dr_alex_cta: { prompt: string; url: string } | null
+  login_cta: { message: string; url: string } | null
+}
+
+interface SuggestResponse {
+  suggestions: Array<{ text: string; type: string; url: string }>
+}
+
+export type { SearchResult, SearchResponse, SuggestResponse }
+
 export const api = {
   auth: {
     signup: (body: { email: string; password: string; display_name?: string; tos_accepted: boolean; referred_by?: string; locale?: string; consent_newsletter?: boolean; consent_product_updates?: boolean; country?: string }) =>
@@ -1165,6 +1196,24 @@ export const api = {
       if (context) params.set('context', context)
       const qs = params.toString()
       return request<{ data: Array<{ key: string; context: string | null; value: string }>; locale: string; total: number }>(`/v1/content/ui-strings${qs ? `?${qs}` : ''}`)
+    },
+  },
+  search: {
+    query: (params: { q: string; type_filter?: string; locale?: string; limit?: number; offset?: number }) => {
+      const qs = new URLSearchParams()
+      qs.set('q', params.q)
+      if (params.type_filter) qs.set('type_filter', params.type_filter)
+      if (params.locale) qs.set('locale', params.locale)
+      if (params.limit) qs.set('limit', String(params.limit))
+      if (params.offset) qs.set('offset', String(params.offset))
+      return request<SearchResponse>(`/api/v1/search?${qs}`)
+    },
+    suggest: (params: { q: string; locale?: string; limit?: number }) => {
+      const qs = new URLSearchParams()
+      qs.set('q', params.q)
+      if (params.locale) qs.set('locale', params.locale)
+      if (params.limit) qs.set('limit', String(params.limit))
+      return request<SuggestResponse>(`/api/v1/search/suggest?${qs}`)
     },
   },
 }

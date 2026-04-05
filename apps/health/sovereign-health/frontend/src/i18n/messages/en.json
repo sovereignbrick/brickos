@@ -157,7 +157,8 @@
     "adminPanel": "Admin Panel",
     "openNavMenu": "Open navigation menu",
     "navMenuLabel": "Navigation menu",
-    "closeNavMenu": "Close navigation menu"
+    "closeNavMenu": "Close navigation menu",
+    "search": "Search"
   },
   "footer": {
     "copyright": "All rights reserved.",
@@ -1702,5 +1703,33 @@
     "importFileTooLarge": "File is too large. Maximum size is 10 MB.",
     "importNoMarkers": "No health markers could be identified in this document.",
     "importNotConfigured": "Import service is not configured. Contact support."
+  },
+  "search": {
+    "placeholder": "Search markers, food, supplements...",
+    "tabAll": "All",
+    "tabMarkers": "Markers",
+    "tabFood": "Food",
+    "tabSupplements": "Supplements",
+    "tabZones": "Zones",
+    "tabChat": "Dr. Alex",
+    "tabMore": "More",
+    "noResults": "No results found",
+    "noResultsFor": "No results for \"{query}\"",
+    "trySuggestion": "Try a different spelling or browse all markers",
+    "askDrAlex": "Ask Dr. Alex about this",
+    "askDrAlexAbout": "Want personalized advice about {topic}?",
+    "startConsultation": "Start Consultation",
+    "recentSearches": "Recent Searches",
+    "clearRecent": "Clear",
+    "loginRequired": "Log in to search your personal health data",
+    "loginCta": "Log in",
+    "opensWebsite": "Opens sovereignhealth.io",
+    "viewMarker": "View Marker",
+    "viewDetails": "View Details",
+    "notMeasured": "Not measured",
+    "staleData": "Stale",
+    "blindSpotMissing": "You haven't measured this marker yet",
+    "results": "{count} results",
+    "suggestTitle": "Suggestions"
   }
 }

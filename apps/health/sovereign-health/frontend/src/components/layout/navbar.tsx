@@ -13,6 +13,8 @@ import { useTranslations } from 'next-intl'
 import { useContent } from '@/lib/content-context'
 import { useTheme } from '@/lib/theme-context'
 import { locales, localeNames, type Locale } from '@/i18n/config'
+import { Search } from 'lucide-react'
+import { SearchOverlay } from '@/components/search/search-overlay'
 
 type NavItem = { href: string; labelKey: string }
 
@@ -367,6 +369,19 @@ export function Navbar() {
   const [langOpen, setLangOpen] = useState(false)
   const langRef = useRef<HTMLDivElement>(null)
   const [mounted, setMounted] = useState(false)
+  const [searchOpen, setSearchOpen] = useState(false)
+
+  // Ctrl+K / Cmd+K keyboard shortcut for search
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault()
+        setSearchOpen(o => !o)
+      }
+    }
+    document.addEventListener('keydown', handler)
+    return () => document.removeEventListener('keydown', handler)
+  }, [])
 
   // Auto-hide header on scroll down (mobile only)
   const [headerVisible, setHeaderVisible] = useState(true)
@@ -530,6 +545,16 @@ export function Navbar() {
         </div>
         <div className="flex items-center gap-1">
           {languageSelector}
+          <button
+            onClick={() => setSearchOpen(true)}
+            className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+            title={t('search')}
+          >
+            <Search className="w-4 h-4" />
+            <kbd className="hidden sm:inline-flex text-[10px] bg-muted px-1.5 py-0.5 rounded font-mono">
+              {typeof window !== 'undefined' && navigator?.platform?.includes('Mac') ? '\u2318K' : 'Ctrl+K'}
+            </kbd>
+          </button>
           {isDemo ? (
             isDemoOnly ? (
               <div className="hidden sm:block w-8" />
@@ -560,6 +585,7 @@ export function Navbar() {
         </div>
       </div>
       </nav>
+      <SearchOverlay open={searchOpen} onClose={() => setSearchOpen(false)} />
     </div>
   )
 }

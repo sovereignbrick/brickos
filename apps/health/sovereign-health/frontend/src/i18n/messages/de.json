@@ -157,7 +157,8 @@
     "adminPanel": "Admin-Panel",
     "openNavMenu": "Navigationsmenü öffnen",
     "navMenuLabel": "Navigationsmenü",
-    "closeNavMenu": "Navigationsmenü schließen"
+    "closeNavMenu": "Navigationsmenü schließen",
+    "search": "Suchen"
   },
   "footer": {
     "copyright": "Alle Rechte vorbehalten.",
@@ -1702,5 +1703,33 @@
     "importFileTooLarge": "Die Datei ist zu groß. Maximale Größe beträgt 10 MB.",
     "importNoMarkers": "In diesem Dokument konnten keine Gesundheitsmarker identifiziert werden.",
     "importNotConfigured": "Der Import-Dienst ist nicht konfiguriert. Kontaktiere den Support."
+  },
+  "search": {
+    "placeholder": "Marker, Lebensmittel, Nahrungsergänzungsmittel suchen...",
+    "tabAll": "Alle",
+    "tabMarkers": "Marker",
+    "tabFood": "Lebensmittel",
+    "tabSupplements": "Nahrungsergänzungsmittel",
+    "tabZones": "Zonen",
+    "tabChat": "Dr. Alex",
+    "tabMore": "Mehr",
+    "noResults": "Keine Ergebnisse gefunden",
+    "noResultsFor": "Keine Ergebnisse für \"{query}\"",
+    "trySuggestion": "Versuchen Sie eine andere Schreibweise oder durchsuchen Sie alle Marker",
+    "askDrAlex": "Dr. Alex dazu befragen",
+    "askDrAlexAbout": "Möchten Sie personalisierte Beratung zu {topic}?",
+    "startConsultation": "Beratung starten",
+    "recentSearches": "Letzte Suchen",
+    "clearRecent": "Löschen",
+    "loginRequired": "Melden Sie sich an, um Ihre Gesundheitsdaten zu durchsuchen",
+    "loginCta": "Anmelden",
+    "opensWebsite": "Öffnet sovereignhealth.io",
+    "viewMarker": "Marker anzeigen",
+    "viewDetails": "Details anzeigen",
+    "notMeasured": "Nicht gemessen",
+    "staleData": "Veraltet",
+    "blindSpotMissing": "Sie haben diesen Marker noch nicht gemessen",
+    "results": "{count} Ergebnisse",
+    "suggestTitle": "Vorschläge"
   }
 }
