@@ -1,0 +1,855 @@
+timestamp,marker_slug,value,unit,status,protocol_tag,diet_protocol,fasting_protocol,fasting_hours,meal_timing_tag,exercise_activity,sleep_hours,sleep_quality,stress_level,device_name
+2026-03-23T12:23:00Z,glucose,8.0,mmol/L,red,standard,,,,fasting,,,,,Device Test
+2026-03-23T12:05:39.961585Z,basophils_pct,1.0,%,green,standard,,,,no_tag,,,,,test lap
+2026-03-23T12:05:39.961585Z,calcium,2.34,mmol/L,green,standard,,,,no_tag,,,,,test lap
+2026-03-23T12:05:39.961585Z,vitamin_d,188.2,nmol/L,orange,standard,,,,no_tag,,,,,test lap
+2026-03-23T12:05:39.961585Z,rbc,2.06,Tpt/L,red,standard,,,,no_tag,,,,,test lap
+2026-03-23T12:05:39.961585Z,epa,33.68,g/L,,standard,,,,no_tag,,,,,test lap
+2026-03-23T12:05:39.961585Z,ldl_c,6.31,mmol/L,red,standard,,,,no_tag,,,,,test lap
+2026-03-23T12:05:39.961585Z,lh,6.9,IU/L,green,standard,,,,no_tag,,,,,test lap
+2026-03-23T12:05:39.961585Z,estradiol,32.0,pmol/L,orange,standard,,,,no_tag,,,,,test lap
+2026-03-23T12:05:39.961585Z,total_cholesterol,8.23,mmol/L,orange,standard,,,,no_tag,,,,,test lap
+2026-03-23T12:05:39.961585Z,transferrin_sat,22.0,%,green,standard,,,,no_tag,,,,,test lap
+2026-03-23T12:05:39.961585Z,monocytes_pct,8.0,%,green,standard,,,,no_tag,,,,,test lap
+2026-03-23T12:05:39.961585Z,rbc,2.06,Tpt/L,red,standard,,,,no_tag,,,,,test lap
+2026-03-23T12:05:39.961585Z,albumin,45.0,g/L,green,standard,,,,no_tag,,,,,test lap
+2026-03-23T12:05:39.961585Z,transferrin,25.8,g/L,red,standard,,,,no_tag,,,,,test lap
+2026-03-23T12:05:39.961585Z,free_androgen_index,42.3,ratio,green,standard,,,,no_tag,,,,,test lap
+2026-03-23T12:05:39.961585Z,apob,1.79,g/L,red,standard,,,,no_tag,,,,,test lap
+2026-03-23T12:05:39.961585Z,hba1c,36.0,%,red,standard,,,,no_tag,,,,,test lap
+2026-03-23T12:05:39.961585Z,egfr,74.0,mL/min,green,standard,,,,no_tag,,,,,test lap
+2026-03-23T12:05:39.961585Z,alp,0.79,U/L,orange,standard,,,,no_tag,,,,,test lap
+2026-03-23T12:05:39.961585Z,basophils_pct,1.0,%,green,standard,,,,no_tag,,,,,test lap
+2026-03-23T12:05:39.961585Z,neutrophils_pct,64.0,%,green,standard,,,,no_tag,,,,,test lap
+2026-03-23T12:05:39.961585Z,alt,0.4,U/L,orange,standard,,,,no_tag,,,,,test lap
+2026-03-23T12:05:39.961585Z,testosterone,35.6,nmol/L,orange,standard,,,,no_tag,,,,,test lap
+2026-03-23T12:05:39.961585Z,ggt,0.3,U/L,orange,standard,,,,no_tag,,,,,test lap
+2026-03-23T12:05:39.961585Z,tsh,2.1,mIU/L,green,standard,,,,no_tag,,,,,test lap
+2026-03-23T12:05:39.961585Z,iron,11.5,µmol/L,green,standard,,,,no_tag,,,,,test lap
+2026-03-23T12:05:39.961585Z,ldh,3.48,U/L,orange,standard,,,,no_tag,,,,,test lap
+2026-03-23T12:05:39.961585Z,rdw,14.8,%,,standard,,,,no_tag,,,,,test lap
+2026-03-23T12:05:39.961585Z,neutrophils_pct,64.0,%,green,standard,,,,no_tag,,,,,test lap
+2026-03-23T12:05:39.961585Z,monocytes_pct,8.0,%,green,standard,,,,no_tag,,,,,test lap
+2026-03-23T12:05:39.961585Z,mcv,98.4,fL,,standard,,,,no_tag,,,,,test lap
+2026-03-23T12:05:39.961585Z,dha,119.01,g/L,,standard,,,,no_tag,,,,,test lap
+2026-03-23T12:05:39.961585Z,hemoglobin,9.1,mmol/L,green,standard,,,,no_tag,,,,,test lap
+2026-03-23T12:05:39.961585Z,hs_crp,0.7,mg/L,green,standard,,,,no_tag,,,,,test lap
+2026-03-23T12:05:39.961585Z,potassium,4.67,mmol/L,green,standard,,,,no_tag,,,,,test lap
+2026-03-23T12:05:39.961585Z,mchc,19.1,g/dL,,standard,,,,no_tag,,,,,test lap
+2026-03-23T12:05:39.961585Z,mch,1.9,pg,,standard,,,,no_tag,,,,,test lap
+2026-03-23T12:05:39.961585Z,uric_acid,367.0,µmol/L,green,standard,,,,no_tag,,,,,test lap
+2026-03-23T12:05:39.961585Z,insulin,2.8,µIU/mL,green,standard,,,,no_tag,,,,,test lap
+2026-03-23T12:05:39.961585Z,bilirubin_total,5.1,µmol/L,green,standard,,,,no_tag,,,,,test lap
+2026-03-23T12:05:39.961585Z,total_protein,73.7,g/L,green,standard,,,,no_tag,,,,,test lap
+2026-03-23T12:05:39.961585Z,vitamin_b6,42.5,nmol/L,green,standard,,,,no_tag,,,,,test lap
+2026-03-23T12:05:39.961585Z,hematocrit,0.48,%,red,standard,,,,no_tag,,,,,test lap
+2026-03-23T12:05:39.961585Z,platelets,66.0,Gpt/L,red,standard,,,,no_tag,,,,,test lap
+2026-03-23T12:05:39.961585Z,ferritin,320.0,µg/L,green,standard,,,,no_tag,,,,,test lap
+2026-03-23T12:05:39.961585Z,glucose,5.99,mmol/L,orange,standard,,,,no_tag,,,,,test lap
+2026-03-23T12:05:39.961585Z,shbg,84.1,nmol/L,red,standard,,,,no_tag,,,,,test lap
+2026-03-23T12:05:39.961585Z,lymphocytes_pct,26.0,%,green,standard,,,,no_tag,,,,,test lap
+2026-03-23T12:05:39.961585Z,non_hdl_c,7.02,mmol/L,red,standard,,,,no_tag,,,,,test lap
+2026-03-23T12:05:39.961585Z,folate,13.7,µg/L,green,standard,,,,no_tag,,,,,test lap
+2026-03-23T12:05:39.961585Z,ast,0.33,U/L,orange,standard,,,,no_tag,,,,,test lap
+2026-03-23T12:05:39.961585Z,prolactin,6.2,mIU/L,orange,standard,,,,no_tag,,,,,test lap
+2026-03-23T12:05:39.961585Z,vitamin_b2,212.0,nmol/L,orange,standard,,,,no_tag,,,,,test lap
+2026-03-23T12:05:39.961585Z,free_testosterone,8.6,pmol/L,red,standard,,,,no_tag,,,,,test lap
+2026-03-23T12:05:39.961585Z,hba1c,36.0,%,red,standard,,,,no_tag,,,,,test lap
+2026-03-23T12:05:39.961585Z,sodium,137.0,mmol/L,green,standard,,,,no_tag,,,,,test lap
+2026-03-23T12:05:39.961585Z,eosinophils_pct,2.0,%,green,standard,,,,no_tag,,,,,test lap
+2026-03-23T12:05:39.961585Z,albumin,45.0,g/L,green,standard,,,,no_tag,,,,,test lap
+2026-03-23T12:05:39.961585Z,wbc,4.3,Gpt/L,orange,standard,,,,no_tag,,,,,test lap
+2026-03-23T12:05:39.961585Z,eosinophils_pct,2.0,%,green,standard,,,,no_tag,,,,,test lap
+2026-03-23T12:05:39.961585Z,hdl_c,1.22,mmol/L,orange,standard,,,,no_tag,,,,,test lap
+2026-03-23T12:05:39.961585Z,glucose,5.99,mmol/L,orange,standard,,,,no_tag,,,,,test lap
+2026-03-23T12:05:39.961585Z,triglycerides,1.6,mmol/L,orange,standard,,,,no_tag,,,,,test lap
+2026-03-23T12:05:39.961585Z,creatinine,98.0,µmol/L,green,standard,,,,no_tag,,,,,test lap
+2026-03-23T12:05:39.961585Z,vitamin_b12,522.0,pmol/L,green,standard,,,,no_tag,,,,,test lap
+2026-03-23T12:05:39.961585Z,omega3_index,5.83,%,orange,standard,,,,no_tag,,,,,test lap
+2026-03-23T12:05:39.961585Z,lymphocytes_pct,26.0,%,green,standard,,,,no_tag,,,,,test lap
+2026-03-22T11:50:00Z,glucose,5.0,mmol/L,green,standard,,,,no_tag,,,,,Device Test
+2026-03-22T11:50:00Z,weight,75.0,kg,,standard,,,,no_tag,,,,,Device Test
+2026-03-22T06:08:01.334489Z,lymphocytes_abs,1.84,Gpt/L,green,standard,,,,no_tag,,,,,Test lab
+2026-03-22T06:08:01.334489Z,hemoglobin,9.32,mmol/L,green,standard,,,,no_tag,,,,,Test lab
+2026-03-22T06:08:01.334489Z,hematocrit,44.0,%,green,standard,,,,no_tag,,,,,Test lab
+2026-03-22T06:08:01.334489Z,rbc,4.63,Tpt/L,green,standard,,,,no_tag,,,,,Test lab
+2026-03-22T06:08:01.334489Z,mcv,94.0,fL,,standard,,,,no_tag,,,,,Test lab
+2026-03-22T06:08:01.334489Z,wbc,6.8,Gpt/L,green,standard,,,,no_tag,,,,,Test lab
+2026-03-22T06:08:01.334489Z,neutrophils_pct,62.1,%,green,standard,,,,no_tag,,,,,Test lab
+2026-03-22T06:08:01.334489Z,neutrophils_abs,4.21,Gpt/L,green,standard,,,,no_tag,,,,,Test lab
+2026-03-22T06:08:01.334489Z,eosinophils_abs,0.16,Gpt/L,green,standard,,,,no_tag,,,,,Test lab
+2026-03-22T06:08:01.334489Z,lymphocytes_pct,27.1,%,green,standard,,,,no_tag,,,,,Test lab
+2026-03-22T06:08:01.334489Z,basophils_abs,0.05,Gpt/L,green,standard,,,,no_tag,,,,,Test lab
+2026-03-22T06:08:01.334489Z,mch,32.4,pg,,standard,,,,no_tag,,,,,Test lab
+2026-03-22T06:08:01.334489Z,monocytes_abs,0.52,Gpt/L,green,standard,,,,no_tag,,,,,Test lab
+2026-03-22T06:08:01.334489Z,mchc,34.3,g/dL,,standard,,,,no_tag,,,,,Test lab
+2026-03-22T06:08:01.334489Z,monocytes_pct,7.52,%,green,standard,,,,no_tag,,,,,Test lab
+2026-03-22T06:08:01.334489Z,basophils_pct,0.5,%,green,standard,,,,no_tag,,,,,Test lab
+2026-03-22T06:08:01.334489Z,eosinophils_pct,2.4,%,green,standard,,,,no_tag,,,,,Test lab
+2026-03-20T11:18:32.116956Z,hematocrit,44.0,%,green,standard,,,,no_tag,,,,,New Lab tst
+2026-03-20T11:18:32.116956Z,eosinophils_abs,0.16,Gpt/L,green,standard,,,,no_tag,,,,,New Lab tst
+2026-03-20T11:18:32.116956Z,basophils_pct,0.5,%,green,standard,,,,no_tag,,,,,New Lab tst
+2026-03-20T11:18:32.116956Z,mchc,34.3,g/dL,,standard,,,,no_tag,,,,,New Lab tst
+2026-03-20T11:18:32.116956Z,monocytes_abs,0.52,Gpt/L,green,standard,,,,no_tag,,,,,New Lab tst
+2026-03-20T11:18:32.116956Z,lymphocytes_pct,27.1,%,green,standard,,,,no_tag,,,,,New Lab tst
+2026-03-20T11:18:32.116956Z,rbc,4.33,Tpt/L,green,standard,,,,no_tag,,,,,New Lab tst
+2026-03-20T11:18:32.116956Z,mch,32.4,pg,,standard,,,,no_tag,,,,,New Lab tst
+2026-03-20T11:18:32.116956Z,neutrophils_abs,4.21,Gpt/L,green,standard,,,,no_tag,,,,,New Lab tst
+2026-03-20T11:18:32.116956Z,monocytes_pct,7.52,%,green,standard,,,,no_tag,,,,,New Lab tst
+2026-03-20T11:18:32.116956Z,lymphocytes_abs,1.84,Gpt/L,green,standard,,,,no_tag,,,,,New Lab tst
+2026-03-20T11:18:32.116956Z,basophils_abs,0.05,Gpt/L,green,standard,,,,no_tag,,,,,New Lab tst
+2026-03-20T11:18:32.116956Z,mcv,94.0,fL,,standard,,,,no_tag,,,,,New Lab tst
+2026-03-20T11:18:32.116956Z,wbc,6.8,Gpt/L,green,standard,,,,no_tag,,,,,New Lab tst
+2026-03-20T11:18:32.116956Z,neutrophils_pct,62.1,%,green,standard,,,,no_tag,,,,,New Lab tst
+2026-03-20T11:18:32.116956Z,eosinophils_pct,2.4,%,green,standard,,,,no_tag,,,,,New Lab tst
+2026-03-20T11:18:32.116956Z,hemoglobin,9.32,mmol/L,green,standard,,,,no_tag,,,,,New Lab tst
+2026-03-20T11:05:40.657698Z,lymphocytes_abs,1.84,Gpt/L,green,standard,,,,no_tag,,,,,lab3
+2026-03-20T11:05:40.657698Z,monocytes_pct,7.52,%,green,standard,,,,no_tag,,,,,lab3
+2026-03-20T11:05:40.657698Z,hemoglobin,9.32,mmol/L,green,standard,,,,no_tag,,,,,lab3
+2026-03-20T11:05:40.657698Z,mchc,34.3,g/dL,,standard,,,,no_tag,,,,,lab3
+2026-03-20T11:05:40.657698Z,basophils_pct,0.5,%,green,standard,,,,no_tag,,,,,lab3
+2026-03-20T11:05:40.657698Z,basophils_abs,0.05,Gpt/L,green,standard,,,,no_tag,,,,,lab3
+2026-03-20T11:05:40.657698Z,monocytes_abs,0.52,Gpt/L,green,standard,,,,no_tag,,,,,lab3
+2026-03-20T11:05:40.657698Z,rbc,4.33,Tpt/L,green,standard,,,,no_tag,,,,,lab3
+2026-03-20T11:05:40.657698Z,wbc,6.8,Gpt/L,green,standard,,,,no_tag,,,,,lab3
+2026-03-20T11:05:40.657698Z,neutrophils_abs,4.21,Gpt/L,green,standard,,,,no_tag,,,,,lab3
+2026-03-20T11:05:40.657698Z,eosinophils_abs,0.16,Gpt/L,green,standard,,,,no_tag,,,,,lab3
+2026-03-20T11:05:40.657698Z,hematocrit,44.0,%,green,standard,,,,no_tag,,,,,lab3
+2026-03-20T11:05:40.657698Z,neutrophils_pct,62.1,%,green,standard,,,,no_tag,,,,,lab3
+2026-03-20T11:05:40.657698Z,mch,32.4,pg,,standard,,,,no_tag,,,,,lab3
+2026-03-20T11:05:40.657698Z,eosinophils_pct,2.4,%,green,standard,,,,no_tag,,,,,lab3
+2026-03-20T11:05:40.657698Z,mcv,94.0,fL,,standard,,,,no_tag,,,,,lab3
+2026-03-20T11:05:40.657698Z,lymphocytes_pct,27.1,%,green,standard,,,,no_tag,,,,,lab3
+2026-03-20T10:26:52.287750Z,basophils_abs,0.05,Gpt/L,green,standard,,,,no_tag,,,,,lab test drx. ladf   and  partner lasfdfd
+2026-03-20T10:26:52.287750Z,basophils_pct,0.5,%,green,standard,,,,no_tag,,,,,lab test drx. ladf   and  partner lasfdfd
+2026-03-20T10:26:52.287750Z,eosinophils_pct,2.4,%,green,standard,,,,no_tag,,,,,lab test drx. ladf   and  partner lasfdfd
+2026-03-20T10:26:52.287750Z,neutrophils_abs,4.21,Gpt/L,green,standard,,,,no_tag,,,,,lab test drx. ladf   and  partner lasfdfd
+2026-03-20T10:26:52.287750Z,neutrophils_pct,62.1,%,green,standard,,,,no_tag,,,,,lab test drx. ladf   and  partner lasfdfd
+2026-03-20T10:26:52.287750Z,wbc,6.8,Gpt/L,green,standard,,,,no_tag,,,,,lab test drx. ladf   and  partner lasfdfd
+2026-03-20T10:26:52.287750Z,mch,32.4,pg,,standard,,,,no_tag,,,,,lab test drx. ladf   and  partner lasfdfd
+2026-03-20T10:26:52.287750Z,mcv,94.0,fL,,standard,,,,no_tag,,,,,lab test drx. ladf   and  partner lasfdfd
+2026-03-20T10:26:52.287750Z,hematocrit,44.0,%,green,standard,,,,no_tag,,,,,lab test drx. ladf   and  partner lasfdfd
+2026-03-20T10:26:52.287750Z,hemoglobin,9.32,mmol/L,green,standard,,,,no_tag,,,,,lab test drx. ladf   and  partner lasfdfd
+2026-03-20T10:26:52.287750Z,lymphocytes_pct,27.1,%,green,standard,,,,no_tag,,,,,lab test drx. ladf   and  partner lasfdfd
+2026-03-20T10:26:52.287750Z,rbc,4.33,Tpt/L,green,standard,,,,no_tag,,,,,lab test drx. ladf   and  partner lasfdfd
+2026-03-20T10:26:52.287750Z,mchc,34.3,g/dL,,standard,,,,no_tag,,,,,lab test drx. ladf   and  partner lasfdfd
+2026-03-20T10:26:52.287750Z,eosinophils_abs,0.16,Gpt/L,green,standard,,,,no_tag,,,,,lab test drx. ladf   and  partner lasfdfd
+2026-03-20T10:26:52.287750Z,lymphocytes_abs,1.84,Gpt/L,green,standard,,,,no_tag,,,,,lab test drx. ladf   and  partner lasfdfd
+2026-03-20T10:26:52.287750Z,monocytes_abs,0.52,Gpt/L,green,standard,,,,no_tag,,,,,lab test drx. ladf   and  partner lasfdfd
+2026-03-20T10:26:52.287750Z,monocytes_pct,7.52,%,green,standard,,,,no_tag,,,,,lab test drx. ladf   and  partner lasfdfd
+2026-03-20T08:35:50.726505Z,weight,50.6,kg,,standard,,,,unspecified,,,,,
+2026-03-20T06:00:00Z,total_cholesterol,8.2,mmol/L,orange,fasting,,,,no_tag,,,,,
+2026-03-20T06:00:00Z,hemoglobin,9.06,mmol/L,green,fasting,,,,no_tag,,,,,Lab 5
+2026-03-20T06:00:00Z,glucose,5.0,mmol/L,green,fasting,,,,no_tag,,,,,Device Test
+2026-03-20T06:00:00Z,bp_systolic,101.0,mmHg,green,fasting,,,,no_tag,,,,,
+2026-03-20T06:00:00Z,bp_diastolic,81.0,mmHg,orange,fasting,,,,no_tag,,,,,
+2026-03-20T06:00:00Z,hematocrit,43.0,%,green,fasting,,,,no_tag,,,,,Lab 5
+2026-03-20T06:00:00Z,weight,68.7,kg,,fasting,,,,no_tag,,,,,
+2026-03-20T06:00:00Z,heart_rate,96.0,bpm,orange,fasting,,,,no_tag,,,,,
+2026-03-20T06:00:00Z,ketones,2.8,mmol/L,green,fasting,,,,no_tag,,,,,testgerät
+2026-03-20T05:55:00Z,body_fat_pct,7.0,%,red,standard,,,,no_tag,,,,,
+2026-03-20T05:55:00Z,muscle_pct,19.0,%,orange,standard,,,,no_tag,,,,,
+2026-03-20T05:55:00Z,weight,68.7,kg,,standard,,,,no_tag,,,,,Device Test
+2026-03-19T09:44:31.892569Z,lymphocytes_abs,1.84,Gpt/L,green,standard,,,,no_tag,,,,,lab 5
+2026-03-19T09:44:31.892569Z,monocytes_abs,0.52,Gpt/L,green,standard,,,,no_tag,,,,,lab 5
+2026-03-19T09:44:31.892569Z,monocytes_pct,7.52,%,green,standard,,,,no_tag,,,,,lab 5
+2026-03-19T09:44:31.892569Z,basophils_abs,0.05,Gpt/L,green,standard,,,,no_tag,,,,,lab 5
+2026-03-19T09:44:31.892569Z,basophils_pct,0.5,%,green,standard,,,,no_tag,,,,,lab 5
+2026-03-19T09:44:31.892569Z,eosinophils_abs,0.16,Gpt/L,green,standard,,,,no_tag,,,,,lab 5
+2026-03-19T09:44:31.892569Z,eosinophils_pct,2.4,%,green,standard,,,,no_tag,,,,,lab 5
+2026-03-19T09:44:31.892569Z,neutrophils_abs,4.21,Gpt/L,green,standard,,,,no_tag,,,,,lab 5
+2026-03-19T09:44:31.892569Z,wbc,6.8,Gpt/L,green,standard,,,,no_tag,,,,,lab 5
+2026-03-19T09:44:31.892569Z,mchc,34.3,g/dL,,standard,,,,no_tag,,,,,lab 5
+2026-03-19T09:44:31.892569Z,mch,32.4,pg,,standard,,,,no_tag,,,,,lab 5
+2026-03-19T09:44:31.892569Z,hematocrit,44.0,%,green,standard,,,,no_tag,,,,,lab 5
+2026-03-19T09:44:31.892569Z,hemoglobin,9.32,mmol/L,green,standard,,,,no_tag,,,,,lab 5
+2026-03-19T09:44:31.892569Z,rbc,4.33,Tpt/L,green,standard,,,,no_tag,,,,,lab 5
+2026-03-19T09:44:31.892569Z,mcv,94.0,fL,,standard,,,,no_tag,,,,,lab 5
+2026-03-19T09:44:31.892569Z,neutrophils_pct,62.1,%,green,standard,,,,no_tag,,,,,lab 5
+2026-03-19T09:44:31.892569Z,lymphocytes_pct,27.1,%,green,standard,,,,no_tag,,,,,lab 5
+2026-03-19T09:29:08.584235Z,lymphocytes_pct,27.1,%,green,standard,,,,no_tag,,,,,Lab 5
+2026-03-19T09:29:08.584235Z,monocytes_abs,0.52,Gpt/L,green,standard,,,,no_tag,,,,,Lab 5
+2026-03-19T09:29:08.584235Z,monocytes_pct,7.52,%,green,standard,,,,no_tag,,,,,Lab 5
+2026-03-19T09:29:08.584235Z,basophils_abs,0.05,Gpt/L,green,standard,,,,no_tag,,,,,Lab 5
+2026-03-19T09:29:08.584235Z,basophils_pct,0.5,%,green,standard,,,,no_tag,,,,,Lab 5
+2026-03-19T09:29:08.584235Z,eosinophils_abs,0.16,Gpt/L,green,standard,,,,no_tag,,,,,Lab 5
+2026-03-19T09:29:08.584235Z,eosinophils_pct,2.4,%,green,standard,,,,no_tag,,,,,Lab 5
+2026-03-19T09:29:08.584235Z,neutrophils_abs,4.21,Gpt/L,green,standard,,,,no_tag,,,,,Lab 5
+2026-03-19T09:29:08.584235Z,neutrophils_pct,62.1,%,green,standard,,,,no_tag,,,,,Lab 5
+2026-03-19T09:29:08.584235Z,wbc,6.8,Gpt/L,green,standard,,,,no_tag,,,,,Lab 5
+2026-03-19T09:29:08.584235Z,hematocrit,44.0,%,green,standard,,,,no_tag,,,,,Lab 5
+2026-03-19T09:29:08.584235Z,hemoglobin,9.32,mmol/L,green,standard,,,,no_tag,,,,,Lab 5
+2026-03-19T09:29:08.584235Z,rbc,4.63,Tpt/L,green,standard,,,,no_tag,,,,,Lab 5
+2026-03-19T09:29:08.584235Z,lymphocytes_abs,1.84,Gpt/L,green,standard,,,,no_tag,,,,,Lab 5
+2026-03-19T09:21:26.938300Z,lymphocytes_abs,1.84,Gpt/L,green,standard,,,,no_tag,,,,,lab 4
+2026-03-19T09:21:26.938300Z,basophils_pct,0.5,%,green,standard,,,,no_tag,,,,,lab 4
+2026-03-19T09:21:26.938300Z,lymphocytes_pct,27.1,%,green,standard,,,,no_tag,,,,,lab 4
+2026-03-19T09:21:26.938300Z,basophils_abs,0.05,Gpt/L,green,standard,,,,no_tag,,,,,lab 4
+2026-03-19T09:21:26.938300Z,neutrophils_pct,62.1,%,green,standard,,,,no_tag,,,,,lab 4
+2026-03-19T09:21:26.938300Z,wbc,6.8,Gpt/L,green,standard,,,,no_tag,,,,,lab 4
+2026-03-19T09:21:26.938300Z,hematocrit,44.0,%,green,standard,,,,no_tag,,,,,lab 4
+2026-03-19T09:21:26.938300Z,hemoglobin,9.32,mmol/L,green,standard,,,,no_tag,,,,,lab 4
+2026-03-19T09:21:26.938300Z,rbc,4.33,Tpt/L,green,standard,,,,no_tag,,,,,lab 4
+2026-03-19T09:21:26.938300Z,monocytes_abs,0.52,Gpt/L,green,standard,,,,no_tag,,,,,lab 4
+2026-03-19T09:21:26.938300Z,monocytes_pct,7.52,%,green,standard,,,,no_tag,,,,,lab 4
+2026-03-19T09:21:26.938300Z,eosinophils_abs,0.16,Gpt/L,green,standard,,,,no_tag,,,,,lab 4
+2026-03-19T09:21:26.938300Z,eosinophils_pct,2.4,%,green,standard,,,,no_tag,,,,,lab 4
+2026-03-19T09:21:26.938300Z,neutrophils_abs,4.21,Gpt/L,green,standard,,,,no_tag,,,,,lab 4
+2026-03-19T09:12:10.626294Z,wbc,6.8,Gpt/L,green,standard,,,,no_tag,,,,,lab 2
+2026-03-19T09:12:10.626294Z,hematocrit,44.0,%,green,standard,,,,no_tag,,,,,lab 2
+2026-03-19T09:12:10.626294Z,hemoglobin,9.32,mmol/L,green,standard,,,,no_tag,,,,,lab 2
+2026-03-19T09:12:10.626294Z,rbc,4.33,Tpt/L,green,standard,,,,no_tag,,,,,lab 2
+2026-03-19T09:07:59.976170Z,wbc,6.8,Gpt/L,green,standard,,,,no_tag,,,,,Lab
+2026-03-19T09:07:59.976170Z,hematocrit,44.0,%,green,standard,,,,no_tag,,,,,Lab
+2026-03-19T09:07:59.976170Z,hemoglobin,9.32,mmol/L,green,standard,,,,no_tag,,,,,Lab
+2026-03-19T09:07:59.976170Z,rbc,4.63,Tpt/L,green,standard,,,,no_tag,,,,,Lab
+2026-03-18T12:01:00Z,glucose,4.0,mmol/L,green,standard,,,,no_tag,,,,3,
+2026-03-17T07:44:00Z,body_fat_pct,5.0,%,red,standard,,,,no_tag,,,,,
+2026-03-17T07:44:00Z,muscle_pct,20.0,%,orange,standard,,,,no_tag,,,,,
+2026-03-17T07:44:00Z,weight,68.9,kg,,standard,,,,no_tag,,,,,Device Test
+2026-03-17T06:00:00Z,bp_systolic,128.0,mmHg,orange,fasting,,,,no_tag,,,,,
+2026-03-17T06:00:00Z,glucose,4.9,mmol/L,green,fasting,,,,no_tag,,,,,Device Test
+2026-03-17T06:00:00Z,heart_rate,85.0,bpm,orange,fasting,,,,no_tag,,,,,
+2026-03-17T06:00:00Z,bp_diastolic,81.0,mmHg,orange,fasting,,,,no_tag,,,,,
+2026-03-17T06:00:00Z,weight,68.9,kg,,fasting,,,,no_tag,,,,,
+2026-03-16T06:19:00Z,muscle_pct,20.0,%,orange,standard,,,,no_tag,,,,,
+2026-03-16T06:19:00Z,weight,69.8,kg,,standard,,,,no_tag,,,,,Device Test
+2026-03-16T06:19:00Z,body_fat_pct,5.0,%,red,standard,,,,no_tag,,,,,
+2026-03-13T06:00:00Z,hematocrit,51.0,%,orange,fasting,,,,no_tag,,,,,Lab 5
+2026-03-13T06:00:00Z,glucose,5.8,mmol/L,green,fasting,,,,no_tag,,,,,Device Test
+2026-03-13T06:00:00Z,bp_systolic,106.0,mmHg,green,fasting,,,,no_tag,,,,,
+2026-03-13T06:00:00Z,total_cholesterol,9.2,mmol/L,red,fasting,,,,no_tag,,,,,
+2026-03-13T06:00:00Z,heart_rate,84.0,bpm,orange,fasting,,,,no_tag,,,,,
+2026-03-13T06:00:00Z,weight,69.9,kg,,fasting,,,,no_tag,,,,,
+2026-03-13T06:00:00Z,bp_diastolic,77.0,mmHg,green,fasting,,,,no_tag,,,,,
+2026-03-13T06:00:00Z,hemoglobin,10.73,mmol/L,green,fasting,,,,no_tag,,,,,Lab 5
+2026-03-13T05:57:00Z,weight,69.9,kg,,standard,,,,no_tag,,,,,Device Test
+2026-03-13T05:57:00Z,muscle_pct,18.0,%,orange,standard,,,,no_tag,,,,,
+2026-03-13T05:57:00Z,body_fat_pct,10.0,%,orange,standard,,,,no_tag,,,,,
+2026-03-10T06:00:00Z,heart_rate,58.0,bpm,green,fasting,,,,no_tag,,,,,
+2026-03-10T06:00:00Z,bp_diastolic,70.0,mmHg,green,fasting,,,,no_tag,,,,,
+2026-03-10T06:00:00Z,bp_systolic,97.0,mmHg,green,fasting,,,,no_tag,,,,,
+2026-03-10T06:00:00Z,weight,71.8,kg,,fasting,,,,no_tag,,,,,
+2026-03-10T06:00:00Z,glucose,5.1,mmol/L,green,fasting,,,,no_tag,,,,,Device Test
+2026-03-10T04:58:00Z,weight,71.8,kg,,standard,,,,no_tag,,,,,Device Test
+2026-03-10T04:58:00Z,body_fat_pct,10.0,%,orange,standard,,,,no_tag,,,,,
+2026-03-10T04:58:00Z,muscle_pct,19.0,%,orange,standard,,,,no_tag,,,,,
+2026-03-06T06:00:00Z,ketones,0.0,mmol/L,orange,fasting,,,,no_tag,,,,,testgerät
+2026-03-06T06:00:00Z,weight,72.8,kg,,fasting,,,,no_tag,,,,,
+2026-03-06T06:00:00Z,glucose,6.6,mmol/L,orange,fasting,,,,no_tag,,,,,Device Test
+2026-03-06T06:00:00Z,bp_diastolic,66.0,mmHg,green,fasting,,,,no_tag,,,,,
+2026-03-06T06:00:00Z,hemoglobin,8.44,mmol/L,orange,fasting,,,,no_tag,,,,,Lab 5
+2026-03-06T06:00:00Z,hematocrit,40.0,%,green,fasting,,,,no_tag,,,,,Lab 5
+2026-03-06T06:00:00Z,bp_systolic,106.0,mmHg,green,fasting,,,,no_tag,,,,,
+2026-03-06T06:00:00Z,total_cholesterol,8.1,mmol/L,orange,fasting,,,,no_tag,,,,,
+2026-03-06T06:00:00Z,heart_rate,63.0,bpm,green,fasting,,,,no_tag,,,,,
+2026-03-03T06:00:00Z,heart_rate,59.0,bpm,green,fasting,,,,no_tag,,,,,
+2026-03-03T06:00:00Z,bp_diastolic,71.0,mmHg,green,fasting,,,,no_tag,,,,,
+2026-03-03T06:00:00Z,glucose,5.3,mmol/L,green,fasting,,,,no_tag,,,,,Device Test
+2026-03-03T06:00:00Z,bp_systolic,106.0,mmHg,green,fasting,,,,no_tag,,,,,
+2026-03-03T06:00:00Z,weight,73.6,kg,,fasting,,,,no_tag,,,,,
+2026-02-28T08:00:00Z,hemoglobin,9.1,mmol/L,green,fasting,,16_8,16,no_tag,,,,,Fora 6 Connect
+2026-02-28T08:00:00Z,hematocrit,44.0,%,green,fasting,,16_8,16,no_tag,,,,,Fora 6 Connect
+2026-02-28T08:00:00Z,ketones,1.2,mmol/L,red,fasting,,16_8,16,no_tag,,,,,Fora 6 Connect
+2026-02-28T08:00:00Z,total_cholesterol,5.8,mmol/L,orange,fasting,,16_8,16,no_tag,,,,,Fora 6 Connect
+2026-02-28T08:00:00Z,uric_acid,386.0,µmol/L,orange,fasting,,16_8,16,no_tag,,,,,Fora 6 Connect
+2026-02-28T08:00:00Z,glucose,4.2,mmol/L,green,fasting,,16_8,16,no_tag,,,,,Fora 6 Connect
+2026-02-28T07:30:00Z,bp_systolic,118.0,mmHg,green,standard,,,,no_tag,,,,,Qardio Arm
+2026-02-28T07:30:00Z,bp_diastolic,74.0,mmHg,green,standard,,,,no_tag,,,,,Qardio Arm
+2026-02-28T07:30:00Z,heart_rate,63.0,bpm,green,standard,,,,no_tag,,,,,Qardio Arm
+2026-02-28T07:00:00Z,weight,73.0,kg,,standard,,,,no_tag,,,,,Qardio Base
+2026-02-27T06:00:00Z,ketones,0.1,mmol/L,orange,fasting,,,,no_tag,,,,,testgerät
+2026-02-27T06:00:00Z,hematocrit,36.0,%,orange,fasting,,,,no_tag,,,,,Lab 5
+2026-02-27T06:00:00Z,bp_diastolic,69.0,mmHg,green,fasting,,,,no_tag,,,,,
+2026-02-27T06:00:00Z,weight,73.0,kg,,fasting,,,,no_tag,,,,,
+2026-02-27T06:00:00Z,uric_acid,321.0,µmol/L,green,fasting,,,,no_tag,,,,,
+2026-02-27T06:00:00Z,total_cholesterol,8.1,mmol/L,orange,fasting,,,,no_tag,,,,,
+2026-02-27T06:00:00Z,heart_rate,69.0,bpm,green,fasting,,,,no_tag,,,,,
+2026-02-27T06:00:00Z,bp_systolic,100.0,mmHg,green,fasting,,,,no_tag,,,,,
+2026-02-27T06:00:00Z,glucose,5.8,mmol/L,green,fasting,,,,no_tag,,,,,Device Test
+2026-02-27T06:00:00Z,hemoglobin,7.57,mmol/L,orange,fasting,,,,no_tag,,,,,Lab 5
+2026-02-27T05:17:00Z,weight,73.0,kg,,standard,,,,no_tag,,,,,Device Test
+2026-02-27T05:17:00Z,muscle_pct,19.0,%,orange,standard,,,,no_tag,,,,,
+2026-02-27T05:17:00Z,body_fat_pct,9.0,%,orange,standard,,,,no_tag,,,,,
+2026-02-26T08:00:00Z,uric_acid,364.0,µmol/L,orange,standard,,,,no_tag,,,,,Fora 6 Connect
+2026-02-26T08:00:00Z,hematocrit,44.0,%,green,standard,,,,no_tag,,,,,Fora 6 Connect
+2026-02-26T08:00:00Z,hemoglobin,9.1,mmol/L,green,standard,,,,no_tag,,,,,Fora 6 Connect
+2026-02-26T08:00:00Z,total_cholesterol,5.8,mmol/L,orange,standard,,,,no_tag,,,,,Fora 6 Connect
+2026-02-26T08:00:00Z,ketones,0.3,mmol/L,green,standard,,,,no_tag,,,,,Fora 6 Connect
+2026-02-26T08:00:00Z,glucose,4.7,mmol/L,green,standard,,,,no_tag,,,,,Fora 6 Connect
+2026-02-24T06:00:00Z,bp_diastolic,69.0,mmHg,green,fasting,,,,no_tag,,,,,
+2026-02-24T06:00:00Z,heart_rate,67.0,bpm,green,fasting,,,,no_tag,,,,,
+2026-02-24T06:00:00Z,glucose,4.9,mmol/L,green,fasting,,,,no_tag,,,,,Device Test
+2026-02-24T06:00:00Z,bp_systolic,100.0,mmHg,green,fasting,,,,no_tag,,,,,
+2026-02-24T06:00:00Z,weight,72.9,kg,,fasting,,,,no_tag,,,,,
+2026-02-24T05:36:00Z,body_fat_pct,10.0,%,orange,standard,,,,no_tag,,,,,
+2026-02-24T05:36:00Z,muscle_pct,19.0,%,orange,standard,,,,no_tag,,,,,
+2026-02-24T05:36:00Z,weight,72.9,kg,,standard,,,,no_tag,,,,,Device Test
+2026-02-23T08:00:00Z,hemoglobin,9.0,mmol/L,green,fasting,,16_8,16,no_tag,,,,,Fora 6 Connect
+2026-02-23T08:00:00Z,total_cholesterol,5.7,mmol/L,orange,fasting,,16_8,16,no_tag,,,,,Fora 6 Connect
+2026-02-23T08:00:00Z,glucose,4.0,mmol/L,green,fasting,,16_8,16,no_tag,,,,,Fora 6 Connect
+2026-02-23T08:00:00Z,uric_acid,382.0,µmol/L,orange,fasting,,16_8,16,no_tag,,,,,Fora 6 Connect
+2026-02-23T08:00:00Z,hematocrit,43.0,%,green,fasting,,16_8,16,no_tag,,,,,Fora 6 Connect
+2026-02-23T08:00:00Z,ketones,1.4,mmol/L,red,fasting,,16_8,16,no_tag,,,,,Fora 6 Connect
+2026-02-20T08:00:00Z,hemoglobin,9.2,mmol/L,green,standard,,,,no_tag,,,,,Fora 6 Connect
+2026-02-20T08:00:00Z,uric_acid,360.0,µmol/L,green,standard,,,,no_tag,,,,,Fora 6 Connect
+2026-02-20T08:00:00Z,total_cholesterol,5.7,mmol/L,orange,standard,,,,no_tag,,,,,Fora 6 Connect
+2026-02-20T08:00:00Z,ketones,0.2,mmol/L,green,standard,,,,no_tag,,,,,Fora 6 Connect
+2026-02-20T08:00:00Z,glucose,4.6,mmol/L,green,standard,,,,no_tag,,,,,Fora 6 Connect
+2026-02-20T08:00:00Z,hematocrit,44.0,%,green,standard,,,,no_tag,,,,,Fora 6 Connect
+2026-02-20T06:00:00Z,glucose,5.8,mmol/L,green,fasting,,,,no_tag,,,,,Device Test
+2026-02-20T06:00:00Z,total_cholesterol,7.9,mmol/L,orange,fasting,,,,no_tag,,,,,
+2026-02-20T06:00:00Z,heart_rate,64.0,bpm,green,fasting,,,,no_tag,,,,,
+2026-02-20T06:00:00Z,bp_diastolic,73.0,mmHg,green,fasting,,,,no_tag,,,,,
+2026-02-20T06:00:00Z,ketones,0.0,mmol/L,orange,fasting,,,,no_tag,,,,,testgerät
+2026-02-20T06:00:00Z,hematocrit,31.0,%,red,fasting,,,,no_tag,,,,,Lab 5
+2026-02-20T06:00:00Z,weight,73.05,kg,,fasting,,,,no_tag,,,,,
+2026-02-20T06:00:00Z,bp_systolic,114.0,mmHg,green,fasting,,,,no_tag,,,,,
+2026-02-20T06:00:00Z,hemoglobin,6.51,mmol/L,red,fasting,,,,no_tag,,,,,Lab 5
+2026-02-19T07:00:00Z,weight,72.7,kg,,standard,,,,no_tag,,,,,Qardio Base
+2026-02-17T08:00:00Z,hematocrit,44.0,%,green,fasting,,16_8,17,no_tag,,,,,Fora 6 Connect
+2026-02-17T08:00:00Z,hemoglobin,9.2,mmol/L,green,fasting,,16_8,17,no_tag,,,,,Fora 6 Connect
+2026-02-17T08:00:00Z,total_cholesterol,5.8,mmol/L,orange,fasting,,16_8,17,no_tag,,,,,Fora 6 Connect
+2026-02-17T08:00:00Z,ketones,1.3,mmol/L,red,fasting,,16_8,17,no_tag,,,,,Fora 6 Connect
+2026-02-17T08:00:00Z,glucose,4.1,mmol/L,green,fasting,,16_8,17,no_tag,,,,,Fora 6 Connect
+2026-02-17T08:00:00Z,uric_acid,388.0,µmol/L,orange,fasting,,16_8,17,no_tag,,,,,Fora 6 Connect
+2026-02-17T06:00:00Z,heart_rate,64.0,bpm,green,fasting,,,,no_tag,,,,,
+2026-02-17T06:00:00Z,glucose,5.1,mmol/L,green,fasting,,,,no_tag,,,,,Device Test
+2026-02-17T06:00:00Z,weight,73.05,kg,,fasting,,,,no_tag,,,,,
+2026-02-17T06:00:00Z,bp_diastolic,73.0,mmHg,green,fasting,,,,no_tag,,,,,
+2026-02-17T06:00:00Z,bp_systolic,108.0,mmHg,green,fasting,,,,no_tag,,,,,
+2026-02-16T07:00:00Z,weight,72.9,kg,,standard,,,,no_tag,,,,,Qardio Base
+2026-02-14T07:00:00Z,weight,72.7,kg,,standard,,,,no_tag,,,,,Qardio Base
+2026-02-13T08:00:00Z,hematocrit,43.0,%,green,standard,,,,no_tag,,,,,Fora 6 Connect
+2026-02-13T08:00:00Z,hemoglobin,9.0,mmol/L,green,standard,,,,no_tag,,,,,Fora 6 Connect
+2026-02-13T08:00:00Z,uric_acid,372.0,µmol/L,orange,standard,,,,no_tag,,,,,Fora 6 Connect
+2026-02-13T08:00:00Z,total_cholesterol,5.9,mmol/L,orange,standard,,,,no_tag,,,,,Fora 6 Connect
+2026-02-13T08:00:00Z,ketones,0.3,mmol/L,green,standard,,,,no_tag,,,,,Fora 6 Connect
+2026-02-13T08:00:00Z,glucose,4.8,mmol/L,green,standard,,,,no_tag,,,,,Fora 6 Connect
+2026-02-13T06:00:00Z,hematocrit,30.0,%,red,fasting,,,,no_tag,,,,,Lab 5
+2026-02-13T06:00:00Z,ketones,1.2,mmol/L,green,fasting,,,,no_tag,,,,,testgerät
+2026-02-13T06:00:00Z,total_cholesterol,9.2,mmol/L,red,fasting,,,,no_tag,,,,,
+2026-02-13T06:00:00Z,weight,71.0,kg,,fasting,,,,no_tag,,,,,
+2026-02-13T06:00:00Z,uric_acid,440.0,µmol/L,orange,fasting,,,,no_tag,,,,,
+2026-02-13T06:00:00Z,heart_rate,75.0,bpm,green,fasting,,,,no_tag,,,,,
+2026-02-13T06:00:00Z,glucose,5.0,mmol/L,green,fasting,,,,no_tag,,,,,Device Test
+2026-02-13T06:00:00Z,bp_diastolic,73.0,mmHg,green,fasting,,,,no_tag,,,,,
+2026-02-13T06:00:00Z,bp_systolic,101.0,mmHg,green,fasting,,,,no_tag,,,,,
+2026-02-13T06:00:00Z,hemoglobin,6.33,mmol/L,red,fasting,,,,no_tag,,,,,Lab 5
+2026-02-13T05:18:00Z,body_fat_pct,11.0,%,green,standard,,,,no_tag,,,,,
+2026-02-13T05:18:00Z,weight,71.0,kg,,standard,,,,no_tag,,,,,Device Test
+2026-02-13T05:18:00Z,muscle_pct,19.0,%,orange,standard,,,,no_tag,,,,,
+2026-02-11T07:00:00Z,weight,72.8,kg,,standard,,,,no_tag,,,,,Qardio Base
+2026-02-10T08:00:00Z,hematocrit,45.0,%,green,fasting,,48h,48,no_tag,,,,,Fora 6 Connect
+2026-02-10T08:00:00Z,uric_acid,438.0,µmol/L,orange,fasting,,48h,48,no_tag,,,,,Fora 6 Connect
+2026-02-10T08:00:00Z,hemoglobin,9.1,mmol/L,green,fasting,,48h,48,no_tag,,,,,Fora 6 Connect
+2026-02-10T08:00:00Z,total_cholesterol,5.6,mmol/L,orange,fasting,,48h,48,no_tag,,,,,Fora 6 Connect
+2026-02-10T08:00:00Z,glucose,3.7,mmol/L,orange,fasting,,48h,48,no_tag,,,,,Fora 6 Connect
+2026-02-10T08:00:00Z,ketones,2.9,mmol/L,red,fasting,,48h,48,no_tag,,,,,Fora 6 Connect
+2026-02-10T05:41:00Z,bp_systolic,112.0,mmHg,green,fasting,,,,no_tag,,,,,
+2026-02-10T05:41:00Z,weight,73.0,kg,,fasting,,,,no_tag,,,,,
+2026-02-10T05:41:00Z,bp_diastolic,80.0,mmHg,green,fasting,,,,no_tag,,,,,
+2026-02-10T05:41:00Z,heart_rate,74.0,bpm,green,fasting,,,,no_tag,,,,,
+2026-02-10T05:41:00Z,glucose,5.3,mmol/L,green,fasting,,,,no_tag,,,,,Device Test
+2026-02-10T05:25:00Z,body_fat_pct,9.0,%,orange,standard,,,,no_tag,,,,,
+2026-02-10T05:25:00Z,muscle_pct,19.0,%,orange,standard,,,,no_tag,,,,,
+2026-02-10T05:25:00Z,weight,73.0,kg,,standard,,,,no_tag,,,,,Device Test
+2026-02-09T08:00:00Z,ketones,1.9,mmol/L,red,fasting,,48h,24,no_tag,,,,,Fora 6 Connect
+2026-02-09T08:00:00Z,hemoglobin,9.0,mmol/L,green,fasting,,48h,24,no_tag,,,,,Fora 6 Connect
+2026-02-09T08:00:00Z,glucose,4.0,mmol/L,green,fasting,,48h,24,no_tag,,,,,Fora 6 Connect
+2026-02-09T08:00:00Z,uric_acid,422.0,µmol/L,orange,fasting,,48h,24,no_tag,,,,,Fora 6 Connect
+2026-02-09T08:00:00Z,total_cholesterol,5.7,mmol/L,orange,fasting,,48h,24,no_tag,,,,,Fora 6 Connect
+2026-02-09T08:00:00Z,hematocrit,44.0,%,green,fasting,,48h,24,no_tag,,,,,Fora 6 Connect
+2026-02-09T07:00:00Z,weight,72.9,kg,,standard,,,,no_tag,,,,,Qardio Base
+2026-02-06T07:00:00Z,weight,73.0,kg,,standard,,,,no_tag,,,,,Qardio Base
+2026-02-06T06:00:00Z,bp_diastolic,75.0,mmHg,green,fasting,,,,no_tag,,,,,
+2026-02-06T06:00:00Z,total_cholesterol,7.9,mmol/L,orange,fasting,,,,no_tag,,,,,
+2026-02-06T06:00:00Z,bp_systolic,109.0,mmHg,green,fasting,,,,no_tag,,,,,
+2026-02-06T06:00:00Z,heart_rate,64.0,bpm,green,fasting,,,,no_tag,,,,,
+2026-02-06T06:00:00Z,glucose,5.5,mmol/L,green,fasting,,,,no_tag,,,,,Device Test
+2026-02-06T06:00:00Z,ketones,0.0,mmol/L,orange,fasting,,,,no_tag,,,,,testgerät
+2026-02-06T06:00:00Z,hematocrit,28.0,%,red,fasting,,,,no_tag,,,,,Lab 5
+2026-02-06T06:00:00Z,hemoglobin,5.89,mmol/L,red,fasting,,,,no_tag,,,,,Lab 5
+2026-02-06T06:00:00Z,weight,73.8,kg,,fasting,,,,no_tag,,,,,
+2026-02-06T05:19:00Z,weight,73.8,kg,,standard,,,,no_tag,,,,,Device Test
+2026-02-06T05:19:00Z,body_fat_pct,5.0,%,red,standard,,,,no_tag,,,,,
+2026-02-06T05:19:00Z,muscle_pct,20.0,%,orange,standard,,,,no_tag,,,,,
+2026-02-05T08:00:00Z,hematocrit,43.0,%,green,fasting,,16_8,16,no_tag,,,,,Fora 6 Connect
+2026-02-05T08:00:00Z,hemoglobin,9.0,mmol/L,green,fasting,,16_8,16,no_tag,,,,,Fora 6 Connect
+2026-02-05T08:00:00Z,uric_acid,394.0,µmol/L,orange,fasting,,16_8,16,no_tag,,,,,Fora 6 Connect
+2026-02-05T08:00:00Z,total_cholesterol,5.9,mmol/L,orange,fasting,,16_8,16,no_tag,,,,,Fora 6 Connect
+2026-02-05T08:00:00Z,ketones,1.1,mmol/L,red,fasting,,16_8,16,no_tag,,,,,Fora 6 Connect
+2026-02-05T08:00:00Z,glucose,4.2,mmol/L,green,fasting,,16_8,16,no_tag,,,,,Fora 6 Connect
+2026-02-04T07:00:00Z,weight,72.8,kg,,standard,,,,no_tag,,,,,Qardio Base
+2026-02-03T07:00:00Z,bp_diastolic,74.0,mmHg,green,fasting,,,,no_tag,,,,,
+2026-02-03T07:00:00Z,bp_systolic,121.0,mmHg,orange,fasting,,,,no_tag,,,,,
+2026-02-03T07:00:00Z,heart_rate,63.0,bpm,green,fasting,,,,no_tag,,,,,
+2026-02-03T07:00:00Z,glucose,5.5,mmol/L,green,fasting,,,,no_tag,,,,,Device Test
+2026-02-02T08:00:00Z,hematocrit,44.0,%,green,standard,,,,no_tag,,,,,Fora 6 Connect
+2026-02-02T08:00:00Z,hemoglobin,9.1,mmol/L,green,standard,,,,no_tag,,,,,Fora 6 Connect
+2026-02-02T08:00:00Z,uric_acid,368.0,µmol/L,orange,standard,,,,no_tag,,,,,Fora 6 Connect
+2026-02-02T08:00:00Z,total_cholesterol,5.8,mmol/L,orange,standard,,,,no_tag,,,,,Fora 6 Connect
+2026-02-02T08:00:00Z,ketones,0.2,mmol/L,green,standard,,,,no_tag,,,,,Fora 6 Connect
+2026-02-02T08:00:00Z,glucose,4.7,mmol/L,green,standard,,,,no_tag,,,,,Fora 6 Connect
+2026-02-01T07:00:00Z,weight,73.0,kg,,standard,,,,no_tag,,,,,Qardio Base
+2026-01-30T08:00:00Z,hematocrit,43.0,%,green,standard,,,,no_tag,,,,,Fora 6 Connect
+2026-01-30T08:00:00Z,hemoglobin,9.0,mmol/L,green,standard,,,,no_tag,,,,,Fora 6 Connect
+2026-01-30T08:00:00Z,uric_acid,365.0,µmol/L,orange,standard,,,,no_tag,,,,,Fora 6 Connect
+2026-01-30T08:00:00Z,total_cholesterol,5.8,mmol/L,orange,standard,,,,no_tag,,,,,Fora 6 Connect
+2026-01-30T08:00:00Z,ketones,0.2,mmol/L,green,standard,,,,no_tag,,,,,Fora 6 Connect
+2026-01-30T08:00:00Z,glucose,4.6,mmol/L,green,standard,,,,no_tag,,,,,Fora 6 Connect
+2026-01-30T07:00:00Z,weight,72.9,kg,,standard,,,,no_tag,,,,,Qardio Base
+2026-01-30T05:00:00Z,bp_diastolic,68.0,mmHg,green,fasting,,,,no_tag,,,,,
+2026-01-30T05:00:00Z,uric_acid,297.0,µmol/L,green,fasting,,,,no_tag,,,,,
+2026-01-30T05:00:00Z,hematocrit,37.0,%,orange,fasting,,,,no_tag,,,,,Lab 5
+2026-01-30T05:00:00Z,ketones,0.2,mmol/L,orange,fasting,,,,no_tag,,,,,testgerät
+2026-01-30T05:00:00Z,bp_systolic,110.0,mmHg,green,fasting,,,,no_tag,,,,,
+2026-01-30T05:00:00Z,hemoglobin,7.75,mmol/L,orange,fasting,,,,no_tag,,,,,Lab 5
+2026-01-30T05:00:00Z,weight,72.9,kg,,fasting,,,,no_tag,,,,,
+2026-01-30T05:00:00Z,heart_rate,64.0,bpm,green,fasting,,,,no_tag,,,,,
+2026-01-30T05:00:00Z,total_cholesterol,6.5,mmol/L,green,fasting,,,,no_tag,,,,,
+2026-01-30T05:00:00Z,glucose,5.8,mmol/L,green,fasting,,,,no_tag,,,,,Device Test
+2026-01-30T04:53:00Z,weight,72.9,kg,,standard,,,,no_tag,,,,,Device Test
+2026-01-30T04:53:00Z,muscle_pct,19.0,%,orange,standard,,,,no_tag,,,,,
+2026-01-30T04:53:00Z,body_fat_pct,10.0,%,orange,standard,,,,no_tag,,,,,
+2026-01-28T07:00:00Z,weight,73.1,kg,,standard,,,,no_tag,,,,,Qardio Base
+2026-01-27T08:00:00Z,hematocrit,44.0,%,green,fasting,,16_8,16,no_tag,,,,,Fora 6 Connect
+2026-01-27T08:00:00Z,hemoglobin,9.2,mmol/L,green,fasting,,16_8,16,no_tag,,,,,Fora 6 Connect
+2026-01-27T08:00:00Z,uric_acid,388.0,µmol/L,orange,fasting,,16_8,16,no_tag,,,,,Fora 6 Connect
+2026-01-27T08:00:00Z,total_cholesterol,5.8,mmol/L,orange,fasting,,16_8,16,no_tag,,,,,Fora 6 Connect
+2026-01-27T08:00:00Z,ketones,1.3,mmol/L,red,fasting,,16_8,16,no_tag,,,,,Fora 6 Connect
+2026-01-27T08:00:00Z,glucose,4.1,mmol/L,green,fasting,,16_8,16,no_tag,,,,,Fora 6 Connect
+2026-01-27T06:00:00Z,heart_rate,65.0,bpm,green,fasting,,,,no_tag,,,,,
+2026-01-27T06:00:00Z,bp_systolic,111.0,mmHg,green,fasting,,,,no_tag,,,,,
+2026-01-27T06:00:00Z,bp_diastolic,71.0,mmHg,green,fasting,,,,no_tag,,,,,
+2026-01-27T06:00:00Z,glucose,5.6,mmol/L,green,fasting,,,,no_tag,,,,,Device Test
+2026-01-26T07:30:00Z,bp_diastolic,73.0,mmHg,green,standard,,,,no_tag,,,,,Qardio Arm
+2026-01-26T07:30:00Z,bp_systolic,117.0,mmHg,green,standard,,,,no_tag,,,,,Qardio Arm
+2026-01-26T07:30:00Z,heart_rate,62.0,bpm,green,standard,,,,no_tag,,,,,Qardio Arm
+2026-01-26T07:00:00Z,weight,73.0,kg,,standard,,,,no_tag,,,,,Qardio Base
+2026-01-23T08:00:00Z,total_cholesterol,6.0,mmol/L,orange,standard,,,,no_tag,,,,,Fora 6 Connect
+2026-01-23T08:00:00Z,hemoglobin,9.1,mmol/L,green,standard,,,,no_tag,,,,,Fora 6 Connect
+2026-01-23T08:00:00Z,uric_acid,378.0,µmol/L,orange,standard,,,,no_tag,,,,,Fora 6 Connect
+2026-01-23T08:00:00Z,glucose,4.8,mmol/L,green,standard,,,,no_tag,,,,,Fora 6 Connect
+2026-01-23T08:00:00Z,ketones,0.3,mmol/L,green,standard,,,,no_tag,,,,,Fora 6 Connect
+2026-01-23T08:00:00Z,hematocrit,44.0,%,green,standard,,,,no_tag,,,,,Fora 6 Connect
+2026-01-23T07:30:00Z,bp_diastolic,76.0,mmHg,green,standard,,,,no_tag,,,,,Qardio Arm
+2026-01-23T07:30:00Z,heart_rate,65.0,bpm,green,standard,,,,no_tag,,,,,Qardio Arm
+2026-01-23T07:30:00Z,bp_systolic,121.0,mmHg,orange,standard,,,,no_tag,,,,,Qardio Arm
+2026-01-23T07:00:00Z,weight,73.2,kg,,standard,,,,no_tag,,,,,Qardio Base
+2026-01-23T06:00:00Z,bp_diastolic,72.0,mmHg,green,fasting,,,,no_tag,,,,,
+2026-01-23T06:00:00Z,total_cholesterol,8.7,mmol/L,orange,fasting,,,,no_tag,,,,,
+2026-01-23T06:00:00Z,bp_systolic,109.0,mmHg,green,fasting,,,,no_tag,,,,,
+2026-01-23T06:00:00Z,heart_rate,69.0,bpm,green,fasting,,,,no_tag,,,,,
+2026-01-23T06:00:00Z,glucose,5.3,mmol/L,green,fasting,,,,no_tag,,,,,Device Test
+2026-01-23T06:00:00Z,ketones,0.7,mmol/L,green,fasting,,,,no_tag,,,,,testgerät
+2026-01-23T06:00:00Z,weight,72.05,kg,,fasting,,,,no_tag,,,,,
+2026-01-21T07:30:00Z,bp_diastolic,74.0,mmHg,green,standard,,,,no_tag,,,,,Qardio Arm
+2026-01-21T07:30:00Z,heart_rate,63.0,bpm,green,standard,,,,no_tag,,,,,Qardio Arm
+2026-01-21T07:30:00Z,bp_systolic,119.0,mmHg,green,standard,,,,no_tag,,,,,Qardio Arm
+2026-01-21T07:00:00Z,weight,73.1,kg,,standard,,,,no_tag,,,,,Qardio Base
+2026-01-20T08:00:00Z,hemoglobin,9.0,mmol/L,green,fasting,,16_8,17,no_tag,,,,,Fora 6 Connect
+2026-01-20T08:00:00Z,uric_acid,392.0,µmol/L,orange,fasting,,16_8,17,no_tag,,,,,Fora 6 Connect
+2026-01-20T08:00:00Z,total_cholesterol,5.9,mmol/L,orange,fasting,,16_8,17,no_tag,,,,,Fora 6 Connect
+2026-01-20T08:00:00Z,hematocrit,43.0,%,green,fasting,,16_8,17,no_tag,,,,,Fora 6 Connect
+2026-01-20T08:00:00Z,ketones,1.2,mmol/L,red,fasting,,16_8,17,no_tag,,,,,Fora 6 Connect
+2026-01-20T08:00:00Z,glucose,4.2,mmol/L,green,fasting,,16_8,17,no_tag,,,,,Fora 6 Connect
+2026-01-20T06:00:00Z,weight,73.15,kg,,fasting,,,,no_tag,,,,,
+2026-01-20T06:00:00Z,bp_diastolic,72.0,mmHg,green,fasting,,,,no_tag,,,,,
+2026-01-20T06:00:00Z,heart_rate,76.0,bpm,green,fasting,,,,no_tag,,,,,
+2026-01-20T06:00:00Z,ketones,0.9,mmol/L,green,fasting,,,,no_tag,,,,,testgerät
+2026-01-20T06:00:00Z,bp_systolic,114.0,mmHg,green,fasting,,,,no_tag,,,,,
+2026-01-20T06:00:00Z,glucose,5.8,mmol/L,green,fasting,,,,no_tag,,,,,Device Test
+2026-01-19T07:30:00Z,heart_rate,61.0,bpm,green,standard,,,,no_tag,,,,,Qardio Arm
+2026-01-19T07:30:00Z,bp_systolic,116.0,mmHg,green,standard,,,,no_tag,,,,,Qardio Arm
+2026-01-19T07:30:00Z,bp_diastolic,73.0,mmHg,green,standard,,,,no_tag,,,,,Qardio Arm
+2026-01-19T07:00:00Z,weight,73.3,kg,,standard,,,,no_tag,,,,,Qardio Base
+2026-01-16T08:00:00Z,hematocrit,44.0,%,green,standard,,,,no_tag,,,,,Fora 6 Connect
+2026-01-16T08:00:00Z,hemoglobin,9.2,mmol/L,green,standard,,,,no_tag,,,,,Fora 6 Connect
+2026-01-16T08:00:00Z,glucose,4.7,mmol/L,green,standard,,,,no_tag,,,,,Fora 6 Connect
+2026-01-16T08:00:00Z,total_cholesterol,5.9,mmol/L,orange,standard,,,,no_tag,,,,,Fora 6 Connect
+2026-01-16T08:00:00Z,uric_acid,370.0,µmol/L,orange,standard,,,,no_tag,,,,,Fora 6 Connect
+2026-01-16T08:00:00Z,ketones,0.2,mmol/L,green,standard,,,,no_tag,,,,,Fora 6 Connect
+2026-01-16T07:30:00Z,bp_systolic,120.0,mmHg,green,standard,,,,no_tag,,,,,Qardio Arm
+2026-01-16T07:30:00Z,bp_diastolic,75.0,mmHg,green,standard,,,,no_tag,,,,,Qardio Arm
+2026-01-16T07:30:00Z,heart_rate,64.0,bpm,green,standard,,,,no_tag,,,,,Qardio Arm
+2026-01-16T07:00:00Z,weight,73.4,kg,,standard,,,,no_tag,,,,,Qardio Base
+2026-01-16T06:00:00Z,weight,71.55,kg,,fasting,,,,no_tag,,,,,
+2026-01-16T06:00:00Z,total_cholesterol,6.8,mmol/L,green,fasting,,,,no_tag,,,,,
+2026-01-16T06:00:00Z,bp_diastolic,65.0,mmHg,green,fasting,,,,no_tag,,,,,
+2026-01-16T06:00:00Z,hemoglobin,7.13,mmol/L,red,fasting,,,,no_tag,,,,,Lab 5
+2026-01-16T06:00:00Z,heart_rate,84.0,bpm,orange,fasting,,,,no_tag,,,,,
+2026-01-16T06:00:00Z,bp_systolic,121.0,mmHg,orange,fasting,,,,no_tag,,,,,
+2026-01-16T06:00:00Z,ketones,1.0,mmol/L,green,fasting,,,,no_tag,,,,,testgerät
+2026-01-16T06:00:00Z,hematocrit,34.0,%,red,fasting,,,,no_tag,,,,,Lab 5
+2026-01-16T06:00:00Z,glucose,6.5,mmol/L,orange,fasting,,,,no_tag,,,,,Device Test
+2026-01-14T07:30:00Z,heart_rate,62.0,bpm,green,standard,,,,no_tag,,,,,Qardio Arm
+2026-01-14T07:30:00Z,bp_diastolic,74.0,mmHg,green,standard,,,,no_tag,,,,,Qardio Arm
+2026-01-14T07:30:00Z,bp_systolic,118.0,mmHg,green,standard,,,,no_tag,,,,,Qardio Arm
+2026-01-14T07:00:00Z,weight,73.2,kg,,standard,,,,no_tag,,,,,Qardio Base
+2026-01-13T08:00:00Z,ketones,2.7,mmol/L,red,fasting,,48h,48,no_tag,,,,,Fora 6 Connect
+2026-01-13T08:00:00Z,glucose,3.7,mmol/L,orange,fasting,,48h,48,no_tag,,,,,Fora 6 Connect
+2026-01-13T08:00:00Z,hemoglobin,9.1,mmol/L,green,fasting,,48h,48,no_tag,,,,,Fora 6 Connect
+2026-01-13T08:00:00Z,total_cholesterol,5.7,mmol/L,orange,fasting,,48h,48,no_tag,,,,,Fora 6 Connect
+2026-01-13T08:00:00Z,uric_acid,430.0,µmol/L,orange,fasting,,48h,48,no_tag,,,,,Fora 6 Connect
+2026-01-13T08:00:00Z,hematocrit,45.0,%,green,fasting,,48h,48,no_tag,,,,,Fora 6 Connect
+2026-01-13T05:45:00Z,bp_systolic,114.0,mmHg,green,fasting,,,,no_tag,,,,,
+2026-01-13T05:45:00Z,hemoglobin,9.49,mmol/L,green,fasting,,,,no_tag,,,,,Lab 5
+2026-01-13T05:45:00Z,weight,71.5,kg,,fasting,,,,no_tag,,,,,
+2026-01-13T05:45:00Z,glucose,4.5,mmol/L,green,fasting,,,,no_tag,,,,,Device Test
+2026-01-13T05:45:00Z,bp_diastolic,68.0,mmHg,green,fasting,,,,no_tag,,,,,
+2026-01-13T05:45:00Z,heart_rate,60.0,bpm,green,fasting,,,,no_tag,,,,,
+2026-01-13T05:45:00Z,ketones,3.0,mmol/L,green,fasting,,,,no_tag,,,,,testgerät
+2026-01-13T05:45:00Z,hematocrit,45.0,%,green,fasting,,,,no_tag,,,,,Lab 5
+2026-01-13T05:34:00Z,weight,71.5,kg,,standard,,,,no_tag,,,,,Device Test
+2026-01-13T05:34:00Z,muscle_pct,19.0,%,orange,standard,,,,no_tag,,,,,
+2026-01-13T05:34:00Z,body_fat_pct,7.0,%,red,standard,,,,no_tag,,,,,
+2026-01-12T08:00:00Z,glucose,4.0,mmol/L,green,fasting,,48h,24,no_tag,,,,,Fora 6 Connect
+2026-01-12T08:00:00Z,body_fat_pct,9.0,%,orange,standard,,,,no_tag,,,,,
+2026-01-12T08:00:00Z,uric_acid,418.0,µmol/L,orange,fasting,,48h,24,no_tag,,,,,Fora 6 Connect
+2026-01-12T08:00:00Z,total_cholesterol,5.7,mmol/L,orange,fasting,,48h,24,no_tag,,,,,Fora 6 Connect
+2026-01-12T08:00:00Z,ketones,1.8,mmol/L,red,fasting,,48h,24,no_tag,,,,,Fora 6 Connect
+2026-01-12T08:00:00Z,weight,71.5,kg,,standard,,,,no_tag,,,,,Device Test
+2026-01-12T08:00:00Z,hematocrit,44.0,%,green,fasting,,48h,24,no_tag,,,,,Fora 6 Connect
+2026-01-12T08:00:00Z,hemoglobin,9.0,mmol/L,green,fasting,,48h,24,no_tag,,,,,Fora 6 Connect
+2026-01-12T07:30:00Z,bp_diastolic,72.0,mmHg,green,standard,,,,no_tag,,,,,Qardio Arm
+2026-01-12T07:30:00Z,bp_systolic,115.0,mmHg,green,standard,,,,no_tag,,,,,Qardio Arm
+2026-01-12T07:30:00Z,heart_rate,60.0,bpm,green,standard,,,,no_tag,,,,,Qardio Arm
+2026-01-12T07:00:00Z,weight,73.4,kg,,standard,,,,no_tag,,,,,Qardio Base
+2026-01-12T06:00:00Z,weight,71.5,kg,,fasting,,,,no_tag,,,,,
+2026-01-09T07:30:00Z,bp_systolic,122.0,mmHg,orange,standard,,,,no_tag,,,,,Qardio Arm
+2026-01-09T07:30:00Z,bp_diastolic,76.0,mmHg,green,standard,,,,no_tag,,,,,Qardio Arm
+2026-01-09T07:30:00Z,heart_rate,65.0,bpm,green,standard,,,,no_tag,,,,,Qardio Arm
+2026-01-09T07:00:00Z,weight,73.3,kg,,standard,,,,no_tag,,,,,Qardio Base
+2026-01-08T08:00:00Z,hematocrit,43.0,%,green,standard,,,,no_tag,,,,,Fora 6 Connect
+2026-01-08T08:00:00Z,hemoglobin,9.0,mmol/L,green,standard,,,,no_tag,,,,,Fora 6 Connect
+2026-01-08T08:00:00Z,uric_acid,383.0,µmol/L,orange,standard,,,,no_tag,,,,,Fora 6 Connect
+2026-01-08T08:00:00Z,total_cholesterol,6.1,mmol/L,orange,standard,,,,no_tag,,,,,Fora 6 Connect
+2026-01-08T08:00:00Z,ketones,0.3,mmol/L,green,standard,,,,no_tag,,,,,Fora 6 Connect
+2026-01-08T08:00:00Z,glucose,4.9,mmol/L,green,standard,,,,no_tag,,,,,Fora 6 Connect
+2026-01-07T07:30:00Z,heart_rate,63.0,bpm,green,standard,,,,no_tag,,,,,Qardio Arm
+2026-01-07T07:30:00Z,bp_systolic,119.0,mmHg,green,standard,,,,no_tag,,,,,Qardio Arm
+2026-01-07T07:30:00Z,bp_diastolic,75.0,mmHg,green,standard,,,,no_tag,,,,,Qardio Arm
+2026-01-07T07:00:00Z,weight,73.5,kg,,standard,,,,no_tag,,,,,Qardio Base
+2026-01-07T06:00:00Z,weight,73.1,kg,,fasting,,,,no_tag,,,,,
+2026-01-07T06:00:00Z,bp_systolic,112.0,mmHg,green,fasting,,,,no_tag,,,,,
+2026-01-07T06:00:00Z,bp_diastolic,76.0,mmHg,green,fasting,,,,no_tag,,,,,
+2026-01-07T06:00:00Z,hematocrit,41.0,%,green,fasting,,,,no_tag,,,,,Lab 5
+2026-01-07T06:00:00Z,heart_rate,86.0,bpm,orange,fasting,,,,no_tag,,,,,
+2026-01-07T06:00:00Z,glucose,5.2,mmol/L,green,fasting,,,,no_tag,,,,,Device Test
+2026-01-07T06:00:00Z,hemoglobin,8.62,mmol/L,green,fasting,,,,no_tag,,,,,Lab 5
+2026-01-05T08:00:00Z,hematocrit,44.0,%,green,fasting,,16_8,16,no_tag,,,,,Fora 6 Connect
+2026-01-05T08:00:00Z,glucose,4.3,mmol/L,green,fasting,,16_8,16,no_tag,,,,,Fora 6 Connect
+2026-01-05T08:00:00Z,ketones,1.0,mmol/L,orange,fasting,,16_8,16,no_tag,,,,,Fora 6 Connect
+2026-01-05T08:00:00Z,hemoglobin,9.1,mmol/L,green,fasting,,16_8,16,no_tag,,,,,Fora 6 Connect
+2026-01-05T08:00:00Z,total_cholesterol,6.1,mmol/L,orange,fasting,,16_8,16,no_tag,,,,,Fora 6 Connect
+2026-01-05T08:00:00Z,uric_acid,398.0,µmol/L,orange,fasting,,16_8,16,no_tag,,,,,Fora 6 Connect
+2026-01-05T07:30:00Z,bp_systolic,117.0,mmHg,green,standard,,,,no_tag,,,,,Qardio Arm
+2026-01-05T07:30:00Z,heart_rate,61.0,bpm,green,standard,,,,no_tag,,,,,Qardio Arm
+2026-01-05T07:30:00Z,bp_diastolic,73.0,mmHg,green,standard,,,,no_tag,,,,,Qardio Arm
+2026-01-05T07:00:00Z,weight,73.6,kg,,standard,,,,no_tag,,,,,Qardio Base
+2026-01-02T08:00:00Z,hemoglobin,9.1,mmol/L,green,standard,,,,no_tag,,,,,Fora 6 Connect
+2026-01-02T08:00:00Z,total_cholesterol,6.0,mmol/L,orange,standard,,,,no_tag,,,,,Fora 6 Connect
+2026-01-02T08:00:00Z,uric_acid,374.0,µmol/L,orange,standard,,,,no_tag,,,,,Fora 6 Connect
+2026-01-02T08:00:00Z,ketones,0.2,mmol/L,green,standard,,,,no_tag,,,,,Fora 6 Connect
+2026-01-02T08:00:00Z,hematocrit,44.0,%,green,standard,,,,no_tag,,,,,Fora 6 Connect
+2026-01-02T08:00:00Z,glucose,4.8,mmol/L,green,standard,,,,no_tag,,,,,Fora 6 Connect
+2026-01-02T07:30:00Z,bp_diastolic,76.0,mmHg,green,standard,,,,no_tag,,,,,Qardio Arm
+2026-01-02T07:30:00Z,bp_systolic,121.0,mmHg,orange,standard,,,,no_tag,,,,,Qardio Arm
+2026-01-02T07:30:00Z,heart_rate,64.0,bpm,green,standard,,,,no_tag,,,,,Qardio Arm
+2026-01-02T07:00:00Z,weight,73.4,kg,,standard,,,,no_tag,,,,,Qardio Base
+2026-01-02T06:00:00Z,glucose,5.6,mmol/L,green,fasting,,,,no_tag,,,,,Device Test
+2026-01-02T06:00:00Z,hemoglobin,9.68,mmol/L,green,fasting,,,,no_tag,,,,,Lab 5
+2026-01-02T06:00:00Z,weight,74.0,kg,,fasting,,,,no_tag,,,,,
+2026-01-02T06:00:00Z,bp_systolic,117.0,mmHg,green,fasting,,,,no_tag,,,,,
+2026-01-02T06:00:00Z,heart_rate,69.0,bpm,green,fasting,,,,no_tag,,,,,
+2026-01-02T06:00:00Z,bp_diastolic,82.0,mmHg,orange,fasting,,,,no_tag,,,,,
+2026-01-02T06:00:00Z,total_cholesterol,7.2,mmol/L,green,fasting,,,,no_tag,,,,,
+2026-01-02T06:00:00Z,hematocrit,46.0,%,green,fasting,,,,no_tag,,,,,Lab 5
+2025-12-31T08:00:00Z,hematocrit,36.0,%,orange,postprandial,,,,no_tag,,,,,Lab 5
+2025-12-31T08:00:00Z,uric_acid,309.0,µmol/L,green,postprandial,,,,no_tag,,,,,
+2025-12-31T08:00:00Z,heart_rate,75.0,bpm,green,postprandial,,,,no_tag,,,,,
+2025-12-31T08:00:00Z,bp_systolic,111.0,mmHg,green,postprandial,,,,no_tag,,,,,
+2025-12-31T08:00:00Z,bp_diastolic,75.0,mmHg,green,postprandial,,,,no_tag,,,,,
+2025-12-31T08:00:00Z,total_cholesterol,7.9,mmol/L,orange,postprandial,,,,no_tag,,,,,
+2025-12-31T08:00:00Z,hemoglobin,7.57,mmol/L,orange,postprandial,,,,no_tag,,,,,Lab 5
+2025-12-31T08:00:00Z,glucose,6.2,mmol/L,orange,postprandial,,,,no_tag,,,,,Device Test
+2025-12-31T07:00:00Z,weight,73.6,kg,,standard,,,,no_tag,,,,,Qardio Base
+2025-12-31T06:00:00Z,uric_acid,475.0,µmol/L,orange,fasting,,,,no_tag,,,,,
+2025-12-31T06:00:00Z,bp_diastolic,73.0,mmHg,green,fasting,,,,no_tag,,,,,
+2025-12-31T06:00:00Z,ketones,0.8,mmol/L,green,fasting,,,,no_tag,,,,,testgerät
+2025-12-31T06:00:00Z,weight,73.5,kg,,fasting,,,,no_tag,,,,,
+2025-12-31T06:00:00Z,hemoglobin,9.06,mmol/L,green,fasting,,,,no_tag,,,,,Lab 5
+2025-12-31T06:00:00Z,glucose,5.1,mmol/L,green,fasting,,,,no_tag,,,,,Device Test
+2025-12-31T06:00:00Z,heart_rate,60.0,bpm,green,fasting,,,,no_tag,,,,,
+2025-12-31T06:00:00Z,total_cholesterol,7.3,mmol/L,green,fasting,,,,no_tag,,,,,
+2025-12-31T06:00:00Z,hematocrit,43.0,%,green,fasting,,,,no_tag,,,,,Lab 5
+2025-12-31T06:00:00Z,bp_systolic,107.0,mmHg,green,fasting,,,,no_tag,,,,,
+2025-12-30T16:00:00Z,heart_rate,75.0,bpm,green,standard,,,,no_tag,,,,,
+2025-12-30T16:00:00Z,bp_systolic,133.0,mmHg,orange,standard,,,,no_tag,,,,,
+2025-12-30T16:00:00Z,bp_diastolic,79.0,mmHg,green,standard,,,,no_tag,,,,,
+2025-12-30T08:00:00Z,uric_acid,814.0,µmol/L,red,postprandial,,,,no_tag,,,,,
+2025-12-30T08:00:00Z,total_cholesterol,8.6,mmol/L,orange,postprandial,,,,no_tag,,,,,
+2025-12-30T08:00:00Z,heart_rate,80.0,bpm,green,postprandial,,,,no_tag,,,,,
+2025-12-30T08:00:00Z,bp_diastolic,75.0,mmHg,green,postprandial,,,,no_tag,,,,,
+2025-12-30T08:00:00Z,bp_systolic,105.0,mmHg,green,postprandial,,,,no_tag,,,,,
+2025-12-30T08:00:00Z,hematocrit,38.0,%,orange,postprandial,,,,no_tag,,,,,Lab 5
+2025-12-30T08:00:00Z,ketones,2.1,mmol/L,green,postprandial,,,,no_tag,,,,,testgerät
+2025-12-30T08:00:00Z,hemoglobin,8.0,mmol/L,orange,postprandial,,,,no_tag,,,,,Lab 5
+2025-12-30T08:00:00Z,glucose,5.6,mmol/L,green,postprandial,,,,no_tag,,,,,Device Test
+2025-12-30T06:00:00Z,weight,72.5,kg,,fasting,,,,no_tag,,,,,
+2025-12-30T06:00:00Z,hemoglobin,10.11,mmol/L,green,fasting,,,,no_tag,,,,,Lab 5
+2025-12-30T06:00:00Z,heart_rate,86.0,bpm,orange,fasting,,,,no_tag,,,,,
+2025-12-30T06:00:00Z,total_cholesterol,8.5,mmol/L,orange,fasting,,,,no_tag,,,,,
+2025-12-30T06:00:00Z,glucose,4.3,mmol/L,orange,fasting,,,,no_tag,,,,,Device Test
+2025-12-30T06:00:00Z,uric_acid,446.0,µmol/L,orange,fasting,,,,no_tag,,,,,
+2025-12-30T06:00:00Z,bp_diastolic,72.0,mmHg,green,fasting,,,,no_tag,,,,,
+2025-12-30T06:00:00Z,bp_systolic,116.0,mmHg,green,fasting,,,,no_tag,,,,,
+2025-12-30T06:00:00Z,hematocrit,48.0,%,green,fasting,,,,no_tag,,,,,Lab 5
+2025-12-30T06:00:00Z,ketones,2.5,mmol/L,green,fasting,,,,no_tag,,,,,testgerät
+2025-12-29T16:00:00Z,heart_rate,80.0,bpm,green,standard,,,,no_tag,,,,,
+2025-12-29T16:00:00Z,bp_systolic,110.0,mmHg,green,standard,,,,no_tag,,,,,
+2025-12-29T16:00:00Z,bp_diastolic,80.0,mmHg,green,standard,,,,no_tag,,,,,
+2025-12-29T08:00:00Z,uric_acid,376.0,µmol/L,orange,standard,,,,no_tag,,,,,Fora 6 Connect
+2025-12-29T08:00:00Z,glucose,4.7,mmol/L,green,standard,,,,no_tag,,,,,Fora 6 Connect
+2025-12-29T08:00:00Z,ketones,0.3,mmol/L,green,standard,,,,no_tag,,,,,Fora 6 Connect
+2025-12-29T08:00:00Z,hematocrit,45.0,%,green,standard,,,,no_tag,,,,,Fora 6 Connect
+2025-12-29T08:00:00Z,hemoglobin,9.2,mmol/L,green,standard,,,,no_tag,,,,,Fora 6 Connect
+2025-12-29T08:00:00Z,hemoglobin,9.68,mmol/L,green,postprandial,,,,no_tag,,,,,Lab 5
+2025-12-29T08:00:00Z,bp_diastolic,73.0,mmHg,green,postprandial,,,,no_tag,,,,,
+2025-12-29T08:00:00Z,uric_acid,469.0,µmol/L,orange,postprandial,,,,no_tag,,,,,
+2025-12-29T08:00:00Z,glucose,4.9,mmol/L,green,postprandial,,,,no_tag,,,,,Device Test
+2025-12-29T08:00:00Z,total_cholesterol,6.0,mmol/L,orange,standard,,,,no_tag,,,,,Fora 6 Connect
+2025-12-29T08:00:00Z,hematocrit,46.0,%,green,postprandial,,,,no_tag,,,,,Lab 5
+2025-12-29T08:00:00Z,ketones,0.8,mmol/L,green,postprandial,,,,no_tag,,,,,testgerät
+2025-12-29T08:00:00Z,heart_rate,76.0,bpm,green,postprandial,,,,no_tag,,,,,
+2025-12-29T08:00:00Z,total_cholesterol,8.5,mmol/L,orange,postprandial,,,,no_tag,,,,,
+2025-12-29T08:00:00Z,bp_systolic,119.0,mmHg,green,postprandial,,,,no_tag,,,,,
+2025-12-29T07:30:00Z,bp_systolic,119.0,mmHg,green,standard,,,,no_tag,,,,,Qardio Arm
+2025-12-29T07:30:00Z,heart_rate,62.0,bpm,green,standard,,,,no_tag,,,,,Qardio Arm
+2025-12-29T07:30:00Z,bp_diastolic,74.0,mmHg,green,standard,,,,no_tag,,,,,Qardio Arm
+2025-12-29T07:00:00Z,weight,73.5,kg,,standard,,,,no_tag,,,,,Qardio Base
+2025-12-29T06:00:00Z,heart_rate,72.0,bpm,green,fasting,,,,no_tag,,,,,
+2025-12-29T06:00:00Z,hemoglobin,9.68,mmol/L,green,fasting,,,,no_tag,,,,,Lab 5
+2025-12-29T06:00:00Z,hematocrit,46.0,%,green,fasting,,,,no_tag,,,,,Lab 5
+2025-12-29T06:00:00Z,ketones,1.3,mmol/L,green,fasting,,,,no_tag,,,,,testgerät
+2025-12-29T06:00:00Z,weight,73.0,kg,,fasting,,,,no_tag,,,,,
+2025-12-29T06:00:00Z,total_cholesterol,7.7,mmol/L,orange,fasting,,,,no_tag,,,,,
+2025-12-29T06:00:00Z,glucose,5.1,mmol/L,green,fasting,,,,no_tag,,,,,Device Test
+2025-12-29T06:00:00Z,bp_systolic,115.0,mmHg,green,fasting,,,,no_tag,,,,,
+2025-12-29T06:00:00Z,bp_diastolic,73.0,mmHg,green,fasting,,,,no_tag,,,,,
+2025-12-29T06:00:00Z,uric_acid,457.0,µmol/L,orange,fasting,,,,no_tag,,,,,
+2025-12-28T16:00:00Z,bp_systolic,109.0,mmHg,green,standard,,,,no_tag,,,,,
+2025-12-28T16:00:00Z,bp_diastolic,79.0,mmHg,green,standard,,,,no_tag,,,,,
+2025-12-28T16:00:00Z,heart_rate,57.0,bpm,green,standard,,,,no_tag,,,,,
+2025-12-28T08:00:00Z,bp_systolic,110.0,mmHg,green,postprandial,,,,no_tag,,,,,
+2025-12-28T08:00:00Z,hemoglobin,9.86,mmol/L,green,postprandial,,,,no_tag,,,,,Lab 5
+2025-12-28T08:00:00Z,heart_rate,84.0,bpm,orange,postprandial,,,,no_tag,,,,,
+2025-12-28T08:00:00Z,total_cholesterol,7.6,mmol/L,orange,postprandial,,,,no_tag,,,,,
+2025-12-28T08:00:00Z,ketones,0.2,mmol/L,orange,postprandial,,,,no_tag,,,,,testgerät
+2025-12-28T08:00:00Z,hematocrit,47.0,%,green,postprandial,,,,no_tag,,,,,Lab 5
+2025-12-28T08:00:00Z,glucose,6.4,mmol/L,orange,postprandial,,,,no_tag,,,,,Device Test
+2025-12-28T08:00:00Z,uric_acid,446.0,µmol/L,orange,postprandial,,,,no_tag,,,,,
+2025-12-28T08:00:00Z,bp_diastolic,75.0,mmHg,green,postprandial,,,,no_tag,,,,,
+2025-12-28T06:00:00Z,uric_acid,356.0,µmol/L,green,fasting,,,,no_tag,,,,,
+2025-12-28T06:00:00Z,glucose,6.4,mmol/L,orange,fasting,,,,no_tag,,,,,Device Test
+2025-12-28T06:00:00Z,ketones,0.3,mmol/L,green,fasting,,,,no_tag,,,,,testgerät
+2025-12-28T06:00:00Z,hemoglobin,9.24,mmol/L,green,fasting,,,,no_tag,,,,,Lab 5
+2025-12-28T06:00:00Z,bp_diastolic,72.0,mmHg,green,fasting,,,,no_tag,,,,,
+2025-12-28T06:00:00Z,bp_systolic,124.0,mmHg,orange,fasting,,,,no_tag,,,,,
+2025-12-28T06:00:00Z,hematocrit,44.0,%,green,fasting,,,,no_tag,,,,,Lab 5
+2025-12-28T06:00:00Z,heart_rate,73.0,bpm,green,fasting,,,,no_tag,,,,,
+2025-12-28T06:00:00Z,total_cholesterol,7.1,mmol/L,green,fasting,,,,no_tag,,,,,
+2025-12-28T06:00:00Z,weight,75.0,kg,,fasting,,,,no_tag,,,,,
+2025-12-27T16:00:00Z,heart_rate,57.0,bpm,green,standard,,,,no_tag,,,,,
+2025-12-27T16:00:00Z,bp_diastolic,73.0,mmHg,green,standard,,,,no_tag,,,,,
+2025-12-27T16:00:00Z,bp_systolic,104.0,mmHg,green,standard,,,,no_tag,,,,,
+2025-12-27T08:00:00Z,hematocrit,41.0,%,green,postprandial,,,,no_tag,,,,,Lab 5
+2025-12-27T08:00:00Z,total_cholesterol,7.8,mmol/L,orange,postprandial,,,,no_tag,,,,,
+2025-12-27T08:00:00Z,ketones,0.2,mmol/L,orange,postprandial,,,,no_tag,,,,,testgerät
+2025-12-27T08:00:00Z,hemoglobin,8.63,mmol/L,green,postprandial,,,,no_tag,,,,,Lab 5
+2025-12-27T08:00:00Z,glucose,5.8,mmol/L,green,postprandial,,,,no_tag,,,,,Device Test
+2025-12-27T08:00:00Z,bp_diastolic,77.0,mmHg,green,postprandial,,,,no_tag,,,,,
+2025-12-27T08:00:00Z,bp_systolic,106.0,mmHg,green,postprandial,,,,no_tag,,,,,
+2025-12-27T08:00:00Z,heart_rate,70.0,bpm,green,postprandial,,,,no_tag,,,,,
+2025-12-27T08:00:00Z,uric_acid,339.0,µmol/L,green,postprandial,,,,no_tag,,,,,
+2025-12-27T06:00:00Z,hematocrit,44.0,%,green,fasting,,,,no_tag,,,,,Lab 5
+2025-12-27T06:00:00Z,ketones,0.1,mmol/L,orange,fasting,,,,no_tag,,,,,testgerät
+2025-12-27T06:00:00Z,weight,76.0,kg,,fasting,,,,no_tag,,,,,
+2025-12-27T06:00:00Z,total_cholesterol,6.1,mmol/L,green,fasting,,,,no_tag,,,,,
+2025-12-27T06:00:00Z,heart_rate,72.0,bpm,green,fasting,,,,no_tag,,,,,
+2025-12-27T06:00:00Z,hemoglobin,9.25,mmol/L,green,fasting,,,,no_tag,,,,,Lab 5
+2025-12-27T06:00:00Z,bp_diastolic,72.0,mmHg,green,fasting,,,,no_tag,,,,,
+2025-12-27T06:00:00Z,bp_systolic,102.0,mmHg,green,fasting,,,,no_tag,,,,,
+2025-12-27T06:00:00Z,glucose,6.1,mmol/L,orange,fasting,,,,no_tag,,,,,Device Test
+2025-12-27T06:00:00Z,uric_acid,303.0,µmol/L,green,fasting,,,,no_tag,,,,,
+2025-12-26T08:00:00Z,hemoglobin,9.2,mmol/L,green,fasting,,16_8,16,no_tag,,,,,Fora 6 Connect
+2025-12-26T08:00:00Z,glucose,4.2,mmol/L,green,fasting,,16_8,16,no_tag,,,,,Fora 6 Connect
+2025-12-26T08:00:00Z,ketones,1.2,mmol/L,red,fasting,,16_8,16,no_tag,,,,,Fora 6 Connect
+2025-12-26T08:00:00Z,hematocrit,44.0,%,green,fasting,,16_8,16,no_tag,,,,,Fora 6 Connect
+2025-12-26T08:00:00Z,total_cholesterol,6.0,mmol/L,orange,fasting,,16_8,16,no_tag,,,,,Fora 6 Connect
+2025-12-26T08:00:00Z,uric_acid,395.0,µmol/L,orange,fasting,,16_8,16,no_tag,,,,,Fora 6 Connect
+2025-12-26T07:30:00Z,bp_systolic,120.0,mmHg,green,standard,,,,no_tag,,,,,Qardio Arm
+2025-12-26T07:30:00Z,heart_rate,65.0,bpm,green,standard,,,,no_tag,,,,,Qardio Arm
+2025-12-26T07:30:00Z,bp_diastolic,75.0,mmHg,green,standard,,,,no_tag,,,,,Qardio Arm
+2025-12-26T07:00:00Z,weight,73.7,kg,,standard,,,,no_tag,,,,,Qardio Base
+2025-12-24T07:30:00Z,bp_diastolic,74.0,mmHg,green,standard,,,,no_tag,,,,,Qardio Arm
+2025-12-24T07:30:00Z,heart_rate,63.0,bpm,green,standard,,,,no_tag,,,,,Qardio Arm
+2025-12-24T07:30:00Z,bp_systolic,118.0,mmHg,green,standard,,,,no_tag,,,,,Qardio Arm
+2025-12-24T07:00:00Z,weight,73.6,kg,,standard,,,,no_tag,,,,,Qardio Base
+2025-12-22T08:00:00Z,ketones,0.2,mmol/L,green,standard,,,,no_tag,,,,,Fora 6 Connect
+2025-12-22T08:00:00Z,hematocrit,44.0,%,green,standard,,,,no_tag,,,,,Fora 6 Connect
+2025-12-22T08:00:00Z,uric_acid,381.0,µmol/L,orange,standard,,,,no_tag,,,,,Fora 6 Connect
+2025-12-22T08:00:00Z,hemoglobin,9.1,mmol/L,green,standard,,,,no_tag,,,,,Fora 6 Connect
+2025-12-22T08:00:00Z,glucose,5.0,mmol/L,green,standard,,,,no_tag,,,,,Fora 6 Connect
+2025-12-22T08:00:00Z,total_cholesterol,6.1,mmol/L,orange,standard,,,,no_tag,,,,,Fora 6 Connect
+2025-12-22T07:30:00Z,heart_rate,64.0,bpm,green,standard,,,,no_tag,,,,,Qardio Arm
+2025-12-22T07:30:00Z,bp_diastolic,76.0,mmHg,green,standard,,,,no_tag,,,,,Qardio Arm
+2025-12-22T07:30:00Z,bp_systolic,122.0,mmHg,orange,standard,,,,no_tag,,,,,Qardio Arm
+2025-12-22T07:00:00Z,weight,73.8,kg,,standard,,,,no_tag,,,,,Qardio Base
+2025-12-19T08:00:00Z,hemoglobin,9.1,mmol/L,green,fasting,,48h,48,no_tag,,,,,Fora 6 Connect
+2025-12-19T08:00:00Z,hematocrit,45.0,%,green,fasting,,48h,48,no_tag,,,,,Fora 6 Connect
+2025-12-19T08:00:00Z,uric_acid,425.0,µmol/L,orange,fasting,,48h,48,no_tag,,,,,Fora 6 Connect
+2025-12-19T08:00:00Z,total_cholesterol,5.8,mmol/L,orange,fasting,,48h,48,no_tag,,,,,Fora 6 Connect
+2025-12-19T08:00:00Z,ketones,2.4,mmol/L,red,fasting,,48h,48,no_tag,,,,,Fora 6 Connect
+2025-12-19T08:00:00Z,glucose,3.8,mmol/L,orange,fasting,,48h,48,no_tag,,,,,Fora 6 Connect
+2025-12-19T07:30:00Z,bp_systolic,117.0,mmHg,green,standard,,,,no_tag,,,,,Qardio Arm
+2025-12-19T07:30:00Z,bp_diastolic,73.0,mmHg,green,standard,,,,no_tag,,,,,Qardio Arm
+2025-12-19T07:30:00Z,heart_rate,62.0,bpm,green,standard,,,,no_tag,,,,,Qardio Arm
+2025-12-19T07:00:00Z,weight,73.7,kg,,standard,,,,no_tag,,,,,Qardio Base
+2025-12-18T08:00:00Z,hematocrit,44.0,%,green,fasting,,48h,24,no_tag,,,,,Fora 6 Connect
+2025-12-18T08:00:00Z,hemoglobin,9.0,mmol/L,green,fasting,,48h,24,no_tag,,,,,Fora 6 Connect
+2025-12-18T08:00:00Z,ketones,1.6,mmol/L,red,fasting,,48h,24,no_tag,,,,,Fora 6 Connect
+2025-12-18T08:00:00Z,glucose,4.1,mmol/L,green,fasting,,48h,24,no_tag,,,,,Fora 6 Connect
+2025-12-18T08:00:00Z,total_cholesterol,5.9,mmol/L,orange,fasting,,48h,24,no_tag,,,,,Fora 6 Connect
+2025-12-18T08:00:00Z,uric_acid,412.0,µmol/L,orange,fasting,,48h,24,no_tag,,,,,Fora 6 Connect
+2025-12-17T07:30:00Z,bp_systolic,123.0,mmHg,orange,standard,,,,no_tag,,,,,Qardio Arm
+2025-12-17T07:30:00Z,bp_diastolic,77.0,mmHg,green,standard,,,,no_tag,,,,,Qardio Arm
+2025-12-17T07:30:00Z,heart_rate,65.0,bpm,green,standard,,,,no_tag,,,,,Qardio Arm
+2025-12-17T07:00:00Z,weight,73.9,kg,,standard,,,,no_tag,,,,,Qardio Base
+2025-12-15T08:00:00Z,glucose,4.8,mmol/L,green,standard,,,,no_tag,,,,,Fora 6 Connect
+2025-12-15T08:00:00Z,ketones,0.3,mmol/L,green,standard,,,,no_tag,,,,,Fora 6 Connect
+2025-12-15T08:00:00Z,hematocrit,43.0,%,green,standard,,,,no_tag,,,,,Fora 6 Connect
+2025-12-15T08:00:00Z,hemoglobin,9.0,mmol/L,green,standard,,,,no_tag,,,,,Fora 6 Connect
+2025-12-15T08:00:00Z,total_cholesterol,6.2,mmol/L,orange,standard,,,,no_tag,,,,,Fora 6 Connect
+2025-12-15T08:00:00Z,uric_acid,392.0,µmol/L,orange,standard,,,,no_tag,,,,,Fora 6 Connect
+2025-12-15T07:30:00Z,heart_rate,63.0,bpm,green,standard,,,,no_tag,,,,,Qardio Arm
+2025-12-15T07:30:00Z,bp_diastolic,74.0,mmHg,green,standard,,,,no_tag,,,,,Qardio Arm
+2025-12-15T07:30:00Z,bp_systolic,119.0,mmHg,green,standard,,,,no_tag,,,,,Qardio Arm
+2025-12-15T07:00:00Z,weight,73.8,kg,,standard,,,,no_tag,,,,,Qardio Base
+2025-12-12T08:00:00Z,hemoglobin,9.0,mmol/L,green,fasting,,16_8,17,no_tag,,,,,Fora 6 Connect
+2025-12-12T08:00:00Z,glucose,4.3,mmol/L,green,fasting,,16_8,17,no_tag,,,,,Fora 6 Connect
+2025-12-12T08:00:00Z,ketones,1.1,mmol/L,red,fasting,,16_8,17,no_tag,,,,,Fora 6 Connect
+2025-12-12T08:00:00Z,total_cholesterol,6.1,mmol/L,orange,fasting,,16_8,17,no_tag,,,,,Fora 6 Connect
+2025-12-12T08:00:00Z,uric_acid,400.0,µmol/L,orange,fasting,,16_8,17,no_tag,,,,,Fora 6 Connect
+2025-12-12T08:00:00Z,hematocrit,43.0,%,green,fasting,,16_8,17,no_tag,,,,,Fora 6 Connect
+2025-12-12T07:30:00Z,bp_diastolic,76.0,mmHg,green,standard,,,,no_tag,,,,,Qardio Arm
+2025-12-12T07:30:00Z,bp_systolic,121.0,mmHg,orange,standard,,,,no_tag,,,,,Qardio Arm
+2025-12-12T07:30:00Z,heart_rate,66.0,bpm,green,standard,,,,no_tag,,,,,Qardio Arm
+2025-12-12T07:00:00Z,weight,73.9,kg,,standard,,,,no_tag,,,,,Qardio Base
+2025-12-10T07:30:00Z,bp_systolic,116.0,mmHg,green,standard,,,,no_tag,,,,,Qardio Arm
+2025-12-10T07:30:00Z,bp_diastolic,73.0,mmHg,green,standard,,,,no_tag,,,,,Qardio Arm
+2025-12-10T07:30:00Z,heart_rate,62.0,bpm,green,standard,,,,no_tag,,,,,Qardio Arm
+2025-12-10T07:00:00Z,weight,74.1,kg,,standard,,,,no_tag,,,,,Qardio Base
+2025-12-09T08:00:00Z,hematocrit,44.0,%,green,standard,,,,no_tag,,,,,Fora 6 Connect
+2025-12-09T08:00:00Z,hemoglobin,9.2,mmol/L,green,standard,,,,no_tag,,,,,Fora 6 Connect
+2025-12-09T08:00:00Z,glucose,5.1,mmol/L,green,standard,,,,no_tag,,,,,Fora 6 Connect
+2025-12-09T08:00:00Z,total_cholesterol,6.0,mmol/L,orange,standard,,,,no_tag,,,,,Fora 6 Connect
+2025-12-09T08:00:00Z,ketones,0.2,mmol/L,green,standard,,,,no_tag,,,,,Fora 6 Connect
+2025-12-09T08:00:00Z,uric_acid,378.0,µmol/L,orange,standard,,,,no_tag,,,,,Fora 6 Connect
+2025-12-08T07:30:00Z,bp_systolic,120.0,mmHg,green,standard,,,,no_tag,,,,,Qardio Arm
+2025-12-08T07:30:00Z,heart_rate,64.0,bpm,green,standard,,,,no_tag,,,,,Qardio Arm
+2025-12-08T07:30:00Z,bp_diastolic,75.0,mmHg,green,standard,,,,no_tag,,,,,Qardio Arm
+2025-12-08T07:00:00Z,weight,73.9,kg,,standard,,,,no_tag,,,,,Qardio Base
+2025-12-06T08:00:00Z,glucose,4.4,mmol/L,green,fasting,,16_8,16,no_tag,,,,,Fora 6 Connect
+2025-12-06T08:00:00Z,ketones,0.9,mmol/L,orange,fasting,,16_8,16,no_tag,,,,,Fora 6 Connect
+2025-12-06T08:00:00Z,hematocrit,44.0,%,green,fasting,,16_8,16,no_tag,,,,,Fora 6 Connect
+2025-12-06T08:00:00Z,hemoglobin,9.1,mmol/L,green,fasting,,16_8,16,no_tag,,,,,Fora 6 Connect
+2025-12-06T08:00:00Z,uric_acid,393.0,µmol/L,orange,fasting,,16_8,16,no_tag,,,,,Fora 6 Connect
+2025-12-06T08:00:00Z,total_cholesterol,6.2,mmol/L,orange,fasting,,16_8,16,no_tag,,,,,Fora 6 Connect
+2025-12-06T07:00:00Z,weight,74.0,kg,,standard,,,,no_tag,,,,,Qardio Base
+2025-12-05T07:30:00Z,bp_diastolic,78.0,mmHg,green,standard,,,,no_tag,,,,,Qardio Arm
+2025-12-05T07:30:00Z,bp_systolic,124.0,mmHg,orange,standard,,,,no_tag,,,,,Qardio Arm
+2025-12-05T07:30:00Z,heart_rate,67.0,bpm,green,standard,,,,no_tag,,,,,Qardio Arm
+2025-12-03T08:00:00Z,hemoglobin,9.1,mmol/L,green,standard,,,,no_tag,,,,,Fora 6 Connect
+2025-12-03T08:00:00Z,total_cholesterol,6.1,mmol/L,orange,standard,,,,no_tag,,,,,Fora 6 Connect
+2025-12-03T08:00:00Z,ketones,0.2,mmol/L,green,standard,,,,no_tag,,,,,Fora 6 Connect
+2025-12-03T08:00:00Z,glucose,4.9,mmol/L,green,standard,,,,no_tag,,,,,Fora 6 Connect
+2025-12-03T08:00:00Z,hematocrit,44.0,%,green,standard,,,,no_tag,,,,,Fora 6 Connect
+2025-12-03T08:00:00Z,uric_acid,385.0,µmol/L,orange,standard,,,,no_tag,,,,,Fora 6 Connect
+2025-12-03T07:30:00Z,heart_rate,63.0,bpm,green,standard,,,,no_tag,,,,,Qardio Arm
+2025-12-03T07:30:00Z,bp_systolic,118.0,mmHg,green,standard,,,,no_tag,,,,,Qardio Arm
+2025-12-03T07:30:00Z,bp_diastolic,74.0,mmHg,green,standard,,,,no_tag,,,,,Qardio Arm
+2025-12-03T07:00:00Z,weight,74.1,kg,,standard,,,,no_tag,,,,,Qardio Base
+2025-12-01T07:30:00Z,bp_systolic,122.0,mmHg,orange,standard,,,,no_tag,,,,,Qardio Arm
+2025-12-01T07:30:00Z,heart_rate,65.0,bpm,green,standard,,,,no_tag,,,,,Qardio Arm
+2025-12-01T07:30:00Z,bp_diastolic,76.0,mmHg,green,standard,,,,no_tag,,,,,Qardio Arm
+2025-12-01T07:00:00Z,weight,74.2,kg,,standard,,,,no_tag,,,,,Qardio Base
+2025-06-27T08:00:00Z,glucose,4.9,mmol/L,green,postprandial,,,,no_tag,,,,,Device Test
+2025-06-27T08:00:00Z,ketones,3.7,mmol/L,orange,postprandial,,,,no_tag,,,,,testgerät
+2025-06-27T08:00:00Z,hematocrit,42.0,%,green,postprandial,,,,no_tag,,,,,Lab 5
+2025-06-27T08:00:00Z,hemoglobin,8.81,mmol/L,green,postprandial,,,,no_tag,,,,,Lab 5
+2025-06-27T06:00:00Z,hemoglobin,8.81,mmol/L,green,fasting,,,,no_tag,,,,,Lab 5
+2025-06-27T06:00:00Z,ketones,3.3,mmol/L,orange,fasting,,,,no_tag,,,,,testgerät
+2025-06-27T06:00:00Z,hematocrit,42.0,%,green,fasting,,,,no_tag,,,,,Lab 5
+2025-06-27T06:00:00Z,weight,73.4,kg,,fasting,,,,no_tag,,,,,
+2025-06-27T06:00:00Z,heart_rate,68.0,bpm,green,fasting,,,,no_tag,,,,,
+2025-06-27T06:00:00Z,total_cholesterol,8.0,mmol/L,orange,fasting,,,,no_tag,,,,,
+2025-06-27T06:00:00Z,glucose,4.7,mmol/L,green,fasting,,,,no_tag,,,,,Device Test
+2025-06-27T06:00:00Z,bp_systolic,107.0,mmHg,green,fasting,,,,no_tag,,,,,
+2025-06-27T06:00:00Z,bp_diastolic,70.0,mmHg,green,fasting,,,,no_tag,,,,,
+2025-06-27T06:00:00Z,uric_acid,374.0,µmol/L,green,fasting,,,,no_tag,,,,,
+2025-06-26T16:00:00Z,bp_diastolic,65.0,mmHg,green,standard,,,,no_tag,,,,,
+2025-06-26T16:00:00Z,bp_systolic,112.0,mmHg,green,standard,,,,no_tag,,,,,
+2025-06-26T16:00:00Z,heart_rate,72.0,bpm,green,standard,,,,no_tag,,,,,
+2025-06-26T08:00:00Z,heart_rate,72.0,bpm,green,postprandial,,,,no_tag,,,,,
+2025-06-26T08:00:00Z,hematocrit,30.0,%,red,postprandial,,,,no_tag,,,,,Lab 5
+2025-06-26T08:00:00Z,hemoglobin,6.32,mmol/L,red,postprandial,,,,no_tag,,,,,Lab 5
+2025-06-26T08:00:00Z,bp_diastolic,73.0,mmHg,green,postprandial,,,,no_tag,,,,,
+2025-06-26T08:00:00Z,bp_systolic,107.0,mmHg,green,postprandial,,,,no_tag,,,,,
+2025-06-26T08:00:00Z,glucose,5.0,mmol/L,green,postprandial,,,,no_tag,,,,,Device Test
+2025-06-26T06:00:00Z,weight,73.4,kg,,fasting,,,,no_tag,,,,,
+2025-06-26T06:00:00Z,glucose,5.1,mmol/L,green,fasting,,,,no_tag,,,,,Device Test
+2025-06-26T06:00:00Z,heart_rate,76.0,bpm,green,fasting,,,,no_tag,,,,,
+2025-06-26T06:00:00Z,hematocrit,38.0,%,orange,fasting,,,,no_tag,,,,,Lab 5
+2025-06-26T06:00:00Z,bp_diastolic,65.0,mmHg,green,fasting,,,,no_tag,,,,,
+2025-06-26T06:00:00Z,hemoglobin,8.0,mmol/L,orange,fasting,,,,no_tag,,,,,Lab 5
+2025-06-26T06:00:00Z,bp_systolic,102.0,mmHg,green,fasting,,,,no_tag,,,,,
+2025-06-26T06:00:00Z,ketones,2.4,mmol/L,green,fasting,,,,no_tag,,,,,testgerät
+2025-06-26T06:00:00Z,total_cholesterol,7.2,mmol/L,green,fasting,,,,no_tag,,,,,
+2025-06-26T06:00:00Z,uric_acid,529.0,µmol/L,red,fasting,,,,no_tag,,,,,
+2025-06-25T08:00:00Z,hematocrit,42.0,%,green,postprandial,,,,no_tag,,,,,Lab 5
+2025-06-25T08:00:00Z,heart_rate,87.0,bpm,orange,postprandial,,,,no_tag,,,,,
+2025-06-25T08:00:00Z,glucose,6.0,mmol/L,orange,postprandial,,,,no_tag,,,,,Device Test
+2025-06-25T08:00:00Z,bp_systolic,104.0,mmHg,green,postprandial,,,,no_tag,,,,,
+2025-06-25T08:00:00Z,bp_diastolic,71.0,mmHg,green,postprandial,,,,no_tag,,,,,
+2025-06-25T08:00:00Z,hemoglobin,8.81,mmol/L,green,postprandial,,,,no_tag,,,,,Lab 5
+2025-06-25T06:00:00Z,heart_rate,70.0,bpm,green,fasting,,,,no_tag,,,,,
+2025-06-25T06:00:00Z,hemoglobin,8.44,mmol/L,orange,fasting,,,,no_tag,,,,,Lab 5
+2025-06-25T06:00:00Z,ketones,1.3,mmol/L,green,fasting,,,,no_tag,,,,,testgerät
+2025-06-25T06:00:00Z,total_cholesterol,7.0,mmol/L,green,fasting,,,,no_tag,,,,,
+2025-06-25T06:00:00Z,uric_acid,547.0,µmol/L,red,fasting,,,,no_tag,,,,,
+2025-06-25T06:00:00Z,weight,72.6,kg,,fasting,,,,no_tag,,,,,
+2025-06-25T06:00:00Z,bp_systolic,111.0,mmHg,green,fasting,,,,no_tag,,,,,
+2025-06-25T06:00:00Z,bp_diastolic,73.0,mmHg,green,fasting,,,,no_tag,,,,,
+2025-06-25T06:00:00Z,hematocrit,40.0,%,green,fasting,,,,no_tag,,,,,Lab 5
+2025-06-25T06:00:00Z,glucose,4.0,mmol/L,orange,fasting,,,,no_tag,,,,,Device Test
+2025-06-24T16:00:00Z,bp_systolic,118.0,mmHg,green,standard,,,,no_tag,,,,,
+2025-06-24T16:00:00Z,bp_diastolic,71.0,mmHg,green,standard,,,,no_tag,,,,,
+2025-06-24T16:00:00Z,heart_rate,85.0,bpm,orange,standard,,,,no_tag,,,,,
+2025-06-24T08:00:00Z,hematocrit,44.0,%,green,postprandial,,,,no_tag,,,,,Lab 5
+2025-06-24T08:00:00Z,bp_systolic,119.0,mmHg,green,postprandial,,,,no_tag,,,,,
+2025-06-24T08:00:00Z,bp_diastolic,76.0,mmHg,green,postprandial,,,,no_tag,,,,,
+2025-06-24T08:00:00Z,hemoglobin,8.63,mmol/L,green,postprandial,,,,no_tag,,,,,Lab 5
+2025-06-24T08:00:00Z,glucose,5.8,mmol/L,green,postprandial,,,,no_tag,,,,,Device Test
+2025-06-24T08:00:00Z,heart_rate,83.0,bpm,orange,postprandial,,,,no_tag,,,,,
+2025-06-24T06:00:00Z,ketones,0.5,mmol/L,green,fasting,,,,no_tag,,,,,testgerät
+2025-06-24T06:00:00Z,heart_rate,75.0,bpm,green,fasting,,,,no_tag,,,,,
+2025-06-24T06:00:00Z,total_cholesterol,7.6,mmol/L,orange,fasting,,,,no_tag,,,,,
+2025-06-24T06:00:00Z,uric_acid,375.0,µmol/L,green,fasting,,,,no_tag,,,,,
+2025-06-24T06:00:00Z,bp_systolic,109.0,mmHg,green,fasting,,,,no_tag,,,,,
+2025-06-24T06:00:00Z,bp_diastolic,73.0,mmHg,green,fasting,,,,no_tag,,,,,
+2025-06-24T06:00:00Z,weight,73.0,kg,,fasting,,,,no_tag,,,,,
+2025-06-24T06:00:00Z,glucose,5.0,mmol/L,green,fasting,,,,no_tag,,,,,Device Test
+2025-06-24T06:00:00Z,hematocrit,41.0,%,green,fasting,,,,no_tag,,,,,Lab 5
+2025-06-24T06:00:00Z,hemoglobin,8.63,mmol/L,green,fasting,,,,no_tag,,,,,Lab 5
