@@ -39,9 +39,16 @@ case "$ENV" in
 esac
 
 DB_USER="sovereign_health"
-DEMO_EMAIL="demo@sovereignhealth.io"
-DEMO_PASS="SovereignDemo1"
 BASIC_AUTH="helmut:JM8Lv97Ax3LiRDLMgYfXdw=="
+
+# Per-environment demo user credentials
+if [ "$ENV" = "production" ]; then
+  DEMO_EMAIL="optimized@sovereignhealth.io"
+  DEMO_PASS='SovereignOptimal2026!'
+else
+  DEMO_EMAIL="demo@sovereignhealth.io"
+  DEMO_PASS="SovereignDemo1"
+fi
 
 # ── Output helpers ────────────────────────────────────────────────────────
 
