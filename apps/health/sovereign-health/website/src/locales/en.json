@@ -1197,12 +1197,12 @@
         "description": "Your command center for health sovereignty. The dashboard gives you an instant overview of all 8 health zones with color-coded status indicators. See at a glance which areas are thriving and which need your attention. The global search lets you find any marker, food, supplement, or health insight across the entire platform in seconds."
       },
       "markersHealthZones": {
-        "title": "Markers & Health Zones",
+        "title": "Biomarker Details",
         "description": "Every biomarker tells a story. The marker detail page gives you the full picture: current value with status, trend over time, personalized reference ranges based on your diet protocol, curated food recommendations, and scientific references. This is where data becomes actionable health knowledge."
       },
       "drAlexSearch": {
         "title": "Dr. Alex & Trend Analysis",
-        "description": "Your personal AI health consultant combined with powerful trend visualization. Dr. Alex analyzes your actual biomarker data to provide insights no generic health app can offer. Compare multiple markers over time to discover correlations -- like how your glucose and ketone levels move together during fasting periods."
+        "description": "Your personal AI health consultant combined with powerful trend visualization. Dr. Alex analyzes your actual biomarker data to provide insights no generic health app can offer. Compare multiple markers over time to discover correlations - like how your glucose and ketone levels move together during fasting periods."
       },
       "measurementsTrends": {
         "title": "Measurements & Data Management",
@@ -1210,7 +1210,7 @@
       },
       "userSettings": {
         "title": "User Settings",
-        "description": "Personalize every aspect of the platform. Your health profile drives calculated markers like BMI and WHtR. Set your dietary protocol and the entire app adapts -- from reference ranges to food recommendations. Manage your measurement devices and lab providers for organized, reliable tracking."
+        "description": "Personalize every aspect of the platform. Your health profile drives calculated markers like BMI and WHtR. Set your dietary protocol and the entire app adapts - from reference ranges to food recommendations. Manage your measurement devices and lab providers for organized, reliable tracking."
       }
     },
     "screenshots": {

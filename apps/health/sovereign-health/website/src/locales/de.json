@@ -1197,12 +1197,12 @@
         "description": "Ihre Kommandozentrale für Gesundheitssouveränität. Das Dashboard gibt Ihnen einen sofortigen Überblick über alle 8 Gesundheitszonen mit farbcodierten Statusanzeigen. Sehen Sie auf einen Blick, welche Bereiche gedeihen und welche Aufmerksamkeit brauchen. Die globale Suche findet jeden Marker, jedes Lebensmittel und jede Gesundheitsinformation in Sekunden."
       },
       "markersHealthZones": {
-        "title": "Marker & Gesundheitszonen",
+        "title": "Biomarker-Details",
         "description": "Jeder Biomarker erzählt eine Geschichte. Die Marker-Detailseite gibt Ihnen das vollständige Bild: aktueller Wert mit Status, Trend über die Zeit, personalisierte Referenzbereiche basierend auf Ihrem Ernährungsprotokoll, kuratierte Lebensmittelempfehlungen und wissenschaftliche Referenzen. Hier wird aus Daten umsetzbares Gesundheitswissen."
       },
       "drAlexSearch": {
         "title": "Dr. Alex & Trendanalyse",
-        "description": "Ihr persönlicher KI-Gesundheitsberater kombiniert mit leistungsstarker Trend-Visualisierung. Dr. Alex analysiert Ihre tatsächlichen Biomarker-Daten für Einblicke, die keine generische Gesundheits-App bieten kann. Vergleichen Sie mehrere Marker über die Zeit, um Zusammenhänge zu entdecken -- wie sich Ihre Glukose- und Ketonwerte während Fastenperioden gemeinsam verändern."
+        "description": "Ihr persönlicher KI-Gesundheitsberater kombiniert mit leistungsstarker Trend-Visualisierung. Dr. Alex analysiert Ihre tatsächlichen Biomarker-Daten für Einblicke, die keine generische Gesundheits-App bieten kann. Vergleichen Sie mehrere Marker über die Zeit, um Zusammenhänge zu entdecken - wie sich Ihre Glukose- und Ketonwerte während Fastenperioden gemeinsam verändern."
       },
       "measurementsTrends": {
         "title": "Messungen & Datenverwaltung",
@@ -1210,7 +1210,7 @@
       },
       "userSettings": {
         "title": "Benutzereinstellungen",
-        "description": "Personalisieren Sie jeden Aspekt der Plattform. Ihr Gesundheitsprofil steuert berechnete Marker wie BMI und WHtR. Legen Sie Ihr Ernährungsprotokoll fest und die gesamte App passt sich an -- von Referenzbereichen bis zu Lebensmittelempfehlungen. Verwalten Sie Ihre Messgeräte und Labore für organisierte, zuverlässige Nachverfolgung."
+        "description": "Personalisieren Sie jeden Aspekt der Plattform. Ihr Gesundheitsprofil steuert berechnete Marker wie BMI und WHtR. Legen Sie Ihr Ernährungsprotokoll fest und die gesamte App passt sich an - von Referenzbereichen bis zu Lebensmittelempfehlungen. Verwalten Sie Ihre Messgeräte und Labore für organisierte, zuverlässige Nachverfolgung."
       }
     },
     "screenshots": {
