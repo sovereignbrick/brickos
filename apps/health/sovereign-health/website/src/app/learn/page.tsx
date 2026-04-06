@@ -76,7 +76,7 @@ export default function LearnPage() {
           <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
             {t("learn.hero.title")}
           </h1>
-          <p className="mt-4 text-lg text-[var(--muted)]">
+          <p className="mt-4 text-lg text-blue-400">
             {t("learn.hero.subtitle")}
           </p>
         </div>

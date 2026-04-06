@@ -1193,24 +1193,24 @@
     },
     "tutorials": {
       "dashboardOverview": {
-        "title": "Dashboard & Overview",
-        "description": "Your health dashboard shows all 8 health zones with real-time status indicators. Click any zone to explore the markers within."
+        "title": "Dashboard & Search",
+        "description": "Your command center for health sovereignty. The dashboard gives you an instant overview of all 8 health zones with color-coded status indicators. See at a glance which areas are thriving and which need your attention. The global search lets you find any marker, food, supplement, or health insight across the entire platform in seconds."
       },
       "markersHealthZones": {
         "title": "Markers & Health Zones",
-        "description": "Deep dive into any biomarker with trends, reference ranges, curated foods, supplements, and scientific references."
+        "description": "Every biomarker tells a story. The marker detail page gives you the full picture: current value with status, trend over time, personalized reference ranges based on your diet protocol, curated food recommendations, and scientific references. This is where data becomes actionable health knowledge."
       },
       "drAlexSearch": {
-        "title": "Dr. Alex & Search",
-        "description": "Your AI health consultant analyzes your biomarker data and provides personalized insights. Global search finds anything instantly."
+        "title": "Dr. Alex & Trend Analysis",
+        "description": "Your personal AI health consultant combined with powerful trend visualization. Dr. Alex analyzes your actual biomarker data to provide insights no generic health app can offer. Compare multiple markers over time to discover correlations -- like how your glucose and ketone levels move together during fasting periods."
       },
       "measurementsTrends": {
         "title": "Measurements & Data Management",
-        "description": "Your complete measurement history with filters, custom reference ranges for every biomarker, and medication/supplement tracking as influence factors."
+        "description": "Complete control over your health data. Filter your measurement history by any combination of marker, device, date range, and protocol. Customize reference ranges for every biomarker to match your health goals. Track medications and supplements as influence factors so Dr. Alex can give you more accurate analysis."
       },
       "userSettings": {
         "title": "User Settings",
-        "description": "Configure your health profile, manage devices and labs, and set your dietary protocol and lifestyle defaults."
+        "description": "Personalize every aspect of the platform. Your health profile drives calculated markers like BMI and WHtR. Set your dietary protocol and the entire app adapts -- from reference ranges to food recommendations. Manage your measurement devices and lab providers for organized, reliable tracking."
       }
     },
     "screenshots": {
