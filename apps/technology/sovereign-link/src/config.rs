@@ -16,6 +16,8 @@ pub struct StandaloneConfig {
     pub admin_password: Option<String>,
     pub nostr_enabled: bool,
     pub nostr_nip89_publish: bool,
+    pub nostr_relays: Vec<String>,
+    pub nostr_nsec: Option<String>,
     pub default_code_length: usize,
     pub rate_limit_creates: usize,
 }
@@ -64,6 +66,8 @@ struct TomlAdmin {
 struct TomlNostr {
     enabled: Option<bool>,
     nip89_publish: Option<bool>,
+    relays: Option<Vec<String>>,
+    nsec: Option<String>,
 }
 
 impl StandaloneConfig {
@@ -168,6 +172,21 @@ impl StandaloneConfig {
         .parse()
         .unwrap_or(false);
 
+        let nostr_relays = {
+            let env_relays = std::env::var("SOVEREIGN_LINK_NOSTR_RELAYS").ok();
+            if let Some(relays_str) = env_relays {
+                relays_str.split(',').map(|s| s.trim().to_string()).filter(|s| !s.is_empty()).collect()
+            } else {
+                toml.nostr.relays.unwrap_or_else(|| vec![
+                    "wss://relay.damus.io".to_string(),
+                    "wss://nos.lol".to_string(),
+                    "wss://relay.primal.net".to_string(),
+                ])
+            }
+        };
+
+        let nostr_nsec = env_or_toml_opt("SOVEREIGN_LINK_NOSTR_NSEC", toml.nostr.nsec);
+
         let default_code_length = env_or_toml("SOVEREIGN_LINK_CODE_LENGTH", None, "6")
             .parse()
             .unwrap_or(6);
@@ -188,6 +207,8 @@ impl StandaloneConfig {
             admin_password,
             nostr_enabled,
             nostr_nip89_publish,
+            nostr_relays,
+            nostr_nsec,
             default_code_length,
             rate_limit_creates,
         }
