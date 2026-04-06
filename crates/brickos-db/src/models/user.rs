@@ -69,3 +69,40 @@ impl From<User> for BaseUserResponse {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn test_user() -> User {
+        User {
+            id: Uuid::new_v4(),
+            email: "test@example.com".to_string(),
+            password_hash: "$argon2id$hash".to_string(),
+            display_name: Some("Test User".to_string()),
+            role: "user".to_string(),
+            tier: "free".to_string(),
+            created_at: Utc::now(),
+        }
+    }
+
+    #[test]
+    fn user_to_base_response_preserves_fields() {
+        let user = test_user();
+        let id = user.id;
+        let response = BaseUserResponse::from(user);
+        assert_eq!(response.id, id);
+        assert_eq!(response.email, "test@example.com");
+        assert_eq!(response.display_name, Some("Test User".to_string()));
+        assert_eq!(response.role, "user");
+        assert_eq!(response.tier, "free");
+    }
+
+    #[test]
+    fn user_to_base_response_with_no_display_name() {
+        let mut user = test_user();
+        user.display_name = None;
+        let response = BaseUserResponse::from(user);
+        assert_eq!(response.display_name, None);
+    }
+}

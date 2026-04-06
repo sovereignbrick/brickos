@@ -23,3 +23,37 @@ pub fn verify_password(password: &str, hash: &str) -> bool {
         .verify_password(password.as_bytes(), &parsed_hash)
         .is_ok()
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn hash_and_verify_roundtrip() {
+        let password = "SecureP4ss!";
+        let hash = hash_password(password).unwrap();
+        assert!(verify_password(password, &hash));
+    }
+
+    #[test]
+    fn wrong_password_fails_verification() {
+        let hash = hash_password("CorrectPassword1").unwrap();
+        assert!(!verify_password("WrongPassword1", &hash));
+    }
+
+    #[test]
+    fn empty_password_hashes_successfully() {
+        // Argon2 can hash empty strings - the validation layer should reject them,
+        // but the hashing function itself does not refuse.
+        let result = hash_password("");
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn hash_is_not_plaintext() {
+        let password = "MyPassword123";
+        let hash = hash_password(password).unwrap();
+        assert_ne!(hash, password);
+        assert!(hash.starts_with("$argon2"));
+    }
+}

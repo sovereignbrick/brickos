@@ -24,3 +24,46 @@ pub fn validate_password(password: &str) -> Result<(), &'static str> {
     }
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn valid_email_passes() {
+        assert!(validate_email("user@example.com"));
+        assert!(validate_email("test.name@domain.co.uk"));
+    }
+
+    #[test]
+    fn email_without_at_fails() {
+        assert!(!validate_email("userexample.com"));
+    }
+
+    #[test]
+    fn email_without_domain_dot_fails() {
+        assert!(!validate_email("user@localhost"));
+    }
+
+    #[test]
+    fn empty_email_fails() {
+        assert!(!validate_email(""));
+    }
+
+    #[test]
+    fn valid_password_passes() {
+        assert!(validate_password("Secure1234").is_ok());
+        assert!(validate_password("abcdefg1").is_ok());
+    }
+
+    #[test]
+    fn short_password_fails() {
+        assert!(validate_password("Short1").is_err());
+        assert!(validate_password("Ab1").is_err());
+    }
+
+    #[test]
+    fn empty_password_fails() {
+        assert!(validate_password("").is_err());
+    }
+}

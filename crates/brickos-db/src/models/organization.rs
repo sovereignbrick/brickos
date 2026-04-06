@@ -59,3 +59,39 @@ pub const SHARE_SCOPES: &[&str] = &[
     "summary",
     "doctor_chat",
 ];
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn org_roles_contains_owner() {
+        assert!(ORG_ROLES.contains(&"owner"));
+    }
+
+    #[test]
+    fn org_roles_contains_expected_values() {
+        let expected = ["owner", "practitioner", "assistant", "billing_admin", "patient"];
+        for role in &expected {
+            assert!(ORG_ROLES.contains(role), "Missing role: {}", role);
+        }
+    }
+
+    #[test]
+    fn share_scopes_are_valid() {
+        assert!(SHARE_SCOPES.contains(&"all"));
+        assert!(SHARE_SCOPES.contains(&"measurements"));
+        assert!(SHARE_SCOPES.contains(&"measurements_readonly"));
+        assert!(SHARE_SCOPES.contains(&"trends"));
+        assert!(SHARE_SCOPES.contains(&"summary"));
+        assert!(SHARE_SCOPES.contains(&"doctor_chat"));
+    }
+
+    #[test]
+    fn org_roles_are_non_empty_strings() {
+        for role in ORG_ROLES {
+            assert!(!role.is_empty());
+            assert!(role.chars().all(|c| c.is_ascii_lowercase() || c == '_'));
+        }
+    }
+}

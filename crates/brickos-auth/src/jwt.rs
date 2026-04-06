@@ -78,3 +78,44 @@ pub fn verify_jwt_with_fallback(
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const TEST_SECRET: &str = "test_jwt_secret_for_unit_tests";
+
+    #[test]
+    fn create_and_verify_jwt_roundtrip() {
+        let token = create_jwt("user_123", "admin", "pro", TEST_SECRET, 3600).unwrap();
+        let claims = verify_jwt(&token, TEST_SECRET).unwrap();
+        assert_eq!(claims.sub, "user_123");
+        assert_eq!(claims.role, "admin");
+        assert_eq!(claims.tier, "pro");
+    }
+
+    #[test]
+    fn expired_jwt_is_rejected() {
+        // Create a token that expired well beyond the default leeway (60s)
+        let token = create_jwt("user_123", "user", "free", TEST_SECRET, -120).unwrap();
+        let result = verify_jwt(&token, TEST_SECRET);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn wrong_secret_is_rejected() {
+        let token = create_jwt("user_123", "user", "free", TEST_SECRET, 3600).unwrap();
+        let result = verify_jwt(&token, "wrong_secret");
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn claims_contain_correct_fields() {
+        let token = create_jwt("uid_456", "moderator", "enterprise", TEST_SECRET, 3600).unwrap();
+        let claims = verify_jwt(&token, TEST_SECRET).unwrap();
+        assert_eq!(claims.sub, "uid_456");
+        assert_eq!(claims.role, "moderator");
+        assert_eq!(claims.tier, "enterprise");
+        assert!(claims.exp > claims.iat);
+    }
+}

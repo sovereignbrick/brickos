@@ -8,6 +8,7 @@
 //  AGPL-3.0 — https://github.com/sovereignbrick/brickos
 // ============================================================================
 
+pub mod api_key;
 pub mod jwt;
 pub mod mfa;
 pub mod password;

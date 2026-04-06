@@ -74,3 +74,34 @@ pub fn format_secret_for_display(secret: &str) -> String {
         .collect::<Vec<_>>()
         .join(" ")
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn generated_secret_is_valid_base32() {
+        let secret = generate_totp_secret();
+        // base32 characters: A-Z and 2-7, plus optional padding with =
+        assert!(secret
+            .chars()
+            .all(|c| c.is_ascii_uppercase() || ('2'..='7').contains(&c) || c == '='));
+        assert!(!secret.is_empty());
+    }
+
+    #[test]
+    fn recovery_codes_count_and_format() {
+        let codes = generate_recovery_codes();
+        assert_eq!(codes.len(), 8);
+        for code in &codes {
+            // Format is xxxx-xxxx, so 9 chars total (8 alphanumeric + 1 hyphen)
+            assert_eq!(code.len(), 9);
+            assert_eq!(code.chars().nth(4), Some('-'));
+            // Each half should be 4 lowercase alphanumeric chars
+            let parts: Vec<&str> = code.split('-').collect();
+            assert_eq!(parts.len(), 2);
+            assert!(parts[0].chars().all(|c| c.is_ascii_lowercase() || c.is_ascii_digit()));
+            assert!(parts[1].chars().all(|c| c.is_ascii_lowercase() || c.is_ascii_digit()));
+        }
+    }
+}

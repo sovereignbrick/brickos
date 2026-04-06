@@ -184,4 +184,46 @@ mod tests {
         let none_decrypted = enc.decrypt_opt(none_encrypted);
         assert_eq!(none_decrypted, None);
     }
+
+    #[test]
+    fn decrypt_with_wrong_key_fails() {
+        let enc1 = Encryptor::new(Some(&test_key()));
+        let encrypted = enc1.encrypt("secret data");
+
+        let wrong_key = "abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789";
+        let enc2 = Encryptor::new(Some(&wrong_key.to_string()));
+        assert!(enc2.decrypt(&encrypted).is_err());
+    }
+
+    #[test]
+    fn encrypted_output_differs_from_plaintext() {
+        let enc = Encryptor::new(Some(&test_key()));
+        let plaintext = "sensitive information";
+        let encrypted = enc.encrypt(plaintext);
+        assert_ne!(encrypted, plaintext);
+    }
+
+    #[test]
+    fn empty_string_encrypts_and_decrypts() {
+        let enc = Encryptor::new(Some(&test_key()));
+        let encrypted = enc.encrypt("");
+        assert!(encrypted.starts_with("v1:"));
+        let decrypted = enc.decrypt(&encrypted).unwrap();
+        assert_eq!(decrypted, "");
+    }
+
+    #[test]
+    fn large_payload_encrypts_and_decrypts() {
+        let enc = Encryptor::new(Some(&test_key()));
+        let large_data = "A".repeat(1_000_000); // 1 MB
+        let encrypted = enc.encrypt(&large_data);
+        let decrypted = enc.decrypt(&encrypted).unwrap();
+        assert_eq!(decrypted, large_data);
+    }
+
+    #[test]
+    fn is_enabled_returns_true_with_key() {
+        let enc = Encryptor::new(Some(&test_key()));
+        assert!(enc.is_enabled());
+    }
 }
