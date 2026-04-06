@@ -115,7 +115,9 @@ impl Config {
         Ok(Self {
             database_url,
             jwt_secret,
-            jwt_secret_previous: std::env::var("JWT_SECRET_PREVIOUS").ok().filter(|s| !s.is_empty()),
+            jwt_secret_previous: std::env::var("JWT_SECRET_PREVIOUS")
+                .ok()
+                .filter(|s| !s.is_empty()),
             jwt_expiry_secs,
             refresh_expiry_secs,
             anthropic_api_key,
