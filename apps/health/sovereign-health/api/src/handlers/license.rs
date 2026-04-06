@@ -47,9 +47,53 @@ pub async fn list_tiers(pool: web::Data<PgPool>) -> Result<HttpResponse, AppErro
     .fetch_all(pool.get_ref())
     .await?;
 
+    // Load tier_features SSoT data for all active tiers in one query
+    let tf_rows = sqlx::query(
+        r#"SELECT tf.tier_key, pf.feature_key, tf.included,
+            tf.limit_value, tf.limit_label_en, tf.limit_label_de
+        FROM tier_features tf
+        JOIN product_features pf ON pf.id = tf.feature_id
+        WHERE pf.status != 'deprecated'"#,
+    )
+    .fetch_all(pool.get_ref())
+    .await?;
+
+    // Build map: tier_slug -> feature_key -> { included, limit_value, limit_label_en, limit_label_de }
+    let mut features_map: std::collections::HashMap<
+        String,
+        std::collections::HashMap<String, serde_json::Value>,
+    > = std::collections::HashMap::new();
+
+    for tf in &tf_rows {
+        let tier_key: String = tf.try_get("tier_key").unwrap_or_default();
+        let feature_key: String = tf.try_get("feature_key").unwrap_or_default();
+        let included: bool = tf.try_get("included").unwrap_or(false);
+        let limit_value: Option<i32> = tf.try_get("limit_value").ok().flatten();
+        let label_en: Option<String> = tf.try_get("limit_label_en").ok().flatten();
+        let label_de: Option<String> = tf.try_get("limit_label_de").ok().flatten();
+
+        features_map.entry(tier_key).or_default().insert(
+            feature_key,
+            json!({
+                "included": included,
+                "limit_value": limit_value,
+                "label_en": label_en,
+                "label_de": label_de,
+            }),
+        );
+    }
+
     let tiers: Vec<serde_json::Value> = rows.iter().map(|r| {
+        let slug = r.try_get::<String, _>("slug").unwrap_or_default();
+
+        // Build the tier_features object for this tier
+        let tier_features = features_map
+            .get(&slug)
+            .cloned()
+            .unwrap_or_default();
+
         json!({
-            "slug": r.try_get::<String, _>("slug").unwrap_or_default(),
+            "slug": slug,
             "name": r.try_get::<String, _>("name").unwrap_or_default(),
             "tagline": r.try_get::<Option<String>, _>("tagline").ok().flatten(),
             "description": r.try_get::<Option<String>, _>("description").ok().flatten(),
@@ -60,6 +104,9 @@ pub async fn list_tiers(pool: web::Data<PgPool>) -> Result<HttpResponse, AppErro
             "max_calculated_markers": r.try_get::<Option<i32>, _>("max_calculated_markers").ok().flatten(),
             "max_templates": r.try_get::<Option<i32>, _>("max_templates").ok().flatten(),
             "max_medications": r.try_get::<Option<i32>, _>("max_medications").ok().flatten(),
+            // DEPRECATED: These 8 chat_*_monthly fields read from license_tiers columns.
+            // Frontend should migrate to reading from the "features" object below.
+            // See: tier_features + product_features tables (SSoT).
             "chat_general_monthly": r.try_get::<Option<i32>, _>("chat_general_monthly").ok().flatten(),
             "chat_trends_monthly": r.try_get::<Option<i32>, _>("chat_trends_monthly").ok().flatten(),
             "chat_labs_monthly": r.try_get::<Option<i32>, _>("chat_labs_monthly").ok().flatten(),
@@ -87,6 +134,9 @@ pub async fn list_tiers(pool: web::Data<PgPool>) -> Result<HttpResponse, AppErro
             "support_level": r.try_get::<String, _>("support_level").unwrap_or_default(),
             "display_order": r.try_get::<i32, _>("display_order").unwrap_or(0),
             "highlight": r.try_get::<bool, _>("highlight").unwrap_or(false),
+            // SSoT: tier_features data keyed by feature_key.
+            // Each entry: { "included": bool, "limit_value": int|null, "label_en": str|null, "label_de": str|null }
+            "features": tier_features,
         })
     }).collect();
 
