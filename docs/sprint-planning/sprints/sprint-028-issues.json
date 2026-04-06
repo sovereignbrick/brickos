@@ -1,0 +1,176 @@
+[
+  {
+    "title": "Define LinkStore and UserStore traits with core data models",
+    "url": "https://github.com/sovereignbrick/brickos/issues/308",
+    "day": 1,
+    "number": 308
+  },
+  {
+    "title": "Implement config system with TOML and environment variable support",
+    "url": "https://github.com/sovereignbrick/brickos/issues/309",
+    "day": 1,
+    "number": 309
+  },
+  {
+    "title": "Create SQLite database migrations",
+    "url": "https://github.com/sovereignbrick/brickos/issues/310",
+    "day": 1,
+    "number": 310
+  },
+  {
+    "title": "Implement SQLite LinkStore and UserStore",
+    "url": "https://github.com/sovereignbrick/brickos/issues/311",
+    "day": 1,
+    "number": 311
+  },
+  {
+    "title": "Implement email auth with registration, login, JWT, and Argon2id",
+    "url": "https://github.com/sovereignbrick/brickos/issues/312",
+    "day": 1,
+    "number": 312
+  },
+  {
+    "title": "Implement NOSTR NIP-98 authentication",
+    "url": "https://github.com/sovereignbrick/brickos/issues/313",
+    "day": 2,
+    "number": 313
+  },
+  {
+    "title": "Implement redirect handler (hot path)",
+    "url": "https://github.com/sovereignbrick/brickos/issues/314",
+    "day": 2,
+    "number": 314
+  },
+  {
+    "title": "Implement click tracking with privacy-preserving hashing",
+    "url": "https://github.com/sovereignbrick/brickos/issues/315",
+    "day": 2,
+    "number": 315
+  },
+  {
+    "title": "Implement REST API CRUD endpoints",
+    "url": "https://github.com/sovereignbrick/brickos/issues/316",
+    "day": 2,
+    "number": 316
+  },
+  {
+    "title": "Build web UI for login page with email and NOSTR tabs",
+    "url": "https://github.com/sovereignbrick/brickos/issues/317",
+    "day": 3,
+    "number": 317
+  },
+  {
+    "title": "Build web UI for dashboard and create link pages",
+    "url": "https://github.com/sovereignbrick/brickos/issues/318",
+    "day": 3,
+    "number": 318
+  },
+  {
+    "title": "Implement QR code generation endpoint",
+    "url": "https://github.com/sovereignbrick/brickos/issues/319",
+    "day": 3,
+    "number": 319
+  },
+  {
+    "title": "Build web UI for settings page",
+    "url": "https://github.com/sovereignbrick/brickos/issues/320",
+    "day": 3,
+    "number": 320
+  },
+  {
+    "title": "Build Docker single-container image",
+    "url": "https://github.com/sovereignbrick/brickos/issues/321",
+    "day": 4,
+    "number": 321
+  },
+  {
+    "title": "Build static binary release with musl cross-compilation",
+    "url": "https://github.com/sovereignbrick/brickos/issues/322",
+    "day": 4,
+    "number": 322
+  },
+  {
+    "title": "Implement NIP-89 app listing publisher",
+    "url": "https://github.com/sovereignbrick/brickos/issues/323",
+    "day": 4,
+    "number": 323
+  },
+  {
+    "title": "Create Start9 package (.s9pk)",
+    "url": "https://github.com/sovereignbrick/brickos/issues/324",
+    "day": 4,
+    "number": 324
+  },
+  {
+    "title": "Write integration tests for auth flows and CRUD operations",
+    "url": "https://github.com/sovereignbrick/brickos/issues/325",
+    "day": 4,
+    "number": 325
+  },
+  {
+    "title": "Create brickos PostgreSQL schema and move platform tables",
+    "url": "https://github.com/sovereignbrick/brickos/issues/326",
+    "day": 5,
+    "number": 326
+  },
+  {
+    "title": "Refactor license_tiers by splitting feature columns into tier_features",
+    "url": "https://github.com/sovereignbrick/brickos/issues/327",
+    "day": 5,
+    "number": 327
+  },
+  {
+    "title": "Refactor user_profile and user_preferences by splitting health columns",
+    "url": "https://github.com/sovereignbrick/brickos/issues/328",
+    "day": 5,
+    "number": 328
+  },
+  {
+    "title": "Add app_key column to product_features, tier_features, app_settings, and search_index",
+    "url": "https://github.com/sovereignbrick/brickos/issues/329",
+    "day": 5,
+    "number": 329
+  },
+  {
+    "title": "Create service_accounts and reserved_codes tables in brickos schema",
+    "url": "https://github.com/sovereignbrick/brickos/issues/330",
+    "day": 5,
+    "number": 330
+  },
+  {
+    "title": "Create migration ownership structure in packages/brickos-db",
+    "url": "https://github.com/sovereignbrick/brickos/issues/331",
+    "day": 5,
+    "number": 331
+  },
+  {
+    "title": "Implement service account API and authentication",
+    "url": "https://github.com/sovereignbrick/brickos/issues/332",
+    "day": 5,
+    "number": 332
+  },
+  {
+    "title": "Implement per-org namespace resolution in redirect handler",
+    "url": "https://github.com/sovereignbrick/brickos/issues/333",
+    "day": 5,
+    "number": 333
+  },
+  {
+    "title": "Implement platform and org-level reporting endpoints",
+    "url": "https://github.com/sovereignbrick/brickos/issues/334",
+    "day": 5,
+    "number": 334
+  },
+  {
+    "title": "Implement Sovereign Voice integration API for link creation",
+    "url": "https://github.com/sovereignbrick/brickos/issues/335",
+    "day": 5,
+    "number": 335
+  },
+  {
+    "title": "Implement DB consistency check queries for platform schema",
+    "url": "https://github.com/sovereignbrick/brickos/issues/336",
+    "day": 5,
+    "number": 336
+  }
+]
