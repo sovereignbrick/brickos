@@ -392,6 +392,8 @@ Inherited from SHI, elevated for multi-app:
 
 | Rule | Why |
 |------|-----|
+| **NEVER deploy to production automatically or without explicit user confirmation** | Production is the live system with real users. Every production action (migrations, deploys, restarts) requires the user to explicitly say "deploy to production." No automation, no assumptions, no "while we're at it." Sprint 029 incident: migrations ran on production without user sign-off. |
+| **NEVER run production migrations without completing staging testing first** | Staging must be fully verified (smoke, E2E, manual testing) and the user must confirm before any production action. Sprint 029 incident: production migrations ran before staging testing was confirmed complete. |
 | Platform DB migrations FIRST, then app deployments | Apps depend on platform schema. Deploying app before migration = queries fail. |
 | Never deploy platform DB and app changes simultaneously | If something breaks, you need to know which change caused it. |
 | Verify ALL apps after platform DB migration | A schema move (ALTER TABLE SET SCHEMA) should be transparent via search_path, but verify. |
