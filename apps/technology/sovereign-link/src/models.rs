@@ -88,6 +88,35 @@ pub struct CountryStat {
     pub count: i64,
 }
 
+// -- Users (standalone mode) --
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct User {
+    pub id: String,
+    pub email: Option<String>,
+    pub password_hash: Option<String>,
+    pub nostr_pubkey: Option<String>,
+    pub display_name: Option<String>,
+    pub api_key_hash: Option<String>,
+    pub is_admin: bool,
+    pub created_at: String,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct NewUser {
+    pub email: Option<String>,
+    pub password_hash: Option<String>,
+    pub nostr_pubkey: Option<String>,
+    pub display_name: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct UpdateUser {
+    pub display_name: Option<String>,
+    pub password_hash: Option<String>,
+    pub api_key_hash: Option<String>,
+}
+
 // -- Prefix constants --
 
 /// Known 2-char app prefixes for fast-path redirect (no DB lookup).

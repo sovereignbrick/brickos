@@ -1,4 +1,7 @@
+#[cfg(feature = "platform")]
 pub mod postgres;
+#[cfg(feature = "standalone")]
+pub mod sqlite;
 
 use async_trait::async_trait;
 use uuid::Uuid;
@@ -6,7 +9,7 @@ use uuid::Uuid;
 use crate::models::*;
 
 /// Database abstraction for the shortener.
-/// Platform mode: Postgres. Standalone mode (future): SQLite.
+/// Platform mode: Postgres. Standalone mode: SQLite.
 #[async_trait]
 pub trait LinkStore: Send + Sync {
     /// Look up a short link by its code. Returns None if not found or inactive/expired.
@@ -41,4 +44,17 @@ pub trait LinkStore: Send + Sync {
 
     /// Get click stats for a link.
     async fn get_stats(&self, link_id: Uuid) -> anyhow::Result<LinkStats>;
+}
+
+/// User storage abstraction for standalone mode authentication.
+#[async_trait]
+pub trait UserStore: Send + Sync {
+    async fn get_by_id(&self, id: &str) -> anyhow::Result<Option<User>>;
+    async fn get_by_email(&self, email: &str) -> anyhow::Result<Option<User>>;
+    async fn get_by_nostr_pubkey(&self, pubkey: &str) -> anyhow::Result<Option<User>>;
+    async fn get_by_api_key_hash(&self, key_hash: &str) -> anyhow::Result<Option<User>>;
+    async fn create(&self, new: NewUser) -> anyhow::Result<User>;
+    async fn update(&self, id: &str, update: UpdateUser) -> anyhow::Result<Option<User>>;
+    async fn link_nostr(&self, user_id: &str, pubkey: &str) -> anyhow::Result<()>;
+    async fn count(&self) -> anyhow::Result<i64>;
 }

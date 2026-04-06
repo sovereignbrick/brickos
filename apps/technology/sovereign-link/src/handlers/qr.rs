@@ -1,13 +1,16 @@
 use actix_web::{web, HttpResponse};
 use qrcode::render::svg;
 use qrcode::QrCode;
+#[cfg(feature = "platform")]
 use sqlx::PgPool;
 use std::sync::Arc;
 
 use crate::db::LinkStore;
+#[cfg(feature = "platform")]
 use crate::models::*;
 
-/// Inner QR handler — called from the redirect dispatcher when code ends with .qr
+/// Inner QR handler -- called from the redirect dispatcher when code ends with .qr (platform mode)
+#[cfg(feature = "platform")]
 pub async fn handle_qr_inner(
     code: &str,
     store: &web::Data<Arc<dyn LinkStore>>,
@@ -23,6 +26,21 @@ pub async fn handle_qr_inner(
         store.get_by_code(code).await.ok().flatten().is_some()
     };
 
+    render_qr_response(exists, &short_url)
+}
+
+/// Inner QR handler -- standalone mode (no PgPool)
+#[cfg(feature = "standalone")]
+pub async fn handle_qr_inner(
+    code: &str,
+    store: &web::Data<Arc<dyn LinkStore>>,
+) -> HttpResponse {
+    let short_url = format!("https://brickos.io/r/{}", code);
+    let exists = store.get_by_code(code).await.ok().flatten().is_some();
+    render_qr_response(exists, &short_url)
+}
+
+fn render_qr_response(exists: bool, short_url: &str) -> HttpResponse {
     if !exists {
         return HttpResponse::NotFound()
             .content_type("text/plain")

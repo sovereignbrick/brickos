@@ -5,6 +5,11 @@ edition = "2021"
 description = "Sovereign Link — URL shortener, service gateway, and affiliate link platform"
 license = "AGPL-3.0"
 
+[features]
+default = ["platform"]
+standalone = ["rusqlite", "r2d2", "dep:argon2", "dep:jsonwebtoken", "dep:tracing-subscriber"]
+platform = []
+
 [dependencies]
 actix-web = { workspace = true }
 sqlx = { workspace = true }
@@ -21,3 +26,10 @@ rand = "0.9"
 qrcode = { version = "0.14", default-features = false, features = ["svg"] }
 async-trait = "0.1"
 url = "2"
+
+# Standalone mode
+rusqlite = { version = "0.32", features = ["bundled"], optional = true }
+r2d2 = { version = "0.8", optional = true }
+argon2 = { workspace = true, optional = true }
+jsonwebtoken = { workspace = true, optional = true }
+tracing-subscriber = { workspace = true, optional = true }

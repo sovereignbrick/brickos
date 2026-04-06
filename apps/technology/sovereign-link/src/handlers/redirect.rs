@@ -1,13 +1,15 @@
 use actix_web::{web, HttpRequest, HttpResponse};
 use sha2::{Digest, Sha256};
+#[cfg(feature = "platform")]
 use sqlx::PgPool;
 use std::sync::Arc;
 
 use crate::db::LinkStore;
 use crate::models::*;
 
-/// GET /r/{code} — Dispatcher. Routes to QR handler if code ends with .qr,
+/// GET /r/{code} -- Dispatcher. Routes to QR handler if code ends with .qr,
 /// otherwise handles redirect.
+#[cfg(feature = "platform")]
 pub async fn handle_request(
     code: web::Path<String>,
     req: HttpRequest,
@@ -24,12 +26,30 @@ pub async fn handle_request(
     handle_redirect(raw, &req, &store, &pool).await
 }
 
-/// GET /r/{code} — The hot path. Must be fast.
+/// GET /r/{code} -- Standalone mode dispatcher (no PgPool).
+#[cfg(feature = "standalone")]
+pub async fn handle_request(
+    code: web::Path<String>,
+    req: HttpRequest,
+    store: web::Data<Arc<dyn LinkStore>>,
+) -> HttpResponse {
+    let raw = code.into_inner();
+
+    // Dispatch to QR handler if code ends with .qr
+    if let Some(base_code) = raw.strip_suffix(".qr") {
+        return super::qr::handle_qr_inner(base_code, &store).await;
+    }
+
+    handle_redirect_standalone(raw, &req, &store).await
+}
+
+/// GET /r/{code} -- The hot path (platform mode).
 ///
-/// Fast path: 10-char code with known 2-char prefix → build redirect URL from
+/// Fast path: 10-char code with known 2-char prefix -> build redirect URL from
 /// app_prefixes table without touching short_links.
 ///
-/// Slow path: vanity/campaign codes → full DB lookup on short_links.
+/// Slow path: vanity/campaign codes -> full DB lookup on short_links.
+#[cfg(feature = "platform")]
 async fn handle_redirect(
     code: String,
     req: &HttpRequest,
@@ -44,7 +64,7 @@ async fn handle_redirect(
         if let Ok(Some(app)) = store.get_prefix(prefix).await {
             let target_url = format!("{}{}{}", app.base_url, app.signup_path, affiliate_code);
 
-            // Record click async — look up or create the short_link row
+            // Record click async -- look up or create the short_link row
             let pool_clone = pool.get_ref().clone();
             let code_clone = code.clone();
             let target_clone = target_url.clone();
@@ -60,8 +80,26 @@ async fn handle_redirect(
         }
     }
 
-    // Slow path: DB lookup for vanity/campaign/generic codes
-    match store.get_by_code(&code).await {
+    redirect_by_code(&code, req, store).await
+}
+
+/// GET /r/{code} -- Standalone mode redirect (no prefix fast-path).
+#[cfg(feature = "standalone")]
+async fn handle_redirect_standalone(
+    code: String,
+    req: &HttpRequest,
+    store: &web::Data<Arc<dyn LinkStore>>,
+) -> HttpResponse {
+    redirect_by_code(&code, req, store).await
+}
+
+/// Shared slow-path: DB lookup for vanity/campaign/generic codes.
+async fn redirect_by_code(
+    code: &str,
+    req: &HttpRequest,
+    store: &web::Data<Arc<dyn LinkStore>>,
+) -> HttpResponse {
+    match store.get_by_code(code).await {
         Ok(Some(link)) => {
             let target = link.target_url.clone();
             let link_id = link.id;
@@ -133,6 +171,7 @@ pub fn url_domain(url: &str) -> Option<String> {
 }
 
 /// Record a click for a fast-path code, creating the short_link row if it doesn't exist.
+#[cfg(feature = "platform")]
 async fn record_click_for_code(pool: &PgPool, code: &str, target_url: &str, meta: ClickMeta) {
     // Upsert: ensure the short_link row exists (auto-affiliate codes may not have been backfilled)
     let link_id: Option<(uuid::Uuid,)> = sqlx::query_as(
