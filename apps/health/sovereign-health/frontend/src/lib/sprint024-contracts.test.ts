@@ -110,31 +110,11 @@ describe('Protected accounts guard contract', () => {
   })
 })
 
-describe('Learn page i18n keys', () => {
-  // Uses top-level imports (same pattern as i18n-completeness.test.ts)
-  const enLearn = (en as Record<string, Record<string, string>>).learn
-  const deLearn = (de as Record<string, Record<string, string>>).learn
-
-  const requiredKeys = [
-    'title', 'subtitle', 'dashboard', 'dashboardDesc',
-    'markerDetail', 'markerDetailDesc', 'zones', 'zonesDesc',
-    'search', 'searchDesc', 'trends', 'trendsDesc',
-    'measurements', 'measurementsDesc', 'videosTitle', 'videosComingSoon',
-  ]
-
-  it('EN has all learn page keys', () => {
-    for (const key of requiredKeys) {
-      expect(enLearn).toHaveProperty(key)
-      expect(typeof enLearn[key]).toBe('string')
-      expect(enLearn[key].length).toBeGreaterThan(0)
-    }
-  })
-
-  it('DE has all learn page keys', () => {
-    for (const key of requiredKeys) {
-      expect(deLearn).toHaveProperty(key)
-      expect(typeof deLearn[key]).toBe('string')
-      expect(deLearn[key].length).toBeGreaterThan(0)
-    }
+// Learn page i18n keys: moved to website (sovereignhealth.io/learn), not in app i18n
+describe('Learn page location', () => {
+  it('learn page i18n is NOT in app (moved to website)', () => {
+    // Verify learn keys were removed from the app i18n
+    expect((en as Record<string, unknown>).learn).toBeUndefined()
+    expect((de as Record<string, unknown>).learn).toBeUndefined()
   })
 })
