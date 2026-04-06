@@ -1,0 +1,20 @@
+# Cloudflare Tunnel config for ntfy.brickos.io
+# Install to: /etc/cloudflared/config.yml on VPS
+#
+# Replace <TUNNEL_ID> with the actual tunnel ID from:
+#   cloudflared tunnel create ntfy-tunnel
+
+tunnel: <TUNNEL_ID>
+credentials-file: /root/.cloudflared/<TUNNEL_ID>.json
+
+ingress:
+  - hostname: ntfy.brickos.io
+    service: http://127.0.0.1:2586
+    originRequest:
+      # WebSocket support for ntfy subscribe endpoints
+      noTLSVerify: false
+      connectTimeout: 30s
+      # Long timeout for SSE/WebSocket subscriptions
+      tcpKeepAlive: 86400s
+  # Catch-all rule (required by cloudflared)
+  - service: http_status:404
