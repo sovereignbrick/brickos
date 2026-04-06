@@ -171,11 +171,25 @@ ops/deploy.sh staging sovereign-voice                  # If Voice changed
 
 ### Phase 4: Staging verification
 
+**Staging demo user:** `demo@sovereignhealth.io` / `SovereignDemo1`
+**Staging URLs:** `demo.sovereignhealth.io` (frontend), `api-demo.sovereignhealth.io` (API)
+
 ```bash
-# Per-app health checks
+# Automated health checks
 curl -s http://localhost:8081/health                   # SHI backend (staging)
 curl -s http://localhost:3001                          # SHI frontend (staging)
 ssh root@VPS "systemctl status nostr-scheduler"       # Sovereign Voice
+
+# Login test with demo user
+TOKEN=$(curl -s -X POST http://localhost:8081/auth/login \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"demo@sovereignhealth.io","password":"SovereignDemo1"}' \
+  | python3 -c "import json,sys; print(json.load(sys.stdin).get('token','FAILED'))")
+echo "Login: $([ "$TOKEN" != "FAILED" ] && echo 'OK' || echo 'FAILED')"
+
+# Test authenticated endpoints
+curl -s -H "Authorization: Bearer $TOKEN" http://localhost:8081/api/v1/measurements?limit=5 \
+  | python3 -c "import json,sys; d=json.load(sys.stdin); print(f'Measurements: {len(d.get(\"data\",[]))} returned')" 2>/dev/null || echo "Measurements: endpoint check needed"
 
 # Cross-app integration check
 # Sovereign Link redirect works: curl -I brickos.io/r/test-code
