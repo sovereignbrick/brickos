@@ -795,6 +795,10 @@ pub fn configure_routes(cfg: &mut actix_web::web::ServiceConfig) {
                 actix_web::web::get().to(handlers::admin_audit::db_audit_logs),
             )
             .route(
+                "/audit/pgaudit",
+                actix_web::web::get().to(handlers::admin_audit::pgaudit_events),
+            )
+            .route(
                 "/contact-submissions",
                 actix_web::web::get().to(handlers::contact::admin_list),
             )

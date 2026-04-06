@@ -397,3 +397,137 @@ pub async fn db_audit_logs(
         "error": null
     })))
 }
+
+// ---------------------------------------------------------------------------
+// GET /admin/audit/pgaudit -- pgAudit event log (database-level audit)
+// ---------------------------------------------------------------------------
+
+#[derive(Deserialize)]
+pub struct PgAuditQuery {
+    pub from: Option<String>,
+    pub to: Option<String>,
+    pub command: Option<String>,
+    pub object_name: Option<String>,
+    pub class: Option<String>,
+    pub limit: Option<i64>,
+    pub page: Option<i64>,
+}
+
+pub async fn pgaudit_events(
+    pool: web::Data<PgPool>,
+    auth: AuthenticatedUser,
+    query: web::Query<PgAuditQuery>,
+) -> Result<HttpResponse, AppError> {
+    use sqlx::Row;
+
+    if auth.role != "admin" {
+        return Err(AppError::Forbidden);
+    }
+
+    let limit = query.limit.unwrap_or(100).clamp(1, 500);
+    let page = query.page.unwrap_or(1).max(1);
+    let offset = (page - 1) * limit;
+
+    // Build WHERE clauses dynamically
+    let mut conditions: Vec<String> = Vec::new();
+    let mut param_idx: usize = 1;
+
+    if query.from.is_some() {
+        conditions.push(format!("event_time >= ${}::timestamptz", param_idx));
+        param_idx += 1;
+    }
+    if query.to.is_some() {
+        conditions.push(format!("event_time <= ${}::timestamptz", param_idx));
+        param_idx += 1;
+    }
+    if query.command.is_some() {
+        conditions.push(format!("command = ${}", param_idx));
+        param_idx += 1;
+    }
+    if query.object_name.is_some() {
+        conditions.push(format!("object_name ILIKE ${}", param_idx));
+        param_idx += 1;
+    }
+    if query.class.is_some() {
+        conditions.push(format!("class = ${}", param_idx));
+        param_idx += 1;
+    }
+    let _ = param_idx;
+
+    let where_clause = if conditions.is_empty() {
+        String::new()
+    } else {
+        format!("WHERE {}", conditions.join(" AND "))
+    };
+
+    let count_sql = format!("SELECT COUNT(*) FROM pgaudit_events {}", where_clause);
+    let data_sql = format!(
+        "SELECT id, event_time, audit_type, statement_id, substatement_id, \
+                class, command, object_type, object_name, statement, parameter, created_at \
+         FROM pgaudit_events {} \
+         ORDER BY event_time DESC \
+         LIMIT {} OFFSET {}",
+        where_clause, limit, offset
+    );
+
+    // Bind parameters in the same order for both queries
+    let mut count_q = sqlx::query_scalar::<_, i64>(&count_sql);
+    let mut data_q = sqlx::query(&data_sql);
+
+    if let Some(ref from) = query.from {
+        count_q = count_q.bind(from.clone());
+        data_q = data_q.bind(from.clone());
+    }
+    if let Some(ref to) = query.to {
+        count_q = count_q.bind(to.clone());
+        data_q = data_q.bind(to.clone());
+    }
+    if let Some(ref command) = query.command {
+        count_q = count_q.bind(command.clone());
+        data_q = data_q.bind(command.clone());
+    }
+    if let Some(ref object_name) = query.object_name {
+        let pattern = format!("%{}%", object_name);
+        count_q = count_q.bind(pattern.clone());
+        data_q = data_q.bind(pattern);
+    }
+    if let Some(ref class) = query.class {
+        count_q = count_q.bind(class.clone());
+        data_q = data_q.bind(class.clone());
+    }
+
+    let total: i64 = count_q.fetch_one(pool.get_ref()).await.unwrap_or(0);
+    let rows = data_q.fetch_all(pool.get_ref()).await?;
+
+    let entries: Vec<serde_json::Value> = rows
+        .iter()
+        .map(|r| {
+            json!({
+                "id": r.try_get::<i64, _>("id").unwrap_or(0),
+                "event_time": r.try_get::<chrono::DateTime<chrono::Utc>, _>("event_time")
+                    .map(|d| d.to_rfc3339()).unwrap_or_default(),
+                "audit_type": r.try_get::<String, _>("audit_type").unwrap_or_default(),
+                "statement_id": r.try_get::<Option<i64>, _>("statement_id").ok().flatten(),
+                "substatement_id": r.try_get::<Option<i32>, _>("substatement_id").ok().flatten(),
+                "class": r.try_get::<Option<String>, _>("class").ok().flatten(),
+                "command": r.try_get::<Option<String>, _>("command").ok().flatten(),
+                "object_type": r.try_get::<Option<String>, _>("object_type").ok().flatten(),
+                "object_name": r.try_get::<Option<String>, _>("object_name").ok().flatten(),
+                "statement": r.try_get::<Option<String>, _>("statement").ok().flatten(),
+                "parameter": r.try_get::<Option<String>, _>("parameter").ok().flatten(),
+                "created_at": r.try_get::<chrono::DateTime<chrono::Utc>, _>("created_at")
+                    .map(|d| d.to_rfc3339()).unwrap_or_default(),
+            })
+        })
+        .collect();
+
+    Ok(HttpResponse::Ok().json(json!({
+        "data": {
+            "entries": entries,
+            "total": total,
+            "page": page,
+            "limit": limit,
+        },
+        "error": null
+    })))
+}
