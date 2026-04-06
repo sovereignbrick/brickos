@@ -125,7 +125,7 @@ async fn redirect_by_code(
     }
 }
 
-fn extract_click_meta(req: &HttpRequest) -> ClickMeta {
+pub fn extract_click_meta(req: &HttpRequest) -> ClickMeta {
     let referrer_domain = req
         .headers()
         .get("referer")

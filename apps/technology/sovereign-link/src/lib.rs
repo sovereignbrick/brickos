@@ -27,6 +27,40 @@ pub fn configure_routes(cfg: &mut web::ServiceConfig) {
             .route("/{id}", web::delete().to(handlers::api::delete_link))
             .route("/{id}/stats", web::get().to(handlers::api::link_stats)),
     );
+
+    // Namespaced redirect: /r/{org_slug}/{code}
+    cfg.service(
+        web::scope("/r")
+            .route(
+                "/{org_slug}/{code}",
+                web::get().to(handlers::namespace::redirect_with_namespace),
+            ),
+    );
+
+    // Service API routes (service account auth)
+    cfg.service(
+        web::scope("/api/v1/service/links")
+            .route("", web::post().to(handlers::service_api::create_service_link))
+            .route("/batch", web::post().to(handlers::service_api::create_batch_links))
+            .route("/{code}/stats", web::get().to(handlers::service_api::service_link_stats)),
+    );
+
+    // Platform admin routes
+    cfg.service(
+        web::scope("/api/v1/admin")
+            .route("/stats", web::get().to(handlers::platform_admin::platform_stats))
+            .route("/stats/by-org", web::get().to(handlers::platform_admin::stats_by_org))
+            .route("/stats/by-app", web::get().to(handlers::platform_admin::stats_by_app))
+            .route("/orgs", web::get().to(handlers::platform_admin::list_orgs))
+            .route("/consistency", web::get().to(handlers::service_api::consistency_check)),
+    );
+
+    // Org-scoped routes
+    cfg.service(
+        web::scope("/api/v1/orgs/{org_id}")
+            .route("/stats", web::get().to(handlers::platform_admin::org_stats))
+            .route("/links", web::get().to(handlers::platform_admin::org_links)),
+    );
 }
 
 /// Mount all routes for standalone mode (includes auth endpoints + web UI).
