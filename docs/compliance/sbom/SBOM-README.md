@@ -19,14 +19,23 @@ distributors of products with digital elements to:
 The CRA enters full application in December 2027. Preparing SBOMs now ensures
 Sovereign Health is ready well ahead of enforcement.
 
-## Current format
+## Current formats
 
-These SBOMs are plain-text dependency listings at depth 0 (direct dependencies
-only). This is sufficient for internal tracking and early compliance work.
+| File | Format | Scope | CRA Compliant |
+|---|---|---|---|
+| `npm-sbom-cyclonedx.json` | CycloneDX 1.6 (JSON) | Frontend npm packages | Yes |
+| `rust-sbom-cyclonedx.json` | CycloneDX 1.6 (JSON) | Backend Rust crates | Yes |
+| `rust-dependencies.txt` | Plain text (cargo tree) | Backend Rust crates | Partial |
+| `npm-dependencies.txt` | Plain text (pnpm list) | Frontend npm packages | Partial |
 
-**Future target formats:**
-- CycloneDX 1.6 (JSON) -- recommended for vulnerability correlation
-- SPDX 2.3 -- recommended for license compliance
+The CycloneDX JSON format is the standard recommended for CRA compliance and
+vulnerability correlation tools. The plain-text files are kept for quick human
+reference.
+
+**Future:**
+- Rust CycloneDX SBOM (via cargo-cyclonedx or syft)
+- SPDX 2.3 format for license compliance
+- Automated SBOM generation in CI on every release
 
 Tools like `cargo-sbom`, `syft`, or `cdxgen` can generate these formats once
 the pipeline matures.
