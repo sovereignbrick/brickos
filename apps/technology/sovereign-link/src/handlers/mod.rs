@@ -16,3 +16,5 @@ pub mod platform_admin;
 pub mod service_api;
 #[cfg(feature = "platform")]
 pub mod branding;
+#[cfg(feature = "platform")]
+pub mod org_admin;

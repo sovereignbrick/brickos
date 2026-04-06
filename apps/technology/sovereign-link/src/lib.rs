@@ -55,6 +55,20 @@ pub fn configure_routes(cfg: &mut web::ServiceConfig) {
             .route("/consistency", web::get().to(handlers::service_api::consistency_check)),
     );
 
+    // Org admin panel (JSON API, accessed by org slug)
+    cfg.service(
+        web::scope("/org/{slug}")
+            .route("/dashboard", web::get().to(handlers::org_admin::org_dashboard))
+            .route("/links", web::get().to(handlers::org_admin::org_link_list))
+            .route("/links", web::post().to(handlers::org_admin::org_create_link))
+            .route("/links/{link_id}", web::put().to(handlers::org_admin::org_update_link))
+            .route("/links/{link_id}", web::delete().to(handlers::org_admin::org_deactivate_link))
+            .route("/members", web::get().to(handlers::org_admin::org_member_list))
+            .route("/members/invite", web::post().to(handlers::org_admin::org_invite_member))
+            .route("/members/{user_id}/role", web::put().to(handlers::org_admin::org_change_role))
+            .route("/members/{user_id}", web::delete().to(handlers::org_admin::org_remove_member)),
+    );
+
     // Org-scoped routes
     cfg.service(
         web::scope("/api/v1/orgs/{org_id}")
