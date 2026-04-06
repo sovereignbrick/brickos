@@ -1,8 +1,9 @@
 # Sprint 025 - Code Quality, Testing & Security Hardening
 
-**Started:** TBD
-**Duration:** 3 days
-**Status:** PLANNED
+**Started:** 2026-04-06
+**Completed:** 2026-04-06
+**Duration:** 1 day (planned 3, delivered in 1)
+**Status:** RELEASED (v0.36.0)
 **Goal:** Strengthen code quality with comprehensive testing, consolidate the license tier system, harden security for public launch, and establish continuous compliance.
 
 ## Issue Explanations
