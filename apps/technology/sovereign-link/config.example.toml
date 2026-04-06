@@ -1,16 +1,17 @@
 # Sovereign Link Configuration
+# Part of the brickos.io platform
 # Copy to config.toml or set as SOVEREIGN_LINK_* environment variables
 
 [server]
 # host = "0.0.0.0"
 # port = 8080
-# base_url = "http://localhost:8080"
+# base_url = "http://localhost:8080"  # Set to your custom domain: "https://ln.yourdomain.com"
 
 [database]
 # path = "./data.db"
 
 [auth]
-# jwt_secret = ""  # Auto-generated on first run if empty
+# jwt_secret = ""  # Auto-generated on first run if empty. Set for persistent sessions.
 # jwt_expiry_secs = 86400  # 24 hours
 # allow_registration = true
 
@@ -21,4 +22,9 @@
 [nostr]
 # enabled = true
 # relays = ["wss://relay.damus.io", "wss://nos.lol", "wss://relay.nostr.band"]
-# nip89_publish = false  # Log NIP-89 app listing on startup
+# nsec = ""  # Hex secret key for NIP-89 app listing (64 chars)
+# nip89_publish = false  # Publish NIP-89 app listing to relays on startup
+
+[links]
+# code_length = 6  # Default auto-generated code length
+# rate_limit_creates = 50  # Max link creations per day per user

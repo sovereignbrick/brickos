@@ -1,20 +1,40 @@
+# Sovereign Link - Standalone Docker Image
+# Part of the brickos.io platform
+#
+# Build from monorepo root:
+#   docker build -f apps/technology/sovereign-link/Dockerfile -t brickos/sovereign-link .
+#
+# Run:
+#   docker run -d -p 8080:8080 -v sl-data:/data brickos/sovereign-link
+
 # Stage 1: Build
-FROM rust:1.86-slim AS builder
+FROM rust:1.88-slim AS builder
 WORKDIR /build
 
-# Install build dependencies
-RUN apt-get update && apt-get install -y pkg-config libssl-dev && rm -rf /var/lib/apt/lists/*
+# Install build dependencies (rustls, no openssl)
+RUN apt-get update && apt-get install -y pkg-config && rm -rf /var/lib/apt/lists/*
 
-# Copy workspace root files for dependency resolution
+# Copy workspace files for dependency resolution
 COPY Cargo.toml Cargo.lock ./
 
-# Copy workspace members needed for the build
+# Copy all workspace members referenced in Cargo.toml
+# (cargo needs them to resolve the workspace, even if we only build sovereign-link)
 COPY crates ./crates
 COPY platform ./platform
 COPY apps/technology/sovereign-link ./apps/technology/sovereign-link
 
-# Build standalone binary
-RUN cargo build --release -p sovereign-link --no-default-features --features standalone
+# Create stub directories for other workspace members so cargo can resolve
+RUN mkdir -p apps/health/sovereign-health/api/src && \
+    echo "" > apps/health/sovereign-health/api/src/lib.rs && \
+    cp apps/technology/sovereign-link/Cargo.toml apps/health/sovereign-health/api/Cargo.toml && \
+    sed -i 's/name = "sovereign-link"/name = "sovereign-health-backend"/' apps/health/sovereign-health/api/Cargo.toml && \
+    sed -i 's/standalone.*\]//' apps/health/sovereign-health/api/Cargo.toml
+
+# Build only sovereign-link standalone
+RUN cargo build --release -p sovereign-link --no-default-features --features standalone 2>&1 || \
+    (echo "Build failed. Trying with workspace member exclusion..." && \
+     cd apps/technology/sovereign-link && \
+     cargo build --release --no-default-features --features standalone)
 
 # Stage 2: Runtime
 FROM debian:bookworm-slim
