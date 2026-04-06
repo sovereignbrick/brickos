@@ -1,8 +1,9 @@
 # Sprint 024 -- Pre-Launch Hardening
 
-**Started:** 2026-04-06
-**Duration:** 2 days (2026-04-06 to 2026-04-07)
-**Status:** PLANNED
+**Started:** 2026-04-05
+**Completed:** 2026-04-06
+**Duration:** 2 days
+**Status:** RELEASED (v0.35.0)
 **Goal:** Separate demo data, security fixes, dependency updates, E2E coverage, learn page, and performance. Everything needed for a confident public launch.
 
 ## Sprint Backlog

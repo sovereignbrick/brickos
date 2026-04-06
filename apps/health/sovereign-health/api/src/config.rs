@@ -20,6 +20,10 @@ fn env_parse<T: std::str::FromStr>(key: &str, default: T) -> T {
 pub struct Config {
     pub database_url: String,
     pub jwt_secret: String,
+    /// Previous JWT secret for graceful rotation. When set, tokens signed with
+    /// this secret are still accepted during verification (but new tokens are
+    /// always signed with `jwt_secret`). See rotation procedure in brickos-auth/src/jwt.rs.
+    pub jwt_secret_previous: Option<String>,
     pub jwt_expiry_secs: i64,
     pub refresh_expiry_secs: i64,
     pub anthropic_api_key: String,
@@ -111,6 +115,9 @@ impl Config {
         Ok(Self {
             database_url,
             jwt_secret,
+            jwt_secret_previous: std::env::var("JWT_SECRET_PREVIOUS")
+                .ok()
+                .filter(|s| !s.is_empty()),
             jwt_expiry_secs,
             refresh_expiry_secs,
             anthropic_api_key,
@@ -183,6 +190,7 @@ impl Config {
             jwt_secret: std::env::var("JWT_SECRET").unwrap_or_else(|_| {
                 "test-secret-that-is-long-enough-for-testing-purposes-only".into()
             }),
+            jwt_secret_previous: None,
             jwt_expiry_secs: 3600,
             refresh_expiry_secs: 86400,
             anthropic_api_key: String::new(),

@@ -35,7 +35,7 @@ pub mod payments;
 pub mod services;
 pub mod templates;
 
-pub const VERSION: &str = "0.35.0";
+pub const VERSION: &str = "0.36.0";
 pub const SERVICE_NAME: &str = "sovereign-health-backend";
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -793,6 +793,10 @@ pub fn configure_routes(cfg: &mut actix_web::web::ServiceConfig) {
             .route(
                 "/audit/db-audit",
                 actix_web::web::get().to(handlers::admin_audit::db_audit_logs),
+            )
+            .route(
+                "/audit/pgaudit",
+                actix_web::web::get().to(handlers::admin_audit::pgaudit_events),
             )
             .route(
                 "/contact-submissions",
