@@ -52,8 +52,12 @@ pub fn configure_routes(cfg: &mut web::ServiceConfig) {
             .route("/stats/by-org", web::get().to(handlers::platform_admin::stats_by_org))
             .route("/stats/by-app", web::get().to(handlers::platform_admin::stats_by_app))
             .route("/orgs", web::get().to(handlers::platform_admin::list_orgs))
-            .route("/consistency", web::get().to(handlers::service_api::consistency_check)),
+            .route("/consistency", web::get().to(handlers::service_api::consistency_check))
+            .route("/dashboard", web::get().to(handlers::platform_admin::platform_dashboard)),
     );
+
+    // Org creation (no slug scope needed)
+    cfg.route("/api/v1/orgs", web::post().to(handlers::org_admin::create_org));
 
     // Org admin panel (JSON API, accessed by org slug)
     cfg.service(
@@ -66,7 +70,10 @@ pub fn configure_routes(cfg: &mut web::ServiceConfig) {
             .route("/members", web::get().to(handlers::org_admin::org_member_list))
             .route("/members/invite", web::post().to(handlers::org_admin::org_invite_member))
             .route("/members/{user_id}/role", web::put().to(handlers::org_admin::org_change_role))
-            .route("/members/{user_id}", web::delete().to(handlers::org_admin::org_remove_member)),
+            .route("/members/{user_id}", web::delete().to(handlers::org_admin::org_remove_member))
+            .route("/affiliates", web::get().to(handlers::org_admin::org_affiliate_list))
+            .route("/affiliates/{user_id}/code", web::post().to(handlers::org_admin::org_generate_affiliate_code))
+            .route("/affiliates/{user_id}/stats", web::get().to(handlers::org_admin::org_affiliate_stats)),
     );
 
     // Org-scoped routes

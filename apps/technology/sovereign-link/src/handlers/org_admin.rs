@@ -623,6 +623,447 @@ pub async fn org_remove_member(
 }
 
 // ---------------------------------------------------------------------------
+// #360 - Org onboarding wizard
+// ---------------------------------------------------------------------------
+
+#[cfg(feature = "platform")]
+#[derive(Debug, Deserialize)]
+pub struct CreateOrgRequest {
+    pub name: String,
+    pub slug: String,
+    pub org_type: Option<String>,
+    pub branding: Option<super::branding::OrgBranding>,
+    pub first_link: Option<FirstLinkRequest>,
+    pub admin_email: Option<String>,
+}
+
+#[cfg(feature = "platform")]
+#[derive(Debug, Deserialize)]
+pub struct FirstLinkRequest {
+    pub target_url: String,
+    pub code: Option<String>,
+}
+
+#[cfg(feature = "platform")]
+#[derive(Debug, Serialize)]
+pub struct CreateOrgResponse {
+    pub org_id: Uuid,
+    pub slug: String,
+    pub links_created: usize,
+    pub members_invited: usize,
+}
+
+/// POST /api/v1/orgs - Create a new organization with initial setup.
+#[cfg(feature = "platform")]
+pub async fn create_org(
+    body: web::Json<CreateOrgRequest>,
+    pool: web::Data<PgPool>,
+) -> HttpResponse {
+    let data = body.into_inner();
+
+    // 1. Validate slug: lowercase, alphanumeric + hyphens, 3-30 chars
+    let slug = data.slug.to_lowercase();
+    if slug.len() < 3 || slug.len() > 30 {
+        return HttpResponse::BadRequest()
+            .json(serde_json::json!({"error": "Slug must be 3-30 characters"}));
+    }
+    if !slug.chars().all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '-') {
+        return HttpResponse::BadRequest()
+            .json(serde_json::json!({"error": "Slug must contain only lowercase letters, digits, and hyphens"}));
+    }
+
+    // 2. Check slug not reserved
+    let reserved = sqlx::query_scalar::<_, i64>(
+        "SELECT COUNT(*) FROM brickos.reserved_codes WHERE code = $1",
+    )
+    .bind(&slug)
+    .fetch_one(pool.get_ref())
+    .await;
+
+    match reserved {
+        Ok(count) if count > 0 => {
+            return HttpResponse::Conflict()
+                .json(serde_json::json!({"error": "Slug is reserved"}));
+        }
+        Err(e) => {
+            tracing::error!("Reserved code check failed: {}", e);
+            return HttpResponse::InternalServerError()
+                .json(serde_json::json!({"error": "Internal error"}));
+        }
+        _ => {}
+    }
+
+    // 3. Check slug not taken
+    let taken = sqlx::query_scalar::<_, i64>(
+        "SELECT COUNT(*) FROM brickos.organizations WHERE slug = $1",
+    )
+    .bind(&slug)
+    .fetch_one(pool.get_ref())
+    .await;
+
+    match taken {
+        Ok(count) if count > 0 => {
+            return HttpResponse::Conflict()
+                .json(serde_json::json!({"error": "Slug is already taken"}));
+        }
+        Err(e) => {
+            tracing::error!("Slug uniqueness check failed: {}", e);
+            return HttpResponse::InternalServerError()
+                .json(serde_json::json!({"error": "Internal error"}));
+        }
+        _ => {}
+    }
+
+    // 4. Insert organization
+    let org_type = data.org_type.unwrap_or_else(|| "clinic".to_string());
+    let org_id = Uuid::new_v4();
+
+    let insert = sqlx::query(
+        r#"INSERT INTO brickos.organizations (id, name, slug, org_type, is_active)
+           VALUES ($1, $2, $3, $4, true)"#,
+    )
+    .bind(org_id)
+    .bind(&data.name)
+    .bind(&slug)
+    .bind(&org_type)
+    .execute(pool.get_ref())
+    .await;
+
+    if let Err(e) = insert {
+        tracing::error!("Org creation failed: {}", e);
+        return HttpResponse::InternalServerError()
+            .json(serde_json::json!({"error": "Failed to create organization"}));
+    }
+
+    // 5. If branding provided, update branding JSONB
+    if let Some(branding) = &data.branding {
+        let branding_json = serde_json::to_value(branding).unwrap_or_default();
+        let _ = sqlx::query(
+            "UPDATE brickos.organizations SET branding = $2 WHERE id = $1",
+        )
+        .bind(org_id)
+        .bind(branding_json)
+        .execute(pool.get_ref())
+        .await;
+    }
+
+    // 6. If first_link provided, create it
+    let mut links_created: usize = 0;
+    if let Some(link) = &data.first_link {
+        let code = link.code.clone().unwrap_or_else(generate_short_code);
+        let result = sqlx::query(
+            r#"INSERT INTO short_links (id, code, target_url, link_type, domain, app_key, owner_org_id)
+               VALUES (gen_random_uuid(), $1, $2, 'generic', 'link', 'sovereign-link', $3)"#,
+        )
+        .bind(&code)
+        .bind(&link.target_url)
+        .bind(org_id)
+        .execute(pool.get_ref())
+        .await;
+
+        if result.is_ok() {
+            links_created = 1;
+        }
+    }
+
+    // 7. If admin_email provided, look up user and add as org_admin
+    let mut members_invited: usize = 0;
+    if let Some(email) = &data.admin_email {
+        let user_id = sqlx::query_scalar::<_, Uuid>(
+            "SELECT id FROM brickos.users WHERE email = $1",
+        )
+        .bind(email)
+        .fetch_optional(pool.get_ref())
+        .await;
+
+        if let Ok(Some(uid)) = user_id {
+            let result = sqlx::query(
+                "INSERT INTO brickos.org_members (org_id, user_id, role) VALUES ($1, $2, 'org_admin')",
+            )
+            .bind(org_id)
+            .bind(uid)
+            .execute(pool.get_ref())
+            .await;
+
+            if result.is_ok() {
+                members_invited = 1;
+            }
+        }
+    }
+
+    // 8. Return response
+    HttpResponse::Created().json(CreateOrgResponse {
+        org_id,
+        slug,
+        links_created,
+        members_invited,
+    })
+}
+
+// ---------------------------------------------------------------------------
+// #362 - Org affiliate setup flow
+// ---------------------------------------------------------------------------
+
+#[cfg(feature = "platform")]
+#[derive(Debug, Serialize, sqlx::FromRow)]
+pub struct OrgAffiliate {
+    pub user_id: Uuid,
+    pub email: Option<String>,
+    pub display_name: Option<String>,
+    pub affiliate_code: Option<String>,
+    pub link_count: i64,
+    pub total_clicks: i64,
+}
+
+/// GET /org/{slug}/affiliates - List affiliates with performance.
+#[cfg(feature = "platform")]
+pub async fn org_affiliate_list(
+    slug: web::Path<String>,
+    pool: web::Data<PgPool>,
+) -> HttpResponse {
+    let slug = slug.into_inner();
+    let (org_id, _) = match resolve_org(&slug, pool.get_ref()).await {
+        Some(v) => v,
+        None => {
+            return HttpResponse::NotFound()
+                .json(serde_json::json!({"error": "Organization not found"}));
+        }
+    };
+
+    let affiliates = sqlx::query_as::<_, OrgAffiliate>(
+        r#"SELECT
+             om.user_id,
+             u.email,
+             u.display_name,
+             sl_aff.affiliate_code,
+             COUNT(DISTINCT sl.id) AS link_count,
+             COUNT(DISTINCT slc.id) AS total_clicks
+           FROM brickos.org_members om
+           JOIN brickos.users u ON u.id = om.user_id
+           LEFT JOIN short_links sl_aff ON sl_aff.owner_user_id = om.user_id
+             AND sl_aff.owner_org_id = $1
+             AND sl_aff.affiliate_code IS NOT NULL
+           LEFT JOIN short_links sl ON sl.owner_user_id = om.user_id
+             AND sl.owner_org_id = $1
+           LEFT JOIN short_link_clicks slc ON slc.short_link_id = sl.id
+           WHERE om.org_id = $1
+             AND om.role IN ('org_affiliate', 'org_member')
+           GROUP BY om.user_id, u.email, u.display_name, sl_aff.affiliate_code
+           ORDER BY total_clicks DESC"#,
+    )
+    .bind(org_id)
+    .fetch_all(pool.get_ref())
+    .await;
+
+    match affiliates {
+        Ok(data) => HttpResponse::Ok().json(data),
+        Err(e) => {
+            tracing::error!("Org affiliate list query failed for {}: {}", slug, e);
+            HttpResponse::InternalServerError()
+                .json(serde_json::json!({"error": "Internal error"}))
+        }
+    }
+}
+
+#[cfg(feature = "platform")]
+#[derive(Debug, Serialize)]
+pub struct AffiliateCodeResponse {
+    pub affiliate_code: String,
+    pub short_url: String,
+}
+
+/// POST /org/{slug}/affiliates/{user_id}/code - Generate affiliate code for member.
+#[cfg(feature = "platform")]
+pub async fn org_generate_affiliate_code(
+    path: web::Path<(String, Uuid)>,
+    pool: web::Data<PgPool>,
+) -> HttpResponse {
+    let (slug, user_id) = path.into_inner();
+    let (org_id, _) = match resolve_org(&slug, pool.get_ref()).await {
+        Some(v) => v,
+        None => {
+            return HttpResponse::NotFound()
+                .json(serde_json::json!({"error": "Organization not found"}));
+        }
+    };
+
+    // Verify user is a member of this org
+    let is_member = sqlx::query_scalar::<_, i64>(
+        "SELECT COUNT(*) FROM brickos.org_members WHERE org_id = $1 AND user_id = $2",
+    )
+    .bind(org_id)
+    .bind(user_id)
+    .fetch_one(pool.get_ref())
+    .await;
+
+    match is_member {
+        Ok(0) => {
+            return HttpResponse::NotFound()
+                .json(serde_json::json!({"error": "Member not found in this organization"}));
+        }
+        Err(e) => {
+            tracing::error!("Member check failed for {}/{}: {}", slug, user_id, e);
+            return HttpResponse::InternalServerError()
+                .json(serde_json::json!({"error": "Internal error"}));
+        }
+        _ => {}
+    }
+
+    // Generate affiliate code: "sh" + 6-char hash
+    let affiliate_code = format!("sh{}", &generate_short_code());
+    let code = affiliate_code.clone();
+
+    // Create auto-prefixed short link for this affiliate
+    let result = sqlx::query(
+        r#"INSERT INTO short_links (id, code, target_url, link_type, domain, app_key,
+                                    owner_user_id, owner_org_id, affiliate_code)
+           VALUES (gen_random_uuid(), $1, $2, 'affiliate', 'link', 'sovereign-link', $3, $4, $5)"#,
+    )
+    .bind(&code)
+    .bind(format!("/r/{}", slug))
+    .bind(user_id)
+    .bind(org_id)
+    .bind(&affiliate_code)
+    .execute(pool.get_ref())
+    .await;
+
+    match result {
+        Ok(_) => HttpResponse::Created().json(AffiliateCodeResponse {
+            affiliate_code,
+            short_url: format!("/r/{}", code),
+        }),
+        Err(e) => {
+            let msg = e.to_string();
+            if msg.contains("duplicate") || msg.contains("unique") {
+                HttpResponse::Conflict()
+                    .json(serde_json::json!({"error": "Affiliate code already exists, try again"}))
+            } else {
+                tracing::error!("Affiliate code generation failed for {}/{}: {}", slug, user_id, e);
+                HttpResponse::InternalServerError()
+                    .json(serde_json::json!({"error": "Internal error"}))
+            }
+        }
+    }
+}
+
+#[cfg(feature = "platform")]
+#[derive(Debug, Serialize)]
+pub struct AffiliateStats {
+    pub user_id: Uuid,
+    pub total_clicks: i64,
+    pub clicks_7d: i64,
+    pub clicks_30d: i64,
+    pub daily_clicks: Vec<DailyClicks>,
+    pub top_referrers: Vec<TopReferrer>,
+}
+
+#[cfg(feature = "platform")]
+#[derive(Debug, Serialize, sqlx::FromRow)]
+pub struct DailyClicks {
+    pub day: String,
+    pub clicks: i64,
+}
+
+#[cfg(feature = "platform")]
+#[derive(Debug, Serialize, sqlx::FromRow)]
+pub struct TopReferrer {
+    pub referrer: String,
+    pub clicks: i64,
+}
+
+/// GET /org/{slug}/affiliates/{user_id}/stats - Affiliate performance detail.
+#[cfg(feature = "platform")]
+pub async fn org_affiliate_stats(
+    path: web::Path<(String, Uuid)>,
+    pool: web::Data<PgPool>,
+) -> HttpResponse {
+    let (slug, user_id) = path.into_inner();
+    let (org_id, _) = match resolve_org(&slug, pool.get_ref()).await {
+        Some(v) => v,
+        None => {
+            return HttpResponse::NotFound()
+                .json(serde_json::json!({"error": "Organization not found"}));
+        }
+    };
+
+    // Aggregate click stats for this affiliate's links in this org
+    #[derive(sqlx::FromRow)]
+    struct ClickStats {
+        total_clicks: i64,
+        clicks_7d: i64,
+        clicks_30d: i64,
+    }
+
+    let stats = sqlx::query_as::<_, ClickStats>(
+        r#"SELECT
+             COUNT(slc.id) AS total_clicks,
+             COUNT(slc.id) FILTER (WHERE slc.clicked_at > now() - interval '7 days') AS clicks_7d,
+             COUNT(slc.id) FILTER (WHERE slc.clicked_at > now() - interval '30 days') AS clicks_30d
+           FROM short_links sl
+           LEFT JOIN short_link_clicks slc ON slc.short_link_id = sl.id
+           WHERE sl.owner_user_id = $1 AND sl.owner_org_id = $2"#,
+    )
+    .bind(user_id)
+    .bind(org_id)
+    .fetch_one(pool.get_ref())
+    .await;
+
+    let stats = match stats {
+        Ok(s) => s,
+        Err(e) => {
+            tracing::error!("Affiliate stats query failed for {}/{}: {}", slug, user_id, e);
+            return HttpResponse::InternalServerError()
+                .json(serde_json::json!({"error": "Internal error"}));
+        }
+    };
+
+    // Daily click breakdown (last 30 days)
+    let daily_clicks = sqlx::query_as::<_, DailyClicks>(
+        r#"SELECT
+             to_char(slc.clicked_at::date, 'YYYY-MM-DD') AS day,
+             COUNT(*) AS clicks
+           FROM short_link_clicks slc
+           JOIN short_links sl ON sl.id = slc.short_link_id
+           WHERE sl.owner_user_id = $1 AND sl.owner_org_id = $2
+             AND slc.clicked_at > now() - interval '30 days'
+           GROUP BY slc.clicked_at::date
+           ORDER BY day"#,
+    )
+    .bind(user_id)
+    .bind(org_id)
+    .fetch_all(pool.get_ref())
+    .await
+    .unwrap_or_default();
+
+    // Top referrers
+    let top_referrers = sqlx::query_as::<_, TopReferrer>(
+        r#"SELECT
+             COALESCE(slc.referrer, 'direct') AS referrer,
+             COUNT(*) AS clicks
+           FROM short_link_clicks slc
+           JOIN short_links sl ON sl.id = slc.short_link_id
+           WHERE sl.owner_user_id = $1 AND sl.owner_org_id = $2
+           GROUP BY slc.referrer
+           ORDER BY clicks DESC
+           LIMIT 10"#,
+    )
+    .bind(user_id)
+    .bind(org_id)
+    .fetch_all(pool.get_ref())
+    .await
+    .unwrap_or_default();
+
+    HttpResponse::Ok().json(AffiliateStats {
+        user_id,
+        total_clicks: stats.total_clicks,
+        clicks_7d: stats.clicks_7d,
+        clicks_30d: stats.clicks_30d,
+        daily_clicks,
+        top_referrers,
+    })
+}
+
+// ---------------------------------------------------------------------------
 // Internal helpers
 // ---------------------------------------------------------------------------
 
