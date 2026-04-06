@@ -88,6 +88,7 @@ async fn publish_to_relays(
     let event_id = hex::encode(id_hash);
 
     // Sign the event ID with Schnorr (BIP-340)
+    #[allow(deprecated)]
     let sig = secp.sign_schnorr_no_aux_rand(id_hash.as_slice(), &keypair);
     let sig_hex = hex::encode(sig.as_ref());
 

@@ -61,7 +61,7 @@ pub async fn discover_services(
     // Check which services already have short links
     let mut already_linked = 0;
     for svc in &mut services {
-        if let Some(ref onion) = svc.onion_address {
+        if let Some(ref _onion) = svc.onion_address {
             // Check if a link already exists for this onion address
             if let Ok(Some(_)) = store.get_by_code(&svc.suggested_code).await {
                 already_linked += 1;
