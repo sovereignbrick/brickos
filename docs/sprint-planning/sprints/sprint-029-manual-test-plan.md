@@ -3,7 +3,15 @@
 **Date:** 2026-04-07
 **Environment:** Staging (demo.sovereignhealth.io / api-demo.sovereignhealth.io)
 **Tester:** Helmut
-**Credentials:** demo@sovereignhealth.io / SovereignDemo1
+
+### Credentials
+
+| What | Username / Email | Password |
+|------|-----------------|----------|
+| Nginx basic auth (staging) | `helmut` | `JM8Lv97Ax3LiRDLMgYfXdw==` |
+| SHI demo user (staging) | `demo@sovereignhealth.io` | `SovereignDemo1` |
+| SHI demo user (production) | `optimized@sovereignhealth.io` | `SovereignOptimal2026!` |
+| VPS SSH | `root@72.61.154.115` | SSH key auth |
 
 ---
 
