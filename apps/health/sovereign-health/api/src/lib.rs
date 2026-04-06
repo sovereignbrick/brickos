@@ -48,6 +48,19 @@ pub struct HealthResponse {
     pub mode: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub checks: Option<HealthChecks>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub ai_system: Option<AiSystemInfo>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AiSystemInfo {
+    pub name: String,
+    pub provider: String,
+    pub model: String,
+    pub classification: String,
+    pub purpose: String,
+    pub limitations: String,
+    pub data_scope: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

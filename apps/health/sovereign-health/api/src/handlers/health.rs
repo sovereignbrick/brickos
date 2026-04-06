@@ -6,8 +6,22 @@ use sqlx::PgPool;
 
 use crate::config::Config;
 use crate::{
-    HealthCheckResult, HealthChecks, HealthResponse, HelloResponse, SERVICE_NAME, VERSION,
+    AiSystemInfo, HealthCheckResult, HealthChecks, HealthResponse, HelloResponse, SERVICE_NAME,
+    VERSION,
 };
+
+fn ai_system_info() -> AiSystemInfo {
+    AiSystemInfo {
+        name: "Dr. Alex".to_string(),
+        provider: "Anthropic".to_string(),
+        model: "Claude Sonnet 4".to_string(),
+        classification: "EU AI Act: Limited Risk (Art. 50)".to_string(),
+        purpose: "Health data analysis and personalized insights".to_string(),
+        limitations: "Not a medical device. Does not diagnose, treat, or prevent disease."
+            .to_string(),
+        data_scope: "User's own biomarker data, measurements, and health profile only".to_string(),
+    }
+}
 
 pub async fn health(
     req: HttpRequest,
@@ -57,6 +71,7 @@ pub async fn health(
             timestamp: Utc::now().to_rfc3339(),
             mode,
             checks: Some(HealthChecks { database: db_check }),
+            ai_system: Some(ai_system_info()),
         };
 
         if overall_status == "ok" {
@@ -72,6 +87,7 @@ pub async fn health(
             timestamp: Utc::now().to_rfc3339(),
             mode,
             checks: None,
+            ai_system: Some(ai_system_info()),
         })
     }
 }

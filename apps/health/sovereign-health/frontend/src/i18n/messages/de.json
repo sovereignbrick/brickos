@@ -1471,7 +1471,8 @@
     "starterSupplementReview": "Bewerte meine Supplemente - helfen sie meinen Markern?",
     "starterSupplementReviewDesc": "Bewerten ob deine aktuellen Supplemente wirksam sind",
     "starterProtocolCompare": "Vergleiche meine Gesundheitsdaten zwischen verschiedenen Diätprotokollen",
-    "starterProtocolCompareDesc": "Vergleich deiner Marker zwischen Keto, Fasten und anderen Protokollen"
+    "starterProtocolCompareDesc": "Vergleich deiner Marker zwischen Keto, Fasten und anderen Protokollen",
+    "aiDisclaimer": "KI-generierte Analyse. Keine medizinische Beratung. Konsultieren Sie immer Ihren Arzt."
   },
   "demo": {
     "viewing": "{profile}-Demoprofil wird angezeigt.",

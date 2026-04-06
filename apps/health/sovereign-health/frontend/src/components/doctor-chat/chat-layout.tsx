@@ -365,6 +365,9 @@ export function ChatLayout({ conversationId, initialPrompt }: ChatLayoutProps) {
             <h1 className="text-sm font-medium text-muted-foreground">
               {messages.length === 0 ? tChat('headerHome') : tChat('headerChat')}
             </h1>
+            <p className="text-xs text-muted-foreground text-center px-4 mt-1">
+              {tChat('aiDisclaimer')}
+            </p>
           </div>
           <div className="flex items-center gap-2">
             {activeConversationId && (

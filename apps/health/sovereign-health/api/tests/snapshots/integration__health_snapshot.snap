@@ -3,7 +3,16 @@ source: apps/health/sovereign-health/api/tests/integration.rs
 expression: body
 ---
 {
+  "ai_system": {
+    "classification": "EU AI Act: Limited Risk (Art. 50)",
+    "data_scope": "User's own biomarker data, measurements, and health profile only",
+    "limitations": "Not a medical device. Does not diagnose, treat, or prevent disease.",
+    "model": "Claude Sonnet 4",
+    "name": "Dr. Alex",
+    "provider": "Anthropic",
+    "purpose": "Health data analysis and personalized insights"
+  },
   "service": "sovereign-health-backend",
   "status": "ok",
-  "version": "0.33.0"
+  "version": "0.36.0"
 }

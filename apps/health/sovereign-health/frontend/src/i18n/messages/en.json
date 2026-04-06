@@ -1471,7 +1471,8 @@
     "starterSupplementReview": "Review my supplements - are they helping my markers?",
     "starterSupplementReviewDesc": "Evaluate if your current supplements are effective",
     "starterProtocolCompare": "Compare my health data across different diet protocols",
-    "starterProtocolCompareDesc": "See how your markers differ between keto, fasting, and other protocols"
+    "starterProtocolCompareDesc": "See how your markers differ between keto, fasting, and other protocols",
+    "aiDisclaimer": "AI-generated analysis. Not medical advice. Always consult your healthcare provider."
   },
   "demo": {
     "viewing": "Viewing {profile} demo profile.",

@@ -17,6 +17,7 @@ proptest! {
             timestamp: "2024-01-01T00:00:00+00:00".to_string(),
             mode: None,
             checks: None,
+            ai_system: None,
         };
         let json = serde_json::to_string(&resp).unwrap();
         let parsed: serde_json::Value = serde_json::from_str(&json).unwrap();
@@ -51,6 +52,7 @@ proptest! {
             timestamp: "2024-01-01T00:00:00+00:00".to_string(),
             mode: None,
             checks: None,
+            ai_system: None,
         };
         let json = serde_json::to_string(&original).unwrap();
         let roundtripped: HealthResponse = serde_json::from_str(&json).unwrap();
