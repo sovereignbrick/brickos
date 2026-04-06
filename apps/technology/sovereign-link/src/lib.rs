@@ -96,6 +96,10 @@ pub fn configure_standalone_routes(cfg: &mut web::ServiceConfig) {
         )
         .route("/logout", web::post().to(handlers::web::logout_page));
 
+    // Start9 service discovery
+    cfg.route("/discover", web::get().to(handlers::discovery::discover_services))
+        .route("/discover/create-all", web::post().to(handlers::discovery::create_discovered_links));
+
     // Auth endpoints (JSON API)
     cfg.service(
         web::scope("/auth")

@@ -3,6 +3,8 @@ pub mod qr;
 pub mod redirect;
 #[cfg(feature = "standalone")]
 pub mod web;
+#[cfg(feature = "standalone")]
+pub mod discovery;
 
 #[cfg(feature = "platform")]
 pub mod service_auth;

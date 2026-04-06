@@ -127,16 +127,38 @@ async fn publish_to_relays(
 /// Publish a message to a single WebSocket relay.
 #[cfg(feature = "standalone")]
 async fn publish_to_single_relay(url: &str, message: &str) -> Result<(), String> {
-    use tokio::net::TcpStream;
-    use tokio::io::{AsyncWriteExt, AsyncReadExt};
+    use tokio_tungstenite::connect_async;
+    use futures_util::SinkExt;
 
-    // Simple WebSocket is complex without a crate. For v1.0, use a raw HTTP
-    // upgrade approach or just log. Since we don't have tungstenite in deps,
-    // fall back to logging with a clear message.
-    //
-    // TODO: Add tungstenite or tokio-tungstenite dependency for proper WebSocket.
-    // For now, we log the event and the user can publish via `nak` CLI.
-    Err(format!("WebSocket relay publishing not yet implemented (needs tungstenite). Use 'nak event' CLI to publish to {}", url))
+    let (mut ws, _) = connect_async(url)
+        .await
+        .map_err(|e| format!("WebSocket connect failed: {}", e))?;
+
+    ws.send(tokio_tungstenite::tungstenite::Message::Text(message.to_string()))
+        .await
+        .map_err(|e| format!("WebSocket send failed: {}", e))?;
+
+    // Wait briefly for OK response (best-effort, don't block)
+    use futures_util::StreamExt;
+    match tokio::time::timeout(std::time::Duration::from_secs(5), ws.next()).await {
+        Ok(Some(Ok(msg))) => {
+            let text = msg.to_text().unwrap_or("");
+            if text.contains("\"OK\"") {
+                tracing::debug!("Relay accepted event: {}", text);
+            } else {
+                tracing::debug!("Relay response: {}", text);
+            }
+        }
+        Ok(Some(Err(e))) => {
+            tracing::debug!("Relay response error (non-fatal): {}", e);
+        }
+        _ => {
+            tracing::debug!("No relay response within 5s (event may still be accepted)");
+        }
+    }
+
+    let _ = ws.close(None).await;
+    Ok(())
 }
 
 /// Decode a bech32 nsec to raw 32-byte secret key.
