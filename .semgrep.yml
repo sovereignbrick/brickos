@@ -1,0 +1,29 @@
+rules:
+  - id: no-unwrap-in-handlers
+    pattern: $X.unwrap()
+    paths:
+      include:
+        - apps/health/sovereign-health/api/src/handlers/
+    message: "Avoid .unwrap() in request handlers -- use ? or .unwrap_or_default() instead"
+    languages: [rust]
+    severity: WARNING
+
+  - id: no-hardcoded-secrets
+    patterns:
+      - pattern: |
+          $KEY = "..."
+      - metavariable-regex:
+          metavariable: $KEY
+          regex: (password|secret|token|api_key|private_key)
+    message: "Possible hardcoded secret"
+    languages: [rust, typescript]
+    severity: ERROR
+
+  - id: sql-injection-risk
+    pattern: format!("... {} ...", $INPUT)
+    paths:
+      include:
+        - apps/health/sovereign-health/api/src/
+    message: "String interpolation in possible SQL context -- use parameterized queries"
+    languages: [rust]
+    severity: ERROR
