@@ -16,10 +16,10 @@
 
 ### Decision 1: One codebase, two deployment modes
 
-There is ONE crate at `apps/infrastructure/shortener/`. It compiles into two binaries via Cargo feature flags. Not two repos, not a shared library + two consumers. One codebase.
+There is ONE crate at `apps/technology/shortener/`. It compiles into two binaries via Cargo feature flags. Not two repos, not a shared library + two consumers. One codebase.
 
 ```
-apps/infrastructure/shortener/         ← ONE crate
+apps/technology/shortener/         ← ONE crate
 │
 ├── cargo build --features platform    → brickos.io/r/ (our VPS)
 │   Uses: Postgres, brickos-auth JWT, affiliate integration
@@ -102,7 +102,7 @@ BrickOS admin dashboard reads from BOTH: shortener for clicks, health API for co
 
 Phase 1-2: `short_links` table + handlers live in the existing Sovereign Health API. Nginx proxies `brickos.io/r/*` to port 8080.
 
-Phase 3: extract to `apps/infrastructure/shortener/` when second BrickOS app launches or when the shortener needs independent deployment.
+Phase 3: extract to `apps/technology/shortener/` when second BrickOS app launches or when the shortener needs independent deployment.
 
 The DB schema is platform-level from day one — no migration needed at extraction, just moving handlers.
 
@@ -416,7 +416,7 @@ Single-node covers 95% of Start9 users. Hub mode (multiple users sharing a short
 
 ## One Codebase, Not Two
 
-There is ONE crate at `apps/infrastructure/shortener/`. Feature flags select the deployment mode. Not two repos, not a shared library + two consumers.
+There is ONE crate at `apps/technology/shortener/`. Feature flags select the deployment mode. Not two repos, not a shared library + two consumers.
 
 **Why not two codebases:** Bug fixed once → both modes get it. Redirect handler, QR gen, REST API, click tracking are all shared (~60% of code). One Cargo.lock, one CI pipeline.
 
@@ -425,7 +425,7 @@ There is ONE crate at `apps/infrastructure/shortener/`. Feature flags select the
 ## Crate Architecture
 
 ```
-apps/infrastructure/shortener/
+apps/technology/shortener/
 ├── Cargo.toml
 ├── src/
 │   ├── main.rs                  # Entry: reads config, selects mode
@@ -594,7 +594,7 @@ The Sovereign Link standalone UI uses this token file directly — no Tailwind, 
 |-------|--------|------|
 | Phase 1: Core redirect + affiliate links (in health API) | 5 pts | Sprint 010 |
 | Phase 2: Campaigns + BrickOS admin + QR | 5 pts | Sprint 010 (if time) |
-| Phase 3: Extract to `apps/infrastructure/shortener/` | 8 pts | When second app launches |
+| Phase 3: Extract to `apps/technology/shortener/` | 8 pts | When second app launches |
 | Phase 4a: Standalone shortener + Start9 package | 5 pts | After Phase 3 |
 | Phase 4b: Reverse proxy mode (LAN clearnet) | 5 pts | After Phase 4a |
 | Phase 4c: Tunnel integration + custom domains + SSL | 3 pts | After Phase 4b |
@@ -618,5 +618,5 @@ The Sovereign Link standalone UI uses this token file directly — no Tailwind, 
 - `api/migrations/20260312000051_affiliate_system.sql` — Affiliate schema
 - `api/migrations/20260316000076_organizations.sql` — Org model with app_roles
 - `crates/brickos-startos/` — Existing Start9 integration crate (stub)
-- `apps/infrastructure/bitcoin-node/` — Existing infra app (packaging precedent)
+- `apps/technology/bitcoin-node/` — Existing infra app (packaging precedent)
 - Old spec: `docs/project-files/design/old-design/old specs/E-26_PWA_APP.md` (references Tor shortening)

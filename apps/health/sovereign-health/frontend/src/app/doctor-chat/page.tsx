@@ -3,7 +3,12 @@ import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { useAuth } from '@/lib/auth-context'
-import { ChatLayout } from '@/components/doctor-chat/chat-layout'
+import dynamic from 'next/dynamic'
+
+const ChatLayout = dynamic(
+  () => import('@/components/doctor-chat/chat-layout').then(m => ({ default: m.ChatLayout })),
+  { ssr: false, loading: () => <div className="flex items-center justify-center h-64 text-muted-foreground text-sm animate-pulse">Loading chat...</div> }
+)
 import { Navbar } from '@/components/layout/navbar'
 import { Footer } from '@/components/layout/footer'
 import { Breadcrumb } from '@/components/breadcrumb'

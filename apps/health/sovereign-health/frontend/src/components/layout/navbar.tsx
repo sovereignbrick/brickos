@@ -14,7 +14,12 @@ import { useContent } from '@/lib/content-context'
 import { useTheme } from '@/lib/theme-context'
 import { locales, localeNames, type Locale } from '@/i18n/config'
 import { Search } from 'lucide-react'
-import { SearchOverlay } from '@/components/search/search-overlay'
+import dynamic from 'next/dynamic'
+
+const SearchOverlay = dynamic(
+  () => import('@/components/search/search-overlay').then(m => ({ default: m.SearchOverlay })),
+  { ssr: false }
+)
 
 type NavItem = { href: string; labelKey: string }
 
@@ -66,7 +71,8 @@ function UserMenu({ user, logout }: { user: { email: string; display_name: strin
       <button
         onClick={() => setOpen(o => !o)}
         title={user?.email ?? ''}
-        className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-xs font-bold text-white hover:bg-blue-500 transition-colors"
+        aria-label={user?.email ?? 'User menu'}
+        className="w-10 h-10 min-w-[44px] min-h-[44px] rounded-full bg-blue-600 flex items-center justify-center text-xs font-bold text-white hover:bg-blue-500 transition-colors"
       >
         {initials || '?'}
       </button>
@@ -439,7 +445,7 @@ export function Navbar() {
     <div className="relative" ref={langRef}>
       <button
         onClick={() => setLangOpen(o => !o)}
-        className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+        className="flex items-center gap-1 px-2 py-2.5 min-h-[44px] rounded-lg text-xs text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
         aria-label={tCommon('changeLanguage')}
       >
         {contentLocale.toUpperCase()}
@@ -475,7 +481,7 @@ export function Navbar() {
       <nav className="border-b bg-background/80 backdrop-blur">
         <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 font-bold tracking-tight">
-            <Image src="/logo.png" alt="SHI" width={28} height={28} className="rounded-sm" />
+            <Image src="/logo.png" alt="SHI" width={28} height={28} className="rounded-sm" priority />
             <span className="text-xs sm:text-sm whitespace-nowrap">{APP_NAME}</span>
           </Link>
           <div className="flex items-center gap-2">
@@ -492,7 +498,7 @@ export function Navbar() {
       <nav className="border-b bg-background/80 backdrop-blur">
         <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 font-bold tracking-tight">
-            <Image src="/logo.png" alt="SHI" width={28} height={28} className="rounded-sm" />
+            <Image src="/logo.png" alt="SHI" width={28} height={28} className="rounded-sm" priority />
             <span className="text-xs sm:text-sm whitespace-nowrap">{APP_NAME}</span>
           </Link>
           <div className="flex items-center gap-2">
@@ -525,7 +531,7 @@ export function Navbar() {
       <nav className="border-b bg-background/80 backdrop-blur">
         <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
         <Link href={isDemo ? demoHref('/dashboard') : '/dashboard'} className="flex items-center gap-2 font-bold text-sm tracking-tight">
-          <Image src="/logo.png" alt="SHI" width={28} height={28} className="rounded-sm" />
+          <Image src="/logo.png" alt="SHI" width={28} height={28} className="rounded-sm" priority />
           <span className="text-xs sm:text-sm whitespace-nowrap">{APP_NAME}</span>
         </Link>
         <div className="hidden sm:flex items-center gap-1">
@@ -546,7 +552,8 @@ export function Navbar() {
         <div className="flex items-center gap-1">
           <button
             onClick={() => setSearchOpen(true)}
-            className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+            className="flex items-center gap-1.5 px-2 py-2.5 min-h-[44px] rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+            aria-label={t('search')}
             title={t('search')}
           >
             <Search className="w-4 h-4" />

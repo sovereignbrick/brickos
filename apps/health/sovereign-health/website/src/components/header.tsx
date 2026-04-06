@@ -14,6 +14,7 @@ const navLinks: NavLink[] = [
   { href: "/pricing/", labelKey: "nav.pricing" },
   { href: "/health-zones/", labelKey: "nav.healthZones" },
   { href: "/markers/", labelKey: "nav.markers" },
+  { href: "/learn/", labelKey: "nav.learn" },
 ];
 
 function LanguageSelector() {

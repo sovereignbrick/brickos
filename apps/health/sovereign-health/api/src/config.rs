@@ -73,6 +73,9 @@ pub struct Config {
     // Push notifications (VAPID)
     pub vapid_public_key: Option<String>,
     pub vapid_private_key: Option<String>,
+
+    // Environment: "production", "staging", "development"
+    pub deploy_environment: String,
 }
 
 impl Config {
@@ -163,6 +166,10 @@ impl Config {
             // Push notifications
             vapid_public_key: std::env::var("VAPID_PUBLIC_KEY").ok(),
             vapid_private_key: std::env::var("VAPID_PRIVATE_KEY").ok(),
+
+            // Environment
+            deploy_environment: std::env::var("DEPLOY_ENVIRONMENT")
+                .unwrap_or_else(|_| "development".to_string()),
         })
     }
 
@@ -213,6 +220,7 @@ impl Config {
             anthropic_api_version: "2023-06-01".into(),
             vapid_public_key: None,
             vapid_private_key: None,
+            deploy_environment: "test".to_string(),
         }
     }
 

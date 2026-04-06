@@ -6,7 +6,12 @@ import { api } from '@/lib/api'
 import { TrendData, MarkerDetail, MarkerDef } from '@/lib/types'
 import { Navbar } from '@/components/layout/navbar'
 import { Footer } from '@/components/layout/footer'
-import { TrendChart } from '@/components/trend-chart'
+import dynamic from 'next/dynamic'
+
+const TrendChart = dynamic(
+  () => import('@/components/trend-chart').then(m => ({ default: m.TrendChart })),
+  { ssr: false, loading: () => <div className="flex items-center justify-center h-48 text-muted-foreground text-sm animate-pulse">Loading chart...</div> }
+)
 import { useDemoProfile } from '@/lib/demo-profile-context'
 import { DEFAULT_RANGES } from '@/lib/status'
 import { Breadcrumb } from '@/components/breadcrumb'

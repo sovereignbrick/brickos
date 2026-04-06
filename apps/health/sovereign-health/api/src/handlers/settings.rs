@@ -1218,19 +1218,22 @@ pub async fn export_all(
 /// DELETE /settings/account -- soft-delete user account with 30-day grace period
 pub async fn delete_account(
     pool: web::Data<PgPool>,
+    config: web::Data<crate::config::Config>,
     auth: AuthenticatedUser,
     notifier: web::Data<crate::services::notify::Notifier>,
 ) -> Result<HttpResponse, AppError> {
-    // Guard: protect demo/system/admin accounts from accidental deletion
-    let is_protected: bool =
-        sqlx::query_scalar("SELECT COALESCE(is_protected, false) FROM users WHERE id = $1")
-            .bind(auth.user_id)
-            .fetch_one(pool.get_ref())
-            .await?;
-    if is_protected {
-        return Err(AppError::Validation(
-            "This account is protected and cannot be deleted.".to_string(),
-        ));
+    // Guard: protect demo/system accounts on production only
+    if config.deploy_environment == "production" {
+        let is_protected: bool =
+            sqlx::query_scalar("SELECT COALESCE(is_protected, false) FROM users WHERE id = $1")
+                .bind(auth.user_id)
+                .fetch_one(pool.get_ref())
+                .await?;
+        if is_protected {
+            return Err(AppError::Validation(
+                "This account is protected and cannot be deleted.".to_string(),
+            ));
+        }
     }
 
     // Soft delete: set is_deleted = true, deleted_at = now()
@@ -1516,22 +1519,25 @@ pub async fn get_access_log(
 /// POST /settings/reset-data -- delete all health data, keep account
 pub async fn reset_data(
     pool: web::Data<PgPool>,
+    config: web::Data<crate::config::Config>,
     auth: AuthenticatedUser,
     body: web::Json<serde_json::Value>,
     notifier: web::Data<crate::services::notify::Notifier>,
 ) -> Result<HttpResponse, AppError> {
     use sqlx::Row;
 
-    // Guard: protect demo/system/admin accounts from accidental reset
-    let is_protected: bool =
-        sqlx::query_scalar("SELECT COALESCE(is_protected, false) FROM users WHERE id = $1")
-            .bind(auth.user_id)
-            .fetch_one(pool.get_ref())
-            .await?;
-    if is_protected {
-        return Err(AppError::Validation(
-            "This account is protected and cannot be reset.".to_string(),
-        ));
+    // Guard: protect demo/system accounts on production only
+    if config.deploy_environment == "production" {
+        let is_protected: bool =
+            sqlx::query_scalar("SELECT COALESCE(is_protected, false) FROM users WHERE id = $1")
+                .bind(auth.user_id)
+                .fetch_one(pool.get_ref())
+                .await?;
+        if is_protected {
+            return Err(AppError::Validation(
+                "This account is protected and cannot be reset.".to_string(),
+            ));
+        }
     }
 
     // 1. Count records that will be deleted

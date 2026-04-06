@@ -586,7 +586,7 @@
     "units": {
       "mg": "mg",
       "g": "g",
-      "mcg": "\u00b5g",
+      "mcg": "µg",
       "ml": "ml",
       "iu": "IU",
       "pct": "%",
@@ -1252,7 +1252,7 @@
     "colStatus": "Status",
     "methodEur": "Euro",
     "methodBtc": "Bitcoin",
-    "showing": "Showing {from}\u2013{to} of {total}"
+    "showing": "Showing {from}–{to} of {total}"
   },
   "markers": {
     "measurementDeleted": "Measurement deleted",
@@ -1481,9 +1481,18 @@
     "errorMessage": "Something went wrong. Please try again.",
     "dismissBanner": "Dismiss demo banner",
     "profiles": {
-      "optimized": { "name": "Optimized", "desc": "Keto/carnivore, excellent metabolic health" },
-      "average": { "name": "Average", "desc": "Standard diet, borderline markers" },
-      "at_risk": { "name": "At Risk", "desc": "Pre-diabetic, metabolic syndrome" }
+      "optimized": {
+        "name": "Optimized",
+        "desc": "Keto/carnivore, excellent metabolic health"
+      },
+      "average": {
+        "name": "Average",
+        "desc": "Standard diet, borderline markers"
+      },
+      "at_risk": {
+        "name": "At Risk",
+        "desc": "Pre-diabetic, metabolic syndrome"
+      }
     }
   },
   "tiers": {

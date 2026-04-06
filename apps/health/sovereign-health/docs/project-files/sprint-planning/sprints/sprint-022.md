@@ -52,7 +52,7 @@
    - Data sovereignty section
 3. Delete stale placeholder dirs:
    - `apps/finance/tax-trainer/` (empty)
-   - `apps/infrastructure/bitcoin-node/` (empty)
+   - `apps/technology/bitcoin-node/` (empty)
 4. Update tech stack references (add @serwist/next, Sovereign Link, PWA capabilities)
 
 ### M2: BrickOS.io Website

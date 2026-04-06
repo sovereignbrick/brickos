@@ -112,7 +112,7 @@ export function ChatInput({ onSend, onFileUpload, disabled, quotaExhausted: rawQ
             </button>
             {uploadMenuOpen && (() => {
               const importUnlocked = isTierAtLeast(tier ?? 'glimpse', 'insight')
-              const lockedCls = 'w-full text-left px-4 py-2.5 text-sm text-muted-foreground/40 cursor-not-allowed flex items-center gap-2'
+              const lockedCls = 'w-full text-left px-4 py-2.5 text-sm text-muted-foreground/60 cursor-not-allowed flex items-center gap-2'
               const unlockedCls = 'w-full text-left px-4 py-2.5 text-sm text-foreground hover:bg-accent transition-colors flex items-center gap-2'
               return (
                 <div className="absolute bottom-full left-0 mb-2 w-56 bg-card border border-border rounded-xl shadow-xl overflow-hidden z-50">

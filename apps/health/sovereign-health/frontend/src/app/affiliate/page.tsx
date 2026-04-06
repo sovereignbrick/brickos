@@ -434,7 +434,7 @@ export default function AffiliatePage() {
           <h3 className="text-sm font-medium text-muted-foreground mb-3">{t('transactionHistory')}</h3>
           {conversions.length === 0 ? (
             <div className="border border-border rounded-lg p-6 text-center">
-              <p className="text-sm text-muted-foreground/50">{t('noTransactions')}</p>
+              <p className="text-sm text-muted-foreground">{t('noTransactions')}</p>
             </div>
           ) : (
             <div className="border border-border rounded-lg overflow-hidden">
@@ -615,6 +615,6 @@ function BtcTile({ label, value }: { label: string; value: string }) {
 }
 
 function SortIcon({ active, order }: { active: boolean; order: 'asc' | 'desc' }) {
-  if (!active) return <span className="text-muted-foreground/30 ml-1">↕</span>
+  if (!active) return <span className="text-muted-foreground/60 ml-1">↕</span>
   return <span className="ml-1">{order === 'asc' ? '↑' : '↓'}</span>
 }

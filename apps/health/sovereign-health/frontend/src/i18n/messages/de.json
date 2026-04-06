@@ -586,7 +586,7 @@
     "units": {
       "mg": "mg",
       "g": "g",
-      "mcg": "\u00b5g",
+      "mcg": "µg",
       "ml": "ml",
       "iu": "IE",
       "pct": "%",
@@ -1252,7 +1252,7 @@
     "colStatus": "Status",
     "methodEur": "Euro",
     "methodBtc": "Bitcoin",
-    "showing": "{from}\u2013{to} von {total}"
+    "showing": "{from}–{to} von {total}"
   },
   "markers": {
     "measurementDeleted": "Messung gelöscht",
@@ -1481,9 +1481,18 @@
     "errorMessage": "Etwas ist schiefgelaufen. Bitte versuche es erneut.",
     "dismissBanner": "Demobanner schließen",
     "profiles": {
-      "optimized": { "name": "Optimiert", "desc": "Keto/Karnivor, ausgezeichnete Stoffwechselgesundheit" },
-      "average": { "name": "Durchschnitt", "desc": "Standardkost, grenzwertige Marker" },
-      "at_risk": { "name": "Risiko", "desc": "Prädiabetisch, metabolisches Syndrom" }
+      "optimized": {
+        "name": "Optimiert",
+        "desc": "Keto/Karnivor, ausgezeichnete Stoffwechselgesundheit"
+      },
+      "average": {
+        "name": "Durchschnitt",
+        "desc": "Standardkost, grenzwertige Marker"
+      },
+      "at_risk": {
+        "name": "Risiko",
+        "desc": "Prädiabetisch, metabolisches Syndrom"
+      }
     }
   },
   "tiers": {

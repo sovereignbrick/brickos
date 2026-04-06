@@ -1,6 +1,6 @@
 [package]
 name = "sovereign-health-backend"
-version = "0.34.0"
+version = "0.35.0"
 edition = "2021"
 
 [dependencies]
@@ -35,7 +35,7 @@ brickos-crypto = { path = "../../../../crates/brickos-crypto" }
 brickos-db = { path = "../../../../crates/brickos-db" }
 brickos-billing = { path = "../../../../crates/brickos-billing" }
 brickos-email = { path = "../../../../crates/brickos-email" }
-sovereign-link = { path = "../../../infrastructure/sovereign-link" }
+sovereign-link = { path = "../../../technology/sovereign-link" }
 async-trait = "0.1"
 base64 = "0.22"
 image = { version = "0.25", default-features = false, features = ["jpeg", "png", "webp"] }

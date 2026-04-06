@@ -9,49 +9,59 @@ interface Tutorial {
   key: string;
   icon: string;
   screenshots: { base: string; key: string }[];
-  videoUrl?: string;
-  videoPoster?: string;
 }
 
 const TUTORIALS: Tutorial[] = [
   {
-    key: "gettingStarted",
-    icon: "🚀",
+    key: "dashboardOverview",
+    icon: "📊",
     screenshots: [
-      { base: "/screenshots/01-add-your-devices", key: "addDevices" },
+      { base: "/screenshots/dashboard_zones", key: "dashboardZones" },
+      { base: "/screenshots/dashboard_zone_energy", key: "dashboardZoneEnergy" },
+      { base: "/screenshots/search_results", key: "searchResults" },
     ],
   },
   {
-    key: "healthZonesExplained",
+    key: "markersHealthZones",
     icon: "🔬",
-    screenshots: [],
+    screenshots: [
+      { base: "/screenshots/marker_glucose", key: "markerGlucose" },
+      { base: "/screenshots/marker_glucose_scroll1", key: "markerGlucoseScroll1" },
+      { base: "/screenshots/marker_glucose_scroll2", key: "markerGlucoseScroll2" },
+    ],
   },
   {
-    key: "usingDrAlex",
+    key: "drAlexSearch",
     icon: "💬",
     screenshots: [
-      { base: "/screenshots/02-dr-alex-medication-import", key: "drAlexMedication" },
+      { base: "/screenshots/dr_alex_main", key: "drAlexMain" },
+      { base: "/screenshots/dr_alex_chat", key: "drAlexChat" },
+      { base: "/screenshots/trends_chart", key: "trendsChart" },
     ],
   },
   {
-    key: "selfHostedSetup",
-    icon: "🖥️",
-    screenshots: [],
+    key: "measurementsTrends",
+    icon: "📈",
+    screenshots: [
+      { base: "/screenshots/measurements_history", key: "measurementsHistory" },
+      { base: "/screenshots/settings_thresholds", key: "settingsThresholds" },
+      { base: "/screenshots/settings_influence", key: "settingsInfluence" },
+    ],
   },
   {
-    key: "customizingThresholds",
-    icon: "🎯",
+    key: "userSettings",
+    icon: "⚙️",
     screenshots: [
-      { base: "/screenshots/03-your-influence-factors", key: "influenceFactors" },
+      { base: "/screenshots/settings_profile", key: "settingsProfile" },
+      { base: "/screenshots/settings_devices", key: "settingsDevices" },
+      { base: "/screenshots/settings_thresholds", key: "settingsThresholds" },
     ],
   },
 ];
 
 function screenshotSrc(base: string, locale: string): string {
-  if (locale !== "en") {
-    return `${base}-${locale.toUpperCase()}.png`;
-  }
-  return `${base}-EN.png`;
+  const suffix = locale === "de" ? "_DE" : "_EN";
+  return `${base}${suffix}.png`;
 }
 
 export default function LearnPage() {
@@ -66,7 +76,7 @@ export default function LearnPage() {
           <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
             {t("learn.hero.title")}
           </h1>
-          <p className="mt-4 text-lg text-[var(--muted)]">
+          <p className="mt-4 text-lg text-blue-400">
             {t("learn.hero.subtitle")}
           </p>
         </div>
@@ -94,46 +104,18 @@ export default function LearnPage() {
                   </div>
                 </div>
 
-                {/* Video placeholder */}
-                {tutorial.videoUrl ? (
-                  <div className="mt-6">
-                    <div
-                      className="relative overflow-hidden rounded-xl border border-[var(--border)] bg-black"
-                      style={{ aspectRatio: "16/9" }}
-                    >
-                      <iframe
-                        src={tutorial.videoUrl}
-                        title={title}
-                        className="absolute inset-0 h-full w-full"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowFullScreen
-                      />
-                    </div>
-                  </div>
-                ) : (
-                  <div className="mt-6">
-                    <div
-                      className="flex items-center justify-center rounded-xl border border-dashed border-[var(--border)] bg-[var(--bg)]/50"
-                      style={{ aspectRatio: "16/9", maxHeight: "200px" }}
-                    >
-                      <p className="text-sm text-[var(--muted)]">
-                        {t("learn.videoComingSoon")}
-                      </p>
-                    </div>
-                  </div>
-                )}
-
                 {/* Screenshots */}
                 {tutorial.screenshots.length > 0 && (
                   <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                     {tutorial.screenshots.map((shot) => {
                       const src = screenshotSrc(shot.base, locale);
-                      const caption = t(`home.demo.screenshots.${shot.key}` as any) || shot.key;
+                      const caption = t(`learn.screenshots.${shot.key}` as any) || shot.key;
                       return (
                         <button
                           key={shot.key}
                           onClick={() => setLightbox(src)}
-                          className="group overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--card)] transition-transform hover:scale-[1.02] text-left"
+                          title={caption}
+                          className="group overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--card)] transition-transform hover:scale-[1.02]"
                         >
                           <div className="relative">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -145,7 +127,7 @@ export default function LearnPage() {
                               className="aspect-[8/5] w-full object-cover"
                               onError={(e) => {
                                 const img = e.currentTarget;
-                                const enFallback = img.src.replace(/-[A-Z]{2}\.png/, "-EN.png");
+                                const enFallback = img.src.replace(/_[A-Z]{2}\.png/, "_EN.png");
                                 if (img.src !== enFallback) img.src = enFallback;
                               }}
                             />
@@ -155,7 +137,7 @@ export default function LearnPage() {
                               </svg>
                             </div>
                           </div>
-                          <p className="px-4 py-3 text-sm text-[var(--muted)]">{caption}</p>
+                          <p className="px-4 py-3 text-xs leading-relaxed text-[var(--muted)]">{caption}</p>
                         </button>
                       );
                     })}

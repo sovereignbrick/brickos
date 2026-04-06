@@ -204,7 +204,7 @@ export function ChatMessages({ messages, conversationId, isLoading, onRate, erro
                           className={`flex items-center justify-center gap-2 text-xs px-3 py-2.5 rounded-lg border transition-colors ${
                             importUnlocked
                               ? 'bg-accent/50 hover:bg-accent text-muted-foreground hover:text-foreground border-border hover:border-border'
-                              : 'bg-accent/20 text-muted-foreground/40 border-border/30 cursor-not-allowed'
+                              : 'bg-accent/20 text-muted-foreground/60 border-border/30 cursor-not-allowed'
                           }`}
                           title={importUnlocked ? t(btn.tooltip) : t('lockedTooltip', { tier: 'insight' })}
                         >

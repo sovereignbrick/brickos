@@ -119,14 +119,14 @@ export function UsersTab() {
                     ) : user.tier && !['glimpse', 'core'].includes(user.tier) ? (
                       <span className="text-muted-foreground text-xs">Card</span>
                     ) : (
-                      <span className="text-muted-foreground/50 text-xs italic">Free</span>
+                      <span className="text-muted-foreground/60 text-xs italic">Free</span>
                     )}
                   </td>
                   <td className="px-4 py-2.5">
                     {user.admin_override ? (
                       <span className="text-amber-400 text-xs font-medium">Override</span>
                     ) : (
-                      <span className="text-muted-foreground/40 text-xs">&mdash;</span>
+                      <span className="text-muted-foreground/60 text-xs">&mdash;</span>
                     )}
                   </td>
                   <td className="px-4 py-2.5">
@@ -138,7 +138,7 @@ export function UsersTab() {
                         </div>
                       </div>
                     ) : (
-                      <span className="text-muted-foreground/50 text-xs italic">Direct</span>
+                      <span className="text-muted-foreground/60 text-xs italic">Direct</span>
                     )}
                   </td>
                   <td className="px-4 py-2.5 text-muted-foreground text-xs">
@@ -149,7 +149,7 @@ export function UsersTab() {
                       ? new Date(user.last_active_at).toLocaleDateString()
                       : user.last_login_at
                         ? new Date(user.last_login_at).toLocaleDateString()
-                        : <span className="text-muted-foreground/40 italic">Never</span>}
+                        : <span className="text-muted-foreground/60 italic">Never</span>}
                   </td>
                   <td className="px-4 py-2.5 text-right">
                     <button
@@ -182,7 +182,7 @@ export function UsersTab() {
           <button
             onClick={() => setPage(p => Math.max(1, p - 1))}
             disabled={page === 1}
-            className="text-xs text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed"
+            className="text-xs text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed min-h-[44px] px-3 py-2.5"
           >
             Previous
           </button>
@@ -190,7 +190,7 @@ export function UsersTab() {
           <button
             onClick={() => setPage(p => p + 1)}
             disabled={page * 25 >= total}
-            className="text-xs text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed"
+            className="text-xs text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed min-h-[44px] px-3 py-2.5"
           >
             Next
           </button>
@@ -408,7 +408,7 @@ function LicenseManager({ user, onUpdate }: { user: AdminUser; onUpdate: () => v
       )}
 
       {/* Warning */}
-      <div className="text-[10px] text-muted-foreground/60 leading-relaxed">
+      <div className="text-[10px] text-muted-foreground leading-relaxed">
         Override bypasses Stripe/BTC subscriptions. Payment webhooks will not change this user&apos;s tier until the override is removed.
       </div>
     </div>

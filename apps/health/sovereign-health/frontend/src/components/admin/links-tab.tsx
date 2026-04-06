@@ -186,7 +186,7 @@ export function LinksTab() {
                     </tr>
                   ))}
                   {filteredLinks.length === 0 && (
-                    <tr><td colSpan={7} className="px-3 py-6 text-center text-sm text-muted-foreground/50">No links found</td></tr>
+                    <tr><td colSpan={7} className="px-3 py-6 text-center text-sm text-muted-foreground">No links found</td></tr>
                   )}
                 </tbody>
               </table>

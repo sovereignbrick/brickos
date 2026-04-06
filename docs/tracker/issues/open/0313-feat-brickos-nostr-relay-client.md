@@ -26,7 +26,7 @@ Users can run their own Nostr relay to:
 ## Implementation Ideas
 
 ### Nostr relay (Rust crate)
-- New crate: `crates/brickos-nostr-relay/` or `apps/infrastructure/brickos-nostr-relay/`
+- New crate: `crates/brickos-nostr-relay/` or `apps/technology/brickos-nostr-relay/`
 - WebSocket server implementing NIP-01 (basic protocol)
 - PostgreSQL event storage (encrypted at rest)
 - NIPs to support:
@@ -61,5 +61,5 @@ This is a larger platform initiative, likely multi-sprint. Could start with a mi
 
 ## Location
 
-- New crate: `crates/brickos-nostr-relay/` or `apps/infrastructure/brickos-nostr-relay/`
-- Existing Nostr reference: `apps/infrastructure/sovereign-link/` (dual-mode pattern)
+- New crate: `crates/brickos-nostr-relay/` or `apps/technology/brickos-nostr-relay/`
+- Existing Nostr reference: `apps/technology/sovereign-link/` (dual-mode pattern)

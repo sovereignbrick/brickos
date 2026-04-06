@@ -10,7 +10,8 @@
     "brandShort": "SHI",
     "tryTheApp": "App testen",
     "toggleMenu": "Menü umschalten",
-    "menu": "Menü"
+    "menu": "Menü",
+    "learn": "Lernen"
   },
   "footer": {
     "sections": {
@@ -1187,34 +1188,49 @@
   },
   "learn": {
     "hero": {
-      "title": "Lernen",
-      "subtitle": "Anleitungen und Leitfäden, die Ihnen helfen, das Beste aus Sovereign Health herauszuholen."
+      "title": "Sovereign Health entdecken",
+      "subtitle": "Alle Funktionen der Plattform mit Screenshots und Anleitungen erkunden."
     },
     "tutorials": {
-      "gettingStarted": {
-        "title": "Erste Schritte",
-        "description": "Richten Sie Ihr Konto ein, verbinden Sie Ihr erstes Gerät und erfassen Sie Ihre erste Messung."
+      "dashboardOverview": {
+        "title": "Dashboard & Suche",
+        "description": "Ihre Kommandozentrale für Gesundheitssouveränität. Das Dashboard gibt Ihnen einen sofortigen Überblick über alle 8 Gesundheitszonen mit farbcodierten Statusanzeigen. Sehen Sie auf einen Blick, welche Bereiche gedeihen und welche Aufmerksamkeit brauchen. Die globale Suche findet jeden Marker, jedes Lebensmittel und jede Gesundheitsinformation in Sekunden."
       },
-      "healthZonesExplained": {
-        "title": "Gesundheitszonen erklärt",
-        "description": "Verstehen Sie die 8 Gesundheitszonen und wie sie Ihre Biomarker organisieren."
+      "markersHealthZones": {
+        "title": "Biomarker-Details",
+        "description": "Jeder Biomarker erzählt eine Geschichte. Die Marker-Detailseite gibt Ihnen das vollständige Bild: aktueller Wert mit Status, Trend über die Zeit, personalisierte Referenzbereiche basierend auf Ihrem Ernährungsprotokoll, kuratierte Lebensmittelempfehlungen und wissenschaftliche Referenzen. Hier wird aus Daten umsetzbares Gesundheitswissen."
       },
-      "usingDrAlex": {
-        "title": "Dr. Alex verwenden",
-        "description": "Holen Sie das Beste aus Ihrem AI-Gesundheitsassistenten heraus - mit effektiven Fragen und Eingaben."
+      "drAlexSearch": {
+        "title": "Dr. Alex & Trendanalyse",
+        "description": "Ihr persönlicher KI-Gesundheitsberater kombiniert mit leistungsstarker Trend-Visualisierung. Dr. Alex analysiert Ihre tatsächlichen Biomarker-Daten für Einblicke, die keine generische Gesundheits-App bieten kann. Vergleichen Sie mehrere Marker über die Zeit, um Zusammenhänge zu entdecken - wie sich Ihre Glukose- und Ketonwerte während Fastenperioden gemeinsam verändern."
       },
-      "selfHostedSetup": {
-        "title": "Selbst gehostete Einrichtung",
-        "description": "Stellen Sie Sovereign Health auf Ihrem eigenen Server mit Docker in unter 5 Minuten bereit."
+      "measurementsTrends": {
+        "title": "Messungen & Datenverwaltung",
+        "description": "Vollständige Kontrolle über Ihre Gesundheitsdaten. Filtern Sie Ihre Messhistorie nach beliebiger Kombination von Marker, Gerät, Zeitraum und Protokoll. Passen Sie Referenzbereiche für jeden Biomarker an Ihre Gesundheitsziele an. Verfolgen Sie Medikamente und Nahrungsergänzungsmittel als Einflussfaktoren für genauere Dr. Alex Analysen."
       },
-      "customizingThresholds": {
-        "title": "Referenzbereiche anpassen",
-        "description": "Legen Sie Ihre eigenen Referenzbereiche basierend auf Ihren Gesundheitszielen und Ihrem Protokoll fest."
+      "userSettings": {
+        "title": "Benutzereinstellungen",
+        "description": "Personalisieren Sie jeden Aspekt der Plattform. Ihr Gesundheitsprofil steuert berechnete Marker wie BMI und WHtR. Legen Sie Ihr Ernährungsprotokoll fest und die gesamte App passt sich an - von Referenzbereichen bis zu Lebensmittelempfehlungen. Verwalten Sie Ihre Messgeräte und Labore für organisierte, zuverlässige Nachverfolgung."
       }
     },
-    "videoComingSoon": "Video demnächst verfügbar",
-    "unsupportedProvider": "Nicht unterstützter Videoanbieter",
-    "note": "Videos sind in Produktion. Schauen Sie bald wieder vorbei."
+    "screenshots": {
+      "dashboardZones": "Ihr Gesundheits-Dashboard auf einen Blick: 8 Gesundheitszonen mit farbcodierten Statusanzeigen zeigen, welche Bereiche optimal (grün), aufmerksamkeitsbedürftig (orange) oder handlungsbedürftig (rot) sind.",
+      "dashboardZoneEnergy": "Ein Klick auf eine Zone zeigt alle Biomarker dieser Kategorie. Die Zone Energie & Stoffwechsel zeigt Glukose, Insulin, Ketone, HbA1c und Schilddrüsenmarker mit aktuellen Werten und Messquelle.",
+      "markerGlucose": "Jeder Biomarker hat eine eigene Detailseite mit aktuellem Wert, Gesundheitsstatus, Referenzbereich-Visualisierung und 3-Monats-Trenddiagramm. Der Referenzbereich passt sich Ihrem Ernährungsprotokoll an.",
+      "markerGlucoseScroll1": "Unter dem Trenddiagramm finden Sie aktuelle Messungen mit Zeitstempel und Status-Punkten, plus kuratierte Gesundheitsinhalte: Wussten Sie schon, interessante Fakten und Tipps zum Einhalten des Bereichs.",
+      "markerGlucoseScroll2": "Jeder Marker enthält eine personalisierte Lebensmittelliste, gefiltert nach Ihrem Ernährungsprotokoll (hier: Keto). Lebensmittel sind nach Kategorie mit Icons sortiert. Die Liste aktualisiert sich bei Protokolländerung.",
+      "drAlexMain": "Dr. Alex ist Ihr KI-Gesundheitsberater. Wählen Sie aus vorgefertigten Fragen nach Kategorie: Ihre Gesundheit, Trends & Muster, Laborergebnisse, Ernährung & Lebensstil. Sie können auch Laborberichte und Rezepte per Smart Import hochladen.",
+      "drAlexChat": "Dr. Alex analysiert Ihre tatsächlichen Biomarker-Daten für personalisierte Gesundheitseinblicke. Hier überprüft Dr. Alex Laborergebnisse, hebt Positives hervor und markiert Bedenken mit konkreten Markerwerten und klinischem Kontext.",
+      "searchResults": "Die globale Suche (Strg+K) findet Marker, Lebensmittel, Nahrungsergänzungsmittel und Gesundheitsinhalte in der gesamten App. Ergebnisse sind nach Relevanz sortiert mit Typ-Badges, Zonenfarben und Direktlinks.",
+      "trendsChart": "Vergleichen Sie mehrere Biomarker über die Zeit. Diese Ansicht zeigt Glukose (blau) und Ketone (orange) mit Referenzbereichen. Wählen Sie den Zeitraum (7T bis ALLE) und schalten Sie zwischen Standard- und Fastenbereichen.",
+      "measurementsHistory": "Ihre vollständige Messhistorie mit leistungsstarken Filtern: Zeitraum, Marker, Gerät, Labor, Ernährungs- und Fastenprotokoll. Exportieren Sie alle Daten als CSV. Jede Zeile zeigt Wert, Einheit und Statusanzeige.",
+      "settingsProfile": "Konfigurieren Sie Ihr Gesundheitsprofil: Geschlecht, Alter, Größe, Gewicht und Taillenumfang. Legen Sie Lifestyle-Standardwerte fest: Ernährungsprotokoll (hier Keto), Fastenplan, Bewegung, Schlaf und Stresslevel.",
+      "settingsDevices": "Verwalten Sie Ihre Messgeräte und Laboranbieter. Jedes Gerät zeigt die gemessenen Marker und Anzahl der Messungen. Labore speichern Ihre Anbieterdetails für organisierte Nachverfolgung.",
+      "settingsThresholds": "Passen Sie Ihre Referenzbereiche für jeden Biomarker nach Gesundheitszone an. Bereiche passen sich Ihrem Ernährungsprotokoll an (hier Keto). Jeder Marker hat optimale (grün) und akzeptable (orange) Grenzen mit Einheiten.",
+      "settingsInfluence": "Verfolgen Sie Ihre Medikamente und Nahrungsergänzungsmittel als Einflussfaktoren, die Ihre Biomarkerwerte beeinflussen können. Jeder Eintrag zeigt Dosierung, Häufigkeit, Form und Wirkstoffe. Dr. Alex berücksichtigt diese bei der Datenanalyse."
+    },
+    "videoComingSoon": "Video-Tutorial folgt in Kürze",
+    "note": "Bereit, die Kontrolle über Ihre Gesundheitsdaten zu übernehmen? Starten Sie noch heute."
   },
   "partners": {
     "hero": {

@@ -21,7 +21,7 @@ One Rust crate, two deployment modes:
 ### Phases
 1. Core redirect + affiliate links in health API (5 pts)
 2. Campaigns + BrickOS admin reporting + QR (5 pts)
-3. Extract to `apps/infrastructure/shortener/` (8 pts)
+3. Extract to `apps/technology/shortener/` (8 pts)
 4. Standalone mode + Start9 package — Sovereign Link (5 pts)
 
 ### Key Architecture Decision
