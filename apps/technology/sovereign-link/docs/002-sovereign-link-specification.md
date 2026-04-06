@@ -113,7 +113,7 @@ Start9 is "bring your own auth" -- the OS provides secure transport (Tor + HTTPS
 |---|---|---|
 | Create link | Auto-generate 6-char code or specify custom code | Yes |
 | Custom codes | 3-30 chars, lowercase alphanumeric + hyphens | Yes |
-| Redirect | `GET /{code}` -> 301 to target URL | Yes |
+| Redirect | `GET /{code}` -> 301 to target URL, `Cache-Control: private, max-age=0` | Yes |
 | QR code | `GET /{code}.qr` -> PNG image | Yes |
 | Edit link | Change target URL, title, tags | Yes |
 | Deactivate | Soft-disable (redirect returns 410 Gone) | Yes |
@@ -505,3 +505,14 @@ pub trait UserStore: Send + Sync {
 - Start9 marketplace installs
 - NIP-89 recommendation events from other NOSTR users
 - GitHub stars
+
+---
+
+## 11. Open Questions
+
+- [x] **[DECIDED] Vanity codes:** Globally unique across the platform. Each vanity code must specify which app it applies to (add `app_key` column to vanity codes table). This ensures no collisions between apps while keeping codes unique at the platform level.
+- [x] **[DECIDED] Redirect type:** 301 (permanent) with `Cache-Control: private, max-age=0`. The 301 signals permanence to clients, while the Cache-Control header ensures browsers re-check the server on each visit (supporting deactivation and analytics).
+- [x] **[DECIDED] Start9 product name:** "Sovereign Link" with the header clearly mentioning "Part of the brickos.io platform". This maintains brand consistency while making the platform relationship visible.
+- [x] **[DECIDED] Start9 Tor auto-discovery:** YES, integrate with Start9 Tor for auto-discovery of sibling .onion services on the same Start9 node. This enables Sovereign Link to detect and offer to shorten .onion addresses of other services running on the same host.
+- [x] **[DECIDED] Custom domains (standalone):** YES, support custom domains (e.g., `ln.mydomain.com`). Users can point their own domain at the Sovereign Link instance for branded short URLs.
+- [x] **[DECIDED] Reserve vanity codes:** YES, reserve common codes (health, wellness, bitcoin, btc, nostr, link, admin, api, auth, settings, dashboard, etc.) to prevent user squatting on platform-relevant terms.

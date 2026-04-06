@@ -264,6 +264,7 @@ These are purely health domain. They stay in `public` (or move to a `shi` schema
 | **Service accounts for cross-app** | `brickos.service_accounts` enables Sovereign Voice -> Sovereign Link API calls without human credentials. |
 | **Single billing stack** | Subscriptions, payments, invoices managed once. New apps inherit billing without reimplementing Stripe/Lightning integration. |
 | **Unified affiliate system** | Affiliate clicks, conversions, and commissions work across all BrickOS apps. One affiliate code, multiple apps. |
+| **Tor accessibility (.onion)** | BrickOS platform accessible over Tor with a .onion address, same as SHI. Shared Tor service configuration elevated to platform level so all apps benefit from .onion routing. |
 
 ### Medium-Term
 
@@ -500,6 +501,16 @@ SHI uses AES-256-GCM encryption at rest for measurements (migration 000024). The
 - **Audit logs store no PII.** Actions and resource IDs only. User lookup via `brickos.users` join.
 - **If future apps need encryption at rest,** they implement it in their own schema using the same pattern SHI uses. The encryption logic lives in a shared crate (`brickos-crypto`), not in the database layer.
 
+### Platform-Level Encryption Requirement (Updated)
+
+**Decision: Full encryption, no PII at platform level.** The original spec stated "Platform tables are NOT encrypted at row level." This is overridden. The BrickOS platform applies the same encryption standards as SHI (at rest, in transit, row-level encryption).
+
+- **Platform tables MUST encrypt PII columns** (`email`, `display_name`, `nostr_pubkey`, billing fields, etc.) at rest using the same AES-256-GCM pattern used for SHI measurements.
+- **All BrickOS apps inherit this encryption requirement.** Elevating to the platform level forces every new app to adhere to the high security standard from day one.
+- **The shared encryption implementation** lives in `brickos-crypto` (or `packages/brickos-auth/` after auth extraction). All apps use the same crate for encrypt/decrypt operations.
+- **Non-PII columns** (IDs, timestamps, flags, structural fields) do not require row-level encryption.
+- **Indexed lookups on encrypted columns** (e.g., login by email) require a deterministic hash index alongside the encrypted value, same pattern SHI uses.
+
 ---
 
 ## 11. Login, Registration, Password Reset Flow (Platform-Level)
@@ -604,16 +615,46 @@ GET /api/v1/platform/health
 
 ## 13. Open Questions
 
-- [ ] **Schema name:** `brickos` or `platform`? `brickos` is brand-consistent. `platform` is more generic if BrickOS is ever renamed.
-- [ ] **License tier refactoring:** Should `license_tiers` be split before or during Phase 1? Before is cleaner but adds scope. During risks breaking tier queries.
-- [ ] **Auth extraction timing:** Extract auth to a shared crate now, or after Phase 1 proves stable?
+- [x] **[DECIDED] Schema name:** `brickos`. Brand-consistent, confirmed.
+- [x] **[DECIDED] License tier refactoring:** Split BEFORE Phase 1. This is acceptable and keeps Phase 1 clean.
+- [x] **[DECIDED] Auth extraction timing:** Extract to `packages/brickos-auth/` now (Option B). Shared Rust crate, each app embeds auth handlers. Ensure no complications with the extraction - keep the interface clean and avoid circular dependencies.
 - [ ] **Cross-schema RLS:** Verify that RLS policies referencing `brickos.org_members` from `public.measurements` work correctly. Needs staging test.
-- [ ] **Backup strategy change:** Should `brickos` schema be backed up separately (more frequent) from `shi` schema (larger, less critical for platform)?
+- [x] **[DECIDED] Backup strategy:** YES, separate platform DB from app DBs. Platform (brickos schema) backed up separately and more frequently. App schemas backed up per-app schedule. See new section "14. Backup and BCM/DR Strategy" for details.
 - [ ] **Self-hosted (OSS) implications:** Self-hosters run SHI with `SHI_MODE=oss`. Does schema separation add complexity to their Docker Compose setup? (Probably no - same DB, just different schemas.)
 
 ---
 
-## 14. References
+## 14. Backup and BCM/DR Strategy
+
+The platform (brickos schema) and app schemas have different criticality profiles and must be backed up independently.
+
+### Backup Separation
+
+| Component | Frequency | Rationale |
+|---|---|---|
+| **brickos schema** (platform) | More frequent (e.g., every 1-4 hours) | Identity, auth, billing, and org data is critical for all apps. Loss here affects every service. |
+| **App schemas** (shi, link, etc.) | Per-app schedule (e.g., daily or per data sensitivity) | Each app defines its own RPO based on data volume and criticality. |
+
+### Cross-Schema Restore Procedure
+
+- Restoring the `brickos` schema alone must leave app schemas functional (foreign keys reference platform tables).
+- Restoring an app schema requires the `brickos` schema to be present and consistent.
+- Restore order: `brickos` schema first, then app schemas.
+- Test cross-schema restore on staging before any production restore.
+
+### BCM and DR Strategy (To Be Defined)
+
+The following items need a dedicated BCM/DR design document:
+
+- **RPO (Recovery Point Objective):** Maximum acceptable data loss window. To be defined per schema.
+- **RTO (Recovery Time Objective):** Maximum acceptable downtime. To be defined per schema.
+- **Failover strategy:** Active-passive, multi-region, or cold standby.
+- **Automated restore testing:** Regular verification that backups can be restored successfully.
+- **Runbook:** Step-by-step disaster recovery procedures for operators.
+
+---
+
+## 15. References
 
 - `20260316000076_organizations.sql` - Current org schema (SHI migration)
 - `003-platform-multi-tenant-specification.md` - Multi-tenant hierarchy
