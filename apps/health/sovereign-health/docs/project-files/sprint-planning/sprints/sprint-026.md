@@ -1,8 +1,9 @@
 # Sprint 026 - EU Compliance Frameworks & Launch Readiness
 
-**Started:** TBD
-**Duration:** 2-3 days
-**Status:** PLANNED
+**Started:** 2026-04-06
+**Completed:** 2026-04-06
+**Duration:** 1 day (planned 2-3)
+**Status:** RELEASED (v0.37.0)
 **Goal:** Map BrickOS against EU regulatory frameworks, implement compliance gaps, and prepare the platform for confident public launch with documented compliance posture.
 
 ## Why Now
