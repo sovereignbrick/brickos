@@ -59,7 +59,12 @@ pub fn configure_routes(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/api/v1/orgs/{org_id}")
             .route("/stats", web::get().to(handlers::platform_admin::org_stats))
-            .route("/links", web::get().to(handlers::platform_admin::org_links)),
+            .route("/links", web::get().to(handlers::platform_admin::org_links))
+            .route("/branding", web::get().to(handlers::branding::get_branding))
+            .route("/branding", web::put().to(handlers::branding::update_branding))
+            .route("/domains", web::get().to(handlers::branding::list_domains))
+            .route("/domains", web::post().to(handlers::branding::add_domain))
+            .route("/domains/{domain_id}", web::delete().to(handlers::branding::remove_domain)),
     );
 }
 

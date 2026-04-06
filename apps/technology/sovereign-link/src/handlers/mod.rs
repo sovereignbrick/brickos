@@ -14,3 +14,5 @@ pub mod namespace;
 pub mod platform_admin;
 #[cfg(feature = "platform")]
 pub mod service_api;
+#[cfg(feature = "platform")]
+pub mod branding;

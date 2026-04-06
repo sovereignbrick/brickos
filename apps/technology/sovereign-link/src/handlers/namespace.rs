@@ -86,6 +86,48 @@ pub async fn redirect_with_namespace(
     store: web::Data<Arc<dyn LinkStore>>,
     pool: web::Data<PgPool>,
 ) -> HttpResponse {
+    // Check for custom domain resolution via X-Org-Domain header.
+    // When a reverse proxy forwards a request from a white-label domain,
+    // it sets this header so we can resolve the org without a slug in the path.
+    if let Some(custom_domain) = req.headers().get("X-Org-Domain") {
+        if let Ok(domain_str) = custom_domain.to_str() {
+            if let Some(org_id) = super::branding::resolve_domain(domain_str, pool.get_ref()).await {
+                let (_, raw_code) = path.into_inner();
+                let (code, is_qr) = match raw_code.strip_suffix(".qr") {
+                    Some(base) => (base.to_string(), true),
+                    None => (raw_code, false),
+                };
+                if is_qr {
+                    return super::qr::handle_qr_inner(&code, &store, &pool).await;
+                }
+                match get_link_by_org(pool.get_ref(), org_id, &code).await {
+                    Ok(Some(link)) => {
+                        let target = link.target_url.clone();
+                        let link_id = link.id;
+                        let store_clone = store.clone();
+                        let meta = super::redirect::extract_click_meta(&req);
+                        tokio::spawn(async move {
+                            let _ = store_clone.record_click(link_id, meta).await;
+                        });
+                        return HttpResponse::MovedPermanently()
+                            .insert_header(("Location", target))
+                            .insert_header(("Cache-Control", "private, max-age=0"))
+                            .finish();
+                    }
+                    Ok(None) => {
+                        return HttpResponse::NotFound()
+                            .content_type("text/html")
+                            .body("<html><body><h1>Link not found</h1><p>This short link does not exist or has expired.</p></body></html>");
+                    }
+                    Err(e) => {
+                        tracing::error!("Domain-resolved link lookup error: {}", e);
+                        return HttpResponse::InternalServerError().finish();
+                    }
+                }
+            }
+        }
+    }
+
     let (org_slug, raw_code) = path.into_inner();
 
     // Strip .qr suffix if present
