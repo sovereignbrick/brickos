@@ -88,12 +88,58 @@
   </div>
   {% endif %}
 
+  <!-- Link NOSTR Key (for email users without NOSTR) -->
+  {% if user.nostr_pubkey.is_none() %}
+  <div class="card mb-2">
+    <div class="section-title">Link NOSTR Key</div>
+    <p class="text-muted mb-2">Connect a NOSTR identity to your account. Requires a NIP-07 browser extension (e.g., nos2x, Alby).</p>
+    <button class="btn-primary" onclick="linkNostr()" id="link-nostr-btn">Link NOSTR Key</button>
+    <div id="nostr-link-result" style="margin-top:1rem;display:none;padding:0.75rem;background:var(--bk-bg);border:1px solid var(--bk-border);border-radius:var(--bk-radius);word-break:break-all"></div>
+  </div>
+  {% endif %}
+
+  <!-- Link Email (for NOSTR-only users without email) -->
+  {% if user.email.is_none() %}
+  <div class="card mb-2">
+    <div class="section-title">Link Email</div>
+    <p class="text-muted mb-2">Add email and password login to your account.</p>
+    <form method="POST" action="/api/v1/me/link-email" id="link-email-form" onsubmit="return linkEmail(event)">
+      <label class="text-muted mb-1" style="display:block">Email</label>
+      <input type="email" name="email" required placeholder="you@example.com">
+      <label class="text-muted mb-1" style="display:block">Password</label>
+      <input type="password" name="password" required minlength="8" placeholder="Min 8 characters">
+      <button type="submit" class="btn-primary">Link Email</button>
+    </form>
+    <div id="email-link-result" style="margin-top:1rem;display:none;padding:0.75rem;background:var(--bk-bg);border:1px solid var(--bk-border);border-radius:var(--bk-radius);word-break:break-all"></div>
+  </div>
+  {% endif %}
+
   <!-- API Key -->
   <div class="card mb-2">
     <div class="section-title">API Key</div>
     <p class="text-muted mb-2">Generate an API key to use Sovereign Link programmatically. The key is shown once -- store it securely.</p>
+    {% if user.api_key_hash.is_some() %}
+    <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:1rem">
+      <span style="font-family:monospace;color:var(--bk-muted)">sk-****...****</span>
+      <span style="color:var(--bk-success);font-size:0.85rem">Active</span>
+    </div>
+    <div style="display:flex;gap:0.5rem">
+      <button class="btn-primary" onclick="generateApiKey()">Regenerate Key</button>
+      <button class="btn-secondary" onclick="revokeApiKey()" style="background:var(--bk-danger);color:#fff;border-color:var(--bk-danger)">Revoke Key</button>
+    </div>
+    {% else %}
     <button class="btn-primary" onclick="generateApiKey()">Generate New API Key</button>
+    {% endif %}
     <pre id="api-key-output" style="margin-top:1rem;padding:0.75rem;background:var(--bk-bg);border:1px solid var(--bk-border);border-radius:var(--bk-radius);display:none;word-break:break-all;color:var(--bk-success)"></pre>
+  </div>
+
+  <!-- Account Info -->
+  <div class="card mb-2">
+    <div class="section-title">Account Info</div>
+    <div class="info-row">
+      <span class="info-label">Created</span>
+      <span class="info-value">{{ user.created_at }}</span>
+    </div>
   </div>
 
   <!-- Logout -->
@@ -104,9 +150,14 @@
   </div>
 </div>
 <script>
+function getCookie(name) {
+  var m = document.cookie.match('(^|;)\\s*' + name + '=([^;]*)');
+  return m ? m[2] : null;
+}
 async function generateApiKey() {
   var token = getCookie('auth_token');
   if (!token) { window.location.href = '/login'; return; }
+  if (!confirm('This will replace any existing API key. Continue?')) return;
   try {
     var res = await fetch('/api/v1/me/api-key', {
       method: 'POST',
@@ -127,9 +178,98 @@ async function generateApiKey() {
     alert('Error: ' + e.message);
   }
 }
-function getCookie(name) {
-  var m = document.cookie.match('(^|;)\\s*' + name + '=([^;]*)');
-  return m ? m[2] : null;
+async function revokeApiKey() {
+  var token = getCookie('auth_token');
+  if (!token) { window.location.href = '/login'; return; }
+  if (!confirm('Revoke your API key? Any integrations using it will stop working.')) return;
+  try {
+    var res = await fetch('/api/v1/me/api-key', {
+      method: 'DELETE',
+      headers: {'Authorization': 'Bearer ' + token},
+    });
+    var data = await res.json();
+    if (data.revoked) {
+      window.location.reload();
+    } else {
+      alert(data.error || 'Failed to revoke key');
+    }
+  } catch(e) {
+    alert('Error: ' + e.message);
+  }
+}
+async function linkNostr() {
+  var resultEl = document.getElementById('nostr-link-result');
+  if (typeof window.nostr === 'undefined') {
+    resultEl.textContent = 'No NIP-07 extension found. Install nos2x or Alby.';
+    resultEl.style.display = 'block';
+    resultEl.style.color = 'var(--bk-danger)';
+    return;
+  }
+  try {
+    var pubkey = await window.nostr.getPublicKey();
+    var now = Math.floor(Date.now() / 1000);
+    var event = {
+      kind: 27235,
+      created_at: now,
+      tags: [["u", window.location.origin + "/api/v1/me/link-nostr"], ["method", "POST"]],
+      content: "",
+    };
+    var signed = await window.nostr.signEvent(event);
+    var token = getCookie('auth_token');
+    if (!token) { window.location.href = '/login'; return; }
+    var res = await fetch('/api/v1/me/link-nostr', {
+      method: 'POST',
+      headers: {'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json'},
+      body: JSON.stringify({event: signed}),
+    });
+    var data = await res.json();
+    if (data.linked) {
+      resultEl.textContent = 'NOSTR key linked successfully!';
+      resultEl.style.display = 'block';
+      resultEl.style.color = 'var(--bk-success)';
+      setTimeout(function() { window.location.reload(); }, 1500);
+    } else {
+      resultEl.textContent = data.error || 'Failed to link NOSTR key';
+      resultEl.style.display = 'block';
+      resultEl.style.color = 'var(--bk-danger)';
+    }
+  } catch(e) {
+    resultEl.textContent = 'Error: ' + e.message;
+    resultEl.style.display = 'block';
+    resultEl.style.color = 'var(--bk-danger)';
+  }
+}
+async function linkEmail(e) {
+  e.preventDefault();
+  var form = document.getElementById('link-email-form');
+  var resultEl = document.getElementById('email-link-result');
+  var email = form.querySelector('[name=email]').value;
+  var password = form.querySelector('[name=password]').value;
+  var token = getCookie('auth_token');
+  if (!token) { window.location.href = '/login'; return false; }
+  try {
+    var res = await fetch('/api/v1/me/link-email', {
+      method: 'POST',
+      headers: {'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json'},
+      body: JSON.stringify({email: email, password: password}),
+    });
+    var data = await res.json();
+    if (data.linked) {
+      resultEl.textContent = 'Email linked successfully!';
+      resultEl.style.display = 'block';
+      resultEl.style.color = 'var(--bk-success)';
+      setTimeout(function() { window.location.reload(); }, 1500);
+    } else {
+      resultEl.textContent = data.error || 'Failed to link email';
+      resultEl.style.display = 'block';
+      resultEl.style.color = 'var(--bk-danger)';
+    }
+  } catch(err) {
+    resultEl.textContent = 'Error: ' + err.message;
+    resultEl.style.display = 'block';
+    resultEl.style.color = 'var(--bk-danger)';
+  }
+  return false;
 }
 </script>
 {% endblock %}

@@ -77,10 +77,25 @@ pub fn configure_standalone_routes(cfg: &mut web::ServiceConfig) {
     );
 
     // User API
-    cfg.service(web::scope("/api/v1/me").route(
-        "/api-key",
-        web::post().to(auth::handlers::generate_user_api_key),
-    ));
+    cfg.service(
+        web::scope("/api/v1/me")
+            .route(
+                "/api-key",
+                web::post().to(auth::handlers::generate_user_api_key),
+            )
+            .route(
+                "/api-key",
+                web::delete().to(auth::handlers::revoke_user_api_key),
+            )
+            .route(
+                "/link-nostr",
+                web::post().to(auth::handlers::link_nostr_account),
+            )
+            .route(
+                "/link-email",
+                web::post().to(auth::handlers::link_email_account),
+            ),
+    );
 
     // Redirect at top level: /{code}
     cfg.service(

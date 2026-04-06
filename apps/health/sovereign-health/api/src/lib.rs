@@ -179,6 +179,10 @@ pub fn configure_routes(cfg: &mut actix_web::web::ServiceConfig) {
             .route("/signup", actix_web::web::post().to(handlers::auth::signup))
             .route("/login", actix_web::web::post().to(handlers::auth::login))
             .route(
+                "/nostr",
+                actix_web::web::post().to(handlers::auth_nostr::nostr_login),
+            )
+            .route(
                 "/verify",
                 actix_web::web::get().to(handlers::auth::verify_email),
             )

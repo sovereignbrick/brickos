@@ -8,7 +8,7 @@ use crate::auth::jwt;
 use crate::config::StandaloneConfig;
 use crate::db::{LinkStore, UserStore};
 use crate::models::{
-    CreateLinkRequest, ShortLink, ShortLinkClick, UpdateLinkRequest, UpdateUser, User,
+    ChartBar, CreateLinkRequest, ShortLink, ShortLinkClick, UpdateLinkRequest, UpdateUser, User,
 };
 
 // ---------------------------------------------------------------------------
@@ -83,6 +83,8 @@ struct LinkDetailTemplate {
     user: User,
     link: ShortLink,
     recent_clicks: Vec<ShortLinkClick>,
+    chart_bars: Vec<ChartBar>,
+    top_referrers: Vec<(String, i64)>,
     base_url: String,
     error: Option<String>,
     success: Option<String>,
@@ -352,6 +354,35 @@ pub async fn link_detail_page(
         .await
         .unwrap_or_default();
 
+    // Build chart data for the last 30 days
+    let daily_clicks = link_store
+        .get_daily_clicks(link_id, 30)
+        .await
+        .unwrap_or_default();
+    let max_daily = daily_clicks.iter().map(|(_, c)| *c).max().unwrap_or(0);
+    let chart_bars: Vec<ChartBar> = daily_clicks
+        .iter()
+        .enumerate()
+        .map(|(i, (day, count))| {
+            let bar_height = if max_daily > 0 {
+                (*count as f64 / max_daily as f64 * 100.0) as i32
+            } else {
+                0
+            };
+            ChartBar {
+                x: i as i32 * 20,
+                y: 100 - bar_height,
+                height: bar_height,
+                label: format!("{}: {} clicks", day, count),
+            }
+        })
+        .collect();
+
+    let top_referrers = link_store
+        .get_top_referrers(link_id, 10)
+        .await
+        .unwrap_or_default();
+
     let error = req.uri().query().and_then(|q| {
         if q.contains("error=") {
             Some("Failed to update link.".to_string())
@@ -372,6 +403,8 @@ pub async fn link_detail_page(
         user,
         link,
         recent_clicks,
+        chart_bars,
+        top_referrers,
         base_url: config.base_url.clone(),
         error,
         success,

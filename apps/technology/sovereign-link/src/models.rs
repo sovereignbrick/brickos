@@ -117,6 +117,17 @@ pub struct UpdateUser {
     pub api_key_hash: Option<String>,
 }
 
+// -- Chart rendering --
+
+/// Pre-computed bar data for SVG chart rendering in templates.
+#[derive(Debug, Clone, Serialize)]
+pub struct ChartBar {
+    pub x: i32,
+    pub y: i32,
+    pub height: i32,
+    pub label: String,
+}
+
 // -- Prefix constants --
 
 /// Known 2-char app prefixes for fast-path redirect (no DB lookup).

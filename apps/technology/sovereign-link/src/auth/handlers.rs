@@ -480,6 +480,180 @@ pub async fn register_form(
     }
 }
 
+/// POST /api/v1/me/link-nostr -- Link a NOSTR key to an existing account.
+pub async fn link_nostr_account(
+    req: HttpRequest,
+    body: web::Json<nostr::Nip98AuthRequest>,
+    config: web::Data<StandaloneConfig>,
+    user_store: web::Data<Arc<dyn crate::db::UserStore>>,
+) -> HttpResponse {
+    if !config.nostr_enabled {
+        return HttpResponse::BadRequest()
+            .json(serde_json::json!({"error": "NOSTR authentication is disabled"}));
+    }
+
+    let token = match extract_bearer_token(&req) {
+        Some(t) => t,
+        None => {
+            return HttpResponse::Unauthorized()
+                .json(serde_json::json!({"error": "Missing Authorization header"}));
+        }
+    };
+
+    let claims = match jwt::verify_token(&token, &config.jwt_secret) {
+        Ok(c) => c,
+        Err(_) => {
+            return HttpResponse::Unauthorized()
+                .json(serde_json::json!({"error": "Invalid or expired token"}));
+        }
+    };
+
+    let expected_url = format!("{}/api/v1/me/link-nostr", config.base_url);
+    if let Err(e) = nostr::verify_nip98_event(&body.event, &expected_url) {
+        return HttpResponse::BadRequest().json(serde_json::json!({"error": e}));
+    }
+
+    let pubkey = &body.event.pubkey;
+
+    // Check if this pubkey is already used by another account
+    if let Ok(Some(existing)) = user_store.get_by_nostr_pubkey(pubkey).await {
+        if existing.id != claims.sub {
+            return HttpResponse::Conflict().json(
+                serde_json::json!({"error": "This NOSTR key is already linked to another account"}),
+            );
+        }
+        // Already linked to this account
+        return HttpResponse::Ok()
+            .json(serde_json::json!({"linked": true, "already_linked": true}));
+    }
+
+    match user_store.link_nostr(&claims.sub, pubkey).await {
+        Ok(()) => HttpResponse::Ok().json(serde_json::json!({"linked": true})),
+        Err(e) => {
+            tracing::error!("Failed to link NOSTR key: {}", e);
+            HttpResponse::InternalServerError().json(serde_json::json!({"error": "Internal error"}))
+        }
+    }
+}
+
+#[derive(Debug, Deserialize)]
+pub struct LinkEmailRequest {
+    pub email: String,
+    pub password: String,
+}
+
+/// POST /api/v1/me/link-email -- Link email+password to an existing (NOSTR-only) account.
+pub async fn link_email_account(
+    req: HttpRequest,
+    body: web::Json<LinkEmailRequest>,
+    config: web::Data<StandaloneConfig>,
+    user_store: web::Data<Arc<dyn crate::db::UserStore>>,
+) -> HttpResponse {
+    let token = match extract_bearer_token(&req) {
+        Some(t) => t,
+        None => {
+            return HttpResponse::Unauthorized()
+                .json(serde_json::json!({"error": "Missing Authorization header"}));
+        }
+    };
+
+    let claims = match jwt::verify_token(&token, &config.jwt_secret) {
+        Ok(c) => c,
+        Err(_) => {
+            return HttpResponse::Unauthorized()
+                .json(serde_json::json!({"error": "Invalid or expired token"}));
+        }
+    };
+
+    // Validate email
+    let email = body.email.trim().to_lowercase();
+    if email.is_empty() || !email.contains('@') {
+        return HttpResponse::BadRequest()
+            .json(serde_json::json!({"error": "Invalid email address"}));
+    }
+    if body.password.len() < 8 {
+        return HttpResponse::BadRequest()
+            .json(serde_json::json!({"error": "Password must be at least 8 characters"}));
+    }
+
+    // Check if email is already used
+    if let Ok(Some(existing)) = user_store.get_by_email(&email).await {
+        if existing.id != claims.sub {
+            return HttpResponse::Conflict().json(
+                serde_json::json!({"error": "This email is already used by another account"}),
+            );
+        }
+        return HttpResponse::Ok()
+            .json(serde_json::json!({"linked": true, "already_linked": true}));
+    }
+
+    let password_hash = match email::hash_password(&body.password) {
+        Ok(h) => h,
+        Err(e) => {
+            tracing::error!("Failed to hash password: {}", e);
+            return HttpResponse::InternalServerError()
+                .json(serde_json::json!({"error": "Internal error"}));
+        }
+    };
+
+    match user_store
+        .link_email(&claims.sub, &email, &password_hash)
+        .await
+    {
+        Ok(()) => HttpResponse::Ok().json(serde_json::json!({"linked": true})),
+        Err(e) => {
+            tracing::error!("Failed to link email: {}", e);
+            HttpResponse::InternalServerError().json(serde_json::json!({"error": "Internal error"}))
+        }
+    }
+}
+
+/// DELETE /api/v1/me/api-key -- Revoke the user's API key.
+pub async fn revoke_user_api_key(
+    req: HttpRequest,
+    user_store: web::Data<Arc<dyn crate::db::UserStore>>,
+    config: web::Data<StandaloneConfig>,
+) -> HttpResponse {
+    let token = match extract_bearer_token(&req) {
+        Some(t) => t,
+        None => {
+            return HttpResponse::Unauthorized()
+                .json(serde_json::json!({"error": "Missing Authorization header"}));
+        }
+    };
+
+    let claims = match jwt::verify_token(&token, &config.jwt_secret) {
+        Ok(c) => c,
+        Err(_) => {
+            return HttpResponse::Unauthorized()
+                .json(serde_json::json!({"error": "Invalid or expired token"}));
+        }
+    };
+
+    // Set api_key_hash to empty string to clear it, then we need a way to set None.
+    // We'll use UpdateUser with a special sentinel. Actually, let's just set it to empty.
+    // But our UpdateUser only sets when Some. We need to handle this.
+    // For simplicity, let's add a dedicated revoke that sets api_key_hash = NULL.
+    match user_store
+        .update(
+            &claims.sub,
+            UpdateUser {
+                display_name: None,
+                password_hash: None,
+                api_key_hash: Some(String::new()), // Empty string signals revoke
+            },
+        )
+        .await
+    {
+        Ok(Some(_)) => HttpResponse::Ok().json(serde_json::json!({"revoked": true})),
+        Ok(None) => HttpResponse::NotFound().json(serde_json::json!({"error": "User not found"})),
+        Err(e) => {
+            tracing::error!("Failed to revoke API key: {}", e);
+            HttpResponse::InternalServerError().json(serde_json::json!({"error": "Internal error"}))
+        }
+    }
+}
+
 /// Extract Bearer token from Authorization header.
 fn extract_bearer_token(req: &HttpRequest) -> Option<String> {
     let header = req.headers().get("Authorization")?.to_str().ok()?;

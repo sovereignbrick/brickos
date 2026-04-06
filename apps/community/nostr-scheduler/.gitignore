@@ -1,0 +1,5 @@
+node_modules/
+dist/
+.env
+.publish-state.json
+publish.log

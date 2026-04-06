@@ -1,0 +1,89 @@
+{
+  "relays": [
+    "wss://relay.damus.io",
+    "wss://nos.lol",
+    "wss://relay.primal.net",
+    "wss://relay.nostr.band",
+    "wss://nostr.wine"
+  ],
+  "notes": [
+    {
+      "id": "proof-of-blood-1",
+      "publishAt": "2026-04-14T10:00:00Z",
+      "kind": 30023,
+      "title": "Proof of Blood",
+      "slug": "proof-of-blood-intro",
+      "hashtags": ["proofofblood", "sovereignty", "health", "bitcoin", "nostr", "opensource"],
+      "contentFile": "notes/01_proof_of_blood.txt",
+      "companion": {
+        "kind": 1,
+        "content": "New long-form note: Proof of Blood. Bitcoin introduced Proof of Work. Health needs the same paradigm. Your biomarkers are your verifiable proof of health. #proofofblood #sovereignty #health"
+      }
+    },
+    {
+      "id": "proof-of-blood-2",
+      "publishAt": "2026-04-21T10:00:00Z",
+      "kind": 30023,
+      "title": "Proof of Blood - The Lab Reports Nobody Reads",
+      "slug": "proof-of-blood-lab-reports",
+      "hashtags": ["proofofblood", "sovereignty", "health", "biomarkers"],
+      "contentFile": "notes/02_proof_of_blood.txt",
+      "companion": {
+        "kind": 1,
+        "content": "Part 2 of Proof of Blood: your lab reports contain signal that most people never see. Sovereign Health makes that signal legible. #proofofblood #sovereignty"
+      }
+    },
+    {
+      "id": "proof-of-blood-3",
+      "publishAt": "2026-04-28T10:00:00Z",
+      "kind": 30023,
+      "title": "Proof of Blood - Own Your Data",
+      "slug": "proof-of-blood-own-your-data",
+      "hashtags": ["proofofblood", "sovereignty", "health", "selfhosted"],
+      "contentFile": "notes/03_proof_of_blood.txt",
+      "companion": {
+        "kind": 1,
+        "content": "Part 3: Why your health data should live on hardware you control. Not in a cloud you cannot audit. #proofofblood #sovereignty #selfhosted"
+      }
+    },
+    {
+      "id": "proof-of-blood-4",
+      "publishAt": "2026-05-05T10:00:00Z",
+      "kind": 30023,
+      "title": "Proof of Blood - Biomarkers as Signal",
+      "slug": "proof-of-blood-biomarkers-signal",
+      "hashtags": ["proofofblood", "sovereignty", "health", "signal"],
+      "contentFile": "notes/04_proof_of_blood.txt",
+      "companion": {
+        "kind": 1,
+        "content": "Part 4: Biomarkers are signal. Everything else is noise. How Sovereign Health cuts through the clutter. #proofofblood #health #signal"
+      }
+    },
+    {
+      "id": "proof-of-blood-5",
+      "publishAt": "2026-05-12T10:00:00Z",
+      "kind": 30023,
+      "title": "Proof of Blood - The Sovereign Health Stack",
+      "slug": "proof-of-blood-sovereign-stack",
+      "hashtags": ["proofofblood", "sovereignty", "health", "brickos", "opensource"],
+      "contentFile": "notes/05_proof_of_blood.txt",
+      "companion": {
+        "kind": 1,
+        "content": "Part 5: The full stack - from blood draw to self-hosted dashboard. Open source, no accounts, no cloud. #proofofblood #brickos #opensource"
+      }
+    },
+    {
+      "id": "proof-of-blood-6",
+      "publishAt": "2026-05-19T10:00:00Z",
+      "kind": 30023,
+      "title": "Proof of Blood - What Comes Next",
+      "slug": "proof-of-blood-next",
+      "hashtags": ["proofofblood", "sovereignty", "health", "bitcoin", "nostr"],
+      "contentFile": "notes/06_proof_of_blood.txt",
+      "companion": {
+        "kind": 1,
+        "content": "Final part of Proof of Blood: the roadmap. Community health data, anonymous benchmarks, and health sovereignty as a public good. #proofofblood #sovereignty #nostr"
+      }
+    }
+  ]
+}

@@ -57,6 +57,26 @@ pub trait LinkStore: Send + Sync {
 
     /// Hard-delete a link (standalone mode only).
     async fn delete_link(&self, id: Uuid, owner_user_id: Uuid) -> anyhow::Result<bool>;
+
+    /// Get daily click counts for the last N days (for chart rendering).
+    async fn get_daily_clicks(
+        &self,
+        link_id: Uuid,
+        days: i32,
+    ) -> anyhow::Result<Vec<(String, i64)>> {
+        let _ = (link_id, days);
+        Ok(Vec::new())
+    }
+
+    /// Get top referrer domains for a link.
+    async fn get_top_referrers(
+        &self,
+        link_id: Uuid,
+        limit: i32,
+    ) -> anyhow::Result<Vec<(String, i64)>> {
+        let _ = (link_id, limit);
+        Ok(Vec::new())
+    }
 }
 
 /// User storage abstraction for standalone mode authentication.
@@ -69,5 +89,11 @@ pub trait UserStore: Send + Sync {
     async fn create(&self, new: NewUser) -> anyhow::Result<User>;
     async fn update(&self, id: &str, update: UpdateUser) -> anyhow::Result<Option<User>>;
     async fn link_nostr(&self, user_id: &str, pubkey: &str) -> anyhow::Result<()>;
+    async fn link_email(
+        &self,
+        user_id: &str,
+        email: &str,
+        password_hash: &str,
+    ) -> anyhow::Result<()>;
     async fn count(&self) -> anyhow::Result<i64>;
 }

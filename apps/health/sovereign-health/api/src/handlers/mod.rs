@@ -9,6 +9,7 @@ pub mod admin_publish;
 pub mod admin_settings;
 pub mod affiliate;
 pub mod auth;
+pub mod auth_nostr;
 pub mod billing;
 pub mod billing_btc;
 pub mod contact;

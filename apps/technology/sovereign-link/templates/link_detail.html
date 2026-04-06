@@ -76,6 +76,48 @@
     </div>
   </div>
 
+  <!-- Click Chart (Last 30 Days) -->
+  <div class="card mb-2">
+    <div class="section-title">Clicks (Last 30 Days)</div>
+    {% if chart_bars.is_empty() %}
+    <p class="text-muted">No click data available yet.</p>
+    {% else %}
+    <svg width="100%" height="120" viewBox="0 0 600 120" style="margin-top:0.5rem" role="img" aria-label="Click chart for the last 30 days">
+      {% for bar in chart_bars %}
+      <rect x="{{ bar.x }}" y="{{ bar.y }}" width="16" height="{{ bar.height }}" fill="var(--bk-accent)" rx="2">
+        <title>{{ bar.label }}</title>
+      </rect>
+      {% endfor %}
+      <line x1="0" y1="100" x2="600" y2="100" stroke="var(--bk-border)" stroke-width="1"/>
+    </svg>
+    {% endif %}
+  </div>
+
+  <!-- Top Referrers -->
+  <div class="card mb-2">
+    <div class="section-title">Top Referrers</div>
+    {% if top_referrers.is_empty() %}
+    <p class="text-muted">No referrer data available yet.</p>
+    {% else %}
+    <table class="click-table">
+      <thead>
+        <tr>
+          <th>Source</th>
+          <th style="text-align:right">Clicks</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for ref_entry in top_referrers %}
+        <tr>
+          <td>{{ ref_entry.0 }}</td>
+          <td style="text-align:right">{{ ref_entry.1 }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% endif %}
+  </div>
+
   <!-- Recent Clicks -->
   <div class="card mb-2">
     <div class="section-title">Recent Clicks</div>

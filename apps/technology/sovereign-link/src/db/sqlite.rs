@@ -397,6 +397,59 @@ impl LinkStore for SqliteStore {
         })
         .await?
     }
+
+    async fn get_daily_clicks(
+        &self,
+        link_id: Uuid,
+        days: i32,
+    ) -> anyhow::Result<Vec<(String, i64)>> {
+        let pool = self.pool.clone();
+        let lid = link_id.to_string();
+        tokio::task::spawn_blocking(move || {
+            let conn = pool.get()?;
+            let mut stmt = conn.prepare(
+                "SELECT date(clicked_at) as day, COUNT(*) as cnt
+                 FROM clicks WHERE link_id = ?1 AND clicked_at >= datetime('now', ?2)
+                 GROUP BY date(clicked_at) ORDER BY day ASC",
+            )?;
+            let days_param = format!("-{} days", days);
+            let results = stmt
+                .query_map(params![lid, days_param], |row| {
+                    let day: String = row.get(0)?;
+                    let count: i64 = row.get(1)?;
+                    Ok((day, count))
+                })?
+                .collect::<Result<Vec<_>, _>>()?;
+            Ok(results)
+        })
+        .await?
+    }
+
+    async fn get_top_referrers(
+        &self,
+        link_id: Uuid,
+        limit: i32,
+    ) -> anyhow::Result<Vec<(String, i64)>> {
+        let pool = self.pool.clone();
+        let lid = link_id.to_string();
+        tokio::task::spawn_blocking(move || {
+            let conn = pool.get()?;
+            let mut stmt = conn.prepare(
+                "SELECT COALESCE(referrer_domain, 'Direct') as ref_domain, COUNT(*) as cnt
+                 FROM clicks WHERE link_id = ?1
+                 GROUP BY referrer_domain ORDER BY cnt DESC LIMIT ?2",
+            )?;
+            let results = stmt
+                .query_map(params![lid, limit], |row| {
+                    let domain: String = row.get(0)?;
+                    let count: i64 = row.get(1)?;
+                    Ok((domain, count))
+                })?
+                .collect::<Result<Vec<_>, _>>()?;
+            Ok(results)
+        })
+        .await?
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -514,7 +567,12 @@ impl UserStore for SqliteStore {
             }
             if let Some(ref ak) = update.api_key_hash {
                 sets.push(format!("api_key_hash = ?{}", idx));
-                values.push(Box::new(ak.clone()));
+                // Empty string = revoke (set to NULL)
+                if ak.is_empty() {
+                    values.push(Box::new(None::<String>));
+                } else {
+                    values.push(Box::new(ak.clone()));
+                }
                 idx += 1;
             }
 
@@ -547,6 +605,27 @@ impl UserStore for SqliteStore {
             conn.execute(
                 "UPDATE users SET nostr_pubkey = ?1 WHERE id = ?2",
                 params![pubkey, user_id],
+            )?;
+            Ok(())
+        })
+        .await?
+    }
+
+    async fn link_email(
+        &self,
+        user_id: &str,
+        email: &str,
+        password_hash: &str,
+    ) -> anyhow::Result<()> {
+        let pool = self.pool.clone();
+        let user_id = user_id.to_string();
+        let email = email.to_string();
+        let password_hash = password_hash.to_string();
+        tokio::task::spawn_blocking(move || {
+            let conn = pool.get()?;
+            conn.execute(
+                "UPDATE users SET email = ?1, password_hash = ?2 WHERE id = ?3",
+                params![email, password_hash, user_id],
             )?;
             Ok(())
         })
