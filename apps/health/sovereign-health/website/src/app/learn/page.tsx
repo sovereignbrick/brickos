@@ -18,7 +18,7 @@ const TUTORIALS: Tutorial[] = [
     screenshots: [
       { base: "/screenshots/dashboard_zones", key: "dashboardZones" },
       { base: "/screenshots/dashboard_zone_energy", key: "dashboardZoneEnergy" },
-      { base: "/screenshots/dashboard_zone_scroll", key: "dashboardZoneScroll" },
+      { base: "/screenshots/search_results", key: "searchResults" },
     ],
   },
   {
@@ -36,7 +36,7 @@ const TUTORIALS: Tutorial[] = [
     screenshots: [
       { base: "/screenshots/dr_alex_main", key: "drAlexMain" },
       { base: "/screenshots/dr_alex_chat", key: "drAlexChat" },
-      { base: "/screenshots/search_results", key: "searchResults" },
+      { base: "/screenshots/trends_chart", key: "trendsChart" },
     ],
   },
   {
@@ -44,8 +44,8 @@ const TUTORIALS: Tutorial[] = [
     icon: "📈",
     screenshots: [
       { base: "/screenshots/measurements_history", key: "measurementsHistory" },
-      { base: "/screenshots/trends_chart", key: "trendsChart" },
-      { base: "/screenshots/measurements_new", key: "measurementsNew" },
+      { base: "/screenshots/settings_thresholds", key: "settingsThresholds" },
+      { base: "/screenshots/settings_influence", key: "settingsInfluence" },
     ],
   },
   {
@@ -54,7 +54,7 @@ const TUTORIALS: Tutorial[] = [
     screenshots: [
       { base: "/screenshots/settings_profile", key: "settingsProfile" },
       { base: "/screenshots/settings_devices", key: "settingsDevices" },
-      { base: "/screenshots/settings_lifestyle", key: "settingsLifestyle" },
+      { base: "/screenshots/settings_thresholds", key: "settingsThresholds" },
     ],
   },
 ];
@@ -137,6 +137,7 @@ export default function LearnPage() {
                               </svg>
                             </div>
                           </div>
+                          <p className="px-4 py-3 text-xs leading-relaxed text-[var(--muted)]">{caption}</p>
                         </button>
                       );
                     })}

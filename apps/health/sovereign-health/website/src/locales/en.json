@@ -1205,8 +1205,8 @@
         "description": "Your AI health consultant analyzes your biomarker data and provides personalized insights. Global search finds anything instantly."
       },
       "measurementsTrends": {
-        "title": "Measurements & Trends",
-        "description": "Track your biomarkers over time, import from devices and lab reports, and spot correlations between markers."
+        "title": "Measurements & Data Management",
+        "description": "Your complete measurement history with filters, custom reference ranges for every biomarker, and medication/supplement tracking as influence factors."
       },
       "userSettings": {
         "title": "User Settings",
@@ -1214,21 +1214,20 @@
       }
     },
     "screenshots": {
-      "dashboardZones": "Your health dashboard shows all 8 health zones with real-time status indicators. Green means optimal, orange needs attention, red requires action.",
-      "dashboardZoneEnergy": "Click any zone to see all markers in that category. Energy & Metabolic tracks glucose, ketones, HbA1c, and related biomarkers.",
-      "dashboardZoneScroll": "Each zone shows your latest measurement values, status, and trends for every marker in the category.",
-      "markerGlucose": "The marker detail page shows your current value, status, and trend chart with reference ranges highlighted.",
-      "markerGlucoseScroll1": "Scroll down for curated health content: Did You Know facts, tips to stay in range, and food recommendations filtered by your diet.",
-      "markerGlucoseScroll2": "Every marker includes food suggestions, supplement recommendations, lab test information, and scientific references.",
-      "drAlexMain": "Dr. Alex offers specialized health consultations: general health, nutrition, supplements, lab interpretation, and more.",
-      "drAlexChat": "Ask Dr. Alex any health question. Responses are personalized based on your actual biomarker data and health profile.",
-      "searchResults": "Global search finds markers, foods, supplements, and health content instantly. Press Ctrl+K anywhere in the app.",
-      "measurementsHistory": "Your complete measurement history with filters by marker, device, date range, and protocol context.",
-      "trendsChart": "Track multiple biomarkers over time. Compare glucose and ketones to spot correlations and optimize your health.",
-      "measurementsNew": "Add measurements manually with lifestyle context: exercise, sleep quality, stress level, and meal timing.",
-      "settingsProfile": "Configure your health profile: age, gender, height, dietary protocol, and fasting schedule for personalized reference ranges.",
-      "settingsDevices": "Manage your measurement devices and lab providers for organized tracking and accurate device-specific calibration.",
-      "settingsLifestyle": "Set your lifestyle defaults: diet protocol, fasting schedule, exercise habits, and sleep patterns for context-aware analysis."
+      "dashboardZones": "Your health dashboard at a glance: 8 health zones with color-coded status indicators show which areas of your health are optimal (green), need attention (orange), or require action (red).",
+      "dashboardZoneEnergy": "Clicking a zone reveals all biomarkers in that category. Here the Energy & Metabolic zone shows glucose, insulin, ketones, HbA1c, and thyroid markers with their latest values and measurement source.",
+      "markerGlucose": "Each biomarker has a dedicated detail page showing your current value, health status, reference range visualization, and a 3-month trend chart. The reference range adapts to your dietary protocol.",
+      "markerGlucoseScroll1": "Below the trend chart you find your recent measurements with timestamps and status dots, plus curated health content: Did You Know facts, fun facts, and actionable tips to keep your marker in range.",
+      "markerGlucoseScroll2": "Every marker includes a personalized food list filtered by your diet protocol (shown here: keto). Foods are organized by category with icons. The list updates when you change your protocol in Settings.",
+      "drAlexMain": "Dr. Alex is your AI health consultant. Choose from pre-built prompts organized by category: Your Health, Trends & Patterns, Lab Results, Nutrition & Lifestyle. You can also upload lab reports and prescriptions via Smart Import.",
+      "drAlexChat": "Dr. Alex analyzes your actual biomarker data to provide personalized health insights. Here Dr. Alex reviews lab results, highlights what is working well, and flags concerns with specific marker values and clinical context.",
+      "searchResults": "Global search (Ctrl+K) finds markers, foods, supplements, and health content across the entire app. Results are ranked by relevance with type badges, zone colors, and direct links to detail pages.",
+      "trendsChart": "Compare multiple biomarkers over time. This view shows glucose (blue) and ketones (orange) with their reference ranges. Use the period selector (7D to ALL) and toggle between standard and fasting ranges.",
+      "measurementsHistory": "Your complete measurement history with powerful filters: date range, marker, device, lab, diet protocol, and fasting protocol. Export all data as CSV. Each row shows value, unit, and status indicator.",
+      "settingsProfile": "Configure your health profile: gender, age, height, weight, and waist circumference. Set your lifestyle defaults including diet protocol (keto shown), fasting schedule, exercise habits, sleep, and stress level.",
+      "settingsDevices": "Manage your measurement devices and lab providers. Each device shows which markers it measures and its measurement count. Labs store your provider details for organized tracking.",
+      "settingsThresholds": "Customize your reference ranges for every biomarker organized by health zone. Ranges adapt to your diet protocol (keto shown). Each marker has optimal (green) and acceptable (orange) boundaries with units.",
+      "settingsInfluence": "Track your medications and supplements as influence factors that may affect your biomarker values. Each entry shows dosage, frequency, form, and active ingredients. Dr. Alex considers these when analyzing your data."
     },
     "videoComingSoon": "Video tutorial coming soon",
     "note": "Ready to take control of your health data? Start your journey today."
