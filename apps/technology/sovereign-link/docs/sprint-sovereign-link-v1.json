@@ -1,0 +1,292 @@
+[
+  {
+    "title": "Define LinkStore and UserStore traits with core data models",
+    "body": "## Description\n\nDefine the async trait interfaces for LinkStore and UserStore that abstract over SQLite (standalone) and PostgreSQL (platform). Also define the shared data models: Link, NewLink, UpdateLink, ClickMeta, LinkStats, User, NewUser, UpdateUser.\n\nThese traits are the foundation for all database operations. Every handler depends on them.\n\n## Acceptance Criteria\n\n- [ ] `LinkStore` trait defined with all methods: get_by_code, create, update, delete, list_by_user, record_click, get_stats, export_all, import_batch\n- [ ] `UserStore` trait defined with all methods: get_by_id, get_by_email, get_by_nostr_pubkey, get_by_api_key, create, update, link_nostr\n- [ ] All shared model structs defined in models.rs\n- [ ] Feature flags configured in Cargo.toml: standalone (rusqlite, askama, argon2) and platform (sqlx, brickos-auth)\n\n## Technical Notes\n\n- Use `#[async_trait]` from the async-trait crate\n- Traits must be `Send + Sync` for use with axum\n- Models should derive Serialize, Deserialize, Clone, Debug\n- Link model includes: id, code, target_url, title, tags, user_id, is_active, expires_at, created_at, updated_at, click_count\n\n## References\n\n- Spec: 002 Section 6.3 (Database Traits)",
+    "labels": ["sovereign-link", "sprint-sovereign-link-v1"],
+    "milestone": "M1: Sovereign Link Standalone v1.0",
+    "day": 1,
+    "points": 2,
+    "blocks": ["Implement SQLite LinkStore and UserStore", "Implement redirect handler (hot path)", "Implement REST API CRUD endpoints"],
+    "blocked_by": []
+  },
+  {
+    "title": "Implement config system with TOML and environment variable support",
+    "body": "## Description\n\nBuild the configuration system that reads from `config.toml` with environment variable overrides. This determines standalone vs. platform mode, database path, server bind address, JWT secret, NOSTR relay list, and all runtime settings.\n\n## Acceptance Criteria\n\n- [ ] Config struct defined with all fields: mode, db_path, bind_address, jwt_secret, jwt_expiry, base_url, registration_enabled, nostr_relays, nostr_private_key\n- [ ] Reads from config.toml file path (configurable via CLI arg or env)\n- [ ] Environment variables override TOML values (e.g., SL_BIND_ADDRESS overrides bind_address)\n- [ ] Sensible defaults for standalone mode\n- [ ] Example config.toml created (config.example.toml)\n- [ ] Config validation on startup (fail fast on missing required values like jwt_secret)\n\n## Technical Notes\n\n- Use `serde` + `toml` crate for TOML parsing\n- Use `config` crate or manual ENV layering\n- JWT secret must be at least 32 bytes\n- Default bind: 127.0.0.1:3000\n- Default mode: standalone\n\n## References\n\n- Spec: 002 Section 3.1 (Standalone Mode), Section 6.1 (Crate Structure - config.rs)",
+    "labels": ["sovereign-link", "sprint-sovereign-link-v1"],
+    "milestone": "M1: Sovereign Link Standalone v1.0",
+    "day": 1,
+    "points": 1,
+    "blocks": ["Implement email auth with registration, login, JWT, and Argon2id", "Implement NOSTR NIP-98 authentication"],
+    "blocked_by": []
+  },
+  {
+    "title": "Create SQLite database migrations",
+    "body": "## Description\n\nWrite the initial SQLite migration (001_initial.sql) that creates all tables needed for standalone mode: users, links, clicks, api_keys. Include indexes for the redirect hot path.\n\n## Acceptance Criteria\n\n- [ ] users table: id, email, password_hash, display_name, nostr_pubkey, api_key_hash, role (admin/user), is_active, created_at, updated_at, last_login_at\n- [ ] links table: id, code, target_url, title, tags (JSON), user_id (FK), is_active, expires_at, created_at, updated_at\n- [ ] clicks table: id, link_id (FK), visitor_hash (SHA256), referrer_domain, country_code, clicked_at\n- [ ] Unique index on links.code for redirect hot path\n- [ ] Index on links.user_id for dashboard queries\n- [ ] Index on clicks.link_id + clicks.clicked_at for stats queries\n- [ ] Migration runs on startup if DB is empty\n- [ ] visitor_hash uses SHA256(IP + code + date) - no raw IP storage\n\n## Technical Notes\n\n- Use rusqlite for migration execution\n- Store migrations in migrations/sqlite/001_initial.sql\n- WAL mode enabled for concurrent reads during redirects\n- STRICT mode for type safety\n\n## References\n\n- Spec: 002 Section 4.1 (Click privacy), Section 6.1 (migrations/sqlite/)",
+    "labels": ["sovereign-link", "sprint-sovereign-link-v1"],
+    "milestone": "M1: Sovereign Link Standalone v1.0",
+    "day": 1,
+    "points": 1,
+    "blocks": ["Implement SQLite LinkStore and UserStore"],
+    "blocked_by": []
+  },
+  {
+    "title": "Implement SQLite LinkStore and UserStore",
+    "body": "## Description\n\nImplement the LinkStore and UserStore traits for SQLite. This is the standalone mode database backend. All CRUD operations, click recording, stats queries, and user management go through these implementations.\n\n## Acceptance Criteria\n\n- [ ] SqliteLinkStore implements all LinkStore trait methods\n- [ ] SqliteUserStore implements all UserStore trait methods\n- [ ] get_by_code is optimized for the redirect hot path (single indexed lookup)\n- [ ] record_click stores privacy-preserving visitor hash\n- [ ] get_stats returns daily click breakdown and referrer aggregation\n- [ ] list_by_user supports pagination (limit + offset)\n- [ ] export_all returns all links for a user as Vec<Link>\n- [ ] import_batch inserts multiple links in a transaction\n- [ ] Connection pool or single connection with WAL mode\n- [ ] Unit tests for all trait methods\n\n## Technical Notes\n\n- Use rusqlite with bundled SQLite\n- WAL mode for concurrent reads (redirects) while writing (click recording)\n- Batch inserts for import use BEGIN/COMMIT transaction\n- Stats query: GROUP BY date(clicked_at) for daily breakdown\n\n## References\n\n- Spec: 002 Section 6.3 (Database Traits), Section 4.1 (Link Management)",
+    "labels": ["sovereign-link", "sprint-sovereign-link-v1"],
+    "milestone": "M1: Sovereign Link Standalone v1.0",
+    "day": 1,
+    "points": 3,
+    "blocks": ["Implement redirect handler (hot path)", "Implement REST API CRUD endpoints", "Implement click tracking with privacy-preserving hashing"],
+    "blocked_by": ["Define LinkStore and UserStore traits with core data models", "Create SQLite database migrations"]
+  },
+  {
+    "title": "Implement email auth with registration, login, JWT, and Argon2id",
+    "body": "## Description\n\nBuild the email/password authentication flow: registration, login, JWT token issuance, token refresh, and Argon2id password hashing. First registered user auto-becomes admin. Admin can disable further registration.\n\n## Acceptance Criteria\n\n- [ ] POST /auth/register creates user with Argon2id hashed password\n- [ ] POST /auth/login verifies password, returns JWT\n- [ ] POST /auth/refresh issues new JWT from valid existing token\n- [ ] JWT contains: sub (user_id), role, exp (24h default, configurable)\n- [ ] First registered user gets admin role automatically\n- [ ] Registration can be disabled via config or admin setting\n- [ ] AuthProvider trait defined with EmailPasswordProvider implementation\n- [ ] Rate limiting on /auth/login: 10 attempts per minute per IP\n- [ ] Password validation: minimum 8 characters\n- [ ] Unit tests for registration, login, token refresh flows\n\n## Technical Notes\n\n- Use argon2 crate with default (recommended) params\n- Use jsonwebtoken crate for JWT\n- JWT secret from config\n- AuthRequest enum: EmailPassword { email, password }\n- AuthResult: { token, user, created }\n\n## References\n\n- Spec: 002 Section 4.2.1 (Email + Password), Section 4.2.4 (AuthProvider Architecture)",
+    "labels": ["sovereign-link", "sprint-sovereign-link-v1"],
+    "milestone": "M1: Sovereign Link Standalone v1.0",
+    "day": 1,
+    "points": 3,
+    "blocks": ["Build web UI for login page with email and NOSTR tabs", "Implement REST API CRUD endpoints"],
+    "blocked_by": ["Implement config system with TOML and environment variable support", "Implement SQLite LinkStore and UserStore"]
+  },
+  {
+    "title": "Implement NOSTR NIP-98 authentication",
+    "body": "## Description\n\nBuild passwordless authentication using NOSTR keypair signatures (NIP-98). Verify kind 27235 events, check timestamp freshness, validate secp256k1 signatures, and auto-create accounts for new pubkeys.\n\n## Acceptance Criteria\n\n- [ ] POST /auth/nostr accepts NIP-98 signed event\n- [ ] Validates event kind is 27235\n- [ ] Validates 'u' tag matches endpoint URL\n- [ ] Validates created_at within 60 seconds of server time\n- [ ] Validates secp256k1 signature against pubkey\n- [ ] Existing user by pubkey: issues JWT\n- [ ] New pubkey: auto-creates user account, issues JWT, returns created: true\n- [ ] NostrNip98Provider implements AuthProvider trait\n- [ ] NIP-98 event verification module in nostr/nip98.rs\n- [ ] Unit tests for valid event, expired event, wrong kind, invalid signature\n\n## Technical Notes\n\n- Use nostr crate or secp256k1 crate for signature verification\n- Event ID is SHA256 of serialized event (NIP-01)\n- Browser integration via NIP-07: window.nostr.signEvent()\n- Fallback: paste nsec (client-side signing only, nsec never sent to server)\n\n## References\n\n- Spec: 002 Section 4.2.2 (NOSTR NIP-98)",
+    "labels": ["sovereign-link", "sprint-sovereign-link-v1"],
+    "milestone": "M1: Sovereign Link Standalone v1.0",
+    "day": 2,
+    "points": 5,
+    "blocks": ["Build web UI for login page with email and NOSTR tabs", "Implement NIP-89 app listing publisher"],
+    "blocked_by": ["Implement config system with TOML and environment variable support", "Implement SQLite LinkStore and UserStore"]
+  },
+  {
+    "title": "Implement redirect handler (hot path)",
+    "body": "## Description\n\nBuild the GET /{code} redirect handler. This is the performance-critical hot path - must resolve in under 10ms p95. Lookup code in LinkStore, return 301 redirect. Handle deactivated links (410 Gone), expired links, and missing codes (404).\n\n## Acceptance Criteria\n\n- [ ] GET /{code} returns 301 redirect to target_url for active links\n- [ ] GET /{code} returns 410 Gone for deactivated links\n- [ ] GET /{code} returns 404 for unknown codes\n- [ ] Expired links (expires_at < now) return 410 Gone\n- [ ] Click is recorded asynchronously (do not block redirect response)\n- [ ] No authentication required\n- [ ] Target URL validation rejects javascript: and data: schemes\n- [ ] Latency target: < 10ms p95\n- [ ] GET /{code}+ returns public click count as JSON\n\n## Technical Notes\n\n- Use axum router with path parameter\n- Click recording should be spawned as a background task (tokio::spawn) to not block the redirect\n- The code lookup must use the indexed path in SQLite\n- Rate limit: 1000/min per IP\n\n## References\n\n- Spec: 002 Section 4.1 (Redirect), Section 5 (NFR: redirect latency < 10ms)",
+    "labels": ["sovereign-link", "sprint-sovereign-link-v1"],
+    "milestone": "M1: Sovereign Link Standalone v1.0",
+    "day": 2,
+    "points": 2,
+    "blocks": ["Build web UI for dashboard and create link pages"],
+    "blocked_by": ["Implement SQLite LinkStore and UserStore"]
+  },
+  {
+    "title": "Implement click tracking with privacy-preserving hashing",
+    "body": "## Description\n\nBuild the click tracking system that records clicks without storing raw IP addresses. Use SHA256(IP + code + daily_salt) for visitor deduplication. Extract referrer domain and country code from request headers.\n\n## Acceptance Criteria\n\n- [ ] Click recorded with: link_id, visitor_hash, referrer_domain, country_code, clicked_at\n- [ ] visitor_hash = SHA256(IP + code + date) - rotates daily\n- [ ] No raw IP address stored anywhere\n- [ ] No user agent stored\n- [ ] Referrer domain extracted from Referer header (domain only, not full URL)\n- [ ] Country code from CF-IPCountry or X-Country-Code header (optional)\n- [ ] Stats endpoint returns: total clicks, daily breakdown, top referrer domains\n- [ ] Click recording is async (does not block redirect)\n\n## Technical Notes\n\n- Use sha2 crate for SHA256\n- Daily salt = date string (YYYY-MM-DD), not a secret\n- ClickMeta struct: { visitor_hash, referrer_domain, country_code }\n- Background task via tokio::spawn for recording\n\n## References\n\n- Spec: 002 Section 4.1 (Click privacy: SHA256(IP + code + date))",
+    "labels": ["sovereign-link", "sprint-sovereign-link-v1"],
+    "milestone": "M1: Sovereign Link Standalone v1.0",
+    "day": 2,
+    "points": 2,
+    "blocks": [],
+    "blocked_by": ["Implement SQLite LinkStore and UserStore"]
+  },
+  {
+    "title": "Implement REST API CRUD endpoints",
+    "body": "## Description\n\nBuild the full REST API for programmatic link management. All endpoints authenticate via JWT (from email or NOSTR login) or API key. Covers create, read, update, delete, list, stats, import, export, and user settings.\n\n## Acceptance Criteria\n\n- [ ] GET /api/v1/links - list user's links with pagination\n- [ ] POST /api/v1/links - create link (auto-generate or custom code)\n- [ ] GET /api/v1/links/{id} - get link detail\n- [ ] PUT /api/v1/links/{id} - update link (target_url, title, tags, is_active)\n- [ ] DELETE /api/v1/links/{id} - permanent delete\n- [ ] GET /api/v1/links/{id}/stats - click analytics for a link\n- [ ] GET /api/v1/links/export - export all links as JSON\n- [ ] POST /api/v1/links/import - import links from JSON array\n- [ ] GET /api/v1/me - current user info\n- [ ] PUT /api/v1/me/settings - update user settings\n- [ ] POST /api/v1/me/api-key - generate/regenerate API key\n- [ ] GET /health - service health + version (no auth)\n- [ ] All auth-required endpoints accept JWT Bearer token or API key\n- [ ] Custom code validation: 3-30 chars, lowercase alphanumeric + hyphens\n- [ ] Rate limit on POST /api/v1/links: 50/day per user\n\n## Technical Notes\n\n- Use axum with extractors for auth middleware\n- API key auth: lookup by SHA256 hash of provided key\n- Auto-generated codes: 6 chars, base62 (a-z, 0-9)\n- Return 409 Conflict if custom code already exists\n\n## References\n\n- Spec: 002 Section 4.4 (REST API table)",
+    "labels": ["sovereign-link", "sprint-sovereign-link-v1"],
+    "milestone": "M1: Sovereign Link Standalone v1.0",
+    "day": 2,
+    "points": 3,
+    "blocks": ["Build web UI for dashboard and create link pages"],
+    "blocked_by": ["Define LinkStore and UserStore traits with core data models", "Implement email auth with registration, login, JWT, and Argon2id"]
+  },
+  {
+    "title": "Build web UI for login page with email and NOSTR tabs",
+    "body": "## Description\n\nCreate the server-rendered login page using askama templates. Two tabs: email/password login and NOSTR NIP-07 login. Also build the registration page. Dark theme using BrickOS design tokens. No JavaScript framework - core login works without JS, NOSTR tab requires JS for NIP-07.\n\n## Acceptance Criteria\n\n- [ ] /login page with email tab (email + password fields) and NOSTR tab\n- [ ] /register page with email, password, display_name fields\n- [ ] Email login works with JS disabled (form POST)\n- [ ] NOSTR tab: detects NIP-07 extension, signs NIP-98 event, submits to /auth/nostr\n- [ ] NOSTR fallback: paste nsec with security warning (client-side signing)\n- [ ] Dark theme using BrickOS design tokens (--bk-bg: #09090b)\n- [ ] Responsive (mobile-friendly)\n- [ ] WCAG AA contrast, keyboard navigation, semantic HTML\n- [ ] Error messages displayed inline (invalid credentials, registration disabled)\n- [ ] Redirect to /dashboard on successful login\n- [ ] base.html template with shared layout, nav, footer\n\n## Technical Notes\n\n- Use askama crate for compile-time templates\n- Templates in templates/ directory\n- CSS variables in static/style.css - no Tailwind, no build step\n- Inline SVG icons - no icon library\n- Set session cookie (SameSite=Strict) on login\n\n## References\n\n- Spec: 002 Section 4.3 (Web Interface - Pages, Design)",
+    "labels": ["sovereign-link", "sprint-sovereign-link-v1"],
+    "milestone": "M1: Sovereign Link Standalone v1.0",
+    "day": 3,
+    "points": 3,
+    "blocks": ["Build web UI for settings page"],
+    "blocked_by": ["Implement email auth with registration, login, JWT, and Argon2id", "Implement NOSTR NIP-98 authentication"]
+  },
+  {
+    "title": "Build web UI for dashboard and create link pages",
+    "body": "## Description\n\nCreate the dashboard page showing the user's links with click counts, and the create-link page with form for target URL and optional custom code. Also build the link detail page with click stats.\n\n## Acceptance Criteria\n\n- [ ] /dashboard shows list of user's links with: code, target URL (truncated), click count, created date, status\n- [ ] Links sorted by created_at descending\n- [ ] Each link row has: edit, deactivate/activate, delete actions\n- [ ] /new page with form: target URL (required), custom code (optional), title (optional), expiry date (optional)\n- [ ] Custom code preview: shows resulting short URL as user types\n- [ ] /links/{id} page shows link detail with daily click chart (simple HTML/CSS bar chart, no JS library)\n- [ ] Top referrer domains list on link detail page\n- [ ] QR code displayed on link detail page (links to /{code}.qr)\n- [ ] Empty state for new users: \"Create your first short link\"\n- [ ] All pages use dark theme, responsive layout\n\n## Technical Notes\n\n- askama templates extending base.html\n- Click chart: CSS grid or flexbox bars, no JS charting library\n- Pagination on dashboard if > 20 links\n- Forms use POST with redirect-after-POST pattern\n\n## References\n\n- Spec: 002 Section 4.3 (Web Interface - dashboard, new_link, link_detail)",
+    "labels": ["sovereign-link", "sprint-sovereign-link-v1"],
+    "milestone": "M1: Sovereign Link Standalone v1.0",
+    "day": 3,
+    "points": 3,
+    "blocks": [],
+    "blocked_by": ["Implement redirect handler (hot path)", "Implement REST API CRUD endpoints"]
+  },
+  {
+    "title": "Implement QR code generation endpoint",
+    "body": "## Description\n\nBuild the GET /{code}.qr endpoint that returns a PNG QR code image encoding the short URL. No authentication required. Useful for print materials and business cards, especially for .onion addresses.\n\n## Acceptance Criteria\n\n- [ ] GET /{code}.qr returns PNG image with Content-Type: image/png\n- [ ] QR code encodes the full short URL (base_url + / + code)\n- [ ] QR code size: 300x300 pixels default\n- [ ] Optional size parameter: /{code}.qr?size=500\n- [ ] Returns 404 if code does not exist\n- [ ] Works for deactivated links (QR should still resolve, even if redirect returns 410)\n- [ ] No authentication required\n- [ ] Response includes cache headers (Cache-Control: public, max-age=86400)\n\n## Technical Notes\n\n- Use qrcode crate for generation\n- Use image crate for PNG encoding\n- Generate in memory, return as bytes\n- Dark theme QR: dark modules on light background for best scan reliability\n\n## References\n\n- Spec: 002 Section 4.1 (QR code: GET /{code}.qr -> PNG image)",
+    "labels": ["sovereign-link", "sprint-sovereign-link-v1"],
+    "milestone": "M1: Sovereign Link Standalone v1.0",
+    "day": 3,
+    "points": 1,
+    "blocks": [],
+    "blocked_by": ["Implement SQLite LinkStore and UserStore"]
+  },
+  {
+    "title": "Build web UI for settings page",
+    "body": "## Description\n\nCreate the user settings page with sections for: password change, NOSTR key linking, API key management, and account preferences. Allow users to connect multiple auth methods to the same account.\n\n## Acceptance Criteria\n\n- [ ] /settings page with sections: Password, NOSTR, API Key\n- [ ] Password section: current password + new password + confirm (only shown if user has email auth)\n- [ ] NOSTR section: display linked pubkey (npub format), button to link/unlink NOSTR key\n- [ ] API Key section: generate new API key (displayed once), revoke existing key, show last used timestamp\n- [ ] Account linking: user with email can link NOSTR pubkey, user with NOSTR can add email/password\n- [ ] Success/error messages after each action\n- [ ] Dark theme, responsive\n\n## Technical Notes\n\n- API key displayed in a copy-to-clipboard field (shown only once after generation)\n- API key stored as SHA256 hash in DB\n- NOSTR key linking: sign a NIP-98 event to prove ownership of pubkey\n- Use nostr bech32 encoding for display (npub1...)\n\n## References\n\n- Spec: 002 Section 4.3 (settings page), Section 4.2.3 (API Key)",
+    "labels": ["sovereign-link", "sprint-sovereign-link-v1"],
+    "milestone": "M1: Sovereign Link Standalone v1.0",
+    "day": 3,
+    "points": 2,
+    "blocks": [],
+    "blocked_by": ["Build web UI for login page with email and NOSTR tabs"]
+  },
+  {
+    "title": "Build Docker single-container image",
+    "body": "## Description\n\nCreate a Dockerfile for Sovereign Link standalone mode. Alpine-based, multi-stage build, static musl binary. Image must be under 30MB. Include health check, volume for SQLite database, and example config.\n\n## Acceptance Criteria\n\n- [ ] Multi-stage Dockerfile: build stage (rust:latest) + runtime stage (alpine or scratch)\n- [ ] Final image < 30MB\n- [ ] Binary statically linked with musl\n- [ ] SQLite database path configurable via env (default: /data/sovereign-link.db)\n- [ ] /data volume for persistent storage\n- [ ] HEALTHCHECK instruction using GET /health\n- [ ] Exposes port 3000 (configurable)\n- [ ] docker run sovereign-link works out of the box with sane defaults\n- [ ] docker-compose.yml example in repo root\n- [ ] Binary size < 20MB\n\n## Technical Notes\n\n- Use cargo build --release --target x86_64-unknown-linux-musl\n- Copy only the binary + static assets to final stage\n- Set RUST_LOG=info as default\n- Generate random JWT secret on first start if not provided\n\n## References\n\n- Spec: 002 Section 3.1 (Standalone Mode), Section 5 (NFR: Docker < 30MB, binary < 20MB)",
+    "labels": ["sovereign-link", "sprint-sovereign-link-v1"],
+    "milestone": "M1: Sovereign Link Standalone v1.0",
+    "day": 4,
+    "points": 2,
+    "blocks": ["Create Start9 package (.s9pk)"],
+    "blocked_by": []
+  },
+  {
+    "title": "Build static binary release with musl cross-compilation",
+    "body": "## Description\n\nSet up the build pipeline for producing a static binary that runs on any Linux without runtime dependencies. Cross-compile for x86_64 and aarch64 (ARM64 for Raspberry Pi / Start9). Binary must be < 20MB.\n\n## Acceptance Criteria\n\n- [ ] cargo build --release --target x86_64-unknown-linux-musl produces working binary\n- [ ] cargo build --release --target aarch64-unknown-linux-musl produces working binary\n- [ ] Binary is fully static (ldd reports 'not a dynamic executable')\n- [ ] Binary size < 20MB for both targets\n- [ ] Memory usage < 50MB idle\n- [ ] Startup time < 2 seconds\n- [ ] Binary runs on vanilla Ubuntu, Debian, Alpine without installing dependencies\n- [ ] Build script or Makefile target for both architectures\n\n## Technical Notes\n\n- Install musl-tools and musl cross-compiler for aarch64\n- Use cross crate or manual cross-compilation setup\n- Strip binary: cargo build --release + strip target/release/sovereign-link\n- rusqlite must compile with bundled SQLite (not system library)\n\n## References\n\n- Spec: 002 Section 5 (NFR: binary < 20MB, memory < 50MB, no external deps)",
+    "labels": ["sovereign-link", "sprint-sovereign-link-v1"],
+    "milestone": "M1: Sovereign Link Standalone v1.0",
+    "day": 4,
+    "points": 2,
+    "blocks": ["Create Start9 package (.s9pk)"],
+    "blocked_by": []
+  },
+  {
+    "title": "Implement NIP-89 app listing publisher",
+    "body": "## Description\n\nOn startup (if configured with NOSTR private key and relay list), publish a kind 31990 app listing event to NOSTR relays. This makes the Sovereign Link instance discoverable by NOSTR clients that support NIP-89 app recommendations.\n\n## Acceptance Criteria\n\n- [ ] On startup, if nostr_private_key and nostr_relays are configured, publish NIP-89 event\n- [ ] Event kind: 31990 (replaceable parameterized)\n- [ ] Tags: d=sovereign-link, k=1, web=base_url, web=github_source\n- [ ] Content: JSON with name, about, website, nips: [98, 89]\n- [ ] Event signed with configured private key\n- [ ] Published to all configured relays\n- [ ] Republish on startup (replaceable event updates existing)\n- [ ] If no NOSTR key configured, skip silently (no error)\n- [ ] Module: nostr/nip89.rs\n\n## Technical Notes\n\n- Use nostr crate for event creation and signing\n- Use nostr-sdk or raw WebSocket for relay publishing\n- Replaceable event: relays keep only the latest version per d-tag\n- Fire-and-forget: do not block startup on relay responses\n\n## References\n\n- Spec: 002 Section 4.5 (NOSTR Distribution NIP-89)",
+    "labels": ["sovereign-link", "sprint-sovereign-link-v1"],
+    "milestone": "M1: Sovereign Link Standalone v1.0",
+    "day": 4,
+    "points": 2,
+    "blocks": [],
+    "blocked_by": ["Implement NOSTR NIP-98 authentication"]
+  },
+  {
+    "title": "Create Start9 package (.s9pk)",
+    "body": "## Description\n\nPackage Sovereign Link as a Start9 service for one-click installation on Start9 servers. Includes manifest, config screen, health check, and instructions. Start9 provides Tor hidden service automatically.\n\n## Acceptance Criteria\n\n- [ ] startos/manifest.yaml with: id, title, version, release-notes, ports, volumes, health-checks\n- [ ] Config screen for: registration enabled/disabled, NOSTR relay list, admin password\n- [ ] Health check: HTTP GET /health returns 200\n- [ ] Volume mount for SQLite database persistence\n- [ ] Tor hidden service auto-configured by Start9 (no manual setup)\n- [ ] LAN HTTPS optional (Start9 provides this)\n- [ ] startos/instructions.md with setup guide\n- [ ] startos/icon.png (256x256)\n- [ ] Builds as .s9pk using start-sdk\n- [ ] First user to register becomes admin\n- [ ] All three auth methods available (email, NOSTR, API key)\n\n## Technical Notes\n\n- Start9 uses Docker containers internally\n- .s9pk is built with start-sdk from the Dockerfile\n- aarch64 build required (most Start9 devices are ARM64)\n- Tor .onion address is the primary access boundary\n- Config stored in Start9's config system, injected as env vars\n\n## References\n\n- Spec: 002 Section 3.3 (Start9 Mode), Section 6.1 (startos/ directory)",
+    "labels": ["sovereign-link", "sprint-sovereign-link-v1"],
+    "milestone": "M1: Sovereign Link Standalone v1.0",
+    "day": 4,
+    "points": 3,
+    "blocks": [],
+    "blocked_by": ["Build Docker single-container image", "Build static binary release with musl cross-compilation"]
+  },
+  {
+    "title": "Write integration tests for auth flows and CRUD operations",
+    "body": "## Description\n\nComprehensive integration tests covering all authentication flows (email, NOSTR, API key) and full link CRUD lifecycle. Tests run against a real SQLite database (in-memory or temp file).\n\n## Acceptance Criteria\n\n- [ ] Test: register new user via email, receive JWT, use JWT to create link\n- [ ] Test: first user gets admin role\n- [ ] Test: registration disabled returns 403\n- [ ] Test: login with wrong password returns 401\n- [ ] Test: NIP-98 login with valid event creates user and returns JWT\n- [ ] Test: NIP-98 login with expired event (> 60s) returns 401\n- [ ] Test: NIP-98 login with invalid signature returns 401\n- [ ] Test: API key authentication works for all CRUD endpoints\n- [ ] Test: create link with auto-generated code\n- [ ] Test: create link with custom code\n- [ ] Test: duplicate custom code returns 409\n- [ ] Test: redirect (GET /{code}) returns 301\n- [ ] Test: deactivated link returns 410\n- [ ] Test: expired link returns 410\n- [ ] Test: delete link, then 404 on redirect\n- [ ] Test: export and import round-trip\n- [ ] Test: click recording and stats retrieval\n- [ ] Test: QR code endpoint returns PNG\n- [ ] Test: /health returns 200 with version\n\n## Technical Notes\n\n- Use axum::test helpers or reqwest with test server\n- In-memory SQLite for fast test execution\n- Generate test NOSTR keypairs using secp256k1 crate\n- Test rate limiting with burst requests\n\n## References\n\n- Spec: 002 Section 8 (Sprint Plan mentions integration testing)",
+    "labels": ["sovereign-link", "sprint-sovereign-link-v1"],
+    "milestone": "M1: Sovereign Link Standalone v1.0",
+    "day": 4,
+    "points": 3,
+    "blocks": [],
+    "blocked_by": ["Implement email auth with registration, login, JWT, and Argon2id", "Implement NOSTR NIP-98 authentication", "Implement REST API CRUD endpoints", "Implement redirect handler (hot path)"]
+  },
+  {
+    "title": "Create brickos PostgreSQL schema and move platform tables",
+    "body": "## Description\n\nPhase 1 of schema elevation: create the `brickos` schema in PostgreSQL and move all 39 platform tables from `public` schema using ALTER TABLE SET SCHEMA. Update search_path so SHI continues working without code changes. This is the foundation for multi-app platform support.\n\n## Acceptance Criteria\n\n- [ ] CREATE SCHEMA IF NOT EXISTS brickos\n- [ ] Move all Category 1-6 tables (39 tables) via ALTER TABLE SET SCHEMA brickos\n- [ ] Identity & Auth: users, refresh_tokens, email_verifications, user_mfa\n- [ ] Organizations: organizations, org_members, app_roles, data_shares, audit_log\n- [ ] Licensing & Billing: subscriptions, payment_events, btc_payments, refunds, invoices, invoice_line_items, payment_methods_cache, customer_tax_ids, payment_gateway_status, promotions, promotion_redemptions, user_licenses, license_events, affiliate_clicks, affiliate_conversions, affiliate_payouts, affiliate_commission_rates\n- [ ] Communication: email_campaigns, email_sends, push_subscriptions, newsletter_subscribers, contact_submissions\n- [ ] Audit: data_access_log, db_audit_log, pgaudit_events, content_audit_log\n- [ ] Infrastructure: app_prefixes, short_links, short_link_clicks, search_index\n- [ ] ALTER DATABASE SET search_path = public, brickos\n- [ ] All existing SHI queries continue working without code changes\n- [ ] Foreign keys and indexes follow tables automatically\n- [ ] Migration is reversible (script to move tables back to public)\n\n## Technical Notes\n\n- ALTER TABLE SET SCHEMA is metadata-only, instantaneous, no data copy\n- Cross-schema foreign keys work natively in PostgreSQL\n- Run during low-traffic window but no downtime required\n- Test on staging first with a copy of production data\n- search_path order matters: public first (SHI tables), then brickos\n\n## References\n\n- Spec: 004 Section 7 Phase 1 (Schema Move)\n- Spec: 004 Section 3 (Complete Table Classification)",
+    "labels": ["sovereign-link", "sprint-sovereign-link-v1"],
+    "milestone": "M2: BrickOS Platform Schema",
+    "day": 5,
+    "points": 3,
+    "blocks": ["Refactor license_tiers by splitting feature columns into tier_features", "Refactor user_profile and user_preferences by splitting health columns", "Add app_key column to product_features, tier_features, app_settings, and search_index", "Create service_accounts and reserved_codes tables in brickos schema"],
+    "blocked_by": []
+  },
+  {
+    "title": "Refactor license_tiers by splitting feature columns into tier_features",
+    "body": "## Description\n\nPhase 3 Priority 1: The license_tiers table has 20+ SHI-specific feature columns (max_markers, chat_monthly, body_composition, etc.). Split into a generic tier definition (slug, name, price) in brickos schema and move feature limits to tier_features with an app_key column.\n\n## Acceptance Criteria\n\n- [ ] license_tiers table retains only generic columns: id, slug, name, display_name, price_monthly, price_yearly, is_active, sort_order, created_at\n- [ ] All SHI feature columns (max_markers, max_calculated, max_devices, chat_monthly, body_composition, etc.) migrated to tier_features rows\n- [ ] tier_features table: id, tier_id, app_key, feature_key, feature_value, created_at\n- [ ] Existing SHI features get app_key = 'sovereign-health'\n- [ ] SHI queries updated to JOIN tier_features WHERE app_key = 'sovereign-health'\n- [ ] Migration is reversible\n- [ ] Existing tier data preserved exactly\n\n## Technical Notes\n\n- This is a high-impact change - many SHI queries reference feature columns directly\n- Insert tier_features rows from existing column values before dropping columns\n- Consider a view for backward compatibility: CREATE VIEW shi.license_tier_features AS ...\n- Update tier service in SHI to read from tier_features\n\n## References\n\n- Spec: 004 Section 3 Category 7 (license_tiers)\n- Spec: 004 Section 7 Phase 3 Priority 1",
+    "labels": ["sovereign-link", "sprint-sovereign-link-v1"],
+    "milestone": "M2: BrickOS Platform Schema",
+    "day": 5,
+    "points": 3,
+    "blocks": [],
+    "blocked_by": ["Create brickos PostgreSQL schema and move platform tables"]
+  },
+  {
+    "title": "Refactor user_profile and user_preferences by splitting health columns",
+    "body": "## Description\n\nPhase 3 Priority 2-3: Split user_profile into brickos.user_profile (gender, age), brickos.billing_profile (vat, address), and shi.health_profile (height, weight, waist). Split user_preferences into brickos.user_preferences (date_format, time_format, language) and shi.health_preferences (glucose_unit, ketones_unit, etc.).\n\n## Acceptance Criteria\n\n- [ ] brickos.user_profile created with: user_id, gender, age, avatar_url\n- [ ] brickos.billing_profile created with: user_id, vat_id, billing_address fields\n- [ ] shi.health_profile created with: user_id, height, weight, waist_circumference, and other body metrics\n- [ ] brickos.user_preferences created with: user_id, date_format, time_format, language, timezone, theme\n- [ ] shi.health_preferences created with: user_id, glucose_unit, ketones_unit, weight_unit, temperature_unit, etc.\n- [ ] Data migrated from original tables to split tables\n- [ ] SHI profile handler updated to read from all three profile tables\n- [ ] SHI preferences service updated to read from both preference tables\n- [ ] Original tables can be dropped after verification\n\n## Technical Notes\n\n- user_profile split affects the profile handler in SHI (centralized, medium impact)\n- user_preferences split affects the preferences service\n- Consider views for backward compatibility during transition\n- Foreign keys: all tables reference brickos.users(id)\n\n## References\n\n- Spec: 004 Section 3 Category 7 (user_profile, user_preferences)\n- Spec: 004 Section 7 Phase 3 Priority 2-3",
+    "labels": ["sovereign-link", "sprint-sovereign-link-v1"],
+    "milestone": "M2: BrickOS Platform Schema",
+    "day": 5,
+    "points": 3,
+    "blocks": [],
+    "blocked_by": ["Create brickos PostgreSQL schema and move platform tables"]
+  },
+  {
+    "title": "Add app_key column to product_features, tier_features, app_settings, and search_index",
+    "body": "## Description\n\nPhase 3 Priority 4-6: Add app_key column to tables that have generic structure but SHI-only data. This is an additive change - existing data gets app_key = 'sovereign-health', new apps insert with their own app_key.\n\n## Acceptance Criteria\n\n- [ ] product_features: ADD COLUMN app_key VARCHAR(50) NOT NULL DEFAULT 'sovereign-health'\n- [ ] tier_features: ADD COLUMN app_key VARCHAR(50) NOT NULL DEFAULT 'sovereign-health' (if not already added in license_tiers refactor)\n- [ ] app_settings: ADD COLUMN app_key VARCHAR(50) DEFAULT NULL (null = global setting)\n- [ ] search_index: ADD COLUMN app_key VARCHAR(50) NOT NULL DEFAULT 'sovereign-health'\n- [ ] Indexes updated to include app_key for efficient per-app queries\n- [ ] Existing data backfilled with 'sovereign-health'\n- [ ] No breaking changes to existing SHI queries (default value handles it)\n\n## Technical Notes\n\n- These are all additive ALTER TABLE ADD COLUMN with DEFAULT - instant in PostgreSQL\n- No data migration needed, just set the default\n- Future Sovereign Link features: app_key = 'sovereign-link'\n- Future Sovereign Voice features: app_key = 'sovereign-voice'\n\n## References\n\n- Spec: 004 Section 3 Category 7 (product_features, app_settings, search_index)\n- Spec: 004 Section 7 Phase 3 Priority 4-6",
+    "labels": ["sovereign-link", "sprint-sovereign-link-v1"],
+    "milestone": "M2: BrickOS Platform Schema",
+    "day": 5,
+    "points": 1,
+    "blocks": [],
+    "blocked_by": ["Create brickos PostgreSQL schema and move platform tables"]
+  },
+  {
+    "title": "Create service_accounts and reserved_codes tables in brickos schema",
+    "body": "## Description\n\nCreate the new platform tables that do not exist yet: service_accounts (for cross-app API access), service_account_keys (for key rotation), and reserved_codes (for preventing URL code collisions). These are created directly in the brickos schema.\n\n## Acceptance Criteria\n\n- [ ] brickos.service_accounts table: id, name (unique), display_name, org_id (FK organizations), api_key_hash, scopes (TEXT[]), rate_limit_daily, is_active, last_used_at, created_by (FK users), created_at, rotated_at\n- [ ] brickos.service_account_keys table: id, service_account_id (FK), api_key_hash, expires_at, created_at\n- [ ] brickos.reserved_codes table: code (PK), reason, reserved_by (FK users), reserved_at\n- [ ] Insert BrickOS platform org if not exists (well-known UUID 00000000-...)\n- [ ] Seed reserved codes: shi, health, voice, signal, link, links, exchange, finance, vote, govern, almanac, energy, identity, id, relay, api, admin, app, docs, help, status, new, login, register, bitcoin, btc, nostr, brickos, brick, book, podcast, prague, btcprague\n- [ ] Index on service_accounts.api_key_hash for auth lookups\n- [ ] Index on service_accounts.org_id for org-scoped queries\n\n## Technical Notes\n\n- service_accounts support key rotation: two active keys during overlap period\n- API keys stored as SHA256 hash, never plaintext\n- Scopes are PostgreSQL TEXT[] array: ['links:create', 'links:read', 'links:stats']\n- Reserved codes prevent both URL codes and org slugs from being claimed\n\n## References\n\n- Spec: 004 Section 9 (New Platform Tables)\n- Spec: 003 Section 5 (Reserved Short URL Codes)\n- Spec: 003 Section 6 (Service Account Security)",
+    "labels": ["sovereign-link", "sprint-sovereign-link-v1"],
+    "milestone": "M3: Sovereign Link Platform Mode",
+    "day": 5,
+    "points": 2,
+    "blocks": ["Implement service account API and authentication", "Implement per-org namespace resolution in redirect handler"],
+    "blocked_by": ["Create brickos PostgreSQL schema and move platform tables"]
+  },
+  {
+    "title": "Create migration ownership structure in packages/brickos-db",
+    "body": "## Description\n\nEstablish the migration ownership split so platform migrations live in packages/brickos-db/ and app-specific migrations stay in their respective app directories. This prevents future migration conflicts between apps.\n\n## Acceptance Criteria\n\n- [ ] Create packages/brickos-db/ directory structure\n- [ ] packages/brickos-db/migrations/ with numbered migration files:\n  - 001_create_brickos_schema.sql\n  - 002_identity_tables.sql\n  - 003_organization_tables.sql\n  - 004_billing_tables.sql\n  - 005_communication_tables.sql\n  - 006_audit_tables.sql\n  - 007_infrastructure_tables.sql\n  - 008_service_accounts.sql\n  - 009_reserved_codes.sql\n- [ ] Each migration is idempotent (IF NOT EXISTS)\n- [ ] Migration runner or documentation for execution order\n- [ ] SHI migrations renumbered or documented to depend on brickos-db\n- [ ] README in packages/brickos-db/ explaining ownership model\n\n## Technical Notes\n\n- These migrations define the CREATE TABLE statements for all brickos schema tables\n- They are the source of truth - the ALTER TABLE SET SCHEMA approach is for the initial transition\n- New BrickOS apps depend on packages/brickos-db being migrated first\n- Consider sqlx migrate or a simple migration runner\n\n## References\n\n- Spec: 004 Section 7 Phase 4 (Migration Ownership Split)",
+    "labels": ["sovereign-link", "sprint-sovereign-link-v1"],
+    "milestone": "M2: BrickOS Platform Schema",
+    "day": 5,
+    "points": 2,
+    "blocks": [],
+    "blocked_by": ["Create brickos PostgreSQL schema and move platform tables"]
+  },
+  {
+    "title": "Implement service account API and authentication",
+    "body": "## Description\n\nBuild the API endpoints for managing service accounts and the authentication middleware that validates service account API keys. Service accounts enable cross-app API access (e.g., Sovereign Voice creating links via Sovereign Link).\n\n## Acceptance Criteria\n\n- [ ] POST /api/v1/admin/service-accounts - create service account (platform_admin only)\n- [ ] GET /api/v1/admin/service-accounts - list service accounts\n- [ ] POST /api/v1/admin/service-accounts/{id}/rotate - generate new key (old key active for 24h)\n- [ ] DELETE /api/v1/admin/service-accounts/{id}/keys/{key_id} - revoke specific key\n- [ ] Auth middleware: check Authorization header against service_account_keys.api_key_hash\n- [ ] Scope enforcement: service account can only access permitted endpoints\n- [ ] Rate limiting: enforce rate_limit_daily per service account\n- [ ] last_used_at updated on each authenticated request\n- [ ] Audit log entry for all service account actions\n- [ ] API key displayed once on creation, stored as SHA256 hash\n\n## Technical Notes\n\n- Service account auth is separate from user JWT auth\n- Both can use Bearer token format, differentiate by token format/prefix\n- Key rotation: insert new key in service_account_keys, set expires_at on old key\n- Scopes checked in middleware, not at handler level\n\n## References\n\n- Spec: 003 Section 6 (Roles and Permissions - Service Account Security)\n- Spec: 003 Section 10 (Sovereign Voice Integration - Service Account Flow)",
+    "labels": ["sovereign-link", "sprint-sovereign-link-v1"],
+    "milestone": "M3: Sovereign Link Platform Mode",
+    "day": 5,
+    "points": 3,
+    "blocks": ["Implement Sovereign Voice integration API for link creation"],
+    "blocked_by": ["Create service_accounts and reserved_codes tables in brickos schema"]
+  },
+  {
+    "title": "Implement per-org namespace resolution in redirect handler",
+    "body": "## Description\n\nUpdate the redirect handler to support org-prefixed namespaces. Single-segment paths resolve in the BrickOS org (root namespace). Two-segment paths (org-slug/code) resolve within the specified org. Also enforce reserved codes.\n\n## Acceptance Criteria\n\n- [ ] GET /r/{code} resolves in BrickOS root namespace\n- [ ] GET /r/{org-slug}/{code} resolves within the specified org\n- [ ] Reserved codes return appropriate page (not 404)\n- [ ] Legacy 10-char auto-codes (sha...) resolve via fast path\n- [ ] Org slug validated against organizations table\n- [ ] Unknown org slug returns 404\n- [ ] Code unique within org, not globally (org_code unique constraint)\n- [ ] Click recorded with org_id context\n- [ ] Org-scoped link queries: list links WHERE owner_org_id = current_org\n\n## Technical Notes\n\n- Split path by '/' to determine single vs two-segment\n- Index: short_links(owner_org_id, code) for org-scoped lookups\n- Drop global unique constraint on code, add org+code unique constraint\n- reserved_codes table checked before link lookup\n\n## References\n\n- Spec: 003 Section 4 (Per-Org Namespaces, Redirect Handler Logic)\n- Spec: 003 Section 5 (Reserved Short URL Codes)",
+    "labels": ["sovereign-link", "sprint-sovereign-link-v1"],
+    "milestone": "M3: Sovereign Link Platform Mode",
+    "day": 5,
+    "points": 3,
+    "blocks": [],
+    "blocked_by": ["Create service_accounts and reserved_codes tables in brickos schema"]
+  },
+  {
+    "title": "Implement platform and org-level reporting endpoints",
+    "body": "## Description\n\nBuild the reporting endpoints for three levels: platform dashboard (all orgs), org dashboard (single org), and user dashboard (personal stats). Platform admin sees cross-org aggregation. Org admin sees org-scoped metrics.\n\n## Acceptance Criteria\n\n- [ ] GET /api/v1/admin/stats - platform-wide stats (platform_admin only): total orgs, links, clicks, conversions, revenue by org\n- [ ] GET /api/v1/admin/stats/orgs/{org_id} - single org detail stats\n- [ ] GET /api/v1/orgs/{org_id}/stats - org-level stats (org_admin+): links, clicks, conversions, top affiliates\n- [ ] GET /api/v1/orgs/{org_id}/members/{user_id}/stats - member stats within org\n- [ ] GET /api/v1/me/stats - personal stats across all orgs\n- [ ] All stats endpoints support date range filtering (?from=&to=)\n- [ ] Response includes: link count, click count, daily breakdown, top referrers\n- [ ] Cross-org analytics leakage prevented: WHERE org_id enforced at all levels\n- [ ] Service accounts can query stats within their scoped permissions\n\n## Technical Notes\n\n- Platform stats aggregate across all orgs with GROUP BY org_id\n- Org stats filter by owner_org_id\n- User stats filter by created_by user_id within org\n- Use materialized views or denormalized counters for performance if needed\n\n## References\n\n- Spec: 003 Section 8 (Reporting Hierarchy - Level 0, 1, 2)",
+    "labels": ["sovereign-link", "sprint-sovereign-link-v1"],
+    "milestone": "M3: Sovereign Link Platform Mode",
+    "day": 5,
+    "points": 2,
+    "blocks": [],
+    "blocked_by": ["Create service_accounts and reserved_codes tables in brickos schema"]
+  },
+  {
+    "title": "Implement Sovereign Voice integration API for link creation",
+    "body": "## Description\n\nBuild the service-to-service API endpoint that Sovereign Voice uses to create short links before publishing NOSTR notes. The endpoint authenticates via service account API key, creates links scoped to the BrickOS org, and returns the short URL.\n\n## Acceptance Criteria\n\n- [ ] POST /api/v1/service/links - create link as service account\n- [ ] Request body: target_url, org_id, code (optional), source_app, tags\n- [ ] Response: { short_url, link_id, code }\n- [ ] Authenticated via service account API key (Bearer token)\n- [ ] Scopes required: links:create\n- [ ] Rate limited per service account (rate_limit_daily)\n- [ ] GET /api/v1/service/links/{code}/stats - query link stats as service account\n- [ ] Scopes required: links:stats\n- [ ] source_app field recorded for cross-app attribution\n- [ ] Audit log entry for each service account link creation\n\n## Technical Notes\n\n- Sovereign Voice flow: read API key from systemd credential, POST to this endpoint, replace URL in NOSTR note, publish\n- Links created by service accounts are owned by the org, not a user\n- source_app enables filtering: \"show me all links created by Sovereign Voice\"\n- Same short_links table, just with service account as creator\n\n## References\n\n- Spec: 003 Section 10 (Sovereign Voice Integration - Service Account Flow)",
+    "labels": ["sovereign-link", "sprint-sovereign-link-v1"],
+    "milestone": "M3: Sovereign Link Platform Mode",
+    "day": 5,
+    "points": 2,
+    "blocks": [],
+    "blocked_by": ["Implement service account API and authentication"]
+  },
+  {
+    "title": "Implement DB consistency check queries for platform schema",
+    "body": "## Description\n\nBuild the consistency check queries that validate platform data integrity: every user has exactly one personal org, every personal org has exactly one member, no orphan links. Expose as a health check endpoint and document for nightly monitoring.\n\n## Acceptance Criteria\n\n- [ ] Query: every user has exactly one personal org (returns 0 rows if consistent)\n- [ ] Query: every personal org has exactly one member (the owner)\n- [ ] Query: no orphan links (every link has a valid org)\n- [ ] Query: no users without personal org\n- [ ] GET /api/v1/admin/health/consistency - returns check results (platform_admin only)\n- [ ] Response format: { orphan_users: 0, users_without_personal_org: 0, links_without_org: 0 }\n- [ ] Checks can run as standalone SQL script for nightly cron\n- [ ] Alert/warning if any check returns non-zero\n\n## Technical Notes\n\n- Queries use brickos schema-qualified table names\n- LEFT JOIN pattern to find orphans\n- GROUP BY + HAVING COUNT != 1 for cardinality checks\n- Consider running as part of /health endpoint (lightweight) or separate admin endpoint (full check)\n\n## References\n\n- Spec: 003 Section 9 (DB Consistency - Consistency Checks)\n- Spec: 004 Section 12 (Platform Health Monitoring)",
+    "labels": ["sovereign-link", "sprint-sovereign-link-v1"],
+    "milestone": "M3: Sovereign Link Platform Mode",
+    "day": 5,
+    "points": 1,
+    "blocks": [],
+    "blocked_by": ["Create brickos PostgreSQL schema and move platform tables"]
+  }
+]

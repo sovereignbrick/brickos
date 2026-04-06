@@ -1,7 +1,7 @@
 {
-  "name": "@brickos/nostr-scheduler",
+  "name": "@brickos/sovereign-voice",
   "version": "0.1.0",
-  "description": "Schedule and publish NOSTR notes (kind 1 and NIP-23 long-form) on a cron schedule",
+  "description": "Sovereign Voice - NOSTR content management, scheduling, and community growth tool",
   "type": "module",
   "bin": {
     "nostr-schedule": "./dist/index.js"
@@ -25,5 +25,5 @@
   "engines": {
     "node": ">=20.0.0"
   },
-  "license": "MIT"
+  "license": "AGPL-3.0"
 }

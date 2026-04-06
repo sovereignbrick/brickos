@@ -37,12 +37,13 @@
 
 *"Can I communicate without surveillance?"*
 
-The Attention pillar covers sovereign communication -- encrypted messaging, group coordination, and information flow without surveillance or censorship.
+The Attention pillar covers sovereign communication, content management, and audience growth - all without surveillance or censorship.
 
 ## Apps
 
 | App | Status | Description |
 |-----|--------|-------------|
+| **Sovereign Voice** | v0.1 (Shipped) | NOSTR content scheduling, publishing, and community growth. Self-hosted on VPS, systemd daemon. |
 | **Sovereign Signal** | Planned | NOSTR DMs (NIP-17), group chats (NIP-29), BitChat mesh fallback, dead man's switch, family safety |
 
 See [docs/design/001-sovereign-stack-vision.md](../../docs/design/001-sovereign-stack-vision.md) for the full design.
