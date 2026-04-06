@@ -7,7 +7,7 @@ license = "AGPL-3.0"
 
 [features]
 default = ["platform"]
-standalone = ["rusqlite", "r2d2", "dep:argon2", "dep:jsonwebtoken", "dep:tracing-subscriber", "dep:secp256k1", "dep:askama"]
+standalone = ["rusqlite", "r2d2", "dep:argon2", "dep:jsonwebtoken", "dep:tracing-subscriber", "dep:secp256k1", "dep:askama", "dep:toml"]
 platform = []
 
 [dependencies]
@@ -35,3 +35,4 @@ jsonwebtoken = { workspace = true, optional = true }
 tracing-subscriber = { workspace = true, optional = true }
 secp256k1 = { version = "0.30", optional = true, features = ["global-context"] }
 askama = { version = "0.12", optional = true }
+toml = { version = "0.8", optional = true }

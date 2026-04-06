@@ -10,3 +10,5 @@ pub mod jwt;
 pub mod nostr;
 #[cfg(feature = "standalone")]
 pub mod provider;
+#[cfg(feature = "standalone")]
+pub mod middleware;

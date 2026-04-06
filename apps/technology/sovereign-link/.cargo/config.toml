@@ -1,0 +1,12 @@
+# Cross-compilation targets for static binary releases
+# Usage: cargo build --target x86_64-unknown-linux-musl --features standalone --release
+
+[target.x86_64-unknown-linux-musl]
+# Uses musl-gcc from musl-tools package
+# Install: sudo apt install musl-tools
+linker = "musl-gcc"
+
+[target.aarch64-unknown-linux-musl]
+# For ARM64 (Raspberry Pi, Apple Silicon Linux VMs)
+# Install: sudo apt install gcc-aarch64-linux-gnu musl-tools
+linker = "aarch64-linux-gnu-gcc"

@@ -102,9 +102,10 @@ pub fn configure_standalone_routes(cfg: &mut web::ServiceConfig) {
         web::scope("/r").route("/{code}", web::get().to(handlers::redirect::handle_request)),
     );
 
-    // Links API
+    // Links API (protected by JWT/API key middleware)
     cfg.service(
         web::scope("/api/v1/links")
+            .wrap(auth::middleware::ApiAuth)
             .route("", web::get().to(handlers::api::list_links))
             .route("", web::post().to(handlers::api::create_link))
             .route("/{id}", web::put().to(handlers::api::update_link))
