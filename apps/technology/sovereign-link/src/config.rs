@@ -51,8 +51,12 @@ impl StandaloneConfig {
             .parse()
             .unwrap_or(true);
 
-        let admin_email = std::env::var("SOVEREIGN_LINK_ADMIN_EMAIL").ok().filter(|s| !s.is_empty());
-        let admin_password = std::env::var("SOVEREIGN_LINK_ADMIN_PASSWORD").ok().filter(|s| !s.is_empty());
+        let admin_email = std::env::var("SOVEREIGN_LINK_ADMIN_EMAIL")
+            .ok()
+            .filter(|s| !s.is_empty());
+        let admin_password = std::env::var("SOVEREIGN_LINK_ADMIN_PASSWORD")
+            .ok()
+            .filter(|s| !s.is_empty());
 
         let nostr_enabled = env_or("SOVEREIGN_LINK_NOSTR_ENABLED", "true")
             .parse()

@@ -26,21 +26,17 @@ mod standalone {
         );
 
         // Initialize SQLite
-        let store =
-            SqliteStore::open(&config.db_path).expect("Failed to open SQLite database");
+        let store = SqliteStore::open(&config.db_path).expect("Failed to open SQLite database");
         let store = Arc::new(store);
 
         // Seed admin user if configured and no users exist
         if let (Some(ref admin_email), Some(ref admin_password)) =
             (&config.admin_email, &config.admin_password)
         {
-            let user_count = store
-                .count()
-                .await
-                .expect("Failed to count users");
+            let user_count = store.count().await.expect("Failed to count users");
             if user_count == 0 {
-                let password_hash = email::hash_password(admin_password)
-                    .expect("Failed to hash admin password");
+                let password_hash =
+                    email::hash_password(admin_password).expect("Failed to hash admin password");
                 let admin = store
                     .create(NewUser {
                         email: Some(admin_email.clone()),
@@ -50,7 +46,11 @@ mod standalone {
                     })
                     .await
                     .expect("Failed to create admin user");
-                tracing::info!("Created admin user: {} (is_admin={})", admin_email, admin.is_admin);
+                tracing::info!(
+                    "Created admin user: {} (is_admin={})",
+                    admin_email,
+                    admin.is_admin
+                );
             }
         }
 
@@ -65,7 +65,9 @@ mod standalone {
                 .app_data(web::Data::new(config.clone()))
                 .route(
                     "/health",
-                    web::get().to(|| async { HttpResponse::Ok().json(serde_json::json!({"status": "ok"})) }),
+                    web::get().to(|| async {
+                        HttpResponse::Ok().json(serde_json::json!({"status": "ok"}))
+                    }),
                 )
                 .configure(sovereign_link::configure_standalone_routes)
         })

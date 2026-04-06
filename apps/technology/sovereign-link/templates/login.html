@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Login - Sovereign Link{% endblock %}
+{% block head %}
+<script>
+async function nostrLogin() {
+  var status = document.getElementById('nostr-status');
+  if (!window.nostr) {
+    status.textContent = 'No NOSTR extension detected. Install nos2x or Alby.';
+    status.className = 'text-danger mt-2';
+    return;
+  }
+  status.textContent = 'Signing with NOSTR...';
+  try {
+    var event = {
+      kind: 27235,
+      created_at: Math.floor(Date.now() / 1000),
+      tags: [['u', window.location.origin + '/auth/nostr'], ['method', 'POST']],
+      content: '',
+    };
+    var signed = await window.nostr.signEvent(event);
+    var res = await fetch('/auth/nostr', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({event: signed}),
+    });
+    var data = await res.json();
+    if (data.token) {
+      document.cookie = 'auth_token=' + data.token + '; path=/; SameSite=Strict';
+      window.location.href = '/dashboard';
+    } else {
+      status.textContent = data.error || 'Login failed';
+      status.className = 'text-danger mt-2';
+    }
+  } catch(e) {
+    status.textContent = 'Error: ' + e.message;
+    status.className = 'text-danger mt-2';
+  }
+}
+</script>
+{% endblock %}
+{% block body %}
+<div class="container" style="max-width:400px;margin-top:10vh">
+  <h1 style="text-align:center;margin-bottom:2rem">Sovereign Link</h1>
+
+  <div class="card">
+    <div style="display:flex;gap:1rem;margin-bottom:1.5rem">
+      <button class="btn-primary" onclick="document.getElementById('email-form').style.display='block';document.getElementById('nostr-form').style.display='none'" style="flex:1">Email</button>
+      <button class="btn-secondary" onclick="document.getElementById('email-form').style.display='none';document.getElementById('nostr-form').style.display='block'" style="flex:1">NOSTR</button>
+    </div>
+
+    <div id="email-form">
+      <form method="POST" action="/auth/login/form">
+        <label class="text-muted mb-1" style="display:block">Email</label>
+        <input type="email" name="email" required>
+        <label class="text-muted mb-1" style="display:block">Password</label>
+        <input type="password" name="password" required>
+        {% if error.is_some() %}
+        <p class="text-danger mb-2">Invalid email or password.</p>
+        {% endif %}
+        <button type="submit" class="btn-primary" style="width:100%">Sign In</button>
+      </form>
+      <p class="text-muted mt-2" style="text-align:center">
+        <a href="/register">Create account</a>
+      </p>
+    </div>
+
+    <div id="nostr-form" style="display:none;text-align:center">
+      <p class="text-muted mb-2">Sign in with your NOSTR key</p>
+      <button onclick="nostrLogin()" class="btn-primary" style="width:100%;padding:0.8rem">
+        Login with NOSTR
+      </button>
+      <p id="nostr-status" class="text-muted mt-2"></p>
+    </div>
+  </div>
+</div>
+{% endblock %}

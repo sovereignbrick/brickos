@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}Sovereign Link{% endblock %}</title>
+<style>
+:root{--bk-bg:#09090b;--bk-fg:#fafafa;--bk-muted:#a1a1aa;--bk-border:#27272a;--bk-card:#18181b;--bk-accent:#3b82f6;--bk-success:#22c55e;--bk-danger:#ef4444;--bk-radius:0.625rem;--bk-font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--bk-font);background:var(--bk-bg);color:var(--bk-fg);min-height:100vh}
+a{color:var(--bk-accent);text-decoration:none}
+.container{max-width:800px;margin:0 auto;padding:2rem 1rem}
+.card{background:var(--bk-card);border:1px solid var(--bk-border);border-radius:var(--bk-radius);padding:1.5rem}
+input,button{font-family:inherit;font-size:1rem}
+input[type="text"],input[type="email"],input[type="password"],input[type="url"]{width:100%;padding:0.6rem 0.8rem;background:var(--bk-bg);color:var(--bk-fg);border:1px solid var(--bk-border);border-radius:var(--bk-radius);margin-bottom:1rem}
+input:focus{outline:none;border-color:var(--bk-accent)}
+button{padding:0.6rem 1.2rem;border:none;border-radius:var(--bk-radius);cursor:pointer;font-weight:600}
+.btn-primary{background:var(--bk-accent);color:#fff}
+.btn-primary:hover{opacity:0.9}
+.btn-secondary{background:var(--bk-border);color:var(--bk-fg)}
+.text-muted{color:var(--bk-muted);font-size:0.875rem}
+.text-danger{color:var(--bk-danger)}
+.mb-1{margin-bottom:0.5rem}.mb-2{margin-bottom:1rem}.mt-2{margin-top:1rem}
+nav{border-bottom:1px solid var(--bk-border);padding:0.75rem 1rem;display:flex;justify-content:space-between;align-items:center}
+nav .brand{font-weight:700;font-size:1.1rem}
+nav .links a{margin-left:1rem;color:var(--bk-muted);font-size:0.9rem}
+nav .links a:hover{color:var(--bk-fg)}
+</style>
+{% block head %}{% endblock %}
+</head>
+<body>
+{% block body %}{% endblock %}
+</body>
+</html>

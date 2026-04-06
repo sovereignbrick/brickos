@@ -28,22 +28,41 @@ pub fn configure_routes(cfg: &mut web::ServiceConfig) {
     );
 }
 
-/// Mount all routes for standalone mode (includes auth endpoints).
+/// Mount all routes for standalone mode (includes auth endpoints + web UI).
 #[cfg(feature = "standalone")]
 pub fn configure_standalone_routes(cfg: &mut web::ServiceConfig) {
-    // Auth endpoints
+    // Web UI pages
+    cfg.route("/", web::get().to(handlers::web::home_page))
+        .route("/login", web::get().to(handlers::web::login_page))
+        .route("/register", web::get().to(handlers::web::register_page))
+        .route("/dashboard", web::get().to(handlers::web::dashboard_page));
+
+    // Auth endpoints (JSON API)
     cfg.service(
         web::scope("/auth")
             .route("/register", web::post().to(auth::handlers::register))
             .route("/login", web::post().to(auth::handlers::login))
-            .route("/refresh", web::post().to(auth::handlers::refresh)),
+            .route("/login/form", web::post().to(auth::handlers::login_form))
+            .route(
+                "/register/form",
+                web::post().to(auth::handlers::register_form),
+            )
+            .route("/refresh", web::post().to(auth::handlers::refresh))
+            .route("/nostr", web::post().to(auth::handlers::nostr_login)),
     );
+
+    // User API
+    cfg.service(web::scope("/api/v1/me").route(
+        "/api-key",
+        web::post().to(auth::handlers::generate_user_api_key),
+    ));
+
     // Redirect at top level: /{code}
     cfg.service(
-        web::scope("/r")
-            .route("/{code}", web::get().to(handlers::redirect::handle_request)),
+        web::scope("/r").route("/{code}", web::get().to(handlers::redirect::handle_request)),
     );
-    // API
+
+    // Links API
     cfg.service(
         web::scope("/api/v1/links")
             .route("", web::get().to(handlers::api::list_links))

@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Dashboard - Sovereign Link{% endblock %}
+{% block body %}
+<nav>
+  <span class="brand">Sovereign Link</span>
+  <span class="links">
+    <a href="/dashboard">Dashboard</a>
+    <a href="#" onclick="document.cookie='auth_token=; Path=/; Max-Age=0'; window.location.href='/login';">Logout</a>
+  </span>
+</nav>
+<div class="container">
+  <h2 style="margin-bottom:1.5rem">Dashboard</h2>
+
+  <div class="card mb-2">
+    <h3 style="margin-bottom:1rem">Your Links</h3>
+    <p class="text-muted">No links yet. Use the API to create short links, or check back when the link management UI is ready.</p>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-bottom:1rem">API Access</h3>
+    <p class="text-muted mb-2">Generate an API key to use the Sovereign Link API programmatically.</p>
+    <button class="btn-primary" onclick="generateApiKey()">Generate API Key</button>
+    <pre id="api-key-output" style="margin-top:1rem;padding:0.75rem;background:var(--bk-bg);border:1px solid var(--bk-border);border-radius:var(--bk-radius);display:none;word-break:break-all;color:var(--bk-success)"></pre>
+  </div>
+</div>
+<script>
+async function generateApiKey() {
+  var token = getCookie('auth_token');
+  if (!token) { window.location.href = '/login'; return; }
+  try {
+    var res = await fetch('/api/v1/me/api-key', {
+      method: 'POST',
+      headers: {'Authorization': 'Bearer ' + token},
+    });
+    var data = await res.json();
+    var el = document.getElementById('api-key-output');
+    if (data.api_key) {
+      el.textContent = data.api_key;
+      el.style.display = 'block';
+    } else {
+      el.textContent = data.error || 'Failed to generate key';
+      el.style.display = 'block';
+      el.style.color = 'var(--bk-danger)';
+    }
+  } catch(e) {
+    alert('Error: ' + e.message);
+  }
+}
+function getCookie(name) {
+  var m = document.cookie.match('(^|;)\\s*' + name + '=([^;]*)');
+  return m ? m[2] : null;
+}
+</script>
+{% endblock %}

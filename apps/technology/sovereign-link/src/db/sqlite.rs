@@ -108,7 +108,12 @@ impl LinkStore for SqliteStore {
             conn.execute(
                 "INSERT INTO clicks (link_id, visitor_hash, referrer_domain, country_code)
                  VALUES (?1, ?2, ?3, ?4)",
-                params![link_id_str, meta.visitor_hash, meta.referrer_domain, meta.country_code],
+                params![
+                    link_id_str,
+                    meta.visitor_hash,
+                    meta.referrer_domain,
+                    meta.country_code
+                ],
             )?;
             // Update denormalized click count
             conn.execute(
@@ -130,20 +135,34 @@ impl LinkStore for SqliteStore {
             let conn = pool.get()?;
             let id = Uuid::new_v4().to_string();
             let code = req.code.unwrap_or_else(generate_short_code);
-            let user_id = owner_user_id
-                .map(|u| u.to_string())
-                .unwrap_or_default();
+            let user_id = owner_user_id.map(|u| u.to_string()).unwrap_or_default();
             let expires_at = req.expires_at.map(|dt| dt.to_rfc3339());
             let now = chrono::Utc::now().to_rfc3339();
 
             conn.execute(
                 "INSERT INTO links (id, user_id, code, target_url, title, expires_at, created_at)
                  VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
-                params![id, user_id, code, req.target_url, req.title, expires_at, now],
+                params![
+                    id,
+                    user_id,
+                    code,
+                    req.target_url,
+                    req.title,
+                    expires_at,
+                    now
+                ],
             )?;
 
             // Build a ShortLink to return
-            Ok(make_short_link(&id, &code, &req.target_url, req.title.as_deref(), owner_user_id, expires_at.as_deref(), &now))
+            Ok(make_short_link(
+                &id,
+                &code,
+                &req.target_url,
+                req.title.as_deref(),
+                owner_user_id,
+                expires_at.as_deref(),
+                &now,
+            ))
         })
         .await?
     }
@@ -433,14 +452,11 @@ impl UserStore for SqliteStore {
                 return get_user_by_id(&conn, &id);
             }
 
-            let sql = format!(
-                "UPDATE users SET {} WHERE id = ?{}",
-                sets.join(", "),
-                idx
-            );
+            let sql = format!("UPDATE users SET {} WHERE id = ?{}", sets.join(", "), idx);
             values.push(Box::new(id.clone()));
 
-            let params_ref: Vec<&dyn rusqlite::types::ToSql> = values.iter().map(|v| v.as_ref()).collect();
+            let params_ref: Vec<&dyn rusqlite::types::ToSql> =
+                values.iter().map(|v| v.as_ref()).collect();
             let affected = conn.execute(&sql, params_ref.as_slice())?;
 
             if affected == 0 {
@@ -500,7 +516,9 @@ fn get_user_by_id(conn: &rusqlite::Connection, id: &str) -> anyhow::Result<Optio
         "SELECT id, email, password_hash, nostr_pubkey, display_name, api_key_hash, is_admin, created_at
          FROM users WHERE id = ?1",
     )?;
-    Ok(stmt.query_row(params![id], |row| Ok(row_to_user(row))).optional()?)
+    Ok(stmt
+        .query_row(params![id], |row| Ok(row_to_user(row)))
+        .optional()?)
 }
 
 fn row_to_short_link(row: &rusqlite::Row<'_>) -> ShortLink {
@@ -522,7 +540,11 @@ fn row_to_short_link(row: &rusqlite::Row<'_>) -> ShortLink {
         owner_org_id: None,
         affiliate_code: None,
         is_active: is_active != 0,
-        expires_at: expires_at_str.and_then(|s| chrono::DateTime::parse_from_rfc3339(&s).ok().map(|dt| dt.with_timezone(&chrono::Utc))),
+        expires_at: expires_at_str.and_then(|s| {
+            chrono::DateTime::parse_from_rfc3339(&s)
+                .ok()
+                .map(|dt| dt.with_timezone(&chrono::Utc))
+        }),
         created_at: chrono::DateTime::parse_from_rfc3339(&created_at_str)
             .map(|dt| dt.with_timezone(&chrono::Utc))
             .unwrap_or_else(|_| chrono::Utc::now()),
@@ -557,7 +579,11 @@ fn make_short_link(
         owner_org_id: None,
         affiliate_code: None,
         is_active: true,
-        expires_at: expires_at.and_then(|s| chrono::DateTime::parse_from_rfc3339(s).ok().map(|dt| dt.with_timezone(&chrono::Utc))),
+        expires_at: expires_at.and_then(|s| {
+            chrono::DateTime::parse_from_rfc3339(s)
+                .ok()
+                .map(|dt| dt.with_timezone(&chrono::Utc))
+        }),
         created_at: now,
         updated_at: now,
     }

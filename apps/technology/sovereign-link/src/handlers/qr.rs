@@ -31,10 +31,7 @@ pub async fn handle_qr_inner(
 
 /// Inner QR handler -- standalone mode (no PgPool)
 #[cfg(feature = "standalone")]
-pub async fn handle_qr_inner(
-    code: &str,
-    store: &web::Data<Arc<dyn LinkStore>>,
-) -> HttpResponse {
+pub async fn handle_qr_inner(code: &str, store: &web::Data<Arc<dyn LinkStore>>) -> HttpResponse {
     let short_url = format!("https://brickos.io/r/{}", code);
     let exists = store.get_by_code(code).await.ok().flatten().is_some();
     render_qr_response(exists, &short_url)

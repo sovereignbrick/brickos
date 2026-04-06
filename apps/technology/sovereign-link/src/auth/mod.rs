@@ -1,6 +1,12 @@
 #[cfg(feature = "standalone")]
+pub mod api_key;
+#[cfg(feature = "standalone")]
 pub mod email;
+#[cfg(feature = "standalone")]
+pub mod handlers;
 #[cfg(feature = "standalone")]
 pub mod jwt;
 #[cfg(feature = "standalone")]
-pub mod handlers;
+pub mod nostr;
+#[cfg(feature = "standalone")]
+pub mod provider;

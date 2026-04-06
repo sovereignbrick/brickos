@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Register - Sovereign Link{% endblock %}
+{% block body %}
+<div class="container" style="max-width:400px;margin-top:10vh">
+  <h1 style="text-align:center;margin-bottom:2rem">Create Account</h1>
+
+  <div class="card">
+    <form method="POST" action="/auth/register/form">
+      <label class="text-muted mb-1" style="display:block">Display Name (optional)</label>
+      <input type="text" name="display_name">
+      <label class="text-muted mb-1" style="display:block">Email</label>
+      <input type="email" name="email" required>
+      <label class="text-muted mb-1" style="display:block">Password (min 8 characters)</label>
+      <input type="password" name="password" required minlength="8">
+      {% if error.is_some() %}
+      <p class="text-danger mb-2">{{ error.as_deref().unwrap_or("Registration failed.") }}</p>
+      {% endif %}
+      <button type="submit" class="btn-primary" style="width:100%">Create Account</button>
+    </form>
+    <p class="text-muted mt-2" style="text-align:center">
+      Already have an account? <a href="/login">Sign in</a>
+    </p>
+  </div>
+</div>
+{% endblock %}
