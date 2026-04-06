@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+{% block title %}Settings - Sovereign Link{% endblock %}
+{% block head %}
+<style>
+.alert-success{background:rgba(34,197,94,0.1);border:1px solid var(--bk-success);border-radius:var(--bk-radius);padding:0.75rem 1rem;margin-bottom:1rem;color:var(--bk-success)}
+.alert-error{background:rgba(239,68,68,0.1);border:1px solid var(--bk-danger);border-radius:var(--bk-radius);padding:0.75rem 1rem;margin-bottom:1rem;color:var(--bk-danger)}
+.section-title{font-size:1.1rem;font-weight:600;margin-bottom:1rem}
+.info-row{display:flex;justify-content:space-between;align-items:center;padding:0.5rem 0;border-bottom:1px solid var(--bk-border)}
+.info-label{color:var(--bk-muted);font-size:0.85rem}
+.info-value{font-size:0.95rem}
+</style>
+{% endblock %}
+{% block body %}
+<nav>
+  <span class="brand">Sovereign Link</span>
+  <span class="links">
+    <a href="/dashboard">Dashboard</a>
+    <a href="/new">New Link</a>
+    <a href="/settings" style="color:var(--bk-fg)">Settings</a>
+    <span style="color:var(--bk-muted);margin-left:0.5rem">{{ user.display_name.as_deref().unwrap_or(user.email.as_deref().unwrap_or("User")) }}</span>
+    <form method="POST" action="/logout" style="display:inline"><button type="submit" style="background:none;border:none;color:var(--bk-muted);cursor:pointer;font-size:0.9rem;padding:0;margin-left:0.5rem">Logout</button></form>
+  </span>
+</nav>
+<div class="container">
+  <h2 style="margin-bottom:1.5rem">Settings</h2>
+
+  {% if success.is_some() %}
+  <div class="alert-success">{{ success.as_deref().unwrap_or("") }}</div>
+  {% endif %}
+  {% if error.is_some() %}
+  <div class="alert-error">{{ error.as_deref().unwrap_or("") }}</div>
+  {% endif %}
+
+  <!-- Account Info -->
+  <div class="card mb-2">
+    <div class="section-title">Account</div>
+    <div class="info-row">
+      <span class="info-label">User ID</span>
+      <span class="info-value" style="font-family:monospace;font-size:0.8rem">{{ user.id }}</span>
+    </div>
+    {% if user.email.is_some() %}
+    <div class="info-row">
+      <span class="info-label">Email</span>
+      <span class="info-value">{{ user.email.as_deref().unwrap_or("") }}</span>
+    </div>
+    {% endif %}
+    {% if user.nostr_pubkey.is_some() %}
+    <div class="info-row">
+      <span class="info-label">NOSTR Public Key</span>
+      <span class="info-value" style="font-family:monospace;font-size:0.8rem">{{ user.nostr_pubkey.as_deref().unwrap_or("") }}</span>
+    </div>
+    {% else %}
+    <div class="info-row">
+      <span class="info-label">NOSTR Public Key</span>
+      <span class="info-value text-muted">Not linked</span>
+    </div>
+    {% endif %}
+    <div class="info-row">
+      <span class="info-label">API Key</span>
+      <span class="info-value">{% if user.api_key_hash.is_some() %}<span style="color:var(--bk-success)">Active</span>{% else %}<span class="text-muted">Not generated</span>{% endif %}</span>
+    </div>
+    <div class="info-row" style="border-bottom:none">
+      <span class="info-label">Admin</span>
+      <span class="info-value">{% if user.is_admin %}Yes{% else %}No{% endif %}</span>
+    </div>
+  </div>
+
+  <!-- Display Name -->
+  <div class="card mb-2">
+    <div class="section-title">Display Name</div>
+    <form method="POST" action="/settings/profile">
+      <input type="text" name="display_name" value="{{ user.display_name.as_deref().unwrap_or("") }}" placeholder="Your display name">
+      <button type="submit" class="btn-primary">Update Name</button>
+    </form>
+  </div>
+
+  <!-- Change Password -->
+  {% if user.email.is_some() %}
+  <div class="card mb-2">
+    <div class="section-title">Change Password</div>
+    <form method="POST" action="/settings/password">
+      <label class="text-muted mb-1" style="display:block">New Password</label>
+      <input type="password" name="new_password" required minlength="8" placeholder="Min 8 characters">
+      <label class="text-muted mb-1" style="display:block">Confirm Password</label>
+      <input type="password" name="confirm_password" required minlength="8" placeholder="Repeat password">
+      <button type="submit" class="btn-primary">Change Password</button>
+    </form>
+  </div>
+  {% endif %}
+
+  <!-- API Key -->
+  <div class="card mb-2">
+    <div class="section-title">API Key</div>
+    <p class="text-muted mb-2">Generate an API key to use Sovereign Link programmatically. The key is shown once -- store it securely.</p>
+    <button class="btn-primary" onclick="generateApiKey()">Generate New API Key</button>
+    <pre id="api-key-output" style="margin-top:1rem;padding:0.75rem;background:var(--bk-bg);border:1px solid var(--bk-border);border-radius:var(--bk-radius);display:none;word-break:break-all;color:var(--bk-success)"></pre>
+  </div>
+
+  <!-- Logout -->
+  <div class="card">
+    <form method="POST" action="/logout">
+      <button type="submit" class="btn-secondary" style="width:100%">Logout</button>
+    </form>
+  </div>
+</div>
+<script>
+async function generateApiKey() {
+  var token = getCookie('auth_token');
+  if (!token) { window.location.href = '/login'; return; }
+  try {
+    var res = await fetch('/api/v1/me/api-key', {
+      method: 'POST',
+      headers: {'Authorization': 'Bearer ' + token},
+    });
+    var data = await res.json();
+    var el = document.getElementById('api-key-output');
+    if (data.api_key) {
+      el.textContent = data.api_key;
+      el.style.display = 'block';
+      el.style.color = 'var(--bk-success)';
+    } else {
+      el.textContent = data.error || 'Failed to generate key';
+      el.style.display = 'block';
+      el.style.color = 'var(--bk-danger)';
+    }
+  } catch(e) {
+    alert('Error: ' + e.message);
+  }
+}
+function getCookie(name) {
+  var m = document.cookie.match('(^|;)\\s*' + name + '=([^;]*)');
+  return m ? m[2] : null;
+}
+</script>
+{% endblock %}

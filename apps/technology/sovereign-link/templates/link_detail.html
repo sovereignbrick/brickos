@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+{% block title %}{{ link.code }} - Sovereign Link{% endblock %}
+{% block head %}
+<style>
+.short-url-box{background:var(--bk-bg);border:1px solid var(--bk-border);border-radius:var(--bk-radius);padding:1rem;display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem}
+.short-url-text{font-family:monospace;font-size:1.1rem;color:var(--bk-accent);font-weight:600;word-break:break-all}
+.copy-btn{background:var(--bk-accent);color:#fff;border:none;border-radius:var(--bk-radius);padding:0.4rem 0.8rem;cursor:pointer;font-size:0.85rem;white-space:nowrap;margin-left:1rem}
+.copy-btn:hover{opacity:0.9}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem}
+.detail-item label{display:block;color:var(--bk-muted);font-size:0.8rem;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.25rem}
+.detail-item .value{font-size:1rem;color:var(--bk-fg)}
+.qr-section{text-align:center;margin-bottom:1.5rem}
+.qr-section img,.qr-section object{background:#fff;border-radius:var(--bk-radius);padding:0.5rem}
+.click-table{width:100%;border-collapse:collapse;margin-top:1rem}
+.click-table th,.click-table td{padding:0.5rem;text-align:left;border-bottom:1px solid var(--bk-border);font-size:0.9rem}
+.click-table th{color:var(--bk-muted);font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em}
+.section-title{font-size:1.1rem;font-weight:600;margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between}
+.alert-success{background:rgba(34,197,94,0.1);border:1px solid var(--bk-success);border-radius:var(--bk-radius);padding:0.75rem 1rem;margin-bottom:1rem;color:var(--bk-success)}
+.alert-error{background:rgba(239,68,68,0.1);border:1px solid var(--bk-danger);border-radius:var(--bk-radius);padding:0.75rem 1rem;margin-bottom:1rem;color:var(--bk-danger)}
+.copied-toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);background:var(--bk-success);color:#fff;padding:0.5rem 1.25rem;border-radius:var(--bk-radius);font-size:0.9rem;opacity:0;transition:opacity 0.3s;pointer-events:none;z-index:100}
+.copied-toast.show{opacity:1}
+</style>
+{% endblock %}
+{% block body %}
+<nav>
+  <span class="brand">Sovereign Link</span>
+  <span class="links">
+    <a href="/dashboard">Dashboard</a>
+    <a href="/new">New Link</a>
+    <a href="/settings">Settings</a>
+    <span style="color:var(--bk-muted);margin-left:0.5rem">{{ user.display_name.as_deref().unwrap_or(user.email.as_deref().unwrap_or("User")) }}</span>
+    <form method="POST" action="/logout" style="display:inline"><button type="submit" style="background:none;border:none;color:var(--bk-muted);cursor:pointer;font-size:0.9rem;padding:0;margin-left:0.5rem">Logout</button></form>
+  </span>
+</nav>
+<div class="container" style="max-width:960px">
+  <p class="text-muted mb-2"><a href="/dashboard">&larr; Back to Dashboard</a></p>
+
+  {% if success.is_some() %}
+  <div class="alert-success">{{ success.as_deref().unwrap_or("") }}</div>
+  {% endif %}
+  {% if error.is_some() %}
+  <div class="alert-error">{{ error.as_deref().unwrap_or("") }}</div>
+  {% endif %}
+
+  <h2 style="margin-bottom:1rem">{% if link.title.is_some() %}{{ link.title.as_deref().unwrap_or("") }}{% else %}{{ link.code }}{% endif %}</h2>
+
+  <div class="short-url-box">
+    <span class="short-url-text" id="short-url">{{ base_url }}/r/{{ link.code }}</span>
+    <button class="copy-btn" onclick="copyUrl()">Copy</button>
+  </div>
+
+  <div class="detail-grid">
+    <div class="detail-item">
+      <label>Code</label>
+      <div class="value" style="font-family:monospace">{{ link.code }}</div>
+    </div>
+    <div class="detail-item">
+      <label>Created</label>
+      <div class="value">{{ link.created_at.format("%Y-%m-%d %H:%M UTC") }}</div>
+    </div>
+    <div class="detail-item">
+      <label>Target URL</label>
+      <div class="value"><a href="{{ link.target_url }}" target="_blank" rel="noopener">{{ link.target_url }}</a></div>
+    </div>
+    <div class="detail-item">
+      <label>Status</label>
+      <div class="value">{% if link.is_active %}<span style="color:var(--bk-success)">Active</span>{% else %}<span style="color:var(--bk-danger)">Inactive</span>{% endif %}</div>
+    </div>
+  </div>
+
+  <!-- QR Code -->
+  <div class="card mb-2">
+    <div class="section-title">QR Code</div>
+    <div class="qr-section">
+      <object data="/r/{{ link.code }}.qr" type="image/svg+xml" width="200" height="200" style="display:inline-block">QR Code</object>
+    </div>
+  </div>
+
+  <!-- Recent Clicks -->
+  <div class="card mb-2">
+    <div class="section-title">Recent Clicks</div>
+    {% if recent_clicks.is_empty() %}
+    <p class="text-muted">No clicks recorded yet.</p>
+    {% else %}
+    <table class="click-table">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Referrer</th>
+          <th>Country</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for click in recent_clicks %}
+        <tr>
+          <td>{{ click.clicked_at.format("%Y-%m-%d %H:%M") }}</td>
+          <td>{{ click.referrer_domain.as_deref().unwrap_or("-") }}</td>
+          <td>{{ click.country_code.as_deref().unwrap_or("-") }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% endif %}
+  </div>
+
+  <!-- Edit Form -->
+  <div class="card mb-2">
+    <div class="section-title">Edit Link</div>
+    <form method="POST" action="/links/{{ link.id }}/edit">
+      <label class="text-muted mb-1" style="display:block">Target URL</label>
+      <input type="url" name="target_url" value="{{ link.target_url }}" required>
+      <label class="text-muted mb-1" style="display:block">Title</label>
+      <input type="text" name="title" value="{{ link.title.as_deref().unwrap_or("") }}">
+      <button type="submit" class="btn-primary">Save Changes</button>
+    </form>
+  </div>
+
+  <!-- Delete -->
+  <div class="card" style="border-color:var(--bk-danger)">
+    <div class="section-title" style="color:var(--bk-danger)">Danger Zone</div>
+    <p class="text-muted mb-2">Permanently delete this link. This action cannot be undone.</p>
+    <form method="POST" action="/links/{{ link.id }}/delete" onsubmit="return confirm('Are you sure you want to delete this link? This cannot be undone.')">
+      <button type="submit" style="background:var(--bk-danger);color:#fff;border:none;border-radius:var(--bk-radius);padding:0.6rem 1.2rem;cursor:pointer;font-weight:600">Delete Link</button>
+    </form>
+  </div>
+</div>
+<div id="copied-toast" class="copied-toast">Copied to clipboard</div>
+<script>
+function copyUrl() {
+  var url = document.getElementById('short-url').textContent;
+  navigator.clipboard.writeText(url).then(function() {
+    var toast = document.getElementById('copied-toast');
+    toast.classList.add('show');
+    setTimeout(function() { toast.classList.remove('show'); }, 2000);
+  });
+}
+</script>
+{% endblock %}

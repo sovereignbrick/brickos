@@ -1,54 +1,97 @@
 {% extends "base.html" %}
 {% block title %}Dashboard - Sovereign Link{% endblock %}
+{% block head %}
+<style>
+.stats-row{display:flex;gap:1rem;margin-bottom:1.5rem}
+.stat-card{flex:1;background:var(--bk-card);border:1px solid var(--bk-border);border-radius:var(--bk-radius);padding:1.25rem;text-align:center}
+.stat-value{font-size:2rem;font-weight:700;color:var(--bk-accent)}
+.stat-label{font-size:0.85rem;color:var(--bk-muted);margin-top:0.25rem}
+.link-table{width:100%;border-collapse:collapse}
+.link-table th,.link-table td{padding:0.75rem 0.5rem;text-align:left;border-bottom:1px solid var(--bk-border)}
+.link-table th{color:var(--bk-muted);font-size:0.8rem;text-transform:uppercase;letter-spacing:0.05em;font-weight:600}
+.link-table tr:hover{background:rgba(255,255,255,0.02)}
+.link-code{font-family:monospace;color:var(--bk-accent);cursor:pointer;font-weight:600}
+.link-code:hover{text-decoration:underline}
+.link-target{color:var(--bk-muted);font-size:0.85rem;max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.click-count{font-weight:600;color:var(--bk-fg)}
+.link-date{color:var(--bk-muted);font-size:0.85rem}
+.actions a{color:var(--bk-muted);font-size:0.85rem;margin-right:0.75rem}
+.actions a:hover{color:var(--bk-fg)}
+.empty-state{text-align:center;padding:3rem 1rem}
+.empty-state p{color:var(--bk-muted);margin-bottom:1rem}
+.copied-toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);background:var(--bk-success);color:#fff;padding:0.5rem 1.25rem;border-radius:var(--bk-radius);font-size:0.9rem;opacity:0;transition:opacity 0.3s;pointer-events:none;z-index:100}
+.copied-toast.show{opacity:1}
+</style>
+{% endblock %}
 {% block body %}
 <nav>
   <span class="brand">Sovereign Link</span>
   <span class="links">
-    <a href="/dashboard">Dashboard</a>
-    <a href="#" onclick="document.cookie='auth_token=; Path=/; Max-Age=0'; window.location.href='/login';">Logout</a>
+    <a href="/dashboard" style="color:var(--bk-fg)">Dashboard</a>
+    <a href="/new">New Link</a>
+    <a href="/settings">Settings</a>
+    <span style="color:var(--bk-muted);margin-left:0.5rem">{{ user.display_name.as_deref().unwrap_or(user.email.as_deref().unwrap_or("User")) }}</span>
+    <form method="POST" action="/logout" style="display:inline"><button type="submit" style="background:none;border:none;color:var(--bk-muted);cursor:pointer;font-size:0.9rem;padding:0;margin-left:0.5rem">Logout</button></form>
   </span>
 </nav>
-<div class="container">
+<div class="container" style="max-width:960px">
   <h2 style="margin-bottom:1.5rem">Dashboard</h2>
 
-  <div class="card mb-2">
-    <h3 style="margin-bottom:1rem">Your Links</h3>
-    <p class="text-muted">No links yet. Use the API to create short links, or check back when the link management UI is ready.</p>
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-value">{{ links.len() }}</div>
+      <div class="stat-label">Total Links</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">{{ total_clicks }}</div>
+      <div class="stat-label">Total Clicks</div>
+    </div>
   </div>
 
   <div class="card">
-    <h3 style="margin-bottom:1rem">API Access</h3>
-    <p class="text-muted mb-2">Generate an API key to use the Sovereign Link API programmatically.</p>
-    <button class="btn-primary" onclick="generateApiKey()">Generate API Key</button>
-    <pre id="api-key-output" style="margin-top:1rem;padding:0.75rem;background:var(--bk-bg);border:1px solid var(--bk-border);border-radius:var(--bk-radius);display:none;word-break:break-all;color:var(--bk-success)"></pre>
+    {% if links.is_empty() %}
+    <div class="empty-state">
+      <p>No links yet. Create your first link.</p>
+      <a href="/new" class="btn-primary" style="display:inline-block;text-decoration:none;padding:0.6rem 1.5rem">Create Link</a>
+    </div>
+    {% else %}
+    <table class="link-table">
+      <thead>
+        <tr>
+          <th>Code</th>
+          <th>Target URL</th>
+          <th>Clicks</th>
+          <th>Created</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for link in links %}
+        <tr>
+          <td><span class="link-code" onclick="copyShortUrl('{{ base_url }}/r/{{ link.code }}')">{{ link.code }}</span></td>
+          <td class="link-target" title="{{ link.target_url }}">{% if link.target_url.len() > 50 %}{{ link.target_url[..50] }}...{% else %}{{ link.target_url }}{% endif %}</td>
+          <td class="click-count">-</td>
+          <td class="link-date">{{ link.created_at.format("%Y-%m-%d") }}</td>
+          <td class="actions">
+            <a href="/links/{{ link.id }}">Detail</a>
+            <a href="/r/{{ link.code }}.qr" target="_blank">QR</a>
+            <form method="POST" action="/links/{{ link.id }}/delete" style="display:inline" onsubmit="return confirm('Delete this link?')"><button type="submit" style="background:none;border:none;color:var(--bk-danger);cursor:pointer;font-size:0.85rem;padding:0">Delete</button></form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% endif %}
   </div>
 </div>
+<div id="copied-toast" class="copied-toast">Copied to clipboard</div>
 <script>
-async function generateApiKey() {
-  var token = getCookie('auth_token');
-  if (!token) { window.location.href = '/login'; return; }
-  try {
-    var res = await fetch('/api/v1/me/api-key', {
-      method: 'POST',
-      headers: {'Authorization': 'Bearer ' + token},
-    });
-    var data = await res.json();
-    var el = document.getElementById('api-key-output');
-    if (data.api_key) {
-      el.textContent = data.api_key;
-      el.style.display = 'block';
-    } else {
-      el.textContent = data.error || 'Failed to generate key';
-      el.style.display = 'block';
-      el.style.color = 'var(--bk-danger)';
-    }
-  } catch(e) {
-    alert('Error: ' + e.message);
-  }
-}
-function getCookie(name) {
-  var m = document.cookie.match('(^|;)\\s*' + name + '=([^;]*)');
-  return m ? m[2] : null;
+function copyShortUrl(url) {
+  navigator.clipboard.writeText(url).then(function() {
+    var toast = document.getElementById('copied-toast');
+    toast.classList.add('show');
+    setTimeout(function() { toast.classList.remove('show'); }, 2000);
+  });
 }
 </script>
 {% endblock %}

@@ -327,6 +327,76 @@ impl LinkStore for SqliteStore {
         })
         .await?
     }
+
+    async fn get_recent_clicks(
+        &self,
+        link_id: Uuid,
+        limit: i64,
+    ) -> anyhow::Result<Vec<ShortLinkClick>> {
+        let pool = self.pool.clone();
+        let lid = link_id.to_string();
+        tokio::task::spawn_blocking(move || {
+            let conn = pool.get()?;
+            let mut stmt = conn.prepare(
+                "SELECT id, link_id, referrer_domain, country_code, clicked_at
+                 FROM clicks WHERE link_id = ?1 ORDER BY clicked_at DESC LIMIT ?2",
+            )?;
+
+            let clicks = stmt
+                .query_map(params![lid, limit], |row| {
+                    let id_val: i64 = row.get(0)?;
+                    let link_id_str: String = row.get(1)?;
+                    let referrer_domain: Option<String> = row.get(2)?;
+                    let country_code: Option<String> = row.get(3)?;
+                    let clicked_at_str: String = row.get(4)?;
+
+                    Ok(ShortLinkClick {
+                        id: Uuid::from_u128(id_val as u128),
+                        short_link_id: Uuid::parse_str(&link_id_str).unwrap_or_default(),
+                        referrer_domain,
+                        country_code,
+                        clicked_at: chrono::DateTime::parse_from_rfc3339(&clicked_at_str)
+                            .map(|dt| dt.with_timezone(&chrono::Utc))
+                            .unwrap_or_else(|_| chrono::Utc::now()),
+                    })
+                })?
+                .collect::<Result<Vec<_>, _>>()?;
+
+            Ok(clicks)
+        })
+        .await?
+    }
+
+    async fn get_by_id(&self, id: Uuid) -> anyhow::Result<Option<ShortLink>> {
+        let pool = self.pool.clone();
+        let id_str = id.to_string();
+        tokio::task::spawn_blocking(move || {
+            let conn = pool.get()?;
+            let mut stmt = conn.prepare(
+                "SELECT id, code, target_url, title, user_id, is_active, expires_at, click_count, created_at
+                 FROM links WHERE id = ?1",
+            )?;
+            Ok(stmt
+                .query_row(params![id_str], |row| Ok(row_to_short_link(row)))
+                .optional()?)
+        })
+        .await?
+    }
+
+    async fn delete_link(&self, id: Uuid, owner_user_id: Uuid) -> anyhow::Result<bool> {
+        let pool = self.pool.clone();
+        let id_str = id.to_string();
+        let uid = owner_user_id.to_string();
+        tokio::task::spawn_blocking(move || {
+            let conn = pool.get()?;
+            let affected = conn.execute(
+                "DELETE FROM links WHERE id = ?1 AND user_id = ?2",
+                params![id_str, uid],
+            )?;
+            Ok(affected > 0)
+        })
+        .await?
+    }
 }
 
 // ---------------------------------------------------------------------------

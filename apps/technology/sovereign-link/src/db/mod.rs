@@ -44,6 +44,19 @@ pub trait LinkStore: Send + Sync {
 
     /// Get click stats for a link.
     async fn get_stats(&self, link_id: Uuid) -> anyhow::Result<LinkStats>;
+
+    /// Get recent clicks for a link (most recent first, limited).
+    async fn get_recent_clicks(
+        &self,
+        link_id: Uuid,
+        limit: i64,
+    ) -> anyhow::Result<Vec<ShortLinkClick>>;
+
+    /// Get a link by its ID.
+    async fn get_by_id(&self, id: Uuid) -> anyhow::Result<Option<ShortLink>>;
+
+    /// Hard-delete a link (standalone mode only).
+    async fn delete_link(&self, id: Uuid, owner_user_id: Uuid) -> anyhow::Result<bool>;
 }
 
 /// User storage abstraction for standalone mode authentication.

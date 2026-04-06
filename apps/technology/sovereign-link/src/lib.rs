@@ -35,7 +35,31 @@ pub fn configure_standalone_routes(cfg: &mut web::ServiceConfig) {
     cfg.route("/", web::get().to(handlers::web::home_page))
         .route("/login", web::get().to(handlers::web::login_page))
         .route("/register", web::get().to(handlers::web::register_page))
-        .route("/dashboard", web::get().to(handlers::web::dashboard_page));
+        .route("/dashboard", web::get().to(handlers::web::dashboard_page))
+        .route("/new", web::get().to(handlers::web::new_link_page))
+        .route("/new", web::post().to(handlers::web::create_link_form))
+        .route(
+            "/links/{id}",
+            web::get().to(handlers::web::link_detail_page),
+        )
+        .route(
+            "/links/{id}/edit",
+            web::post().to(handlers::web::edit_link_form),
+        )
+        .route(
+            "/links/{id}/delete",
+            web::post().to(handlers::web::delete_link_form),
+        )
+        .route("/settings", web::get().to(handlers::web::settings_page))
+        .route(
+            "/settings/profile",
+            web::post().to(handlers::web::update_profile_form),
+        )
+        .route(
+            "/settings/password",
+            web::post().to(handlers::web::change_password_form),
+        )
+        .route("/logout", web::post().to(handlers::web::logout_page));
 
     // Auth endpoints (JSON API)
     cfg.service(

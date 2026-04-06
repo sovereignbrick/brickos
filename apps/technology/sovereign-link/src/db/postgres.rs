@@ -200,6 +200,50 @@ impl LinkStore for PgLinkStore {
             top_countries: countries,
         })
     }
+
+    async fn get_recent_clicks(
+        &self,
+        link_id: Uuid,
+        limit: i64,
+    ) -> anyhow::Result<Vec<ShortLinkClick>> {
+        let clicks = sqlx::query_as::<_, ShortLinkClick>(
+            r#"SELECT id, short_link_id, referrer_domain, country_code, clicked_at
+               FROM short_link_clicks
+               WHERE short_link_id = $1
+               ORDER BY clicked_at DESC
+               LIMIT $2"#,
+        )
+        .bind(link_id)
+        .bind(limit)
+        .fetch_all(&self.pool)
+        .await?;
+
+        Ok(clicks)
+    }
+
+    async fn get_by_id(&self, id: Uuid) -> anyhow::Result<Option<ShortLink>> {
+        let link = sqlx::query_as::<_, ShortLink>(
+            r#"SELECT id, code, target_url, link_type, domain, app_key,
+                      owner_user_id, owner_org_id, affiliate_code, title,
+                      is_active, expires_at, created_at, updated_at
+               FROM short_links WHERE id = $1"#,
+        )
+        .bind(id)
+        .fetch_optional(&self.pool)
+        .await?;
+
+        Ok(link)
+    }
+
+    async fn delete_link(&self, id: Uuid, owner_user_id: Uuid) -> anyhow::Result<bool> {
+        let result = sqlx::query("DELETE FROM short_links WHERE id = $1 AND owner_user_id = $2")
+            .bind(id)
+            .bind(owner_user_id)
+            .execute(&self.pool)
+            .await?;
+
+        Ok(result.rows_affected() > 0)
+    }
 }
 
 /// Generate a 6-char random alphanumeric code for generic short links.

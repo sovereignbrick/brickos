@@ -1,0 +1,21 @@
+name: sovereign-link
+
+services:
+  sovereign-link:
+    build:
+      context: ../../../..
+      dockerfile: apps/technology/sovereign-link/Dockerfile
+    ports:
+      - "8090:8080"
+    volumes:
+      - link-data:/data
+    environment:
+      - SOVEREIGN_LINK_BASE_URL=http://localhost:8090
+      - SOVEREIGN_LINK_ADMIN_EMAIL=admin@example.com
+      - SOVEREIGN_LINK_ADMIN_PASSWORD=changeme
+      - SOVEREIGN_LINK_JWT_SECRET=dev-only-change-in-production
+      - SOVEREIGN_LINK_ALLOW_REGISTRATION=true
+    restart: unless-stopped
+
+volumes:
+  link-data:

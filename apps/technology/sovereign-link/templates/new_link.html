@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}New Link - Sovereign Link{% endblock %}
+{% block body %}
+<nav>
+  <span class="brand">Sovereign Link</span>
+  <span class="links">
+    <a href="/dashboard">Dashboard</a>
+    <a href="/new" style="color:var(--bk-fg)">New Link</a>
+    <a href="/settings">Settings</a>
+    <span style="color:var(--bk-muted);margin-left:0.5rem">{{ user.display_name.as_deref().unwrap_or(user.email.as_deref().unwrap_or("User")) }}</span>
+    <form method="POST" action="/logout" style="display:inline"><button type="submit" style="background:none;border:none;color:var(--bk-muted);cursor:pointer;font-size:0.9rem;padding:0;margin-left:0.5rem">Logout</button></form>
+  </span>
+</nav>
+<div class="container">
+  <h2 style="margin-bottom:1.5rem">Create New Link</h2>
+
+  <div class="card">
+    {% if error.is_some() %}
+    <div style="background:rgba(239,68,68,0.1);border:1px solid var(--bk-danger);border-radius:var(--bk-radius);padding:0.75rem 1rem;margin-bottom:1rem">
+      <p class="text-danger" style="margin:0">{{ error.as_deref().unwrap_or("") }}</p>
+    </div>
+    {% endif %}
+
+    <form method="POST" action="/new">
+      <label class="text-muted mb-1" style="display:block">Target URL *</label>
+      <input type="url" name="target_url" required placeholder="https://example.com/your-page">
+
+      <label class="text-muted mb-1" style="display:block">Custom Code (optional)</label>
+      <div style="display:flex;align-items:center;margin-bottom:1rem">
+        <span class="text-muted" style="margin-right:0.5rem;white-space:nowrap">{{ base_url }}/r/</span>
+        <input type="text" name="code" placeholder="my-link" pattern="[a-z0-9\-]+" style="margin-bottom:0" title="Lowercase letters, numbers, and hyphens only">
+      </div>
+
+      <label class="text-muted mb-1" style="display:block">Title (optional)</label>
+      <input type="text" name="title" placeholder="My awesome link">
+
+      <div style="display:flex;gap:1rem;margin-top:0.5rem">
+        <button type="submit" class="btn-primary">Create Link</button>
+        <a href="/dashboard" class="btn-secondary" style="display:inline-flex;align-items:center;text-decoration:none">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
