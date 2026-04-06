@@ -1,0 +1,18 @@
+name: Sovereign Link CI
+
+on:
+  push:
+    paths: ['apps/technology/sovereign-link/**', 'crates/**']
+    branches: [develop, main]
+  pull_request:
+    paths: ['apps/technology/sovereign-link/**', 'crates/**']
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo fmt -p sovereign-link -- --check
+      - run: cargo clippy -p sovereign-link --features standalone --no-default-features -- -D warnings
+      - run: cargo test -p sovereign-link --features standalone --no-default-features
