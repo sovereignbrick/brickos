@@ -1,0 +1,72 @@
+id: sovereign-link
+title: Sovereign Link
+version: 1.0.0
+release-notes: |
+  Initial release. Self-hosted URL shortener with NOSTR login,
+  email auth, QR codes, and click analytics.
+license: AGPL-3.0
+wrapper-repo: https://github.com/sovereignbrick/brickos
+upstream-repo: https://github.com/sovereignbrick/brickos
+support-site: https://github.com/sovereignbrick/brickos/issues
+marketing-site: https://brickos.io
+donation-url: https://sovereignhealth.io/donate
+description:
+  short: Self-hosted URL shortener with NOSTR login
+  long: |
+    Sovereign Link is a privacy-first URL shortener that you control.
+    Shorten .onion addresses, track clicks without surveillance,
+    and login with your NOSTR key -- no email required.
+
+    Features:
+    - URL shortening with custom codes
+    - QR code generation
+    - Click analytics (privacy-preserving, no IP logging)
+    - NOSTR NIP-98 passwordless login
+    - Email + password login
+    - API key for automation
+    - Dark theme, mobile responsive
+    - SQLite database (no external dependencies)
+assets:
+  license: ../LICENSE
+  icon: icon.png
+  instructions: instructions.md
+main:
+  type: docker
+  image: main
+  entrypoint: /app/sovereign-link
+  args: []
+  mounts:
+    main: /data
+  io-format: yaml
+health-checks:
+  main:
+    name: Web Interface
+    success-message: Sovereign Link is ready
+    type: script
+volumes:
+  main:
+    type: data
+interfaces:
+  main:
+    name: Web Interface
+    description: URL shortener dashboard
+    tor-config:
+      port-mapping:
+        80: "8080"
+    lan-config:
+      443:
+        ssl: true
+        internal: 8080
+    ui: true
+    protocols:
+      - tcp
+      - http
+config: ~
+properties: ~
+dependencies: {}
+backup:
+  create:
+    type: script
+  restore:
+    type: script
+migrations: ~

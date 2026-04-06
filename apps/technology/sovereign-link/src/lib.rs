@@ -1,6 +1,7 @@
 pub mod db;
 pub mod handlers;
 pub mod models;
+pub mod nostr;
 
 #[cfg(feature = "standalone")]
 pub mod auth;

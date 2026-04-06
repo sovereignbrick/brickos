@@ -11,6 +11,7 @@ pub struct StandaloneConfig {
     pub admin_email: Option<String>,
     pub admin_password: Option<String>,
     pub nostr_enabled: bool,
+    pub nostr_nip89_publish: bool,
     pub default_code_length: usize,
     pub rate_limit_creates: usize,
 }
@@ -62,6 +63,10 @@ impl StandaloneConfig {
             .parse()
             .unwrap_or(true);
 
+        let nostr_nip89_publish = env_or("SOVEREIGN_LINK_NOSTR_NIP89_PUBLISH", "false")
+            .parse()
+            .unwrap_or(false);
+
         let default_code_length = env_or("SOVEREIGN_LINK_CODE_LENGTH", "6")
             .parse()
             .unwrap_or(6);
@@ -81,6 +86,7 @@ impl StandaloneConfig {
             admin_email,
             admin_password,
             nostr_enabled,
+            nostr_nip89_publish,
             default_code_length,
             rate_limit_creates,
         }

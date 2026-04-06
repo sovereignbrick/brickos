@@ -1,0 +1,24 @@
+# Sovereign Link Configuration
+# Copy to config.toml or set as SOVEREIGN_LINK_* environment variables
+
+[server]
+# host = "0.0.0.0"
+# port = 8080
+# base_url = "http://localhost:8080"
+
+[database]
+# path = "./data.db"
+
+[auth]
+# jwt_secret = ""  # Auto-generated on first run if empty
+# jwt_expiry_secs = 86400  # 24 hours
+# allow_registration = true
+
+[admin]
+# email = "admin@example.com"  # First user with this email gets admin
+# password = ""  # Initial admin password
+
+[nostr]
+# enabled = true
+# relays = ["wss://relay.damus.io", "wss://nos.lol", "wss://relay.nostr.band"]
+# nip89_publish = false  # Log NIP-89 app listing on startup

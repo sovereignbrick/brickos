@@ -56,6 +56,9 @@ mod standalone {
 
         let link_store: Arc<dyn LinkStore> = store.clone();
         let user_store: Arc<dyn UserStore> = store;
+        // Publish NIP-89 app listing if configured
+        sovereign_link::nostr::publish_app_listing(&config).await;
+
         let bind_addr = format!("{}:{}", config.host, config.port);
 
         HttpServer::new(move || {
