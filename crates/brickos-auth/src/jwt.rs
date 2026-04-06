@@ -1,4 +1,13 @@
 // BrickOS — JWT token creation and verification
+//
+// JWT Secret Rotation Procedure:
+// 1. Generate new secret: openssl rand -hex 32
+// 2. Set JWT_SECRET_PREVIOUS = current JWT_SECRET value
+// 3. Set JWT_SECRET = new secret
+// 4. Deploy (restart backend)
+// 5. Wait for token expiry period (access tokens: 2h default, refresh tokens: 60d)
+// 6. Remove JWT_SECRET_PREVIOUS
+// 7. Deploy again
 
 use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, Validation};
 use serde::{Deserialize, Serialize};
@@ -45,4 +54,27 @@ pub fn verify_jwt(token: &str, secret: &str) -> anyhow::Result<Claims> {
     )
     .map_err(|e| anyhow::anyhow!("JWT verification failed: {}", e))?;
     Ok(token_data.claims)
+}
+
+/// Verify a JWT against the current secret, falling back to the previous secret
+/// if provided. This supports graceful secret rotation -- old tokens signed with
+/// the previous secret remain valid until they expire naturally.
+pub fn verify_jwt_with_fallback(
+    token: &str,
+    current_secret: &str,
+    previous_secret: Option<&str>,
+) -> anyhow::Result<Claims> {
+    match verify_jwt(token, current_secret) {
+        Ok(claims) => Ok(claims),
+        Err(current_err) => {
+            if let Some(prev) = previous_secret {
+                verify_jwt(token, prev).map_err(|_| {
+                    // Return the original error from the current secret attempt
+                    current_err
+                })
+            } else {
+                Err(current_err)
+            }
+        }
+    }
 }

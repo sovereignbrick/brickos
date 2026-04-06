@@ -4,7 +4,7 @@ use actix_web::{web, FromRequest, HttpRequest};
 use std::future::{ready, Ready};
 use uuid::Uuid;
 
-use crate::{config::Config, error::AppError, services::auth::verify_jwt};
+use crate::{config::Config, error::AppError, services::auth::verify_jwt_with_fallback};
 
 pub struct AuthenticatedUser {
     pub user_id: Uuid,
@@ -76,7 +76,12 @@ fn extract_user(req: &HttpRequest) -> Result<AuthenticatedUser, AppError> {
         .strip_prefix("Bearer ")
         .ok_or(AppError::Unauthorized)?;
 
-    let claims = verify_jwt(token, &config.jwt_secret).map_err(|_| AppError::Unauthorized)?;
+    let claims = verify_jwt_with_fallback(
+        token,
+        &config.jwt_secret,
+        config.jwt_secret_previous.as_deref(),
+    )
+    .map_err(|_| AppError::Unauthorized)?;
 
     let user_id = Uuid::parse_str(&claims.sub).map_err(|_| AppError::Unauthorized)?;
 

@@ -13,7 +13,7 @@ use sqlx::PgPool;
 use std::future::{ready, Ready};
 
 use crate::config::Config;
-use crate::services::auth::verify_jwt;
+use crate::services::auth::verify_jwt_with_fallback;
 
 /// Middleware factory that sets RLS context on every request with a valid JWT.
 pub struct RlsMiddleware;
@@ -79,7 +79,12 @@ fn extract_user_id_from_request(req: &ServiceRequest) -> Option<uuid::Uuid> {
 
     let token = auth_header.strip_prefix("Bearer ")?;
 
-    let claims = verify_jwt(token, &config.jwt_secret).ok()?;
+    let claims = verify_jwt_with_fallback(
+        token,
+        &config.jwt_secret,
+        config.jwt_secret_previous.as_deref(),
+    )
+    .ok()?;
 
     uuid::Uuid::parse_str(&claims.sub).ok()
 }
