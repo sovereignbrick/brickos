@@ -1069,6 +1069,27 @@ verify() {
 
     # Print the final deployment report.
     report_print "$env"
+
+    # Run platform smoke test (unless --no-smoke flag was passed)
+    if [ "${NO_SMOKE:-0}" != "1" ]; then
+        local smoke_script
+        smoke_script="$(cd "$(dirname "$0")/../../../.." && pwd)/tests/platform-smoke.sh"
+        if [ -f "$smoke_script" ]; then
+            echo ""
+            log "Running platform smoke test..."
+            if bash "$smoke_script" "$env"; then
+                report_add "OK" "Platform smoke test passed"
+            else
+                warn "Platform smoke test had failures (non-blocking)"
+                report_add "WARN" "Platform smoke test had failures"
+                notify "Platform smoke test failed on ${env}" "Some checks did not pass after deploy v${VERSION}" 3 "errors" "warning,smoke"
+            fi
+        else
+            log "Platform smoke test not found at $smoke_script (skipping)"
+        fi
+    else
+        log "Platform smoke test skipped (--no-smoke flag)"
+    fi
 }
 
 # ── VPS status ───────────────────────────────────────────────────────────────
@@ -1127,6 +1148,13 @@ if [ "$COMPONENT" = "--confirm" ]; then
     COMPONENT="all"
     CONFIRM="--confirm"
 fi
+
+# Check for --no-smoke flag in any argument position
+for arg in "$@"; do
+    if [ "$arg" = "--no-smoke" ]; then
+        export NO_SMOKE=1
+    fi
+done
 
 case "$ENV" in
 

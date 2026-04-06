@@ -91,7 +91,16 @@ ALTER TABLE IF EXISTS public.short_link_clicks SET SCHEMA brickos;
 -- brickos.users without any code changes.
 -- ============================================================================
 
-ALTER DATABASE CURRENT SET search_path = public, brickos;
+-- NOTE: ALTER DATABASE CURRENT is not valid PostgreSQL syntax.
+-- Run this manually with your actual database name:
+--   ALTER DATABASE sovereign_health SET search_path = public, brickos;
+--   ALTER DATABASE sovereign_health_staging SET search_path = public, brickos;
+--
+-- Or use this dynamic approach (works in any database):
+DO $$
+BEGIN
+    EXECUTE format('ALTER DATABASE %I SET search_path = public, brickos', current_database());
+END $$;
 
 -- NOTE on safety:
 -- Each ALTER TABLE IF EXISTS ensures this migration is safe to run even if
