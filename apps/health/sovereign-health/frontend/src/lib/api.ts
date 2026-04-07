@@ -904,6 +904,8 @@ export const api = {
         active_7d: number; active_30d: number; signups_7d: number;
         early_access_count: number; tier_distribution: Array<{ tier: string; count: number }>;
       } }>('/admin/dashboard'),
+    services: () =>
+      request<{ services: Array<{ name: string; environment: string; status: string; version: string | null; latency_ms: number | null; checked_at: string }>; checked_at: string }>('/admin/services'),
     users: (page = 1, perPage = 50, search?: string) => {
       const params = new URLSearchParams({ page: String(page), per_page: String(perPage) })
       if (search) params.set('search', search)

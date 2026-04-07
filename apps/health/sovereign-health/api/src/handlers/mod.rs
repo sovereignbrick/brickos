@@ -5,6 +5,7 @@ pub mod admin_ai_usage;
 pub mod admin_audit;
 pub mod admin_content;
 pub mod admin_email;
+pub mod admin_health;
 pub mod admin_publish;
 pub mod admin_settings;
 pub mod affiliate;

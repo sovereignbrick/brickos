@@ -751,6 +751,10 @@ pub fn configure_routes(cfg: &mut actix_web::web::ServiceConfig) {
                 actix_web::web::get().to(handlers::admin::dashboard),
             )
             .route(
+                "/services",
+                actix_web::web::get().to(handlers::admin_health::service_health),
+            )
+            .route(
                 "/users",
                 actix_web::web::get().to(handlers::admin::list_users),
             )
