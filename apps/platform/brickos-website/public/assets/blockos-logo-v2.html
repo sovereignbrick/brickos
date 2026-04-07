@@ -120,10 +120,12 @@ html, body {
   }
 
   // SVG element factory
+  // Use setAttribute('style', ...) instead of style.cssText for cross-browser
+  // SVG animation support (Brave shields can block style.cssText on SVG elements).
   function el(tag, attrs, cssText) {
     const e = document.createElementNS(NS, tag);
     for (const [k,v] of Object.entries(attrs||{})) e.setAttribute(k, String(v));
-    if (cssText) e.style.cssText = cssText;
+    if (cssText) e.setAttribute('style', cssText);
     return e;
   }
 
@@ -230,7 +232,7 @@ html, body {
     // Begin gentle float
     floatTid = setTimeout(() => {
       if (scene.parentNode)
-        scene.style.animation = `floatScene ${T.floatDur}s ease-in-out infinite`;
+        scene.setAttribute('style', `animation: floatScene ${T.floatDur}s ease-in-out infinite`);
     }, T.floatDelay * 1000);
 
     // After floating hold time, fade the scene out
@@ -238,8 +240,7 @@ html, body {
 
     fadeTid = setTimeout(() => {
       if (scene.parentNode)
-        scene.style.animation =
-          `sceneFade ${T.fadeDur}s ease forwards`;
+        scene.setAttribute('style', `animation: sceneFade ${T.fadeDur}s ease forwards`);
     }, fadeStart);
 
     // Restart after fade completes + a brief dark pause
