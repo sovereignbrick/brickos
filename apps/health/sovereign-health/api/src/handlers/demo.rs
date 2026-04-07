@@ -475,14 +475,18 @@ pub async fn demo_zone_detail(
         }
     }
 
-    // Get height from demo user profile (may be encrypted)
+    // Get height from demo user profile (may be encrypted or NULL)
     let height_cm: Option<f64> = {
-        let row: Option<String> =
-            sqlx::query_scalar("SELECT height_cm FROM user_profile WHERE user_id = $1")
-                .bind(user_id)
-                .fetch_optional(pool.get_ref())
-                .await?;
-        row.map(|v| {
+        let row = sqlx::query("SELECT height_cm FROM user_profile WHERE user_id = $1")
+            .bind(user_id)
+            .fetch_optional(pool.get_ref())
+            .await?;
+        row.and_then(|r| {
+            r.try_get::<Option<String>, _>("height_cm")
+                .ok()
+                .flatten()
+        })
+        .map(|v| {
             if v.starts_with("v1:") {
                 enc.decrypt_f64(&v)
             } else {
