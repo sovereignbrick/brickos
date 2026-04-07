@@ -1,41 +1,68 @@
 # Sovereign Health Intelligence v0.38.1
 
 **Date:** 2026-04-07
-**Sprint:** 029 (hotfix)
+**Sprint:** 029 (Day 10 - staging verification + hotfixes)
 **Type:** Bugfix release
 
 ## Summary
 
-Hotfix release fixing a unit conversion bug in the reference range display on marker detail and trend chart pages. No new features.
+Hotfix release from Sprint 029 staging verification. Fixed 4 bugs found during manual testing, added affiliate API tests to the test suite, and raised 8 new tracker issues.
 
 ## Bug Fixes
 
-### Reference Range Double Unit Conversion (#0330)
+### 1. Reference Range Double Unit Conversion (#0330) - P1
 
-When a user's preferred unit differed from the canonical unit (e.g., glucose in mg/dL vs canonical mmol/L), the trend chart reference range bands displayed at wildly incorrect values (e.g., 1100-1650 instead of 63-126 mg/dL on the Y-axis).
+When a user's preferred unit differed from canonical (e.g., glucose mg/dL vs mmol/L), the trend chart reference range bands displayed at wildly incorrect values (Y-axis scaling to ~2156 instead of ~150).
 
-**Root cause:** The Settings > Reference Ranges page's `handleUnitChange` function converted threshold values to the display unit AND saved those converted values to the DB. Since the DB has no unit column, the API always returned them tagged as canonical. The marker detail page then converted them again via `displayValue()`, causing double conversion.
+**Root cause:** Settings > Reference Ranges saved converted values to the DB. The API returned them tagged as canonical, causing double conversion.
 
 **Fix:**
-- `thresholds-tab.tsx`: Removed bulk save of converted values from `handleUnitChange`. DB now always stores canonical units. Updated `displayValue` and `toCanonical` to handle MARKER_UNIT_MAP conversions for display and reverse.
-- `markers/[markerId]/page.tsx`: Added `convertRange()` helper so the RangeBar displays values in the user's preferred unit.
+- `thresholds-tab.tsx`: DB always stores canonical; display/edit converts on the fly
+- `markers/[markerId]/page.tsx`: RangeBar converts to preferred unit
+- Migration `20260407000001`: reverses corrupted custom ranges on staging/dev
 
-### One-time Migration
+### 2. Stats Min/Avg/Max Not Converting Units
 
-Migration `20260407000001_fix_reference_ranges_unit_corruption.sql` reverses the double conversion for all user-customized reference ranges on staging/dev. Production was not affected.
+The Min/Avg/Max tiles on marker detail and trends pages displayed canonical values (mmol/L) instead of the user's preferred unit (mg/dL).
 
-## Other Changes
+**Fix:** Both Statistics component and trends page stats now use `displayValue`/`formatDisplay`.
 
-- Clippy fix in `sovereign-link/src/handlers/branding.rs` (needless borrow)
-- Clippy fix in `brickos-crypto/src/lib.rs` (unnecessary to_owned)
-- Added affiliate API curl tests to `tests/cross-app-integration.sh` (4 new checks: affiliate info, conversions, vanity check, PII audit)
-- Updated test plan measurement count from incorrect ~3,436 to ~305 per profile
+### 3. Measurement Values Not Converting Units
+
+Recent measurements list on marker detail page and measurement detail page showed raw canonical values.
+
+**Fix:** All measurement value displays now use `formatDisplay` for consistent unit conversion.
+
+### 4. Demo Zone Detail 500 Error
+
+Clicking any health zone in demo mode returned "Zone not found" due to a 500 error.
+
+**Root cause:** `demo_zone_detail` handler cast encrypted `height_cm` column to `float8` in SQL, which failed on AES-encrypted values. Additionally, average/at_risk profiles had NULL `height_cm`, causing `UnexpectedNullError`.
+
+**Fix:** Read as string, decrypt in Rust, handle NULL gracefully.
+
+### 5. Demo Profile Trends Empty (#0335)
+
+All demo profiles showed "No data in this range" on trend charts and empty Min/Avg/Max.
+
+**Root cause:** Bulk demo measurements were tagged with `demo_profile` on the original `demo@sovereignhealth.io` user but never copied to the dedicated profile accounts (`optimized@`, `average@`, `atrisk@`).
+
+**Fix:** Migration `20260407000002` copies measurements to the correct user accounts.
 
 ## Database Migrations
 
 | Migration | Description |
 |---|---|
 | 20260407000001 | Fix reference range unit corruption (staging/dev only) |
+| 20260407000002 | Reassign demo profile measurements to dedicated user accounts |
+
+## Other Changes
+
+- `cargo fmt` across workspace (sovereign-link, brickos-auth, brickos-db, brickos-crypto)
+- Clippy fixes: needless borrow in branding.rs, unnecessary to_owned in crypto test
+- Added 4 affiliate API tests to `tests/cross-app-integration.sh` (affiliate info, conversions, vanity check, PII audit)
+- Updated test plan measurement count from incorrect ~3,436 to ~305 per profile
+- Manual test plan fully signed off: PASS across all 5 areas
 
 ## Tests
 
@@ -44,21 +71,9 @@ Migration `20260407000001_fix_reference_ranges_unit_corruption.sql` reverses the
 | Platform smoke (staging) | 17/17 passed |
 | Platform DB integrity (staging) | 23/23 passed |
 | Cross-app integration (staging) | All passed |
-| Frontend build | Clean (tsc + next build) |
+| Frontend TypeScript | Clean |
+| Frontend build (next build) | Clean |
 | cargo fmt + clippy | Clean |
-
-## Files Changed
-
-| File | Change |
-|---|---|
-| `frontend/src/app/settings/components/thresholds-tab.tsx` | Fix: store canonical, convert for display only |
-| `frontend/src/app/markers/[markerId]/page.tsx` | Fix: convert RangeBar values to preferred unit |
-| `api/src/lib.rs` | Version bump 0.38.0 -> 0.38.1 |
-| `api/Cargo.toml` | Version bump 0.38.0 -> 0.38.1 |
-| `api/migrations/20260407000001_*` | One-time data fix migration |
-| `tests/cross-app-integration.sh` | Added affiliate API tests |
-| `sovereign-link/src/handlers/branding.rs` | Clippy fix |
-| `brickos-crypto/src/lib.rs` | Clippy fix |
 
 ## New Issues Filed
 
@@ -69,3 +84,25 @@ Migration `20260407000001_fix_reference_ranges_unit_corruption.sql` reverses the
 | 0332 | fix: user-facing /api/v1/links missing click counts | P2 |
 | 0333 | fix: click tracking empty country_code and referrer | P2 |
 | 0334 | feat: admin service dashboard with health monitoring | P1 |
+| 0335 | fix: demo profile trends no data | P1 (fixed) |
+| 0336 | chore: fix Dependabot vulnerabilities | P2 |
+| 0337 | feat: AI-agnostic provider settings | P2 |
+
+## Files Changed
+
+| File | Change |
+|---|---|
+| `frontend/src/app/settings/components/thresholds-tab.tsx` | Store canonical, convert for display only |
+| `frontend/src/app/markers/[markerId]/page.tsx` | RangeBar + measurements + stats unit conversion |
+| `frontend/src/app/trends/page.tsx` | Stats min/avg/max unit conversion |
+| `frontend/src/app/measurements/[id]/page.tsx` | Measurement detail unit conversion |
+| `api/src/handlers/demo.rs` | Decrypt height_cm, handle NULL |
+| `api/src/lib.rs` | Version bump 0.38.0 -> 0.38.1 |
+| `api/Cargo.toml` | Version bump 0.38.0 -> 0.38.1 |
+| `api/migrations/20260407000001_*` | Fix corrupted reference ranges |
+| `api/migrations/20260407000002_*` | Reassign demo profile measurements |
+| `tests/cross-app-integration.sh` | Added affiliate API tests |
+| `sovereign-link/src/handlers/branding.rs` | Clippy fix |
+| `crates/brickos-crypto/src/lib.rs` | Clippy fix |
+| `docs/sprint-planning/sprints/sprint-029-manual-test-plan.md` | Full sign-off |
+| `docs/tracker/issues/open/0330-0337` | 8 new tracker issues |
