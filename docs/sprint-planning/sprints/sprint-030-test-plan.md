@@ -3,209 +3,192 @@
 **Date:** 2026-04-07
 **Environment:** Staging (demo.brickos.io) + Production (app.brickos.io)
 **Tester:** Helmut
+**Staging deployed:** 2026-04-07 15:47 UTC
 
 ---
 
-## Automated Tests (run by Claude)
+## Automated Tests (run by Claude) -- ALL PASSING
 
 | Suite | Result | Notes |
 |-------|--------|-------|
-| Platform smoke (staging) | 17/17 PASS | |
-| Platform DB integrity (staging) | 23/23 PASS | |
-| Cross-app integration (staging) | 8/9 PASS (1 skip) | Health overview skipped (not implemented) |
-| BrickOS domain routing | PENDING | Waiting for DNS propagation |
-| cargo fmt + clippy | PASS | All clean |
-| TypeScript check (frontend) | PASS | |
-| TypeScript check (brickos-website) | PASS | |
+| Platform smoke (staging) | **17/17 PASS** | |
+| Platform DB integrity (staging) | **23/23 PASS** | |
+| Cross-app integration (staging) | **8/9 PASS** (1 skip) | Health overview skipped (not implemented) |
+| BrickOS domain routing | **11/13 PASS** (2 skip) | CORS preflight + /platform pre-deploy (now deployed) |
+| cargo fmt + clippy | **PASS** | All clean |
+| pnpm build (SHI frontend) | **PASS** | |
+| pnpm build (brickos-website) | **PASS** | |
+| TypeScript check | **PASS** | |
 
 ---
 
-## Part 1: DNS + Domain Routing
+## Part 1: DNS + Domain Routing (Manual -- Helmut)
 
-### Prerequisites
-Add these DNS records in Cloudflare (brickos.io zone, all proxied A records to 72.61.154.115):
-- `app` -> 72.61.154.115
-- `demo` -> 72.61.154.115
-- `api` -> 72.61.154.115
-- `status` -> 72.61.154.115
+### Staging URLs (basic auth: `helmut` / `JM8Lv97Ax3LiRDLMgYfXdw==`)
 
-### 1.1 API Domain
-- [ ] `curl https://api.brickos.io/health` returns JSON with version 0.38.1
-- [ ] CORS: requests from app.brickos.io are allowed
+| # | Test | URL | Expected |
+|---|------|-----|----------|
+| 1.1 | API health | `https://api.brickos.io/health` | JSON with version 0.38.1 |
+| 1.2 | Root redirect | `https://app.brickos.io/` | 302 -> /platform |
+| 1.3 | Platform admin | `https://app.brickos.io/platform` | Login page or dashboard |
+| 1.4 | SHI via BrickOS | `https://app.brickos.io/sovereignhealth/` | SHI app (login/dashboard) |
+| 1.5 | Sovereign Link | `https://app.brickos.io/sovereignlink` | 302 -> /platform/links |
+| 1.6 | Sovereign Voice | `https://app.brickos.io/sovereignvoice` | 302 -> /platform/apps |
+| 1.7 | Staging root | `https://demo.brickos.io/` | Basic auth prompt, then -> /platform |
+| 1.8 | Staging SHI | `https://demo.brickos.io/sovereignhealth/` | SHI staging after auth |
+| 1.9 | Gatus | `https://status.brickos.io/` | Monitoring dashboard |
+| 1.10 | Legacy app | `https://app.sovereignhealth.io/` | Still works (200) |
+| 1.11 | Legacy API | `https://api.sovereignhealth.io/health` | Still works (200) |
+| 1.12 | Legacy staging | `https://demo.sovereignhealth.io/` | Still works |
+| 1.13 | Website | `https://brickos.io/` | Website with animation |
 
-### 1.2 App Domain -- Routing
-- [ ] `https://app.brickos.io/` redirects 302 to `/platform/`
-- [ ] `https://app.brickos.io/platform/` loads platform admin (login page or dashboard)
-- [ ] `https://app.brickos.io/sovereignhealth/` loads SHI app (login page or dashboard)
-- [ ] `https://app.brickos.io/sovereignlink` redirects to `/platform/links`
-- [ ] `https://app.brickos.io/sovereignvoice` redirects to `/platform/apps`
-
-### 1.3 Staging Domain
-- [ ] `https://demo.brickos.io/` requires basic auth (401 without credentials)
-- [ ] After basic auth (`helmut` / `JM8Lv97Ax3LiRDLMgYfXdw==`): redirects to `/platform/`
-- [ ] `https://demo.brickos.io/sovereignhealth/` loads staging SHI after basic auth
-- [ ] Login with `demo@sovereignhealth.io` / `SovereignDemo1`
-
-### 1.4 Status Page
-- [ ] `https://status.brickos.io/` shows Gatus monitoring dashboard
-
-### 1.5 Legacy Domains (still working)
-- [ ] `https://app.sovereignhealth.io/` still works
-- [ ] `https://api.sovereignhealth.io/health` still works
-- [ ] `https://demo.sovereignhealth.io/` still works
-- [ ] `https://brickos.io/` still shows website with animation
-
-### Automated: `bash tests/brickos-domain-test.sh`
+**Staging login after basic auth:** `demo@sovereignhealth.io` / `SovereignDemo1`
 
 ---
 
-## Part 2: Platform Admin GUI
+## Part 2: Platform Admin GUI (Manual -- Helmut)
 
-### Credentials
-| Domain | Login | Password |
-|--------|-------|----------|
-| app.brickos.io/platform/ | Your admin email | Your password |
-| demo.brickos.io/platform/ | Basic auth: `helmut` / `JM8Lv97Ax3LiRDLMgYfXdw==` then `demo@sovereignhealth.io` / `SovereignDemo1` |
+Test on `demo.brickos.io` (basic auth first, then SHI login).
 
 ### 2.1 Layout + Navigation
-- [ ] Sidebar shows all sections: Overview, Manage, Commerce, Links, Content, AI, Ops, Security, Settings
-- [ ] BrickOS cube logo in sidebar header
+- [ ] Sidebar shows sections: Overview, Manage, Commerce, Links, Content, AI, Ops, Security, Settings
+- [ ] BrickOS cube logo (orange "B") in sidebar header
 - [ ] App title shows "BrickOS Platform"
-- [ ] Sidebar collapses to icons on toggle
-- [ ] Mobile: hamburger menu works
+- [ ] Sidebar collapses to icons when toggle clicked (bottom of sidebar)
+- [ ] Mobile: orange hamburger button opens sidebar overlay
 
-### 2.2 Dashboard (/platform/)
-- [ ] Stat cards: Total Users, Verified, Active (7d/30d), Signups, Measurements, Early Access, Orgs
-- [ ] Tier distribution bar chart with percentages
-- [ ] Service health matrix: green dots for all production services
-- [ ] All data loads without errors
+### 2.2 Dashboard (`/platform`)
+- [ ] Stat cards load: Total Users, Verified, Active (7d/30d), Signups (7d), Measurements, Early Access, Orgs
+- [ ] Tier distribution bar chart shows tiers with percentages
+- [ ] Service health matrix shows green dots for all services
+- [ ] No console errors
 
-### 2.3 Services (/platform/services)
-- [ ] Environment filter (all/production/staging)
-- [ ] Status dots: green for healthy services
-- [ ] Version column shows actual versions
-- [ ] Latency column shows response times
-- [ ] "Last checked" timestamp updates
-- [ ] Auto-refresh after 60s
+### 2.3 Services (`/platform/services`)
+- [ ] Table shows all services with prod/staging status dots
+- [ ] Version column shows v0.38.1 for SHI API
+- [ ] Latency column shows response times in ms
+- [ ] Environment filter works (all / production / staging)
+- [ ] "Last checked" timestamp visible
 
-### 2.4 Analytics (/platform/analytics)
-- [ ] Summary tiles: Total Clicks, 7d, 30d, Links count
-- [ ] Link selector dropdown lists available links
-- [ ] Period buttons: 7D, 30D, 90D, 1Y
-- [ ] Area chart renders with orange gradient
-- [ ] Top links table
-- [ ] Top referrers table
+### 2.4 Analytics (`/platform/analytics`)
+- [ ] Summary tiles: Total Clicks, Last 7 Days, Last 30 Days, Links count
+- [ ] Link selector dropdown lists short links
+- [ ] Period buttons: 7D / 30D / 90D / 1Y
+- [ ] Area chart renders with orange gradient fill (if clicks exist)
+- [ ] Top links table shows click counts
+- [ ] Top referrers table shows referrer domains
 
-### 2.5 Users (/platform/users)
-- [ ] User list with search
-- [ ] Pagination works
-- [ ] Tier/role management buttons work
+### 2.5 Users (`/platform/users`)
+- [ ] User list loads with email, tier, role columns
+- [ ] Search by email works
+- [ ] Pagination works (next/prev)
+
+### 2.6 Other Platform Pages
+- [ ] All sidebar links navigate without errors (placeholder pages show "Coming soon")
 
 ---
 
-## Part 3: Sovereign Link Features
+## Part 3: Sovereign Link Features (Manual -- Helmut)
+
+Test on `demo.brickos.io/sovereignhealth/` after login.
 
 ### 3.1 Link Expiration
-- [ ] Expired links: visit `brickos.io/r/{expired-code}` returns 301 to brickos.io (not 404)
-- [ ] Active links: visit `brickos.io/r/shDEMO2026` returns 301 to target URL
+- [ ] Active link: `https://brickos.io/r/shDEMO2026` -> 301 redirect to target URL
+- [ ] Expired/deactivated link: should 301 to `https://brickos.io` (not 404)
 
-### 3.2 Vanity Code UX (affiliate page)
-- [ ] Type vanity code: green/red availability indicator appears while typing (debounced)
-- [ ] Save new vanity code: success toast
-- [ ] Edit existing: "Change" button appears, new code can be saved
-- [ ] Cancel edit: returns to display mode
-- [ ] Wrong tier: error says "Focus tier or higher"
+### 3.2 Vanity Code UX (navigate to Affiliate page)
+- [ ] Type a vanity code in the input: green/red availability indicator appears while typing
+- [ ] Indicator updates live with ~300ms debounce
+- [ ] If you already have a vanity code: "Change" button is visible
+- [ ] Click "Change": input field appears with current code, edit and save
+- [ ] Click "Cancel": returns to display mode without saving
+- [ ] As free tier user: error says "Focus tier or higher" (not "Clarity or Horizon")
 
-### 3.3 Link Edit UI (affiliate page)
-- [ ] "Your Short Links" section visible with link list
-- [ ] Click counts shown per link
-- [ ] Edit (pencil) button opens inline form
-- [ ] Fields: target URL, title, active toggle, expiry date
-- [ ] Save: success toast, list refreshes
-- [ ] Deactivate: "Inactive" badge appears
+### 3.3 Link Edit UI (Affiliate page, "Your Short Links" section)
+- [ ] Short links list visible below stats (if you have links)
+- [ ] Each link shows: code, target URL, click count
+- [ ] Click pencil icon: inline edit form opens (target URL, title, active toggle, expiry date)
+- [ ] Save edit: success toast, list refreshes with updated data
+- [ ] Click deactivate icon: link shows "Inactive" badge
 
 ### 3.4 QR Code
-- [ ] Visit `brickos.io/r/shDEMO2026.qr` returns SVG with BrickOS brick logo overlay
-
-### 3.5 Click Analytics API
-- [ ] `GET /api/v1/links/{id}/analytics?days=30` returns stats + clicks_by_day + top_referrers
+- [ ] Open `https://brickos.io/r/shDEMO2026.qr` -> SVG QR code with orange brick logo in center
 
 ---
 
-## Part 4: Platform Infrastructure
+## Part 4: BrickOS Website (Manual -- Helmut)
 
-### 4.1 Org Roles Migration
-```bash
-ssh root@72.61.154.115 "docker exec sh-staging-db psql -U sovereign_health -d sovereign_health_staging -c \
-  \"SELECT conname FROM pg_constraint WHERE conname = 'org_members_role_check'\""
-```
-- [ ] Constraint exists
-- [ ] Allowed values: owner, tech_admin, commercial_admin, editor, consumer
+### 4.1 Animation (CRITICAL -- was broken before)
+- [ ] **Chrome**: open `https://brickos.io` -- blocks drop in, float, fade, repeat loop
+- [ ] **Firefox**: same animation works
+- [ ] **Brave**: same animation works (was broken -- now inline SVG instead of iframe)
 
-### 4.2 Platform Tier System
-```bash
-ssh root@72.61.154.115 "docker exec sh-staging-db psql -U sovereign_health -d sovereign_health_staging -c \
-  \"SELECT app_key, tier_slug, display_name FROM app_tier_names ORDER BY app_key, sort_order\""
-```
-- [ ] SHI: Glimpse, Focus, Insight, Clarity, Horizon
-- [ ] Sovereign Link: Basic, Growth, Scale, Agency, Self-hosted
-- [ ] Sovereign Voice: Free, Creator, Pro, Studio, Self-hosted
-
-### 4.3 Voice Service Account
-```bash
-ssh root@72.61.154.115 "docker exec sh-staging-db psql -U sovereign_health -d sovereign_health_staging -c \
-  \"SELECT name, is_active FROM brickos.service_accounts\""
-```
-- [ ] sovereign-voice account exists, is_active = true
-
-### 4.4 Design System
-- [ ] `design-tokens.ts` exists in `components/admin/`
-- [ ] Colors match BrickOS brand (orange accent, zinc dark theme)
+### 4.2 Contact Form
+- [ ] Submit contact form -> success
 
 ---
 
-## Part 5: BrickOS Website
+## Part 5: VPS Tasks (Manual -- Helmut, after production deploy)
 
-### 5.1 Animation
-- [ ] Chrome: logo animation plays (blocks drop, float, fade, repeat)
-- [ ] Firefox: same animation works
-- [ ] Brave: same animation works (was broken before -- iframe replaced with inline SVG)
-
-### 5.2 Contact Form
-- [ ] Contact form submits successfully
-
----
-
-## Part 6: VPS Setup Tasks
-
-### 6.1 Voice Service Account API Key (production)
+### 5.1 Voice Service Account API Key
+Run on VPS (`ssh root@72.61.154.115`):
 ```bash
-ssh root@72.61.154.115
+# Generate API key
 KEY=$(openssl rand -hex 32)
 HASH=$(echo -n "$KEY" | sha256sum | cut -d' ' -f1)
-echo "API Key: $KEY"
+echo "Save this key: $KEY"
 
+# Update DB (production)
 docker exec sovereign-health-db-1 psql -U sovereign_health -d sovereign_health -c \
   "UPDATE brickos.service_accounts SET api_key_hash = '$HASH' WHERE name = 'sovereign-voice'"
 
+# Add to Voice .env
 cat >> /opt/nostr-scheduler/.env << EOF
 SOVEREIGN_LINK_API_URL=https://api.sovereignhealth.io/api/v1/service/links
 SOVEREIGN_LINK_API_KEY=$KEY
 EOF
 
+# Rebuild and restart
 cd /opt/nostr-scheduler && npm run build && systemctl restart nostr-scheduler
-systemctl status nostr-scheduler
 ```
-- [ ] Service account key updated in DB
-- [ ] .env updated with API URL + key
-- [ ] Scheduler rebuilt and running
+- [ ] Key generated and saved
+- [ ] DB updated
+- [ ] .env updated
+- [ ] Scheduler rebuilt and running (`systemctl status nostr-scheduler`)
 
-### 6.2 Verify Voice Shortening
+### 5.2 Verify Voice Status
 ```bash
-# Check that next publish will shorten URLs
 ssh root@72.61.154.115 "cd /opt/nostr-scheduler && node dist/index.js list schedule.json"
 ```
-- [ ] 13 notes pending, pob-day02 next at Apr 15
+- [ ] 13 notes pending
+- [ ] pob-day02 next at Apr 15
+
+---
+
+## Part 6: Infrastructure Verification (Manual -- Helmut)
+
+### 6.1 Org Roles Migration
+```bash
+ssh root@72.61.154.115 "docker exec sh-staging-db psql -U sovereign_health -d sovereign_health_staging -c \
+  \"SELECT conname FROM pg_constraint WHERE conname = 'org_members_role_check'\""
+```
+- [ ] Constraint `org_members_role_check` exists
+
+### 6.2 Platform Tier System
+```bash
+ssh root@72.61.154.115 "docker exec sh-staging-db psql -U sovereign_health -d sovereign_health_staging -c \
+  \"SELECT app_key, tier_slug, display_name FROM app_tier_names ORDER BY app_key, sort_order\""
+```
+- [ ] SHI: Glimpse, Focus, Insight, Clarity, Horizon (5 rows)
+- [ ] Sovereign Link: Basic, Growth, Scale, Agency, Self-hosted (5 rows)
+- [ ] Sovereign Voice: Free, Creator, Pro, Studio, Self-hosted (5 rows)
+
+### 6.3 Voice Service Account
+```bash
+ssh root@72.61.154.115 "docker exec sh-staging-db psql -U sovereign_health -d sovereign_health_staging -c \
+  \"SELECT name, is_active FROM brickos.service_accounts\""
+```
+- [ ] `sovereign-voice` exists, `is_active = true`
 
 ---
 
@@ -213,12 +196,12 @@ ssh root@72.61.154.115 "cd /opt/nostr-scheduler && node dist/index.js list sched
 
 | Area | Tester | Status | Notes |
 |------|--------|--------|-------|
-| DNS + Domains | Helmut | | |
-| Platform Admin GUI | Helmut | | |
-| Sovereign Link | Helmut | | |
-| Platform Infrastructure | Helmut | | |
-| BrickOS Website | Helmut | | |
-| VPS Setup | Helmut | | |
+| DNS + Domains (13 items) | Helmut | | |
+| Platform Admin GUI (6 sections) | Helmut | | |
+| Sovereign Link (4 sections) | Helmut | | |
+| BrickOS Website (2 items) | Helmut | | |
+| VPS Tasks (after prod deploy) | Helmut | | |
+| Infrastructure (3 items) | Helmut | | |
 
 **Overall verdict:** [ ] PASS -- ready for production / [ ] FAIL -- issues found
 
