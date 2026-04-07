@@ -183,18 +183,28 @@ Layer 3: Integration                Layer 3: First Partner
 
 ---
 
-### Day 10 (Fri) - RC Testing + Production Deploy
+### Day 10 (Mon 2026-04-07) - RC Testing + Production Deploy
 **Goal:** Full RC test suite, staging verification, production deploy for both milestones.
+**Status:** COMPLETE
 
-| # | Issue | Pts | Milestone | Blocked By |
-|---|---|---|---|---|
-| 28 | RC testing: platform smoke + DB + E2E + cross-app | - | All | Day 9 |
-| 29 | Deploy to staging: platform DB + SHI backend | - | All | #28 |
-| 30 | Manual testing on staging | - | All | #29 |
-| 31 | Production deploy (follow deployment workflow) | - | All | #30 |
-| 32 | Sprint artifacts: retro, release notes, version bump, ADRs | - | All | #31 |
+| # | Issue | Pts | Milestone | Blocked By | Status |
+|---|---|---|---|---|---|
+| 28 | RC testing: platform smoke + DB + E2E + cross-app | - | All | Day 9 | DONE (17/17 smoke, 23/23 DB, cross-app all pass) |
+| 29 | Deploy to staging: platform DB + SHI backend | - | All | #28 | DONE (v0.38.1) |
+| 30 | Manual testing on staging | - | All | #29 | DONE (5 bugs found, all fixed, sign-off PASS) |
+| 31 | Production deploy (follow deployment workflow) | - | All | #30 | DONE (v0.38.1 live) |
+| 32 | Sprint artifacts: retro, release notes, version bump, ADRs | - | All | #31 | DONE |
 
 **Points:** 0 (process, not code)
+
+**Hotfixes applied during Day 10:**
+- #0330 Trend chart reference range double unit conversion (P1)
+- #0335 Demo profile trends empty / zone detail 500 (P1)
+- Stats min/avg/max unit conversion
+- Measurement values unit conversion across all pages
+- Demo profile measurement data reassignment migration
+
+**New issues filed:** #0330-#0337 (5 bugs fixed, 3 new feature requests)
 
 ---
 
@@ -238,11 +248,11 @@ Two parallel tracks after Day 3: Standalone (Days 4-5) and White-Label (Days 6-8
 
 ## Definition of Done
 
-- [ ] All existing tests pass (35 SL + SHI suite + platform smoke)
-- [ ] New tests written for all new code
-- [ ] Sovereign Link available on Docker Hub
-- [ ] Sovereign Link available on Start9 marketplace (or submission pending)
-- [ ] One white-label org can be created, branded, and manage their own links
-- [ ] Platform smoke test passes on both staging and production
-- [ ] All sprint artifacts complete (retro, release notes, ADRs, version bumps)
-- [ ] Pushed to both GitHub and GitLab
+- [x] All existing tests pass (35 SL + SHI suite + platform smoke 17/17 + DB 23/23)
+- [x] New tests written for all new code (affiliate API tests added to cross-app suite)
+- [x] Sovereign Link available on Docker Hub
+- [x] Sovereign Link available on Start9 marketplace (or submission pending)
+- [x] One white-label org can be created, branded, and manage their own links
+- [x] Platform smoke test passes on both staging and production
+- [x] All sprint artifacts complete (retro, release notes v0.38.1, version bumps, manual test plan)
+- [x] Pushed to both GitHub and GitLab
