@@ -9,6 +9,10 @@ use crate::db::LinkStore;
 #[cfg(feature = "platform")]
 use crate::models::*;
 
+/// BrickOS cube logo (blockos-cube-dark-512.png) as base64 PNG.
+/// Embedded directly in SVG QR codes for the center logo.
+const BRICKOS_CUBE_B64: &str = include_str!("../assets/brickos-cube.b64");
+
 /// Inner QR handler -- called from the redirect dispatcher when code ends with .qr (platform mode)
 #[cfg(feature = "platform")]
 pub async fn handle_qr_inner(
@@ -49,8 +53,9 @@ fn render_qr_response(exists: bool, short_url: &str) -> HttpResponse {
             let svg_str = qr
                 .render::<svg::Color>()
                 .min_dimensions(300, 300)
-                .dark_color(svg::Color("#fafafa"))
-                .light_color(svg::Color("#09090b"))
+                .quiet_zone(true)
+                .dark_color(svg::Color("#000000"))
+                .light_color(svg::Color("#ffffff"))
                 .build();
 
             // Embed BrickOS brick logo in the center of the QR code.
@@ -69,41 +74,30 @@ fn render_qr_response(exists: bool, short_url: &str) -> HttpResponse {
     }
 }
 
-/// Embed the BrickOS isometric cube logo in the center of the QR SVG.
-/// White circle background for contrast, isometric cube in the center.
+/// Embed the actual BrickOS cube PNG as a base64 image in the center of the QR SVG.
+/// White circle background, actual brand asset embedded.
 fn embed_logo_in_svg(svg: &str) -> String {
     let (width, height) = parse_svg_dimensions(svg);
-    let r = (width.min(height) as f64 * 0.14) as u32; // circle radius = 14% of QR
+    let r = (width.min(height) as f64 * 0.13) as u32;
     let cx = width / 2;
     let cy = height / 2;
+    let img_size = (r as f64 * 1.6) as u32;
+    let img_x = cx - img_size / 2;
+    let img_y = cy - img_size / 2;
 
-    // Isometric cube dimensions (relative to circle radius)
-    let s = r as f64 * 0.55; // half-width of cube top face
-    let h = s * 0.7; // cube height
-
-    // Cube center offsets from (cx, cy)
-    let ccx = cx as f64;
-    let ccy = cy as f64 - h * 0.1; // shift up slightly
-
-    // Isometric cube: 3 faces (top, left, right)
     let logo = format!(
         r##"<g>
   <circle cx="{cx}" cy="{cy}" r="{r}" fill="#fafafa"/>
-  <path d="M{ccx},{ty} L{rx},{rm} L{ccx},{by} L{lx},{rm} Z" fill="#d4d4d4"/>
-  <path d="M{lx},{rm} L{ccx},{by} L{ccx},{bby} L{lx},{lm} Z" fill="#1a1a1a"/>
-  <path d="M{ccx},{by} L{rx},{rm} L{rx},{lm} L{ccx},{bby} Z" fill="#2a2a2a"/>
+  <image x="{ix}" y="{iy}" width="{iw}" height="{ih}" href="data:image/png;base64,{b64}"/>
 </g>"##,
         cx = cx,
         cy = cy,
-        r = r + 2, // slight padding
-        ccx = ccx,
-        ty = ccy - h,          // top point
-        rm = ccy,              // right-middle y
-        by = ccy + h * 0.5,    // bottom of top face
-        lx = ccx - s,          // left x
-        rx = ccx + s,          // right x
-        bby = ccy + h * 1.2,   // bottom of cube
-        lm = ccy + h * 0.7,    // left-bottom y
+        r = r + 3,
+        ix = img_x,
+        iy = img_y,
+        iw = img_size,
+        ih = img_size,
+        b64 = BRICKOS_CUBE_B64,
     );
 
     if let Some(pos) = svg.rfind("</svg>") {
