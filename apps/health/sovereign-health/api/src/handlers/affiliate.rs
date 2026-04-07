@@ -803,7 +803,7 @@ pub async fn set_vanity(
     let user_id = auth.user_id;
     let code = body.code.trim().to_lowercase();
 
-    // Tier check: only clarity and horizon
+    // Tier check: vanity codes require core, clarity, or horizon
     let tier: String = sqlx::query_scalar("SELECT tier FROM users WHERE id = $1")
         .bind(user_id)
         .fetch_one(pool.get_ref())
@@ -812,7 +812,7 @@ pub async fn set_vanity(
 
     if tier != "clarity" && tier != "horizon" && tier != "core" {
         return Ok(HttpResponse::Forbidden().json(json!({
-            "error": { "code": "TIER_REQUIRED", "message": "Vanity codes require Clarity or Horizon tier" }
+            "error": { "code": "TIER_REQUIRED", "message": "Vanity codes require Focus tier or higher" }
         })));
     }
 

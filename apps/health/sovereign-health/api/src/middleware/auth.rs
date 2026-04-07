@@ -10,6 +10,8 @@ pub struct AuthenticatedUser {
     pub user_id: Uuid,
     pub role: String,
     pub tier: String,
+    pub org_id: Option<Uuid>,
+    pub org_role: Option<String>,
 }
 
 impl AuthenticatedUser {
@@ -100,9 +102,110 @@ fn extract_user(req: &HttpRequest) -> Result<AuthenticatedUser, AppError> {
         });
     }
 
+    let org_id = claims
+        .org_id
+        .as_deref()
+        .and_then(|s| Uuid::parse_str(s).ok());
+
     Ok(AuthenticatedUser {
         user_id,
         role: claims.role,
         tier: claims.tier,
+        org_id,
+        org_role: claims.org_role,
     })
+}
+
+/// Extractor for org owner or any org admin (tech or commercial).
+pub struct OrgAdmin {
+    pub user_id: Uuid,
+    pub org_id: Uuid,
+    pub org_role: String,
+}
+
+impl FromRequest for OrgAdmin {
+    type Error = AppError;
+    type Future = Ready<Result<Self, Self::Error>>;
+
+    fn from_request(req: &HttpRequest, _payload: &mut actix_web::dev::Payload) -> Self::Future {
+        let result = extract_user(req).and_then(|u| {
+            // Platform admin can act as org admin for any org
+            if u.role == "admin" {
+                return Ok(OrgAdmin {
+                    user_id: u.user_id,
+                    org_id: u.org_id.unwrap_or_default(),
+                    org_role: "owner".to_string(),
+                });
+            }
+            match (u.org_id, u.org_role.as_deref()) {
+                (Some(org_id), Some("owner" | "tech_admin" | "commercial_admin")) => {
+                    Ok(OrgAdmin {
+                        user_id: u.user_id,
+                        org_id,
+                        org_role: u.org_role.unwrap_or_default(),
+                    })
+                }
+                _ => Err(AppError::Forbidden),
+            }
+        });
+        ready(result)
+    }
+}
+
+/// Extractor for org tech admin (or owner). No commercial access.
+pub struct OrgTechAdmin {
+    pub user_id: Uuid,
+    pub org_id: Uuid,
+}
+
+impl FromRequest for OrgTechAdmin {
+    type Error = AppError;
+    type Future = Ready<Result<Self, Self::Error>>;
+
+    fn from_request(req: &HttpRequest, _payload: &mut actix_web::dev::Payload) -> Self::Future {
+        let result = extract_user(req).and_then(|u| {
+            if u.role == "admin" {
+                return Ok(OrgTechAdmin {
+                    user_id: u.user_id,
+                    org_id: u.org_id.unwrap_or_default(),
+                });
+            }
+            match (u.org_id, u.org_role.as_deref()) {
+                (Some(org_id), Some("owner" | "tech_admin")) => {
+                    Ok(OrgTechAdmin { user_id: u.user_id, org_id })
+                }
+                _ => Err(AppError::Forbidden),
+            }
+        });
+        ready(result)
+    }
+}
+
+/// Extractor for org commercial admin (or owner). No tech access.
+pub struct OrgCommercialAdmin {
+    pub user_id: Uuid,
+    pub org_id: Uuid,
+}
+
+impl FromRequest for OrgCommercialAdmin {
+    type Error = AppError;
+    type Future = Ready<Result<Self, Self::Error>>;
+
+    fn from_request(req: &HttpRequest, _payload: &mut actix_web::dev::Payload) -> Self::Future {
+        let result = extract_user(req).and_then(|u| {
+            if u.role == "admin" {
+                return Ok(OrgCommercialAdmin {
+                    user_id: u.user_id,
+                    org_id: u.org_id.unwrap_or_default(),
+                });
+            }
+            match (u.org_id, u.org_role.as_deref()) {
+                (Some(org_id), Some("owner" | "commercial_admin")) => {
+                    Ok(OrgCommercialAdmin { user_id: u.user_id, org_id })
+                }
+                _ => Err(AppError::Forbidden),
+            }
+        });
+        ready(result)
+    }
 }

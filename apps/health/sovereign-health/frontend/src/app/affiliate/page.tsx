@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
 import { api } from '@/lib/api'
@@ -145,19 +145,25 @@ export default function AffiliatePage() {
     }
   }
 
-  const checkVanityAvailability = async (code: string) => {
+  const vanityCheckTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const checkVanityAvailability = useCallback((code: string) => {
     if (code.length < 3) { setVanityAvailable(null); return }
+    // Debounce 300ms for real-time check while typing
+    if (vanityCheckTimer.current) clearTimeout(vanityCheckTimer.current)
     setCheckingVanity(true)
-    try {
-      const res = await api.affiliate.checkVanity(code)
-      setVanityAvailable(res.data.available)
-      setVanityReason(res.data.reason || '')
-    } catch {
-      setVanityAvailable(null)
-    } finally {
-      setCheckingVanity(false)
-    }
-  }
+    vanityCheckTimer.current = setTimeout(async () => {
+      try {
+        const res = await api.affiliate.checkVanity(code)
+        setVanityAvailable(res.data.available)
+        setVanityReason(res.data.reason || '')
+      } catch {
+        setVanityAvailable(null)
+      } finally {
+        setCheckingVanity(false)
+      }
+    }, 300)
+  }, [])
 
   const handleSaveVanity = async () => {
     if (!vanityCode.trim()) return
@@ -300,9 +306,22 @@ export default function AffiliatePage() {
               {isVanityEligible && (
                 <div className="pt-3 border-t border-border space-y-2">
                   <h2 className="text-sm font-medium text-muted-foreground">{t('vanityCode')}</h2>
-                  {vanityLink ? (
-                    <div className="flex-1 bg-accent border rounded-lg px-3 py-2.5 text-sm font-mono truncate select-all">
-                      {vanityLink}
+                  {vanityLink && !editingVanity ? (
+                    <div className="space-y-1.5">
+                      <div className="flex items-center gap-2">
+                        <div className="flex-1 bg-accent border rounded-lg px-3 py-2.5 text-sm font-mono truncate select-all">
+                          {vanityLink}
+                        </div>
+                        <button
+                          onClick={() => {
+                            setEditingVanity(true)
+                            setVanityAvailable(null)
+                          }}
+                          className="border border-zinc-700 hover:border-zinc-600 text-zinc-300 text-sm font-medium px-3 py-2 rounded-lg transition-colors shrink-0"
+                        >
+                          {t('vanityChange') ?? 'Change'}
+                        </button>
+                      </div>
                     </div>
                   ) : (
                     <div className="space-y-1.5">
@@ -315,8 +334,8 @@ export default function AffiliatePage() {
                             const v = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '')
                             setVanityCode(v)
                             setVanityAvailable(null)
+                            if (v.length >= 3) checkVanityAvailability(v)
                           }}
-                          onBlur={() => vanityCode.length >= 3 && checkVanityAvailability(vanityCode)}
                           placeholder="yourname"
                           maxLength={30}
                           className="flex-1 bg-accent border rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-1 focus:ring-blue-500"
@@ -328,11 +347,18 @@ export default function AffiliatePage() {
                         >
                           {savingVanity ? '...' : tCommon('save')}
                         </button>
+                        {editingVanity && (
+                          <button
+                            onClick={() => { setEditingVanity(false); setVanityAvailable(null) }}
+                            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                          >
+                            {tCommon('cancel') ?? 'Cancel'}
+                          </button>
+                        )}
                       </div>
                       {checkingVanity && <p className="text-xs text-muted-foreground">{t('vanityChecking')}</p>}
                       {vanityAvailable === true && <p className="text-xs text-green-400">{t('vanityAvailable')}</p>}
                       {vanityAvailable === false && <p className="text-xs text-red-400">{vanityReason || t('vanityTaken')}</p>}
-                      <p className="text-xs text-yellow-500/80">{t('vanityPermanent')}</p>
                     </div>
                   )}
                   <p className="text-xs text-muted-foreground/70">{t('vanityDescription')}</p>

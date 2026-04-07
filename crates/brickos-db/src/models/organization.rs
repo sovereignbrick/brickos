@@ -42,12 +42,18 @@ pub struct DataShare {
 }
 
 /// Supported organization roles.
+///
+/// - owner: Full org control, one per org, can transfer ownership
+/// - tech_admin: Service monitor, domains, branding, members, audit. No commercial data.
+/// - commercial_admin: Billing, licenses, newsletter, affiliates. No infra/audit.
+/// - editor: Works in app (not admin). Views/imports consumer data with consent.
+/// - consumer: End user. Own data only. Can grant/revoke sharing.
 pub const ORG_ROLES: &[&str] = &[
     "owner",
-    "practitioner",
-    "assistant",
-    "billing_admin",
-    "patient",
+    "tech_admin",
+    "commercial_admin",
+    "editor",
+    "consumer",
 ];
 
 /// Supported data share scopes.

@@ -13,11 +13,16 @@ use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, Validation}
 use serde::{Deserialize, Serialize};
 
 /// JWT claims structure. Generic enough for any BrickOS app.
+/// org_id and org_role are optional -- present only when the user has an org context.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Claims {
     pub sub: String,
     pub role: String,
     pub tier: String,
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub org_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub org_role: Option<String>,
     pub exp: i64,
     pub iat: i64,
 }
@@ -29,11 +34,25 @@ pub fn create_jwt(
     secret: &str,
     expiry_secs: i64,
 ) -> anyhow::Result<String> {
+    create_jwt_with_org(user_id, role, tier, None, None, secret, expiry_secs)
+}
+
+pub fn create_jwt_with_org(
+    user_id: &str,
+    role: &str,
+    tier: &str,
+    org_id: Option<&str>,
+    org_role: Option<&str>,
+    secret: &str,
+    expiry_secs: i64,
+) -> anyhow::Result<String> {
     let now = chrono::Utc::now().timestamp();
     let claims = Claims {
         sub: user_id.to_string(),
         role: role.to_string(),
         tier: tier.to_string(),
+        org_id: org_id.map(|s| s.to_string()),
+        org_role: org_role.map(|s| s.to_string()),
         iat: now,
         exp: now + expiry_secs,
     };
