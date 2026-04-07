@@ -1174,6 +1174,20 @@ export const api = {
     checkVanity: (code: string) =>
       request<{ data: { available: boolean; reason: string | null } }>(`/api/affiliate/vanity/check?code=${encodeURIComponent(code)}`),
   },
+  links: {
+    list: () =>
+      request<Array<{ id: string; code: string; target_url: string; link_type: string; domain: string; app_key: string; affiliate_code: string | null; title: string | null; is_active: boolean; expires_at: string | null; total_clicks: number; clicks_7d: number; clicks_30d: number; created_at: string }>>('/api/v1/links'),
+    create: (body: { target_url: string; code?: string; title?: string; expires_at?: string }) =>
+      request<{ id: string; code: string; target_url: string }>('/api/v1/links', {
+        method: 'POST', body: JSON.stringify(body),
+      }),
+    update: (id: string, body: { target_url?: string; title?: string; is_active?: boolean; expires_at?: string | null }) =>
+      request<{ id: string; code: string; target_url: string; is_active: boolean }>(`/api/v1/links/${id}`, {
+        method: 'PUT', body: JSON.stringify(body),
+      }),
+    delete: (id: string) =>
+      request<{ success: boolean }>(`/api/v1/links/${id}`, { method: 'DELETE' }),
+  },
   contentStrings: {
     get: (section = 'app', lang = 'en') =>
       request<{ data: Array<{ key: string; value: string }> }>(

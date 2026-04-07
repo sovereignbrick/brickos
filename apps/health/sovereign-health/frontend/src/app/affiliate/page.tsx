@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback, useRef } from 'react'
+import { LinksSection } from '@/components/affiliate/links-section'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
 import { api } from '@/lib/api'
@@ -429,7 +430,10 @@ export default function AffiliatePage() {
           </div>
         )}
 
-        {/* Section 3: EUR Commissions (blue) */}
+        {/* Section 3: Short Links */}
+        <LinksSection />
+
+        {/* Section 4: EUR Commissions (blue) */}
         {stats && (
           <div>
             <h3 className="text-sm font-medium text-muted-foreground mb-2">
