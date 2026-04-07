@@ -246,6 +246,56 @@ impl LinkStore for PgLinkStore {
         Ok(clicks)
     }
 
+    async fn get_daily_clicks(
+        &self,
+        link_id: Uuid,
+        days: i32,
+    ) -> anyhow::Result<Vec<(String, i64)>> {
+        let rows = sqlx::query_as::<_, (chrono::NaiveDate, i64)>(
+            r#"SELECT d::date AS day, COALESCE(c.cnt, 0) AS count
+               FROM generate_series(
+                   (now() - ($2 || ' days')::interval)::date,
+                   now()::date,
+                   '1 day'::interval
+               ) AS d
+               LEFT JOIN (
+                   SELECT DATE(clicked_at) AS day, COUNT(*) AS cnt
+                   FROM short_link_clicks
+                   WHERE short_link_id = $1
+                     AND clicked_at >= now() - ($2 || ' days')::interval
+                   GROUP BY DATE(clicked_at)
+               ) c ON c.day = d::date
+               ORDER BY d"#,
+        )
+        .bind(link_id)
+        .bind(days)
+        .fetch_all(&self.pool)
+        .await?;
+
+        Ok(rows.into_iter().map(|(d, c)| (d.to_string(), c)).collect())
+    }
+
+    async fn get_top_referrers(
+        &self,
+        link_id: Uuid,
+        limit: i32,
+    ) -> anyhow::Result<Vec<(String, i64)>> {
+        let rows = sqlx::query_as::<_, (String, i64)>(
+            r#"SELECT COALESCE(referrer_domain, '(direct)') AS domain, COUNT(*) AS count
+               FROM short_link_clicks
+               WHERE short_link_id = $1
+               GROUP BY referrer_domain
+               ORDER BY count DESC
+               LIMIT $2"#,
+        )
+        .bind(link_id)
+        .bind(limit as i64)
+        .fetch_all(&self.pool)
+        .await?;
+
+        Ok(rows)
+    }
+
     async fn get_by_id(&self, id: Uuid) -> anyhow::Result<Option<ShortLink>> {
         let link = sqlx::query_as::<_, ShortLink>(
             r#"SELECT id, code, target_url, link_type, domain, app_key,

@@ -25,7 +25,8 @@ pub fn configure_routes(cfg: &mut web::ServiceConfig) {
             .route("", web::post().to(handlers::api::create_link))
             .route("/{id}", web::put().to(handlers::api::update_link))
             .route("/{id}", web::delete().to(handlers::api::delete_link))
-            .route("/{id}/stats", web::get().to(handlers::api::link_stats)),
+            .route("/{id}/stats", web::get().to(handlers::api::link_stats))
+            .route("/{id}/analytics", web::get().to(handlers::api::link_analytics)),
     );
 
     // Namespaced redirect: /r/{org_slug}/{code}

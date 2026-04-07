@@ -1187,6 +1187,8 @@ export const api = {
       }),
     delete: (id: string) =>
       request<{ success: boolean }>(`/api/v1/links/${id}`, { method: 'DELETE' }),
+    analytics: (id: string, days = 30) =>
+      request<{ stats: { total_clicks: number; clicks_7d: number; clicks_30d: number; unique_visitors_7d: number }; clicks_by_day: Array<{ date: string; clicks: number }>; top_referrers: Array<{ domain: string; clicks: number }> }>(`/api/v1/links/${id}/analytics?days=${days}`),
   },
   contentStrings: {
     get: (section = 'app', lang = 'en') =>

@@ -127,6 +127,42 @@ pub async fn link_stats(
     }
 }
 
+/// GET /api/v1/links/{id}/analytics?days=30 -- Full click analytics for a link.
+pub async fn link_analytics(
+    req: HttpRequest,
+    id: web::Path<Uuid>,
+    query: web::Query<std::collections::HashMap<String, String>>,
+    store: web::Data<Arc<dyn LinkStore>>,
+) -> HttpResponse {
+    let _user_id = match extract_user_id(&req) {
+        Some(id) => id,
+        None => {
+            return HttpResponse::Unauthorized().json(serde_json::json!({"error": "Unauthorized"}))
+        }
+    };
+
+    let days: i32 = query.get("days").and_then(|d| d.parse().ok()).unwrap_or(30);
+    let days = days.clamp(1, 365);
+
+    let stats = store.get_stats(*id).await;
+    let daily = store.get_daily_clicks(*id, days).await;
+    let referrers = store.get_top_referrers(*id, 10).await;
+
+    match (stats, daily, referrers) {
+        (Ok(stats), Ok(daily), Ok(referrers)) => {
+            HttpResponse::Ok().json(serde_json::json!({
+                "stats": stats,
+                "clicks_by_day": daily.iter().map(|(d, c)| serde_json::json!({"date": d, "clicks": c})).collect::<Vec<_>>(),
+                "top_referrers": referrers.iter().map(|(d, c)| serde_json::json!({"domain": d, "clicks": c})).collect::<Vec<_>>(),
+            }))
+        }
+        _ => {
+            tracing::error!("Failed to get link analytics for {}", *id);
+            HttpResponse::InternalServerError().json(serde_json::json!({"error": "Internal error"}))
+        }
+    }
+}
+
 /// Extract user_id from the request extensions (set by auth middleware).
 fn extract_user_id(req: &HttpRequest) -> Option<Uuid> {
     // The host API's auth middleware stores the user_id in request extensions.
