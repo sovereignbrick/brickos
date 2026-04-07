@@ -254,7 +254,13 @@ Note: SHI app via `demo.brickos.io/sovereignhealth/` has a session/cookie issue
 - [ ] Verify `app_tier_names` has 15 rows (5 tiers x 3 apps)
 - [ ] Verify `service_accounts` has sovereign-voice entry
 
-**Overall verdict:** [ ] PASS / [ ] FAIL
+**Overall verdict:** [x] PASS -- Sprint 030 closed
 
-**Date tested:**
+**Date tested:** 2026-04-07
 **Notes:**
+- Platform admin GUI functional at demo.brickos.io/platform and app.brickos.io/platform
+- All 4 brickos.io subdomains live (app, demo, api, status)
+- SHI features verified on demo.sovereignhealth.io
+- Voice service account configured and running
+- Production deployed with all Sprint 030 code
+- 8 issues deferred to Sprint 031 (#0368-#0375)
