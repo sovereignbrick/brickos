@@ -1,18 +1,12 @@
 'use client'
 
 import { useState } from 'react'
+import { BrickosLogo } from '@/components/brickos-logo'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.sovereignhealth.io'
 
 function Logo() {
-  return (
-    <iframe
-      src="/assets/blockos-logo-v2.html"
-      className="w-full max-w-[500px] aspect-[744/624] border-0 pointer-events-none"
-      title="BrickOS Logo Animation"
-      loading="eager"
-    />
-  )
+  return <BrickosLogo />
 }
 
 function ContactForm() {
