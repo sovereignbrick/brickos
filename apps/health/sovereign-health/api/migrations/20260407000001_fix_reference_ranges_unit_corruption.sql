@@ -10,26 +10,21 @@
 --
 -- STAGING/DEV ONLY - production was not affected because unit preferences were not
 -- changed from defaults on production accounts.
---
--- Safe: ON CONFLICT DO NOTHING not needed (UPDATE only), idempotent if values are
--- already canonical (factor = 1 for users who never changed units).
 
 -- Step 1: Fix glucose-group markers (mmol/L -> mg/dL factor = 18.0182)
--- Only for users whose glucose_unit preference is 'mg/dL'
 UPDATE reference_ranges rr
 SET green_min  = rr.green_min  / 18.0182,
     green_max  = rr.green_max  / 18.0182,
     orange_min = rr.orange_min / 18.0182,
     orange_max = rr.orange_max / 18.0182,
     updated_at = now()
-FROM markers m, user_settings us
+FROM markers m, user_preferences up
 WHERE rr.marker_id = m.id
-  AND rr.user_id = us.user_id
+  AND rr.user_id = up.user_id
   AND rr.is_custom = true
   AND m.marker_slug IN ('glucose', 'fasting_glucose')
   AND m.unit_canonical = 'mmol/L'
-  AND us.units->>'glucose_unit' = 'mg/dL'
-  -- Guard: only fix if values look like they're in mg/dL (green_max > 15 for glucose is clearly mg/dL not mmol/L)
+  AND up.glucose_unit = 'mg/dL'
   AND rr.green_max > 15;
 
 -- Step 2: Fix cholesterol-group markers (mmol/L -> mg/dL factor = 38.67)
@@ -39,14 +34,13 @@ SET green_min  = rr.green_min  / 38.67,
     orange_min = rr.orange_min / 38.67,
     orange_max = rr.orange_max / 38.67,
     updated_at = now()
-FROM markers m, user_settings us
+FROM markers m, user_preferences up
 WHERE rr.marker_id = m.id
-  AND rr.user_id = us.user_id
+  AND rr.user_id = up.user_id
   AND rr.is_custom = true
   AND m.marker_slug IN ('total_cholesterol', 'ldl_c', 'hdl_c', 'vldl', 'non_hdl_c')
   AND m.unit_canonical = 'mmol/L'
-  AND us.units->>'cholesterol_unit' = 'mg/dL'
-  -- Guard: cholesterol green_max > 20 is clearly mg/dL
+  AND up.cholesterol_unit = 'mg/dL'
   AND rr.green_max > 20;
 
 -- Step 3: Fix triglycerides (mmol/L -> mg/dL factor = 88.57)
@@ -56,13 +50,13 @@ SET green_min  = rr.green_min  / 88.57,
     orange_min = rr.orange_min / 88.57,
     orange_max = rr.orange_max / 88.57,
     updated_at = now()
-FROM markers m, user_settings us
+FROM markers m, user_preferences up
 WHERE rr.marker_id = m.id
-  AND rr.user_id = us.user_id
+  AND rr.user_id = up.user_id
   AND rr.is_custom = true
   AND m.marker_slug = 'triglycerides'
   AND m.unit_canonical = 'mmol/L'
-  AND us.units->>'cholesterol_unit' = 'mg/dL'
+  AND up.cholesterol_unit = 'mg/dL'
   AND rr.green_max > 10;
 
 -- Step 4: Fix uric acid (umol/L -> mg/dL factor = 1/59.48)
@@ -73,14 +67,13 @@ SET green_min  = rr.green_min  * 59.48,
     orange_min = rr.orange_min * 59.48,
     orange_max = rr.orange_max * 59.48,
     updated_at = now()
-FROM markers m, user_settings us
+FROM markers m, user_preferences up
 WHERE rr.marker_id = m.id
-  AND rr.user_id = us.user_id
+  AND rr.user_id = up.user_id
   AND rr.is_custom = true
   AND m.marker_slug = 'uric_acid'
   AND m.unit_canonical = 'µmol/L'
-  AND us.units->>'uric_acid_unit' = 'mg/dL'
-  -- Guard: uric acid green_max < 10 means it's in mg/dL (canonical would be ~360)
+  AND up.uric_acid_unit = 'mg/dL'
   AND rr.green_max < 10;
 
 -- Step 5: Fix hemoglobin (mmol/L -> g/dL factor = 1.61)
@@ -90,14 +83,13 @@ SET green_min  = rr.green_min  / 1.61,
     orange_min = rr.orange_min / 1.61,
     orange_max = rr.orange_max / 1.61,
     updated_at = now()
-FROM markers m, user_settings us
+FROM markers m, user_preferences up
 WHERE rr.marker_id = m.id
-  AND rr.user_id = us.user_id
+  AND rr.user_id = up.user_id
   AND rr.is_custom = true
   AND m.marker_slug = 'hemoglobin'
   AND m.unit_canonical = 'mmol/L'
-  AND us.units->>'hemoglobin_unit' = 'g/dL'
-  -- Guard: hemoglobin green_max > 15 means it's in g/dL (canonical ~11 mmol/L)
+  AND up.hemoglobin_unit = 'g/dL'
   AND rr.green_max > 15;
 
 -- Step 6: Fix weight (kg -> lbs factor = 2.205)
@@ -107,11 +99,11 @@ SET green_min  = rr.green_min  / 2.205,
     orange_min = rr.orange_min / 2.205,
     orange_max = rr.orange_max / 2.205,
     updated_at = now()
-FROM markers m, user_settings us
+FROM markers m, user_preferences up
 WHERE rr.marker_id = m.id
-  AND rr.user_id = us.user_id
+  AND rr.user_id = up.user_id
   AND rr.is_custom = true
   AND m.marker_slug = 'weight'
   AND m.unit_canonical = 'kg'
-  AND us.units->>'weight_unit' = 'lbs'
+  AND up.weight_unit = 'lbs'
   AND rr.green_max > 150;

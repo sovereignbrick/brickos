@@ -165,7 +165,12 @@ function SourceBadge({ sourceType, deviceName, t }: { sourceType: string; device
 
 // ── Statistics ────────────────────────────────────────────────────────────────
 
-function Statistics({ trend, t }: { trend: TrendData | null; t: (key: string, values?: Record<string, string | number | Date>) => string }) {
+function Statistics({ trend, t, convertValue, displayUnitStr }: {
+  trend: TrendData | null;
+  t: (key: string, values?: Record<string, string | number | Date>) => string;
+  convertValue?: (v: number) => number;
+  displayUnitStr?: string;
+}) {
   const labels = [t('min'), t('avg'), t('max')]
   if (!trend || trend.points.length === 0) {
     return (
@@ -180,6 +185,8 @@ function Statistics({ trend, t }: { trend: TrendData | null; t: (key: string, va
     )
   }
 
+  const conv = convertValue ?? ((v: number) => v)
+  const unit = displayUnitStr ?? trend.unit
   const pts = trend.points
   const values = pts.map(p => p.value)
   const min = Math.min(...values)
@@ -188,7 +195,7 @@ function Statistics({ trend, t }: { trend: TrendData | null; t: (key: string, va
   const minPt = pts.find(p => p.value === min)!
   const maxPt = pts.find(p => p.value === max)!
 
-  const fmt = (v: number) => parseFloat(v.toFixed(2))
+  const fmt = (v: number) => parseFloat(conv(v).toFixed(2))
   const fmtDate = (ts: string) => formatShortDate(ts)
 
   const stats = [
@@ -207,7 +214,7 @@ function Statistics({ trend, t }: { trend: TrendData | null; t: (key: string, va
             style={{ color: s.status === 'green' ? '#4ade80' : s.status === 'orange' ? '#fb923c' : s.status === 'red' ? '#ef4444' : undefined }}
           >
             {s.value}
-            <span className="text-xs font-normal text-muted-foreground ml-1">{trend.unit}</span>
+            <span className="text-xs font-normal text-muted-foreground ml-1">{unit}</span>
           </p>
           <p className="text-xs text-muted-foreground mt-1">{s.date}</p>
         </div>
@@ -669,7 +676,12 @@ export default function MarkerDetailPage() {
         </div>
 
         {/* ── SECTION 3: Statistics ────────────────────────────────────────── */}
-        <Statistics trend={trend} t={t} />
+        <Statistics
+          trend={trend}
+          t={t}
+          convertValue={(v: number) => displayValue(markerId, v, marker.unit)}
+          displayUnitStr={displayUnit(markerId, marker.unit)}
+        />
 
         {/* ── SECTION 4: Recent Measurements ──────────────────────────────── */}
         <div className="rounded-2xl border p-5 space-y-3">

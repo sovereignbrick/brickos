@@ -394,9 +394,9 @@ export default function TrendsPage() {
               <div key={label} className="rounded-xl border p-4 text-center">
                 <p className="text-xs text-muted-foreground mb-1">{label}</p>
                 <p className="text-lg font-bold">
-                  {value !== null ? value.toFixed(2) : '-'}
+                  {value !== null ? displayValue(markerSlug, value, trendData?.unit ?? '').toFixed(2) : '-'}
                 </p>
-                <p className="text-xs text-muted-foreground">{trendData?.unit ?? ''}</p>
+                <p className="text-xs text-muted-foreground">{displayUnit(markerSlug, trendData?.unit ?? '')}</p>
               </div>
             ))}
           </div>
