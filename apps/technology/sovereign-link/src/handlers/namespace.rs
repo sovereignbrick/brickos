@@ -91,7 +91,8 @@ pub async fn redirect_with_namespace(
     // it sets this header so we can resolve the org without a slug in the path.
     if let Some(custom_domain) = req.headers().get("X-Org-Domain") {
         if let Ok(domain_str) = custom_domain.to_str() {
-            if let Some(org_id) = super::branding::resolve_domain(domain_str, pool.get_ref()).await {
+            if let Some(org_id) = super::branding::resolve_domain(domain_str, pool.get_ref()).await
+            {
                 let (_, raw_code) = path.into_inner();
                 let (code, is_qr) = match raw_code.strip_suffix(".qr") {
                     Some(base) => (base.to_string(), true),

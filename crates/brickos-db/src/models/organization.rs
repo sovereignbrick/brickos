@@ -71,7 +71,13 @@ mod tests {
 
     #[test]
     fn org_roles_contains_expected_values() {
-        let expected = ["owner", "practitioner", "assistant", "billing_admin", "patient"];
+        let expected = [
+            "owner",
+            "practitioner",
+            "assistant",
+            "billing_admin",
+            "patient",
+        ];
         for role in &expected {
             assert!(ORG_ROLES.contains(role), "Missing role: {}", role);
         }

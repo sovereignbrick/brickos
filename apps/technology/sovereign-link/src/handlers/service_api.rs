@@ -93,7 +93,9 @@ pub async fn create_service_link(
 ) -> HttpResponse {
     let account = match extract_service_account(&req) {
         Some(a) => a,
-        None => return HttpResponse::Unauthorized().json(serde_json::json!({"error": "Unauthorized"})),
+        None => {
+            return HttpResponse::Unauthorized().json(serde_json::json!({"error": "Unauthorized"}))
+        }
     };
     if let Err(resp) = require_scope(&account, "links:create") {
         return resp;
@@ -149,7 +151,9 @@ pub async fn create_batch_links(
 ) -> HttpResponse {
     let account = match extract_service_account(&req) {
         Some(a) => a,
-        None => return HttpResponse::Unauthorized().json(serde_json::json!({"error": "Unauthorized"})),
+        None => {
+            return HttpResponse::Unauthorized().json(serde_json::json!({"error": "Unauthorized"}))
+        }
     };
     if let Err(resp) = require_scope(&account, "links:create") {
         return resp;
@@ -215,7 +219,9 @@ pub async fn service_link_stats(
 ) -> HttpResponse {
     let account = match extract_service_account(&req) {
         Some(a) => a,
-        None => return HttpResponse::Unauthorized().json(serde_json::json!({"error": "Unauthorized"})),
+        None => {
+            return HttpResponse::Unauthorized().json(serde_json::json!({"error": "Unauthorized"}))
+        }
     };
     if let Err(resp) = require_scope(&account, "links:stats") {
         return resp;
@@ -324,13 +330,12 @@ pub async fn service_link_stats(
 
 /// GET /api/v1/admin/consistency - Run DB consistency checks (design-006 section 9).
 #[cfg(feature = "platform")]
-pub async fn consistency_check(
-    req: HttpRequest,
-    pool: web::Data<PgPool>,
-) -> HttpResponse {
+pub async fn consistency_check(req: HttpRequest, pool: web::Data<PgPool>) -> HttpResponse {
     let account = match extract_service_account(&req) {
         Some(a) => a,
-        None => return HttpResponse::Unauthorized().json(serde_json::json!({"error": "Unauthorized"})),
+        None => {
+            return HttpResponse::Unauthorized().json(serde_json::json!({"error": "Unauthorized"}))
+        }
     };
     if let Err(resp) = require_role(&account, "platform_admin") {
         return resp;
@@ -348,11 +353,15 @@ pub async fn consistency_check(
     )
     .fetch_one(pool.get_ref())
     .await
-    .unwrap_or((- 1,));
+    .unwrap_or((-1,));
 
     checks.push(ConsistencyCheck {
         name: "users_without_personal_org".to_string(),
-        status: if users_no_org.0 == 0 { "pass".to_string() } else { "fail".to_string() },
+        status: if users_no_org.0 == 0 {
+            "pass".to_string()
+        } else {
+            "fail".to_string()
+        },
         violations: users_no_org.0,
         details: None,
     });
@@ -369,7 +378,11 @@ pub async fn consistency_check(
 
     checks.push(ConsistencyCheck {
         name: "personal_orgs_wrong_member_count".to_string(),
-        status: if bad_member_count.0 == 0 { "pass".to_string() } else { "fail".to_string() },
+        status: if bad_member_count.0 == 0 {
+            "pass".to_string()
+        } else {
+            "fail".to_string()
+        },
         violations: bad_member_count.0,
         details: None,
     });
@@ -388,7 +401,11 @@ pub async fn consistency_check(
 
     checks.push(ConsistencyCheck {
         name: "links_without_valid_org".to_string(),
-        status: if orphan_links.0 == 0 { "pass".to_string() } else { "fail".to_string() },
+        status: if orphan_links.0 == 0 {
+            "pass".to_string()
+        } else {
+            "fail".to_string()
+        },
         violations: orphan_links.0,
         details: None,
     });

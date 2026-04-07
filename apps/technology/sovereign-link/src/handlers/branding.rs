@@ -46,10 +46,7 @@ pub struct AddDomainRequest {
 
 /// GET /api/v1/orgs/{org_id}/branding
 #[cfg(feature = "platform")]
-pub async fn get_branding(
-    org_id: web::Path<Uuid>,
-    pool: web::Data<PgPool>,
-) -> HttpResponse {
+pub async fn get_branding(org_id: web::Path<Uuid>, pool: web::Data<PgPool>) -> HttpResponse {
     let oid = org_id.into_inner();
 
     let row = sqlx::query_scalar::<_, serde_json::Value>(
@@ -61,12 +58,12 @@ pub async fn get_branding(
 
     match row {
         Ok(Some(branding)) => HttpResponse::Ok().json(branding),
-        Ok(None) => HttpResponse::NotFound()
-            .json(serde_json::json!({"error": "Organization not found"})),
+        Ok(None) => {
+            HttpResponse::NotFound().json(serde_json::json!({"error": "Organization not found"}))
+        }
         Err(e) => {
             tracing::error!("Failed to fetch branding for org {}: {}", oid, e);
-            HttpResponse::InternalServerError()
-                .json(serde_json::json!({"error": "Internal error"}))
+            HttpResponse::InternalServerError().json(serde_json::json!({"error": "Internal error"}))
         }
     }
 }
@@ -79,7 +76,7 @@ pub async fn update_branding(
     pool: web::Data<PgPool>,
 ) -> HttpResponse {
     let oid = org_id.into_inner();
-    let branding_json = match serde_json::to_value(&body.into_inner()) {
+    let branding_json = match serde_json::to_value(body.into_inner()) {
         Ok(v) => v,
         Err(e) => {
             return HttpResponse::BadRequest()
@@ -87,22 +84,20 @@ pub async fn update_branding(
         }
     };
 
-    let result = sqlx::query(
-        "UPDATE brickos.organizations SET branding = $2 WHERE id = $1",
-    )
-    .bind(oid)
-    .bind(&branding_json)
-    .execute(pool.get_ref())
-    .await;
+    let result = sqlx::query("UPDATE brickos.organizations SET branding = $2 WHERE id = $1")
+        .bind(oid)
+        .bind(&branding_json)
+        .execute(pool.get_ref())
+        .await;
 
     match result {
-        Ok(r) if r.rows_affected() == 0 => HttpResponse::NotFound()
-            .json(serde_json::json!({"error": "Organization not found"})),
+        Ok(r) if r.rows_affected() == 0 => {
+            HttpResponse::NotFound().json(serde_json::json!({"error": "Organization not found"}))
+        }
         Ok(_) => HttpResponse::Ok().json(branding_json),
         Err(e) => {
             tracing::error!("Failed to update branding for org {}: {}", oid, e);
-            HttpResponse::InternalServerError()
-                .json(serde_json::json!({"error": "Internal error"}))
+            HttpResponse::InternalServerError().json(serde_json::json!({"error": "Internal error"}))
         }
     }
 }
@@ -113,10 +108,7 @@ pub async fn update_branding(
 
 /// GET /api/v1/orgs/{org_id}/domains
 #[cfg(feature = "platform")]
-pub async fn list_domains(
-    org_id: web::Path<Uuid>,
-    pool: web::Data<PgPool>,
-) -> HttpResponse {
+pub async fn list_domains(org_id: web::Path<Uuid>, pool: web::Data<PgPool>) -> HttpResponse {
     let oid = org_id.into_inner();
 
     let rows = sqlx::query_as::<_, DomainMapping>(
@@ -131,8 +123,7 @@ pub async fn list_domains(
         Ok(data) => HttpResponse::Ok().json(data),
         Err(e) => {
             tracing::error!("Failed to list domains for org {}: {}", oid, e);
-            HttpResponse::InternalServerError()
-                .json(serde_json::json!({"error": "Internal error"}))
+            HttpResponse::InternalServerError().json(serde_json::json!({"error": "Internal error"}))
         }
     }
 }
@@ -174,28 +165,28 @@ pub async fn add_domain(
 
 /// DELETE /api/v1/orgs/{org_id}/domains/{domain_id}
 #[cfg(feature = "platform")]
-pub async fn remove_domain(
-    path: web::Path<(Uuid, Uuid)>,
-    pool: web::Data<PgPool>,
-) -> HttpResponse {
+pub async fn remove_domain(path: web::Path<(Uuid, Uuid)>, pool: web::Data<PgPool>) -> HttpResponse {
     let (org_id, domain_id) = path.into_inner();
 
-    let result = sqlx::query(
-        "DELETE FROM brickos.domain_mappings WHERE id = $1 AND org_id = $2",
-    )
-    .bind(domain_id)
-    .bind(org_id)
-    .execute(pool.get_ref())
-    .await;
+    let result = sqlx::query("DELETE FROM brickos.domain_mappings WHERE id = $1 AND org_id = $2")
+        .bind(domain_id)
+        .bind(org_id)
+        .execute(pool.get_ref())
+        .await;
 
     match result {
-        Ok(r) if r.rows_affected() == 0 => HttpResponse::NotFound()
-            .json(serde_json::json!({"error": "Domain mapping not found"})),
+        Ok(r) if r.rows_affected() == 0 => {
+            HttpResponse::NotFound().json(serde_json::json!({"error": "Domain mapping not found"}))
+        }
         Ok(_) => HttpResponse::NoContent().finish(),
         Err(e) => {
-            tracing::error!("Failed to remove domain {} for org {}: {}", domain_id, org_id, e);
-            HttpResponse::InternalServerError()
-                .json(serde_json::json!({"error": "Internal error"}))
+            tracing::error!(
+                "Failed to remove domain {} for org {}: {}",
+                domain_id,
+                org_id,
+                e
+            );
+            HttpResponse::InternalServerError().json(serde_json::json!({"error": "Internal error"}))
         }
     }
 }

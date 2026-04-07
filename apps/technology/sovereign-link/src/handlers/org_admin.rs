@@ -60,10 +60,7 @@ pub struct TopLink {
 
 /// GET /org/{slug}/dashboard - Org stats overview.
 #[cfg(feature = "platform")]
-pub async fn org_dashboard(
-    slug: web::Path<String>,
-    pool: web::Data<PgPool>,
-) -> HttpResponse {
+pub async fn org_dashboard(slug: web::Path<String>, pool: web::Data<PgPool>) -> HttpResponse {
     let slug = slug.into_inner();
     let (org_id, org_name) = match resolve_org(&slug, pool.get_ref()).await {
         Some(v) => v,
@@ -190,10 +187,7 @@ pub struct UpdateOrgLinkRequest {
 
 /// GET /org/{slug}/links - List all links in the org.
 #[cfg(feature = "platform")]
-pub async fn org_link_list(
-    slug: web::Path<String>,
-    pool: web::Data<PgPool>,
-) -> HttpResponse {
+pub async fn org_link_list(slug: web::Path<String>, pool: web::Data<PgPool>) -> HttpResponse {
     let slug = slug.into_inner();
     let (org_id, _) = match resolve_org(&slug, pool.get_ref()).await {
         Some(v) => v,
@@ -225,8 +219,7 @@ pub async fn org_link_list(
         Ok(data) => HttpResponse::Ok().json(data),
         Err(e) => {
             tracing::error!("Org link list query failed for {}: {}", slug, e);
-            HttpResponse::InternalServerError()
-                .json(serde_json::json!({"error": "Internal error"}))
+            HttpResponse::InternalServerError().json(serde_json::json!({"error": "Internal error"}))
         }
     }
 }
@@ -328,12 +321,10 @@ pub async fn org_update_link(
     match result {
         Ok(r) if r.rows_affected() == 0 => HttpResponse::NotFound()
             .json(serde_json::json!({"error": "Link not found in this organization"})),
-        Ok(_) => HttpResponse::Ok()
-            .json(serde_json::json!({"status": "updated"})),
+        Ok(_) => HttpResponse::Ok().json(serde_json::json!({"status": "updated"})),
         Err(e) => {
             tracing::error!("Org update link failed for {}/{}: {}", slug, link_id, e);
-            HttpResponse::InternalServerError()
-                .json(serde_json::json!({"error": "Internal error"}))
+            HttpResponse::InternalServerError().json(serde_json::json!({"error": "Internal error"}))
         }
     }
 }
@@ -365,12 +356,10 @@ pub async fn org_deactivate_link(
     match result {
         Ok(r) if r.rows_affected() == 0 => HttpResponse::NotFound()
             .json(serde_json::json!({"error": "Link not found in this organization"})),
-        Ok(_) => HttpResponse::Ok()
-            .json(serde_json::json!({"status": "deactivated"})),
+        Ok(_) => HttpResponse::Ok().json(serde_json::json!({"status": "deactivated"})),
         Err(e) => {
             tracing::error!("Org deactivate link failed for {}/{}: {}", slug, link_id, e);
-            HttpResponse::InternalServerError()
-                .json(serde_json::json!({"error": "Internal error"}))
+            HttpResponse::InternalServerError().json(serde_json::json!({"error": "Internal error"}))
         }
     }
 }
@@ -404,10 +393,7 @@ pub struct ChangeRoleRequest {
 
 /// GET /org/{slug}/members - List all members.
 #[cfg(feature = "platform")]
-pub async fn org_member_list(
-    slug: web::Path<String>,
-    pool: web::Data<PgPool>,
-) -> HttpResponse {
+pub async fn org_member_list(slug: web::Path<String>, pool: web::Data<PgPool>) -> HttpResponse {
     let slug = slug.into_inner();
     let (org_id, _) = match resolve_org(&slug, pool.get_ref()).await {
         Some(v) => v,
@@ -437,8 +423,7 @@ pub async fn org_member_list(
         Ok(data) => HttpResponse::Ok().json(data),
         Err(e) => {
             tracing::error!("Org member list query failed for {}: {}", slug, e);
-            HttpResponse::InternalServerError()
-                .json(serde_json::json!({"error": "Internal error"}))
+            HttpResponse::InternalServerError().json(serde_json::json!({"error": "Internal error"}))
         }
     }
 }
@@ -469,12 +454,10 @@ pub async fn org_invite_member(
     }
 
     // Look up user by email
-    let user_id = sqlx::query_scalar::<_, Uuid>(
-        "SELECT id FROM brickos.users WHERE email = $1",
-    )
-    .bind(&data.email)
-    .fetch_optional(pool.get_ref())
-    .await;
+    let user_id = sqlx::query_scalar::<_, Uuid>("SELECT id FROM brickos.users WHERE email = $1")
+        .bind(&data.email)
+        .fetch_optional(pool.get_ref())
+        .await;
 
     let user_id = match user_id {
         Ok(Some(id)) => id,
@@ -490,14 +473,13 @@ pub async fn org_invite_member(
     };
 
     // Insert into org_members
-    let result = sqlx::query(
-        "INSERT INTO brickos.org_members (org_id, user_id, role) VALUES ($1, $2, $3)",
-    )
-    .bind(org_id)
-    .bind(user_id)
-    .bind(&role)
-    .execute(pool.get_ref())
-    .await;
+    let result =
+        sqlx::query("INSERT INTO brickos.org_members (org_id, user_id, role) VALUES ($1, $2, $3)")
+            .bind(org_id)
+            .bind(user_id)
+            .bind(&role)
+            .execute(pool.get_ref())
+            .await;
 
     match result {
         Ok(_) => HttpResponse::Created()
@@ -505,8 +487,9 @@ pub async fn org_invite_member(
         Err(e) => {
             let msg = e.to_string();
             if msg.contains("duplicate") || msg.contains("unique") {
-                HttpResponse::Conflict()
-                    .json(serde_json::json!({"error": "User is already a member of this organization"}))
+                HttpResponse::Conflict().json(
+                    serde_json::json!({"error": "User is already a member of this organization"}),
+                )
             } else {
                 tracing::error!("Org invite member failed for {}: {}", slug, e);
                 HttpResponse::InternalServerError()
@@ -540,14 +523,13 @@ pub async fn org_change_role(
             .json(serde_json::json!({"error": "Invalid role. Must be org_owner, org_admin, or org_member"}));
     }
 
-    let result = sqlx::query(
-        "UPDATE brickos.org_members SET role = $3 WHERE org_id = $1 AND user_id = $2",
-    )
-    .bind(org_id)
-    .bind(user_id)
-    .bind(&data.role)
-    .execute(pool.get_ref())
-    .await;
+    let result =
+        sqlx::query("UPDATE brickos.org_members SET role = $3 WHERE org_id = $1 AND user_id = $2")
+            .bind(org_id)
+            .bind(user_id)
+            .bind(&data.role)
+            .execute(pool.get_ref())
+            .await;
 
     match result {
         Ok(r) if r.rows_affected() == 0 => HttpResponse::NotFound()
@@ -556,8 +538,7 @@ pub async fn org_change_role(
             .json(serde_json::json!({"status": "role_updated", "role": data.role})),
         Err(e) => {
             tracing::error!("Org change role failed for {}/{}: {}", slug, user_id, e);
-            HttpResponse::InternalServerError()
-                .json(serde_json::json!({"error": "Internal error"}))
+            HttpResponse::InternalServerError().json(serde_json::json!({"error": "Internal error"}))
         }
     }
 }
@@ -596,28 +577,29 @@ pub async fn org_remove_member(
                 .json(serde_json::json!({"error": "Member not found in this organization"}));
         }
         Err(e) => {
-            tracing::error!("Org member role lookup failed for {}/{}: {}", slug, user_id, e);
+            tracing::error!(
+                "Org member role lookup failed for {}/{}: {}",
+                slug,
+                user_id,
+                e
+            );
             return HttpResponse::InternalServerError()
                 .json(serde_json::json!({"error": "Internal error"}));
         }
         _ => {} // proceed with removal
     }
 
-    let result = sqlx::query(
-        "DELETE FROM brickos.org_members WHERE org_id = $1 AND user_id = $2",
-    )
-    .bind(org_id)
-    .bind(user_id)
-    .execute(pool.get_ref())
-    .await;
+    let result = sqlx::query("DELETE FROM brickos.org_members WHERE org_id = $1 AND user_id = $2")
+        .bind(org_id)
+        .bind(user_id)
+        .execute(pool.get_ref())
+        .await;
 
     match result {
-        Ok(_) => HttpResponse::Ok()
-            .json(serde_json::json!({"status": "removed"})),
+        Ok(_) => HttpResponse::Ok().json(serde_json::json!({"status": "removed"})),
         Err(e) => {
             tracing::error!("Org remove member failed for {}/{}: {}", slug, user_id, e);
-            HttpResponse::InternalServerError()
-                .json(serde_json::json!({"error": "Internal error"}))
+            HttpResponse::InternalServerError().json(serde_json::json!({"error": "Internal error"}))
         }
     }
 }
@@ -667,23 +649,24 @@ pub async fn create_org(
         return HttpResponse::BadRequest()
             .json(serde_json::json!({"error": "Slug must be 3-30 characters"}));
     }
-    if !slug.chars().all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '-') {
+    if !slug
+        .chars()
+        .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '-')
+    {
         return HttpResponse::BadRequest()
             .json(serde_json::json!({"error": "Slug must contain only lowercase letters, digits, and hyphens"}));
     }
 
     // 2. Check slug not reserved
-    let reserved = sqlx::query_scalar::<_, i64>(
-        "SELECT COUNT(*) FROM brickos.reserved_codes WHERE code = $1",
-    )
-    .bind(&slug)
-    .fetch_one(pool.get_ref())
-    .await;
+    let reserved =
+        sqlx::query_scalar::<_, i64>("SELECT COUNT(*) FROM brickos.reserved_codes WHERE code = $1")
+            .bind(&slug)
+            .fetch_one(pool.get_ref())
+            .await;
 
     match reserved {
         Ok(count) if count > 0 => {
-            return HttpResponse::Conflict()
-                .json(serde_json::json!({"error": "Slug is reserved"}));
+            return HttpResponse::Conflict().json(serde_json::json!({"error": "Slug is reserved"}));
         }
         Err(e) => {
             tracing::error!("Reserved code check failed: {}", e);
@@ -694,12 +677,11 @@ pub async fn create_org(
     }
 
     // 3. Check slug not taken
-    let taken = sqlx::query_scalar::<_, i64>(
-        "SELECT COUNT(*) FROM brickos.organizations WHERE slug = $1",
-    )
-    .bind(&slug)
-    .fetch_one(pool.get_ref())
-    .await;
+    let taken =
+        sqlx::query_scalar::<_, i64>("SELECT COUNT(*) FROM brickos.organizations WHERE slug = $1")
+            .bind(&slug)
+            .fetch_one(pool.get_ref())
+            .await;
 
     match taken {
         Ok(count) if count > 0 => {
@@ -738,13 +720,11 @@ pub async fn create_org(
     // 5. If branding provided, update branding JSONB
     if let Some(branding) = &data.branding {
         let branding_json = serde_json::to_value(branding).unwrap_or_default();
-        let _ = sqlx::query(
-            "UPDATE brickos.organizations SET branding = $2 WHERE id = $1",
-        )
-        .bind(org_id)
-        .bind(branding_json)
-        .execute(pool.get_ref())
-        .await;
+        let _ = sqlx::query("UPDATE brickos.organizations SET branding = $2 WHERE id = $1")
+            .bind(org_id)
+            .bind(branding_json)
+            .execute(pool.get_ref())
+            .await;
     }
 
     // 6. If first_link provided, create it
@@ -769,12 +749,11 @@ pub async fn create_org(
     // 7. If admin_email provided, look up user and add as org_admin
     let mut members_invited: usize = 0;
     if let Some(email) = &data.admin_email {
-        let user_id = sqlx::query_scalar::<_, Uuid>(
-            "SELECT id FROM brickos.users WHERE email = $1",
-        )
-        .bind(email)
-        .fetch_optional(pool.get_ref())
-        .await;
+        let user_id =
+            sqlx::query_scalar::<_, Uuid>("SELECT id FROM brickos.users WHERE email = $1")
+                .bind(email)
+                .fetch_optional(pool.get_ref())
+                .await;
 
         if let Ok(Some(uid)) = user_id {
             let result = sqlx::query(
@@ -817,10 +796,7 @@ pub struct OrgAffiliate {
 
 /// GET /org/{slug}/affiliates - List affiliates with performance.
 #[cfg(feature = "platform")]
-pub async fn org_affiliate_list(
-    slug: web::Path<String>,
-    pool: web::Data<PgPool>,
-) -> HttpResponse {
+pub async fn org_affiliate_list(slug: web::Path<String>, pool: web::Data<PgPool>) -> HttpResponse {
     let slug = slug.into_inner();
     let (org_id, _) = match resolve_org(&slug, pool.get_ref()).await {
         Some(v) => v,
@@ -859,8 +835,7 @@ pub async fn org_affiliate_list(
         Ok(data) => HttpResponse::Ok().json(data),
         Err(e) => {
             tracing::error!("Org affiliate list query failed for {}: {}", slug, e);
-            HttpResponse::InternalServerError()
-                .json(serde_json::json!({"error": "Internal error"}))
+            HttpResponse::InternalServerError().json(serde_json::json!({"error": "Internal error"}))
         }
     }
 }
@@ -938,7 +913,12 @@ pub async fn org_generate_affiliate_code(
                 HttpResponse::Conflict()
                     .json(serde_json::json!({"error": "Affiliate code already exists, try again"}))
             } else {
-                tracing::error!("Affiliate code generation failed for {}/{}: {}", slug, user_id, e);
+                tracing::error!(
+                    "Affiliate code generation failed for {}/{}: {}",
+                    slug,
+                    user_id,
+                    e
+                );
                 HttpResponse::InternalServerError()
                     .json(serde_json::json!({"error": "Internal error"}))
             }
@@ -1011,7 +991,12 @@ pub async fn org_affiliate_stats(
     let stats = match stats {
         Ok(s) => s,
         Err(e) => {
-            tracing::error!("Affiliate stats query failed for {}/{}: {}", slug, user_id, e);
+            tracing::error!(
+                "Affiliate stats query failed for {}/{}: {}",
+                slug,
+                user_id,
+                e
+            );
             return HttpResponse::InternalServerError()
                 .json(serde_json::json!({"error": "Internal error"}));
         }

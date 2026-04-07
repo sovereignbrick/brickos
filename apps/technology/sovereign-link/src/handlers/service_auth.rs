@@ -97,8 +97,9 @@ where
             let token = match token {
                 Some(t) => t.to_string(),
                 None => {
-                    let resp = HttpResponse::Unauthorized()
-                        .json(serde_json::json!({"error": "Missing or invalid Authorization header"}));
+                    let resp = HttpResponse::Unauthorized().json(
+                        serde_json::json!({"error": "Missing or invalid Authorization header"}),
+                    );
                     return Ok(req.into_response(resp).map_into_right_body());
                 }
             };
@@ -169,10 +170,7 @@ pub fn extract_service_account(req: &actix_web::HttpRequest) -> Option<ServiceAc
 /// Check that the service account has the required scope.
 /// Returns an error response if the scope is missing.
 #[cfg(feature = "platform")]
-pub fn require_scope(
-    account: &ServiceAccount,
-    scope: &str,
-) -> Result<(), HttpResponse> {
+pub fn require_scope(account: &ServiceAccount, scope: &str) -> Result<(), HttpResponse> {
     if account.scopes.contains(&scope.to_string()) || account.scopes.contains(&"*".to_string()) {
         Ok(())
     } else {
@@ -185,10 +183,7 @@ pub fn require_scope(
 /// Check that the service account has the required role.
 /// Returns an error response if the role does not match.
 #[cfg(feature = "platform")]
-pub fn require_role(
-    account: &ServiceAccount,
-    role: &str,
-) -> Result<(), HttpResponse> {
+pub fn require_role(account: &ServiceAccount, role: &str) -> Result<(), HttpResponse> {
     if account.role == role {
         Ok(())
     } else {

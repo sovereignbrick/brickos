@@ -100,8 +100,12 @@ mod tests {
             // Each half should be 4 lowercase alphanumeric chars
             let parts: Vec<&str> = code.split('-').collect();
             assert_eq!(parts.len(), 2);
-            assert!(parts[0].chars().all(|c| c.is_ascii_lowercase() || c.is_ascii_digit()));
-            assert!(parts[1].chars().all(|c| c.is_ascii_lowercase() || c.is_ascii_digit()));
+            assert!(parts[0]
+                .chars()
+                .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit()));
+            assert!(parts[1]
+                .chars()
+                .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit()));
         }
     }
 }

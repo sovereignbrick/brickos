@@ -191,7 +191,7 @@ mod tests {
         let encrypted = enc1.encrypt("secret data");
 
         let wrong_key = "abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789";
-        let enc2 = Encryptor::new(Some(&wrong_key.to_string()));
+        let enc2 = Encryptor::new(Some(wrong_key));
         assert!(enc2.decrypt(&encrypted).is_err());
     }
 

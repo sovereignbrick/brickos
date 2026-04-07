@@ -85,12 +85,15 @@ impl StandaloneConfig {
     /// Try to load config.toml from the current directory or a custom path.
     fn load_toml() -> TomlConfig {
         // Check SOVEREIGN_LINK_CONFIG env var for custom path
-        let config_path = std::env::var("SOVEREIGN_LINK_CONFIG")
-            .unwrap_or_else(|_| "config.toml".to_string());
+        let config_path =
+            std::env::var("SOVEREIGN_LINK_CONFIG").unwrap_or_else(|_| "config.toml".to_string());
 
         let path = Path::new(&config_path);
         if !path.exists() {
-            tracing::debug!("No config file at {}, using defaults + env vars", config_path);
+            tracing::debug!(
+                "No config file at {}, using defaults + env vars",
+                config_path
+            );
             return TomlConfig::default();
         }
 
@@ -115,11 +118,19 @@ impl StandaloneConfig {
     /// Merge TOML config with env var overrides. Env vars always win.
     fn merge(toml: TomlConfig) -> Self {
         let host = env_or_toml("SOVEREIGN_LINK_HOST", toml.server.host, "0.0.0.0");
-        let port = env_or_toml("SOVEREIGN_LINK_PORT", toml.server.port.map(|p| p.to_string()), "8080")
-            .parse()
-            .unwrap_or(8080);
+        let port = env_or_toml(
+            "SOVEREIGN_LINK_PORT",
+            toml.server.port.map(|p| p.to_string()),
+            "8080",
+        )
+        .parse()
+        .unwrap_or(8080);
         let default_base = format!("http://{}:{}", host, port);
-        let base_url = env_or_toml("SOVEREIGN_LINK_BASE_URL", toml.server.base_url, &default_base);
+        let base_url = env_or_toml(
+            "SOVEREIGN_LINK_BASE_URL",
+            toml.server.base_url,
+            &default_base,
+        );
         let db_path = env_or_toml("SOVEREIGN_LINK_DB_PATH", toml.database.path, "./data.db");
 
         let jwt_secret = {
@@ -175,13 +186,19 @@ impl StandaloneConfig {
         let nostr_relays = {
             let env_relays = std::env::var("SOVEREIGN_LINK_NOSTR_RELAYS").ok();
             if let Some(relays_str) = env_relays {
-                relays_str.split(',').map(|s| s.trim().to_string()).filter(|s| !s.is_empty()).collect()
+                relays_str
+                    .split(',')
+                    .map(|s| s.trim().to_string())
+                    .filter(|s| !s.is_empty())
+                    .collect()
             } else {
-                toml.nostr.relays.unwrap_or_else(|| vec![
-                    "wss://relay.damus.io".to_string(),
-                    "wss://nos.lol".to_string(),
-                    "wss://relay.primal.net".to_string(),
-                ])
+                toml.nostr.relays.unwrap_or_else(|| {
+                    vec![
+                        "wss://relay.damus.io".to_string(),
+                        "wss://nos.lol".to_string(),
+                        "wss://relay.primal.net".to_string(),
+                    ]
+                })
             }
         };
 

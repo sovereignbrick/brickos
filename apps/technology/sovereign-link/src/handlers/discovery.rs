@@ -40,9 +40,7 @@ pub struct DiscoveryResponse {
 /// Attempts to read the Start9 service manifest via the local API.
 /// Falls back to checking common .onion file locations.
 #[cfg(feature = "standalone")]
-pub async fn discover_services(
-    store: web::Data<Arc<dyn LinkStore>>,
-) -> HttpResponse {
+pub async fn discover_services(store: web::Data<Arc<dyn LinkStore>>) -> HttpResponse {
     let mut services = Vec::new();
 
     // Method 1: Try Start9 manager API (if running inside Start9)
@@ -128,8 +126,8 @@ async fn scan_start9_api() -> Result<Vec<DiscoveredService>, String> {
     // Try the known endpoints in order.
 
     let endpoints = [
-        "http://localhost:5959/api/v0/packages",  // Start9 OS 0.3.x
-        "http://embassy/api/v0/packages",          // Start9 OS internal hostname
+        "http://localhost:5959/api/v0/packages", // Start9 OS 0.3.x
+        "http://embassy/api/v0/packages",        // Start9 OS internal hostname
     ];
 
     for endpoint in &endpoints {
@@ -162,26 +160,30 @@ fn parse_start9_response(body: &str) -> Result<Vec<DiscoveredService>, String> {
                 continue;
             }
 
-            let title = pkg.get("manifest")
+            let title = pkg
+                .get("manifest")
                 .and_then(|m| m.get("title"))
                 .and_then(|t| t.as_str())
                 .unwrap_or(id)
                 .to_string();
 
-            let onion = pkg.get("interface_addresses")
+            let onion = pkg
+                .get("interface_addresses")
                 .and_then(|i| i.get("main"))
                 .and_then(|m| m.get("tor_address"))
                 .and_then(|t| t.as_str())
                 .map(|s| s.to_string());
 
-            let status = pkg.get("status")
+            let status = pkg
+                .get("status")
                 .and_then(|s| s.get("main"))
                 .and_then(|m| m.as_str())
                 .unwrap_or("unknown")
                 .to_string();
 
             // Generate a short suggested code from the package ID
-            let suggested = id.chars()
+            let suggested = id
+                .chars()
                 .filter(|c| c.is_ascii_alphanumeric())
                 .take(8)
                 .collect::<String>()
@@ -192,7 +194,11 @@ fn parse_start9_response(body: &str) -> Result<Vec<DiscoveredService>, String> {
                 title,
                 onion_address: onion,
                 status,
-                suggested_code: if suggested.is_empty() { id.clone() } else { suggested },
+                suggested_code: if suggested.is_empty() {
+                    id.clone()
+                } else {
+                    suggested
+                },
             });
         }
     }
@@ -205,11 +211,7 @@ fn parse_start9_response(body: &str) -> Result<Vec<DiscoveredService>, String> {
 async fn scan_tor_directories() -> Result<Vec<DiscoveredService>, String> {
     use std::path::Path;
 
-    let tor_dirs = [
-        "/var/lib/tor",
-        "/var/lib/tor/hidden_service",
-        "/home/tor",
-    ];
+    let tor_dirs = ["/var/lib/tor", "/var/lib/tor/hidden_service", "/home/tor"];
 
     let mut services = Vec::new();
 
@@ -226,7 +228,8 @@ async fn scan_tor_directories() -> Result<Vec<DiscoveredService>, String> {
                     if let Ok(hostname) = std::fs::read_to_string(&hostname_path) {
                         let onion = hostname.trim().to_string();
                         let name = entry.file_name().to_string_lossy().to_string();
-                        let code = name.chars()
+                        let code = name
+                            .chars()
                             .filter(|c| c.is_ascii_alphanumeric())
                             .take(8)
                             .collect::<String>()

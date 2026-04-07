@@ -25,8 +25,16 @@ pub async fn publish_app_listing(config: &StandaloneConfig) {
     let tags = vec![
         vec!["d".to_string(), "sovereign-link".to_string()],
         vec!["k".to_string(), "1".to_string()],
-        vec!["web".to_string(), config.base_url.clone(), "web".to_string()],
-        vec!["web".to_string(), "https://github.com/sovereignbrick/brickos".to_string(), "source".to_string()],
+        vec![
+            "web".to_string(),
+            config.base_url.clone(),
+            "web".to_string(),
+        ],
+        vec![
+            "web".to_string(),
+            "https://github.com/sovereignbrick/brickos".to_string(),
+            "source".to_string(),
+        ],
     ];
 
     let content = event_content.to_string();
@@ -36,10 +44,17 @@ pub async fn publish_app_listing(config: &StandaloneConfig) {
         Some(nsec) if !nsec.is_empty() => {
             match publish_to_relays(nsec, 31990, &content, &tags, &config.nostr_relays).await {
                 Ok(event_id) => {
-                    tracing::info!("NIP-89 app listing published to {} relays. Event ID: {}", config.nostr_relays.len(), event_id);
+                    tracing::info!(
+                        "NIP-89 app listing published to {} relays. Event ID: {}",
+                        config.nostr_relays.len(),
+                        event_id
+                    );
                 }
                 Err(e) => {
-                    tracing::warn!("Failed to publish NIP-89 listing: {}. Logging event instead.", e);
+                    tracing::warn!(
+                        "Failed to publish NIP-89 listing: {}. Logging event instead.",
+                        e
+                    );
                     log_event_json(31990, &content, &tags);
                 }
             }
@@ -61,7 +76,7 @@ async fn publish_to_relays(
     relays: &[String],
 ) -> Result<String, String> {
     use secp256k1::{Secp256k1, SecretKey};
-    use sha2::{Sha256, Digest};
+    use sha2::{Digest, Sha256};
 
     // Decode nsec (bech32) to raw 32-byte secret key
     let sk_bytes = decode_nsec(nsec)?;
@@ -79,7 +94,13 @@ async fn publish_to_relays(
     // Build event for signing (NIP-01)
     let tags_json: Vec<serde_json::Value> = tags
         .iter()
-        .map(|t| serde_json::Value::Array(t.iter().map(|s| serde_json::Value::String(s.clone())).collect()))
+        .map(|t| {
+            serde_json::Value::Array(
+                t.iter()
+                    .map(|s| serde_json::Value::String(s.clone()))
+                    .collect(),
+            )
+        })
         .collect();
 
     // Event ID = SHA256([0, pubkey, created_at, kind, tags, content])
@@ -128,16 +149,18 @@ async fn publish_to_relays(
 /// Publish a message to a single WebSocket relay.
 #[cfg(feature = "standalone")]
 async fn publish_to_single_relay(url: &str, message: &str) -> Result<(), String> {
-    use tokio_tungstenite::connect_async;
     use futures_util::SinkExt;
+    use tokio_tungstenite::connect_async;
 
     let (mut ws, _) = connect_async(url)
         .await
         .map_err(|e| format!("WebSocket connect failed: {}", e))?;
 
-    ws.send(tokio_tungstenite::tungstenite::Message::Text(message.to_string()))
-        .await
-        .map_err(|e| format!("WebSocket send failed: {}", e))?;
+    ws.send(tokio_tungstenite::tungstenite::Message::Text(
+        message.to_string(),
+    ))
+    .await
+    .map_err(|e| format!("WebSocket send failed: {}", e))?;
 
     // Wait briefly for OK response (best-effort, don't block)
     use futures_util::StreamExt;
@@ -183,7 +206,13 @@ fn decode_nsec(nsec: &str) -> Result<Vec<u8>, String> {
 fn log_event_json(kind: u32, content: &str, tags: &[Vec<String>]) {
     let tags_json: Vec<serde_json::Value> = tags
         .iter()
-        .map(|t| serde_json::Value::Array(t.iter().map(|s| serde_json::Value::String(s.clone())).collect()))
+        .map(|t| {
+            serde_json::Value::Array(
+                t.iter()
+                    .map(|s| serde_json::Value::String(s.clone()))
+                    .collect(),
+            )
+        })
         .collect();
 
     let event = serde_json::json!({

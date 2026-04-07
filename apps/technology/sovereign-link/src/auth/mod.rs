@@ -7,8 +7,8 @@ pub mod handlers;
 #[cfg(feature = "standalone")]
 pub mod jwt;
 #[cfg(feature = "standalone")]
+pub mod middleware;
+#[cfg(feature = "standalone")]
 pub mod nostr;
 #[cfg(feature = "standalone")]
 pub mod provider;
-#[cfg(feature = "standalone")]
-pub mod middleware;

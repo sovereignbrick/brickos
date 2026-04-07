@@ -29,51 +29,108 @@ pub fn configure_routes(cfg: &mut web::ServiceConfig) {
     );
 
     // Namespaced redirect: /r/{org_slug}/{code}
-    cfg.service(
-        web::scope("/r")
-            .route(
-                "/{org_slug}/{code}",
-                web::get().to(handlers::namespace::redirect_with_namespace),
-            ),
-    );
+    cfg.service(web::scope("/r").route(
+        "/{org_slug}/{code}",
+        web::get().to(handlers::namespace::redirect_with_namespace),
+    ));
 
     // Service API routes (service account auth)
     cfg.service(
         web::scope("/api/v1/service/links")
-            .route("", web::post().to(handlers::service_api::create_service_link))
-            .route("/batch", web::post().to(handlers::service_api::create_batch_links))
-            .route("/{code}/stats", web::get().to(handlers::service_api::service_link_stats)),
+            .route(
+                "",
+                web::post().to(handlers::service_api::create_service_link),
+            )
+            .route(
+                "/batch",
+                web::post().to(handlers::service_api::create_batch_links),
+            )
+            .route(
+                "/{code}/stats",
+                web::get().to(handlers::service_api::service_link_stats),
+            ),
     );
 
     // Platform admin routes
     cfg.service(
         web::scope("/api/v1/admin")
-            .route("/stats", web::get().to(handlers::platform_admin::platform_stats))
-            .route("/stats/by-org", web::get().to(handlers::platform_admin::stats_by_org))
-            .route("/stats/by-app", web::get().to(handlers::platform_admin::stats_by_app))
+            .route(
+                "/stats",
+                web::get().to(handlers::platform_admin::platform_stats),
+            )
+            .route(
+                "/stats/by-org",
+                web::get().to(handlers::platform_admin::stats_by_org),
+            )
+            .route(
+                "/stats/by-app",
+                web::get().to(handlers::platform_admin::stats_by_app),
+            )
             .route("/orgs", web::get().to(handlers::platform_admin::list_orgs))
-            .route("/consistency", web::get().to(handlers::service_api::consistency_check))
-            .route("/dashboard", web::get().to(handlers::platform_admin::platform_dashboard)),
+            .route(
+                "/consistency",
+                web::get().to(handlers::service_api::consistency_check),
+            )
+            .route(
+                "/dashboard",
+                web::get().to(handlers::platform_admin::platform_dashboard),
+            ),
     );
 
     // Org creation (no slug scope needed)
-    cfg.route("/api/v1/orgs", web::post().to(handlers::org_admin::create_org));
+    cfg.route(
+        "/api/v1/orgs",
+        web::post().to(handlers::org_admin::create_org),
+    );
 
     // Org admin panel (JSON API, accessed by org slug)
     cfg.service(
         web::scope("/org/{slug}")
-            .route("/dashboard", web::get().to(handlers::org_admin::org_dashboard))
+            .route(
+                "/dashboard",
+                web::get().to(handlers::org_admin::org_dashboard),
+            )
             .route("/links", web::get().to(handlers::org_admin::org_link_list))
-            .route("/links", web::post().to(handlers::org_admin::org_create_link))
-            .route("/links/{link_id}", web::put().to(handlers::org_admin::org_update_link))
-            .route("/links/{link_id}", web::delete().to(handlers::org_admin::org_deactivate_link))
-            .route("/members", web::get().to(handlers::org_admin::org_member_list))
-            .route("/members/invite", web::post().to(handlers::org_admin::org_invite_member))
-            .route("/members/{user_id}/role", web::put().to(handlers::org_admin::org_change_role))
-            .route("/members/{user_id}", web::delete().to(handlers::org_admin::org_remove_member))
-            .route("/affiliates", web::get().to(handlers::org_admin::org_affiliate_list))
-            .route("/affiliates/{user_id}/code", web::post().to(handlers::org_admin::org_generate_affiliate_code))
-            .route("/affiliates/{user_id}/stats", web::get().to(handlers::org_admin::org_affiliate_stats)),
+            .route(
+                "/links",
+                web::post().to(handlers::org_admin::org_create_link),
+            )
+            .route(
+                "/links/{link_id}",
+                web::put().to(handlers::org_admin::org_update_link),
+            )
+            .route(
+                "/links/{link_id}",
+                web::delete().to(handlers::org_admin::org_deactivate_link),
+            )
+            .route(
+                "/members",
+                web::get().to(handlers::org_admin::org_member_list),
+            )
+            .route(
+                "/members/invite",
+                web::post().to(handlers::org_admin::org_invite_member),
+            )
+            .route(
+                "/members/{user_id}/role",
+                web::put().to(handlers::org_admin::org_change_role),
+            )
+            .route(
+                "/members/{user_id}",
+                web::delete().to(handlers::org_admin::org_remove_member),
+            )
+            .route(
+                "/affiliates",
+                web::get().to(handlers::org_admin::org_affiliate_list),
+            )
+            .route(
+                "/affiliates/{user_id}/code",
+                web::post().to(handlers::org_admin::org_generate_affiliate_code),
+            )
+            .route(
+                "/affiliates/{user_id}/stats",
+                web::get().to(handlers::org_admin::org_affiliate_stats),
+            ),
     );
 
     // Org-scoped routes
@@ -82,10 +139,16 @@ pub fn configure_routes(cfg: &mut web::ServiceConfig) {
             .route("/stats", web::get().to(handlers::platform_admin::org_stats))
             .route("/links", web::get().to(handlers::platform_admin::org_links))
             .route("/branding", web::get().to(handlers::branding::get_branding))
-            .route("/branding", web::put().to(handlers::branding::update_branding))
+            .route(
+                "/branding",
+                web::put().to(handlers::branding::update_branding),
+            )
             .route("/domains", web::get().to(handlers::branding::list_domains))
             .route("/domains", web::post().to(handlers::branding::add_domain))
-            .route("/domains/{domain_id}", web::delete().to(handlers::branding::remove_domain)),
+            .route(
+                "/domains/{domain_id}",
+                web::delete().to(handlers::branding::remove_domain),
+            ),
     );
 }
 
@@ -123,8 +186,14 @@ pub fn configure_standalone_routes(cfg: &mut web::ServiceConfig) {
         .route("/logout", web::post().to(handlers::web::logout_page));
 
     // Start9 service discovery
-    cfg.route("/discover", web::get().to(handlers::discovery::discover_services))
-        .route("/discover/create-all", web::post().to(handlers::discovery::create_discovered_links));
+    cfg.route(
+        "/discover",
+        web::get().to(handlers::discovery::discover_services),
+    )
+    .route(
+        "/discover/create-all",
+        web::post().to(handlers::discovery::create_discovered_links),
+    );
 
     // Auth endpoints (JSON API)
     cfg.service(

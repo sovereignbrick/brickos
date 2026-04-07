@@ -54,7 +54,13 @@ macro_rules! setup_app {
 }
 
 /// Register a user and return the JWT token.
-async fn get_token(app: &impl actix_web::dev::Service<actix_http::Request, Response = actix_web::dev::ServiceResponse, Error = actix_web::Error>) -> String {
+async fn get_token(
+    app: &impl actix_web::dev::Service<
+        actix_http::Request,
+        Response = actix_web::dev::ServiceResponse,
+        Error = actix_web::Error,
+    >,
+) -> String {
     let req = test::TestRequest::post()
         .uri("/auth/register")
         .set_json(serde_json::json!({"email": "test@example.com", "password": "securepassword123"}))
@@ -85,12 +91,16 @@ async fn register_creates_user_returns_jwt() {
 async fn register_second_user_not_admin() {
     let app = setup_app!();
     // First user (admin)
-    let req = test::TestRequest::post().uri("/auth/register")
-        .set_json(serde_json::json!({"email": "admin@example.com", "password": "securepassword123"}))
+    let req = test::TestRequest::post()
+        .uri("/auth/register")
+        .set_json(
+            serde_json::json!({"email": "admin@example.com", "password": "securepassword123"}),
+        )
         .to_request();
     test::call_service(&app, req).await;
     // Second user
-    let req = test::TestRequest::post().uri("/auth/register")
+    let req = test::TestRequest::post()
+        .uri("/auth/register")
         .set_json(serde_json::json!({"email": "user@example.com", "password": "securepassword123"}))
         .to_request();
     let resp = test::call_service(&app, req).await;
@@ -102,9 +112,15 @@ async fn register_second_user_not_admin() {
 async fn register_duplicate_email_409() {
     let app = setup_app!();
     let json = serde_json::json!({"email": "test@example.com", "password": "securepassword123"});
-    let req = test::TestRequest::post().uri("/auth/register").set_json(&json).to_request();
+    let req = test::TestRequest::post()
+        .uri("/auth/register")
+        .set_json(&json)
+        .to_request();
     test::call_service(&app, req).await;
-    let req = test::TestRequest::post().uri("/auth/register").set_json(&json).to_request();
+    let req = test::TestRequest::post()
+        .uri("/auth/register")
+        .set_json(&json)
+        .to_request();
     let resp = test::call_service(&app, req).await;
     assert_eq!(resp.status(), 409);
 }
@@ -112,7 +128,8 @@ async fn register_duplicate_email_409() {
 #[actix_web::test]
 async fn register_short_password_400() {
     let app = setup_app!();
-    let req = test::TestRequest::post().uri("/auth/register")
+    let req = test::TestRequest::post()
+        .uri("/auth/register")
         .set_json(serde_json::json!({"email": "test@example.com", "password": "short"}))
         .to_request();
     let resp = test::call_service(&app, req).await;
@@ -124,7 +141,8 @@ async fn register_disabled_403() {
     let mut config = test_config();
     config.allow_registration = false;
     let app = setup_app!(config);
-    let req = test::TestRequest::post().uri("/auth/register")
+    let req = test::TestRequest::post()
+        .uri("/auth/register")
         .set_json(serde_json::json!({"email": "test@example.com", "password": "securepassword123"}))
         .to_request();
     let resp = test::call_service(&app, req).await;
@@ -136,12 +154,14 @@ async fn register_disabled_403() {
 #[actix_web::test]
 async fn login_valid_credentials() {
     let app = setup_app!();
-    let req = test::TestRequest::post().uri("/auth/register")
+    let req = test::TestRequest::post()
+        .uri("/auth/register")
         .set_json(serde_json::json!({"email": "test@example.com", "password": "securepassword123"}))
         .to_request();
     test::call_service(&app, req).await;
 
-    let req = test::TestRequest::post().uri("/auth/login")
+    let req = test::TestRequest::post()
+        .uri("/auth/login")
         .set_json(serde_json::json!({"email": "test@example.com", "password": "securepassword123"}))
         .to_request();
     let resp = test::call_service(&app, req).await;
@@ -153,12 +173,14 @@ async fn login_valid_credentials() {
 #[actix_web::test]
 async fn login_wrong_password_401() {
     let app = setup_app!();
-    let req = test::TestRequest::post().uri("/auth/register")
+    let req = test::TestRequest::post()
+        .uri("/auth/register")
         .set_json(serde_json::json!({"email": "test@example.com", "password": "securepassword123"}))
         .to_request();
     test::call_service(&app, req).await;
 
-    let req = test::TestRequest::post().uri("/auth/login")
+    let req = test::TestRequest::post()
+        .uri("/auth/login")
         .set_json(serde_json::json!({"email": "test@example.com", "password": "wrongpassword"}))
         .to_request();
     let resp = test::call_service(&app, req).await;
@@ -168,8 +190,11 @@ async fn login_wrong_password_401() {
 #[actix_web::test]
 async fn login_nonexistent_401() {
     let app = setup_app!();
-    let req = test::TestRequest::post().uri("/auth/login")
-        .set_json(serde_json::json!({"email": "nobody@example.com", "password": "securepassword123"}))
+    let req = test::TestRequest::post()
+        .uri("/auth/login")
+        .set_json(
+            serde_json::json!({"email": "nobody@example.com", "password": "securepassword123"}),
+        )
         .to_request();
     let resp = test::call_service(&app, req).await;
     assert_eq!(resp.status(), 401);
@@ -182,7 +207,8 @@ async fn refresh_valid_token() {
     let app = setup_app!();
     let token = get_token(&app).await;
 
-    let req = test::TestRequest::post().uri("/auth/refresh")
+    let req = test::TestRequest::post()
+        .uri("/auth/refresh")
         .insert_header(("Authorization", format!("Bearer {}", token)))
         .to_request();
     let resp = test::call_service(&app, req).await;
@@ -204,7 +230,8 @@ async fn api_no_auth_401() {
 #[actix_web::test]
 async fn api_invalid_token_401() {
     let app = setup_app!();
-    let req = test::TestRequest::get().uri("/api/v1/links")
+    let req = test::TestRequest::get()
+        .uri("/api/v1/links")
         .insert_header(("Authorization", "Bearer invalid-garbage-token"))
         .to_request();
     let resp = test::call_service(&app, req).await;
@@ -219,7 +246,8 @@ async fn create_and_list_links() {
     let token = get_token(&app).await;
 
     // Create
-    let req = test::TestRequest::post().uri("/api/v1/links")
+    let req = test::TestRequest::post()
+        .uri("/api/v1/links")
         .insert_header(("Authorization", format!("Bearer {}", token)))
         .set_json(serde_json::json!({"target_url": "https://sovereignhealth.io", "code": "shi"}))
         .to_request();
@@ -229,7 +257,8 @@ async fn create_and_list_links() {
     assert_eq!(created["code"], "shi");
 
     // List
-    let req = test::TestRequest::get().uri("/api/v1/links")
+    let req = test::TestRequest::get()
+        .uri("/api/v1/links")
         .insert_header(("Authorization", format!("Bearer {}", token)))
         .to_request();
     let resp = test::call_service(&app, req).await;
@@ -244,7 +273,8 @@ async fn create_link_auto_code() {
     let app = setup_app!();
     let token = get_token(&app).await;
 
-    let req = test::TestRequest::post().uri("/api/v1/links")
+    let req = test::TestRequest::post()
+        .uri("/api/v1/links")
         .insert_header(("Authorization", format!("Bearer {}", token)))
         .set_json(serde_json::json!({"target_url": "https://example.com"}))
         .to_request();
@@ -260,7 +290,8 @@ async fn create_link_reserved_code_400() {
     let app = setup_app!();
     let token = get_token(&app).await;
 
-    let req = test::TestRequest::post().uri("/api/v1/links")
+    let req = test::TestRequest::post()
+        .uri("/api/v1/links")
         .insert_header(("Authorization", format!("Bearer {}", token)))
         .set_json(serde_json::json!({"target_url": "https://example.com", "code": "admin"}))
         .to_request();
@@ -276,7 +307,8 @@ async fn redirect_existing_link_301() {
     let token = get_token(&app).await;
 
     // Create link
-    let req = test::TestRequest::post().uri("/api/v1/links")
+    let req = test::TestRequest::post()
+        .uri("/api/v1/links")
         .insert_header(("Authorization", format!("Bearer {}", token)))
         .set_json(serde_json::json!({"target_url": "https://brickos.io", "code": "bos"}))
         .to_request();
@@ -305,7 +337,8 @@ async fn qr_code_svg() {
     let app = setup_app!();
     let token = get_token(&app).await;
 
-    let req = test::TestRequest::post().uri("/api/v1/links")
+    let req = test::TestRequest::post()
+        .uri("/api/v1/links")
         .insert_header(("Authorization", format!("Bearer {}", token)))
         .set_json(serde_json::json!({"target_url": "https://example.com", "code": "qrtest"}))
         .to_request();
@@ -314,7 +347,12 @@ async fn qr_code_svg() {
     let req = test::TestRequest::get().uri("/r/qrtest.qr").to_request();
     let resp = test::call_service(&app, req).await;
     assert_eq!(resp.status(), 200);
-    let ct = resp.headers().get("Content-Type").unwrap().to_str().unwrap();
+    let ct = resp
+        .headers()
+        .get("Content-Type")
+        .unwrap()
+        .to_str()
+        .unwrap();
     assert!(ct.contains("svg"));
 }
 

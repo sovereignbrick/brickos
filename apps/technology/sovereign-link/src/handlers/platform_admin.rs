@@ -72,13 +72,12 @@ pub struct OrgScopedStats {
 
 /// GET /api/v1/admin/stats - Global platform statistics.
 #[cfg(feature = "platform")]
-pub async fn platform_stats(
-    req: HttpRequest,
-    pool: web::Data<PgPool>,
-) -> HttpResponse {
+pub async fn platform_stats(req: HttpRequest, pool: web::Data<PgPool>) -> HttpResponse {
     let account = match extract_service_account(&req) {
         Some(a) => a,
-        None => return HttpResponse::Unauthorized().json(serde_json::json!({"error": "Unauthorized"})),
+        None => {
+            return HttpResponse::Unauthorized().json(serde_json::json!({"error": "Unauthorized"}))
+        }
     };
     if let Err(resp) = require_role(&account, "platform_admin") {
         return resp;
@@ -107,13 +106,12 @@ pub async fn platform_stats(
 
 /// GET /api/v1/admin/stats/by-org - Stats grouped by organization.
 #[cfg(feature = "platform")]
-pub async fn stats_by_org(
-    req: HttpRequest,
-    pool: web::Data<PgPool>,
-) -> HttpResponse {
+pub async fn stats_by_org(req: HttpRequest, pool: web::Data<PgPool>) -> HttpResponse {
     let account = match extract_service_account(&req) {
         Some(a) => a,
-        None => return HttpResponse::Unauthorized().json(serde_json::json!({"error": "Unauthorized"})),
+        None => {
+            return HttpResponse::Unauthorized().json(serde_json::json!({"error": "Unauthorized"}))
+        }
     };
     if let Err(resp) = require_role(&account, "platform_admin") {
         return resp;
@@ -147,13 +145,12 @@ pub async fn stats_by_org(
 
 /// GET /api/v1/admin/stats/by-app - Stats grouped by source app (app_key).
 #[cfg(feature = "platform")]
-pub async fn stats_by_app(
-    req: HttpRequest,
-    pool: web::Data<PgPool>,
-) -> HttpResponse {
+pub async fn stats_by_app(req: HttpRequest, pool: web::Data<PgPool>) -> HttpResponse {
     let account = match extract_service_account(&req) {
         Some(a) => a,
-        None => return HttpResponse::Unauthorized().json(serde_json::json!({"error": "Unauthorized"})),
+        None => {
+            return HttpResponse::Unauthorized().json(serde_json::json!({"error": "Unauthorized"}))
+        }
     };
     if let Err(resp) = require_role(&account, "platform_admin") {
         return resp;
@@ -183,13 +180,12 @@ pub async fn stats_by_app(
 
 /// GET /api/v1/admin/orgs - List all organizations with link and click counts.
 #[cfg(feature = "platform")]
-pub async fn list_orgs(
-    req: HttpRequest,
-    pool: web::Data<PgPool>,
-) -> HttpResponse {
+pub async fn list_orgs(req: HttpRequest, pool: web::Data<PgPool>) -> HttpResponse {
     let account = match extract_service_account(&req) {
         Some(a) => a,
-        None => return HttpResponse::Unauthorized().json(serde_json::json!({"error": "Unauthorized"})),
+        None => {
+            return HttpResponse::Unauthorized().json(serde_json::json!({"error": "Unauthorized"}))
+        }
     };
     if let Err(resp) = require_role(&account, "platform_admin") {
         return resp;
@@ -233,7 +229,9 @@ pub async fn org_stats(
 ) -> HttpResponse {
     let account = match extract_service_account(&req) {
         Some(a) => a,
-        None => return HttpResponse::Unauthorized().json(serde_json::json!({"error": "Unauthorized"})),
+        None => {
+            return HttpResponse::Unauthorized().json(serde_json::json!({"error": "Unauthorized"}))
+        }
     };
     // Allow platform_admin or org_admin
     if account.role != "platform_admin" && account.role != "org_admin" {
@@ -278,7 +276,9 @@ pub async fn org_links(
 ) -> HttpResponse {
     let account = match extract_service_account(&req) {
         Some(a) => a,
-        None => return HttpResponse::Unauthorized().json(serde_json::json!({"error": "Unauthorized"})),
+        None => {
+            return HttpResponse::Unauthorized().json(serde_json::json!({"error": "Unauthorized"}))
+        }
     };
     if account.role != "platform_admin" && account.role != "org_admin" {
         return HttpResponse::Forbidden()
@@ -358,13 +358,12 @@ pub struct RecentActivity {
 
 /// GET /api/v1/admin/dashboard - Full platform dashboard with cross-org reporting.
 #[cfg(feature = "platform")]
-pub async fn platform_dashboard(
-    req: HttpRequest,
-    pool: web::Data<PgPool>,
-) -> HttpResponse {
+pub async fn platform_dashboard(req: HttpRequest, pool: web::Data<PgPool>) -> HttpResponse {
     let account = match extract_service_account(&req) {
         Some(a) => a,
-        None => return HttpResponse::Unauthorized().json(serde_json::json!({"error": "Unauthorized"})),
+        None => {
+            return HttpResponse::Unauthorized().json(serde_json::json!({"error": "Unauthorized"}))
+        }
     };
     if let Err(resp) = require_role(&account, "platform_admin") {
         return resp;
