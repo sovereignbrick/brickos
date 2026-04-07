@@ -69,41 +69,43 @@ fn render_qr_response(exists: bool, short_url: &str) -> HttpResponse {
     }
 }
 
-/// Embed a BrickOS brick logo in the center of the QR SVG.
+/// Embed the BrickOS isometric cube logo in the center of the QR SVG.
+/// White circle background for contrast, isometric cube in the center.
 fn embed_logo_in_svg(svg: &str) -> String {
-    // Parse viewBox to find center
     let (width, height) = parse_svg_dimensions(svg);
-    let logo_size = (width.min(height) as f64 * 0.22) as u32; // 22% of QR size
-    let x = (width - logo_size) / 2;
-    let y = (height - logo_size) / 2;
-    let pad = 2;
+    let r = (width.min(height) as f64 * 0.14) as u32; // circle radius = 14% of QR
+    let cx = width / 2;
+    let cy = height / 2;
 
-    // BrickOS brick: a rounded rectangle with 4 studs on top
+    // Isometric cube dimensions (relative to circle radius)
+    let s = r as f64 * 0.55; // half-width of cube top face
+    let h = s * 0.7; // cube height
+
+    // Cube center offsets from (cx, cy)
+    let ccx = cx as f64;
+    let ccy = cy as f64 - h * 0.1; // shift up slightly
+
+    // Isometric cube: 3 faces (top, left, right)
     let logo = format!(
-        r##"<g transform="translate({x},{y})">
-  <rect x="0" y="0" width="{w}" height="{h}" rx="4" fill="#09090b"/>
-  <rect x="{p}" y="{p}" width="{wi}" height="{hi}" rx="3" fill="#f97316"/>
-  <circle cx="{c1x}" cy="{cy}" r="{sr}" fill="#fb923c"/>
-  <circle cx="{c2x}" cy="{cy}" r="{sr}" fill="#fb923c"/>
-  <circle cx="{c3x}" cy="{cy}" r="{sr}" fill="#fb923c"/>
-  <circle cx="{c4x}" cy="{cy}" r="{sr}" fill="#fb923c"/>
+        r##"<g>
+  <circle cx="{cx}" cy="{cy}" r="{r}" fill="#fafafa"/>
+  <path d="M{ccx},{ty} L{rx},{rm} L{ccx},{by} L{lx},{rm} Z" fill="#f97316"/>
+  <path d="M{lx},{rm} L{ccx},{by} L{ccx},{bby} L{lx},{lm} Z" fill="#c2410c"/>
+  <path d="M{ccx},{by} L{rx},{rm} L{rx},{lm} L{ccx},{bby} Z" fill="#ea580c"/>
 </g>"##,
-        x = x,
-        y = y,
-        w = logo_size,
-        h = logo_size,
-        p = pad,
-        wi = logo_size - pad * 2,
-        hi = logo_size - pad * 2,
-        sr = logo_size / 10,
-        cy = logo_size / 3,
-        c1x = logo_size / 5,
-        c2x = logo_size * 2 / 5,
-        c3x = logo_size * 3 / 5,
-        c4x = logo_size * 4 / 5,
+        cx = cx,
+        cy = cy,
+        r = r + 2, // slight padding
+        ccx = ccx,
+        ty = ccy - h,          // top point
+        rm = ccy,              // right-middle y
+        by = ccy + h * 0.5,    // bottom of top face
+        lx = ccx - s,          // left x
+        rx = ccx + s,          // right x
+        bby = ccy + h * 1.2,   // bottom of cube
+        lm = ccy + h * 0.7,    // left-bottom y
     );
 
-    // Insert logo before closing </svg>
     if let Some(pos) = svg.rfind("</svg>") {
         format!("{}{}{}", &svg[..pos], logo, &svg[pos..])
     } else {
