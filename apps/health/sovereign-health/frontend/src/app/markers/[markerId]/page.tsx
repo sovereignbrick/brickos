@@ -708,8 +708,8 @@ export default function MarkerDetailPage() {
                     </div>
 
                     <div className="flex-1 flex items-center gap-2">
-                      <span className="font-bold tabular-nums">{m.value}</span>
-                      <span className="text-xs text-muted-foreground">{m.unit}</span>
+                      <span className="font-bold tabular-nums">{formatDisplay(markerId, m.value, m.unit).value.toFixed(2)}</span>
+                      <span className="text-xs text-muted-foreground">{displayUnit(markerId, m.unit)}</span>
                       <StatusBadge status={m.status as 'green' | 'orange' | 'red' | null} />
                     </div>
 

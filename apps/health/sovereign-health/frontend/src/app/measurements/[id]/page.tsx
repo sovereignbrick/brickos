@@ -12,6 +12,7 @@ import { toast } from '@/lib/toast'
 import { Breadcrumb } from '@/components/breadcrumb'
 import { useTranslations } from 'next-intl'
 import { formatDateTime, formatDate } from '@/lib/date-format'
+import { useUnitPreferences } from '@/hooks/use-unit-preferences'
 
 export default function MeasurementDetailPage() {
   const { user, loading } = useAuth()
@@ -20,6 +21,7 @@ export default function MeasurementDetailPage() {
   const id = params.id as string
   const tMeasurements = useTranslations('newMeasurement')
   const tCommon = useTranslations('common')
+  const { formatDisplay } = useUnitPreferences()
 
   const [measurement, setMeasurement] = useState<Measurement | null>(null)
   const [fetching, setFetching] = useState(true)
@@ -69,7 +71,7 @@ export default function MeasurementDetailPage() {
 
   const fields: { label: string; value: string | number | null | undefined }[] = [
     { label: 'Marker', value: measurement.marker_name },
-    { label: 'Value', value: `${measurement.value} ${measurement.unit}` },
+    { label: 'Value', value: formatDisplay(measurement.marker_slug, measurement.value, measurement.unit).formatted },
     { label: 'Timestamp', value: formatDateTime(measurement.timestamp, user?.country_code) },
     { label: 'Protocol', value: measurement.protocol_tag },
     { label: 'Diet Protocol', value: measurement.diet_protocol },
@@ -103,7 +105,7 @@ export default function MeasurementDetailPage() {
               <p className="text-muted-foreground text-sm">{formatDateTime(measurement.timestamp, user?.country_code)}</p>
             </div>
             <div className="text-right">
-              <p className="text-2xl font-bold">{measurement.value} <span className="text-sm text-muted-foreground">{measurement.unit}</span></p>
+              <p className="text-2xl font-bold">{formatDisplay(measurement.marker_slug, measurement.value, measurement.unit).value.toFixed(2)} <span className="text-sm text-muted-foreground">{formatDisplay(measurement.marker_slug, measurement.value, measurement.unit).unit}</span></p>
               <StatusBadge status={measurement.status as 'green' | 'orange' | 'red' | null} showLabel />
             </div>
           </div>
