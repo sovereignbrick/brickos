@@ -1760,5 +1760,38 @@
     "results": "{count} results",
     "suggestTitle": "Suggestions",
     "backToDashboard": "Back to Dashboard"
+  },
+  "platform": {
+    "dashboard": "Dashboard",
+    "dashboardDescription": "Platform overview and service health.",
+    "nav": {
+      "home": "Home",
+      "apps": "Apps",
+      "organizations": "Organizations",
+      "users": "Users",
+      "members": "Members",
+      "billing": "Billing",
+      "affiliates": "Affiliates",
+      "promotions": "Promotions",
+      "revenue": "Revenue",
+      "links": "Short Links",
+      "analytics": "Analytics",
+      "contentApp": "Content (App)",
+      "contentWeb": "Content (Web)",
+      "strings": "Strings",
+      "newsletter": "Newsletter",
+      "contact": "Contact",
+      "aiConfig": "AI Config",
+      "aiUsage": "AI Usage",
+      "services": "Services",
+      "alerts": "Alerts",
+      "deploy": "Deploy",
+      "audit": "Audit Logs",
+      "compliance": "Compliance",
+      "settings": "Settings",
+      "branding": "Branding",
+      "domains": "Domains",
+      "licensing": "Licensing"
+    }
   }
 }

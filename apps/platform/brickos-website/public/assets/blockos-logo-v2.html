@@ -137,9 +137,9 @@ html, body {
   }
 
   /* ── Timers (cleared on each restart) ──────────────────── */
-  let floatTid, fadeTid, restartTid;
+  let floatTid, fadeTid, restartTid, fallbackTid;
   function clearTimers() {
-    [floatTid, fadeTid, restartTid].forEach(t => clearTimeout(t));
+    [floatTid, fadeTid, restartTid, fallbackTid].forEach(t => clearTimeout(t));
   }
 
   /* ════════════════════════════════════════════════════════
@@ -200,13 +200,26 @@ html, body {
         bg.appendChild(face(dTop(x,by),       'none', '#2a2a2a', 1.2));
       }
 
-      // Track landings to know when all are placed
+      // Track landings to know when all are placed.
+      // Use both animationend listener AND timeout fallback for cross-browser
+      // reliability (Brave shields can block animationend on SVG elements).
       bg.addEventListener('animationend', () => {
         if (++landed === PILLARS.length) onAllPlaced(scene);
       }, {once:true});
 
       blocksG.appendChild(bg);
     }
+
+    // Fallback: if animationend never fires (Brave/Firefox edge case),
+    // trigger onAllPlaced after the last block's animation should have ended.
+    const lastBlockEnd = T.blockFirst + (PILLARS.length - 1) * T.blockGap + T.dropDur;
+    fallbackTid = setTimeout(() => {
+      if (landed < PILLARS.length) {
+        landed = PILLARS.length;
+        onAllPlaced(scene);
+      }
+    }, (lastBlockEnd + 0.1) * 1000);
+    // Store for cleanup on rebuild
 
     scene.appendChild(blocksG);
     SVG.appendChild(scene);

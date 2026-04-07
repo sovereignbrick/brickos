@@ -1760,5 +1760,38 @@
     "results": "{count} Ergebnisse",
     "suggestTitle": "Vorschläge",
     "backToDashboard": "Zurück zum Dashboard"
+  },
+  "platform": {
+    "dashboard": "Dashboard",
+    "dashboardDescription": "Plattform-Übersicht und Service-Status.",
+    "nav": {
+      "home": "Start",
+      "apps": "Apps",
+      "organizations": "Organisationen",
+      "users": "Benutzer",
+      "members": "Mitglieder",
+      "billing": "Abrechnung",
+      "affiliates": "Affiliates",
+      "promotions": "Aktionen",
+      "revenue": "Umsatz",
+      "links": "Kurzlinks",
+      "analytics": "Analytik",
+      "contentApp": "Inhalt (App)",
+      "contentWeb": "Inhalt (Web)",
+      "strings": "Texte",
+      "newsletter": "Newsletter",
+      "contact": "Kontakt",
+      "aiConfig": "KI-Konfiguration",
+      "aiUsage": "KI-Nutzung",
+      "services": "Services",
+      "alerts": "Alarme",
+      "deploy": "Bereitstellung",
+      "audit": "Audit-Logs",
+      "compliance": "Compliance",
+      "settings": "Einstellungen",
+      "branding": "Branding",
+      "domains": "Domains",
+      "licensing": "Lizenzierung"
+    }
   }
 }
