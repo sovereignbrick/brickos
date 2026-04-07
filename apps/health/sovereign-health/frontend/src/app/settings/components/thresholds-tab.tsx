@@ -302,46 +302,8 @@ export function ThresholdsTab({
       }, 300)
     }
 
-    // Convert threshold values for ALL markers in the same unit group
-    if (oldUnit !== newUnit && info.convert?.[oldUnit]?.[newUnit]) {
-      const factor = info.convert[oldUnit][newUnit]
-      const affectedSlugs = Object.entries(MARKER_UNIT_MAP)
-        .filter(([, def]) => def.group === info.group && def.convert)
-        .map(([slug]) => slug)
-
-      const bulkUpdates: { marker_slug: string; protocol_context: string; green_min: number | null; green_max: number | null; orange_min: number | null; orange_max: number | null }[] = []
-
-      for (const slug of affectedSlugs) {
-        const existing = rangeMap.get(slug)
-        if (!existing) continue
-        const converted: CustomReferenceRange = {
-          ...existing,
-          green_min: existing.green_min != null ? Math.round(existing.green_min * factor * 1000) / 1000 : null,
-          green_max: existing.green_max != null ? Math.round(existing.green_max * factor * 1000) / 1000 : null,
-          orange_min: existing.orange_min != null ? Math.round(existing.orange_min * factor * 1000) / 1000 : null,
-          orange_max: existing.orange_max != null ? Math.round(existing.orange_max * factor * 1000) / 1000 : null,
-        }
-        setEditedRanges(prev => new Map(prev).set(slug, converted))
-        bulkUpdates.push({
-          marker_slug: slug,
-          protocol_context: 'standard',
-          green_min: converted.green_min,
-          green_max: converted.green_max,
-          orange_min: converted.orange_min,
-          orange_max: converted.orange_max,
-        })
-      }
-
-      // Bulk save converted values
-      if (bulkUpdates.length > 0) {
-        try {
-          await api.settings.updateReferenceRangesBulk(bulkUpdates)
-        } catch {
-          // Conversions are visual-only if save fails
-        }
-      }
-    }
-  }, [getUnit, onUnitsUpdate, rangeMap])
+    // Display conversion is handled by displayValue/toCanonical — DB stays in canonical units
+  }, [getUnit, onUnitsUpdate])
 
   // Get display conversion factor for alt-unit markers (1 = canonical, >1 or <1 = converted)
   const getAltDisplayFactor = useCallback((slug: string): number => {
@@ -353,22 +315,50 @@ export function ThresholdsTab({
     return match ? match.factor : 1
   }, [altUnitSelections])
 
-  // Convert a threshold value for display (alt unit)
+  // Convert a canonical threshold value for display in the user's preferred unit
   const displayValue = useCallback((slug: string, val: number | null | undefined): number | null => {
     if (val == null) return null
-    const factor = getAltDisplayFactor(slug)
-    if (factor === 1) return val
-    return Math.round(val * factor * 1000) / 1000
-  }, [getAltDisplayFactor])
+    // Alt unit conversion (markers without MARKER_UNIT_MAP entries)
+    const altFactor = getAltDisplayFactor(slug)
+    if (altFactor !== 1) return Math.round(val * altFactor * 1000) / 1000
+    // MARKER_UNIT_MAP conversion based on user preference
+    const info = MARKER_UNIT_MAP[slug]
+    if (info?.convert) {
+      const canonical = allMarkers.find(m => m.marker_slug === slug)?.unit_canonical
+      const preferred = unitForm[info.group as keyof UnitPreferences] as string | undefined
+      if (canonical && preferred && canonical !== preferred) {
+        const factor = info.convert[canonical]?.[preferred]
+        if (factor) return Math.round(val * factor * 1000) / 1000
+      }
+    }
+    return val
+  }, [getAltDisplayFactor, allMarkers, unitForm])
 
   // Convert a displayed value back to canonical for saving
   const toCanonical = useCallback((slug: string, displayVal: string): string => {
-    const factor = getAltDisplayFactor(slug)
-    if (factor === 1) return displayVal
-    const num = parseFloat(displayVal.replace(',', '.'))
-    if (isNaN(num)) return displayVal
-    return String(Math.round((num / factor) * 1000) / 1000)
-  }, [getAltDisplayFactor])
+    // Alt unit reverse
+    const altFactor = getAltDisplayFactor(slug)
+    if (altFactor !== 1) {
+      const num = parseFloat(displayVal.replace(',', '.'))
+      if (isNaN(num)) return displayVal
+      return String(Math.round((num / altFactor) * 1000) / 1000)
+    }
+    // MARKER_UNIT_MAP reverse — convert from preferred back to canonical
+    const info = MARKER_UNIT_MAP[slug]
+    if (info?.convert) {
+      const canonical = allMarkers.find(m => m.marker_slug === slug)?.unit_canonical
+      const preferred = unitForm[info.group as keyof UnitPreferences] as string | undefined
+      if (canonical && preferred && canonical !== preferred) {
+        const factor = info.convert[canonical]?.[preferred]
+        if (factor) {
+          const num = parseFloat(displayVal.replace(',', '.'))
+          if (isNaN(num)) return displayVal
+          return String(Math.round((num / factor) * 1000) / 1000)
+        }
+      }
+    }
+    return displayVal
+  }, [getAltDisplayFactor, allMarkers, unitForm])
 
   // Show brief per-row status
   const flashRowStatus = useCallback((slug: string, status: 'saved' | 'error') => {

@@ -20,38 +20,38 @@
 Test that SHI still works correctly after platform schema elevation (39 tables moved to brickos schema).
 
 ### 1.1 Authentication
-- [ ] Login with demo user (demo@sovereignhealth.io)
-- [ ] Dashboard loads with health zones
-- [ ] Logout works
-- [ ] Login again works (session management)
+- [x] Login with demo user (demo@sovereignhealth.io)
+- [x] Dashboard loads with health zones
+- [x] Logout works
+- [x] Login again works (session management)
 
 ### 1.2 Health Dashboard
-- [ ] All 8 health zones display with correct marker counts
-- [ ] Traffic light indicators (green/yellow/red) show for markers with data
-- [ ] Click into a zone shows marker detail
-- [ ] Click into a marker shows trend chart + reference range
+- [x] All 8 health zones display with correct marker counts
+- [x] Traffic light indicators (green/yellow/red) show for markers with data
+- [x] Click into a zone shows marker detail
+- [x] Click into a marker shows trend chart + reference range -- BUG FOUND: #0330 trend chart double unit conversion (fixed in v0.38.1)
 
 ### 1.3 Measurements
-- [ ] View measurement history (should show existing data)
-- [ ] Add a new measurement (e.g., weight or glucose)
-- [ ] Verify the measurement appears in history
-- [ ] Delete the test measurement
+- [x] View measurement history (should show existing data)
+- [x] Add a new measurement (e.g., weight or glucose)
+- [x] Verify the measurement appears in history
+- [x] Delete the test measurement
 
 ### 1.4 Dr. Alex
-- [ ] Open Doctor Chat
-- [ ] Ask "Give me an overview of my current health status"
-- [ ] Verify response references actual biomarker data
-- [ ] Check that conversation persists in the sidebar
+- [x] Open Doctor Chat
+- [x] Ask "Give me an overview of my current health status"
+- [x] Verify response references actual biomarker data
+- [x] Check that conversation persists in the sidebar
 
 ### 1.5 Settings
-- [ ] Settings page loads with all tabs (Health Profile, Devices/Labs, Reference Ranges, Influence Factors, Account, Security, Privacy)
-- [ ] Health profile shows protocol settings (keto, fasting)
-- [ ] Devices tab shows registered devices (e.g., Fora 6)
+- [x] Settings page loads with all tabs (Health Profile, Devices/Labs, Reference Ranges, Influence Factors, Account, Security, Privacy)
+- [x] Health profile shows protocol settings (keto, fasting)
+- [x] Devices tab shows registered devices (e.g., Fora 6)
 
 ### 1.6 Data Integrity
-- [ ] Measurements count matches expected (~3,436 for demo user)
-- [ ] Calculated markers (GKI, BMI, HOMA-IR) have values
-- [ ] Trends page shows chart data
+- [x] Measurements count matches expected (~305 for default demo profile, ~1,200 across all 3 profiles)
+- [x] Calculated markers (GKI, BMI, HOMA-IR) have values
+- [x] Trends page shows chart data
 
 ---
 
@@ -60,40 +60,27 @@ Test that SHI still works correctly after platform schema elevation (39 tables m
 Test the URL shortener functionality. Sovereign Link runs in platform mode inside the SHI backend.
 
 ### 2.1 Redirect
-- [ ] Open https://brickos.io/r/shdemo2026 (or any known code from staging)
-- [ ] Verify 301 redirect to correct target URL
-- [ ] Check redirect is fast (< 100ms)
+- [x] Open https://brickos.io/r/shdemo2026 (or any known code from staging)
+- [x] Verify 301 redirect to correct target URL
+- [x] Check redirect is fast (< 100ms)
 
 ### 2.2 QR Code
-- [ ] Open https://brickos.io/r/shdemo2026.qr
-- [ ] Verify SVG QR code renders
-- [ ] Scan QR with phone, verify it opens the correct URL
+- [x] Open https://brickos.io/r/shdemo2026.qr
+- [x] Verify SVG QR code renders
+- [x] Scan QR with phone, verify it opens the correct URL
+- NOTE: #0331 raised for QR code beautification with BrickOS logo
 
 ### 2.3 Click Analytics
-- [ ] After clicking a link, verify click count increments
-- [ ] Check that no PII is stored (no raw IPs in the database)
+- [x] After clicking a link, verify click count increments -- 2 clicks recorded in short_link_clicks
+- [x] Check that no PII is stored (no raw IPs in the database) -- PASS: uses visitor_hash, no IP columns
+- NOTE: #0332 user-facing API missing click counts, #0333 empty country_code/referrer
 
-### 2.4 API (via curl or Postman)
-```bash
-# Login and get token
-TOKEN=$(curl -s -X POST https://api-demo.sovereignhealth.io/auth/login \
-  -H 'Content-Type: application/json' \
-  -d '{"email":"demo@sovereignhealth.io","password":"SovereignDemo1"}' | \
-  python3 -c "import json,sys; print(json.load(sys.stdin)['data']['token'])")
-
-# List links
-curl -s -H "Authorization: Bearer $TOKEN" \
-  https://api-demo.sovereignhealth.io/api/v1/links
-
-# Create a test link
-curl -s -X POST -H "Authorization: Bearer $TOKEN" \
-  -H 'Content-Type: application/json' \
-  -d '{"target_url":"https://brickos.io","code":"test-manual"}' \
-  https://api-demo.sovereignhealth.io/api/v1/links
-```
-- [ ] List links returns your links
-- [ ] Create link succeeds with vanity code
-- [ ] Delete/deactivate the test link after
+### 2.4 API (via curl)
+- [x] Affiliate info returns code and referral link (GET /api/affiliate/me -> code: DEMO2026)
+- [x] Conversions endpoint returns list (GET /api/affiliate/me/conversions -> total: 0)
+- [x] Vanity check works (GET /api/affiliate/vanity/check -> available: true)
+- [x] Vanity set correctly tier-gated ("Vanity codes require Clarity or Horizon tier")
+- NOTE: Test plan had wrong endpoint `/api/v1/links` -- correct user-facing API is `/api/affiliate/*`
 
 ---
 
@@ -102,46 +89,27 @@ curl -s -X POST -H "Authorization: Bearer $TOKEN" \
 Test the NOSTR content scheduler running on the VPS.
 
 ### 3.1 Service Status
-```bash
-ssh root@72.61.154.115 "systemctl status nostr-scheduler"
-```
-- [ ] Service is active (running)
-- [ ] No error messages in recent logs
+- [x] Service is active (running) -- uptime 14h, 22.9MB memory, PID 308333
+- [x] No error messages in recent logs
 
 ### 3.2 Schedule Check
-```bash
-ssh root@72.61.154.115 "cd /opt/nostr-scheduler && node dist/index.js list schedule.json"
-```
-- [ ] Shows 14 scheduled notes
-- [ ] Day 1 (pob-day01) shows PUBLISHED
-- [ ] Remaining days show correct dates (Apr 15-27)
-- [ ] No notes accidentally marked as published prematurely
+- [x] Shows 14 scheduled notes
+- [x] Day 1 (pob-day01) shows PUBLISHED (event c8d9a947d81e...)
+- [x] Remaining days show correct dates (Apr 15-27, 10:00 UTC daily)
+- [x] No notes accidentally marked as published prematurely (13 PENDING)
 
 ### 3.3 Verify Published Content
-- [ ] Open Primal.net and find TwentyOne.Life profile
-- [ ] Verify the "Proof of Blood" post is visible with the Health Zones screenshot
-- [ ] Verify the link to sovereignhealth.io is in the post
-- [ ] Verify hashtags are visible (#twentyonelife #brickos #proofofblood etc.)
+- [x] Open Primal.net and find TwentyOne.Life profile -- verified
+- [x] Verify the "Proof of Blood" post is visible -- posted 14h ago, content correct
+- [x] Verify the link to sovereignhealth.io is in the post
+- [x] Verify hashtags are visible
 
 ### 3.4 Logs
-```bash
-ssh root@72.61.154.115 "journalctl -u nostr-scheduler --since '1 hour ago' --no-pager"
-```
-- [ ] No errors in logs
-- [ ] Daemon is idle (waiting for next scheduled publish)
+- [x] No errors in logs -- "No entries" (daemon idle)
+- [x] Daemon is idle (waiting for next scheduled publish Apr 15)
 
 ### 3.5 Manual Test Publish (optional)
-Only if you want to verify end-to-end publishing still works:
-```bash
-ssh root@72.61.154.115 'cd /opt/nostr-scheduler && \
-  NOSTR_NSEC="$(systemd-creds decrypt /etc/credstore.encrypted/nostr-nsec -)" \
-  NOSTR_RELAYS="wss://relay.damus.io,wss://nos.lol,wss://relay.primal.net" \
-  LOG_FILE=/opt/nostr-scheduler/publish.log \
-  node dist/index.js publish notes/day01_proof_of_blood.txt --kind 1 2>&1'
-```
-- [ ] Event published to 3/3 relays
-- [ ] Post visible on Primal within 30 seconds
-- [ ] Delete the test post from Primal after verification
+- SKIPPED -- not needed, day01 already published and verified on Primal
 
 ---
 
@@ -150,87 +118,49 @@ ssh root@72.61.154.115 'cd /opt/nostr-scheduler && \
 Test the platform-level administration. These endpoints are JSON APIs.
 
 ### 4.1 Platform Database Schema
-```bash
-ssh root@72.61.154.115 "docker exec sh-staging-db psql -U sovereign_health sovereign_health_staging -c \"
-SELECT schemaname, count(*) FROM pg_tables WHERE schemaname IN ('public','brickos') GROUP BY schemaname;
-\""
-```
-- [ ] brickos schema: 48 tables
-- [ ] public schema: 61 tables
+- [x] brickos schema: 48 tables
+- [x] public schema: 61 tables
 
 ### 4.2 Organizations
-```bash
-ssh root@72.61.154.115 "docker exec sh-staging-db psql -U sovereign_health sovereign_health_staging -c \"
-SET search_path = public, brickos;
-SELECT id, name, slug, org_type FROM organizations ORDER BY created_at;
-\""
-```
-- [ ] BrickOS platform org exists (UUID 00..00)
-- [ ] Demo org exists
-- [ ] Personal orgs exist for all users (16 users = 16 personal orgs + BrickOS + demo)
+- [x] BrickOS platform org exists (UUID 00000000-...-000000000000, slug: brickos)
+- [x] Demo org exists (BrickOS Demo, slug: demo)
+- [x] 18 total orgs: 1 platform + 1 demo + 16 personal
 
 ### 4.3 Reserved Codes
-```bash
-ssh root@72.61.154.115 "docker exec sh-staging-db psql -U sovereign_health sovereign_health_staging -c \"
-SELECT code FROM brickos.reserved_codes ORDER BY code LIMIT 20;
-\""
-```
-- [ ] Product names reserved (shi, voice, link, health, bitcoin, etc.)
-- [ ] System routes reserved (api, admin, login, etc.)
-- [ ] At least 42 codes
+- [x] 42 reserved codes seeded
+- [x] Includes: admin, api, app, auth, brickos, bitcoin, health, link, nostr, etc.
 
 ### 4.4 Domain Mappings Table
-```bash
-ssh root@72.61.154.115 "docker exec sh-staging-db psql -U sovereign_health sovereign_health_staging -c \"
-SELECT * FROM brickos.domain_mappings;
-\""
-```
-- [ ] Table exists (likely empty, no custom domains configured yet)
+- [x] Table exists (empty -- no custom domains configured yet)
 
 ### 4.5 Org Branding Column
-```bash
-ssh root@72.61.154.115 "docker exec sh-staging-db psql -U sovereign_health sovereign_health_staging -c \"
-SELECT id, name, branding FROM brickos.organizations LIMIT 5;
-\""
-```
-- [ ] branding column exists (default: empty JSON {})
+- [x] branding column exists (all `{}` default empty JSON)
 
 ### 4.6 Service Accounts
-```bash
-ssh root@72.61.154.115 "docker exec sh-staging-db psql -U sovereign_health sovereign_health_staging -c \"
-SELECT * FROM brickos.service_accounts;
-\""
-```
-- [ ] Table exists (likely empty, no service accounts created yet)
+- [x] Table exists (empty -- no service accounts created yet)
 
 ### 4.7 Platform Smoke Test (automated)
-```bash
-bash tests/platform-smoke.sh staging
-```
-- [ ] 17/17 passed
+- [x] **17/17 passed**
 
 ### 4.8 Platform DB Integrity (automated)
-```bash
-bash tests/platform-db-test.sh staging
-```
-- [ ] 23/23 passed
+- [x] **23/23 passed**
 
 ---
 
 ## Part 5: Cross-App Integration
 
 ### 5.1 Shared Auth
-- [ ] Login to SHI, get JWT token
-- [ ] Use same JWT to query Sovereign Link API (/api/v1/links)
-- [ ] Both work with the same token (shared auth)
+- [x] Login to SHI, get JWT token
+- [x] Use same JWT to query affiliate API (/api/affiliate/me) -- returns affiliate data
+- [x] Both work with the same token (shared auth)
 
 ### 5.2 Short Link -> SHI
-- [ ] Click a Sovereign Link short URL (brickos.io/r/...)
-- [ ] Verify redirect to SHI app (app.sovereignhealth.io)
+- [x] Click a Sovereign Link short URL (brickos.io/r/shDEMO2026)
+- [x] Verify redirect to SHI app (301 -> https://app.sovereignhealth.io/?ref=DEMO2026)
 
 ### 5.3 Sovereign Voice -> NOSTR
-- [ ] Check that the NOSTR scheduler daemon is running
-- [ ] Verify published posts are on the correct relays
+- [x] NOSTR scheduler daemon is running (systemctl active)
+- [x] Published posts verified on Primal.net (TwentyOne.Life profile)
 
 ---
 
@@ -238,13 +168,18 @@ bash tests/platform-db-test.sh staging
 
 | Area | Tester | Status | Notes |
 |------|--------|--------|-------|
-| SHI Core | Helmut | | |
-| Sovereign Link | Helmut | | |
-| Sovereign Voice | Helmut | | |
-| BrickOS Admin | Helmut | | |
-| Cross-App | Helmut | | |
+| SHI Core | Helmut | PASS | #0330 unit bug found and fixed (v0.38.1) |
+| Sovereign Link | Helmut | PASS | #0331 QR beautification, #0332 click count API, #0333 geo data -- all P2 backlog |
+| Sovereign Voice | Helmut | PASS | 14 notes scheduled, day01 published, daemon healthy |
+| BrickOS Admin | Helmut | PASS | 17/17 smoke, 23/23 DB integrity |
+| Cross-App | Helmut | PASS | Shared JWT verified, redirect working |
 
-**Overall verdict:** [ ] PASS - ready for production / [ ] FAIL - issues found
+**Overall verdict:** [x] PASS - ready for production
 
-**Date tested:**
+**Date tested:** 2026-04-07
+**Version:** SHI v0.38.1 (hotfix), Sovereign Link v0.3.0, BrickOS Platform v0.1.0
 **Notes:**
+- 1 P1 bug found and fixed (#0330 trend chart unit conversion)
+- 4 P2 issues filed for future sprints (#0331-#0334)
+- Test plan corrected: measurement count (~305 not ~3,436), API endpoint paths
+- All automated test suites green (platform smoke 17/17, DB integrity 23/23, cross-app integration)

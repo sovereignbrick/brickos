@@ -102,25 +102,73 @@ else
   fail "SHI login failed - could not extract JWT"
 fi
 
-# -- 2. Use SHI JWT to access Sovereign Link API ----------------------------
+# -- 2. Affiliate API Tests ---------------------------------------------------
 
-section "2. Cross-App Auth (SHI JWT -> Sovereign Link)"
+section "2. Affiliate API"
 
 if [ -n "$TOKEN" ]; then
-  # The Sovereign Link platform API uses the same JWT since auth is shared
-  SL_RESPONSE=$(curl -sf --max-time 10 "$SL_BASE/api/v1/links" \
-    -H "Authorization: Bearer $TOKEN" 2>/dev/null || echo "FAIL")
-
-  if echo "$SL_RESPONSE" | grep -q '\['; then
-    LINK_COUNT=$(echo "$SL_RESPONSE" | grep -oP '"id"' | wc -l)
-    pass "SHI JWT accepted by Sovereign Link API ($LINK_COUNT links)"
-  elif [ "$SL_RESPONSE" = "FAIL" ]; then
-    skip "Sovereign Link API unreachable"
+  # 2a. GET /api/affiliate/me - affiliate info
+  if [ "$ENV" = "staging" ]; then
+    AFF_ME=$(vps_cmd "curl -sf --max-time 10 '$SHI_API/api/affiliate/me' \
+      -H 'Authorization: Bearer $TOKEN'" 2>/dev/null || echo "FAIL")
   else
-    fail "Sovereign Link API rejected SHI JWT - response: $SL_RESPONSE"
+    AFF_ME=$(curl -sf --max-time 10 "$SHI_API/api/affiliate/me" \
+      -H "Authorization: Bearer $TOKEN" 2>/dev/null || echo "FAIL")
+  fi
+
+  if echo "$AFF_ME" | grep -q '"affiliate_code"'; then
+    AFF_CODE=$(echo "$AFF_ME" | grep -oP '"affiliate_code":"\K[^"]+' || echo "?")
+    pass "2a. Affiliate info returns code: $AFF_CODE"
+  elif [ "$AFF_ME" = "FAIL" ]; then
+    fail "2a. Affiliate info endpoint unreachable"
+  else
+    fail "2a. Affiliate info - unexpected response: ${AFF_ME:0:100}"
+  fi
+
+  # 2b. GET /api/affiliate/me/conversions - conversion list
+  if [ "$ENV" = "staging" ]; then
+    AFF_CONV=$(vps_cmd "curl -sf --max-time 10 '$SHI_API/api/affiliate/me/conversions' \
+      -H 'Authorization: Bearer $TOKEN'" 2>/dev/null || echo "FAIL")
+  else
+    AFF_CONV=$(curl -sf --max-time 10 "$SHI_API/api/affiliate/me/conversions" \
+      -H "Authorization: Bearer $TOKEN" 2>/dev/null || echo "FAIL")
+  fi
+
+  if echo "$AFF_CONV" | grep -q '"conversions"'; then
+    CONV_COUNT=$(echo "$AFF_CONV" | grep -oP '"total":\K[0-9]+' || echo "?")
+    pass "2b. Conversions endpoint returns list (total: $CONV_COUNT)"
+  elif [ "$AFF_CONV" = "FAIL" ]; then
+    fail "2b. Conversions endpoint unreachable"
+  else
+    fail "2b. Conversions - unexpected response: ${AFF_CONV:0:100}"
+  fi
+
+  # 2c. GET /api/affiliate/vanity/check - vanity code availability
+  if [ "$ENV" = "staging" ]; then
+    VANITY_CHECK=$(vps_cmd "curl -sf --max-time 10 '$SHI_API/api/affiliate/vanity/check?code=test-avail-check' \
+      -H 'Authorization: Bearer $TOKEN'" 2>/dev/null || echo "FAIL")
+  else
+    VANITY_CHECK=$(curl -sf --max-time 10 "$SHI_API/api/affiliate/vanity/check?code=test-avail-check" \
+      -H "Authorization: Bearer $TOKEN" 2>/dev/null || echo "FAIL")
+  fi
+
+  if echo "$VANITY_CHECK" | grep -q '"available"'; then
+    pass "2c. Vanity check endpoint works"
+  elif [ "$VANITY_CHECK" = "FAIL" ]; then
+    fail "2c. Vanity check endpoint unreachable"
+  else
+    fail "2c. Vanity check - unexpected response: ${VANITY_CHECK:0:100}"
+  fi
+
+  # 2d. PII check - verify no raw IPs in click tracking
+  PII_COLS=$(vps_db "SELECT column_name FROM information_schema.columns WHERE table_name='short_link_clicks' AND column_name LIKE '%ip%'" 2>/dev/null)
+  if [ -z "$PII_COLS" ]; then
+    pass "2d. No raw IP columns in short_link_clicks (PII safe)"
+  else
+    fail "2d. PII risk - IP-related columns found: $PII_COLS"
   fi
 else
-  skip "Cross-app auth (no SHI JWT)"
+  skip "Affiliate API tests (no SHI JWT)"
 fi
 
 # -- 3. Sovereign Voice is running ------------------------------------------

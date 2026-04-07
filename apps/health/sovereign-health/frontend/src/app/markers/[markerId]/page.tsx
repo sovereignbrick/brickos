@@ -305,6 +305,24 @@ export default function MarkerDetailPage() {
   const tNav = useTranslations('nav')
 
   const { formatDisplay, displayUnit, displayValue } = useUnitPreferences()
+
+  // Convert all range values from canonical to user's preferred unit
+  const convertRange = useCallback((range: MarkerReferenceRange, unit: string): MarkerReferenceRange => {
+    const conv = (v: number | null | undefined) => v != null ? displayValue(markerId, v, unit) : v
+    return {
+      ...range,
+      green_min: conv(range.green_min) ?? null,
+      green_max: conv(range.green_max) ?? null,
+      yellow_low_min: conv(range.yellow_low_min) ?? null,
+      yellow_low_max: conv(range.yellow_low_max) ?? null,
+      yellow_high_min: conv(range.yellow_high_min) ?? null,
+      yellow_high_max: conv(range.yellow_high_max) ?? null,
+      red_low_max: conv(range.red_low_max) ?? null,
+      red_high_min: conv(range.red_high_min) ?? null,
+      unit: displayUnit(markerId, unit),
+    }
+  }, [markerId, displayValue, displayUnit])
+
   const [marker, setMarker] = useState<MarkerDetail | null>(null)
   const [measurements, setMeasurements] = useState<MarkerMeasurement[]>([])
   const [trend, setTrend] = useState<TrendData | null>(null)
@@ -583,8 +601,8 @@ export default function MarkerDetailPage() {
             <div className="pt-2">
               <p className="text-xs text-muted-foreground mb-4 font-medium uppercase tracking-wider">{t('referenceRange')}</p>
               <RangeBar
-                range={marker.reference_range}
-                value={marker.latest?.value ?? null}
+                range={convertRange(marker.reference_range, marker.unit)}
+                value={marker.latest ? displayValue(markerId, marker.latest.value, marker.unit) : null}
               />
               {marker.fasting_range && (
                 <details className="mt-4">
@@ -599,8 +617,8 @@ export default function MarkerDetailPage() {
                   </p>
                   <div>
                     <RangeBar
-                      range={marker.fasting_range}
-                      value={marker.latest?.value ?? null}
+                      range={convertRange(marker.fasting_range, marker.unit)}
+                      value={marker.latest ? displayValue(markerId, marker.latest.value, marker.unit) : null}
                     />
                   </div>
                 </details>
