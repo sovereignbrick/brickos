@@ -197,13 +197,58 @@ ssh root@72.61.154.115 "docker exec sh-staging-db psql -U sovereign_health -d so
 | Area | Tester | Status | Notes |
 |------|--------|--------|-------|
 | DNS + Domains (13 items) | Helmut | | |
-| Platform Admin GUI (6 sections) | Helmut | | |
-| Sovereign Link (4 sections) | Helmut | | |
-| BrickOS Website (2 items) | Helmut | | |
-| VPS Tasks (after prod deploy) | Helmut | | |
-| Infrastructure (3 items) | Helmut | | |
+| DNS + Domains | Helmut | PASS | All 4 subdomains live |
+| Platform Admin GUI | Helmut | PASS | Dashboard, services, users working |
+| Sovereign Link | Helmut | | Pending: vanity edit, link edit |
+| BrickOS Website | Helmut | PASS | Animation working all browsers |
+| VPS Tasks | Helmut | | Voice service account pending |
+| Infrastructure | Helmut | | DB migration checks pending |
 
-**Overall verdict:** [ ] PASS -- ready for production / [ ] FAIL -- issues found
+### Known Issues Deferred to Sprint 031
+
+| # | Issue | Why deferred |
+|---|-------|-------------|
+| #0368 | QR code uses SVG approximation, not actual cube PNG | Polish -- needs base64 image embedding in Rust SVG |
+| #0369 | Login page shows SHI branding on brickos.io | Needs domain-aware branding variables across login/register/reset pages |
+
+---
+
+## Sprint 030 Sign-Off Checklist
+
+**Production deployed:** 2026-04-07 (v0.38.1 with Sprint 030 code)
+
+### Already Verified (PASS)
+
+- [x] demo.brickos.io/platform -- loads, BrickOS cube logo, correct favicon
+- [x] demo.brickos.io/platform -- dashboard stat cards, tier distribution
+- [x] demo.brickos.io/platform/services -- green dots, versions, latency
+- [x] demo.brickos.io/platform/users -- user list, search
+- [x] demo.brickos.io/sovereignhealth/ -- SHI app loads via brickos.io
+- [x] app.brickos.io/ -- redirects to /platform
+- [x] api.brickos.io/health -- returns v0.38.1
+- [x] status.brickos.io -- Gatus monitoring, "BrickOS Platform Status"
+- [x] brickos.io -- website animation (Brave, Chrome, Firefox)
+- [x] SHI affiliate QR code -- working with SHI logo on production
+- [x] app.sovereignhealth.io -- legacy domain still works
+- [x] api.sovereignhealth.io -- legacy domain still works
+
+### Remaining Items to Verify
+
+- [ ] **Vanity code edit** -- on demo.brickos.io/sovereignhealth/ affiliate page: type code, see real-time check, edit existing
+- [ ] **Link edit UI** -- affiliate page: "Your Short Links" section with edit/deactivate
+- [ ] **Link expiration** -- expired link `brickos.io/r/{code}` returns 301 to brickos.io
+- [ ] **QR code** -- `brickos.io/r/shDEMO2026.qr` shows dark cube (not orange) -- DEPLOYED, verify
+- [ ] **Session persistence** -- navigate between /platform pages without re-login
+- [ ] **Demo profiles** -- all 3 profiles show trends + zones
+
+### VPS Tasks (do after sign-off)
+
+- [ ] Voice service account API key (see Part 5 commands above)
+- [ ] Verify `org_members_role_check` constraint exists
+- [ ] Verify `app_tier_names` has 15 rows (5 tiers x 3 apps)
+- [ ] Verify `service_accounts` has sovereign-voice entry
+
+**Overall verdict:** [ ] PASS / [ ] FAIL
 
 **Date tested:**
 **Notes:**
