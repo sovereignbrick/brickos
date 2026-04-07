@@ -106,7 +106,7 @@ export default function PlatformLayout({ children }: { children: React.ReactNode
 
   useEffect(() => {
     if (!loading && !user) {
-      router.push('/login?redirect=/platform')
+      router.push('/login?return=/platform')
     } else if (!loading && user && user.role !== 'admin' && !orgId) {
       router.push('/dashboard')
     }
