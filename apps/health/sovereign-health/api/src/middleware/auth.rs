@@ -138,13 +138,11 @@ impl FromRequest for OrgAdmin {
                 });
             }
             match (u.org_id, u.org_role.as_deref()) {
-                (Some(org_id), Some("owner" | "tech_admin" | "commercial_admin")) => {
-                    Ok(OrgAdmin {
-                        user_id: u.user_id,
-                        org_id,
-                        org_role: u.org_role.unwrap_or_default(),
-                    })
-                }
+                (Some(org_id), Some("owner" | "tech_admin" | "commercial_admin")) => Ok(OrgAdmin {
+                    user_id: u.user_id,
+                    org_id,
+                    org_role: u.org_role.unwrap_or_default(),
+                }),
                 _ => Err(AppError::Forbidden),
             }
         });
@@ -171,9 +169,10 @@ impl FromRequest for OrgTechAdmin {
                 });
             }
             match (u.org_id, u.org_role.as_deref()) {
-                (Some(org_id), Some("owner" | "tech_admin")) => {
-                    Ok(OrgTechAdmin { user_id: u.user_id, org_id })
-                }
+                (Some(org_id), Some("owner" | "tech_admin")) => Ok(OrgTechAdmin {
+                    user_id: u.user_id,
+                    org_id,
+                }),
                 _ => Err(AppError::Forbidden),
             }
         });
@@ -200,9 +199,10 @@ impl FromRequest for OrgCommercialAdmin {
                 });
             }
             match (u.org_id, u.org_role.as_deref()) {
-                (Some(org_id), Some("owner" | "commercial_admin")) => {
-                    Ok(OrgCommercialAdmin { user_id: u.user_id, org_id })
-                }
+                (Some(org_id), Some("owner" | "commercial_admin")) => Ok(OrgCommercialAdmin {
+                    user_id: u.user_id,
+                    org_id,
+                }),
                 _ => Err(AppError::Forbidden),
             }
         });

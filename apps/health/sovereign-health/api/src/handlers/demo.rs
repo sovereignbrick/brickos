@@ -481,19 +481,15 @@ pub async fn demo_zone_detail(
             .bind(user_id)
             .fetch_optional(pool.get_ref())
             .await?;
-        row.and_then(|r| {
-            r.try_get::<Option<String>, _>("height_cm")
-                .ok()
-                .flatten()
-        })
-        .map(|v| {
-            if v.starts_with("v1:") {
-                enc.decrypt_f64(&v)
-            } else {
-                v.parse::<f64>().unwrap_or(0.0)
-            }
-        })
-        .filter(|v| *v > 0.0)
+        row.and_then(|r| r.try_get::<Option<String>, _>("height_cm").ok().flatten())
+            .map(|v| {
+                if v.starts_with("v1:") {
+                    enc.decrypt_f64(&v)
+                } else {
+                    v.parse::<f64>().unwrap_or(0.0)
+                }
+            })
+            .filter(|v| *v > 0.0)
     };
 
     // Compute using production formulas

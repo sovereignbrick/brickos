@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useAdminContext } from './layout'
+import { useAdminContext } from './admin-context'
 import { api } from '@/lib/api'
 import { useTranslations } from 'next-intl'
 

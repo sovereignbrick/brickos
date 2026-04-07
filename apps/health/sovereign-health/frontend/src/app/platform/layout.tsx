@@ -1,30 +1,12 @@
 'use client'
 
-import { useEffect, useState, createContext, useContext } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '@/lib/auth-context'
 import { useTranslations } from 'next-intl'
-
-// ---------------------------------------------------------------------------
-// Admin Context
-// ---------------------------------------------------------------------------
-
-interface AdminContextType {
-  isPlatform: boolean
-  isOrgOwner: boolean
-  isTechAdmin: boolean
-  isCommercialAdmin: boolean
-  orgId: string | null
-  orgName: string | null
-}
-
-const AdminContext = createContext<AdminContextType>({
-  isPlatform: false, isOrgOwner: false, isTechAdmin: false,
-  isCommercialAdmin: false, orgId: null, orgName: null,
-})
-
-export const useAdminContext = () => useContext(AdminContext)
+import { AdminContext } from './admin-context'
+import type { AdminContextType } from './admin-context'
 
 // ---------------------------------------------------------------------------
 // Navigation

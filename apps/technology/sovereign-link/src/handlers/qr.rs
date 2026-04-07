@@ -118,7 +118,10 @@ fn parse_svg_dimensions(svg: &str) -> (u32, u32) {
         .map(|i| &svg[i + 9..])
         .and_then(|s| s.find('"').map(|e| &s[..e]))
     {
-        let parts: Vec<f64> = vb.split_whitespace().filter_map(|p| p.parse().ok()).collect();
+        let parts: Vec<f64> = vb
+            .split_whitespace()
+            .filter_map(|p| p.parse().ok())
+            .collect();
         if parts.len() == 4 {
             return (parts[2] as u32, parts[3] as u32);
         }
