@@ -234,12 +234,18 @@ ssh root@72.61.154.115 "docker exec sh-staging-db psql -U sovereign_health -d so
 
 ### Remaining Items to Verify
 
-- [ ] **Vanity code edit** -- on demo.brickos.io/sovereignhealth/ affiliate page: type code, see real-time check, edit existing
-- [ ] **Link edit UI** -- affiliate page: "Your Short Links" section with edit/deactivate
-- [ ] **Link expiration** -- expired link `brickos.io/r/{code}` returns 301 to brickos.io
-- [ ] **QR code** -- `brickos.io/r/shDEMO2026.qr` shows dark cube (not orange) -- DEPLOYED, verify
-- [ ] **Session persistence** -- navigate between /platform pages without re-login
-- [ ] **Demo profiles** -- all 3 profiles show trends + zones
+Test SHI features on **demo.sovereignhealth.io** (original staging domain, proven working).
+Test platform features on **demo.brickos.io/platform**.
+
+- [ ] **Vanity code edit** -- demo.sovereignhealth.io -> Affiliate page: type code, real-time check, edit existing
+- [ ] **Link edit UI** -- demo.sovereignhealth.io -> Affiliate page: "Your Short Links" with edit/deactivate
+- [ ] **Link expiration** -- `brickos.io/r/{expired-code}` returns 301 to brickos.io (not 404)
+- [ ] **QR code** -- `brickos.io/r/shDEMO2026.qr` shows dark cube (verify not orange anymore)
+- [ ] **Platform session** -- demo.brickos.io/platform -> navigate services -> users without re-login
+- [ ] **Demo profiles** -- demo.sovereignhealth.io -> demo mode -> all 3 profiles show trends
+
+Note: SHI app via `demo.brickos.io/sovereignhealth/` has a session/cookie issue
+(#0369 scope). Use `demo.sovereignhealth.io` for SHI feature testing.
 
 ### VPS Tasks (do after sign-off)
 
