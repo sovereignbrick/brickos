@@ -549,34 +549,21 @@ Every nav item, every API call filtered by role:
 │                                                                 │
 │  Theme Template:                                                │
 │  ┌─────────────────────────────────────────────────────────┐   │
-│  │ Template: [BrickOS Default ▾]                           │   │
+│  │ Base: [BrickOS Dark ▾]                                  │   │
 │  │                                                         │   │
-│  │ Available:                                              │   │
-│  │   ● BrickOS Default (dark, orange accent)               │   │
-│  │   ○ BrickOS Light (light, orange accent)                │   │
-│  │   ○ Clinical (dark, blue accent, medical icons)         │   │
-│  │   ○ Custom XML                                          │   │
+│  │ Presets:                                                │   │
+│  │   ● BrickOS Dark (default)                              │   │
+│  │   ○ BrickOS Light                                       │   │
+│  │   ○ Clinical (blue accent)                              │   │
+│  │   ○ Minimal (neutral)                                   │   │
+│  │   ○ Custom JSON                                         │   │
 │  │                                                         │   │
-│  │ Custom XML Template:                                    │   │
-│  │ ┌─────────────────────────────────────────────────┐    │   │
-│  │ │ <theme name="clinic-xy">                        │    │   │
-│  │ │   <colors>                                      │    │   │
-│  │ │     <primary>#2563eb</primary>                  │    │   │
-│  │ │     <accent>#f97316</accent>                    │    │   │
-│  │ │     <background>#09090b</background>            │    │   │
-│  │ │     <surface>#18181b</surface>                  │    │   │
-│  │ │   </colors>                                     │    │   │
-│  │ │   <fonts>                                       │    │   │
-│  │ │     <heading>Geist</heading>                    │    │   │
-│  │ │     <body>Geist</body>                          │    │   │
-│  │ │   </fonts>                                      │    │   │
-│  │ │   <layout>                                      │    │   │
-│  │ │     <sidebar>left</sidebar>                     │    │   │
-│  │ │     <border-radius>0.75rem</border-radius>      │    │   │
-│  │ │   </layout>                                     │    │   │
-│  │ │ </theme>                                        │    │   │
-│  │ └─────────────────────────────────────────────────┘    │   │
-│  │ [Upload XML]  [Download Default Template]               │   │
+│  │ Override Colors:                                        │   │
+│  │   Primary:    [#2563eb ■]                               │   │
+│  │   Accent:     [#f97316 ■]                               │   │
+│  │   Background: [#09090b ■]                               │   │
+│  │                                                         │   │
+│  │ [Upload JSON theme]  [Download Default]  [Preview]      │   │
 │  └─────────────────────────────────────────────────────────┘   │
 │                                                                 │
 │  Custom Domain:                                                 │
@@ -805,51 +792,408 @@ Sidebar:        240px fixed, collapsible to 64px (icons only)
 8. **App naming**: "BrickOS Platform" for admin app. Org view shows
    "BrickOS Platform - {OrgName}". BrickOS cube logo as app icon.
 
-## 11. Platform License Tiers (App-Agnostic)
+## 11. Platform License Tiers
 
-The current SHI tiers (Clarity, Glimpse, Horizon) are SHI-specific product tiers.
-The platform needs **app-agnostic license tiers** that bundle entitlements across all apps:
+### 11.1 Two-Layer Tier System
+
+BrickOS uses a **two-layer** licensing model:
+
+1. **Platform tiers** (5 tiers) -- the common denominator across all apps
+2. **App-specific tier names** -- each app can brand/name tiers differently,
+   but they MAP to the same 5 platform tiers under the hood
+
+This keeps 5 tiers total (not more), allows apps to use domain-appropriate
+naming, and has one central place to define features.
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│  PLATFORM TIERS (internal, stored in DB)                            │
+│                                                                     │
+│  T1: Free  ->  T2: Starter  ->  T3: Pro  ->  T4: Premium  ->  T5  │
+│                                                     Enterprise/Self │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                     │
+│  SHI NAMES         │ LINK NAMES       │ VOICE NAMES                │
+│  (user-facing)     │ (user-facing)    │ (user-facing)              │
+│  ─────────────     │ ────────────     │ ───────────                │
+│  Glimpse  -> T1    │ Basic   -> T1    │ Free     -> T1             │
+│  Focus    -> T2    │ Growth  -> T2    │ Creator  -> T2             │
+│  Insight  -> T3    │ Scale   -> T3    │ Pro      -> T3             │
+│  Clarity  -> T4    │ Agency  -> T4    │ Studio   -> T4             │
+│  Horizon  -> T5    │ Self-   -> T5    │ Self-    -> T5             │
+│                    │  hosted          │  hosted                    │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+### 11.2 Feature Entitlements per Platform Tier
+
+All feature limits defined once in `tier_features` table with `app_key`:
+
+```
+┌──────────────────────────────────────────────────────────────────────────┐
+│                    T1 Free   T2 Starter  T3 Pro     T4 Premium  T5 Self │
+│                    EUR 0     EUR 9.99    EUR 24.99  EUR 49.99   Custom  │
+├──────────────────────────────────────────────────────────────────────────┤
+│ SHI                                                                      │
+│  Biomarkers        8         20          50         Unlimited   Unlim.  │
+│  History           30d       365d        Unlimited  Unlimited   Unlim.  │
+│  Calc. markers     1         3           8          Unlimited   Unlim.  │
+│  Measurements      100       250         500        Unlimited   Unlim.  │
+│  AI credits/mo     5         15          50         Unlimited   Unlim.  │
+│  Trend analysis    --        3/mo        10/mo      Unlimited   Unlim.  │
+│  Lab explanations  --        3/mo        10/mo      Unlimited   Unlim.  │
+│  Influence factors 2         10          25         Unlimited   Unlim.  │
+│  Reference ranges  --        Unlimited   Unlimited  Unlimited   Unlim.  │
+│  PDF reports       --        --          1/mo       2/mo        Unlim.  │
+│  Lab import        --        --          3/mo       4/mo        Unlim.  │
+│  Protocol compare  --        --          5/mo       Unlimited   Unlim.  │
+│  Body composition  --        Unlimited   Unlimited  Unlimited   Unlim.  │
+│  2FA               --        Unlimited   Unlimited  Unlimited   Unlim.  │
+│  CSV/JSON export   --        Unlimited   Unlimited  Unlimited   Unlim.  │
+├──────────────────────────────────────────────────────────────────────────┤
+│ Sovereign Link                                                           │
+│  Short links       5         50          200        Unlimited   Unlim.  │
+│  Vanity codes      --        1           5          Unlimited   Unlim.  │
+│  Click analytics   Basic     Full        Full       Full + API  Full    │
+│  Campaign links    --        3           10         Unlimited   Unlim.  │
+├──────────────────────────────────────────────────────────────────────────┤
+│ Sovereign Voice                                                          │
+│  Scheduled notes   --        5           20         Unlimited   Unlim.  │
+│  Relays            --        3           5          Custom      Custom  │
+│  Auto-shorten URLs --        Yes         Yes        Yes         Yes     │
+├──────────────────────────────────────────────────────────────────────────┤
+│ Platform                                                                 │
+│  Custom branding   --        --          --         Yes         Yes     │
+│  Custom domain     --        --          --         Yes         Yes     │
+│  Team sharing      --        --          --         Yes         Yes     │
+│  Data export       --        Yes         Yes        Yes         Yes     │
+│  API access        --        --          --         Unlimited   Unlim.  │
+│  Self-hosted       --        --          --         --          Yes     │
+│  Priority support  --        --          --         Yes         Yes     │
+│  BTC discount      --        5%          5%         5%          5%      │
+├──────────────────────────────────────────────────────────────────────────┤
+│ Organization (add-on for T4/T5)                                          │
+│  Included licenses --        --          --         5           Custom  │
+│  Additional seats  --        --          --         EUR 9/seat  Custom  │
+│  Org admin panel   --        --          --         Yes         Yes     │
+│  Org billing       --        --          --         Invoice     Custom  │
+│  Service monitor   --        --          --         --          Yes     │
+└──────────────────────────────────────────────────────────────────────────┘
+```
+
+### 11.3 Implementation
+
+```sql
+-- tier_features table (one row per feature per tier per app)
+tier_features (
+  id UUID,
+  tier_slug TEXT,       -- 'free', 'starter', 'pro', 'premium', 'enterprise'
+  app_key TEXT,         -- 'shi', 'sovereign-link', 'sovereign-voice', 'platform'
+  feature_key TEXT,     -- 'biomarkers', 'short_links', 'vanity_codes', etc.
+  limit_value TEXT,     -- '8', '50', 'unlimited', 'true', 'false'
+  created_at, updated_at
+)
+
+-- app_tier_names table (maps platform tier to app-specific display name)
+app_tier_names (
+  app_key TEXT,         -- 'shi'
+  tier_slug TEXT,       -- 'free'
+  display_name TEXT,    -- 'Glimpse'
+  tagline TEXT,         -- 'Start your health journey'
+  price_eur_cents INT,  -- 0
+  price_btc_sats INT    -- 0
+)
+```
+
+## 12. Organization Roles (Expanded)
+
+### 12.1 Role Matrix
+
+Organizations need more than just "admin" and "user". Real-world clinics,
+practices, and partners have distinct operational roles:
+
+```
+┌───────────────────────────────────────────────────────────────────────────┐
+│  ORG ROLES                                                                │
+├──────────────┬────────────────────────────────────────────────────────────┤
+│ Role         │ Description + Access                                       │
+├──────────────┼────────────────────────────────────────────────────────────┤
+│              │                                                            │
+│ OWNER        │ Full org control. One per org (the org creator).           │
+│              │ Can transfer ownership. Sees everything.                   │
+│              │                                                            │
+│ TECH ADMIN   │ Technical operations -- manages the portal/platform.       │
+│              │ ● Service health monitor (if self-hosted)                  │
+│              │ ● Custom domain / SSL configuration                        │
+│              │ ● Theme / branding setup                                   │
+│              │ ● Member management (invite, disable)                      │
+│              │ ● Audit logs                                               │
+│              │ ● App enablement + configuration                           │
+│              │ ✗ NO access to: billing, licenses, revenue, pricing        │
+│              │                                                            │
+│ COMMERCIAL   │ Business operations -- manages commerce + subscriptions.   │
+│ ADMIN        │ ● Billing + invoices                                       │
+│              │ ● License management + seat allocation                     │
+│              │ ● Newsletter + subscriber management                       │
+│              │ ● Affiliate program + commissions                          │
+│              │ ● Revenue reporting                                        │
+│              │ ● Promotions                                               │
+│              │ ✗ NO access to: service monitor, audit logs, config        │
+│              │                                                            │
+│ EDITOR       │ Content creator -- works with consumer data.               │
+│ (practitioner│ ● View assigned consumers' health data (with consent)      │
+│  assistant)  │ ● Import lab results for consumers                         │
+│              │ ● Add measurements on behalf of consumers                  │
+│              │ ● View trends / analysis for assigned consumers            │
+│              │ ● Share data summaries (PDF reports)                       │
+│              │ ● Use Dr. Alex for consumer data analysis                  │
+│              │ ● Manage own profile + settings                            │
+│              │ ✗ NO admin access (no /admin/ routes)                      │
+│              │                                                            │
+│ CONSUMER     │ End user / patient. Uses the app directly.                 │
+│ (patient)    │ ● Own data only (measurements, trends, Dr. Alex)           │
+│              │ ● Can grant/revoke data sharing to editors                 │
+│              │ ● Manage own profile + settings                            │
+│              │ ● Self-service tier upgrade                                │
+│              │ ✗ NO admin access                                          │
+│              │                                                            │
+└──────────────┴────────────────────────────────────────────────────────────┘
+```
+
+### 12.2 Admin GUI Visibility per Role
+
+```
+┌────────────────────┬─────────┬───────┬──────────┬────────┬──────────┐
+│ Page               │ BrickOS │ Owner │ Tech     │ Commer.│ Editor / │
+│                    │ Admin   │       │ Admin    │ Admin  │ Consumer │
+├────────────────────┼─────────┼───────┼──────────┼────────┼──────────┤
+│ Dashboard          │ All     │ Org   │ Org(tech)│Org(biz)│ --       │
+│ Apps               │ All     │ Org   │ Org      │ --     │ --       │
+│ Organizations      │ All     │ --    │ --       │ --     │ --       │
+│ Users (platform)   │ All     │ --    │ --       │ --     │ --       │
+│ Members            │ --      │ Full  │ Full     │ View   │ --       │
+│ Billing            │ All     │ Org   │ --       │ Org    │ --       │
+│ Affiliates         │ All     │ Org   │ --       │ Org    │ --       │
+│ Promotions         │ Full    │ --    │ --       │ --     │ --       │
+│ Revenue            │ Full    │ Org   │ --       │ Org    │ --       │
+│ Links              │ All     │ Org   │ Org      │ Org    │ --       │
+│ Analytics          │ All     │ Org   │ Org      │ Org    │ --       │
+│ Content App        │ Full    │ --    │ --       │ --     │ --       │
+│ Content Web        │ Full    │ Org   │ Org      │ --     │ --       │
+│ Content Strings    │ Full    │ --    │ --       │ --     │ --       │
+│ Newsletter         │ All     │ Org   │ --       │ Org    │ --       │
+│ Contact            │ All     │ Org   │ Org      │ Org    │ --       │
+│ AI Config          │ All     │ Org   │ Org      │ --     │ --       │
+│ AI Usage           │ All     │ Org   │ Org      │ Org    │ --       │
+│ Services           │ Full    │ --    │ Self-host│ --     │ --       │
+│ Alerts             │ Full    │ --    │ Self-host│ --     │ --       │
+│ Deploy             │ Full    │ --    │ --       │ --     │ --       │
+│ Audit Logs         │ All     │ Org   │ Org      │ --     │ --       │
+│ Compliance         │ Full    │ --    │ --       │ --     │ --       │
+│ Platform Settings  │ Full    │ --    │ --       │ --     │ --       │
+│ Branding           │ --      │ Full  │ Full     │ --     │ --       │
+│ Domains            │ --      │ Full  │ Full     │ --     │ --       │
+│ Licensing          │ Full    │ --    │ --       │ --     │ --       │
+└────────────────────┴─────────┴───────┴──────────┴────────┴──────────┘
+```
+
+### 12.3 Editor Workflow
+
+Editors (practitioners, assistants) work with consumer data in the **app itself**
+(not the admin GUI). Their workflow:
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│  BRICKOS PLATFORM LICENSE TIERS                                 │
-├──────────────┬──────────────┬──────────────┬───────────────────┤
-│              │ Foundation   │ Builder      │ Sovereign         │
-│              │ (free)       │ (EUR 9/mo)   │ (EUR 19/mo)       │
-├──────────────┼──────────────┼──────────────┼───────────────────┤
-│ SHI          │ 85 markers   │ Unlimited    │ Unlimited         │
-│              │ 5 imports/mo │ Unlimited    │ Unlimited         │
-│              │ Dr. Alex 10q │ Dr. Alex 50q │ Dr. Alex unlim.   │
-├──────────────┼──────────────┼──────────────┼───────────────────┤
-│ Sov. Link    │ 5 links      │ 50 links     │ Unlimited         │
-│              │ Auto codes   │ + Vanity     │ + Vanity + API    │
-│              │ Basic stats  │ Full stats   │ Full analytics    │
-├──────────────┼──────────────┼──────────────┼───────────────────┤
-│ Sov. Voice   │ --           │ 5 scheduled  │ Unlimited         │
-│              │              │ 3 relays     │ Custom relays     │
-├──────────────┼──────────────┼──────────────┼───────────────────┤
-│ Platform     │ --           │ --           │ Custom branding   │
-│              │              │              │ Custom domain     │
-│              │              │              │ Team sharing      │
-│              │              │              │ Data export       │
-├──────────────┼──────────────┼──────────────┼───────────────────┤
-│ Enterprise   │         Custom pricing, SLA, on-prem option     │
-│              │         SSO, dedicated support, multi-org        │
-└──────────────┴──────────────────────────────────────────────────┘
+│  EDITOR VIEW (in SHI app, not admin)                            │
+│                                                                 │
+│  My Consumers                                    [+ Request]   │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │ Hans Mueller    ● shared     Last: 2h ago   [View]      │   │
+│  │ Anna Schmidt    ● shared     Last: 1d ago   [View]      │   │
+│  │ Peter Braun     ◐ pending    Awaiting consent            │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│                                                                 │
+│  Viewing: Hans Mueller                          [Back to list] │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │ Scope: measurements + trends (granted 2026-03-15)       │   │
+│  │                                                         │   │
+│  │ [Dashboard]  [History]  [Trends]  [Import]  [Dr. Alex]  │   │
+│  │                                                         │   │
+│  │ (Same views as the consumer sees, read-only or          │   │
+│  │  with import capability depending on data_shares.scope) │   │
+│  │                                                         │   │
+│  │ Actions available:                                      │   │
+│  │   ● View health zones + marker details                  │   │
+│  │   ● View measurement history + trends                   │   │
+│  │   ● Import lab results (PDF/CSV) on behalf              │   │
+│  │   ● Add manual measurements on behalf                   │   │
+│  │   ● Ask Dr. Alex about this consumer's data             │   │
+│  │   ● Generate PDF health report                          │   │
+│  │   ✗ Cannot edit consumer's settings                     │   │
+│  │   ✗ Cannot delete consumer's data                       │   │
+│  │   ✗ Cannot change consumer's tier/role                  │   │
+│  └─────────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
-**Migration from SHI tiers:**
-- Clarity -> Foundation (free)
-- Glimpse -> Builder
-- Horizon -> Sovereign
-- Focus/Insight -> deprecated, map to Builder
+The `data_shares` table (already in brickos schema) controls exactly what
+an editor can see:
+- `scope: all` -- full read access
+- `scope: measurements` -- can view + add measurements
+- `scope: measurements_readonly` -- view only
+- `scope: trends` -- can view trends + analysis
+- `scope: summary` -- overview dashboard only
+- `scope: doctor_chat` -- can use Dr. Alex for this consumer
 
-The platform tier determines what each app allows. Apps check
-`tier_features` table with `app_key` column to resolve entitlements.
+## 13. Newsletter -- App Interest Tracking
 
-## 12. Remaining Open Questions
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  Newsletter Subscribers                                         │
+├─────────────────────────────────────────────────────────────────┤
+│  Org: [All ▾]  App: [All ▾]  Status: [All ▾]                 │
+│                                                                 │
+│  ┌────────────────┬────────┬──────────┬────────────┬────────┐  │
+│  │ Email          │ Org    │ Status   │ Interests  │ Since  │  │
+│  ├────────────────┼────────┼──────────┼────────────┼────────┤  │
+│  │ user1@...      │BrickOS │subscribed│ SHI, Link  │ Mar 1  │  │
+│  │ user2@...      │Clinic  │subscribed│ SHI        │ Mar 5  │  │
+│  │ user3@...      │BrickOS │subscribed│ Voice      │ Apr 1  │  │
+│  └────────────────┴────────┴──────────┴────────────┴────────┘  │
+│                                                                 │
+│  Interest is auto-detected from which apps the user has used.   │
+│  No extra signup question needed -- derive from activity:       │
+│    - Has SHI measurements -> interest: SHI                     │
+│    - Has short links -> interest: Sovereign Link               │
+│    - Has scheduled NOSTR notes -> interest: Sovereign Voice    │
+│    - No activity -> interest: General (platform news only)     │
+│                                                                 │
+│  Filter campaigns by interest to avoid irrelevant emails.       │
+└─────────────────────────────────────────────────────────────────┘
+```
 
-1. **Tier naming**: Foundation/Builder/Sovereign final, or revisit?
-2. **BTC payments**: Discount on Builder/Sovereign tiers (currently 5%)?
-3. **Org billing**: Per-org invoice, or all through individual user subscriptions?
-4. **Theme XML schema**: Formal XSD, or loose XML with fallback to defaults?
+Decision: **Auto-detect interest from app usage** rather than asking during signup.
+Simpler UX, more accurate, and updates automatically as users try new apps.
+
+## 14. Service Monitor for Self-Hosted Orgs
+
+For self-hosted (T5/Enterprise) deployments, the **Tech Admin** of the org
+needs access to the service health monitor for their own instance:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  Service Health -- Clinic XY (self-hosted)                      │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  Instance: clinic-xy.local:8080                                 │
+│  License:  Valid until 2027-04-07  (342 days remaining)        │
+│                                                                 │
+│  ┌──────────────┬───────┬────────┬─────────────────────────┐   │
+│  │ Service      │ Status│ Avg ms │ Uptime (30d)            │   │
+│  ├──────────────┼───────┼────────┼─────────────────────────┤   │
+│  │ SHI API      │  ●    │   15   │ ████████████████ 99.8%  │   │
+│  │ SHI Frontend │  ●    │    5   │ ████████████████ 100%   │   │
+│  │ PostgreSQL   │  ●    │   ok   │ ████████████████ healthy│   │
+│  │ Redis        │  ●    │   ok   │ ████████████████ healthy│   │
+│  └──────────────┴───────┴────────┴─────────────────────────┘   │
+│                                                                 │
+│  Disk: 45% used (23GB / 50GB)                                  │
+│  Backup: Last 2h ago (auto-daily)                              │
+│  Updates: v0.38.1 (current)  Latest: v0.38.1 (up to date)    │
+│                                                                 │
+│  Alerts route to org's own ntfy + telegram channels.            │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+Self-hosted service monitor reads from the local Gatus instance
+(or custom health aggregator) on the org's own server. Alerts go to
+the org's configured ntfy + telegram channels, not BrickOS platform.
+
+## 15. Theme System
+
+Decision: **JSON** (not XML) for theme templates. More developer-friendly,
+native to the web stack, and can be validated with JSON Schema.
+
+```json
+{
+  "name": "clinic-xy",
+  "version": "1.0",
+  "extends": "brickos-dark",
+  "colors": {
+    "primary": "#2563eb",
+    "accent": "#f97316",
+    "background": "#09090b",
+    "surface": "#18181b",
+    "border": "#27272a",
+    "text": "#fafafa",
+    "text-muted": "#a1a1aa"
+  },
+  "fonts": {
+    "heading": "Geist",
+    "body": "Geist",
+    "mono": "Geist Mono"
+  },
+  "layout": {
+    "sidebar": "left",
+    "border-radius": "0.75rem",
+    "card-padding": "1.25rem"
+  },
+  "logo": {
+    "url": "/branding/clinic-xy-logo.svg",
+    "height": "32px"
+  }
+}
+```
+
+- `extends: "brickos-dark"` -- inherits all defaults, only override what changes
+- JSON Schema validation on upload (reject invalid themes)
+- Download default template from admin
+- Preview before applying
+
+Built-in presets:
+- `brickos-dark` (default -- dark bg, orange accent)
+- `brickos-light` (light bg, orange accent)
+- `clinical` (dark bg, blue accent, medical aesthetic)
+- `minimal` (dark bg, neutral, no accent colors)
+
+## 16. Decisions (Confirmed)
+
+1. **On-prem licensing**: JWT-based license key. Signed by BrickOS platform key.
+   Claims: `{ org_id, features, max_admins, max_editors, max_consumers, expires }`.
+   Validated offline (no phone-home). Regeneratable from platform admin.
+
+2. **Gatus integration**: Custom health aggregator that polls `/health` endpoints
+   server-side. More secure than exposing Gatus API. Caches 60s.
+   Self-hosted orgs run their own aggregator locally.
+
+3. **AI failover**: 3 failures in 5 minutes triggers switch. Auto-recover every 5min.
+   Every provider switch notifies via ntfy + telegram.
+
+4. **Org creation**: BrickOS admin only. No self-service org signup.
+
+5. **Content App**: Stays in SHI context (markers, zones, tier translations).
+
+6. **Notifications**: ALL alerts via ntfy + telegram. No silent channels.
+
+7. **Encryption**: All data at rest AES-256-GCM. Decrypt on read.
+
+8. **BTC discount**: 5% on all paid tiers.
+
+9. **Org billing**: Per-org invoicing. License includes N seats, additional at EUR 9/seat.
+
+10. **Themes**: JSON (not XML). Extends base theme, JSON Schema validated.
+
+11. **Newsletter interests**: Auto-detected from app usage, no signup question.
+
+12. **Roles**: Owner + Tech Admin + Commercial Admin + Editor + Consumer.
+    Tech admin cannot see commercial data. Commercial admin cannot see infra/audit.
+
+13. **Service monitor**: Available to self-hosted org tech admins for their instance.
+
+## 17. Remaining Open Questions
+
+1. **Tier naming per app**: Are Glimpse/Focus/Insight/Clarity/Horizon final for SHI,
+   or should we rename to match the cleaner platform tier progression?
+2. **Editor pricing**: Do editors count as paid seats, or only admins?
+3. **Data sharing consent flow**: In-app popup, or email-based approval?
+4. **Self-hosted update mechanism**: Pull-based (check for updates), or manual?
