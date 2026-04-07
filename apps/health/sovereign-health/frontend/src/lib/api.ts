@@ -67,7 +67,8 @@ function getToken(): string | undefined {
 export function setToken(token: string): void {
   Cookies.set('auth_token', token, {
     expires: APP_CONFIG.sessionTimeoutHours / 24,
-    sameSite: 'strict',
+    sameSite: 'lax',
+    secure: window.location.protocol === 'https:',
     path: '/',
   })
 }
