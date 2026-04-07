@@ -15,7 +15,14 @@ pub trait LinkStore: Send + Sync {
     /// Look up a short link by its code. Returns None if not found or inactive/expired.
     async fn get_by_code(&self, code: &str) -> anyhow::Result<Option<ShortLink>>;
 
-    /// Look up an app prefix (e.g., "sh" → Sovereign Health).
+    /// Look up a short link that exists but is expired or deactivated.
+    /// Used by the fast path to detect expired affiliate codes.
+    async fn get_expired_by_code(&self, code: &str) -> anyhow::Result<Option<ShortLink>> {
+        let _ = code;
+        Ok(None)
+    }
+
+    /// Look up an app prefix (e.g., "sh" -> Sovereign Health).
     async fn get_prefix(&self, prefix: &str) -> anyhow::Result<Option<AppPrefix>>;
 
     /// Record a click (fire-and-forget, should not block the redirect).

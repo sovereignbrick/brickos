@@ -34,6 +34,22 @@ impl LinkStore for PgLinkStore {
         Ok(link)
     }
 
+    async fn get_expired_by_code(&self, code: &str) -> anyhow::Result<Option<ShortLink>> {
+        let link = sqlx::query_as::<_, ShortLink>(
+            r#"SELECT id, code, target_url, link_type, domain, app_key,
+                      owner_user_id, owner_org_id, affiliate_code, title,
+                      is_active, expires_at, created_at, updated_at
+               FROM short_links
+               WHERE code = $1
+                 AND (is_active = false OR (expires_at IS NOT NULL AND expires_at <= now()))"#,
+        )
+        .bind(code)
+        .fetch_optional(&self.pool)
+        .await?;
+
+        Ok(link)
+    }
+
     async fn get_prefix(&self, prefix: &str) -> anyhow::Result<Option<AppPrefix>> {
         let p = sqlx::query_as::<_, AppPrefix>(
             "SELECT prefix, app_key, domain, base_url, signup_path, is_active

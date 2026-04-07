@@ -7,6 +7,16 @@ use std::sync::Arc;
 use crate::db::LinkStore;
 use crate::models::*;
 
+const FALLBACK_DOMAIN: &str = "https://brickos.io";
+
+/// Redirect expired or not-found links to the main domain.
+fn redirect_to_main(base_url: &str) -> HttpResponse {
+    HttpResponse::MovedPermanently()
+        .insert_header(("Location", base_url.to_string()))
+        .insert_header(("Cache-Control", "private, max-age=0"))
+        .finish()
+}
+
 /// GET /r/{code} -- Dispatcher. Routes to QR handler if code ends with .qr,
 /// otherwise handles redirect.
 #[cfg(feature = "platform")]
@@ -62,6 +72,11 @@ async fn handle_redirect(
         let affiliate_code = &code[PREFIX_LEN..];
 
         if let Ok(Some(app)) = store.get_prefix(prefix).await {
+            // Check if this code has an expired or deactivated short_link record
+            if let Ok(Some(_expired)) = store.get_expired_by_code(&code).await {
+                return redirect_to_main(&app.base_url);
+            }
+
             let target_url = format!("{}{}{}", app.base_url, app.signup_path, affiliate_code);
 
             // Record click async -- look up or create the short_link row
@@ -115,9 +130,7 @@ async fn redirect_by_code(
                 .insert_header(("Cache-Control", "private, max-age=0"))
                 .finish()
         }
-        Ok(None) => HttpResponse::NotFound()
-            .content_type("text/html")
-            .body("<html><body><h1>Link not found</h1><p>This short link does not exist or has expired.</p></body></html>"),
+        Ok(None) => redirect_to_main(FALLBACK_DOMAIN),
         Err(e) => {
             tracing::error!("Shortener DB error for code '{}': {}", code, e);
             HttpResponse::InternalServerError().finish()
