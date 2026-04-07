@@ -80,6 +80,26 @@ function buildNavItems(t: (key: string) => string): NavItem[] {
 // Layout
 // ---------------------------------------------------------------------------
 
+/** Set BrickOS favicon + title when on brickos.io domain */
+function BrickOSHead() {
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    if (!window.location.hostname.endsWith('.brickos.io')) return
+
+    document.title = 'BrickOS Platform'
+    const existing = document.querySelector('link[rel="icon"]')
+    if (existing) existing.setAttribute('href', '/brickos-favicon-32.png')
+    else {
+      const link = document.createElement('link')
+      link.rel = 'icon'
+      link.href = '/brickos-favicon-32.png'
+      link.type = 'image/png'
+      document.head.appendChild(link)
+    }
+  }, [])
+  return null
+}
+
 export default function PlatformLayout({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth()
   const router = useRouter()
@@ -130,6 +150,7 @@ export default function PlatformLayout({ children }: { children: React.ReactNode
 
   return (
     <AdminContext.Provider value={ctx}>
+      <BrickOSHead />
       <div className="min-h-screen bg-[#09090b] text-zinc-50 flex">
         {/* Mobile toggle */}
         <button
@@ -148,9 +169,8 @@ export default function PlatformLayout({ children }: { children: React.ReactNode
         `}>
           {/* Header */}
           <div className="flex items-center gap-3 px-4 py-4 border-b border-zinc-800">
-            <div className="w-8 h-8 rounded-lg bg-orange-500 flex items-center justify-center text-white font-bold text-sm shrink-0">
-              B
-            </div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/brickos-cube.png" alt="BrickOS" className="w-8 h-8 shrink-0" />
             {!collapsed && (
               <div className="min-w-0">
                 <p className="text-sm font-semibold truncate">{appTitle}</p>

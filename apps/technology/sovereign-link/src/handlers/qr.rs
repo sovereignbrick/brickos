@@ -89,9 +89,9 @@ fn embed_logo_in_svg(svg: &str) -> String {
     let logo = format!(
         r##"<g>
   <circle cx="{cx}" cy="{cy}" r="{r}" fill="#fafafa"/>
-  <path d="M{ccx},{ty} L{rx},{rm} L{ccx},{by} L{lx},{rm} Z" fill="#f97316"/>
-  <path d="M{lx},{rm} L{ccx},{by} L{ccx},{bby} L{lx},{lm} Z" fill="#c2410c"/>
-  <path d="M{ccx},{by} L{rx},{rm} L{rx},{lm} L{ccx},{bby} Z" fill="#ea580c"/>
+  <path d="M{ccx},{ty} L{rx},{rm} L{ccx},{by} L{lx},{rm} Z" fill="#d4d4d4"/>
+  <path d="M{lx},{rm} L{ccx},{by} L{ccx},{bby} L{lx},{lm} Z" fill="#1a1a1a"/>
+  <path d="M{ccx},{by} L{rx},{rm} L{rx},{lm} L{ccx},{bby} Z" fill="#2a2a2a"/>
 </g>"##,
         cx = cx,
         cy = cy,
