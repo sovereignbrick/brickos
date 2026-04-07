@@ -20,6 +20,12 @@ pub struct ShortLink {
     pub expires_at: Option<DateTime<Utc>>,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
+    #[sqlx(default)]
+    pub total_clicks: i64,
+    #[sqlx(default)]
+    pub clicks_7d: i64,
+    #[sqlx(default)]
+    pub clicks_30d: i64,
 }
 
 #[derive(Debug, Deserialize)]

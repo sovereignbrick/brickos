@@ -97,12 +97,21 @@ impl LinkStore for PgLinkStore {
 
     async fn list_by_owner(&self, user_id: Uuid) -> anyhow::Result<Vec<ShortLink>> {
         let links = sqlx::query_as::<_, ShortLink>(
-            r#"SELECT id, code, target_url, link_type, domain, app_key,
-                      owner_user_id, owner_org_id, affiliate_code, title,
-                      is_active, expires_at, created_at, updated_at
-               FROM short_links
-               WHERE owner_user_id = $1
-               ORDER BY created_at DESC"#,
+            r#"SELECT sl.id, sl.code, sl.target_url, sl.link_type, sl.domain, sl.app_key,
+                      sl.owner_user_id, sl.owner_org_id, sl.affiliate_code, sl.title,
+                      sl.is_active, sl.expires_at, sl.created_at, sl.updated_at,
+                      COALESCE(c.total_clicks, 0) as total_clicks,
+                      COALESCE(c.clicks_7d, 0) as clicks_7d,
+                      COALESCE(c.clicks_30d, 0) as clicks_30d
+               FROM short_links sl
+               LEFT JOIN LATERAL (
+                   SELECT COUNT(*) as total_clicks,
+                          COUNT(*) FILTER (WHERE clicked_at > now() - interval '7 days') as clicks_7d,
+                          COUNT(*) FILTER (WHERE clicked_at > now() - interval '30 days') as clicks_30d
+                   FROM short_link_clicks WHERE short_link_id = sl.id
+               ) c ON true
+               WHERE sl.owner_user_id = $1
+               ORDER BY sl.created_at DESC"#,
         )
         .bind(user_id)
         .fetch_all(&self.pool)

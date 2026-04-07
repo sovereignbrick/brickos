@@ -20,13 +20,21 @@ referrer_domain | country_code | visitor_hash                             | code
 - `referrer_domain`: extracted from `Referer` header (e.g., "google.com")
 - `country_code`: resolved from IP via GeoIP lookup or `CF-IPCountry` header (Cloudflare)
 
-## Investigation Needed
+## Investigation Result
 
-1. Check `ClickMeta` extraction in `sovereign-link/src/handlers/redirect.rs` -- is it reading `Referer` header?
-2. Check if the staging reverse proxy (nginx/Cloudflare) forwards `CF-IPCountry` or `X-Forwarded-For`
-3. Direct browser visits won't have a `Referer`, but `country_code` should still be populated
+Code is correct -- `extract_click_meta()` in `redirect.rs:128-157` properly reads:
+- `Referer` header -> parsed for domain
+- `CF-IPCountry` header -> Cloudflare geo header
+- `peer_addr()` -> SHA256 hashed for visitor_hash
+
+Empty values are expected because:
+- Direct browser visits have no `Referer` header
+- `CF-IPCountry` requires Cloudflare proxy (staging uses direct nginx, not CF)
+- Production behind Cloudflare will populate country_code automatically
+
+**Status:** Not a code bug. Close when Cloudflare is enabled for brickos.io redirects.
 
 ## Files
 
-- `apps/technology/sovereign-link/src/handlers/redirect.rs` - click recording (line 174)
-- `apps/technology/sovereign-link/src/models.rs` - `ClickMeta` struct
+- `apps/technology/sovereign-link/src/handlers/redirect.rs` - extract_click_meta (line 128)
+- `apps/technology/sovereign-link/src/models.rs` - ClickMeta struct (line 55)
