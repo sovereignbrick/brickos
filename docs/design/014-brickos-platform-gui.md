@@ -1,6 +1,6 @@
 # 014 - BrickOS Platform GUI
 
-**Status:** Draft v2
+**Status:** Draft v3
 **Author:** Helmut / Claude
 **Date:** 2026-04-07
 **Related:** 005-platform-multi-tenant, 006-platform-schema-elevation, 010-multi-tenant-platform-offering
@@ -11,7 +11,15 @@
 
 One unified admin GUI that serves **two admin roles** through content filtering. No separate apps, no double maintenance. The same routes, components, and API layer -- just filtered by JWT `{ role, org_id }`.
 
+**App name:** "BrickOS Platform" (for BrickOS admins)
+**Org view:** "BrickOS Platform - {OrgName}" (e.g., "BrickOS Platform - Clinic XY")
+**App icon:** BrickOS cube logo (orange brick)
+
 **App users** (end users) have no admin view. They use `/settings` within their app.
+
+### Security Principle
+
+All data at rest and in transit is **encrypted**. The platform GUI handles only encrypted data. AES-256-GCM for fields at rest (same as SHI), TLS for transit. Admin views decrypt on read, never store plaintext.
 
 ```
 ┌────────────────────────────────────────────────────────────────────┐
@@ -213,12 +221,17 @@ Every nav item, every API call filtered by role:
 │  │     5     │ │ments 5405 │ │    18     │ │  EUR 0    │      │
 │  └───────────┘ └───────────┘ └───────────┘ └───────────┘      │
 │                                                                 │
-│  Tier Distribution                                              │
+│  Platform License Distribution                                  │
 │  ┌─────────────────────────────────────────────────────────┐   │
-│  │ Clarity   ██████████████████████████████████  7 (53.8%) │   │
-│  │ Glimpse   ████████████████████████████       5 (38.5%) │   │
-│  │ Horizon   █████                              1  (7.7%) │   │
+│  │ Foundation (free)                                        │   │
+│  │   ████████████████████████████████████████  13 (81.3%)  │   │
+│  │ Builder                                                  │   │
+│  │   ██████                                    2 (12.5%)   │   │
+│  │ Sovereign                                                │   │
+│  │   ██                                        1  (6.3%)   │   │
 │  └─────────────────────────────────────────────────────────┘   │
+│  Note: Platform tiers are app-agnostic. Each tier grants        │
+│  a bundle of app entitlements (see Section 5.8 Licensing).      │
 │                                                                 │
 │  Service Health                                    [All ▾]     │
 │  ┌──────────────┬───────┬───────┬────────┬─────────────────┐   │
@@ -380,11 +393,35 @@ Every nav item, every API call filtered by role:
 │  │   ( ) Customer server (on-prem license)                 │   │
 │  │                                                         │   │
 │  │ On-Prem License Key:                                    │   │
-│  │   [Auto-generated on create]                            │   │
-│  │   Expires: [2027-04-07]  Max users: [50]                │   │
-│  │   Features: [SHI, Sovereign Link]                       │   │
+│  │   [Auto-generated on create -- JWT signed]              │   │
+│  │   Expires: [2027-04-07]  Features: [SHI, Sov. Link]    │   │
 │  │                                                         │   │
 │  │ [Create Organization]                                   │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│                                                                 │
+│  ORG PARAMETERS (editable after creation)                       │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │ Org: Clinic XY                          [Save Changes]  │   │
+│  │                                                         │   │
+│  │ Seat Limits:                                            │   │
+│  │   Admins:       [  3  ]  (org owners + admins)          │   │
+│  │   Editors:      [ 10  ]  (practitioners, assistants)    │   │
+│  │   Consumers:    [unlimited ▾]  (patients, read-only)    │   │
+│  │                                                         │   │
+│  │ App Entitlements:                                       │   │
+│  │   SHI:          [x] Enabled  Max markers: [unlimited]   │   │
+│  │   Sov. Link:    [x] Enabled  Max links: [500]          │   │
+│  │   Sov. Voice:   [ ] Disabled                            │   │
+│  │                                                         │   │
+│  │ Storage / Limits:                                       │   │
+│  │   Max measurements per user: [unlimited]                │   │
+│  │   Max imports per month:     [100]                      │   │
+│  │   AI credits per month:      [10,000 tokens]            │   │
+│  │                                                         │   │
+│  │ License:                                                │   │
+│  │   Type:     [Enterprise ▾]                              │   │
+│  │   Expires:  [2027-04-07]  [Renew]                       │   │
+│  │   Key:      eyJ...  [Regenerate]                        │   │
 │  └─────────────────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────────────┘
 ```
@@ -473,15 +510,19 @@ Every nav item, every API call filtered by role:
 │  │ sh-redis     │ 7.4     │  0.0%  │  12MB  │ 26h        │    │
 │  └──────────────┴─────────┴────────┴────────┴────────────┘    │
 │                                                                 │
-│  Alert Rules                                    [+ New Rule]   │
+│  Alert Rules (all via ntfy + telegram)          [+ New Rule]   │
 │  ┌─────────────────────────────────────────────────────────┐   │
-│  │ ● API response > 500ms     -> ntfy + telegram          │   │
-│  │ ● Any service down > 2min  -> ntfy + telegram          │   │
-│  │ ● DB connections > 15/20   -> ntfy                     │   │
-│  │ ● Deploy failure           -> ntfy + telegram          │   │
-│  │ ● TLS cert < 14d           -> ntfy                     │   │
-│  │ ● AI provider switch       -> ntfy + telegram          │   │
+│  │ ● API response > 500ms     -> ntfy + telegram    [ON]  │   │
+│  │ ● Any service down > 2min  -> ntfy + telegram    [ON]  │   │
+│  │ ● DB connections > 15/20   -> ntfy + telegram    [ON]  │   │
+│  │ ● Deploy failure           -> ntfy + telegram    [ON]  │   │
+│  │ ● TLS cert < 14d           -> ntfy + telegram    [ON]  │   │
+│  │ ● AI provider switch       -> ntfy + telegram    [ON]  │   │
+│  │ ● Migration failure        -> ntfy + telegram    [ON]  │   │
+│  │ ● Disk usage > 80%         -> ntfy + telegram    [ON]  │   │
 │  └─────────────────────────────────────────────────────────┘   │
+│  All notifications route through ntfy (push) AND telegram      │
+│  (chat). No silent alerts -- every alert hits both channels.   │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -504,6 +545,38 @@ Every nav item, every API call filtered by role:
 │  │  [clinic-logo]  Sovereign Health    Dr. Mueller  [DE]   │   │
 │  │  ─────────────────────────────────────────────────────  │   │
 │  │  (Preview of branded header with org colors)            │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│                                                                 │
+│  Theme Template:                                                │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │ Template: [BrickOS Default ▾]                           │   │
+│  │                                                         │   │
+│  │ Available:                                              │   │
+│  │   ● BrickOS Default (dark, orange accent)               │   │
+│  │   ○ BrickOS Light (light, orange accent)                │   │
+│  │   ○ Clinical (dark, blue accent, medical icons)         │   │
+│  │   ○ Custom XML                                          │   │
+│  │                                                         │   │
+│  │ Custom XML Template:                                    │   │
+│  │ ┌─────────────────────────────────────────────────┐    │   │
+│  │ │ <theme name="clinic-xy">                        │    │   │
+│  │ │   <colors>                                      │    │   │
+│  │ │     <primary>#2563eb</primary>                  │    │   │
+│  │ │     <accent>#f97316</accent>                    │    │   │
+│  │ │     <background>#09090b</background>            │    │   │
+│  │ │     <surface>#18181b</surface>                  │    │   │
+│  │ │   </colors>                                     │    │   │
+│  │ │   <fonts>                                       │    │   │
+│  │ │     <heading>Geist</heading>                    │    │   │
+│  │ │     <body>Geist</body>                          │    │   │
+│  │ │   </fonts>                                      │    │   │
+│  │ │   <layout>                                      │    │   │
+│  │ │     <sidebar>left</sidebar>                     │    │   │
+│  │ │     <border-radius>0.75rem</border-radius>      │    │   │
+│  │ │   </layout>                                     │    │   │
+│  │ │ </theme>                                        │    │   │
+│  │ └─────────────────────────────────────────────────┘    │   │
+│  │ [Upload XML]  [Download Default Template]               │   │
 │  └─────────────────────────────────────────────────────────┘   │
 │                                                                 │
 │  Custom Domain:                                                 │
@@ -704,10 +777,79 @@ Sidebar:        240px fixed, collapsible to 64px (icons only)
 
 ---
 
-## 10. Open Questions
+## 10. Decisions (Confirmed)
 
-1. **On-prem licensing**: JWT-based license key with features + expiry + max users? Or phone-home validation?
-2. **Gatus API**: JSON endpoint or need custom health aggregator?
-3. **AI failover timing**: How aggressive? 3 failures in 5min or 1 failure immediate?
-4. **Org admin self-signup**: Can orgs create themselves, or always BrickOS admin creates?
-5. **Content App**: Keep in SHI context or also elevate marker/zone translations?
+1. **On-prem licensing**: JWT-based license key. Signed by BrickOS platform key.
+   Claims: `{ org_id, features: ["shi", "sovereign-link"], max_admins: 3, max_editors: 10, max_consumers: "unlimited", expires: "2027-04-07" }`.
+   Validated offline (no phone-home). Regeneratable from platform admin.
+
+2. **Gatus integration**: Custom health aggregator that reads Gatus config + polls
+   service `/health` endpoints directly. More secure than exposing Gatus API.
+   Aggregator runs server-side, caches results 60s, no external API exposure.
+
+3. **AI failover timing**: 3 failures in 5 minutes triggers switch to failover profile.
+   Auto-recover: check default every 5 minutes, switch back when healthy.
+   Every provider switch notifies via ntfy + telegram.
+
+4. **Org admin self-signup**: Only BrickOS admin can create organizations.
+   Org admin is assigned during org creation. No self-service org creation.
+
+5. **Content App**: Stays in SHI context (markers, zones, tier translations).
+   Platform GUI does not manage app-specific health content.
+
+6. **Notifications**: ALL alerts route through both ntfy AND telegram. No silent channels.
+
+7. **Encryption**: All data at rest encrypted (AES-256-GCM). Platform GUI decrypts
+   on read via Encryptor service. No plaintext storage for PII or health data.
+
+8. **App naming**: "BrickOS Platform" for admin app. Org view shows
+   "BrickOS Platform - {OrgName}". BrickOS cube logo as app icon.
+
+## 11. Platform License Tiers (App-Agnostic)
+
+The current SHI tiers (Clarity, Glimpse, Horizon) are SHI-specific product tiers.
+The platform needs **app-agnostic license tiers** that bundle entitlements across all apps:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  BRICKOS PLATFORM LICENSE TIERS                                 │
+├──────────────┬──────────────┬──────────────┬───────────────────┤
+│              │ Foundation   │ Builder      │ Sovereign         │
+│              │ (free)       │ (EUR 9/mo)   │ (EUR 19/mo)       │
+├──────────────┼──────────────┼──────────────┼───────────────────┤
+│ SHI          │ 85 markers   │ Unlimited    │ Unlimited         │
+│              │ 5 imports/mo │ Unlimited    │ Unlimited         │
+│              │ Dr. Alex 10q │ Dr. Alex 50q │ Dr. Alex unlim.   │
+├──────────────┼──────────────┼──────────────┼───────────────────┤
+│ Sov. Link    │ 5 links      │ 50 links     │ Unlimited         │
+│              │ Auto codes   │ + Vanity     │ + Vanity + API    │
+│              │ Basic stats  │ Full stats   │ Full analytics    │
+├──────────────┼──────────────┼──────────────┼───────────────────┤
+│ Sov. Voice   │ --           │ 5 scheduled  │ Unlimited         │
+│              │              │ 3 relays     │ Custom relays     │
+├──────────────┼──────────────┼──────────────┼───────────────────┤
+│ Platform     │ --           │ --           │ Custom branding   │
+│              │              │              │ Custom domain     │
+│              │              │              │ Team sharing      │
+│              │              │              │ Data export       │
+├──────────────┼──────────────┼──────────────┼───────────────────┤
+│ Enterprise   │         Custom pricing, SLA, on-prem option     │
+│              │         SSO, dedicated support, multi-org        │
+└──────────────┴──────────────────────────────────────────────────┘
+```
+
+**Migration from SHI tiers:**
+- Clarity -> Foundation (free)
+- Glimpse -> Builder
+- Horizon -> Sovereign
+- Focus/Insight -> deprecated, map to Builder
+
+The platform tier determines what each app allows. Apps check
+`tier_features` table with `app_key` column to resolve entitlements.
+
+## 12. Remaining Open Questions
+
+1. **Tier naming**: Foundation/Builder/Sovereign final, or revisit?
+2. **BTC payments**: Discount on Builder/Sovereign tiers (currently 5%)?
+3. **Org billing**: Per-org invoice, or all through individual user subscriptions?
+4. **Theme XML schema**: Formal XSD, or loose XML with fallback to defaults?
