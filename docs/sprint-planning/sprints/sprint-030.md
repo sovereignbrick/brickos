@@ -1,170 +1,202 @@
-# Sprint 030 - Sovereign Link Production Hardening
+# Sprint 030 - Sovereign Link Hardening + Platform GUI Foundation
 
 **Started:** 2026-04-08
-**Goal:** Ship Sovereign Link as a fully production-ready URL shortener with analytics, link management UX, Voice integration, and expiration enforcement.
-**Milestones:** M7 (Link Management UX), M8 (Analytics + Integration), M9 (Distribution)
+**Goal:** Ship Sovereign Link production-ready AND lay the foundation for BrickOS Platform Admin GUI.
+**Milestones:** M7 (Link Management UX), M8 (Analytics + Voice), M9 (Distribution), M10 (Platform GUI Foundation)
 
 ---
 
 ## Dependency Analysis
 
 ```
-Layer 0: No dependencies (unblocks everything)
-  #0340 Link expiration enforcement
-  #0338 Vanity code UX
-  #0339 Sovereign Voice URL shortening
-         |
-         +-----------+------------------+
-         |                              |
-         v                              v
-Layer 1: Link Management            Layer 1: Voice Integration
-  #0342 Link edit UI                  (Voice auto-shortens URLs)
-    (needs #0338 + #0340)               |
-         |                              |
-         v                              v
-Layer 2: Analytics                   Layer 2: Distribution
-  #0341 Click analytics dashboard     #0343 Start9 .s9pk verification
-    (benefits from all above)          #0344 Docker Hub CI automation
+TRACK A: Sovereign Link Hardening          TRACK B: Platform GUI Foundation
+─────────────────────────────              ──────────────────────────────
+
+Layer 0:                                   Layer 0:
+  #0340 Link expiration                      #0345 Website animation fix
+  #0338 Vanity code UX                       #0367 Design system
+  #0339 Voice URL shortening                 #0351 Org roles (5 roles)
+         |                                   #0360 Platform tier system
+         v                                          |
+Layer 1:                                            v
+  #0342 Link edit UI                         Layer 1:
+         |                                     #0346 Admin layout + sidebar
+         v                                            |
+Layer 2:                                              v
+  #0341 Click analytics dashboard            Layer 2:
+  #0343 Start9 verification                    #0347 Platform dashboard
+  #0344 Docker Hub CI                          #0349 Service health monitor
+                                               #0353 Elevate users tab
 ```
 
-## Sprint Plan (5 Days)
-
-### Day 1 (Tue) - Link Expiration Enforcement
-**Goal:** Expired links redirect to org main domain. No dead links in production.
-
-| # | Issue | Pts | Milestone | Blocked By |
-|---|---|---|---|---|
-| 1 | #0340 Link expiration - hot path check in redirect.rs | 2 | M7 | - |
-| 2 | #0340 Link expiration - admin UI expired badge + date picker | 1 | M7 | #1 |
-
-**Points:** 3
-
-**Details:**
-- `redirect.rs`: After link lookup, check `expires_at < now()`. If expired, 301 to org's `base_url` (from `app_prefixes`) or `brickos.io` as fallback.
-- `org_admin.rs`: Show "Expired" badge in link list, filter by expired/active.
-- Optional cleanup cron: `UPDATE short_links SET is_active = false WHERE expires_at < now() AND is_active = true` (run hourly).
+Two independent tracks that can run in parallel.
 
 ---
 
-### Day 2 (Wed) - Vanity Code UX
-**Goal:** Users can check availability in real-time, edit existing vanity codes, Clarity tier works.
+## Sprint Plan (10 Days)
 
-| # | Issue | Pts | Milestone | Blocked By |
+### Day 1 (Tue) - Link Expiration + Design System
+**Goal:** Expired links redirect to main domain. Establish admin design tokens.
+
+| # | Issue | Pts | Track | Blocked By |
 |---|---|---|---|---|
-| 3 | #0338 Real-time vanity availability check (debounced 300ms) | 1 | M7 | - |
-| 4 | #0338 Edit existing vanity code (show current, allow update) | 1 | M7 | - |
-| 5 | #0338 Fix Clarity tier false rejection in vanity check | 1 | M7 | - |
+| 1 | #0340 Link expiration enforcement (hot path + admin badge) | 3 | A | - |
+| 2 | #0367 Admin GUI design system (tokens, components, patterns) | 2 | B | - |
+| 3 | #0345 Website animation cross-browser fix | 1 | B | - |
 
-**Points:** 3
+**Points:** 6
 
-**Details for #3:**
-- `affiliate/page.tsx`: Add `useEffect` with 300ms debounce on vanity input, call `GET /api/affiliate/vanity/check?code=X`
-- Show green checkmark / red X + reason inline
-- Disable save button until check passes
+---
 
-**Details for #4:**
-- After first save, show current vanity code with "Change" button
-- On change, call `PUT /api/affiliate/me/vanity` with new code
-- Old code becomes available immediately (no cooldown for MVP)
+### Day 2 (Wed) - Vanity Code UX + Org Roles
+**Goal:** Vanity codes have real-time check + edit. 5 org roles defined in schema.
 
-**Details for #5:**
-- `affiliate.rs` `set_vanity`: Check `custom_vanity_code` feature, not `custom_thresholds`
-- Verify Clarity tier includes this feature in `tier_features` table
+| # | Issue | Pts | Track | Blocked By |
+|---|---|---|---|---|
+| 4 | #0338 Vanity code UX (availability check, edit, tier fix) | 3 | A | - |
+| 5 | #0351 Org roles (owner, tech admin, commercial admin, editor, consumer) | 3 | B | - |
+
+**Points:** 6
+
+**Details for #0351:**
+- Add `org_role` to `org_members` table: owner, tech_admin, commercial_admin, editor, consumer
+- Backend middleware extractors: `TechAdmin`, `CommercialAdmin`, `OrgOwner`
+- JWT claims: add `org_id` + `org_role` when user has org context
+- Frontend: `useOrgRole()` hook
+- Tests: role-based API access enforcement
 
 ---
 
 ### Day 3 (Thu) - Sovereign Voice URL Shortening
-**Goal:** Every URL in NOSTR notes is auto-shortened via Sovereign Link before publishing.
+**Goal:** Voice auto-shortens URLs in NOSTR notes via Sovereign Link service account.
 
-| # | Issue | Pts | Milestone | Blocked By |
+| # | Issue | Pts | Track | Blocked By |
 |---|---|---|---|---|
-| 6 | #0339 Create Voice service account + config | 1 | M8 | - |
-| 7 | #0339 URL detection + shortening in publisher.ts | 2 | M8 | #6 |
-| 8 | #0339 Graceful fallback if SL unreachable | 1 | M8 | #7 |
+| 6 | #0339 Voice service account + config | 1 | A | - |
+| 7 | #0339 URL detection + shortening in publisher.ts | 2 | A | #6 |
+| 8 | #0339 Graceful fallback if SL unreachable | 1 | A | #7 |
 
 **Points:** 4
 
-**Details for #6:**
-- Insert service account into `brickos.service_accounts` (migration or seed)
-- Add to Voice config: `SOVEREIGN_LINK_API_URL=https://api.sovereignhealth.io`, `SOVEREIGN_LINK_API_KEY=<key>`
-- Service account scopes: `links:create`, `links:read`
+---
 
-**Details for #7:**
-- `publisher.ts`: Before `publishEvent()`, scan note content for `https?://` URLs
-- For each URL, call `POST /api/v1/service/links { target_url: url }`
-- Replace URL in note text with returned `brickos.io/r/{code}`
-- Cache shortened URLs in memory to avoid duplicate API calls
+### Day 4 (Fri) - Link Edit UI + Platform Tier System
+**Goal:** Users can edit/deactivate links. Platform-wide tier system replaces SHI-specific tiers.
 
-**Details for #8:**
-- If SL API returns error or times out (5s), log warning and publish with original URL
-- Never block NOSTR publishing on SL availability
+| # | Issue | Pts | Track | Blocked By |
+|---|---|---|---|---|
+| 9 | #0342 Link edit modal (target URL, title, is_active, expires_at) | 2 | A | #0338, #0340 |
+| 10 | #0360 Platform tier system (two-layer, 5 tiers, app name mapping) | 3 | B | - |
+
+**Points:** 5
+
+**Details for #0360:**
+- Create `tier_features` table: tier_slug + app_key + feature_key + limit_value
+- Create `app_tier_names` table: app_key + tier_slug + display_name + price
+- Migrate existing SHI tiers: Glimpse->T1, Focus->T2, Insight->T3, Clarity->T4, Horizon->T5
+- Seed Sovereign Link + Voice tier names
+- Feature check API: `GET /api/v1/tier/check?feature=vanity_codes&app=sovereign-link`
+- Tests: limit enforcement, migration rollback, upgrade/downgrade
 
 ---
 
-### Day 4 (Fri) - Link Edit UI
-**Goal:** Users can edit, deactivate, and set expiration on their links from the affiliate page.
+### Day 5 (Mon) - Admin GUI Layout + Sidebar
+**Goal:** The foundational admin shell is live with role-based navigation.
 
-| # | Issue | Pts | Milestone | Blocked By |
+| # | Issue | Pts | Track | Blocked By |
 |---|---|---|---|---|
-| 9 | #0342 Link edit modal (target URL, title, is_active, expires_at) | 2 | M7 | #0338, #0340 |
+| 11 | #0346 Admin layout.tsx with role-based sidebar | 3 | B | #0351, #0367 |
+
+**Points:** 3
+
+**Details:**
+- `/admin/layout.tsx`: role check, AdminContext provider, sidebar
+- Sidebar sections: Overview, Manage, Commerce, Links, Content, AI, Ops, Security, Settings
+- Each nav item filtered by `{ role, org_id, org_role }`
+- BrickOS cube logo, dark theme, collapsible to 64px icons
+- Breadcrumb trail component
+- Empty shell pages for all routes (content added in subsequent days)
+
+---
+
+### Day 6 (Tue) - Click Analytics Dashboard
+**Goal:** Org admins and platform admins see click analytics with time-series charts.
+
+| # | Issue | Pts | Track | Blocked By |
+|---|---|---|---|---|
+| 12 | #0341 Analytics API (time-series, geo, referrers) | 3 | A | - |
+| 13 | #0341 Analytics frontend (Recharts charts) | 2 | A | #12 |
+
+**Points:** 5
+
+---
+
+### Day 7 (Wed) - Platform Dashboard
+**Goal:** The admin home page shows platform-wide or org-scoped metrics.
+
+| # | Issue | Pts | Track | Blocked By |
+|---|---|---|---|---|
+| 14 | #0347 Dashboard API (extend /admin/dashboard with org scope) | 2 | B | #0346 |
+| 15 | #0347 Dashboard frontend (stat cards, tier chart, activity feed) | 3 | B | #14 |
+
+**Points:** 5
+
+**Details:**
+- BrickOS admin: all orgs, services, signups, MRR, tier distribution, service health matrix
+- Org admin: own members, enabled apps, links, clicks, recent member activity
+- Reuse existing `/admin/dashboard` endpoint, extend with org_id filter
+- Service health: call each app `/health` endpoint server-side, cache 60s
+- Recharts for tier distribution + mini sparklines
+
+---
+
+### Day 8 (Thu) - Service Health Monitor
+**Goal:** Real-time service monitoring with uptime timeline and alert rules.
+
+| # | Issue | Pts | Track | Blocked By |
+|---|---|---|---|---|
+| 16 | #0349 Health aggregator backend (poll services, cache, store history) | 3 | B | - |
+| 17 | #0349 Service monitor frontend (uptime bars, container details, alerts) | 2 | B | #16, #0346 |
+
+**Points:** 5
+
+**Details:**
+- Backend: server-side poller, checks `/health` every 60s, stores 30-day ring buffer
+- Container stats via SSH (CPU, memory, uptime) -- cache 5min
+- Alert rules CRUD (all via ntfy + telegram)
+- Frontend: uptime timeline bars, container table, alert rule management
+
+---
+
+### Day 9 (Fri) - Elevate Users Tab
+**Goal:** Users management moved to platform admin with org filter.
+
+| # | Issue | Pts | Track | Blocked By |
+|---|---|---|---|---|
+| 18 | #0353 Elevate users tab to /admin/users (add org filter) | 2 | B | #0346 |
 
 **Points:** 2
 
 **Details:**
-- Add edit icon button to each link row on affiliate page
-- Modal with fields: target URL (text), title (text), active toggle, expiration date picker
-- Save: `PUT /api/v1/links/{id}` with updated fields
-- Deactivate: Confirmation dialog, then `PUT` with `is_active: false`
-- Consistent with vanity code UX from Day 2
+- Move existing `users-tab.tsx` component to new `/admin/users/page.tsx`
+- Add org dropdown filter (BrickOS admin sees all orgs)
+- Existing API endpoints unchanged: `GET /admin/users`, `PUT /admin/users/{id}/role`, etc.
+- Add `?org_id=` query param to API for org-scoped results
 
 ---
 
-### Day 5 (Mon) - Click Analytics Dashboard
-**Goal:** Org admins and platform admins can see click analytics with charts.
+### Day 10 (Mon) - RC Testing + Distribution + Deploy
+**Goal:** Full test suite, staging verification, production deploy.
 
-| # | Issue | Pts | Milestone | Blocked By |
+| # | Issue | Pts | Track | Blocked By |
 |---|---|---|---|---|
-| 10 | #0341 Analytics API endpoints (time-series, geo, referrers) | 3 | M8 | - |
-| 11 | #0341 Org admin analytics page (Recharts) | 2 | M8 | #10 |
+| 19 | #0343 Start9 .s9pk end-to-end verification | 1 | A | - |
+| 20 | #0344 Docker Hub CI automation | 1 | A | - |
+| 21 | RC testing: all suites + manual staging verification | - | Both | Day 9 |
+| 22 | Deploy to staging + production | - | Both | #21 |
+| 23 | Sprint artifacts: retro, release notes, version bump | - | Both | #22 |
 
-**Points:** 5
-
-**Details for #10:**
-New handler `analytics.rs` in sovereign-link:
-```
-GET /api/v1/orgs/{org_id}/analytics?days=30
-  -> { clicks_by_day: [{date, count}], top_links: [...], top_countries: [...], top_referrers: [...] }
-
-GET /api/v1/admin/analytics?days=30
-  -> Same + by_org breakdown + by_app breakdown
-
-GET /api/v1/links/{id}/analytics
-  -> Single link deep-dive: daily clicks, referrers, countries
-```
-
-Queries aggregate from `short_link_clicks` table:
-- `GROUP BY DATE(clicked_at)` for time-series
-- `GROUP BY country_code` for geo (when Cloudflare enabled)
-- `GROUP BY referrer_domain` for referrers
-
-**Details for #11:**
-- Org admin: `/org/{slug}/analytics` page
-- Recharts line chart for clicks over time (same pattern as SHI trend charts)
-- Table for top links, top referrers
-- Platform admin: `/admin/analytics` with org/app breakdown tabs
-- Dark theme, BrickOS design tokens
-
----
-
-### Flex Day - Distribution (if time permits)
-**Goal:** Sovereign Link available on Start9 marketplace and Docker Hub.
-
-| # | Issue | Pts | Milestone | Blocked By |
-|---|---|---|---|---|
-| 12 | #0343 Start9 .s9pk end-to-end verification | 1 | M9 | - |
-| 13 | #0344 Docker Hub CI automation | 1 | M9 | - |
-
-**Points:** 2
+**Points:** 2 (process, not code)
 
 ---
 
@@ -172,52 +204,62 @@ Queries aggregate from `short_link_clicks` table:
 
 | Milestone | Description | Days | Issues | Points |
 |---|---|---|---|---|
-| **M7** | Link Management UX | 1, 2, 4 | 6 | 8 |
-| **M8** | Analytics + Integration | 3, 5 | 5 | 9 |
-| **M9** | Distribution | Flex | 2 | 2 |
-| **Total** | | **5 days + flex** | **13 items** | **19 pts** |
+| **M7** | Link Management UX | 1, 2, 4 | 4 | 8 |
+| **M8** | Analytics + Voice Integration | 3, 6 | 4 | 9 |
+| **M9** | Distribution | 10 | 2 | 2 |
+| **M10** | Platform GUI Foundation | 1-2, 4-5, 7-9 | 9 | 25 |
+| **RC** | Testing + Deploy | 10 | 3 | 0 |
+| **Total** | | **10 days** | **22 items** | **44 pts** |
 
 ## Critical Path
 
 ```
-Day 1: Expiration enforcement (#0340)
-  -> Day 4: Link edit UI (#0342)
-    -> Day 5: Analytics dashboard (#0341)
+Track A (Link):
+  Day 1: #0340 expiration
+    -> Day 2: #0338 vanity UX
+      -> Day 4: #0342 link edit UI
+  Day 3: #0339 Voice shortening (independent)
+  Day 6: #0341 click analytics (independent)
 
-Day 2: Vanity code UX (#0338)
-  -> Day 4: Link edit UI (#0342)
-
-Day 3: Voice URL shortening (#0339) [independent track]
+Track B (Platform GUI):
+  Day 1: #0367 design system
+  Day 2: #0351 org roles
+  Day 4: #0360 tier system
+    -> Day 5: #0346 admin layout (needs roles + design)
+      -> Day 7: #0347 dashboard
+      -> Day 8: #0349 service monitor
+      -> Day 9: #0353 elevate users
 ```
-
-Two parallel tracks: Link Management (Days 1-2-4-5) and Voice Integration (Day 3).
 
 ## Risks
 
 | Risk | Impact | Mitigation |
 |---|---|---|
-| Voice service account auth may need debugging | Blocks Day 3 | Test service account endpoints with curl first, before writing Node code |
-| Analytics queries may be slow on large click tables | Slow dashboards | Add index on `short_link_clicks(clicked_at)`, use materialized views if needed |
-| Recharts bundle size | Larger frontend build | Already using Recharts in SHI, no additional bundle cost |
-| Start9 SDK compatibility | Can't verify .s9pk | Docker-only fallback, defer to next sprint if SDK issues |
+| 44 pts in 10 days is ambitious | May not complete all items | Track A (Link) is priority. Track B Phase 1 items are foundational scaffolding. |
+| Tier migration touches billing | Could break Stripe subscriptions | Run migration on staging first. Keep old tier_slug as fallback. |
+| Service health poller needs SSH access | Security concern | Poller runs server-side only. No external API. SSH key scoped to docker stats. |
+| Admin layout is a large component | Could block Days 7-9 | Design system (#0367) done first. Layout is mostly nav + context, not content. |
 
 ## Definition of Done
 
-- [ ] Expired links redirect to main domain (not 404)
-- [ ] Vanity code has real-time availability indicator
-- [ ] Existing vanity codes can be changed
-- [ ] Sovereign Voice auto-shortens URLs in NOSTR notes
+- [ ] Expired links redirect to main domain
+- [ ] Vanity codes have real-time availability + edit
+- [ ] Voice auto-shortens URLs in NOSTR notes
 - [ ] Links can be edited/deactivated from affiliate page
-- [ ] Org admin sees click analytics with time-series chart
-- [ ] Platform admin sees cross-org analytics
-- [ ] All new code has tests
-- [ ] Staging + production deploy verified
-- [ ] Sprint artifacts complete (retro, release notes)
+- [ ] Click analytics with time-series charts
+- [ ] Admin GUI shell with role-based sidebar is live
+- [ ] Platform dashboard shows metrics (both admin views)
+- [ ] Service health monitor with uptime timeline
+- [ ] Users tab elevated to platform admin
+- [ ] Platform tier system (5 tiers, two-layer)
+- [ ] All new code has tests + error handling + monitoring
+- [ ] Staging + production deployed
+- [ ] Sprint artifacts complete
 
-## Carried Forward from Sprint 029
+## Quality Requirements
 
-| Issue | Status | Notes |
-|---|---|---|
-| #0334 Admin service dashboard | Backlog | Deferred to Sprint 031 (larger scope) |
-| #0337 AI-agnostic provider settings | Backlog | Deferred (architectural decision needed) |
-| #0333 Click tracking geo data | Blocked | Needs Cloudflare proxy for brickos.io/r/ |
+Every issue in this sprint MUST include:
+1. **Error handling**: Graceful degradation, user-facing error messages, no unhandled panics
+2. **Monitoring**: Log state changes, alert on failures (ntfy + telegram)
+3. **Automated tests**: Unit tests for logic, integration tests for API, snapshot tests for UI
+4. **i18n**: All user-facing strings through i18n (EN + DE)
