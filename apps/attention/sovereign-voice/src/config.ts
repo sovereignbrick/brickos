@@ -33,6 +33,8 @@ export interface AppConfig {
   nsec: string;
   relays: string[];
   logFile: string;
+  sovereignLinkApiUrl: string | null;
+  sovereignLinkApiKey: string | null;
 }
 
 // ---------------------------------------------------------------------------
@@ -55,7 +57,10 @@ export function loadEnv(): AppConfig {
 
   const logFile = process.env.LOG_FILE || "./publish.log";
 
-  return { nsec, relays, logFile };
+  const sovereignLinkApiUrl = process.env.SOVEREIGN_LINK_API_URL || null;
+  const sovereignLinkApiKey = process.env.SOVEREIGN_LINK_API_KEY || null;
+
+  return { nsec, relays, logFile, sovereignLinkApiUrl, sovereignLinkApiKey };
 }
 
 // ---------------------------------------------------------------------------

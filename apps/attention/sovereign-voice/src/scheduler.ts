@@ -3,6 +3,7 @@ import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { publish, buildLongFormTags } from "./publisher.js";
 import { resolveContent } from "./config.js";
+import { shortenUrls } from "./shortener.js";
 import type { AppConfig, ScheduleConfig, ScheduledNote } from "./config.js";
 
 // ---------------------------------------------------------------------------
@@ -59,7 +60,18 @@ async function publishNote(
     return;
   }
 
-  const content = resolveContent(note);
+  let content = resolveContent(note);
+
+  // Shorten URLs via Sovereign Link (graceful: publishes original if SL unavailable)
+  const shortResult = await shortenUrls(content, config);
+  content = shortResult.content;
+  if (shortResult.shortened > 0) {
+    console.log(`  Shortened ${shortResult.shortened} URL(s) via Sovereign Link`);
+  }
+  if (shortResult.errors > 0) {
+    console.warn(`  ${shortResult.errors} URL(s) failed to shorten (publishing with originals)`);
+  }
+
   const tags: string[][] = [];
 
   // Build tags based on kind
