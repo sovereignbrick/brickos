@@ -475,12 +475,22 @@ pub async fn demo_zone_detail(
         }
     }
 
-    // Get height from demo user profile
-    let height_cm: Option<f64> =
-        sqlx::query_scalar("SELECT height_cm::float8 FROM user_profile WHERE user_id = $1")
-            .bind(user_id)
-            .fetch_optional(pool.get_ref())
-            .await?;
+    // Get height from demo user profile (may be encrypted)
+    let height_cm: Option<f64> = {
+        let row: Option<String> =
+            sqlx::query_scalar("SELECT height_cm FROM user_profile WHERE user_id = $1")
+                .bind(user_id)
+                .fetch_optional(pool.get_ref())
+                .await?;
+        row.map(|v| {
+            if v.starts_with("v1:") {
+                enc.decrypt_f64(&v)
+            } else {
+                v.parse::<f64>().unwrap_or(0.0)
+            }
+        })
+        .filter(|v| *v > 0.0)
+    };
 
     // Compute using production formulas
     let computed = crate::services::calculated::compute_calculated_markers(
