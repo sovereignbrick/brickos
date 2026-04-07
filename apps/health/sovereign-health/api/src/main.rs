@@ -267,9 +267,12 @@ async fn main() -> std::io::Result<()> {
         // Also allow www variant of website
         let www_website = config_data.website_url.replace("://", "://www.");
         cors = cors.allowed_origin(&www_website);
-        // BrickOS platform website (contact form)
+        // BrickOS platform domains
         cors = cors.allowed_origin("https://brickos.io");
         cors = cors.allowed_origin("https://www.brickos.io");
+        cors = cors.allowed_origin("https://app.brickos.io");
+        cors = cors.allowed_origin("https://demo.brickos.io");
+        cors = cors.allowed_origin("https://api.brickos.io");
         if config_data.is_oss() || std::env::var("DEV_CORS").unwrap_or_default() == "true" {
             cors = cors.allowed_origin("http://localhost:3000");
         }

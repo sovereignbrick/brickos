@@ -47,13 +47,18 @@ export function classifyApiError(code: string | undefined, message: string): Api
   return 'unknown'
 }
 
-// On .onion domains, the API is served from the same origin via nginx routing.
-// NEXT_PUBLIC_API_URL is baked at build time and points to the clearnet API,
-// so we override it at runtime when accessed via Tor.
-const API_BASE =
-  typeof window !== 'undefined' && window.location.hostname.endsWith('.onion')
-    ? ''
-    : APP_CONFIG.apiUrl
+// Runtime API URL detection:
+// - .onion domains: same origin (nginx proxy)
+// - *.brickos.io domains: use api.brickos.io (platform admin)
+// - default: build-time NEXT_PUBLIC_API_URL
+const API_BASE = (() => {
+  if (typeof window === 'undefined') return APP_CONFIG.apiUrl
+  const host = window.location.hostname
+  if (host.endsWith('.onion')) return ''
+  if (host === 'app.brickos.io') return 'https://api.brickos.io'
+  if (host === 'demo.brickos.io') return 'https://api-demo.sovereignhealth.io'
+  return APP_CONFIG.apiUrl
+})()
 
 function getToken(): string | undefined {
   return Cookies.get('auth_token')
