@@ -1156,6 +1156,12 @@ export const api = {
       request<{ data: { updated: boolean } }>(`/admin/organizations/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
     orgMembers: (orgId: string) =>
       request<{ data: Array<{ id: string; user_id: string; email: string; display_name: string | null; role: string; joined_at: string; last_active_at: string | null }> }>(`/admin/organizations/${orgId}/members`),
+    addOrgMember: (orgId: string, body: { email: string; role: string }) =>
+      request<{ data: { added: boolean; user_id: string; role: string } }>(`/admin/organizations/${orgId}/members`, { method: 'POST', body: JSON.stringify(body) }),
+    updateMemberRole: (orgId: string, memberId: string, role: string) =>
+      request<{ data: { updated: boolean } }>(`/admin/organizations/${orgId}/members/${memberId}`, { method: 'PUT', body: JSON.stringify({ role }) }),
+    removeOrgMember: (orgId: string, memberId: string) =>
+      request<{ data: { removed: boolean } }>(`/admin/organizations/${orgId}/members/${memberId}`, { method: 'DELETE' }),
   },
   affiliate: {
     me: () =>

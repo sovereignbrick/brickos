@@ -775,6 +775,18 @@ pub fn configure_routes(cfg: &mut actix_web::web::ServiceConfig) {
                 actix_web::web::post().to(handlers::admin_orgs::generate_org_license),
             )
             .route(
+                "/organizations/{id}/members",
+                actix_web::web::post().to(handlers::admin_orgs::add_org_member),
+            )
+            .route(
+                "/organizations/{org_id}/members/{member_id}",
+                actix_web::web::put().to(handlers::admin_orgs::update_member_role),
+            )
+            .route(
+                "/organizations/{org_id}/members/{member_id}",
+                actix_web::web::delete().to(handlers::admin_orgs::remove_org_member),
+            )
+            .route(
                 "/users",
                 actix_web::web::get().to(handlers::admin::list_users),
             )

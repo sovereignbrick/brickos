@@ -323,3 +323,102 @@ pub async fn generate_org_license(
         "error": null
     })))
 }
+
+#[derive(Deserialize)]
+pub struct AddMemberRequest {
+    pub email: String,
+    pub role: String,
+}
+
+#[derive(Deserialize)]
+pub struct UpdateMemberRoleRequest {
+    pub role: String,
+}
+
+/// POST /admin/organizations/{id}/members -- Add member to org
+pub async fn add_org_member(
+    pool: web::Data<PgPool>,
+    admin: AdminUser,
+    path: web::Path<Uuid>,
+    body: web::Json<AddMemberRequest>,
+) -> Result<HttpResponse, AppError> {
+    let org_id = path.into_inner();
+    let valid_roles = ["owner", "tech_admin", "commercial_admin", "editor", "consumer"];
+    if !valid_roles.contains(&body.role.as_str()) {
+        return Err(AppError::Validation(format!("Invalid role: {}", body.role)));
+    }
+
+    let user_row: Option<(Uuid,)> =
+        sqlx::query_as("SELECT id FROM users WHERE email = $1 AND is_deleted = false")
+            .bind(&body.email)
+            .fetch_optional(pool.get_ref())
+            .await?;
+
+    let user_id = match user_row {
+        Some((uid,)) => uid,
+        None => return Err(AppError::Validation(format!("User not found: {}", body.email))),
+    };
+
+    sqlx::query(
+        r#"INSERT INTO org_members (org_id, user_id, role, invited_by)
+           VALUES ($1, $2, $3, $4)
+           ON CONFLICT (org_id, user_id) DO UPDATE SET role = $3"#,
+    )
+    .bind(org_id)
+    .bind(user_id)
+    .bind(&body.role)
+    .bind(admin.user_id)
+    .execute(pool.get_ref())
+    .await?;
+
+    Ok(HttpResponse::Created().json(serde_json::json!({
+        "data": { "added": true, "user_id": user_id, "role": body.role },
+        "error": null
+    })))
+}
+
+/// PUT /admin/organizations/{org_id}/members/{member_id} -- Change member role
+pub async fn update_member_role(
+    pool: web::Data<PgPool>,
+    _admin: AdminUser,
+    path: web::Path<(Uuid, Uuid)>,
+    body: web::Json<UpdateMemberRoleRequest>,
+) -> Result<HttpResponse, AppError> {
+    let (org_id, member_id) = path.into_inner();
+    let valid_roles = ["owner", "tech_admin", "commercial_admin", "editor", "consumer"];
+    if !valid_roles.contains(&body.role.as_str()) {
+        return Err(AppError::Validation(format!("Invalid role: {}", body.role)));
+    }
+
+    sqlx::query("UPDATE org_members SET role = $1 WHERE id = $2 AND org_id = $3")
+        .bind(&body.role)
+        .bind(member_id)
+        .bind(org_id)
+        .execute(pool.get_ref())
+        .await?;
+
+    Ok(HttpResponse::Ok().json(serde_json::json!({
+        "data": { "updated": true },
+        "error": null
+    })))
+}
+
+/// DELETE /admin/organizations/{org_id}/members/{member_id} -- Remove member
+pub async fn remove_org_member(
+    pool: web::Data<PgPool>,
+    _admin: AdminUser,
+    path: web::Path<(Uuid, Uuid)>,
+) -> Result<HttpResponse, AppError> {
+    let (org_id, member_id) = path.into_inner();
+
+    sqlx::query("DELETE FROM org_members WHERE id = $1 AND org_id = $2")
+        .bind(member_id)
+        .bind(org_id)
+        .execute(pool.get_ref())
+        .await?;
+
+    Ok(HttpResponse::Ok().json(serde_json::json!({
+        "data": { "removed": true },
+        "error": null
+    })))
+}
