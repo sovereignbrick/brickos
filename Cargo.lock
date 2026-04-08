@@ -4712,7 +4712,7 @@ dependencies = [
 
 [[package]]
 name = "sovereign-health-backend"
-version = "0.38.1"
+version = "0.39.0"
 dependencies = [
  "actix-cors",
  "actix-governor",
@@ -4772,6 +4772,7 @@ dependencies = [
  "argon2",
  "askama",
  "async-trait",
+ "base64",
  "chrono",
  "futures-util",
  "hex",

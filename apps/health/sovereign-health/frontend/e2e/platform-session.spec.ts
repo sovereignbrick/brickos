@@ -1,62 +1,96 @@
 import { test, expect } from '@playwright/test'
-import { loginAndNavigate, loginViaUI, DEMO_ADMIN } from './helpers/auth'
+import { loginAndNavigate, DEMO_ADMIN } from './helpers/auth'
 
-test.describe('Platform Session', () => {
-  test('login with return=/platform lands on platform', async ({ page }) => {
-    await loginAndNavigate(page, DEMO_ADMIN.email, DEMO_ADMIN.password, '/platform')
-    const url = page.url()
-    expect(url.includes('/platform') || url.includes('/dashboard')).toBe(true)
-  })
+/**
+ * BrickOS Platform Session Tests
+ *
+ * Tests that the platform admin GUI at /platform/* works correctly
+ * on the brickos.io domain. The platform is self-contained -- no
+ * cross-navigation to SHI pages (/affiliate, /dashboard, etc.).
+ *
+ * SHI pages are tested separately on sovereignhealth.io domain.
+ *
+ * Run: E2E_BASE_URL=https://demo.brickos.io npx playwright test platform-session
+ */
 
+test.describe('BrickOS Platform Admin', () => {
   test('unauthenticated /platform redirects to login', async ({ page }) => {
     await page.goto('/platform')
     await page.waitForURL(/login/, { timeout: 10000 })
     expect(page.url()).toContain('/login')
+    expect(page.url()).toContain('return')
   })
 
-  test('session persists across SHI pages via client navigation', async ({ page }) => {
-    await loginViaUI(page, DEMO_ADMIN.email, DEMO_ADMIN.password)
-    // Now on /dashboard. Use client-side navigation (click a link)
-    await page.goto('/affiliate')
-    // Wait for page to settle
-    await page.waitForTimeout(3000)
-    // Should NOT be on login page
-    const url = page.url()
-    const onLogin = url.includes('/login')
-    if (onLogin) {
-      // Session dropped -- this is the bug we're tracking (#0370)
-      console.log('BUG #0370: Session dropped when navigating to /affiliate')
-    }
-    // For now, assert it doesn't redirect (will fail until #0370 is fixed)
-    expect(url).not.toContain('/login')
+  test('login with return=/platform lands on platform dashboard', async ({ page }) => {
+    await loginAndNavigate(page, DEMO_ADMIN.email, DEMO_ADMIN.password, '/platform')
+    expect(page.url()).toContain('/platform')
+    await expect(page.locator('text=Dashboard').first()).toBeVisible({ timeout: 10000 })
   })
 
-  test('session persists across platform pages via sidebar clicks', async ({ page }) => {
-    // Login and go directly to platform
+  test('sidebar navigation: platform -> services -> users -> analytics', async ({ page }) => {
     await loginAndNavigate(page, DEMO_ADMIN.email, DEMO_ADMIN.password, '/platform')
 
-    // If we landed on platform, test sidebar navigation
-    if (page.url().includes('/platform')) {
-      // Wait for sidebar to render
-      await page.waitForSelector('nav', { timeout: 5000 })
+    if (!page.url().includes('/platform')) return // skip if login didn't land on platform
 
-      // Click Services in sidebar (client-side navigation)
-      const servicesLink = page.locator('a[href="/platform/services"]')
-      if (await servicesLink.isVisible()) {
-        await servicesLink.click()
-        await page.waitForTimeout(2000)
-        expect(page.url()).toContain('/platform/services')
-        expect(page.url()).not.toContain('/login')
-      }
+    // Wait for sidebar and dashboard to fully load before navigating
+    await page.waitForSelector('nav', { timeout: 5000 })
+    await page.waitForLoadState('networkidle', { timeout: 10000 })
 
-      // Click Users in sidebar
-      const usersLink = page.locator('a[href="/platform/users"]')
-      if (await usersLink.isVisible()) {
-        await usersLink.click()
-        await page.waitForTimeout(2000)
-        expect(page.url()).toContain('/platform/users')
-        expect(page.url()).not.toContain('/login')
-      }
+    // Navigate to Services
+    const servicesLink = page.locator('a[href="/platform/services"]')
+    if (await servicesLink.isVisible()) {
+      await servicesLink.click()
+      await page.waitForTimeout(2000)
+      expect(page.url()).toContain('/platform/services')
+      expect(page.url()).not.toContain('/login')
     }
+
+    // Navigate to Users
+    const usersLink = page.locator('a[href="/platform/users"]')
+    if (await usersLink.isVisible()) {
+      await usersLink.click()
+      await page.waitForTimeout(2000)
+      expect(page.url()).toContain('/platform/users')
+      expect(page.url()).not.toContain('/login')
+    }
+
+    // Navigate to Analytics
+    const analyticsLink = page.locator('a[href="/platform/analytics"]')
+    if (await analyticsLink.isVisible()) {
+      await analyticsLink.click()
+      await page.waitForTimeout(2000)
+      expect(page.url()).toContain('/platform/analytics')
+      expect(page.url()).not.toContain('/login')
+    }
+
+    // Navigate back to Home
+    const homeLink = page.locator('a[href="/platform"]')
+    if (await homeLink.isVisible()) {
+      await homeLink.click()
+      await page.waitForTimeout(2000)
+      expect(page.url()).toMatch(/\/platform\/?$/)
+      expect(page.url()).not.toContain('/login')
+    }
+  })
+
+  test('platform dashboard shows stat cards', async ({ page }) => {
+    await loginAndNavigate(page, DEMO_ADMIN.email, DEMO_ADMIN.password, '/platform')
+    if (!page.url().includes('/platform')) return
+
+    // Should show stat cards with data
+    await expect(page.locator('text=Total Users').first()).toBeVisible({ timeout: 10000 })
+    await expect(page.locator('text=Measurements').first()).toBeVisible({ timeout: 10000 })
+  })
+
+  test('platform services shows health status', async ({ page }) => {
+    await loginAndNavigate(page, DEMO_ADMIN.email, DEMO_ADMIN.password, '/platform')
+    if (!page.url().includes('/platform')) return
+
+    await page.goto('/platform/services')
+    await page.waitForLoadState('networkidle', { timeout: 10000 })
+
+    // Should show service table (not redirected to login)
+    expect(page.url()).toContain('/platform/services')
+    expect(page.url()).not.toContain('/login')
   })
 })

@@ -163,11 +163,33 @@ pub async fn link_analytics(
     }
 }
 
-/// Extract user_id from the request extensions (set by auth middleware).
+/// Extract user_id from the Authorization header JWT.
+/// Works with the SHI backend's JWT format (sub claim = user UUID).
 fn extract_user_id(req: &HttpRequest) -> Option<Uuid> {
-    // The host API's auth middleware stores the user_id in request extensions.
-    // Try the common patterns:
-    req.extensions().get::<Uuid>().copied()
+    // First try request extensions (set by middleware if available)
+    if let Some(uid) = req.extensions().get::<Uuid>().copied() {
+        return Some(uid);
+    }
+
+    // Fall back to parsing JWT from Authorization header
+    let auth = req.headers().get("authorization")?.to_str().ok()?;
+    let token = auth.strip_prefix("Bearer ")?;
+
+    // Decode JWT payload without verification (the host API already verified it)
+    let parts: Vec<&str> = token.split('.').collect();
+    if parts.len() != 3 { return None; }
+
+    let payload = base64_decode(parts[1])?;
+    let json: serde_json::Value = serde_json::from_slice(&payload).ok()?;
+    let sub = json.get("sub")?.as_str()?;
+    Uuid::parse_str(sub).ok()
+}
+
+fn base64_decode(input: &str) -> Option<Vec<u8>> {
+    use base64::Engine;
+    base64::engine::general_purpose::URL_SAFE_NO_PAD
+        .decode(input)
+        .ok()
 }
 
 /// Validate a vanity code.
