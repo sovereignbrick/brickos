@@ -770,6 +770,36 @@ dependencies = [
 ]
 
 [[package]]
+name = "brickos-notify"
+version = "0.1.0"
+dependencies = [
+ "reqwest 0.12.28",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
+name = "brickos-platform-api"
+version = "0.1.0"
+dependencies = [
+ "actix-web",
+ "brickos-auth",
+ "brickos-crypto",
+ "brickos-db",
+ "chrono",
+ "dotenvy",
+ "serde",
+ "serde_json",
+ "sqlx",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
+ "uuid",
+]
+
+[[package]]
 name = "brickos-startos"
 version = "0.1.0"
 
@@ -4728,6 +4758,7 @@ dependencies = [
  "brickos-crypto",
  "brickos-db",
  "brickos-email",
+ "brickos-notify",
  "chrono",
  "criterion",
  "dotenvy",

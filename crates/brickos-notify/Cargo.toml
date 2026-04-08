@@ -1,0 +1,13 @@
+[package]
+name = "brickos-notify"
+version = "0.1.0"
+edition = "2021"
+description = "BrickOS shared notification service -- dual-dispatch to ntfy + Telegram"
+license = "AGPL-3.0"
+
+[dependencies]
+reqwest = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
