@@ -129,6 +129,8 @@ mod platform {
         tracing::info!("Connected to platform database");
 
         // Build the LinkStore from the app pool
+        // Keep a clone for handlers that need raw PgPool (redirect click recording)
+        let app_pool_data = app_pool.clone();
         let link_store: Arc<dyn LinkStore> = Arc::new(PgLinkStore::new(app_pool));
 
         let bind_addr = format!("{}:{}", config.host, config.port);
@@ -136,6 +138,7 @@ mod platform {
         HttpServer::new(move || {
             App::new()
                 .app_data(web::Data::new(link_store.clone()))
+                .app_data(web::Data::new(app_pool_data.clone()))
                 .app_data(web::Data::new(PlatformPool(platform_pool.clone())))
                 .route(
                     "/health",
