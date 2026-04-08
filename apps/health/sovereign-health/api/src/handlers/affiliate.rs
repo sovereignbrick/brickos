@@ -16,6 +16,7 @@ use crate::{
         AffiliateClickRequest, AffiliateSettingsRequest, MarkPaidRequest, RejectConversionRequest,
     },
     models::doctor_chat::PaginationQuery,
+    PlatformPool,
 };
 
 // ---------------------------------------------------------------------------
@@ -65,7 +66,7 @@ fn is_click_rate_limited(ip: &str, code: &str) -> bool {
 
 pub async fn click(
     req: HttpRequest,
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     body: web::Json<AffiliateClickRequest>,
 ) -> HttpResponse {
     let code = body.affiliate_code.trim().to_lowercase();
@@ -75,7 +76,7 @@ pub async fn click(
         "SELECT EXISTS(SELECT 1 FROM users WHERE affiliate_code = $1 AND is_deleted = false)",
     )
     .bind(&code)
-    .fetch_one(pool.get_ref())
+    .fetch_one(&platform_pool.0)
     .await
     .unwrap_or(false);
 
@@ -104,7 +105,7 @@ pub async fn click(
     // Insert click
     let _ = sqlx::query("INSERT INTO affiliate_clicks (affiliate_code) VALUES ($1)")
         .bind(&code)
-        .execute(pool.get_ref())
+        .execute(&platform_pool.0)
         .await;
 
     HttpResponse::Ok().json(json!({ "ok": true }))
@@ -115,7 +116,7 @@ pub async fn click(
 // ---------------------------------------------------------------------------
 
 pub async fn me(
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     auth: AuthenticatedUser,
     config: web::Data<crate::config::Config>,
 ) -> Result<HttpResponse, AppError> {
@@ -124,7 +125,7 @@ pub async fn me(
         "SELECT affiliate_code, affiliate_settings FROM users WHERE id = $1 AND is_deleted = false",
     )
     .bind(auth.user_id)
-    .fetch_optional(pool.get_ref())
+    .fetch_optional(&platform_pool.0)
     .await?
     .ok_or(AppError::NotFound)?;
 
@@ -135,11 +136,11 @@ pub async fn me(
         Some(code) => code,
         None => {
             // Auto-generate missing affiliate code on first access
-            let code = generate_affiliate_code(pool.get_ref()).await?;
+            let code = generate_affiliate_code(&platform_pool.0).await?;
             let _ = sqlx::query("UPDATE users SET affiliate_code = $1 WHERE id = $2")
                 .bind(&code)
                 .bind(auth.user_id)
-                .execute(pool.get_ref())
+                .execute(&platform_pool.0)
                 .await;
             code
         }
@@ -160,7 +161,7 @@ pub async fn me(
         )"#,
     )
     .bind(&affiliate_code)
-    .fetch_one(pool.get_ref())
+    .fetch_one(&platform_pool.0)
     .await
     .unwrap_or(0);
 
@@ -169,7 +170,7 @@ pub async fn me(
         "SELECT COUNT(*) FROM users WHERE referred_by = $1 AND is_deleted = false",
     )
     .bind(&affiliate_code)
-    .fetch_one(pool.get_ref())
+    .fetch_one(&platform_pool.0)
     .await
     .unwrap_or(0);
 
@@ -178,7 +179,7 @@ pub async fn me(
         "SELECT COUNT(*) FROM affiliate_conversions WHERE affiliate_code = $1 AND status = 'paid'",
     )
     .bind(&affiliate_code)
-    .fetch_one(pool.get_ref())
+    .fetch_one(&platform_pool.0)
     .await
     .unwrap_or(0);
 
@@ -198,7 +199,7 @@ pub async fn me(
         FROM affiliate_conversions WHERE affiliate_code = $1"#,
     )
     .bind(&affiliate_code)
-    .fetch_one(pool.get_ref())
+    .fetch_one(&platform_pool.0)
     .await?;
 
     let eur_pending: i64 = commission_row.try_get("eur_pending_cents").unwrap_or(0);
@@ -215,7 +216,7 @@ pub async fn me(
         "SELECT code FROM short_links WHERE owner_user_id = $1 AND link_type = 'vanity' AND is_active = true LIMIT 1",
     )
     .bind(auth.user_id)
-    .fetch_optional(pool.get_ref())
+    .fetch_optional(&platform_pool.0)
     .await
     .ok()
     .flatten()
@@ -261,7 +262,7 @@ pub async fn me(
 // ---------------------------------------------------------------------------
 
 pub async fn update_settings(
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     auth: AuthenticatedUser,
     body: web::Json<AffiliateSettingsRequest>,
 ) -> Result<HttpResponse, AppError> {
@@ -302,7 +303,7 @@ pub async fn update_settings(
     sqlx::query("UPDATE users SET affiliate_settings = $1, updated_at = NOW() WHERE id = $2")
         .bind(&settings)
         .bind(auth.user_id)
-        .execute(pool.get_ref())
+        .execute(&platform_pool.0)
         .await?;
 
     Ok(HttpResponse::Ok().json(json!({
@@ -324,7 +325,7 @@ pub struct ConversionsQuery {
 }
 
 pub async fn my_conversions(
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     auth: AuthenticatedUser,
     query: web::Query<ConversionsQuery>,
 ) -> Result<HttpResponse, AppError> {
@@ -348,7 +349,7 @@ pub async fn my_conversions(
     let affiliate_code: Option<String> =
         sqlx::query_scalar("SELECT affiliate_code FROM users WHERE id = $1")
             .bind(auth.user_id)
-            .fetch_optional(pool.get_ref())
+            .fetch_optional(&platform_pool.0)
             .await?
             .flatten();
 
@@ -366,7 +367,7 @@ pub async fn my_conversions(
     let total: i64 =
         sqlx::query_scalar("SELECT COUNT(*) FROM affiliate_conversions WHERE affiliate_code = $1")
             .bind(&affiliate_code)
-            .fetch_one(pool.get_ref())
+            .fetch_one(&platform_pool.0)
             .await
             .unwrap_or(0);
 
@@ -386,7 +387,7 @@ pub async fn my_conversions(
         .bind(&affiliate_code)
         .bind(per_page)
         .bind(offset)
-        .fetch_all(pool.get_ref())
+        .fetch_all(&platform_pool.0)
         .await?;
 
     let conversions: Vec<serde_json::Value> = rows
@@ -422,7 +423,7 @@ pub async fn my_conversions(
 // ---------------------------------------------------------------------------
 
 pub async fn admin_list(
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     _admin: AdminUser,
     query: web::Query<PaginationQuery>,
 ) -> Result<HttpResponse, AppError> {
@@ -443,7 +444,7 @@ pub async fn admin_list(
     )
     .bind(per_page)
     .bind(offset)
-    .fetch_all(pool.get_ref())
+    .fetch_all(&platform_pool.0)
     .await?;
 
     let affiliates: Vec<serde_json::Value> = rows
@@ -469,7 +470,7 @@ pub async fn admin_list(
 // ---------------------------------------------------------------------------
 
 pub async fn admin_queue(
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     _admin: AdminUser,
 ) -> Result<HttpResponse, AppError> {
     let rows = sqlx::query(
@@ -478,7 +479,7 @@ pub async fn admin_queue(
            WHERE status = 'pending' AND (evaluation_ends_at IS NULL OR evaluation_ends_at < NOW())
            ORDER BY created_at ASC"#,
     )
-    .fetch_all(pool.get_ref())
+    .fetch_all(&platform_pool.0)
     .await?;
 
     let queue: Vec<serde_json::Value> = rows
@@ -505,7 +506,7 @@ pub async fn admin_queue(
 // ---------------------------------------------------------------------------
 
 pub async fn admin_approve(
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     _admin: AdminUser,
     path: web::Path<Uuid>,
 ) -> Result<HttpResponse, AppError> {
@@ -518,7 +519,7 @@ pub async fn admin_approve(
            RETURNING id, affiliate_code, status, commission_amount_cents, created_at"#,
     )
     .bind(conversion_id)
-    .fetch_optional(pool.get_ref())
+    .fetch_optional(&platform_pool.0)
     .await?;
 
     match result {
@@ -541,7 +542,7 @@ pub async fn admin_approve(
 // ---------------------------------------------------------------------------
 
 pub async fn admin_reject(
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     _admin: AdminUser,
     path: web::Path<Uuid>,
     body: web::Json<RejectConversionRequest>,
@@ -556,7 +557,7 @@ pub async fn admin_reject(
     )
     .bind(&body.reason)
     .bind(conversion_id)
-    .fetch_optional(pool.get_ref())
+    .fetch_optional(&platform_pool.0)
     .await?;
 
     match result {
@@ -580,7 +581,7 @@ pub async fn admin_reject(
 // ---------------------------------------------------------------------------
 
 pub async fn admin_create_payouts(
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     _admin: AdminUser,
 ) -> Result<HttpResponse, AppError> {
     // Group approved conversions by affiliate_code, only where total >= 2500 cents (€25)
@@ -593,7 +594,7 @@ pub async fn admin_create_payouts(
            GROUP BY affiliate_code
            HAVING SUM(commission_amount_cents) >= 2500"#,
     )
-    .fetch_all(pool.get_ref())
+    .fetch_all(&platform_pool.0)
     .await?;
 
     let mut created_payouts = Vec::new();
@@ -607,7 +608,7 @@ pub async fn admin_create_payouts(
         let settings_row =
             sqlx::query("SELECT affiliate_settings FROM users WHERE affiliate_code = $1")
                 .bind(&affiliate_code)
-                .fetch_optional(pool.get_ref())
+                .fetch_optional(&platform_pool.0)
                 .await?;
 
         let payout_method = settings_row
@@ -631,7 +632,7 @@ pub async fn admin_create_payouts(
         .bind(&affiliate_code)
         .bind(total_cents as i32)
         .bind(&payout_method)
-        .fetch_one(pool.get_ref())
+        .fetch_one(&platform_pool.0)
         .await?;
 
         // Mark conversions as paid
@@ -639,7 +640,7 @@ pub async fn admin_create_payouts(
             "UPDATE affiliate_conversions SET status = 'paid', updated_at = NOW() WHERE id = ANY($1)",
         )
         .bind(&conversion_ids)
-        .execute(pool.get_ref())
+        .execute(&platform_pool.0)
         .await?;
 
         created_payouts.push(json!({
@@ -663,7 +664,7 @@ pub async fn admin_create_payouts(
 // ---------------------------------------------------------------------------
 
 pub async fn admin_mark_paid(
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     _admin: AdminUser,
     path: web::Path<Uuid>,
     body: web::Json<MarkPaidRequest>,
@@ -678,7 +679,7 @@ pub async fn admin_mark_paid(
     )
     .bind(&body.payout_reference)
     .bind(payout_id)
-    .fetch_optional(pool.get_ref())
+    .fetch_optional(&platform_pool.0)
     .await?;
 
     match result {
@@ -704,13 +705,13 @@ pub async fn admin_mark_paid(
 // ---------------------------------------------------------------------------
 
 pub async fn admin_queue_count(
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     _admin: AdminUser,
 ) -> Result<HttpResponse, AppError> {
     let count: i64 = sqlx::query_scalar(
         "SELECT COUNT(*) FROM affiliate_conversions WHERE status = 'pending' AND (evaluation_ends_at IS NULL OR evaluation_ends_at < NOW())",
     )
-    .fetch_one(pool.get_ref())
+    .fetch_one(&platform_pool.0)
     .await
     .unwrap_or(0);
 
@@ -725,7 +726,7 @@ pub async fn admin_queue_count(
 // ---------------------------------------------------------------------------
 
 pub async fn admin_list_payouts(
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     _admin: AdminUser,
 ) -> Result<HttpResponse, AppError> {
     let rows = sqlx::query(
@@ -734,7 +735,7 @@ pub async fn admin_list_payouts(
            ORDER BY created_at DESC
            LIMIT 100"#,
     )
-    .fetch_all(pool.get_ref())
+    .fetch_all(&platform_pool.0)
     .await?;
 
     let payouts: Vec<serde_json::Value> = rows
@@ -796,7 +797,7 @@ pub struct VanityRequest {
 }
 
 pub async fn set_vanity(
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     auth: AuthenticatedUser,
     body: web::Json<VanityRequest>,
 ) -> Result<HttpResponse, AppError> {
@@ -806,7 +807,7 @@ pub async fn set_vanity(
     // Tier check: vanity codes require core, clarity, or horizon
     let tier: String = sqlx::query_scalar("SELECT tier FROM users WHERE id = $1")
         .bind(user_id)
-        .fetch_one(pool.get_ref())
+        .fetch_one(&platform_pool.0)
         .await
         .unwrap_or_default();
 
@@ -854,7 +855,7 @@ pub async fn set_vanity(
     let affiliate_code: Option<String> =
         sqlx::query_scalar("SELECT affiliate_code FROM users WHERE id = $1")
             .bind(user_id)
-            .fetch_one(pool.get_ref())
+            .fetch_one(&platform_pool.0)
             .await?;
 
     let affiliate_code = match affiliate_code {
@@ -878,7 +879,7 @@ pub async fn set_vanity(
     .bind(&target_url)
     .bind(user_id)
     .bind(&affiliate_code)
-    .execute(pool.get_ref())
+    .execute(&platform_pool.0)
     .await;
 
     match result {
@@ -917,7 +918,7 @@ pub struct VanityCheckQuery {
 }
 
 pub async fn check_vanity(
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     auth: AuthenticatedUser,
     query: web::Query<VanityCheckQuery>,
 ) -> Result<HttpResponse, AppError> {
@@ -943,7 +944,7 @@ pub async fn check_vanity(
         "SELECT owner_user_id FROM short_links WHERE code = $1 AND link_type = 'vanity'",
     )
     .bind(&code)
-    .fetch_optional(pool.get_ref())
+    .fetch_optional(&platform_pool.0)
     .await?;
 
     let available = match existing {
@@ -972,7 +973,7 @@ pub struct AdminLinksQuery {
 }
 
 pub async fn admin_list_links(
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     _admin: AdminUser,
     query: web::Query<AdminLinksQuery>,
 ) -> Result<HttpResponse, AppError> {
@@ -999,7 +1000,7 @@ pub async fn admin_list_links(
     )
     .bind(app_filter)
     .bind(org_filter)
-    .fetch_all(pool.get_ref())
+    .fetch_all(&platform_pool.0)
     .await?;
 
     let links: Vec<serde_json::Value> = rows
@@ -1036,7 +1037,7 @@ pub async fn admin_list_links(
            GROUP BY LEFT(sl.code, 2), sl.link_type
            ORDER BY total_clicks DESC"#,
     )
-    .fetch_all(pool.get_ref())
+    .fetch_all(&platform_pool.0)
     .await?;
 
     let summary_data: Vec<serde_json::Value> = summary
@@ -1069,7 +1070,7 @@ pub struct CampaignLinkRequest {
 }
 
 pub async fn admin_create_campaign(
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     _admin: AdminUser,
     body: web::Json<CampaignLinkRequest>,
 ) -> Result<HttpResponse, AppError> {
@@ -1088,7 +1089,7 @@ pub async fn admin_create_campaign(
     .bind(&code)
     .bind(&body.target_url)
     .bind(&body.title)
-    .fetch_optional(pool.get_ref())
+    .fetch_optional(&platform_pool.0)
     .await;
 
     match result {

@@ -6,6 +6,7 @@ use sqlx::PgPool;
 use uuid::Uuid;
 
 use crate::middleware::auth::AuthenticatedUser;
+use crate::PlatformPool;
 
 // ── Response types ──────────────────────────────────────────────────────────
 
@@ -111,7 +112,7 @@ const TIER_ORDER: &[&str] = &["core", "glimpse", "focus", "insight", "clarity", 
 
 pub async fn list_features(
     req: HttpRequest,
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     query: web::Query<LangQuery>,
 ) -> HttpResponse {
     let lang = detect_lang(&req, &query);
@@ -125,7 +126,7 @@ pub async fn list_features(
            WHERE pf.status IN ('active', 'coming_soon')
            ORDER BY pf.category, pf.sort_order"#,
     )
-    .fetch_all(pool.get_ref())
+    .fetch_all(&platform_pool.0)
     .await;
 
     let rows = match rows {
@@ -146,7 +147,7 @@ pub async fn list_features(
            JOIN product_features pf ON pf.id = tf.feature_id
            WHERE pf.status IN ('active', 'coming_soon')"#,
     )
-    .fetch_all(pool.get_ref())
+    .fetch_all(&platform_pool.0)
     .await
     .unwrap_or_default();
 
@@ -223,11 +224,14 @@ pub async fn list_features(
 
 // ── Public: GET /api/features/stats ─────────────────────────────────────────
 
-pub async fn feature_stats(pool: web::Data<PgPool>) -> HttpResponse {
+pub async fn feature_stats(
+    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
+) -> HttpResponse {
     let total_features: i64 = sqlx::query_scalar(
         "SELECT COUNT(*) FROM product_features WHERE status IN ('active', 'coming_soon')",
     )
-    .fetch_one(pool.get_ref())
+    .fetch_one(&platform_pool.0)
     .await
     .unwrap_or(0);
 
@@ -260,7 +264,7 @@ pub async fn feature_stats(pool: web::Data<PgPool>) -> HttpResponse {
 
 // ── Admin: GET /admin/features ──────────────────────────────────────────────
 
-pub async fn admin_list_features(pool: web::Data<PgPool>, user: AuthenticatedUser) -> HttpResponse {
+pub async fn admin_list_features(platform_pool: web::Data<PlatformPool>, user: AuthenticatedUser) -> HttpResponse {
     if user.role != "admin" {
         return HttpResponse::Forbidden().json(serde_json::json!({
             "data": null,
@@ -276,7 +280,7 @@ pub async fn admin_list_features(pool: web::Data<PgPool>, user: AuthenticatedUse
            FROM product_features
            ORDER BY category, sort_order"#,
     )
-    .fetch_all(pool.get_ref())
+    .fetch_all(&platform_pool.0)
     .await;
 
     let rows = match rows {
@@ -294,7 +298,7 @@ pub async fn admin_list_features(pool: web::Data<PgPool>, user: AuthenticatedUse
         r#"SELECT feature_id, tier_key, included, limit_value, limit_label_en, limit_label_de
            FROM tier_features"#,
     )
-    .fetch_all(pool.get_ref())
+    .fetch_all(&platform_pool.0)
     .await
     .unwrap_or_default();
 
@@ -344,7 +348,7 @@ pub async fn admin_list_features(pool: web::Data<PgPool>, user: AuthenticatedUse
 // ── Admin: POST /admin/features ─────────────────────────────────────────────
 
 pub async fn admin_create_feature(
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     user: AuthenticatedUser,
     body: web::Json<CreateFeatureRequest>,
 ) -> HttpResponse {
@@ -376,7 +380,7 @@ pub async fn admin_create_feature(
     .bind(sort_order)
     .bind(status)
     .bind(&body.icon)
-    .fetch_one(pool.get_ref())
+    .fetch_one(&platform_pool.0)
     .await;
 
     match result {
@@ -402,7 +406,7 @@ pub async fn admin_create_feature(
 // ── Admin: PUT /admin/features/{id} ─────────────────────────────────────────
 
 pub async fn admin_update_feature(
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     user: AuthenticatedUser,
     path: web::Path<Uuid>,
     body: web::Json<UpdateFeatureRequest>,
@@ -419,7 +423,7 @@ pub async fn admin_update_feature(
     let existing: Option<Uuid> =
         sqlx::query_scalar("SELECT id FROM product_features WHERE id = $1")
             .bind(id)
-            .fetch_optional(pool.get_ref())
+            .fetch_optional(&platform_pool.0)
             .await
             .unwrap_or(None);
 
@@ -456,7 +460,7 @@ pub async fn admin_update_feature(
     .bind(body.sort_order)
     .bind(&body.status)
     .bind(&body.icon)
-    .execute(pool.get_ref())
+    .execute(&platform_pool.0)
     .await;
 
     match result {
@@ -477,7 +481,7 @@ pub async fn admin_update_feature(
 // ── Admin: DELETE /admin/features/{id} (soft delete) ────────────────────────
 
 pub async fn admin_delete_feature(
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     user: AuthenticatedUser,
     path: web::Path<Uuid>,
 ) -> HttpResponse {
@@ -494,7 +498,7 @@ pub async fn admin_delete_feature(
         "UPDATE product_features SET status = 'deprecated', updated_at = now() WHERE id = $1",
     )
     .bind(id)
-    .execute(pool.get_ref())
+    .execute(&platform_pool.0)
     .await;
 
     match result {
@@ -519,7 +523,7 @@ pub async fn admin_delete_feature(
 // ── Admin: PUT /admin/features/{id}/tiers ───────────────────────────────────
 
 pub async fn admin_update_tiers(
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     user: AuthenticatedUser,
     path: web::Path<Uuid>,
     body: web::Json<UpdateTiersRequest>,
@@ -536,7 +540,7 @@ pub async fn admin_update_tiers(
     let existing: Option<Uuid> =
         sqlx::query_scalar("SELECT id FROM product_features WHERE id = $1")
             .bind(feature_id)
-            .fetch_optional(pool.get_ref())
+            .fetch_optional(&platform_pool.0)
             .await
             .unwrap_or(None);
 
@@ -547,7 +551,7 @@ pub async fn admin_update_tiers(
         }));
     }
 
-    let mut tx = match pool.begin().await {
+    let mut tx = match platform_pool.0.begin().await {
         Ok(tx) => tx,
         Err(e) => {
             tracing::error!("Failed to begin transaction: {e}");
