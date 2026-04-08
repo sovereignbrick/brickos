@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { api } from '@/lib/api'
 import { toast } from '@/lib/toast'
+import { usePlatformFilter } from '@/app/platform/platform-context'
 
 interface Org { id: string; name: string; slug: string; org_type: string; member_count: number }
 interface Member { id: string; user_id: string; email: string; display_name: string | null; role: string; joined_at: string; last_active_at: string | null }
@@ -10,6 +11,7 @@ interface Member { id: string; user_id: string; email: string; display_name: str
 const ROLES = ['owner', 'tech_admin', 'commercial_admin', 'editor', 'consumer']
 
 export default function MembersPage() {
+  const { orgFilter, orgs: ctxOrgs } = usePlatformFilter()
   const [orgs, setOrgs] = useState<Org[]>([])
   const [selectedOrg, setSelectedOrg] = useState('')
   const [members, setMembers] = useState<Member[]>([])
@@ -21,11 +23,23 @@ export default function MembersPage() {
   useEffect(() => {
     api.admin.organizations(1, 100).then(res => {
       setOrgs(res.data)
-      const nonPersonal = res.data.find((o: Org) => o.org_type !== 'personal')
-      if (nonPersonal) setSelectedOrg(nonPersonal.id)
-      else if (res.data.length > 0) setSelectedOrg(res.data[0].id)
+      // Use org from platform filter context if set, otherwise pick first non-personal
+      if (orgFilter && orgFilter !== 'all') {
+        setSelectedOrg(orgFilter)
+      } else {
+        const nonPersonal = res.data.find((o: Org) => o.org_type !== 'personal')
+        if (nonPersonal) setSelectedOrg(nonPersonal.id)
+        else if (res.data.length > 0) setSelectedOrg(res.data[0].id)
+      }
     }).catch(() => {})
-  }, [])
+  }, [orgFilter])
+
+  // Sync with platform filter changes
+  useEffect(() => {
+    if (orgFilter && orgFilter !== 'all' && orgFilter !== selectedOrg) {
+      setSelectedOrg(orgFilter)
+    }
+  }, [orgFilter, selectedOrg])
 
   const fetchMembers = useCallback(async () => {
     if (!selectedOrg) return

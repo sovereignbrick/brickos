@@ -947,13 +947,14 @@ export const api = {
         locale: string; total: number; translated: number; percentage: number;
         missing_by_table: Array<{ table_name: string; missing_count: number }>;
       }> } }>('/admin/content/translation-status'),
-    listUsers: (params?: { page?: number; per_page?: number; search?: string; sort?: string; order?: string }) => {
+    listUsers: (params?: { page?: number; per_page?: number; search?: string; sort?: string; order?: string; org_id?: string }) => {
       const qs = new URLSearchParams()
       if (params?.page) qs.set('page', String(params.page))
       if (params?.per_page) qs.set('per_page', String(params.per_page))
       if (params?.search) qs.set('search', params.search)
       if (params?.sort) qs.set('sort', params.sort)
       if (params?.order) qs.set('order', params.order)
+      if (params?.org_id && params.org_id !== 'all') qs.set('org_id', params.org_id)
       return request<{ data: import('./types').AdminUser[]; meta: { page: number; per_page: number; total: number } }>(`/admin/users?${qs}`)
     },
     updateUserLicense: (userId: string, body: { tier?: string; override_active: boolean; note?: string }) =>
@@ -966,10 +967,11 @@ export const api = {
       request<{ data: { updated: boolean } }>(`/admin/content/web-sections/${sectionId}/translations/${locale}`, { method: 'PUT', body: JSON.stringify({ value }) }),
     deleteWebSection: (sectionId: string) =>
       request<{ data: { deleted: boolean } }>(`/admin/content/web-sections/${sectionId}`, { method: 'DELETE' }),
-    aiUsage: (period?: string, date?: string) => {
+    aiUsage: (period?: string, date?: string, appKey?: string) => {
       const params = new URLSearchParams()
       if (period) params.set('period', period)
       if (date) params.set('date', date)
+      if (appKey && appKey !== 'all') params.set('app_key', appKey)
       return request<{ data: AiUsageResponse }>(`/admin/ai-usage?${params}`)
     },
     promotions: () =>
@@ -1037,15 +1039,18 @@ export const api = {
         amount_cents: number; reason: string | null; forced: boolean;
         admin_id: string; created_at: string;
       }> } }>('/admin/refunds'),
-    newsletterSubscribers: (page = 1, perPage = 50) =>
-      request<{ data: {
+    newsletterSubscribers: (page = 1, perPage = 50, appKey?: string) => {
+      const params = new URLSearchParams({ page: String(page), per_page: String(perPage) })
+      if (appKey && appKey !== 'all') params.set('app_key', appKey)
+      return request<{ data: {
         subscribers: Array<{
           id: string; email: string; source: string; subscribed: boolean;
           confirmed: boolean; confirmed_at: string | null;
           unsubscribed_at: string | null; mailgun_synced: boolean; created_at: string;
         }>;
         meta: { total: number; subscribed: number; unsubscribed: number; pending: number; page: number; per_page: number };
-      } }>(`/admin/newsletter/subscribers?page=${page}&per_page=${perPage}`),
+      } }>(`/admin/newsletter/subscribers?${params}`)
+    },
     newsletterExport: async () => {
       const token = document.cookie.split(';').find(c => c.trim().startsWith('token='))?.split('=')[1]
       const headers: Record<string, string> = {}

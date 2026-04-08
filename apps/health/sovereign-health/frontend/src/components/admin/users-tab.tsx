@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl'
 import { toast } from '@/lib/toast'
 import { api } from '@/lib/api'
 import { AdminUser } from '@/lib/types'
+import { usePlatformFilter } from '@/app/platform/platform-context'
 
 const TIERS = ['core', 'glimpse', 'focus', 'insight', 'clarity', 'horizon']
 const TIER_COLORS: Record<string, string> = {
@@ -18,6 +19,7 @@ const TIER_COLORS: Record<string, string> = {
 
 export function UsersTab() {
   const t = useTranslations('admin')
+  const { orgFilter } = usePlatformFilter()
   const [users, setUsers] = useState<AdminUser[]>([])
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(1)
@@ -33,7 +35,7 @@ export function UsersTab() {
   const fetchUsers = useCallback(async () => {
     setLoading(true)
     try {
-      const res = await api.admin.listUsers({ page, per_page: 25, search: search || undefined })
+      const res = await api.admin.listUsers({ page, per_page: 25, search: search || undefined, org_id: orgFilter })
       setUsers(res.data)
       setTotal(res.meta.total)
     } catch {
@@ -41,7 +43,7 @@ export function UsersTab() {
     } finally {
       setLoading(false)
     }
-  }, [page, search])
+  }, [page, search, orgFilter])
 
   useEffect(() => { fetchUsers() }, [fetchUsers])
 

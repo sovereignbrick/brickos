@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { api } from '@/lib/api'
 import { useTranslations } from 'next-intl'
+import { usePlatformFilter } from '@/app/platform/platform-context'
 import dynamic from 'next/dynamic'
 
 const ClickChart = dynamic(() => import('./click-chart').then(m => ({ default: m.ClickChart })), {
@@ -28,6 +29,7 @@ interface AnalyticsData {
 
 export default function AnalyticsPage() {
   const t = useTranslations('platform')
+  const { appFilter, orgFilter } = usePlatformFilter()
   const [links, setLinks] = useState<LinkWithStats[]>([])
   const [selectedLink, setSelectedLink] = useState<string | null>(null)
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null)
@@ -36,13 +38,13 @@ export default function AnalyticsPage() {
 
   const fetchLinks = useCallback(async () => {
     try {
-      const res = await api.links.list()
-      const data = Array.isArray(res) ? res : []
-      setLinks(data.sort((a, b) => b.total_clicks - a.total_clicks))
+      const res = await api.admin.links(appFilter, orgFilter)
+      const data = res.data.links || []
+      setLinks(data.sort((a: LinkWithStats, b: LinkWithStats) => b.total_clicks - a.total_clicks))
       if (data.length > 0 && !selectedLink) setSelectedLink(data[0].id)
     } catch { setLinks([]) }
     finally { setLoading(false) }
-  }, [selectedLink])
+  }, [selectedLink, appFilter, orgFilter])
 
   const fetchAnalytics = useCallback(async () => {
     if (!selectedLink) { setAnalytics(null); return }

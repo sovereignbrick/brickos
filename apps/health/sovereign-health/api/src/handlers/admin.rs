@@ -114,6 +114,7 @@ pub struct UserListQuery {
     pub search: Option<String>,
     pub sort: Option<String>,
     pub order: Option<String>,
+    pub org_id: Option<String>,
 }
 
 pub async fn list_users(
@@ -144,15 +145,25 @@ pub async fn list_users(
         format!("{} {}", sort_col, direction)
     };
 
+    let org_id_filter = query.org_id.as_deref().unwrap_or("");
+    let org_join = if !org_id_filter.is_empty() {
+        "INNER JOIN org_members om ON om.user_id = u.id AND om.org_id = $4::uuid"
+    } else {
+        ""
+    };
+
     let (rows, total) = if let Some(ref search) = query.search {
         let pattern = format!("%{}%", search);
-        let total: i64 = sqlx::query_scalar(
-            "SELECT COUNT(*) FROM users WHERE is_deleted = false AND (email ILIKE $1 OR display_name ILIKE $1)",
-        )
-        .bind(&pattern)
-        .fetch_one(pool.get_ref())
-        .await
-        .unwrap_or(0);
+        let count_sql = if !org_id_filter.is_empty() {
+            "SELECT COUNT(*) FROM users u INNER JOIN org_members om ON om.user_id = u.id AND om.org_id = $2::uuid WHERE u.is_deleted = false AND (u.email ILIKE $1 OR u.display_name ILIKE $1)"
+        } else {
+            "SELECT COUNT(*) FROM users u WHERE u.is_deleted = false AND (u.email ILIKE $1 OR u.display_name ILIKE $1)"
+        };
+        let total: i64 = if !org_id_filter.is_empty() {
+            sqlx::query_scalar(count_sql).bind(&pattern).bind(org_id_filter).fetch_one(pool.get_ref()).await.unwrap_or(0)
+        } else {
+            sqlx::query_scalar(count_sql).bind(&pattern).fetch_one(pool.get_ref()).await.unwrap_or(0)
+        };
 
         let sql = format!(
             r#"SELECT u.id, u.email, u.display_name, u.role, u.email_verified,
@@ -166,27 +177,32 @@ pub async fn list_users(
                       u.referred_by,
                       (SELECT u2.email FROM users u2 WHERE u2.affiliate_code = u.referred_by LIMIT 1) as referrer_email
                FROM users u
+               {org_join}
                LEFT JOIN user_licenses ul ON ul.user_id = u.id
                LEFT JOIN license_tiers lt ON lt.id = ul.tier_id
                WHERE u.is_deleted = false AND (u.email ILIKE $1 OR u.display_name ILIKE $1)
-               ORDER BY {}
-               LIMIT $2 OFFSET $3"#,
-            order_clause
+               ORDER BY {order_clause}
+               LIMIT $2 OFFSET $3"#
         );
 
-        let rows = sqlx::query(&sql)
-            .bind(&pattern)
-            .bind(per_page)
-            .bind(offset)
-            .fetch_all(pool.get_ref())
-            .await?;
+        let rows = if !org_id_filter.is_empty() {
+            sqlx::query(&sql).bind(&pattern).bind(per_page).bind(offset).bind(org_id_filter).fetch_all(pool.get_ref()).await?
+        } else {
+            sqlx::query(&sql).bind(&pattern).bind(per_page).bind(offset).fetch_all(pool.get_ref()).await?
+        };
 
         (rows, total)
     } else {
-        let total: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM users WHERE is_deleted = false")
-            .fetch_one(pool.get_ref())
-            .await
-            .unwrap_or(0);
+        let count_sql = if !org_id_filter.is_empty() {
+            "SELECT COUNT(*) FROM users u INNER JOIN org_members om ON om.user_id = u.id AND om.org_id = $1::uuid WHERE u.is_deleted = false"
+        } else {
+            "SELECT COUNT(*) FROM users WHERE is_deleted = false"
+        };
+        let total: i64 = if !org_id_filter.is_empty() {
+            sqlx::query_scalar(count_sql).bind(org_id_filter).fetch_one(pool.get_ref()).await.unwrap_or(0)
+        } else {
+            sqlx::query_scalar(count_sql).fetch_one(pool.get_ref()).await.unwrap_or(0)
+        };
 
         let sql = format!(
             r#"SELECT u.id, u.email, u.display_name, u.role, u.email_verified,
@@ -200,19 +216,19 @@ pub async fn list_users(
                       u.referred_by,
                       (SELECT u2.email FROM users u2 WHERE u2.affiliate_code = u.referred_by LIMIT 1) as referrer_email
                FROM users u
+               {org_join}
                LEFT JOIN user_licenses ul ON ul.user_id = u.id
                LEFT JOIN license_tiers lt ON lt.id = ul.tier_id
                WHERE u.is_deleted = false
-               ORDER BY {}
-               LIMIT $1 OFFSET $2"#,
-            order_clause
+               ORDER BY {order_clause}
+               LIMIT $1 OFFSET $2"#
         );
 
-        let rows = sqlx::query(&sql)
-            .bind(per_page)
-            .bind(offset)
-            .fetch_all(pool.get_ref())
-            .await?;
+        let rows = if !org_id_filter.is_empty() {
+            sqlx::query(&sql).bind(per_page).bind(offset).bind(org_id_filter).fetch_all(pool.get_ref()).await?
+        } else {
+            sqlx::query(&sql).bind(per_page).bind(offset).fetch_all(pool.get_ref()).await?
+        };
 
         (rows, total)
     };

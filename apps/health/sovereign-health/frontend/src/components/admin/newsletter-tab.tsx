@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { toast } from '@/lib/toast'
 import { api } from '@/lib/api'
+import { usePlatformFilter } from '@/app/platform/platform-context'
 
 interface Subscriber {
   id: string
@@ -26,6 +27,7 @@ interface SubscriberMeta {
 }
 
 export function NewsletterTab() {
+  const { appFilter } = usePlatformFilter()
   const [subscribers, setSubscribers] = useState<Subscriber[]>([])
   const [meta, setMeta] = useState<SubscriberMeta | null>(null)
   const [loading, setLoading] = useState(true)
@@ -35,7 +37,7 @@ export function NewsletterTab() {
 
   const fetchSubscribers = useCallback(async (p: number) => {
     try {
-      const res = await api.admin.newsletterSubscribers(p)
+      const res = await api.admin.newsletterSubscribers(p, 50, appFilter)
       setSubscribers(res.data.subscribers)
       setMeta(res.data.meta)
     } catch {
@@ -43,7 +45,7 @@ export function NewsletterTab() {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [appFilter])
 
   useEffect(() => { fetchSubscribers(page) }, [page, fetchSubscribers])
 

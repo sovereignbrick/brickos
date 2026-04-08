@@ -346,6 +346,7 @@ pub async fn unsubscribe(
 pub struct SubscriberQuery {
     pub page: Option<i64>,
     pub per_page: Option<i64>,
+    pub app_key: Option<String>,
 }
 
 pub async fn admin_subscribers(
@@ -356,25 +357,33 @@ pub async fn admin_subscribers(
     let page = query.page.unwrap_or(1).max(1);
     let per_page = query.per_page.unwrap_or(50).min(200);
     let offset = (page - 1) * per_page;
+    let app_key = query.app_key.as_deref().unwrap_or("");
 
-    let total: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM newsletter_subscribers")
-        .fetch_one(pool.get_ref())
-        .await?;
-
-    let subscribed: i64 = sqlx::query_scalar(
-        "SELECT COUNT(*) FROM newsletter_subscribers WHERE subscribed = true AND confirmed = true",
+    let total: i64 = sqlx::query_scalar(
+        "SELECT COUNT(*) FROM newsletter_subscribers WHERE ($1 = '' OR source = $1)",
     )
+    .bind(app_key)
     .fetch_one(pool.get_ref())
     .await?;
 
-    let unsubscribed: i64 =
-        sqlx::query_scalar("SELECT COUNT(*) FROM newsletter_subscribers WHERE subscribed = false")
-            .fetch_one(pool.get_ref())
-            .await?;
+    let subscribed: i64 = sqlx::query_scalar(
+        "SELECT COUNT(*) FROM newsletter_subscribers WHERE subscribed = true AND confirmed = true AND ($1 = '' OR source = $1)",
+    )
+    .bind(app_key)
+    .fetch_one(pool.get_ref())
+    .await?;
+
+    let unsubscribed: i64 = sqlx::query_scalar(
+        "SELECT COUNT(*) FROM newsletter_subscribers WHERE subscribed = false AND ($1 = '' OR source = $1)",
+    )
+    .bind(app_key)
+    .fetch_one(pool.get_ref())
+    .await?;
 
     let pending: i64 = sqlx::query_scalar(
-        "SELECT COUNT(*) FROM newsletter_subscribers WHERE subscribed = true AND confirmed = false",
+        "SELECT COUNT(*) FROM newsletter_subscribers WHERE subscribed = true AND confirmed = false AND ($1 = '' OR source = $1)",
     )
+    .bind(app_key)
     .fetch_one(pool.get_ref())
     .await?;
 
@@ -382,11 +391,13 @@ pub async fn admin_subscribers(
         r#"SELECT id, email, source, subscribed, confirmed, confirmed_at,
                   unsubscribed_at, mailgun_synced, created_at
            FROM newsletter_subscribers
+           WHERE ($3 = '' OR source = $3)
            ORDER BY created_at DESC
            LIMIT $1 OFFSET $2"#,
     )
     .bind(per_page)
     .bind(offset)
+    .bind(app_key)
     .fetch_all(pool.get_ref())
     .await?;
 

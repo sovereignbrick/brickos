@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { usePlatformFilter } from '@/app/platform/platform-context'
 
 const PRESETS = [
   { id: 'brickos-dark', name: 'BrickOS Dark', primary: '#f97316', bg: '#09090b', text: '#fafafa' },
@@ -10,13 +11,20 @@ const PRESETS = [
 ]
 
 export default function BrandingPage() {
+  const { orgFilter, orgs } = usePlatformFilter()
   const [selectedPreset, setSelectedPreset] = useState('brickos-dark')
   const [colors, setColors] = useState({ primary: '#f97316', accent: '#f97316', background: '#09090b' })
+
+  const selectedOrg = orgFilter !== 'all' ? orgs.find(o => o.id === orgFilter) : null
 
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">Branding</h1>
-      <p className="text-sm text-zinc-400">Customize the look and feel of your organization&apos;s portal.</p>
+      {selectedOrg ? (
+        <p className="text-sm text-zinc-400">Customizing branding for <span className="font-medium text-zinc-200">{selectedOrg.name}</span>. Change the org filter in the header to switch organizations.</p>
+      ) : (
+        <p className="text-sm text-zinc-400">Select an organization from the Org filter in the header to customize branding for a specific org, or edit the platform default below.</p>
+      )}
 
       {/* Preset selector */}
       <div className="rounded-2xl border border-zinc-800 p-5">

@@ -12,6 +12,7 @@ use crate::middleware::auth::AdminUser;
 pub struct AiUsageQuery {
     period: Option<String>,
     date: Option<String>,
+    app_key: Option<String>,
 }
 
 pub async fn get_usage(
@@ -50,16 +51,20 @@ pub async fn get_usage(
         }
     };
 
+    let app_key = query.app_key.as_deref().unwrap_or("");
+
     // Totals
     let totals = sqlx::query(
         "SELECT COALESCE(SUM(input_tokens), 0)::bigint as total_input, \
          COALESCE(SUM(output_tokens), 0)::bigint as total_output, \
          COALESCE(SUM(cost_eur::float8), 0.0) as total_cost, \
          COUNT(*)::bigint as total_calls \
-         FROM ai_usage_log WHERE created_at >= $1::date AND created_at < $2::date",
+         FROM ai_usage_log WHERE created_at >= $1::date AND created_at < $2::date \
+         AND ($3 = '' OR COALESCE(app_key, 'shi') = $3)",
     )
     .bind(start_date)
     .bind(end_date)
+    .bind(app_key)
     .fetch_one(pool.get_ref())
     .await?;
 
@@ -74,11 +79,13 @@ pub async fn get_usage(
            FROM ai_usage_log a
            LEFT JOIN users u ON u.id = a.user_id
            WHERE a.created_at >= $1::date AND a.created_at < $2::date
+             AND ($3 = '' OR COALESCE(a.app_key, 'shi') = $3)
            GROUP BY a.user_id, u.email, u.display_name
            ORDER BY SUM(a.cost_eur::float8) DESC"#,
     )
     .bind(start_date)
     .bind(end_date)
+    .bind(app_key)
     .fetch_all(pool.get_ref())
     .await?;
 
@@ -89,10 +96,12 @@ pub async fn get_usage(
          SUM(input_tokens)::bigint as input_tokens, \
          SUM(output_tokens)::bigint as output_tokens \
          FROM ai_usage_log WHERE created_at >= $1::date AND created_at < $2::date \
+         AND ($3 = '' OR COALESCE(app_key, 'shi') = $3) \
          GROUP BY model ORDER BY SUM(cost_eur::float8) DESC",
     )
     .bind(start_date)
     .bind(end_date)
+    .bind(app_key)
     .fetch_all(pool.get_ref())
     .await?;
 
@@ -101,10 +110,12 @@ pub async fn get_usage(
         "SELECT session_type, COUNT(*)::bigint as calls, \
          SUM(cost_eur::float8) as cost_eur \
          FROM ai_usage_log WHERE created_at >= $1::date AND created_at < $2::date \
+         AND ($3 = '' OR COALESCE(app_key, 'shi') = $3) \
          GROUP BY session_type ORDER BY SUM(cost_eur::float8) DESC",
     )
     .bind(start_date)
     .bind(end_date)
+    .bind(app_key)
     .fetch_all(pool.get_ref())
     .await?;
 

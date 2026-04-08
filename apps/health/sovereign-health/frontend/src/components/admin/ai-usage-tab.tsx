@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl'
 import { toast } from '@/lib/toast'
 import { api } from '@/lib/api'
 import type { AiUsageResponse } from '@/lib/types'
+import { usePlatformFilter } from '@/app/platform/platform-context'
 
 type Period = 'day' | 'week' | 'month' | 'year'
 
@@ -61,6 +62,7 @@ function StatCard({ label, value, sub }: { label: string; value: string; sub?: s
 
 export function AiUsageTab() {
   const t = useTranslations('admin')
+  const { appFilter } = usePlatformFilter()
   const [data, setData] = useState<AiUsageResponse | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -71,7 +73,7 @@ export function AiUsageTab() {
   const fetchData = useCallback(async () => {
     setLoading(true)
     try {
-      const res = await api.admin.aiUsage(period, date)
+      const res = await api.admin.aiUsage(period, date, appFilter)
       setData(res.data)
       setError(null)
     } catch (err) {
@@ -79,7 +81,7 @@ export function AiUsageTab() {
     } finally {
       setLoading(false)
     }
-  }, [period, date])
+  }, [period, date, appFilter])
 
   useEffect(() => {
     fetchData()
