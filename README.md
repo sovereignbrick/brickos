@@ -122,7 +122,7 @@ Sovereignty is not one thing. It is a stack of capabilities -- each a brick in a
 | Product | Pillar | Prefix | Status |
 |---------|--------|--------|--------|
 | [**Sovereign Health Intelligence**](apps/health/sovereign-health/) | Health | `shi` | **Live** -- [app.sovereignhealth.io](https://app.sovereignhealth.io) |
-| [**Sovereign Link**](apps/technology/sovereign-link/) | Technology | `sli` | **Live** -- URL shortener + QR + Start9 |
+| [**Sovereign Link**](apps/technology/sovereign-link/) | Technology | `sli` | **Live** -- Independent service, own DB, [brickos.io/r/](https://brickos.io/r/) |
 | [**Sovereign CRM**](docs/design/017-sovereign-crm.md) | Data | `scr` | Design -- Contact intelligence platform |
 | [**Sovereign Voice**](apps/attention/sovereign-voice/) | Attention | `svo` | Early -- NOSTR content management |
 | **Sovereign Exchange** | Finance | `sex` | Planned -- P2P marketplace, barter + Bitcoin + Cashu |
@@ -135,9 +135,11 @@ Sovereignty is not one thing. It is a stack of capabilities -- each a brick in a
 Each app is an independent service with its own database, process, Docker image, and domain. Apps share platform infrastructure (users, orgs, billing) via the `brickos` database and `brickos-*` crates. See [docs/design/018-platform-service-elevation.md](docs/design/018-platform-service-elevation.md).
 
 ```
-PostgreSQL: brickos (platform) | shi (health) | sli (links) | scr (CRM) | svo (voice)
-Ports:      platform:9000      | shi:8080     | sli:8082    | scr:8084  | svo:8086
-Docker:     sovereignbrick/    shi-api        sli-api       scr-api     svo-api
+PostgreSQL: sovereign_health (SHI+platform) | sli (links)  | scr (future) | svo (future)
+Ports:      shi:8080  | sli:8084  | platform:9000  | scr:8084  | svo:8086
+Docker:     sovereignbrick/shi-api  | sli-api  | scr-api  | svo-api
+Crates:     brickos-auth  | brickos-crypto  | brickos-db  | brickos-email
+            brickos-billing  | brickos-notify  | brickos-i18n  | brickos-platform-api
 ```
 
 ### Sovereign Health Intelligence
