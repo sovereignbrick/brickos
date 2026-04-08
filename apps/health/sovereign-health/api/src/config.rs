@@ -51,10 +51,6 @@ pub struct Config {
     pub db_pool_max: u32,
     pub cors_max_age: usize,
 
-    // Platform DB (brickos DB -- users, orgs, billing, licensing)
-    pub platform_database_url: Option<String>,
-    pub platform_db_pool_max: Option<u32>,
-
     // Auth rate limits
     pub rate_limit_register: usize,
     pub rate_limit_login: usize,
@@ -84,6 +80,10 @@ pub struct Config {
 
     // Environment: "production", "staging", "development"
     pub deploy_environment: String,
+
+    // Sovereign Link service API (#385)
+    pub sli_api_url: String,
+    pub sli_api_key: String,
 }
 
 impl Config {
@@ -151,14 +151,6 @@ impl Config {
             db_pool_max: env_parse("DB_POOL_MAX", 5),
             cors_max_age: env_parse("CORS_MAX_AGE", 3600),
 
-            // Platform DB
-            platform_database_url: std::env::var("SHI_PLATFORM_DATABASE_URL")
-                .ok()
-                .filter(|s| !s.is_empty()),
-            platform_db_pool_max: std::env::var("SHI_PLATFORM_DB_POOL_MAX")
-                .ok()
-                .and_then(|v| v.parse().ok()),
-
             // Auth rate limits
             rate_limit_register: env_parse("RATE_LIMIT_REGISTER", 5),
             rate_limit_login: env_parse("RATE_LIMIT_LOGIN", 10),
@@ -189,6 +181,10 @@ impl Config {
             // Environment
             deploy_environment: std::env::var("DEPLOY_ENVIRONMENT")
                 .unwrap_or_else(|_| "development".to_string()),
+
+            // Sovereign Link service API (#385)
+            sli_api_url: env_or("SLI_API_URL", "http://localhost:8083"),
+            sli_api_key: std::env::var("SLI_API_KEY").unwrap_or_default(),
         })
     }
 
@@ -223,8 +219,6 @@ impl Config {
             port: 8080,
             db_pool_max: 5,
             cors_max_age: 3600,
-            platform_database_url: None,
-            platform_db_pool_max: None,
             rate_limit_register: 100,
             rate_limit_login: 100,
             rate_limit_forgot_password: 100,
@@ -243,15 +237,19 @@ impl Config {
             vapid_public_key: None,
             vapid_private_key: None,
             deploy_environment: "test".to_string(),
+
+            // Sovereign Link service API
+            sli_api_url: "http://localhost:8083".into(),
+            sli_api_key: String::new(),
         }
     }
 
-    /// Returns the platform database URL. Falls back to the app database URL
-    /// when SHI_PLATFORM_DATABASE_URL is not set (single-pool backward compat).
-    pub fn platform_database_url(&self) -> &str {
-        self.platform_database_url
-            .as_deref()
-            .unwrap_or(&self.database_url)
+    /// Build a [`LinkServiceConfig`] from this config's SLI fields.
+    pub fn link_service_config(&self) -> crate::services::link_client::LinkServiceConfig {
+        crate::services::link_client::LinkServiceConfig {
+            base_url: self.sli_api_url.clone(),
+            api_key: self.sli_api_key.clone(),
+        }
     }
 
     pub fn is_oss(&self) -> bool {
