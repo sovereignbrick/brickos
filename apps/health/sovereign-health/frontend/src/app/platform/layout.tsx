@@ -36,7 +36,7 @@ function buildNavItems(t: (key: string) => string): NavItem[] {
     { key: 'apps', label: t('apps'), href: '/platform/apps', icon: '\u25A3', section: 'MANAGE', visible: () => true },
     { key: 'orgs', label: t('organizations'), href: '/platform/orgs', icon: '\u25A3', section: 'MANAGE', visible: p },
     { key: 'users', label: t('users'), href: '/platform/users', icon: '\u25A3', section: 'MANAGE', visible: p },
-    { key: 'members', label: t('members'), href: '/platform/members', icon: '\u25A3', section: 'MANAGE', visible: o },
+    { key: 'members', label: t('members'), href: '/platform/members', icon: '\u25A3', section: 'MANAGE', visible: (ctx) => ctx.isPlatform || ctx.isOrgOwner || ctx.isTechAdmin || ctx.isCommercialAdmin },
 
     // Commerce
     { key: 'billing', label: t('billing'), href: '/platform/billing', icon: '\u25A3', section: 'COMMERCE', visible: comm },
@@ -70,8 +70,8 @@ function buildNavItems(t: (key: string) => string): NavItem[] {
 
     // Settings
     { key: 'settings', label: t('settings'), href: '/platform/settings', icon: '\u25A3', section: 'SETTINGS', visible: p },
-    { key: 'branding', label: t('branding'), href: '/platform/branding', icon: '\u25A3', section: 'SETTINGS', visible: (ctx) => ctx.isOrgOwner || ctx.isTechAdmin },
-    { key: 'domains', label: t('domains'), href: '/platform/domains', icon: '\u25A3', section: 'SETTINGS', visible: (ctx) => ctx.isOrgOwner || ctx.isTechAdmin },
+    { key: 'branding', label: t('branding'), href: '/platform/branding', icon: '\u25A3', section: 'SETTINGS', visible: (ctx) => ctx.isPlatform || ctx.isOrgOwner || ctx.isTechAdmin },
+    { key: 'domains', label: t('domains'), href: '/platform/domains', icon: '\u25A3', section: 'SETTINGS', visible: (ctx) => ctx.isPlatform || ctx.isOrgOwner || ctx.isTechAdmin },
     { key: 'licensing', label: t('licensing'), href: '/platform/licensing', icon: '\u25A3', section: 'SETTINGS', visible: p },
   ]
 }
@@ -262,7 +262,7 @@ export default function PlatformLayout({ children }: { children: React.ReactNode
                   </p>
                 )}
                 {items.map(item => {
-                  const isActive = pathname === item.href || (item.href !== '/platform' && pathname.startsWith(item.href + '/'))
+                  const isActive = pathname === item.href || (item.href !== '/platform' && pathname.startsWith(item.href))
                   return (
                     <Link
                       key={item.key}
