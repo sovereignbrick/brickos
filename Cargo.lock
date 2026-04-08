@@ -770,6 +770,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "brickos-i18n"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "brickos-notify"
 version = "0.1.0"
 dependencies = [
