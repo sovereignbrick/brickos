@@ -1,6 +1,6 @@
 # 018 -- Platform Service Elevation: Decoupling Apps from Shared Infrastructure
 
-**Status:** Draft v1
+**Status:** Draft v2
 **Author:** Helmut / Claude
 **Date:** 2026-04-08
 **Related:** 005-platform-multi-tenant, 006-platform-schema-elevation, 012-url-shortener-service, 014-brickos-platform-gui, 015-brickos-unified-app-routing, 017-sovereign-crm
@@ -9,82 +9,73 @@
 
 ## 1. Problem Statement
 
-BrickOS is growing from a single-app platform (SHI) into a multi-app ecosystem (SHI, Sovereign Link, Sovereign Voice, Sovereign CRM, and more). Today, every platform service is parasitically coupled to SHI:
+BrickOS is growing from a single-app platform (Sovereign Health) into a multi-app ecosystem. Today, every platform service is parasitically coupled to Sovereign Health's process:
 
-- **Sovereign Link platform mode** runs inside SHI's Actix-web process, borrows SHI's database pool, trusts SHI's JWT without verification, and queries `brickos.users` / `brickos.organizations` directly.
-- **Platform admin routes** (org management, branding, service accounts) are embedded in Sovereign Link handlers, which are embedded in SHI.
-- **Sovereign Link's migrations** live inside SHI's migration folder.
-- **Auth, billing, email, notifications** -- all initialized in SHI's `main.rs` and unavailable to any other app.
+- **Sovereign Link platform mode** runs inside Sovereign Health's Actix-web process, borrows its database pool, trusts its JWT without verification, and queries `brickos.users` / `brickos.organizations` directly.
+- **Platform admin routes** (org management, branding, service accounts) are embedded in Sovereign Link handlers, which are embedded in Sovereign Health.
+- **Sovereign Link's migrations** live inside Sovereign Health's migration folder.
+- **Auth, billing, email, notifications** -- all initialized in Sovereign Health's `main.rs` and unavailable to any other app.
 
-If SHI is retired, scaled down, or temporarily offline, every platform service and every other app loses:
-- User authentication
-- Organization management
-- Service account validation
-- Link shortening
-- Billing and licensing
-- Email delivery
-- Notification dispatch
+If Sovereign Health is retired, scaled down, or temporarily offline, every platform service and every other app loses user auth, org management, service account validation, link shortening, billing, email, and notifications.
 
 ### The Dependency Chain Today
 
 ```
-┌──────────────────────────────────────────────────────────────────┐
-│  SHI Backend Process (single binary, single Actix-web server)    │
-│                                                                  │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐          │
-│  │ SHI handlers │  │ SL handlers  │  │ Platform     │          │
-│  │ (health)     │  │ (links)      │  │ admin routes │          │
-│  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘          │
-│         │                 │                  │                   │
-│         └────────┬────────┴──────────────────┘                   │
-│                  │                                               │
-│         ┌────────┴────────┐                                      │
-│         │ Shared PgPool   │──── PostgreSQL (sovereign_health DB) │
-│         │ Shared JWT      │     brickos schema + public schema   │
-│         │ Shared config   │                                      │
-│         │ Shared Encryptor│                                      │
-│         └─────────────────┘                                      │
-│                                                                  │
-│  SHI owns: pool init, migrations, auth, config, CORS, all of it │
-└──────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────┐
+│  Sovereign Health Backend (single binary, single Actix-web server)    │
+│                                                                      │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐              │
+│  │ SHI handlers │  │ SLI handlers │  │ Platform     │              │
+│  │ (health)     │  │ (links)      │  │ admin routes │              │
+│  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘              │
+│         │                 │                  │                       │
+│         └────────┬────────┴──────────────────┘                       │
+│                  │                                                   │
+│         ┌────────┴────────┐                                          │
+│         │ Shared PgPool   │──── PostgreSQL (sovereign_health DB)     │
+│         │ Shared JWT      │     brickos schema + public schema       │
+│         │ Shared config   │                                          │
+│         └─────────────────┘                                          │
+│                                                                      │
+│  SHI owns: pool init, migrations, auth, config, CORS, all of it     │
+└──────────────────────────────────────────────────────────────────────┘
 ```
 
-### Goal: Independent Apps Consuming Platform Services
+### Goal: Independent Apps, Each With Own Database
 
 ```
 ┌──────────────────────────────────────────────────────────────────────┐
-│  BrickOS Platform Layer (shared database, shared crates)             │
+│  BrickOS Platform Layer (shared crates, platform DB)                 │
 │                                                                      │
-│  ┌────────────────────────────────────────────────────────────────┐ │
-│  │  brickos schema: users, organizations, org_members, billing,   │ │
-│  │  service_accounts, app_prefixes, short_links, audit_log,       │ │
-│  │  content_strings, search_index, domain_mappings                │ │
-│  └──────────────────────────┬─────────────────────────────────────┘ │
-│                              │                                       │
-│  ┌──────────────┐  ┌────────┴───────┐  ┌──────────────┐            │
-│  │ brickos-auth │  │ brickos-db     │  │ brickos-     │            │
-│  │ JWT, MFA,    │  │ User, Org,     │  │ crypto       │            │
-│  │ Argon2       │  │ ServiceAccount │  │ AES-256-GCM  │            │
-│  └──────┬───────┘  └──────┬─────────┘  └──────┬───────┘            │
-│         │                 │                    │                     │
-│    ┌────┴─────────────────┴────────────────────┴────┐               │
-│    │           Shared PostgreSQL (brickos DB)        │               │
-│    └──────┬────────────┬────────────┬───────────────┘               │
-│           │            │            │                                │
-│  ┌────────┴──┐  ┌──────┴─────┐  ┌──┴──────────┐  ┌────────────┐   │
-│  │ shi.api   │  │ link.api   │  │ crm.api     │  │ voice.api  │   │
-│  │ :8080     │  │ :8082      │  │ :8084       │  │ :8086      │   │
-│  │           │  │            │  │             │  │            │   │
-│  │ shi.*     │  │ short_links│  │ crm_*       │  │ (stateless │   │
-│  │ tables    │  │ clicks     │  │ tables      │  │  or own DB)│   │
-│  │           │  │ prefixes   │  │             │  │            │   │
-│  │ Own GUI   │  │ Own GUI    │  │ Own GUI     │  │ Own GUI    │   │
-│  │ Own i18n  │  │ Own i18n   │  │ Own i18n    │  │ Own i18n   │   │
-│  │ Own domain│  │ Own domain │  │ Own domain  │  │ Own domain │   │
-│  └───────────┘  └────────────┘  └─────────────┘  └────────────┘   │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐              │
+│  │ brickos-auth │  │ brickos-db   │  │ brickos-     │              │
+│  │ JWT, MFA,    │  │ User, Org,   │  │ crypto       │              │
+│  │ Argon2       │  │ SvcAccount   │  │ AES-256-GCM  │              │
+│  └──────────────┘  └──────────────┘  └──────────────┘              │
 │                                                                      │
-│  Each app: own process, own config, own migrations, own port         │
-│  Shared: brickos schema, brickos-* crates, platform JWT verification │
+│  ┌─────────────────────────────────────────────────────┐            │
+│  │  brickos-platform-api  :9000                        │            │
+│  │  Platform DB (brickos schema): users, orgs, billing,│            │
+│  │  service_accounts, app_prefixes, domain_mappings    │            │
+│  │  Manages: all service accounts, all cross-app config│            │
+│  └─────────────────────────────────────────────────────┘            │
+│                                                                      │
+│  ┌───────────┐  ┌───────────┐  ┌───────────┐  ┌───────────┐       │
+│  │ shi.api   │  │ sli.api   │  │ scr.api   │  │ svo.api   │       │
+│  │ :8080     │  │ :8082     │  │ :8084     │  │ :8086     │       │
+│  │           │  │           │  │           │  │           │       │
+│  │ Own DB    │  │ Own DB    │  │ Own DB    │  │ Own DB    │       │
+│  │ shi.*     │  │ sli.*     │  │ scr.*     │  │ svo.*     │       │
+│  │ tables    │  │ tables    │  │ tables    │  │ tables    │       │
+│  │           │  │           │  │           │  │           │       │
+│  │ Own GUI   │  │ Own GUI   │  │ Own GUI   │  │ Own GUI   │       │
+│  │ Own i18n  │  │ Own i18n  │  │ Own i18n  │  │ Own i18n  │       │
+│  │ Own domain│  │ Own domain│  │ Own domain│  │ Own domain│       │
+│  └───────────┘  └───────────┘  └───────────┘  └───────────┘       │
+│                                                                      │
+│  Each app: own process, own DB, own config, own migrations, own port │
+│  Shared: brickos-* crates, platform DB for auth/org/billing          │
+│  Inter-app: encrypted service account API calls only                 │
 └──────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -94,57 +85,43 @@ If SHI is retired, scaled down, or temporarily offline, every platform service a
 
 ### 2.1 The `app_key` as Universal Identifier
 
-The `app_key` column already exists in `license_tiers`, `product_features`, `tier_features`, `app_settings`, `search_index`, `short_links`, and `app_prefixes`. It is the canonical identifier for an app within the platform.
+The `app_key` is the canonical 3-letter identifier for an app. It drives container names, env prefixes, database names, and URL prefixes.
 
-**Current app_key values in the database:**
-
-| app_key | Product | Prefix | Status |
-|---------|---------|--------|--------|
-| `sovereign-health` | Sovereign Health Intelligence | `sh` | Production |
-| `sovereign-link` | Sovereign Link | `lk` | Production (platform mode in SHI) |
-| `sovereign-voice` | Sovereign Voice | `sv` | Early (CLI tool) |
-| `sovereign-crm` | Sovereign CRM | `sc` | Design phase |
-| `btc-tracker` | BTC Tracker | `bt` | Future |
-| `sovereign-exchange` | Sovereign Exchange | `se` | Future |
-| `sovereign-identity` | Sovereign Identity | `si` | Future |
+| app_key | Product | 3-Char Prefix | Status |
+|---------|---------|---------------|--------|
+| `sovereign-health` | Sovereign Health Intelligence | `shi` | Production |
+| `sovereign-link` | Sovereign Link | `sli` | Production (embedded in SHI, to be elevated) |
+| `sovereign-voice` | Sovereign Voice | `svo` | Early (CLI tool) |
+| `sovereign-crm` | Sovereign CRM | `scr` | Design phase (doc 017) |
+| `sovereign-exchange` | Sovereign Exchange | `sex` | Future |
+| `sovereign-identity` | Sovereign Identity | `sid` | Future |
 
 ### 2.2 Naming Rules
 
-**Principle:** One canonical name per layer, derived mechanically from the `app_key`.
-
-```
-app_key (database)       → sovereign-health
-crate name (Cargo.toml)  → sovereign-health-api
-binary name              → sovereign-health-api
-docker image             → sovereignbrick/sovereign-health-api
-container name (prod)    → shi-api        (short prefix for ops)
-container name (staging) → shi-staging-api
-port (prod)              → 8080
-port (staging)           → 8081
-nginx upstream           → sovereign-health-api
-env prefix               → SHI_             (existing, keep for backward compat)
-service account name     → sovereign-health
-```
+**Principle:** One canonical name per layer, derived mechanically from the `app_key` and 3-char prefix.
 
 **Full naming table:**
 
-| Layer | SHI | Sovereign Link | Sovereign CRM | Sovereign Voice |
-|-------|-----|----------------|---------------|-----------------|
+| Layer | Sovereign Health | Sovereign Link | Sovereign CRM | Sovereign Voice |
+|-------|-----------------|----------------|---------------|-----------------|
 | **app_key** | `sovereign-health` | `sovereign-link` | `sovereign-crm` | `sovereign-voice` |
-| **prefix** | `sh` | `lk` | `sc` | `sv` |
+| **prefix** | `shi` | `sli` | `scr` | `svo` |
 | **API crate** | `sovereign-health-api` | `sovereign-link-api` | `sovereign-crm-api` | `sovereign-voice-api` |
 | **Frontend** | `sovereign-health-frontend` | `sovereign-link-frontend` | `sovereign-crm-frontend` | `sovereign-voice-frontend` |
-| **Docker (API)** | `sovereignbrick/shi-api` | `sovereignbrick/link-api` | `sovereignbrick/crm-api` | `sovereignbrick/voice-api` |
-| **Docker (web)** | `sovereignbrick/shi-web` | `sovereignbrick/link-web` | `sovereignbrick/crm-web` | `sovereignbrick/voice-web` |
-| **Container (prod)** | `shi-api` | `link-api` | `crm-api` | `voice-api` |
-| **Container (staging)** | `shi-staging-api` | `link-staging-api` | `crm-staging-api` | `voice-staging-api` |
+| **Docker (API)** | `sovereignbrick/shi-api` | `sovereignbrick/sli-api` | `sovereignbrick/scr-api` | `sovereignbrick/svo-api` |
+| **Docker (web)** | `sovereignbrick/shi-web` | `sovereignbrick/sli-web` | `sovereignbrick/scr-web` | `sovereignbrick/svo-web` |
+| **Container (prod)** | `shi-api` | `sli-api` | `scr-api` | `svo-api` |
+| **Container (staging)** | `shi-staging-api` | `sli-staging-api` | `scr-staging-api` | `svo-staging-api` |
 | **Port (prod)** | `8080` | `8082` | `8084` | `8086` |
 | **Port (staging)** | `8081` | `8083` | `8085` | `8087` |
-| **Env prefix** | `SHI_` | `LINK_` | `CRM_` | `VOICE_` |
+| **Env prefix** | `SHI_` | `SLI_` | `SCR_` | `SVO_` |
 | **Domain (prod)** | `app.sovereignhealth.io` | `app.sovereignlink.io` | `app.sovereigncrm.io` | `app.sovereignvoice.io` |
 | **Domain (platform)** | `app.brickos.io/health/` | `app.brickos.io/links/` | `app.brickos.io/crm/` | `app.brickos.io/voice/` |
 | **Service account** | `sovereign-health` | `sovereign-link` | `sovereign-crm` | `sovereign-voice` |
-| **DB schema** | `shi` (app-specific tables) | `link` (if needed) | `crm` | `voice` |
+| **App database** | `shi` | `sli` | `scr` | `svo` |
+| **DB schema (app tables)** | `shi` | `sli` | `scr` | `svo` |
+
+**Docker image rename (SHI):** Current `sovereign-health-backend` / `sovereign-health-frontend` will be renamed to `sovereignbrick/shi-api` / `sovereignbrick/shi-web`. This is a breaking change for existing deployments -- managed via thorough testing and coordinated deploy (production downtime acceptable).
 
 ### 2.3 Platform Services Naming
 
@@ -157,8 +134,10 @@ Platform services are not apps. They are shared infrastructure.
 | **Crate** | `brickos-db` | Platform models (User, Organization, ServiceAccount) |
 | **Crate** | `brickos-email` | EmailProvider trait (Mailgun, Log) |
 | **Crate** | `brickos-billing` | Stripe + Strike |
-| **Crate** | `brickos-i18n` | i18n monitoring trait (NEW -- see section 8) |
-| **API** (future) | `brickos-platform-api` | Standalone platform admin API |
+| **Crate** | `brickos-notify` | ntfy + Telegram dual-dispatch (extract from SHI) |
+| **Crate** | `brickos-i18n` | i18n monitoring trait (NEW -- section 8) |
+| **API** | `brickos-platform-api` | Platform admin API (port 9000) -- extracted NOW |
+| **Database** | `brickos` (PostgreSQL database) | Platform-level tables only |
 | **GUI** | Platform GUI at `app.brickos.io/platform/` | Design 014/016 |
 
 **Rule:** Platform crates use the `brickos-` prefix. App crates use the `sovereign-` prefix (matching the product brand).
@@ -171,295 +150,281 @@ Platform services are not apps. They are shared infrastructure.
 
 | Service | Current Location | Target | Effort |
 |---------|-----------------|--------|--------|
-| JWT verification | `brickos-auth` crate (already extracted) | No change | Done |
+| JWT verification | `brickos-auth` crate | No change | Done |
 | Password hashing | `brickos-auth` crate | No change | Done |
 | MFA (TOTP) | `brickos-auth` crate | No change | Done |
 | Encryption | `brickos-crypto` crate | No change | Done |
 | Email sending | `brickos-email` crate | No change | Done |
 | User CRUD | SHI `handlers/auth.rs` | Each app does its own (via `brickos-auth` + `brickos-db`) | Medium |
-| Org management | SL `handlers/org_admin.rs` | Each app or future `brickos-platform-api` | Medium |
-| Service account auth | SL `handlers/service_auth.rs` | Extract to `brickos-db` or `brickos-auth` | Small |
-| Content strings (i18n) | SHI `handlers/content_strings.rs` | Per-app (each app has own content_strings table with app_key) | Medium |
+| Org management | SL `handlers/org_admin.rs` | `brickos-platform-api` | Medium |
+| Service account auth | SL `handlers/service_auth.rs` | Extract to `brickos-auth` | Small |
+| Service account CRUD | Not yet implemented | `brickos-platform-api` (all service accounts managed by platform) | Medium |
+| Content strings (i18n) | SHI `handlers/content_strings.rs` | Each app owns its own (no platform mixture) | Medium |
 | Notifications (ntfy) | SHI `services/notify.rs` | Extract to `brickos-notify` crate | Small |
-| Platform admin stats | SL `handlers/platform_admin.rs` | Future `brickos-platform-api` | Large (later) |
+| Platform admin stats | SL `handlers/platform_admin.rs` | `brickos-platform-api` | Large |
 
 ### 3.2 Sovereign Link -- Specific Decoupling
 
-| Coupling Point | Current | Target | Migration |
-|----------------|---------|--------|-----------|
-| Database pool | Borrows SHI's PgPool | Own PgPool in `sovereign-link-api` main.rs | Create own main.rs with pool init |
-| JWT auth | Trusts SHI JWT (no verification) | Verify JWT using `brickos-auth::jwt::verify()` | Add verification call |
-| User lookup | Reads `brickos.users` directly | Still reads `brickos.users` (shared table) -- this is correct | No change |
-| Org lookup | Reads `brickos.organizations` directly | Still reads `brickos.organizations` -- this is correct | No change |
-| Service accounts | Reads `brickos.service_accounts` directly | Still reads `brickos.service_accounts` -- this is correct | No change |
-| Migrations | In SHI's migrations folder | Own migration folder: `apps/technology/sovereign-link/api/migrations/` | Move and re-test |
-| Process | Embedded in SHI binary | Own binary: `sovereign-link-api` | New main.rs, new Cargo.toml |
-| Port | SHI's port (8080) | Own port: 8082 (prod), 8083 (staging) | Config + nginx |
-| CORS | SHI's CORS config | Own CORS config (allow link.brickos.io, app.brickos.io) | Config |
-| Config | None (uses SHI's) | Own config: `LINK_DATABASE_URL`, `LINK_JWT_SECRET`, etc. | New config.rs |
-| Sentry | SHI's Sentry | Own Sentry DSN (or shared) | Config |
-
-**Key insight:** Sovereign Link already queries `brickos.*` tables with explicit schema qualification. It does NOT need copies of user/org tables. It shares the same PostgreSQL database (brickos schema) but runs as its own process. This is the correct pattern -- shared data, independent processes.
+| Coupling Point | Current | Target |
+|----------------|---------|--------|
+| Database pool | Borrows SHI's PgPool | Own PgPool connecting to own `sli` database |
+| JWT auth | Trusts SHI JWT (no verification) | Verify JWT using `brickos-auth::jwt::verify()` |
+| User lookup | Reads `brickos.users` directly | Reads platform DB `brickos.users` via separate connection |
+| Org lookup | Reads `brickos.organizations` directly | Reads platform DB via separate connection |
+| Service accounts | Reads `brickos.service_accounts` directly | Reads platform DB; all service account CRUD via platform API |
+| Migrations | In SHI's migrations folder | Own migration folder against own `sli` database |
+| Process | Embedded in SHI binary | Own binary: `sovereign-link-api` |
+| Port | SHI's port (8080) | Own port: 8082 (prod), 8083 (staging) |
+| Config | None (uses SHI's) | Own config: `SLI_DATABASE_URL`, `SLI_JWT_SECRET`, etc. |
 
 ---
 
-## 4. Target Architecture Per App
+## 4. Database Architecture: Separate DB Per App
 
-Each app follows the same structure. No app depends on another app's process.
+### 4.1 Why Separate Databases
 
-### 4.1 App Anatomy
+**Decision:** Each app gets its own PostgreSQL database. The platform gets its own database. This prepares for:
+
+1. **Multi-VPS scaling:** Apps can be moved to different servers without database surgery
+2. **EU/US data residency:** Run one BrickOS platform instance per region, each with its own set of app databases
+3. **Independent backup/restore:** Restore one app without affecting others
+4. **Load balancer readiness:** Database connections route to the correct backend per app
+5. **Isolation:** A broken migration in one app cannot corrupt another app's data
+6. **Clean ownership:** Each app's deploy.sh manages only its own database
 
 ```
-apps/{pillar}/{product}/
-├── api/                              # Rust/Axum or Actix-web API
-│   ├── src/
-│   │   ├── main.rs                   # Own server, own pool, own config
-│   │   ├── config.rs                 # App-specific config (env vars)
-│   │   ├── handlers/                 # App-specific endpoints
-│   │   ├── models/                   # App-specific models
-│   │   ├── services/                 # App-specific business logic
-│   │   └── middleware/               # App-specific middleware (if any)
-│   ├── migrations/                   # App-specific migrations (own folder)
-│   └── Cargo.toml                    # Depends on brickos-* crates
-├── frontend/                         # Next.js PWA
-│   ├── src/
-│   │   ├── app/                      # App routes (login, dashboard, settings, ...)
-│   │   ├── components/               # App-specific components
-│   │   ├── lib/                      # Auth context, API client, theme, sync
-│   │   └── i18n/                     # App-specific translations (EN, DE)
-│   └── package.json
-└── ops/
-    ├── deploy.sh                     # App-specific deploy script
-    ├── docker-compose.prod.yml       # App containers
-    └── docker-compose.staging.yml
+PostgreSQL Instance (Hetzner VPS)
+├── brickos          (platform DB: users, orgs, billing, service_accounts, ...)
+├── shi              (Sovereign Health: zones, markers, measurements, ...)
+├── sli              (Sovereign Link: short_links, clicks, app_prefixes, ...)
+├── scr              (Sovereign CRM: contacts, companies, projects, ...)
+└── svo              (Sovereign Voice: schedules, posts, audience, ...)
 ```
 
-### 4.2 What Each App Initializes (main.rs Pattern)
+### 4.2 Platform DB vs. App DB
 
-Every app's `main.rs` follows the same structure (derived from SHI's proven pattern):
+| Database | Owner | Contains | Accessed By |
+|----------|-------|----------|-------------|
+| `brickos` | Platform | users, organizations, org_members, service_accounts, billing, subscriptions, audit_log, domain_mappings, reserved_codes | All apps (read), platform-api (read/write) |
+| `shi` | Sovereign Health | zones, markers, measurements, devices, doctor_chat, content_strings, user_profile_health, ... | shi-api only |
+| `sli` | Sovereign Link | short_links, short_link_clicks, app_prefixes, content_strings | sli-api only |
+| `scr` | Sovereign CRM | crm_contacts, crm_companies, crm_projects, crm_meetings, crm_captures, ... | scr-api only |
+| `svo` | Sovereign Voice | schedules, posts, audience_segments, engagement_metrics, content_strings | svo-api only |
+
+### 4.3 Cross-Database Access Pattern
+
+Apps need to read platform data (users, orgs) but own their app-specific data. Two connection pools per app:
 
 ```rust
-// sovereign-link-api/src/main.rs  (example)
-#[tokio::main]
-async fn main() -> std::io::Result<()> {
-    // 1. Logging
-    tracing_subscriber::fmt().json().init();
+// sovereign-link-api/src/main.rs
+let platform_pool = PgPoolOptions::new()
+    .max_connections(3)
+    .connect(&config.platform_database_url)   // SLI_PLATFORM_DATABASE_URL -> brickos DB
+    .await?;
 
-    // 2. Config (app-specific env vars)
-    let config = LinkConfig::from_env();   // LINK_DATABASE_URL, LINK_JWT_SECRET, ...
+let app_pool = PgPoolOptions::new()
+    .max_connections(5)
+    .connect(&config.database_url)            // SLI_DATABASE_URL -> sli DB
+    .await?;
 
-    // 3. Database pool (connects to shared brickos DB, but own pool)
-    let pool = PgPoolOptions::new()
-        .max_connections(config.db_pool_max)
-        .connect(&config.database_url).await?;
+// Platform reads (users, orgs, service accounts)
+let user = sqlx::query_as::<_, User>("SELECT * FROM users WHERE id = $1")
+    .fetch_one(&platform_pool).await?;
 
-    // 4. Platform crates (shared, initialized per-app)
-    let encryptor = brickos_crypto::Encryptor::new(config.encryption_key.as_deref());
-    let email = brickos_email::create_email_provider(!config.is_oss());
-    let jwt_secret = config.jwt_secret.clone();
-
-    // 5. App-specific migrations (from own folder)
-    sqlx::migrate!("./migrations").run(&pool).await?;
-
-    // 6. App-specific services
-    let link_store = PgLinkStore::new(pool.clone());
-
-    // 7. HTTP server (own port)
-    HttpServer::new(move || {
-        App::new()
-            .app_data(web::Data::new(pool.clone()))
-            .app_data(web::Data::new(link_store.clone()))
-            .app_data(web::Data::new(config.clone()))
-            .configure(routes::configure)
-    })
-    .bind(("0.0.0.0", config.port))?  // 8082
-    .run()
-    .await
-}
+// App reads/writes (short_links, clicks)
+let link = sqlx::query_as::<_, ShortLink>("SELECT * FROM short_links WHERE code = $1")
+    .fetch_one(&app_pool).await?;
 ```
 
-### 4.3 What Is Shared vs. App-Specific
+**No cross-database JOINs.** If an app needs platform data + app data in one response, it makes two queries and assembles in Rust. This is the correct pattern for database-per-service architecture -- it's how microservices work at scale (Stripe, Shopify, etc.).
 
-| Concern | Shared (Platform) | App-Specific |
-|---------|-------------------|--------------|
-| Database | Same PostgreSQL instance, `brickos` schema | Own schema for app tables, own migration folder |
-| Users | `brickos.users` (read/write via shared pool) | User preferences, app-specific profile fields |
-| Organizations | `brickos.organizations` (read) | Org-level app settings |
-| Auth | `brickos-auth` crate (JWT verify, password hash) | App-specific middleware, rate limiters |
-| Encryption | `brickos-crypto` crate (Encryptor) | App decides which fields to encrypt |
-| Email | `brickos-email` crate (EmailProvider) | App-specific templates, triggers |
-| Billing | `brickos-billing` crate (Stripe/Strike) | App-specific tiers, features, pricing |
-| Notifications | `brickos-notify` crate (ntfy/Telegram) | App-specific alert rules |
-| i18n | Platform monitors translation % (section 8) | App owns its own translations (content_strings, static JSON) |
-| Config | `DATABASE_URL`, `JWT_SECRET` (can share or separate) | `{APP}_PORT`, `{APP}_MODE`, app-specific keys |
-| Process | N/A | Own binary, own port, own Docker container |
-| Domain | `app.brickos.io/{app}/` (unified) | Own domain (e.g., `app.sovereignhealth.io`) |
-| Deploy | Shared deploy patterns (deploy.sh template) | Own deploy.sh, own docker-compose |
-| Admin | Platform GUI at `/platform/apps/{app}/` | App-specific admin within its own GUI |
+### 4.4 Migration from Shared to Separate
+
+**SHI health tables currently in `public` schema of the `sovereign_health` database.** These need to move to their own `shi` database.
+
+Migration steps:
+1. Create new databases: `sli`, `scr`, `svo` (and rename `sovereign_health` -> `shi`, or create `shi` and migrate data)
+2. Move Sovereign Link tables (`short_links`, `short_link_clicks`, `app_prefixes`) from `brickos` schema in `sovereign_health` DB to `sli` database
+3. Move SHI health tables from `public` schema in `sovereign_health` DB to `shi` database
+4. Keep platform tables in `brickos` database
+5. Update all connection strings
+
+**Schema naming within each DB:** Each app database uses the `public` schema for its tables (simple, standard). No need for custom schema names within an app's own database -- the database name IS the namespace.
+
+### 4.5 Multi-Region / Multi-VPS Scaling
+
+```
+EU Region (Hetzner Nuremberg)                US Region (Hetzner Ashburn)
+┌────────────────────────────┐              ┌────────────────────────────┐
+│  Load Balancer             │              │  Load Balancer             │
+│  ┌──────┐  ┌──────┐       │              │  ┌──────┐  ┌──────┐       │
+│  │VPS-1 │  │VPS-2 │       │              │  │VPS-3 │  │VPS-4 │       │
+│  │shi   │  │sli   │       │              │  │shi   │  │sli   │       │
+│  │scr   │  │svo   │       │              │  │scr   │  │svo   │       │
+│  │brickos│  │      │       │              │  │brickos│  │      │       │
+│  └──────┘  └──────┘       │              └──────┘  └──────┘       │
+│                            │              │                            │
+│  PostgreSQL (EU data)      │              │  PostgreSQL (US data)      │
+│  brickos, shi, sli, scr   │              │  brickos, shi, sli, scr   │
+└────────────────────────────┘              └────────────────────────────┘
+```
+
+Each region is a full BrickOS platform instance with its own set of databases. Data residency is enforced at the region level -- EU users' data stays in EU, US users' data stays in US. The platform handles routing based on user's org region setting.
+
+**Per-app VPS scaling (single region):** If `shi` gets heavy traffic, move it to its own VPS. The database connection string changes, nothing else. This is only possible with separate databases per app.
+
+### 4.6 Connection Pooling
+
+| Database | App | max_connections | Notes |
+|----------|-----|----------------|-------|
+| `brickos` | platform-api | 10 | Platform admin, org management |
+| `brickos` | shi-api (platform reads) | 3 | User lookup, org lookup |
+| `brickos` | sli-api (platform reads) | 3 | User/org/service account lookup |
+| `brickos` | scr-api (platform reads) | 3 | User/org lookup |
+| `brickos` | svo-api (platform reads) | 2 | Service account lookup |
+| `shi` | shi-api | 15 | Health data (measurements, AI, billing) |
+| `sli` | sli-api | 5 | Links (read-heavy redirects) |
+| `scr` | scr-api | 10 | Contacts, search, graph |
+| `svo` | svo-api | 3 | Scheduling, publishing |
+| **Total** | | **54** | Well within PostgreSQL default (100) per DB |
 
 ---
 
-## 5. Sovereign Link Elevation Plan
+## 5. Inter-App Communication
 
-### 5.1 Current State -> Target State
+### 5.1 Service Accounts (Managed by Platform)
+
+All service accounts are managed exclusively by `brickos-platform-api`. No app creates or modifies service accounts directly.
 
 ```
-CURRENT                                       TARGET
-─────────────────────────────────────        ─────────────────────────────────────
-apps/technology/sovereign-link/               apps/technology/sovereign-link/
-  src/                                          api/
-    main.rs      (standalone only)                src/
-    lib.rs       (platform = library)               main.rs      (platform + standalone)
-    config.rs    (standalone only)                  config.rs    (both modes)
-    handlers/    (mixed platform+standalone)         handlers/    (cleaned up)
-    db/                                             db/
-      postgres.rs (no pool init)                      postgres.rs (own pool init)
-      sqlite.rs   (standalone)                        sqlite.rs   (standalone)
-    auth/        (standalone only)                  auth/        (JWT verify via brickos-auth)
-  migrations/                                     migrations/
-    sqlite/      (standalone)                       sqlite/      (standalone)
-                                                    postgres/    (platform -- moved from SHI)
-  Cargo.toml     (library crate)                  Cargo.toml   (binary crate)
-  Dockerfile     (standalone only)              frontend/        (NEW -- link management UI)
-  templates/     (server-rendered HTML)           src/app/       (Next.js, same pattern as SHI)
-                                                ops/
-                                                  deploy.sh
-                                                  docker-compose.prod.yml
-                                                  docker-compose.staging.yml
+Platform Admin GUI -> POST /platform/api/v1/service-accounts
+  -> Creates entry in brickos.service_accounts
+  -> Returns API key (shown once, hashed in DB with SHA-256)
+  -> All communication encrypted (TLS between services on same VPS, mTLS between VPS)
 ```
 
-### 5.2 Step-by-Step Migration
+**Service account flow:**
+```
+Sovereign Voice                    Sovereign Link API
+─────────────                     ──────────────────
+POST /api/v1/service/links
+  Authorization: Bearer {api_key}
+  X-Service-Account: sovereign-voice
+  Body: { target_url, app_key }
+         │
+         └──────────── sli-api validates:
+                       1. SHA-256(api_key) matches brickos.service_accounts
+                       2. Account is_active = true
+                       3. Scopes include "links:create"
+                       4. Rate limit not exceeded
+                       5. Returns 201 Created
+```
 
-**Phase 1: Extract Sovereign Link as Independent API Binary**
+### 5.2 Encrypted Communication
+
+All inter-app API calls use:
+- **Same VPS:** TLS (localhost is still encrypted -- no plaintext HTTP between containers)
+- **Cross-VPS:** mTLS (mutual TLS with service certificates)
+- **API keys:** SHA-256 hashed at rest, transmitted only in `Authorization` header over TLS
+- **No shared secrets in env files:** Service account keys are generated by platform-api and distributed securely
+
+---
+
+## 6. Sovereign Link Elevation Plan
+
+### 6.1 Step-by-Step Migration
+
+**Phase 1: Create Sovereign Link API as Independent Binary**
 
 1. Create `apps/technology/sovereign-link/api/` directory structure
 2. New `Cargo.toml` with `brickos-auth`, `brickos-crypto`, `brickos-db` dependencies
-3. New `main.rs` that initializes its own PgPool, Encryptor, config
-4. New `config.rs` with `LINK_` prefixed env vars (`LINK_DATABASE_URL`, `LINK_PORT=8082`, `LINK_JWT_SECRET`)
-5. Move Sovereign Link PostgreSQL migrations from SHI's folder to `api/migrations/postgres/`
-6. Keep SQLite migrations at `api/migrations/sqlite/` for standalone mode
-7. **Feature flags remain:** `standalone` (SQLite + own auth) vs `platform` (PostgreSQL + brickos-auth JWT verify)
-8. Add proper JWT verification in platform mode (currently trusts blindly)
+3. New `main.rs` with two PgPools (platform + app), own config, port 8082
+4. New `config.rs` with `SLI_` prefixed env vars
+5. Create `sli` database, move Sovereign Link tables from SHI's DB
+6. Sovereign Link migrations in own folder against `sli` database
+7. Feature flags remain: `standalone` (SQLite) vs `platform` (PostgreSQL)
+8. Add proper JWT verification via `brickos-auth`
+9. Fix 2 compilation errors (ShortLink fields in sqlite.rs)
 
-**Phase 2: Remove Sovereign Link from SHI**
+**Phase 2: Deploy Alongside SHI (Dual Routing)**
 
-1. Remove `sovereign-link` dependency from SHI's `Cargo.toml`
-2. Remove `.configure(sovereign_link::configure_routes)` from SHI's `main.rs`
-3. Remove `PgLinkStore` initialization from SHI's `main.rs`
-4. Add nginx upstream for `link-api` on port 8082
-5. Route `/r/*` traffic to `link-api` instead of SHI
-6. Route `/api/v1/links/*` to `link-api`
-7. Route `/api/v1/service/links/*` to `link-api`
-8. Route `/api/v1/admin/stats*` and `/org/*` to `link-api` (or future platform-api)
+1. Docker compose: add `sli-api` container on port 8082
+2. nginx: route `/r/*` to `sli-api` with SHI fallback
+3. Deploy to staging, run E2E tests
+4. Monitor 24-48h: redirects, click recording, API endpoints
 
-**Phase 3: Sovereign Link Frontend (Optional -- Web UI)**
+**Phase 3: Remove Sovereign Link from SHI**
 
-1. The standalone server-rendered templates (`templates/*.html`) work for self-hosted mode
-2. For platform mode, create a minimal Next.js frontend at `frontend/` (same stack as SHI)
-3. Or: manage links from the Platform Admin GUI (design 016, `/platform/apps/link/`)
-4. Decision: standalone keeps Askama templates, platform uses Platform GUI
+1. Remove `sovereign-link` from SHI `Cargo.toml`
+2. Remove `.configure(sovereign_link::configure_routes)` from SHI `main.rs`
+3. SHI affiliate page calls Sovereign Link API via HTTP (service account, encrypted)
+4. Full SHI regression test
+5. Deploy to production (downtime acceptable -- test thoroughly first)
 
-**Phase 4: Verify SHI Is Unaffected**
+**Phase 4: Extract Platform Admin API**
 
-1. SHI continues to work with zero Sovereign Link code
-2. SHI's affiliate links now call Sovereign Link's API via service account (HTTP, not in-process)
-3. SHI's `/r/{code}` redirects are handled by nginx -> `link-api` (not SHI)
-4. Existing short_links data is untouched (same PostgreSQL, same `brickos` schema)
-5. Full regression test: all SHI E2E tests pass, all affiliate flows work
+1. Create `brickos-platform-api` crate (port 9000)
+2. Move org management handlers from Sovereign Link to platform-api
+3. Move platform admin stats handlers to platform-api
+4. Service account CRUD endpoints in platform-api
+5. Platform GUI talks to platform-api (not to SHI or SLI)
 
----
+### 6.2 SHI Migration Safety
 
-## 6. SHI Migration Safety
+**Data migration path for SHI:**
 
-### 6.1 Zero-Downtime Migration Strategy
+1. Create `shi` database (new, empty)
+2. Migrate SHI health tables from `public` schema in `sovereign_health` DB to `shi` database
+3. Use `pg_dump --schema=public` + `pg_restore` into `shi` database
+4. Verify row counts match, run checksums on critical tables
+5. Update `SHI_DATABASE_URL` to point to `shi` database
+6. Keep old `sovereign_health` database as read-only backup for 30 days
+7. Platform tables stay in `brickos` database (already elevated via migration 001)
 
-The decoupling must not break SHI or lose data. The migration is additive, not destructive.
+**Test checklist (before production):**
 
-**Step 1: Deploy Sovereign Link API alongside SHI (both serve /r/)**
-
-```
-nginx:
-  /r/*  ->  try link-api:8082 first, fallback to shi-api:8080
-```
-
-Both processes can serve redirects from the same database. No conflict because short_links is read-heavy, write-rare.
-
-**Step 2: Verify Sovereign Link API handles all traffic correctly**
-
-Monitor for 24-48 hours:
-- Redirect latency
-- Click recording completeness
-- API endpoint parity (create, update, delete, stats)
-
-**Step 3: Remove Sovereign Link routes from SHI**
-
-Only after Step 2 is verified. SHI rebuild without `sovereign-link` dependency.
-
-**Step 4: Update nginx to route exclusively to link-api**
-
-```
-nginx:
-  /r/*  ->  link-api:8082   (no more fallback to SHI)
-```
-
-### 6.2 Data Safety
-
-- **No table changes.** The `brickos.short_links`, `brickos.short_link_clicks`, and `brickos.app_prefixes` tables remain exactly where they are.
-- **No migration changes.** The tables already exist. Sovereign Link's migration folder contains the same DDL (idempotent with `IF NOT EXISTS`).
-- **No data copy.** Both SHI and Sovereign Link API read/write the same tables during the transition period.
-- **Rollback:** If Sovereign Link API has issues, re-enable the routes in SHI (revert the dependency removal). Zero data loss.
-
-### 6.3 Test Checklist
-
-Before removing Sovereign Link from SHI:
-
-- [ ] `cargo check` passes for SHI without `sovereign-link` dependency
-- [ ] `cargo check` passes for `sovereign-link-api` with `--features platform`
-- [ ] `sovereign-link-api` starts and serves `/health` on port 8082
-- [ ] `GET /r/{code}` redirects correctly (test 10 known codes)
-- [ ] `POST /api/v1/links` creates a new link (test with JWT)
-- [ ] `GET /api/v1/links/{id}/stats` returns correct click counts
-- [ ] `POST /api/v1/service/links` works with service account API key
-- [ ] Click recording: `country_code` and `referrer_domain` populated
-- [ ] QR code generation: `GET /r/{code}.qr` returns SVG
-- [ ] Affiliate redirect: `GET /r/sha3f2c1b9` fast-path works
-- [ ] SHI E2E tests pass (login, measurements, doctor chat, affiliate)
-- [ ] SHI affiliate page creates links (now via HTTP to link-api, not in-process)
-- [ ] Staging deploy succeeds for both services
-- [ ] Production deploy succeeds with nginx dual-routing
+- [ ] `shi` database has all 53+ health tables with correct data
+- [ ] `sli` database has short_links, clicks, prefixes with correct data
+- [ ] `brickos` database has all platform tables (users, orgs, billing, ...)
+- [ ] SHI API starts against `shi` DB + `brickos` DB (two pools)
+- [ ] SLI API starts against `sli` DB + `brickos` DB (two pools)
+- [ ] Login flow works (JWT issued by SHI, verified by SLI)
+- [ ] Affiliate link creation works (SHI -> SLI via service account API)
+- [ ] Redirect works (`GET /r/{code}` served by sli-api)
+- [ ] Click recording works (country, referrer populated)
+- [ ] All SHI E2E tests pass (measurements, doctor chat, billing)
+- [ ] Platform admin GUI works (stats, org management)
+- [ ] Staging deploy succeeds for all services
+- [ ] Production deploy succeeds (coordinated, downtime window)
 
 ---
 
 ## 7. Platform Admin: Who Manages What
 
-### 7.1 Platform Admin GUI (design 016)
+### 7.1 Platform-Level Business Logic (brickos-platform-api)
 
-The Platform Admin GUI at `app.brickos.io/platform/` manages cross-app concerns. Each app registers itself and its admin surface.
+| Responsibility | Endpoint Pattern | Description |
+|---------------|-----------------|-------------|
+| User management | `/platform/api/v1/users/*` | Cross-app user CRUD, role assignment |
+| Organization management | `/platform/api/v1/orgs/*` | Create/update/disable orgs, member management |
+| Service accounts | `/platform/api/v1/service-accounts/*` | CRUD, key rotation, scope management |
+| Billing | `/platform/api/v1/billing/*` | Subscriptions, payments, invoices |
+| App registry | `/platform/api/v1/apps/*` | Register apps, configure prefixes, enable/disable per org |
+| Domain mappings | `/platform/api/v1/domains/*` | Custom domain configuration |
+| i18n monitoring | `/platform/api/v1/i18n/status` | Aggregate translation status from all apps |
+| Audit | `/platform/api/v1/audit/*` | Cross-app audit log |
+| Platform stats | `/platform/api/v1/stats/*` | Cross-app analytics |
 
-```
-/platform/apps/                         All apps overview (health, link, crm, voice)
-/platform/apps/health/overview          SHI stats, app-specific admin
-/platform/apps/link/overview            Sovereign Link stats, global link management
-/platform/apps/crm/overview             CRM stats, ingestion metrics
-/platform/apps/voice/overview           Voice publishing stats
-```
+### 7.2 App-Level Business Logic (per app)
 
-**Who manages the app_prefixes table?** Platform admin (not any individual app). This is infrastructure-level routing config.
-
-**Who manages service accounts?** Platform admin. Service accounts are cross-app credentials.
-
-**Who manages users and organizations?** Platform admin for cross-org views. Each app can also manage its own user-facing settings.
-
-### 7.2 App-Level Business Logic
-
-Each app has its own business rules that live in its own codebase:
+Each app has its own business rules. All apps follow the same naming pattern (Sovereign {Product}).
 
 | App | Business Logic (App-Level) | Platform Logic (Shared) |
 |-----|---------------------------|------------------------|
-| **SHI** | Health markers, zones, measurements, doctor chat, AI credits | User auth, org membership, billing, email |
-| **Sovereign Link** | Link CRUD, click tracking, analytics, QR codes, redirect fast-path | User auth, org membership, service accounts |
-| **Sovereign CRM** | Contacts, companies, projects, meetings, captures, lead pipeline, graph | User auth, org membership, AI provider config |
-| **Sovereign Voice** | NOSTR publishing, scheduling, audience analytics | Service account auth (calls Sovereign Link API) |
+| **Sovereign Health** | Health markers, zones, measurements, doctor chat, AI credits, health-specific content strings | User auth, org membership, billing, email |
+| **Sovereign Link** | Link CRUD, click tracking, analytics, QR codes, redirect fast-path, link-specific content strings | User auth, org membership, service accounts |
+| **Sovereign CRM** | Contacts, companies, projects, meetings, captures, lead pipeline, graph, CRM-specific content strings | User auth, org membership, AI provider config |
+| **Sovereign Voice** | NOSTR publishing, scheduling, audience analytics, voice-specific content strings | Service account auth (calls Sovereign Link API) |
 
 ---
 
@@ -467,41 +432,49 @@ Each app has its own business rules that live in its own codebase:
 
 ### 8.1 Per-App i18n (Each App Owns Its Translations)
 
-Each app manages its own translations independently:
+Each app manages its own translations independently. Content strings reside in the app's own database -- **no mixture between app and platform**.
 
 ```
-apps/health/sovereign-health/frontend/src/i18n/
-  messages/en.json     (1,796 keys)
-  messages/de.json     (1,796 keys)
+Sovereign Health (shi DB):
+  content_strings table (app_key = 'sovereign-health')
+  frontend/src/i18n/messages/en.json  (1,796 keys)
+  frontend/src/i18n/messages/de.json  (1,796 keys)
 
-apps/technology/sovereign-link/frontend/src/i18n/   (NEW)
-  messages/en.json
-  messages/de.json
+Sovereign Link (sli DB):
+  content_strings table (app_key = 'sovereign-link')
+  frontend/src/i18n/messages/en.json
+  frontend/src/i18n/messages/de.json
 
-apps/data/sovereign-crm/frontend/src/i18n/          (future)
-  messages/en.json
-  messages/de.json
+Sovereign CRM (scr DB):
+  content_strings table (app_key = 'sovereign-crm')
+  frontend/src/i18n/messages/en.json
+  frontend/src/i18n/messages/de.json
 ```
 
 Each app has:
 - Static JSON message files (bundled at build time)
-- Optional database-driven content_strings table (per app, filtered by `app_key`)
-- `next-intl` (or equivalent) for runtime translation
-- Locale stored in cookie (per-app, same pattern as SHI)
+- Database-driven `content_strings` table in its own database
+- `next-intl` for runtime translation
+- Locale stored in cookie (per-app)
 - Minimum: EN + DE (CLAUDE.md convention)
 
-### 8.2 Platform i18n Monitoring (NEW)
+### 8.2 Platform i18n Monitoring
 
 The Platform Admin GUI monitors translation completeness across all apps without owning the translations.
 
+Each app exposes:
 ```
-/platform/content/i18n                  i18n overview dashboard
-/platform/content/i18n/health           SHI translation status
-/platform/content/i18n/link             Sovereign Link translation status
-/platform/content/i18n/crm              CRM translation status
+GET /api/v1/i18n/status
+-> {
+    "app_key": "sovereign-health",
+    "locales": {
+      "en": { "total_keys": 1796, "translated": 1796 },
+      "de": { "total_keys": 1796, "translated": 1764 }
+    }
+  }
 ```
 
-**Dashboard view:**
+Platform GUI aggregates:
 
 ```
 ┌──────────────────────────────────────────────────────────────────┐
@@ -517,167 +490,117 @@ The Platform Admin GUI monitors translation completeness across all apps without
 │  ──────────────────────────────────────────────────────────      │
 │  Total                100%      89.3%     2,671   265 keys       │
 │                                                                  │
-│  [Export missing keys as CSV]  [Export all as XLIFF]             │
-│                                                                  │
 └──────────────────────────────────────────────────────────────────┘
 ```
 
-**How it works:**
-
-Each app exposes an i18n status endpoint:
-```
-GET /api/v1/i18n/status
-→ {
-    "app_key": "sovereign-health",
-    "locales": {
-      "en": { "total_keys": 1796, "translated": 1796 },
-      "de": { "total_keys": 1796, "translated": 1764 }
-    },
-    "missing_keys": {
-      "de": ["affiliate.payout.pending", "admin.compliance.new_field", ...]
-    }
-  }
-```
-
-Platform GUI aggregates status from all apps. No translation data is copied to the platform -- it only reads status.
-
-**Optional `brickos-i18n` crate:** A tiny shared crate providing:
-- `I18nStatus` struct (for the status endpoint response)
-- Helper function to compare `en.json` vs `de.json` and compute missing keys
-- Could be used by each app's status endpoint
+**`brickos-i18n` crate:** Shared `I18nStatus` struct and helper function to compare `en.json` vs `de.json` and compute missing keys. Used by each app's status endpoint.
 
 ---
 
-## 9. Sovereign Voice Considerations
+## 9. Future App Considerations
 
-Sovereign Voice is currently a stateless CLI tool (TypeScript, no API server). As it evolves (design 007), it will need:
+### 9.1 Sovereign Voice
 
-- **Own API server** (`sovereign-voice-api`) for scheduling, audience management, analytics
-- **Own frontend** at `app.brickos.io/voice/` or `app.sovereignvoice.io`
-- **Own database tables** (schedules, posts, audience segments, engagement metrics)
-- **Service account** for calling Sovereign Link API (already designed in migration 002)
-- **i18n** for its frontend (EN + DE)
+Currently a stateless TypeScript CLI tool. As it evolves (design 007):
+- Own API server (`sovereign-voice-api`, port 8086)
+- Own database (`svo`)
+- Own frontend at `app.brickos.io/voice/` or `app.sovereignvoice.io`
+- Service account for calling Sovereign Link API
+- Own i18n (content_strings in `svo` database)
 
-The elevation pattern established here applies directly. Sovereign Voice does NOT depend on SHI or Sovereign Link at the process level -- only at the API level via service accounts.
+### 9.2 Sovereign CRM
 
----
+Per design 017:
+- Own API server (`sovereign-crm-api`, port 8084)
+- Own database (`scr`) with 15 tables
+- Own frontend at `app.brickos.io/crm/` or `app.sovereigncrm.io`
+- Uses all `brickos-*` crates
+- Own i18n (content_strings in `scr` database)
 
-## 10. Sovereign CRM Considerations
-
-Per design 017, Sovereign CRM:
-
-- Lives at `apps/data/sovereign-crm/`
-- Has `sovereign-crm-api` (Rust/Axum, port 8084) and `sovereign-crm-frontend` (Next.js)
-- Uses `brickos-auth`, `brickos-crypto`, `brickos-db`, `brickos-email` (same crates as SHI)
-- Has its own 15 tables in `crm` schema (or `crm_` prefixed in `public`)
-- Has its own i18n (EN + DE)
-- Has its own domain: `app.sovereigncrm.io` or `app.brickos.io/crm/`
-
-CRM follows the exact same pattern as the elevated Sovereign Link. No coupling to SHI or Sovereign Link processes.
+Both follow the exact same pattern established by the Sovereign Link elevation.
 
 ---
 
-## 11. Database Strategy
+## 10. Architecture Validation
 
-### 11.1 One Database, Multiple Schemas
+### 10.1 Industry Best Practices Alignment
 
-All apps share one PostgreSQL instance but use separate logical spaces:
+| Practice | BrickOS Approach | Reference |
+|----------|-----------------|-----------|
+| **Database-per-service** | Each app owns its own PostgreSQL database | Stripe, Shopify, Netflix microservices pattern |
+| **Shared authentication** | Platform DB holds users/orgs; apps verify JWTs via shared crate | Auth0/Keycloak pattern -- centralized identity, distributed verification |
+| **Service mesh communication** | Encrypted service account API calls (TLS/mTLS) | Kubernetes service mesh pattern (Istio, Linkerd) without the complexity |
+| **Independent deployability** | Each app has own deploy.sh, own Docker image, own port | 12-factor app methodology |
+| **Schema ownership** | Each service owns its data; no cross-service writes | Domain-Driven Design bounded contexts |
+| **Feature flags for deployment modes** | `standalone` (SQLite) vs `platform` (PostgreSQL) | Start9/Umbrel packaging pattern for sovereign apps |
+| **Centralized config, distributed execution** | Platform manages service accounts; apps use them independently | Consul/Vault pattern (simplified) |
 
-```
-PostgreSQL instance: brickos
-├── brickos schema    (platform: users, orgs, billing, service_accounts, ...)
-├── public schema     (SHI health tables: zones, markers, measurements, ...)
-├── link schema       (future: if Sovereign Link needs app-specific tables beyond short_links)
-├── crm schema        (future: crm_contacts, crm_companies, crm_projects, ...)
-└── voice schema      (future: schedules, posts, audience, ...)
-```
+### 10.2 What This Architecture Enables
 
-**Current reality:** SHI health tables are in `public` schema. Short link tables are in `brickos` schema (already elevated). CRM tables would be `crm_` prefixed in `public` or in a `crm` schema.
+- **Add a new app in 1 day:** Copy template, create database, register in platform, deploy
+- **Remove an app with zero impact:** Drop database, remove nginx route, remove from platform registry
+- **Scale an app independently:** Move to its own VPS, update connection string
+- **Multi-region deployment:** One platform instance per region, full data residency
+- **Sovereign distribution:** Any app can run standalone (SQLite mode) on Start9/Umbrel
 
-**Migration ownership:**
-- `crates/brickos-db/migrations/` -- platform schema (`brickos.*`)
-- `apps/health/sovereign-health/api/migrations/` -- SHI-specific tables
-- `apps/technology/sovereign-link/api/migrations/postgres/` -- Sovereign Link tables (moved from SHI)
-- `apps/data/sovereign-crm/api/migrations/` -- CRM-specific tables
-- Each app runs its own migrations on startup against the shared database
+---
 
-### 11.2 Connection Pooling
+## 11. Resolved Decisions
 
-Each app creates its own `PgPool` connecting to the same `DATABASE_URL`. This is fine for a single-VPS deployment (Hetzner CAX41). Each pool has `max_connections` tuned per app:
-
-| App | max_connections | Rationale |
-|-----|----------------|-----------|
-| SHI API | 15 | Heaviest app (measurements, AI, billing) |
-| Sovereign Link API | 5 | Mostly redirects (read-heavy, fast) |
-| Sovereign CRM API | 10 | Contact CRUD, search, graph queries |
-| Sovereign Voice API | 3 | Lightweight (scheduling, NOSTR publishing) |
-| **Total** | 33 | Well within PostgreSQL default (100) |
-
-### 11.3 Shared vs. App Database
-
-**Current:** One PostgreSQL database shared by all apps.
-**Future option:** Per-app PostgreSQL databases for stronger isolation. Not needed now (single VPS), but the architecture supports it -- each app only reads its own migrations folder and `brickos` schema.
+| # | Decision | Rationale |
+|---|----------|-----------|
+| D1 | **Per-app DATABASE_URL** | `SLI_DATABASE_URL`, `SCR_DATABASE_URL`, etc. Each app connects to its own database. Separate `{APP}_PLATFORM_DATABASE_URL` for platform DB reads. |
+| D2 | **Extract brickos-platform-api NOW** | Platform admin routes (org mgmt, service accounts, stats) move to dedicated service immediately. Apps must not contain platform logic. |
+| D3 | **Service account API for all inter-app calls** | SHI calls Sovereign Link via service account HTTP API (not in-process). All communication encrypted. Service accounts managed exclusively by platform. |
+| D4 | **Keep standalone as one crate with feature flags** | Shared handler code between standalone (SQLite) and platform (PostgreSQL) is valuable. One crate, two build targets. |
+| D5 | **Rename SHI Docker images to new convention** | `sovereign-health-backend` -> `sovereignbrick/shi-api`. Breaking change managed via thorough testing. Production downtime acceptable. |
+| D6 | **Content strings in app database, not platform** | Each app owns its translations in its own DB. No mixture. Platform only monitors completion % via i18n status endpoint. |
+| D7 | **Separate database per app** | Prepares for multi-VPS scaling, EU/US data residency, independent backup/restore. Each app gets its own PostgreSQL database. |
+| D8 | **3-char prefix** | `shi`, `sli`, `svo`, `scr`, `sex`, `sid`. Used for container names, env prefixes, database names. Consistent across all layers. |
 
 ---
 
 ## 12. Implementation Phases
 
-### Phase 1: Extract Sovereign Link API (1-2 days)
+### Phase 1: Platform API + Database Split (3-4 days)
 
-- [ ] New directory: `apps/technology/sovereign-link/api/`
-- [ ] New `Cargo.toml` depending on `brickos-auth`, `brickos-crypto`, `brickos-db`
-- [ ] New `main.rs` with own PgPool, own config, own port (8082)
-- [ ] New `config.rs` with `LINK_` env prefix
-- [ ] Move PostgreSQL migrations from SHI to `api/migrations/postgres/`
-- [ ] Add JWT verification via `brickos-auth` (replace blind trust)
-- [ ] Fix 2 compilation errors (ShortLink fields in sqlite.rs)
-- [ ] `cargo check --features platform` passes
-- [ ] `cargo check --features standalone` passes
+- [ ] Create `brickos-platform-api` crate (port 9000)
+- [ ] Move org management, service account, platform stats handlers from SL to platform-api
+- [ ] Service account CRUD endpoints (create, rotate, revoke, list)
+- [ ] Create separate databases: `brickos` (platform), `shi` (health), `sli` (links)
+- [ ] Migrate data: `pg_dump` / `pg_restore` per schema into target databases
+- [ ] Verify row counts and checksums
+- [ ] Extract `brickos-notify` crate from SHI
 
-### Phase 2: Deploy Sovereign Link API Alongside SHI (1 day)
+### Phase 2: Sovereign Link Elevation (2-3 days)
 
-- [ ] Docker compose: add `link-api` container on port 8082
-- [ ] nginx: route `/r/*` to `link-api` with SHI fallback
-- [ ] Deploy to staging
-- [ ] Run Sovereign Link E2E tests against staging
-- [ ] Monitor 24h: redirects, click recording, API endpoints
+- [ ] New `sovereign-link-api` binary with two PgPools (platform + app)
+- [ ] Move PostgreSQL migrations to own folder
+- [ ] Add JWT verification via `brickos-auth`
+- [ ] Fix compilation errors
+- [ ] `SLI_` env prefix, port 8082
+- [ ] Deploy alongside SHI (dual nginx routing)
+- [ ] E2E tests, 24h monitoring
 
-### Phase 3: Remove Sovereign Link from SHI (1 day)
+### Phase 3: SHI Decoupling (2 days)
 
-- [ ] Remove `sovereign-link` from SHI `Cargo.toml`
-- [ ] Remove `.configure(sovereign_link::configure_routes)` from SHI `main.rs`
-- [ ] Remove `PgLinkStore` init from SHI `main.rs`
-- [ ] SHI affiliate page calls Sovereign Link API via HTTP (service account)
-- [ ] Full SHI regression test
-- [ ] Deploy SHI (without Sovereign Link) to staging
-- [ ] Deploy to production
+- [ ] Remove `sovereign-link` from SHI Cargo.toml
+- [ ] SHI affiliate links via service account HTTP API (encrypted)
+- [ ] SHI connects to `shi` database + `brickos` platform database (two pools)
+- [ ] Rename Docker images: `sovereignbrick/shi-api`, `sovereignbrick/shi-web`
+- [ ] Full regression test (all SHI E2E tests)
+- [ ] Deploy to production (coordinated, downtime window)
 
-### Phase 4: i18n Monitoring (1 day)
+### Phase 4: i18n + Template (1-2 days)
 
-- [ ] Create `brickos-i18n` crate with `I18nStatus` struct and helper
-- [ ] Add `GET /api/v1/i18n/status` to SHI API
-- [ ] Add `GET /api/v1/i18n/status` to Sovereign Link API
-- [ ] Platform GUI: i18n dashboard aggregating all app statuses
+- [ ] Create `brickos-i18n` crate
+- [ ] Add `GET /api/v1/i18n/status` to each app
+- [ ] Platform GUI: i18n monitoring dashboard
+- [ ] Document "new app checklist" based on this design
+- [ ] Create template `main.rs` / `config.rs` / `Cargo.toml` for future apps
 
-### Phase 5: Template for Future Apps (documentation)
+### Phase 5: Sovereign CRM + Voice (follows naturally)
 
-- [ ] Document the "new app checklist" based on this design
-- [ ] Create a template `main.rs` / `config.rs` / `Cargo.toml` for new apps
-- [ ] Document nginx routing rules for adding a new app
-- [ ] Document docker-compose patterns for staging + production
-
----
-
-## 13. Open Questions
-
-1. **Shared `DATABASE_URL` or per-app?** All apps could use the same connection string (simplest), or each app could have its own (`LINK_DATABASE_URL`, `CRM_DATABASE_URL`) pointing to the same instance but allowing future separation. Recommend: per-app env var, same value for now.
-
-2. **Platform Admin API -- when?** Currently, platform admin routes live in Sovereign Link handlers (org management, branding, stats). Should we extract to a dedicated `brickos-platform-api` now, or after the Sovereign Link decoupling? Recommend: after -- focus on Sovereign Link first, then extract platform routes as a third step.
-
-3. **SHI affiliate link creation.** Today SHI creates affiliate short links in-process (Rust function call). After decoupling, it must call Sovereign Link's HTTP API. Should this use the service account API or a direct database write? Recommend: service account API (clean separation, same as Sovereign Voice already does).
-
-4. **Standalone mode packaging.** The standalone Sovereign Link binary (SQLite) is a separate product from the platform-mode API. Should they be the same binary with feature flags (current), or separate crates? Recommend: keep as one crate with feature flags -- the shared handler code is valuable.
-
-5. **Docker image naming.** Current SHI images: `sovereign-health-backend`, `sovereign-health-frontend`. New convention proposes: `sovereignbrick/shi-api`, `sovereignbrick/link-api`. Should we rename SHI images too (breaking change for existing deployments)? Recommend: new names for new apps, keep SHI names until next major version.
-
-6. **Content strings ownership.** The `content_strings` table currently has all SHI strings. When Sovereign Link gets its own frontend, should it have its own `content_strings` rows (filtered by `app_key=sovereign-link`), or its own table? Recommend: same table, filtered by `app_key` -- the infrastructure is already built (migration 004 added `app_key` to the relevant tables).
+- [ ] Sovereign CRM: create `scr` database, follow elevation template
+- [ ] Sovereign Voice: when it gets an API server, create `svo` database
+- [ ] Each new app is a 1-day setup following the established pattern
