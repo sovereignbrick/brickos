@@ -1144,6 +1144,18 @@ export const api = {
       }),
     affiliateSummary: () =>
       request<{ data: { total_users: number; affiliate_users: number; direct_users: number; total_affiliates: number; total_conversions: number; conversion_rate: number; top_affiliates: Array<{ affiliate_code: string; email: string; display_name: string | null; referral_count: number; org_name: string | null }> } }>('/admin/affiliate-summary'),
+    organizations: (page = 1, perPage = 25, search?: string, orgType?: string) => {
+      const params = new URLSearchParams({ page: String(page), per_page: String(perPage) })
+      if (search) params.set('search', search)
+      if (orgType) params.set('org_type', orgType)
+      return request<{ data: Array<{ id: string; name: string; slug: string; org_type: string; billing_email: string | null; is_active: boolean; member_count: number; branding: Record<string, unknown>; created_at: string }>; meta: { page: number; per_page: number; total: number } }>(`/admin/organizations?${params}`)
+    },
+    createOrganization: (body: { name: string; slug: string; org_type: string; billing_email?: string; admin_email?: string }) =>
+      request<{ data: { id: string; slug: string } }>('/admin/organizations', { method: 'POST', body: JSON.stringify(body) }),
+    updateOrganization: (id: string, body: { name?: string; org_type?: string; billing_email?: string; is_active?: boolean }) =>
+      request<{ data: { updated: boolean } }>(`/admin/organizations/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
+    orgMembers: (orgId: string) =>
+      request<{ data: Array<{ id: string; user_id: string; email: string; display_name: string | null; role: string; joined_at: string; last_active_at: string | null }> }>(`/admin/organizations/${orgId}/members`),
   },
   affiliate: {
     me: () =>

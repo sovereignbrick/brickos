@@ -755,6 +755,22 @@ pub fn configure_routes(cfg: &mut actix_web::web::ServiceConfig) {
                 actix_web::web::get().to(handlers::admin_health::service_health),
             )
             .route(
+                "/organizations",
+                actix_web::web::get().to(handlers::admin_orgs::list_organizations),
+            )
+            .route(
+                "/organizations",
+                actix_web::web::post().to(handlers::admin_orgs::create_organization),
+            )
+            .route(
+                "/organizations/{id}",
+                actix_web::web::put().to(handlers::admin_orgs::update_organization),
+            )
+            .route(
+                "/organizations/{id}/members",
+                actix_web::web::get().to(handlers::admin_orgs::list_org_members),
+            )
+            .route(
                 "/users",
                 actix_web::web::get().to(handlers::admin::list_users),
             )
