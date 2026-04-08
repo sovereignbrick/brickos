@@ -9,6 +9,7 @@ pub mod content;
 pub mod doctor_chat;
 pub mod encryption;
 pub mod extraction_prompts;
+pub mod licensing;
 pub mod marker_matcher;
 pub mod measurement;
 pub mod mfa;

@@ -5,8 +5,10 @@ use serde::Deserialize;
 use sqlx::{PgPool, Row};
 use uuid::Uuid;
 
+use crate::config::Config;
 use crate::error::AppError;
 use crate::middleware::auth::AdminUser;
+use crate::services::licensing;
 
 #[derive(Deserialize)]
 pub struct ListOrgsQuery {
@@ -263,6 +265,61 @@ pub async fn list_org_members(
 
     Ok(HttpResponse::Ok().json(serde_json::json!({
         "data": members,
+        "error": null
+    })))
+}
+
+#[derive(Deserialize)]
+pub struct GenerateLicenseRequest {
+    pub features: Vec<String>,
+    pub max_admins: i32,
+    pub max_editors: i32,
+    pub max_consumers: String,
+    pub expires_days: i64,
+}
+
+/// POST /admin/organizations/{id}/license -- Generate JWT license key
+pub async fn generate_org_license(
+    pool: web::Data<PgPool>,
+    config: web::Data<Config>,
+    _admin: AdminUser,
+    path: web::Path<Uuid>,
+    body: web::Json<GenerateLicenseRequest>,
+) -> Result<HttpResponse, AppError> {
+    let org_id = path.into_inner();
+
+    let org_row = sqlx::query("SELECT name, org_type FROM organizations WHERE id = $1 AND is_deleted = false")
+        .bind(org_id)
+        .fetch_optional(pool.get_ref())
+        .await?
+        .ok_or(AppError::NotFound)?;
+
+    let org_name: String = org_row.try_get("name").unwrap_or_default();
+    let org_type: String = org_row.try_get("org_type").unwrap_or_default();
+
+    let token = licensing::generate_license(
+        &licensing::LicenseInput {
+            org_id: &org_id.to_string(),
+            org_name: &org_name,
+            tier: &org_type,
+            features: body.features.clone(),
+            max_admins: body.max_admins,
+            max_editors: body.max_editors,
+            max_consumers: &body.max_consumers,
+            expires_days: body.expires_days,
+        },
+        &config.jwt_secret,
+    )
+    .map_err(|_| AppError::Internal)?;
+
+    Ok(HttpResponse::Ok().json(serde_json::json!({
+        "data": {
+            "license_key": token,
+            "org_id": org_id,
+            "org_name": org_name,
+            "expires_days": body.expires_days,
+            "features": body.features,
+        },
         "error": null
     })))
 }

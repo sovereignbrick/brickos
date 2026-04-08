@@ -771,6 +771,10 @@ pub fn configure_routes(cfg: &mut actix_web::web::ServiceConfig) {
                 actix_web::web::get().to(handlers::admin_orgs::list_org_members),
             )
             .route(
+                "/organizations/{id}/license",
+                actix_web::web::post().to(handlers::admin_orgs::generate_org_license),
+            )
+            .route(
                 "/users",
                 actix_web::web::get().to(handlers::admin::list_users),
             )
