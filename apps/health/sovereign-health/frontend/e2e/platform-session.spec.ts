@@ -88,9 +88,73 @@ test.describe('BrickOS Platform Admin', () => {
 
     await page.goto('/platform/services')
     await page.waitForLoadState('networkidle', { timeout: 10000 })
-
-    // Should show service table (not redirected to login)
     expect(page.url()).toContain('/platform/services')
     expect(page.url()).not.toContain('/login')
+  })
+
+  // Sprint 032 features
+  test('organizations page loads with org list', async ({ page }) => {
+    await loginAndNavigate(page, DEMO_ADMIN.email, DEMO_ADMIN.password, '/platform')
+    if (!page.url().includes('/platform')) return
+
+    await page.goto('/platform/orgs')
+    await page.waitForLoadState('networkidle', { timeout: 10000 })
+    expect(page.url()).toContain('/platform/orgs')
+    expect(page.url()).not.toContain('/login')
+    // Should show org table
+    await expect(page.locator('text=Organizations').first()).toBeVisible({ timeout: 5000 })
+  })
+
+  test('members page loads with org selector', async ({ page }) => {
+    await loginAndNavigate(page, DEMO_ADMIN.email, DEMO_ADMIN.password, '/platform')
+    if (!page.url().includes('/platform')) return
+
+    await page.goto('/platform/members')
+    await page.waitForLoadState('networkidle', { timeout: 10000 })
+    expect(page.url()).toContain('/platform/members')
+    expect(page.url()).not.toContain('/login')
+  })
+
+  test('AI config page shows profiles', async ({ page }) => {
+    await loginAndNavigate(page, DEMO_ADMIN.email, DEMO_ADMIN.password, '/platform')
+    if (!page.url().includes('/platform')) return
+
+    await page.goto('/platform/ai/config')
+    await page.waitForLoadState('networkidle', { timeout: 10000 })
+    expect(page.url()).toContain('/platform/ai/config')
+    expect(page.url()).not.toContain('/login')
+    await expect(page.locator('text=AI Configuration').first()).toBeVisible({ timeout: 5000 })
+    await expect(page.locator('text=Default').first()).toBeVisible({ timeout: 5000 })
+  })
+
+  test('compliance page shows frameworks', async ({ page }) => {
+    await loginAndNavigate(page, DEMO_ADMIN.email, DEMO_ADMIN.password, '/platform')
+    if (!page.url().includes('/platform')) return
+
+    await page.goto('/platform/compliance')
+    await page.waitForLoadState('networkidle', { timeout: 10000 })
+    expect(page.url()).toContain('/platform/compliance')
+    await expect(page.locator('text=GDPR').first()).toBeVisible({ timeout: 5000 })
+    await expect(page.locator('text=EU AI Act').first()).toBeVisible({ timeout: 5000 })
+  })
+
+  test('branding page shows presets', async ({ page }) => {
+    await loginAndNavigate(page, DEMO_ADMIN.email, DEMO_ADMIN.password, '/platform')
+    if (!page.url().includes('/platform')) return
+
+    await page.goto('/platform/branding')
+    await page.waitForLoadState('networkidle', { timeout: 10000 })
+    expect(page.url()).toContain('/platform/branding')
+    await expect(page.locator('text=Theme Presets').first()).toBeVisible({ timeout: 5000 })
+  })
+
+  test('app switcher nav visible in header', async ({ page }) => {
+    await loginAndNavigate(page, DEMO_ADMIN.email, DEMO_ADMIN.password, '/platform')
+    if (!page.url().includes('/platform')) return
+
+    // App switcher should show Platform, Health, Links, Voice
+    await expect(page.locator('header nav')).toBeVisible({ timeout: 5000 })
+    await expect(page.locator('header a:has-text("Platform")')).toBeVisible({ timeout: 5000 })
+    await expect(page.locator('header a:has-text("Health")')).toBeVisible({ timeout: 5000 })
   })
 })

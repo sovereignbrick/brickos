@@ -10,14 +10,14 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LicenseClaims {
-    pub sub: String,         // org_id
+    pub sub: String, // org_id
     pub org_name: String,
-    pub tier: String,        // "enterprise", "premium", etc.
+    pub tier: String,          // "enterprise", "premium", etc.
     pub features: Vec<String>, // ["shi", "sovereign-link", "sovereign-voice"]
     pub max_admins: i32,
     pub max_editors: i32,
     pub max_consumers: String, // "unlimited" or number
-    pub iss: String,         // "brickos-platform"
+    pub iss: String,           // "brickos-platform"
     pub iat: i64,
     pub exp: i64,
 }
@@ -85,9 +85,14 @@ pub fn check_seat_limit(claims: &LicenseClaims, role: &str, current_count: i32) 
     match role {
         "admin" | "owner" | "tech_admin" | "commercial_admin" => current_count < claims.max_admins,
         "editor" => current_count < claims.max_editors,
-        "consumer" => claims.max_consumers == "unlimited" || {
-            claims.max_consumers.parse::<i32>().map_or(true, |max| current_count < max)
-        },
+        "consumer" => {
+            claims.max_consumers == "unlimited" || {
+                claims
+                    .max_consumers
+                    .parse::<i32>()
+                    .map_or(true, |max| current_count < max)
+            }
+        }
         _ => true,
     }
 }
@@ -100,11 +105,20 @@ mod tests {
 
     #[test]
     fn generate_and_validate_roundtrip() {
-        let token = generate_license(&LicenseInput {
-            org_id: "org-123", org_name: "Test Clinic", tier: "enterprise",
-            features: vec!["shi".into(), "sovereign-link".into()],
-            max_admins: 3, max_editors: 10, max_consumers: "unlimited", expires_days: 365,
-        }, TEST_SECRET).unwrap();
+        let token = generate_license(
+            &LicenseInput {
+                org_id: "org-123",
+                org_name: "Test Clinic",
+                tier: "enterprise",
+                features: vec!["shi".into(), "sovereign-link".into()],
+                max_admins: 3,
+                max_editors: 10,
+                max_consumers: "unlimited",
+                expires_days: 365,
+            },
+            TEST_SECRET,
+        )
+        .unwrap();
 
         let claims = validate_license(&token, TEST_SECRET).unwrap();
         assert_eq!(claims.sub, "org-123");
@@ -117,10 +131,20 @@ mod tests {
 
     #[test]
     fn expired_license_rejected() {
-        let token = generate_license(&LicenseInput {
-            org_id: "org-456", org_name: "Expired", tier: "enterprise",
-            features: vec![], max_admins: 1, max_editors: 1, max_consumers: "10", expires_days: -1,
-        }, TEST_SECRET).unwrap();
+        let token = generate_license(
+            &LicenseInput {
+                org_id: "org-456",
+                org_name: "Expired",
+                tier: "enterprise",
+                features: vec![],
+                max_admins: 1,
+                max_editors: 1,
+                max_consumers: "10",
+                expires_days: -1,
+            },
+            TEST_SECRET,
+        )
+        .unwrap();
 
         let result = validate_license(&token, TEST_SECRET);
         assert!(result.is_err());
@@ -129,10 +153,16 @@ mod tests {
     #[test]
     fn seat_limits() {
         let claims = LicenseClaims {
-            sub: "org".into(), org_name: "Test".into(), tier: "enterprise".into(),
-            features: vec![], max_admins: 3, max_editors: 10,
+            sub: "org".into(),
+            org_name: "Test".into(),
+            tier: "enterprise".into(),
+            features: vec![],
+            max_admins: 3,
+            max_editors: 10,
             max_consumers: "unlimited".into(),
-            iss: "brickos-platform".into(), iat: 0, exp: i64::MAX,
+            iss: "brickos-platform".into(),
+            iat: 0,
+            exp: i64::MAX,
         };
 
         assert!(check_seat_limit(&claims, "admin", 2));
@@ -145,10 +175,16 @@ mod tests {
     #[test]
     fn feature_check() {
         let claims = LicenseClaims {
-            sub: "org".into(), org_name: "Test".into(), tier: "enterprise".into(),
+            sub: "org".into(),
+            org_name: "Test".into(),
+            tier: "enterprise".into(),
             features: vec!["shi".into(), "sovereign-link".into()],
-            max_admins: 1, max_editors: 1, max_consumers: "10".into(),
-            iss: "brickos-platform".into(), iat: 0, exp: i64::MAX,
+            max_admins: 1,
+            max_editors: 1,
+            max_consumers: "10".into(),
+            iss: "brickos-platform".into(),
+            iat: 0,
+            exp: i64::MAX,
         };
 
         assert!(has_feature(&claims, "shi"));
