@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, Fragment } from 'react'
 import Cookies from 'js-cookie'
+import { usePlatformFilter } from '@/app/platform/platform-context'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -391,6 +392,7 @@ function DbAuditPanel() {
 // ---------------------------------------------------------------------------
 
 export function AuditLogsTab() {
+  const { appFilter, orgFilter } = usePlatformFilter()
   const [subTab, setSubTab] = useState<SubTab>('access')
 
   // Shared filter state
@@ -440,6 +442,8 @@ export function AuditLogsTab() {
       }
       if (search) params.search = search
       if (actionFilter) params.action = actionFilter
+      if (appFilter && appFilter !== 'all') params.app_key = appFilter
+      if (orgFilter && orgFilter !== 'all') params.org_id = orgFilter
       const since = dateRangeToParam(dateRange)
       if (since) params.from = since
 
@@ -466,7 +470,7 @@ export function AuditLogsTab() {
     } finally {
       setAccessLoading(false)
     }
-  }, [accessPage, accessSort, accessDir, search, actionFilter, dateRange])
+  }, [accessPage, accessSort, accessDir, search, actionFilter, dateRange, appFilter, orgFilter])
 
   // -------------------------------------------------------------------------
   // Fetch event logs
@@ -482,6 +486,8 @@ export function AuditLogsTab() {
       }
       if (search) params.search = search
       if (actionFilter) params.action = actionFilter
+      if (appFilter && appFilter !== 'all') params.app_key = appFilter
+      if (orgFilter && orgFilter !== 'all') params.org_id = orgFilter
       const since = dateRangeToParam(dateRange)
       if (since) params.from = since
 
@@ -508,7 +514,7 @@ export function AuditLogsTab() {
     } finally {
       setEventLoading(false)
     }
-  }, [eventPage, eventSort, eventDir, search, actionFilter, dateRange])
+  }, [eventPage, eventSort, eventDir, search, actionFilter, dateRange, appFilter, orgFilter])
 
   // -------------------------------------------------------------------------
   // Fetch stats

@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useTranslations } from 'next-intl'
 import { toast } from '@/lib/toast'
 import { api } from '@/lib/api'
+import { usePlatformFilter } from '@/app/platform/platform-context'
 
 interface LinkItem {
   id: string
@@ -45,6 +46,7 @@ const TYPE_COLORS: Record<string, string> = {
 
 export function LinksTab() {
   const t = useTranslations('admin')
+  const { appFilter, orgFilter } = usePlatformFilter()
   const [subTab, setSubTab] = useState<SubTab>('links')
   const [links, setLinks] = useState<LinkItem[]>([])
   const [summary, setSummary] = useState<SummaryItem[]>([])
@@ -59,7 +61,7 @@ export function LinksTab() {
 
   const loadLinks = useCallback(async () => {
     try {
-      const res = await api.admin.links()
+      const res = await api.admin.links(appFilter, orgFilter)
       setLinks(res.data.links)
       setSummary(res.data.summary)
     } catch {
@@ -67,7 +69,7 @@ export function LinksTab() {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [appFilter, orgFilter])
 
   useEffect(() => { loadLinks() }, [loadLinks])
 

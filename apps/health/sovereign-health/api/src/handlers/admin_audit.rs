@@ -20,6 +20,8 @@ pub struct AuditQuery {
     pub to: Option<String>,
     pub sort: Option<String>,
     pub order: Option<String>,
+    pub app_key: Option<String>,
+    pub org_id: Option<String>,
 }
 
 #[derive(Deserialize)]
@@ -69,6 +71,8 @@ pub async fn access_logs(
              AND ($4 = '' OR u.email ILIKE $4 OR u2.email ILIKE $4 OR dal.action ILIKE $4 OR dal.resource ILIKE $4) \
              AND ($5 = '' OR dal.created_at >= $5::timestamptz) \
              AND ($6 = '' OR dal.created_at <= $6::timestamptz) \
+             AND ($7 = '' OR dal.app_key = $7) \
+             AND ($8 = '' OR dal.org_id::text = $8) \
            ORDER BY {sort_col} {sort_dir} \
            LIMIT $1 OFFSET $2 \
          ) SELECT * FROM filtered"
@@ -79,6 +83,8 @@ pub async fn access_logs(
     .bind(if query.search.is_some() { format!("%{}%", query.search.as_deref().unwrap_or("")) } else { String::new() })
     .bind(query.from.as_deref().unwrap_or(""))
     .bind(query.to.as_deref().unwrap_or(""))
+    .bind(query.app_key.as_deref().unwrap_or(""))
+    .bind(query.org_id.as_deref().unwrap_or(""))
     .fetch_all(pool.get_ref())
     .await?;
 
@@ -147,6 +153,8 @@ pub async fn event_logs(
              AND ($4 = '' OR u.email ILIKE $4 OR al.action ILIKE $4 OR COALESCE(al.resource_type,'') ILIKE $4) \
              AND ($5 = '' OR al.created_at >= $5::timestamptz) \
              AND ($6 = '' OR al.created_at <= $6::timestamptz) \
+             AND ($7 = '' OR al.app_key = $7) \
+             AND ($8 = '' OR al.org_id::text = $8) \
            ORDER BY {sort_col} {sort_dir} \
            LIMIT $1 OFFSET $2 \
          ) SELECT * FROM filtered"
@@ -157,6 +165,8 @@ pub async fn event_logs(
     .bind(if query.search.is_some() { format!("%{}%", query.search.as_deref().unwrap_or("")) } else { String::new() })
     .bind(query.from.as_deref().unwrap_or(""))
     .bind(query.to.as_deref().unwrap_or(""))
+    .bind(query.app_key.as_deref().unwrap_or(""))
+    .bind(query.org_id.as_deref().unwrap_or(""))
     .fetch_all(pool.get_ref())
     .await?;
 

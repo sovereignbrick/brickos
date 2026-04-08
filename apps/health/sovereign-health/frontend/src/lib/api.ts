@@ -1134,14 +1134,19 @@ export const api = {
       request<{ data: { success: boolean; message: string; duration_ms: number; timestamp: string } }>('/admin/publish-website', {
         method: 'POST',
       }),
-    links: () =>
-      request<{ data: { links: Array<{
+    links: (appKey?: string, orgId?: string) => {
+      const params = new URLSearchParams()
+      if (appKey && appKey !== 'all') params.set('app_key', appKey)
+      if (orgId && orgId !== 'all') params.set('org_id', orgId)
+      const qs = params.toString()
+      return request<{ data: { links: Array<{
         id: string; code: string; target_url: string; link_type: string;
         domain: string; app_key: string; affiliate_code: string | null;
         title: string | null; is_active: boolean;
         total_clicks: number; clicks_7d: number; clicks_30d: number;
         created_at: string;
-      }>; summary: Array<{ prefix: string; link_type: string; link_count: number; total_clicks: number }> } }>('/admin/links'),
+      }>; summary: Array<{ prefix: string; link_type: string; link_count: number; total_clicks: number }> } }>(`/admin/links${qs ? '?' + qs : ''}`)
+    },
     createCampaignLink: (body: { code: string; target_url: string; title?: string }) =>
       request<{ data: { id: string; short_link: string; code: string; target_url: string; created_at: string } }>('/admin/links/campaign', {
         method: 'POST', body: JSON.stringify(body),
