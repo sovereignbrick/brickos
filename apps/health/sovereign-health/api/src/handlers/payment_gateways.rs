@@ -3,21 +3,22 @@
 use actix_web::{web, HttpResponse};
 use serde::Deserialize;
 use serde_json::json;
-use sqlx::{PgPool, Row};
+use sqlx::Row;
 
 use crate::middleware::auth::AdminUser;
 use crate::payments::PaymentRouter;
+use crate::PlatformPool;
 
 // ---------------------------------------------------------------------------
 // GET /api/payments/gateways  (public - needed by pricing page)
 // ---------------------------------------------------------------------------
 
 pub async fn public_gateways(
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     router: Option<web::Data<PaymentRouter>>,
 ) -> HttpResponse {
     let btc_discount: f64 = crate::handlers::admin_settings::get_setting(
-        pool.get_ref(),
+        &platform_pool.0,
         "btc_discount_percent",
         json!(5),
     )
@@ -26,7 +27,7 @@ pub async fn public_gateways(
     .unwrap_or(5.0);
 
     let fiat_gateway: String = crate::handlers::admin_settings::get_setting(
-        pool.get_ref(),
+        &platform_pool.0,
         "payment_fiat_gateway",
         json!("stripe"),
     )
@@ -36,7 +37,7 @@ pub async fn public_gateways(
     .to_string();
 
     let btc_gateway: String = crate::handlers::admin_settings::get_setting(
-        pool.get_ref(),
+        &platform_pool.0,
         "payment_btc_gateway",
         json!("strike"),
     )
@@ -46,14 +47,14 @@ pub async fn public_gateways(
     .to_string();
 
     let fiat_enabled = crate::handlers::admin_settings::get_setting_bool(
-        pool.get_ref(),
+        &platform_pool.0,
         &format!("gateway_{}_enabled", fiat_gateway),
         true,
     )
     .await;
 
     let btc_enabled = crate::handlers::admin_settings::get_setting_bool(
-        pool.get_ref(),
+        &platform_pool.0,
         &format!("gateway_{}_enabled", btc_gateway),
         true,
     )
@@ -92,7 +93,7 @@ pub async fn public_gateways(
 // ---------------------------------------------------------------------------
 
 pub async fn admin_list_gateways(
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     router: Option<web::Data<PaymentRouter>>,
     _admin: AdminUser,
 ) -> HttpResponse {
@@ -102,7 +103,7 @@ pub async fn admin_list_gateways(
            FROM payment_gateway_status
            ORDER BY gateway_id"#,
     )
-    .fetch_all(pool.get_ref())
+    .fetch_all(&platform_pool.0)
     .await;
 
     match rows {
@@ -160,7 +161,7 @@ pub struct ActivateRequest {
 }
 
 pub async fn admin_activate_gateway(
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     _admin: AdminUser,
     path: web::Path<String>,
     body: web::Json<ActivateRequest>,
@@ -178,7 +179,7 @@ pub async fn admin_activate_gateway(
     // Verify gateway exists
     let exists = sqlx::query("SELECT 1 FROM payment_gateway_status WHERE gateway_id = $1")
         .bind(&gateway_id)
-        .fetch_optional(pool.get_ref())
+        .fetch_optional(&platform_pool.0)
         .await
         .ok()
         .flatten();
@@ -201,7 +202,7 @@ pub async fn admin_activate_gateway(
         "UPDATE payment_gateway_status SET {} = false, updated_at = NOW()",
         column
     ))
-    .execute(pool.get_ref())
+    .execute(&platform_pool.0)
     .await;
 
     let _ = sqlx::query(&format!(
@@ -209,14 +210,14 @@ pub async fn admin_activate_gateway(
         column
     ))
     .bind(&gateway_id)
-    .execute(pool.get_ref())
+    .execute(&platform_pool.0)
     .await;
 
     // Update the app_setting
     let _ = sqlx::query("UPDATE app_settings SET value = $1, updated_at = NOW() WHERE key = $2")
         .bind(json!(gateway_id))
         .bind(setting_key)
-        .execute(pool.get_ref())
+        .execute(&platform_pool.0)
         .await;
 
     HttpResponse::Ok().json(json!({
@@ -230,7 +231,7 @@ pub async fn admin_activate_gateway(
 // ---------------------------------------------------------------------------
 
 pub async fn admin_toggle_gateway(
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     _admin: AdminUser,
     path: web::Path<String>,
 ) -> HttpResponse {
@@ -241,7 +242,7 @@ pub async fn admin_toggle_gateway(
          WHERE gateway_id = $1 RETURNING enabled",
     )
     .bind(&gateway_id)
-    .fetch_optional(pool.get_ref())
+    .fetch_optional(&platform_pool.0)
     .await;
 
     match row {
@@ -254,7 +255,7 @@ pub async fn admin_toggle_gateway(
             )
             .bind(json!(enabled))
             .bind(&setting_key)
-            .execute(pool.get_ref())
+            .execute(&platform_pool.0)
             .await;
 
             HttpResponse::Ok().json(json!({
@@ -282,7 +283,7 @@ pub async fn admin_toggle_gateway(
 
 pub async fn admin_test_gateway(
     router: Option<web::Data<PaymentRouter>>,
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     _admin: AdminUser,
     path: web::Path<String>,
 ) -> HttpResponse {
@@ -320,14 +321,14 @@ pub async fn admin_test_gateway(
 
     match gateway.test_connection().await {
         Ok(latency_ms) => {
-            router.record_success(pool.get_ref(), &gateway_id).await;
+            router.record_success(&platform_pool.0, &gateway_id).await;
 
             // Update config_valid
             let _ = sqlx::query(
                 "UPDATE payment_gateway_status SET config_valid = true, updated_at = NOW() WHERE gateway_id = $1",
             )
             .bind(gateway_id.as_str())
-            .execute(pool.get_ref())
+            .execute(&platform_pool.0)
             .await;
 
             HttpResponse::Ok().json(json!({
@@ -336,7 +337,7 @@ pub async fn admin_test_gateway(
             }))
         }
         Err(e) => {
-            router.record_failure(pool.get_ref(), &gateway_id).await;
+            router.record_failure(&platform_pool.0, &gateway_id).await;
 
             HttpResponse::Ok().json(json!({
                 "data": { "success": false, "error": e.to_string() },

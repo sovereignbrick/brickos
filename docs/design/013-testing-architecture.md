@@ -105,6 +105,43 @@ Cross-App Integration            0 files                     MISSING
 
 ---
 
+### Database-Per-App Testing (ADR-041, Design 018 v2)
+
+With separate databases per app (brickos, shi, sli, scr, svo), tests must verify:
+
+1. **Platform DB isolation:** Each app can read brickos DB (users, orgs) but NOT write to it
+2. **App DB isolation:** Each app writes only to its own database
+3. **Two-pool connectivity:** Each app connects to both platform + app database
+4. **Migration independence:** Running shi migrations does not affect sli or brickos
+5. **Cross-app service calls:** SHI -> SLI via service account API (encrypted HTTP, not shared DB)
+
+**Test database setup:**
+```bash
+# Create test databases (mirrors production topology)
+createdb brickos_test
+createdb shi_test
+createdb sli_test
+createdb scr_test
+
+# Run platform migrations first
+psql brickos_test < crates/brickos-db/migrations/*.sql
+
+# Run per-app migrations
+SHI_DATABASE_URL=postgres://...shi_test sqlx migrate run --source apps/health/sovereign-health/api/migrations
+SLI_DATABASE_URL=postgres://...sli_test sqlx migrate run --source apps/technology/sovereign-link/api/migrations/postgres
+```
+
+**New test scripts:**
+```
+/tests/
+|-- db-isolation-test.sh              # Verify app A cannot write to app B's DB
+|-- two-pool-connectivity-test.sh     # Each app reads platform + writes own DB
+|-- service-account-flow-test.sh      # SHI creates affiliate link via SLI API
+|-- db-migration-independence-test.sh # Run one app's migrations, verify others unaffected
+```
+
+---
+
 ## 3. Test Categories
 
 ### Level 1: Platform Unit Tests (Shared Crates)

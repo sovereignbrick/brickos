@@ -25,6 +25,7 @@ COPY apps/health/sovereign-health/api/Cargo.toml apps/health/sovereign-health/ap
 COPY apps/health/sovereign-health/api/src ./apps/health/sovereign-health/api/src
 COPY apps/health/sovereign-health/api/benches ./apps/health/sovereign-health/api/benches
 COPY apps/technology/sovereign-link ./apps/technology/sovereign-link
+COPY apps/platform/brickos-platform-api ./apps/platform/brickos-platform-api
 # Stub fuzz target (not in normal builds but referenced in Cargo.toml)
 RUN mkdir -p apps/health/sovereign-health/api/fuzz/fuzz_targets \
     && echo 'fn main(){}' > apps/health/sovereign-health/api/fuzz/fuzz_targets/fuzz_health.rs
@@ -47,6 +48,7 @@ COPY crates ./crates
 COPY platform ./platform
 COPY apps/health/sovereign-health/api ./apps/health/sovereign-health/api
 COPY apps/technology/sovereign-link ./apps/technology/sovereign-link
+COPY apps/platform/brickos-platform-api ./apps/platform/brickos-platform-api
 # Stub fuzz target
 RUN mkdir -p apps/health/sovereign-health/api/fuzz/fuzz_targets \
     && echo 'fn main(){}' > apps/health/sovereign-health/api/fuzz/fuzz_targets/fuzz_health.rs

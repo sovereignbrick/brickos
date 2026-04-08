@@ -4,7 +4,7 @@ use actix_web::{web, HttpRequest, HttpResponse};
 use chrono::Utc;
 use serde::Deserialize;
 use serde_json::json;
-use sqlx::{PgPool, Row};
+use sqlx::Row;
 use std::sync::Arc;
 use uuid::Uuid;
 
@@ -12,6 +12,7 @@ use brickos_email::EmailProvider;
 
 use crate::error::AppError;
 use crate::middleware::auth::AdminUser;
+use crate::PlatformPool;
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -66,7 +67,7 @@ pub struct SubscribeRequest {
 
 pub async fn subscribe(
     _req: HttpRequest,
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     email_provider: web::Data<Arc<dyn EmailProvider>>,
     notifier: web::Data<crate::services::notify::Notifier>,
     body: web::Json<SubscribeRequest>,
@@ -95,7 +96,7 @@ pub async fn subscribe(
         "SELECT id, confirmed, subscribed FROM newsletter_subscribers WHERE email = $1",
     )
     .bind(&email)
-    .fetch_optional(pool.get_ref())
+    .fetch_optional(&platform_pool.0)
     .await?;
 
     let confirm_token = generate_confirm_token(&email);
@@ -122,7 +123,7 @@ pub async fn subscribe(
             )
             .bind(&confirm_token)
             .bind(&email)
-            .execute(pool.get_ref())
+            .execute(&platform_pool.0)
             .await?;
         } else {
             // Exists but not confirmed - update token
@@ -131,7 +132,7 @@ pub async fn subscribe(
             )
             .bind(&confirm_token)
             .bind(&email)
-            .execute(pool.get_ref())
+            .execute(&platform_pool.0)
             .await?;
         }
     } else {
@@ -144,7 +145,7 @@ pub async fn subscribe(
         .bind(&email)
         .bind(source)
         .bind(&confirm_token)
-        .execute(pool.get_ref())
+        .execute(&platform_pool.0)
         .await?;
 
         notifier.send(
@@ -211,7 +212,7 @@ pub struct ConfirmQuery {
     pub email: String,
 }
 
-pub async fn confirm(pool: web::Data<PgPool>, query: web::Query<ConfirmQuery>) -> HttpResponse {
+pub async fn confirm(platform_pool: web::Data<PlatformPool>, query: web::Query<ConfirmQuery>) -> HttpResponse {
     let email = query.email.trim().to_lowercase();
     let expected_token = generate_confirm_token(&email);
 
@@ -229,7 +230,7 @@ pub async fn confirm(pool: web::Data<PgPool>, query: web::Query<ConfirmQuery>) -
            RETURNING id"#,
     )
     .bind(&email)
-    .fetch_optional(pool.get_ref())
+    .fetch_optional(&platform_pool.0)
     .await;
 
     match result {
@@ -260,7 +261,7 @@ pub async fn confirm(pool: web::Data<PgPool>, query: web::Query<ConfirmQuery>) -
                         "UPDATE newsletter_subscribers SET mailgun_synced = true, updated_at = NOW() WHERE email = $1",
                     )
                     .bind(&email)
-                    .execute(pool.get_ref())
+                    .execute(&platform_pool.0)
                     .await;
                 }
             }
@@ -290,7 +291,7 @@ pub struct UnsubscribeRequest {
 }
 
 pub async fn unsubscribe(
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     body: web::Json<UnsubscribeRequest>,
 ) -> Result<HttpResponse, AppError> {
     let email = body.email.trim().to_lowercase();
@@ -309,7 +310,7 @@ pub async fn unsubscribe(
            WHERE email = $1"#,
     )
     .bind(&email)
-    .execute(pool.get_ref())
+    .execute(&platform_pool.0)
     .await?;
 
     // Remove from Mailgun
@@ -350,7 +351,7 @@ pub struct SubscriberQuery {
 }
 
 pub async fn admin_subscribers(
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     _admin: AdminUser,
     query: web::Query<SubscriberQuery>,
 ) -> Result<HttpResponse, AppError> {
@@ -363,28 +364,28 @@ pub async fn admin_subscribers(
         "SELECT COUNT(*) FROM newsletter_subscribers WHERE ($1 = '' OR source = $1)",
     )
     .bind(app_key)
-    .fetch_one(pool.get_ref())
+    .fetch_one(&platform_pool.0)
     .await?;
 
     let subscribed: i64 = sqlx::query_scalar(
         "SELECT COUNT(*) FROM newsletter_subscribers WHERE subscribed = true AND confirmed = true AND ($1 = '' OR source = $1)",
     )
     .bind(app_key)
-    .fetch_one(pool.get_ref())
+    .fetch_one(&platform_pool.0)
     .await?;
 
     let unsubscribed: i64 = sqlx::query_scalar(
         "SELECT COUNT(*) FROM newsletter_subscribers WHERE subscribed = false AND ($1 = '' OR source = $1)",
     )
     .bind(app_key)
-    .fetch_one(pool.get_ref())
+    .fetch_one(&platform_pool.0)
     .await?;
 
     let pending: i64 = sqlx::query_scalar(
         "SELECT COUNT(*) FROM newsletter_subscribers WHERE subscribed = true AND confirmed = false AND ($1 = '' OR source = $1)",
     )
     .bind(app_key)
-    .fetch_one(pool.get_ref())
+    .fetch_one(&platform_pool.0)
     .await?;
 
     let rows = sqlx::query(
@@ -398,7 +399,7 @@ pub async fn admin_subscribers(
     .bind(per_page)
     .bind(offset)
     .bind(app_key)
-    .fetch_all(pool.get_ref())
+    .fetch_all(&platform_pool.0)
     .await?;
 
     let subscribers: Vec<serde_json::Value> = rows
@@ -439,7 +440,7 @@ pub async fn admin_subscribers(
 // ---------------------------------------------------------------------------
 
 pub async fn admin_export(
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     _admin: AdminUser,
 ) -> Result<HttpResponse, AppError> {
     let rows = sqlx::query(
@@ -448,7 +449,7 @@ pub async fn admin_export(
            WHERE subscribed = true AND confirmed = true
            ORDER BY created_at DESC"#,
     )
-    .fetch_all(pool.get_ref())
+    .fetch_all(&platform_pool.0)
     .await?;
 
     let mut csv = String::from("email,source,subscribed,confirmed,confirmed_at,created_at\n");
@@ -486,7 +487,7 @@ pub async fn admin_export(
 // ---------------------------------------------------------------------------
 
 pub async fn admin_sync(
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     _admin: AdminUser,
 ) -> Result<HttpResponse, AppError> {
     let mailgun_key = std::env::var("MAILGUN_API_KEY").unwrap_or_default();
@@ -506,7 +507,7 @@ pub async fn admin_sync(
         r#"SELECT id, email FROM newsletter_subscribers
            WHERE subscribed = true AND confirmed = true AND mailgun_synced = false"#,
     )
-    .fetch_all(pool.get_ref())
+    .fetch_all(&platform_pool.0)
     .await?;
 
     let client = reqwest::Client::new();
@@ -537,7 +538,7 @@ pub async fn admin_sync(
                     "UPDATE newsletter_subscribers SET mailgun_synced = true, updated_at = NOW() WHERE id = $1",
                 )
                 .bind(id)
-                .execute(pool.get_ref())
+                .execute(&platform_pool.0)
                 .await;
                 synced += 1;
             }

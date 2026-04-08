@@ -1,0 +1,32 @@
+# Sovereign Link Platform Mode -- multi-stage Docker build
+# Produces a minimal image with the sli-api binary
+
+FROM rust:1.88-slim-bookworm AS builder
+
+WORKDIR /build
+
+# Copy workspace files
+COPY Cargo.toml Cargo.lock ./
+COPY crates/ crates/
+COPY platform/ platform/
+COPY apps/technology/sovereign-link/ apps/technology/sovereign-link/
+COPY apps/platform/brickos-platform-api/ apps/platform/brickos-platform-api/
+
+# Need a stub for SHI to satisfy workspace (not built)
+RUN mkdir -p apps/health/sovereign-health/api/src && \
+    echo "fn main() {}" > apps/health/sovereign-health/api/src/main.rs && \
+    echo '[package]\nname = "sovereign-health-backend"\nversion = "0.1.0"\nedition = "2021"\n[dependencies]' > apps/health/sovereign-health/api/Cargo.toml
+
+RUN cargo build -p sovereign-link --features platform --no-default-features --release
+
+FROM debian:bookworm-slim AS runtime
+
+RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/lists/*
+
+COPY --from=builder /build/target/release/sovereign-link /usr/local/bin/sli-api
+
+ENV SLI_HOST=0.0.0.0
+ENV SLI_PORT=8082
+EXPOSE 8082
+
+CMD ["sli-api"]

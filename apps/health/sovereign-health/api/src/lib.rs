@@ -38,6 +38,11 @@ pub mod templates;
 pub const VERSION: &str = "0.41.0";
 pub const SERVICE_NAME: &str = "sovereign-health-backend";
 
+/// Platform database pool (brickos DB -- users, orgs, billing, service accounts).
+/// Distinguished from the app pool (health DB) via newtype pattern.
+#[derive(Clone)]
+pub struct PlatformPool(pub sqlx::PgPool);
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct HealthResponse {
     pub status: String,
@@ -66,6 +71,8 @@ pub struct AiSystemInfo {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct HealthChecks {
     pub database: HealthCheckResult,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub platform_database: Option<HealthCheckResult>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -4,7 +4,7 @@ use actix_web::{web, FromRequest, HttpRequest};
 use std::future::{ready, Ready};
 use uuid::Uuid;
 
-use crate::{config::Config, error::AppError, services::auth::verify_jwt_with_fallback};
+use crate::{config::Config, error::AppError, services::auth::verify_jwt_with_fallback, PlatformPool};
 
 pub struct AuthenticatedUser {
     pub user_id: Uuid,
@@ -88,8 +88,12 @@ fn extract_user(req: &HttpRequest) -> Result<AuthenticatedUser, AppError> {
     let user_id = Uuid::parse_str(&claims.sub).map_err(|_| AppError::Unauthorized)?;
 
     // Update last_active_at (throttled: only if >5 min since last update)
-    if let Some(pool) = req.app_data::<web::Data<sqlx::PgPool>>() {
-        let pool = pool.get_ref().clone();
+    // Prefer PlatformPool (users table lives in platform DB), fall back to app pool
+    let platform_pool_clone = req
+        .app_data::<web::Data<PlatformPool>>()
+        .map(|p| p.0.clone())
+        .or_else(|| req.app_data::<web::Data<sqlx::PgPool>>().map(|p| p.get_ref().clone()));
+    if let Some(pool) = platform_pool_clone {
         let uid = user_id;
         tokio::spawn(async move {
             let _ = sqlx::query(

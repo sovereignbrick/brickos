@@ -10,6 +10,7 @@ use brickos_email::EmailProvider;
 
 use crate::error::AppError;
 use crate::handlers::admin_settings::get_setting_string;
+use crate::PlatformPool;
 
 #[derive(Deserialize)]
 pub struct ContactRequest {
@@ -59,7 +60,7 @@ fn extract_ip(req: &HttpRequest) -> String {
 pub async fn submit(
     req: HttpRequest,
     body: web::Json<ContactRequest>,
-    pool: web::Data<sqlx::PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     email_provider: web::Data<Arc<dyn EmailProvider>>,
     enc: web::Data<crate::services::encryption::Encryptor>,
     notifier: web::Data<crate::services::notify::Notifier>,
@@ -99,7 +100,7 @@ pub async fn submit(
     )
     .bind(&ip_hash)
     .bind(one_hour_ago)
-    .fetch_one(pool.get_ref())
+    .fetch_one(&platform_pool.0)
     .await
     .unwrap_or(0);
 
@@ -123,7 +124,7 @@ pub async fn submit(
     .bind(&subject)
     .bind(&message)
     .bind(&ip_hash)
-    .execute(pool.get_ref())
+    .execute(&platform_pool.0)
     .await
     .map_err(|e| {
         tracing::error!("Failed to store contact submission: {e}");
@@ -134,7 +135,7 @@ pub async fn submit(
     let env_fallback = std::env::var("CONTACT_FORM_RECIPIENT")
         .unwrap_or_else(|_| "sovereignhealthintelligence@proton.me".to_string());
     let admin_email =
-        get_setting_string(pool.get_ref(), "contact_form_recipient", &env_fallback).await;
+        get_setting_string(&platform_pool.0, "contact_form_recipient", &env_fallback).await;
 
     // Send notification email to admin (non-blocking)
     let provider = email_provider.get_ref().clone();
@@ -199,10 +200,9 @@ pub async fn submit(
 // ---------------------------------------------------------------------------
 
 use crate::middleware::auth::AdminUser;
-use sqlx::PgPool;
 
 pub async fn admin_list(
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     enc: web::Data<crate::services::encryption::Encryptor>,
     _admin: AdminUser,
 ) -> Result<HttpResponse, AppError> {
@@ -214,7 +214,7 @@ pub async fn admin_list(
            ORDER BY created_at DESC
            LIMIT 100"#,
     )
-    .fetch_all(pool.get_ref())
+    .fetch_all(&platform_pool.0)
     .await?;
 
     let entries: Vec<serde_json::Value> = rows
@@ -243,7 +243,7 @@ pub async fn admin_list(
 }
 
 pub async fn admin_update_status(
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     _admin: AdminUser,
     path: web::Path<uuid::Uuid>,
     body: web::Json<serde_json::Value>,
@@ -261,7 +261,7 @@ pub async fn admin_update_status(
     sqlx::query("UPDATE contact_submissions SET status = $1, processed_at = CASE WHEN $1 != 'new' THEN NOW() ELSE processed_at END WHERE id = $2")
         .bind(status)
         .bind(id)
-        .execute(pool.get_ref())
+        .execute(&platform_pool.0)
         .await?;
 
     Ok(HttpResponse::Ok().json(json!({

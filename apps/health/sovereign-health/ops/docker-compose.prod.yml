@@ -6,7 +6,7 @@ name: sovereign-health
 
 services:
   backend:
-    image: sovereign-health-backend:latest
+    image: sovereignbrick/shi-api:latest  # was: sovereign-health-backend (ADR-042)
     ports:
       - "127.0.0.1:8080:8080"
     volumes:
@@ -56,7 +56,7 @@ services:
     restart: unless-stopped
 
   frontend:
-    image: sovereign-health-frontend:latest
+    image: sovereignbrick/shi-web:latest  # was: sovereign-health-frontend (ADR-042)
     ports:
       - "127.0.0.1:3000:3000"
     environment:

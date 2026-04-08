@@ -9,6 +9,7 @@ pub mod calculated;
 pub mod content;
 pub mod doctor_chat;
 pub mod encryption;
+pub mod link_client;
 pub mod extraction_prompts;
 pub mod licensing;
 pub mod marker_matcher;

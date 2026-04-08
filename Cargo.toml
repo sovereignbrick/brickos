@@ -8,9 +8,12 @@ members = [
     "crates/brickos-backup",
     "crates/brickos-email",
     "crates/brickos-billing",
+    "crates/brickos-notify",
+    "crates/brickos-i18n",
     "crates/brickos-startos",
     "apps/health/sovereign-health/api",
     "apps/technology/sovereign-link",
+    "apps/platform/brickos-platform-api",
     # "apps/finance/btc-tracker/api",
 ]
 
@@ -37,4 +40,6 @@ brickos-db = { path = "crates/brickos-db" }
 brickos-backup = { path = "crates/brickos-backup" }
 brickos-email = { path = "crates/brickos-email" }
 brickos-billing = { path = "crates/brickos-billing" }
+brickos-notify = { path = "crates/brickos-notify" }
+brickos-i18n = { path = "crates/brickos-i18n" }
 sovereign-link = { path = "apps/technology/sovereign-link" }

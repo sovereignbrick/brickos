@@ -6,15 +6,16 @@ use serde::Deserialize;
 use serde_json::json;
 use sqlx::{PgPool, Row};
 
-use crate::{error::AppError, middleware::auth::AuthenticatedUser, services::tier};
+use crate::{error::AppError, middleware::auth::AuthenticatedUser, services::tier, PlatformPool};
 
 // ── GET /license ─────────────────────────────────────────────────────────────
 
 pub async fn get_license(
     pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     auth: AuthenticatedUser,
 ) -> Result<HttpResponse, AppError> {
-    let info = tier::get_full_license_info(pool.get_ref(), auth.user_id).await?;
+    let info = tier::get_full_license_info(&platform_pool.0, pool.get_ref(), auth.user_id).await?;
 
     Ok(HttpResponse::Ok().json(json!({
         "data": info,
@@ -24,7 +25,7 @@ pub async fn get_license(
 
 // ── GET /license/tiers ───────────────────────────────────────────────────────
 
-pub async fn list_tiers(pool: web::Data<PgPool>) -> Result<HttpResponse, AppError> {
+pub async fn list_tiers(platform_pool: web::Data<PlatformPool>) -> Result<HttpResponse, AppError> {
     let rows = sqlx::query(
         r#"SELECT slug, name, tagline, description,
             price_monthly_eur::float8 as price_monthly,
@@ -44,7 +45,7 @@ pub async fn list_tiers(pool: web::Data<PgPool>) -> Result<HttpResponse, AppErro
         WHERE is_active = true AND slug != 'core'
         ORDER BY display_order ASC"#,
     )
-    .fetch_all(pool.get_ref())
+    .fetch_all(&platform_pool.0)
     .await?;
 
     // Load tier_features SSoT data for all active tiers in one query
@@ -55,7 +56,7 @@ pub async fn list_tiers(pool: web::Data<PgPool>) -> Result<HttpResponse, AppErro
         JOIN product_features pf ON pf.id = tf.feature_id
         WHERE pf.status != 'deprecated'"#,
     )
-    .fetch_all(pool.get_ref())
+    .fetch_all(&platform_pool.0)
     .await?;
 
     // Build map: tier_slug -> feature_key -> { included, limit_value, limit_label_en, limit_label_de }
@@ -150,15 +151,16 @@ pub async fn list_tiers(pool: web::Data<PgPool>) -> Result<HttpResponse, AppErro
 
 pub async fn get_usage(
     pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     auth: AuthenticatedUser,
 ) -> Result<HttpResponse, AppError> {
     // Measurement usage
     let (measurements_used, measurements_limit) =
-        tier::get_measurement_usage(pool.get_ref(), auth.user_id).await?;
+        tier::get_measurement_usage(&platform_pool.0, pool.get_ref(), auth.user_id).await?;
     let measurements_unlimited = measurements_limit.is_none();
 
     // AI chat usage (general agent as representative)
-    let tier_limits = tier::get_user_tier(pool.get_ref(), auth.user_id).await?;
+    let tier_limits = tier::get_user_tier(&platform_pool.0, auth.user_id).await?;
     let now = chrono::Utc::now();
     let month_year = format!("{}-{:02}", now.year(), now.month());
 
@@ -217,7 +219,7 @@ pub struct DowngradeRequest {
 }
 
 pub async fn downgrade(
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     config: web::Data<crate::config::Config>,
     auth: AuthenticatedUser,
     body: web::Json<DowngradeRequest>,
@@ -229,7 +231,7 @@ pub async fn downgrade(
         "SELECT id, slug, name, display_order FROM license_tiers WHERE slug = $1 AND is_active = true",
     )
     .bind(&target_slug)
-    .fetch_optional(pool.get_ref())
+    .fetch_optional(&platform_pool.0)
     .await?
     .ok_or_else(|| AppError::Validation("Invalid target tier".to_string()))?;
 
@@ -243,7 +245,7 @@ pub async fn downgrade(
         WHERE ul.user_id = $1"#,
     )
     .bind(auth.user_id)
-    .fetch_optional(pool.get_ref())
+    .fetch_optional(&platform_pool.0)
     .await?
     .ok_or(AppError::NotFound)?;
 
@@ -271,14 +273,14 @@ pub async fn downgrade(
     .bind(grace_ends)
     .bind(&current_slug)
     .bind(auth.user_id)
-    .execute(pool.get_ref())
+    .execute(&platform_pool.0)
     .await?;
 
     // Update users.tier column
     sqlx::query("UPDATE users SET tier = $1 WHERE id = $2")
         .bind(&target_slug)
         .bind(auth.user_id)
-        .execute(pool.get_ref())
+        .execute(&platform_pool.0)
         .await?;
 
     // Log event
@@ -290,7 +292,7 @@ pub async fn downgrade(
     .bind(&current_slug)
     .bind(&target_slug)
     .bind(json!({ "reason": body.reason }))
-    .execute(pool.get_ref())
+    .execute(&platform_pool.0)
     .await?;
 
     Ok(HttpResponse::Ok().json(json!({
@@ -307,7 +309,7 @@ pub async fn downgrade(
 
 // ── GET /api/tiers/features (public, no auth) ──────────────────────────────
 
-pub async fn tiers_features(pool: web::Data<PgPool>) -> Result<HttpResponse, AppError> {
+pub async fn tiers_features(platform_pool: web::Data<PlatformPool>) -> Result<HttpResponse, AppError> {
     // 1. Fetch all active tiers (exclude 'core')
     let tier_rows = sqlx::query(
         r#"SELECT slug, name, name AS name_de,
@@ -317,7 +319,7 @@ pub async fn tiers_features(pool: web::Data<PgPool>) -> Result<HttpResponse, App
         WHERE is_active = true AND slug != 'core'
         ORDER BY display_order ASC"#,
     )
-    .fetch_all(pool.get_ref())
+    .fetch_all(&platform_pool.0)
     .await?;
 
     let tiers: Vec<serde_json::Value> = tier_rows
@@ -346,7 +348,7 @@ pub async fn tiers_features(pool: web::Data<PgPool>) -> Result<HttpResponse, App
         WHERE pf.status != 'deprecated'
         ORDER BY pf.category, pf.sort_order"#,
     )
-    .fetch_all(pool.get_ref())
+    .fetch_all(&platform_pool.0)
     .await?;
 
     // 3. Fetch all tier_features
@@ -357,7 +359,7 @@ pub async fn tiers_features(pool: web::Data<PgPool>) -> Result<HttpResponse, App
         JOIN product_features pf ON pf.id = tf.feature_id
         WHERE pf.status != 'deprecated'"#,
     )
-    .fetch_all(pool.get_ref())
+    .fetch_all(&platform_pool.0)
     .await?;
 
     // Build a map: feature_id -> tier_key -> tier_feature data

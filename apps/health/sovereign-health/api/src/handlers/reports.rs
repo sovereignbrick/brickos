@@ -17,6 +17,7 @@ use crate::{
         },
         tier,
     },
+    PlatformPool,
 };
 
 // ---------------------------------------------------------------------------
@@ -366,6 +367,7 @@ fn default_period() -> String {
 
 pub async fn health_pdf(
     pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     auth: AuthenticatedUser,
     enc: web::Data<Encryptor>,
     body: web::Json<PdfReportRequest>,
@@ -403,11 +405,11 @@ pub async fn health_pdf(
     )
     .await;
 
-    // Get user info
+    // Get user info (platform table)
     use sqlx::Row;
     let user_row = sqlx::query("SELECT display_name, email FROM users WHERE id = $1")
         .bind(auth.user_id)
-        .fetch_one(pool.get_ref())
+        .fetch_one(&platform_pool.0)
         .await?;
     let user_name: String = user_row
         .try_get::<Option<String>, _>("display_name")
@@ -420,12 +422,12 @@ pub async fn health_pdf(
         .flatten()
         .unwrap_or_default();
 
-    // Get profile data (encrypted fields)
+    // Get profile data (encrypted fields) (platform table)
     let profile_row = sqlx::query(
         "SELECT height_cm, default_waist_cm, default_weight_kg, country_code, gender, age FROM user_profile WHERE user_id = $1",
     )
     .bind(auth.user_id)
-    .fetch_optional(pool.get_ref())
+    .fetch_optional(&platform_pool.0)
     .await?;
 
     let user_age: Option<i32> = profile_row
@@ -652,6 +654,7 @@ pub struct JsonExportQuery {
 
 pub async fn export_json(
     pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     auth: AuthenticatedUser,
     enc: web::Data<Encryptor>,
     query: web::Query<JsonExportQuery>,
@@ -673,11 +676,11 @@ pub async fn export_json(
     let period = query.period.as_deref().unwrap_or("all");
     let from = period_to_from(period);
 
-    // User info
+    // User info (platform table)
     let user_row =
         sqlx::query("SELECT email, display_name, role, created_at FROM users WHERE id = $1")
             .bind(auth.user_id)
-            .fetch_optional(pool.get_ref())
+            .fetch_optional(&platform_pool.0)
             .await?;
     let export_email: String = user_row
         .as_ref()
@@ -697,12 +700,12 @@ pub async fn export_json(
         .map(|t| t.to_rfc3339())
         .unwrap_or_default();
 
-    // Profile (enhanced: includes country, waist, weight, gender, age)
+    // Profile (enhanced: includes country, waist, weight, gender, age) (platform table)
     let profile_row = sqlx::query(
         "SELECT height_cm, default_waist_cm, default_weight_kg, country_code, gender, age FROM user_profile WHERE user_id = $1",
     )
     .bind(auth.user_id)
-    .fetch_optional(pool.get_ref())
+    .fetch_optional(&platform_pool.0)
     .await?;
 
     let pref_row = sqlx::query(

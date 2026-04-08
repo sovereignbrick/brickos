@@ -797,6 +797,7 @@ pub struct VanityRequest {
 
 pub async fn set_vanity(
     pool: web::Data<PgPool>,
+    config: web::Data<crate::config::Config>,
     auth: AuthenticatedUser,
     body: web::Json<VanityRequest>,
 ) -> Result<HttpResponse, AppError> {
@@ -864,45 +865,37 @@ pub async fn set_vanity(
 
     let target_url = format!("https://app.sovereignhealth.io/?ref={}", affiliate_code);
 
-    // Upsert: create or update vanity link
-    let result = sqlx::query(
-        r#"INSERT INTO short_links (id, code, target_url, link_type, domain, app_key, owner_user_id, affiliate_code, title)
-           VALUES (gen_random_uuid(), $1, $2, 'vanity', 'health', 'sovereign-health', $3, $4, $1)
-           ON CONFLICT (code) DO UPDATE SET
-               target_url = EXCLUDED.target_url,
-               owner_user_id = EXCLUDED.owner_user_id,
-               updated_at = now()
-           WHERE short_links.owner_user_id = $3 OR short_links.owner_user_id IS NULL"#,
+    // Create vanity link via Sovereign Link service API (#385)
+    let link_cfg = config.link_service_config();
+    match crate::services::link_client::create_vanity_link(
+        &link_cfg,
+        &code,
+        &target_url,
+        user_id,
     )
-    .bind(&code)
-    .bind(&target_url)
-    .bind(user_id)
-    .bind(&affiliate_code)
-    .execute(pool.get_ref())
-    .await;
-
-    match result {
-        Ok(r) if r.rows_affected() > 0 => {
-            Ok(HttpResponse::Ok().json(json!({
-                "data": {
-                    "vanity_link": format!("https://brickos.io/r/{}", code),
-                    "code": code
-                },
-                "error": null
+    .await
+    {
+        Ok(_created_code) => Ok(HttpResponse::Ok().json(json!({
+            "data": {
+                "vanity_link": format!("https://brickos.io/r/{}", code),
+                "code": code
+            },
+            "error": null
+        }))),
+        Err(e) if e.contains("already taken") || e.contains("Code already taken") => {
+            Ok(HttpResponse::Conflict().json(json!({
+                "error": { "code": "CODE_TAKEN", "message": "This code is already taken" }
             })))
         }
-        Ok(_) => Ok(HttpResponse::Conflict().json(json!({
-            "error": { "code": "CODE_TAKEN", "message": "This code is already taken by another user" }
-        }))),
+        Err(e) if e.contains("not configured") => {
+            tracing::warn!("Vanity link creation skipped: SLI service not configured");
+            Ok(HttpResponse::ServiceUnavailable().json(json!({
+                "error": { "code": "SERVICE_UNAVAILABLE", "message": "Link service not configured" }
+            })))
+        }
         Err(e) => {
-            let msg = e.to_string();
-            if msg.contains("unique") || msg.contains("duplicate") {
-                Ok(HttpResponse::Conflict().json(json!({
-                    "error": { "code": "CODE_TAKEN", "message": "This code is already taken" }
-                })))
-            } else {
-                Err(AppError::Internal)
-            }
+            tracing::error!("Vanity link creation failed via SLI: {e}");
+            Err(AppError::Internal)
         }
     }
 }
@@ -1069,7 +1062,7 @@ pub struct CampaignLinkRequest {
 }
 
 pub async fn admin_create_campaign(
-    pool: web::Data<PgPool>,
+    config: web::Data<crate::config::Config>,
     _admin: AdminUser,
     body: web::Json<CampaignLinkRequest>,
 ) -> Result<HttpResponse, AppError> {
@@ -1080,38 +1073,38 @@ pub async fn admin_create_campaign(
         })));
     }
 
-    let result = sqlx::query(
-        r#"INSERT INTO short_links (id, code, target_url, link_type, domain, app_key, title)
-           VALUES (gen_random_uuid(), $1, $2, 'campaign', 'health', 'sovereign-health', $3)
-           RETURNING id, code, target_url, created_at"#,
+    // Create campaign link via Sovereign Link service API (#385)
+    let link_cfg = config.link_service_config();
+    match crate::services::link_client::create_campaign_link(
+        &link_cfg,
+        &code,
+        &body.target_url,
+        body.title.as_deref(),
     )
-    .bind(&code)
-    .bind(&body.target_url)
-    .bind(&body.title)
-    .fetch_optional(pool.get_ref())
-    .await;
-
-    match result {
-        Ok(Some(row)) => Ok(HttpResponse::Created().json(json!({
+    .await
+    {
+        Ok(_created_code) => Ok(HttpResponse::Created().json(json!({
             "data": {
-                "id": row.try_get::<Uuid, _>("id").unwrap_or_default(),
                 "short_link": format!("https://brickos.io/r/{}", code),
                 "code": code,
                 "target_url": body.target_url,
-                "created_at": row.try_get::<chrono::DateTime<chrono::Utc>, _>("created_at").ok(),
             },
             "error": null
         }))),
-        Ok(None) => Err(AppError::Internal),
+        Err(e) if e.contains("already taken") || e.contains("Code already taken") => {
+            Ok(HttpResponse::Conflict().json(json!({
+                "error": { "code": "CODE_TAKEN", "message": "This code is already taken" }
+            })))
+        }
+        Err(e) if e.contains("not configured") => {
+            tracing::warn!("Campaign link creation skipped: SLI service not configured");
+            Ok(HttpResponse::ServiceUnavailable().json(json!({
+                "error": { "code": "SERVICE_UNAVAILABLE", "message": "Link service not configured" }
+            })))
+        }
         Err(e) => {
-            let msg = e.to_string();
-            if msg.contains("unique") || msg.contains("duplicate") {
-                Ok(HttpResponse::Conflict().json(json!({
-                    "error": { "code": "CODE_TAKEN", "message": "This code is already taken" }
-                })))
-            } else {
-                Err(AppError::Internal)
-            }
+            tracing::error!("Campaign link creation failed via SLI: {e}");
+            Err(AppError::Internal)
         }
     }
 }

@@ -37,13 +37,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const [isDemoOnly] = useState(checkDemoOnly)
+  // Grace period after login to suppress spurious session-expired events
+  // that fire before the new token is fully established across API calls.
+  const loginTimestamp = useRef<number>(0)
+
+  const setUserWithTracking = useCallback((newUser: User | null) => {
+    if (newUser) {
+      loginTimestamp.current = Date.now()
+    }
+    setUser(newUser)
+  }, [])
 
   const refreshUser = useCallback(() => {
     if (isDemoOnly || !Cookies.get('auth_token')) return
     api.auth.me()
-      .then(res => setUser(res.data))
+      .then(res => setUserWithTracking(res.data))
       .catch(() => {})
-  }, [isDemoOnly])
+  }, [isDemoOnly, setUserWithTracking])
 
   useEffect(() => {
     // On demo.sovereignhealth.io or when no token exists, skip auth
@@ -52,10 +62,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return
     }
     api.auth.me()
-      .then(res => setUser(res.data))
+      .then(res => setUserWithTracking(res.data))
       .catch(() => setUser(null))
       .finally(() => setLoading(false))
-  }, [isDemoOnly])
+  }, [isDemoOnly, setUserWithTracking])
 
   // Re-fetch user profile on window focus to pick up tier/license changes
   const lastRefresh = useRef(Date.now())
@@ -77,6 +87,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const handleSessionExpired = useCallback(() => {
     if (!user) return
+    // Suppress session-expired events within 5 seconds of login to prevent
+    // redirect loops where API calls on the target page race with token
+    // establishment and briefly return 401 (#0378).
+    const LOGIN_GRACE_MS = 5000
+    if (Date.now() - loginTimestamp.current < LOGIN_GRACE_MS) return
     clearToken()
     setUser(null)
     const returnUrl = encodeURIComponent(window.location.pathname + window.location.search)
@@ -92,7 +107,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const isDemo = !loading && (user === null || isDemoOnly)
 
   return (
-    <AuthContext.Provider value={{ user, loading, isDemo, isDemoOnly, setUser, refreshUser, logout, handleSessionExpired }}>
+    <AuthContext.Provider value={{ user, loading, isDemo, isDemoOnly, setUser: setUserWithTracking, refreshUser, logout, handleSessionExpired }}>
       {children}
     </AuthContext.Provider>
   )

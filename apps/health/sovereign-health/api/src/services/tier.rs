@@ -462,16 +462,17 @@ pub async fn check_measurement_cap(pool: &PgPool, user_id: Uuid) -> Result<(), A
 
 /// Get measurement usage for the current user (used + limit)
 pub async fn get_measurement_usage(
-    pool: &PgPool,
+    platform_pool: &PgPool,
+    app_pool: &PgPool,
     user_id: Uuid,
 ) -> Result<(i64, Option<i32>), AppError> {
-    let tier = get_user_tier(pool, user_id).await?;
+    let tier = get_user_tier(platform_pool, user_id).await?;
 
     let count: i64 = sqlx::query_scalar(
         "SELECT COUNT(*) FROM measurements WHERE user_id = $1 AND is_deleted = false AND is_demo = false",
     )
     .bind(user_id)
-    .fetch_one(pool)
+    .fetch_one(app_pool)
     .await
     .unwrap_or(0);
 
@@ -479,8 +480,12 @@ pub async fn get_measurement_usage(
 }
 
 /// Get full license info for the /license endpoint
-pub async fn get_full_license_info(pool: &PgPool, user_id: Uuid) -> Result<LicenseInfo, AppError> {
-    let limits = get_user_tier(pool, user_id).await?;
+pub async fn get_full_license_info(
+    platform_pool: &PgPool,
+    app_pool: &PgPool,
+    user_id: Uuid,
+) -> Result<LicenseInfo, AppError> {
+    let limits = get_user_tier(platform_pool, user_id).await?;
 
     // Admin users get a synthetic license info
     if limits.tier_slug == "admin" {
@@ -510,7 +515,7 @@ pub async fn get_full_license_info(pool: &PgPool, user_id: Uuid) -> Result<Licen
         WHERE ul.user_id = $1"#,
     )
     .bind(user_id)
-    .fetch_optional(pool)
+    .fetch_optional(platform_pool)
     .await?;
 
     let (tier_info, status, started_at, expires_at, downgrade_info) = match license_row {
@@ -575,7 +580,7 @@ pub async fn get_full_license_info(pool: &PgPool, user_id: Uuid) -> Result<Licen
     };
 
     // Get all agent quotas for current month
-    let chat_quota = get_all_agent_quotas(pool, user_id, &limits).await?;
+    let chat_quota = get_all_agent_quotas(app_pool, user_id, &limits).await?;
 
     Ok(LicenseInfo {
         tier: tier_info,

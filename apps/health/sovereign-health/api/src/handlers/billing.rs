@@ -14,6 +14,7 @@ use brickos_email::EmailProvider;
 use crate::{
     config::Config,
     middleware::auth::{AdminUser, AuthenticatedUser},
+    PlatformPool,
 };
 
 // ---------------------------------------------------------------------------
@@ -59,14 +60,14 @@ pub struct RefundRequest {
 
 pub async fn checkout(
     req: HttpRequest,
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     config: web::Data<Config>,
     stripe: Option<web::Data<StripeService>>,
     user: AuthenticatedUser,
     body: web::Json<CheckoutRequest>,
 ) -> HttpResponse {
     // Check payment whitelist gate
-    if let Err(resp) = crate::handlers::payments::check_payment_allowed(&req, pool.get_ref()).await
+    if let Err(resp) = crate::handlers::payments::check_payment_allowed(&req, &platform_pool.0).await
     {
         return resp;
     }
@@ -106,7 +107,7 @@ pub async fn checkout(
     .bind(body.company_name.as_deref())
     .bind(body.vat_id.as_deref())
     .bind(user.user_id)
-    .execute(pool.get_ref())
+    .execute(&platform_pool.0)
     .await;
 
     // If organization with VAT ID, store in customer_tax_ids
@@ -133,14 +134,14 @@ pub async fn checkout(
                 .bind(user.user_id)
                 .bind(&tax_type)
                 .bind(vat_id)
-                .execute(pool.get_ref())
+                .execute(&platform_pool.0)
                 .await;
             }
         }
     }
 
     // Get or create Stripe customer
-    let customer_id = match get_or_create_customer(&pool, &stripe, user.user_id).await {
+    let customer_id = match get_or_create_customer(&platform_pool.0, &stripe, user.user_id).await {
         Ok(c) => c,
         Err(e) => {
             tracing::error!("Stripe customer creation failed: {}", e);
@@ -165,7 +166,7 @@ pub async fn checkout(
             "SELECT stripe_promo_code_id FROM promotions WHERE UPPER(code) = $1 AND is_active = true",
         )
         .bind(&code_upper)
-        .fetch_optional(pool.get_ref())
+        .fetch_optional(&platform_pool.0)
         .await
         .ok()
         .flatten()
@@ -208,7 +209,7 @@ pub async fn checkout(
 // ---------------------------------------------------------------------------
 
 pub async fn portal(
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     config: web::Data<Config>,
     stripe: Option<web::Data<StripeService>>,
     user: AuthenticatedUser,
@@ -222,7 +223,7 @@ pub async fn portal(
             })),
         };
 
-    let customer_id = match get_stripe_customer_id(&pool, user.user_id).await {
+    let customer_id = match get_stripe_customer_id(&platform_pool.0, user.user_id).await {
         Ok(Some(c)) => c,
         Ok(None) => {
             return HttpResponse::BadRequest().json(json!({
@@ -264,7 +265,7 @@ pub async fn portal(
 // ---------------------------------------------------------------------------
 
 pub async fn status(
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     stripe: Option<web::Data<StripeService>>,
     user: AuthenticatedUser,
 ) -> HttpResponse {
@@ -279,7 +280,7 @@ pub async fn status(
            ORDER BY created_at DESC LIMIT 1"#,
     )
     .bind(user.user_id)
-    .fetch_optional(pool.get_ref())
+    .fetch_optional(&platform_pool.0)
     .await;
 
     // Check for active BTC prepaid payment
@@ -291,7 +292,7 @@ pub async fn status(
            ORDER BY prepaid_until DESC LIMIT 1"#,
     )
     .bind(user.user_id)
-    .fetch_optional(pool.get_ref())
+    .fetch_optional(&platform_pool.0)
     .await;
 
     let btc_payment = match btc_info {
@@ -312,7 +313,7 @@ pub async fn status(
         "SELECT COALESCE(payment_method, 'stripe') FROM user_licenses WHERE user_id = $1",
     )
     .bind(user.user_id)
-    .fetch_optional(pool.get_ref())
+    .fetch_optional(&platform_pool.0)
     .await
     .unwrap_or(None)
     .unwrap_or_else(|| "stripe".to_string());
@@ -368,7 +369,7 @@ pub async fn status(
 // ---------------------------------------------------------------------------
 
 pub async fn sync(
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     stripe: Option<web::Data<StripeService>>,
     user: AuthenticatedUser,
 ) -> HttpResponse {
@@ -385,7 +386,7 @@ pub async fn sync(
     let customer_id: Option<String> =
         sqlx::query_scalar("SELECT stripe_customer_id FROM users WHERE id = $1")
             .bind(user.user_id)
-            .fetch_optional(pool.get_ref())
+            .fetch_optional(&platform_pool.0)
             .await
             .unwrap_or(None)
             .flatten();
@@ -472,7 +473,7 @@ pub async fn sync(
     .bind(period_start_dt)
     .bind(period_end_dt)
     .bind(cancel_at_end)
-    .execute(pool.get_ref())
+    .execute(&platform_pool.0)
     .await
     {
         tracing::error!("DB error upserting subscription: {}", e);
@@ -483,7 +484,7 @@ pub async fn sync(
     }
 
     // Update user tier
-    if let Err(e) = update_user_tier(pool.get_ref(), user.user_id, &tier_slug).await {
+    if let Err(e) = update_user_tier(&platform_pool.0, user.user_id, &tier_slug).await {
         tracing::error!("Failed to update user tier: {}", e);
     }
 
@@ -550,13 +551,13 @@ pub async fn sync(
 
 pub async fn change_plan(
     req: HttpRequest,
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     stripe: Option<web::Data<StripeService>>,
     user: AuthenticatedUser,
     body: web::Json<ChangePlanRequest>,
 ) -> HttpResponse {
     // Check payment whitelist gate
-    if let Err(resp) = crate::handlers::payments::check_payment_allowed(&req, pool.get_ref()).await
+    if let Err(resp) = crate::handlers::payments::check_payment_allowed(&req, &platform_pool.0).await
     {
         return resp;
     }
@@ -586,7 +587,7 @@ pub async fn change_plan(
          ORDER BY created_at DESC LIMIT 1",
     )
     .bind(user.user_id)
-    .fetch_optional(pool.get_ref())
+    .fetch_optional(&platform_pool.0)
     .await;
 
     let sub = match sub {
@@ -640,12 +641,12 @@ pub async fn change_plan(
 
 pub async fn change_interval(
     req: HttpRequest,
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     stripe: Option<web::Data<StripeService>>,
     user: AuthenticatedUser,
     body: web::Json<ChangeIntervalRequest>,
 ) -> HttpResponse {
-    if let Err(resp) = crate::handlers::payments::check_payment_allowed(&req, pool.get_ref()).await
+    if let Err(resp) = crate::handlers::payments::check_payment_allowed(&req, &platform_pool.0).await
     {
         return resp;
     }
@@ -673,7 +674,7 @@ pub async fn change_interval(
          ORDER BY created_at DESC LIMIT 1",
     )
     .bind(user.user_id)
-    .fetch_optional(pool.get_ref())
+    .fetch_optional(&platform_pool.0)
     .await;
 
     let sub = match sub {
@@ -743,7 +744,7 @@ pub async fn change_interval(
 // GET /billing/history
 // ---------------------------------------------------------------------------
 
-pub async fn payment_history(pool: web::Data<PgPool>, user: AuthenticatedUser) -> HttpResponse {
+pub async fn payment_history(platform_pool: web::Data<PlatformPool>, user: AuthenticatedUser) -> HttpResponse {
     let rows = sqlx::query(
         r#"SELECT stripe_event_id, event_type, amount_cents, status, created_at
            FROM payment_events
@@ -753,7 +754,7 @@ pub async fn payment_history(pool: web::Data<PgPool>, user: AuthenticatedUser) -
            LIMIT 50"#,
     )
     .bind(user.user_id)
-    .fetch_all(pool.get_ref())
+    .fetch_all(&platform_pool.0)
     .await;
 
     match rows {
@@ -792,7 +793,7 @@ pub async fn payment_history(pool: web::Data<PgPool>, user: AuthenticatedUser) -
 // ---------------------------------------------------------------------------
 
 pub async fn cancel(
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     stripe: Option<web::Data<StripeService>>,
     user: AuthenticatedUser,
     notifier: web::Data<crate::services::notify::Notifier>,
@@ -813,7 +814,7 @@ pub async fn cancel(
          ORDER BY created_at DESC LIMIT 1",
     )
     .bind(user.user_id)
-    .fetch_optional(pool.get_ref())
+    .fetch_optional(&platform_pool.0)
     .await;
 
     let sub = match sub {
@@ -852,7 +853,7 @@ pub async fn cancel(
             )
             .bind(&sub_id)
             .bind(&cancel_reason)
-            .execute(pool.get_ref())
+            .execute(&platform_pool.0)
             .await;
 
             // Notify admins
@@ -895,7 +896,7 @@ pub async fn cancel(
 // ---------------------------------------------------------------------------
 
 pub async fn reactivate(
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     stripe: Option<web::Data<StripeService>>,
     user: AuthenticatedUser,
     notifier: web::Data<crate::services::notify::Notifier>,
@@ -916,7 +917,7 @@ pub async fn reactivate(
          ORDER BY created_at DESC LIMIT 1",
     )
     .bind(user.user_id)
-    .fetch_optional(pool.get_ref())
+    .fetch_optional(&platform_pool.0)
     .await;
 
     let sub = match sub {
@@ -946,7 +947,7 @@ pub async fn reactivate(
                  WHERE stripe_subscription_id = $1",
             )
             .bind(&sub_id)
-            .execute(pool.get_ref())
+            .execute(&platform_pool.0)
             .await;
 
             // Notify admins
@@ -978,7 +979,7 @@ pub async fn reactivate(
 
 pub async fn webhook(
     req: HttpRequest,
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     config: web::Data<Config>,
     stripe: Option<web::Data<StripeService>>,
     email_provider: web::Data<Arc<dyn EmailProvider>>,
@@ -1012,7 +1013,7 @@ pub async fn webhook(
     // Idempotency check
     let existing = sqlx::query("SELECT id FROM payment_events WHERE stripe_event_id = $1")
         .bind(&event_id)
-        .fetch_optional(pool.get_ref())
+        .fetch_optional(&platform_pool.0)
         .await;
 
     if matches!(existing, Ok(Some(_))) {
@@ -1023,7 +1024,7 @@ pub async fn webhook(
     match event_type.as_str() {
         "checkout.session.completed" => {
             if let Err(e) = handle_checkout_completed(
-                &pool,
+                &platform_pool.0,
                 &stripe,
                 &email_provider,
                 &config,
@@ -1038,7 +1039,7 @@ pub async fn webhook(
         }
         "customer.subscription.updated" => {
             if let Err(e) = handle_subscription_updated(
-                &pool,
+                &platform_pool.0,
                 &stripe,
                 &email_provider,
                 &config,
@@ -1053,7 +1054,7 @@ pub async fn webhook(
         }
         "customer.subscription.deleted" => {
             if let Err(e) = handle_subscription_deleted(
-                &pool,
+                &platform_pool.0,
                 &email_provider,
                 &config,
                 &notifier,
@@ -1067,20 +1068,20 @@ pub async fn webhook(
         }
         "invoice.payment_succeeded" => {
             if let Err(e) =
-                handle_invoice_payment(&pool, &notifier, &event, &event_id, "succeeded").await
+                handle_invoice_payment(&platform_pool.0, &notifier, &event, &event_id, "succeeded").await
             {
                 tracing::error!("Error handling invoice.payment_succeeded: {}", e);
             }
         }
         "invoice.payment_failed" => {
             if let Err(e) =
-                handle_invoice_payment(&pool, &notifier, &event, &event_id, "failed").await
+                handle_invoice_payment(&platform_pool.0, &notifier, &event, &event_id, "failed").await
             {
                 tracing::error!("Error handling invoice.payment_failed: {}", e);
             }
         }
         "charge.refunded" => {
-            if let Err(e) = handle_charge_refunded(&pool, &notifier, &event, &event_id).await {
+            if let Err(e) = handle_charge_refunded(&platform_pool.0, &notifier, &event, &event_id).await {
                 tracing::error!("Error handling charge.refunded: {}", e);
             }
         }
@@ -1847,7 +1848,7 @@ async fn handle_charge_refunded(
 
 #[allow(clippy::too_many_arguments)]
 pub async fn admin_refund(
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     stripe: Option<web::Data<StripeService>>,
     email_provider: web::Data<Arc<dyn EmailProvider>>,
     config: web::Data<Config>,
@@ -1883,7 +1884,7 @@ pub async fn admin_refund(
            ORDER BY created_at DESC LIMIT 1"#,
     )
     .bind(target_user_id)
-    .fetch_optional(pool.get_ref())
+    .fetch_optional(&platform_pool.0)
     .await;
 
     let sub = match sub {
@@ -1919,7 +1920,7 @@ pub async fn admin_refund(
     }
 
     // Get customer ID for Stripe
-    let customer_id = match get_stripe_customer_id(&pool, target_user_id).await {
+    let customer_id = match get_stripe_customer_id(&platform_pool.0, target_user_id).await {
         Ok(Some(c)) => c,
         _ => {
             return HttpResponse::BadRequest().json(json!({
@@ -1976,11 +1977,11 @@ pub async fn admin_refund(
          WHERE stripe_subscription_id = $1",
     )
     .bind(&stripe_sub_id)
-    .execute(pool.get_ref())
+    .execute(&platform_pool.0)
     .await;
 
     // Revert user to core tier
-    if let Err(e) = update_user_tier(pool.get_ref(), target_user_id, "core").await {
+    if let Err(e) = update_user_tier(&platform_pool.0, target_user_id, "core").await {
         tracing::error!("Failed to update user tier after refund: {}", e);
     }
 
@@ -1990,7 +1991,7 @@ pub async fn admin_refund(
          WHERE referred_user_id = $1 AND status IN ('pending', 'approved')",
     )
     .bind(target_user_id)
-    .execute(pool.get_ref())
+    .execute(&platform_pool.0)
     .await
     .map(|r| r.rows_affected() > 0)
     .unwrap_or(false);
@@ -2007,11 +2008,11 @@ pub async fn admin_refund(
     .bind(body.reason.as_deref().unwrap_or(""))
     .bind(force)
     .bind(admin.user_id)
-    .execute(pool.get_ref())
+    .execute(&platform_pool.0)
     .await;
 
     // Send refund email (non-blocking)
-    let email = get_user_email(pool.get_ref(), target_user_id)
+    let email = get_user_email(&platform_pool.0, target_user_id)
         .await
         .unwrap_or_default();
     if !email.is_empty() {
@@ -2077,7 +2078,7 @@ pub async fn admin_refund(
 // GET /admin/refunds  (admin only)
 // ---------------------------------------------------------------------------
 
-pub async fn admin_refund_list(pool: web::Data<PgPool>, _admin: AdminUser) -> HttpResponse {
+pub async fn admin_refund_list(platform_pool: web::Data<PlatformPool>, _admin: AdminUser) -> HttpResponse {
     let rows = sqlx::query(
         r#"SELECT r.id, r.user_id, r.stripe_refund_id, r.amount_cents,
                   r.reason, r.forced, r.admin_id, r.created_at
@@ -2085,7 +2086,7 @@ pub async fn admin_refund_list(pool: web::Data<PgPool>, _admin: AdminUser) -> Ht
            ORDER BY r.created_at DESC
            LIMIT 100"#,
     )
-    .fetch_all(pool.get_ref())
+    .fetch_all(&platform_pool.0)
     .await;
 
     match rows {
@@ -2126,7 +2127,7 @@ pub async fn admin_refund_list(pool: web::Data<PgPool>, _admin: AdminUser) -> Ht
 // GET /api/invoices  (auth required)
 // ---------------------------------------------------------------------------
 
-pub async fn invoices_list(pool: web::Data<PgPool>, user: AuthenticatedUser) -> HttpResponse {
+pub async fn invoices_list(platform_pool: web::Data<PlatformPool>, user: AuthenticatedUser) -> HttpResponse {
     let rows = sqlx::query(
         r#"SELECT id, stripe_event_id, stripe_invoice_id, event_type,
                   amount_cents, status, invoice_pdf_url, invoice_hosted_url,
@@ -2139,7 +2140,7 @@ pub async fn invoices_list(pool: web::Data<PgPool>, user: AuthenticatedUser) -> 
            LIMIT 50"#,
     )
     .bind(user.user_id)
-    .fetch_all(pool.get_ref())
+    .fetch_all(&platform_pool.0)
     .await;
 
     match rows {
@@ -2182,7 +2183,7 @@ pub async fn invoices_list(pool: web::Data<PgPool>, user: AuthenticatedUser) -> 
 // ---------------------------------------------------------------------------
 
 pub async fn invoice_pdf(
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     user: AuthenticatedUser,
     path: web::Path<String>,
 ) -> HttpResponse {
@@ -2200,7 +2201,7 @@ pub async fn invoice_pdf(
         sqlx::query("SELECT invoice_pdf_url FROM payment_events WHERE id = $1 AND user_id = $2")
             .bind(invoice_id)
             .bind(user.user_id)
-            .fetch_optional(pool.get_ref())
+            .fetch_optional(&platform_pool.0)
             .await;
 
     match row {

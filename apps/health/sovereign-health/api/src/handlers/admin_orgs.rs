@@ -2,13 +2,14 @@
 
 use actix_web::{web, HttpResponse};
 use serde::Deserialize;
-use sqlx::{PgPool, Row};
+use sqlx::Row;
 use uuid::Uuid;
 
 use crate::config::Config;
 use crate::error::AppError;
 use crate::middleware::auth::AdminUser;
 use crate::services::licensing;
+use crate::PlatformPool;
 
 #[derive(Deserialize)]
 pub struct ListOrgsQuery {
@@ -37,7 +38,7 @@ pub struct UpdateOrgRequest {
 
 /// GET /admin/organizations -- List all organizations
 pub async fn list_organizations(
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     _admin: AdminUser,
     query: web::Query<ListOrgsQuery>,
 ) -> Result<HttpResponse, AppError> {
@@ -70,7 +71,7 @@ pub async fn list_organizations(
     .bind(type_filter)
     .bind(per_page)
     .bind(offset)
-    .fetch_all(pool.get_ref())
+    .fetch_all(&platform_pool.0)
     .await?;
 
     let total: (i64,) = sqlx::query_as(
@@ -81,7 +82,7 @@ pub async fn list_organizations(
     )
     .bind(search_pattern.as_deref())
     .bind(type_filter)
-    .fetch_one(pool.get_ref())
+    .fetch_one(&platform_pool.0)
     .await?;
 
     let orgs: Vec<serde_json::Value> = rows
@@ -110,7 +111,7 @@ pub async fn list_organizations(
 
 /// POST /admin/organizations -- Create new organization
 pub async fn create_organization(
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     admin: AdminUser,
     body: web::Json<CreateOrgRequest>,
 ) -> Result<HttpResponse, AppError> {
@@ -125,7 +126,7 @@ pub async fn create_organization(
     // Check slug uniqueness
     let exists: Option<(Uuid,)> = sqlx::query_as("SELECT id FROM organizations WHERE slug = $1")
         .bind(&body.slug)
-        .fetch_optional(pool.get_ref())
+        .fetch_optional(&platform_pool.0)
         .await?;
     if exists.is_some() {
         return Err(AppError::Validation("Organization slug already exists".into()));
@@ -143,7 +144,7 @@ pub async fn create_organization(
     .bind(&body.slug)
     .bind(&body.org_type)
     .bind(&body.billing_email)
-    .execute(pool.get_ref())
+    .execute(&platform_pool.0)
     .await?;
 
     // If admin_email provided, create the org owner membership
@@ -151,7 +152,7 @@ pub async fn create_organization(
         let user_id: Option<(Uuid,)> =
             sqlx::query_as("SELECT id FROM users WHERE email = $1 AND is_deleted = false")
                 .bind(admin_email)
-                .fetch_optional(pool.get_ref())
+                .fetch_optional(&platform_pool.0)
                 .await?;
 
         if let Some((uid,)) = user_id {
@@ -163,7 +164,7 @@ pub async fn create_organization(
             .bind(org_id)
             .bind(uid)
             .bind(admin.user_id)
-            .execute(pool.get_ref())
+            .execute(&platform_pool.0)
             .await?;
         }
     }
@@ -176,7 +177,7 @@ pub async fn create_organization(
 
 /// PUT /admin/organizations/{id} -- Update organization
 pub async fn update_organization(
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     _admin: AdminUser,
     path: web::Path<Uuid>,
     body: web::Json<UpdateOrgRequest>,
@@ -220,7 +221,7 @@ pub async fn update_organization(
     for p in &params {
         query = query.bind(p);
     }
-    query.execute(pool.get_ref()).await?;
+    query.execute(&platform_pool.0).await?;
 
     Ok(HttpResponse::Ok().json(serde_json::json!({
         "data": { "updated": true },
@@ -230,7 +231,7 @@ pub async fn update_organization(
 
 /// GET /admin/organizations/{id}/members -- List org members
 pub async fn list_org_members(
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     _admin: AdminUser,
     path: web::Path<Uuid>,
 ) -> Result<HttpResponse, AppError> {
@@ -245,7 +246,7 @@ pub async fn list_org_members(
            ORDER BY om.joined_at"#,
     )
     .bind(org_id)
-    .fetch_all(pool.get_ref())
+    .fetch_all(&platform_pool.0)
     .await?;
 
     let members: Vec<serde_json::Value> = rows
@@ -280,7 +281,7 @@ pub struct GenerateLicenseRequest {
 
 /// POST /admin/organizations/{id}/license -- Generate JWT license key
 pub async fn generate_org_license(
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     config: web::Data<Config>,
     _admin: AdminUser,
     path: web::Path<Uuid>,
@@ -290,7 +291,7 @@ pub async fn generate_org_license(
 
     let org_row = sqlx::query("SELECT name, org_type FROM organizations WHERE id = $1 AND is_deleted = false")
         .bind(org_id)
-        .fetch_optional(pool.get_ref())
+        .fetch_optional(&platform_pool.0)
         .await?
         .ok_or(AppError::NotFound)?;
 
@@ -337,7 +338,7 @@ pub struct UpdateMemberRoleRequest {
 
 /// POST /admin/organizations/{id}/members -- Add member to org
 pub async fn add_org_member(
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     admin: AdminUser,
     path: web::Path<Uuid>,
     body: web::Json<AddMemberRequest>,
@@ -351,7 +352,7 @@ pub async fn add_org_member(
     let user_row: Option<(Uuid,)> =
         sqlx::query_as("SELECT id FROM users WHERE email = $1 AND is_deleted = false")
             .bind(&body.email)
-            .fetch_optional(pool.get_ref())
+            .fetch_optional(&platform_pool.0)
             .await?;
 
     let user_id = match user_row {
@@ -368,7 +369,7 @@ pub async fn add_org_member(
     .bind(user_id)
     .bind(&body.role)
     .bind(admin.user_id)
-    .execute(pool.get_ref())
+    .execute(&platform_pool.0)
     .await?;
 
     Ok(HttpResponse::Created().json(serde_json::json!({
@@ -379,7 +380,7 @@ pub async fn add_org_member(
 
 /// PUT /admin/organizations/{org_id}/members/{member_id} -- Change member role
 pub async fn update_member_role(
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     _admin: AdminUser,
     path: web::Path<(Uuid, Uuid)>,
     body: web::Json<UpdateMemberRoleRequest>,
@@ -394,7 +395,7 @@ pub async fn update_member_role(
         .bind(&body.role)
         .bind(member_id)
         .bind(org_id)
-        .execute(pool.get_ref())
+        .execute(&platform_pool.0)
         .await?;
 
     Ok(HttpResponse::Ok().json(serde_json::json!({
@@ -405,7 +406,7 @@ pub async fn update_member_role(
 
 /// DELETE /admin/organizations/{org_id}/members/{member_id} -- Remove member
 pub async fn remove_org_member(
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     _admin: AdminUser,
     path: web::Path<(Uuid, Uuid)>,
 ) -> Result<HttpResponse, AppError> {
@@ -414,7 +415,7 @@ pub async fn remove_org_member(
     sqlx::query("DELETE FROM org_members WHERE id = $1 AND org_id = $2")
         .bind(member_id)
         .bind(org_id)
-        .execute(pool.get_ref())
+        .execute(&platform_pool.0)
         .await?;
 
     Ok(HttpResponse::Ok().json(serde_json::json!({

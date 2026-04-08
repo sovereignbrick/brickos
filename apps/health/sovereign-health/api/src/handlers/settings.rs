@@ -9,17 +9,18 @@ use uuid::Uuid;
 
 use crate::services::calculated::compute_calculated_markers;
 use crate::services::reference::calculate_status;
-use crate::{error::AppError, middleware::auth::AuthenticatedUser};
+use crate::{error::AppError, middleware::auth::AuthenticatedUser, PlatformPool};
 
 /// GET /settings -- returns profile, units, lifestyle defaults, and reference ranges
 pub async fn get_settings(
     pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     auth: AuthenticatedUser,
     enc: web::Data<crate::services::encryption::Encryptor>,
 ) -> Result<HttpResponse, AppError> {
     use sqlx::Row;
 
-    // Fetch profile + country_code + billing fields
+    // Fetch profile + country_code + billing fields (platform table)
     let profile_row = sqlx::query(
         "SELECT gender, age, height_cm, default_waist_cm, default_weight_kg, country_code, \
          customer_type, company_name, vat_id, \
@@ -28,7 +29,7 @@ pub async fn get_settings(
          FROM user_profile WHERE user_id = $1",
     )
     .bind(auth.user_id)
-    .fetch_optional(pool.get_ref())
+    .fetch_optional(&platform_pool.0)
     .await?;
 
     let profile = match profile_row {
@@ -68,10 +69,10 @@ pub async fn get_settings(
         }),
     };
 
-    // Fetch email + display_name from users
+    // Fetch email + display_name from users (platform table)
     let user_row = sqlx::query("SELECT email, display_name, tier, locale FROM users WHERE id = $1")
         .bind(auth.user_id)
-        .fetch_optional(pool.get_ref())
+        .fetch_optional(&platform_pool.0)
         .await?;
     let display_name: Option<String> = user_row
         .as_ref()
@@ -86,12 +87,12 @@ pub async fn get_settings(
         .and_then(|r| r.try_get("locale").ok())
         .unwrap_or_else(|| "en".to_string());
 
-    // Read canonical tier from user_licenses (source of truth), fall back to users.tier
+    // Read canonical tier from user_licenses (source of truth), fall back to users.tier (platform tables)
     let license_tier_row = sqlx::query(
         "SELECT lt.slug FROM user_licenses ul JOIN license_tiers lt ON lt.id = ul.tier_id WHERE ul.user_id = $1",
     )
     .bind(auth.user_id)
-    .fetch_optional(pool.get_ref())
+    .fetch_optional(&platform_pool.0)
     .await?;
     let tier: String = license_tier_row
         .and_then(|r| r.try_get("slug").ok())
@@ -384,6 +385,7 @@ pub struct ProfileUpdate {
 /// PUT /settings/profile
 pub async fn update_profile(
     pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     auth: AuthenticatedUser,
     body: web::Json<ProfileUpdate>,
     enc: web::Data<crate::services::encryption::Encryptor>,
@@ -442,7 +444,7 @@ pub async fn update_profile(
          FROM user_profile WHERE user_id = $1",
     )
     .bind(auth.user_id)
-    .fetch_optional(pool.get_ref())
+    .fetch_optional(&platform_pool.0)
     .await?;
 
     let (old_height, old_waist, old_weight) = if let Some(ref row) = old_row {
@@ -467,22 +469,22 @@ pub async fn update_profile(
         (None, None, None)
     };
 
-    // Update display_name on users table
+    // Update display_name on users table (platform)
     if let Some(ref name) = body.display_name {
         sqlx::query("UPDATE users SET display_name = $1, updated_at = now() WHERE id = $2")
             .bind(name)
             .bind(auth.user_id)
-            .execute(pool.get_ref())
+            .execute(&platform_pool.0)
             .await?;
     }
 
-    // Update locale on users table
+    // Update locale on users table (platform)
     if let Some(ref locale) = body.locale {
         if ["en", "de"].contains(&locale.as_str()) {
             sqlx::query("UPDATE users SET locale = $1, updated_at = now() WHERE id = $2")
                 .bind(locale)
                 .bind(auth.user_id)
-                .execute(pool.get_ref())
+                .execute(&platform_pool.0)
                 .await?;
         }
     }
@@ -494,10 +496,10 @@ pub async fn update_profile(
     let waist_enc = body.default_waist_cm.map(|v| enc.encrypt_f64(v));
     let weight_enc = body.default_weight_kg.map(|v| enc.encrypt_f64(v));
 
-    // Ensure profile row exists (no-op if already present)
+    // Ensure profile row exists (no-op if already present) (platform table)
     sqlx::query("INSERT INTO user_profile (user_id) VALUES ($1) ON CONFLICT DO NOTHING")
         .bind(auth.user_id)
-        .execute(pool.get_ref())
+        .execute(&platform_pool.0)
         .await?;
 
     sqlx::query(
@@ -536,7 +538,7 @@ pub async fn update_profile(
     .bind(&body.billing_address_postal_code)
     .bind(&body.billing_address_state)
     .bind(&body.billing_address_country)
-    .execute(pool.get_ref())
+    .execute(&platform_pool.0)
     .await?;
 
     // Auto-create measurements when body values change
@@ -1030,16 +1032,17 @@ pub struct ProtocolQuery {
 /// POST /settings/export-all -- full JSON export of all user data
 pub async fn export_all(
     pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     auth: AuthenticatedUser,
     enc: web::Data<crate::services::encryption::Encryptor>,
 ) -> Result<HttpResponse, AppError> {
     use sqlx::Row;
 
-    // User info
+    // User info (platform table)
     let user_row =
         sqlx::query("SELECT email, display_name, role, tier, created_at FROM users WHERE id = $1")
             .bind(auth.user_id)
-            .fetch_optional(pool.get_ref())
+            .fetch_optional(&platform_pool.0)
             .await?
             .ok_or(AppError::NotFound)?;
 
@@ -1051,12 +1054,12 @@ pub async fn export_all(
         "created_at": user_row.try_get::<chrono::DateTime<Utc>, _>("created_at").ok(),
     });
 
-    // Profile
+    // Profile (platform table)
     let profile_row = sqlx::query(
         "SELECT gender, age, height_cm, default_waist_cm, default_weight_kg, country_code FROM user_profile WHERE user_id = $1",
     )
     .bind(auth.user_id)
-    .fetch_optional(pool.get_ref())
+    .fetch_optional(&platform_pool.0)
     .await?;
 
     let profile = match profile_row {

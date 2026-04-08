@@ -26,9 +26,8 @@
 
 use actix_cors::Cors;
 use actix_web::{http, web, App, HttpResponse, HttpServer};
-use sovereign_health_backend::configure_routes;
+use sovereign_health_backend::{configure_routes, PlatformPool};
 use sqlx::postgres::{PgConnectOptions, PgPoolOptions};
-use std::sync::Arc;
 use tracing_subscriber::EnvFilter;
 
 #[actix_web::main]
@@ -77,6 +76,17 @@ async fn main() -> std::io::Result<()> {
     let pool = PgPoolOptions::new()
         .max_connections(config.db_pool_max)
         .connect_lazy_with(connect_opts);
+
+    // Platform pool (brickos DB) -- for user/org/billing/licensing queries
+    let platform_connect_opts: PgConnectOptions = config
+        .platform_database_url()
+        .parse()
+        .expect("Invalid SHI_PLATFORM_DATABASE_URL");
+    let platform_connect_opts = platform_connect_opts.statement_cache_capacity(0);
+    let platform_pool = PgPoolOptions::new()
+        .max_connections(config.platform_db_pool_max.unwrap_or(5))
+        .connect_lazy_with(platform_connect_opts);
+    tracing::info!("Platform pool configured (brickos DB)");
 
     // Create notifier early so migrations and crons can use it
     let notify_config = sovereign_health_backend::services::notify::NotifyConfig::from_env();
@@ -317,12 +327,10 @@ async fn main() -> std::io::Result<()> {
             .app_data(public_chat_daily_ip_tracker.clone())
             .app_data(content_strings_cache.clone())
             .app_data(payment_router_data.clone())
-            .app_data(notifier_data.clone());
+            .app_data(notifier_data.clone())
+            .app_data(web::Data::new(PlatformPool(platform_pool.clone())));
 
-        // Sovereign Link: URL shortener (brickos.io/r/)
-        let link_store: Arc<dyn sovereign_link::db::LinkStore> =
-            Arc::new(sovereign_link::db::postgres::PgLinkStore::new(pool.clone()));
-        app = app.app_data(web::Data::new(link_store));
+        // Sovereign Link decoupled: runs as independent sli-api service (design 018)
 
         if let Some(ref sd) = stripe_data {
             app = app.app_data(sd.clone());
@@ -331,7 +339,6 @@ async fn main() -> std::io::Result<()> {
             app = app.app_data(sd.clone());
         }
         app.configure(configure_routes)
-            .configure(sovereign_link::configure_routes)
     })
     .bind(&bind_addr)?
     .run()

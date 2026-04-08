@@ -21,6 +21,7 @@ use crate::{
         hash_refresh_token, validate_email, validate_password, verify_password,
     },
     services::rate_limit::AuthRateLimiters,
+    PlatformPool,
 };
 
 // ---------------------------------------------------------------------------
@@ -143,9 +144,11 @@ pub async fn registration_status(
 // POST /auth/signup (Task 1)
 // ---------------------------------------------------------------------------
 
+#[allow(clippy::too_many_arguments)]
 pub async fn signup(
     req: HttpRequest,
     pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     config: web::Data<Config>,
     email_provider: web::Data<Arc<dyn EmailProvider>>,
     rate_limiters: web::Data<AuthRateLimiters>,
@@ -266,7 +269,7 @@ pub async fn signup(
     .bind(is_oss) // OSS: verified immediately; SaaS: false
     .bind(if is_oss { Some(Utc::now()) } else { None })
     .bind(&user_locale)
-    .fetch_one(pool.get_ref())
+    .fetch_one(&platform_pool.0)
     .await;
 
     let user_id: Uuid = match insert_result {
@@ -284,12 +287,12 @@ pub async fn signup(
     };
 
     // Generate affiliate code for new user
-    match crate::handlers::affiliate::generate_affiliate_code(pool.get_ref()).await {
+    match crate::handlers::affiliate::generate_affiliate_code(&platform_pool.0).await {
         Ok(code) => {
             if let Err(e) = sqlx::query("UPDATE users SET affiliate_code = $1 WHERE id = $2")
                 .bind(&code)
                 .bind(user_id)
-                .execute(pool.get_ref())
+                .execute(&platform_pool.0)
                 .await
             {
                 tracing::warn!(
@@ -318,7 +321,7 @@ pub async fn signup(
             )
             .bind(&referral_code)
             .bind(user_id)
-            .fetch_one(pool.get_ref())
+            .fetch_one(&platform_pool.0)
             .await
             .unwrap_or(false);
 
@@ -327,7 +330,7 @@ pub async fn signup(
                 let _ = sqlx::query("UPDATE users SET referred_by = $1 WHERE id = $2")
                     .bind(&referral_code)
                     .bind(user_id)
-                    .execute(pool.get_ref())
+                    .execute(&platform_pool.0)
                     .await;
 
                 // Set parent_referrer_id (grandparent in referral chain)
@@ -342,7 +345,7 @@ pub async fn signup(
                 )
                 .bind(user_id)
                 .bind(&referral_code)
-                .execute(pool.get_ref())
+                .execute(&platform_pool.0)
                 .await;
             }
         }
@@ -351,13 +354,13 @@ pub async fn signup(
     // Record TOS acceptance
     let _ = sqlx::query("UPDATE users SET tos_accepted_at = now() WHERE id = $1")
         .bind(user_id)
-        .execute(pool.get_ref())
+        .execute(&platform_pool.0)
         .await;
 
     // Insert user_preferences and user_profile
     let _ = sqlx::query("INSERT INTO user_preferences (user_id) VALUES ($1)")
         .bind(user_id)
-        .execute(pool.get_ref())
+        .execute(&platform_pool.0)
         .await;
 
     let _ = sqlx::query(
@@ -367,7 +370,7 @@ pub async fn signup(
     .bind(user_id)
     .bind(body.consent_newsletter.unwrap_or(false))
     .bind(&country_code)
-    .execute(pool.get_ref())
+    .execute(&platform_pool.0)
     .await;
 
     // Add to newsletter_subscribers if user opted in
@@ -378,7 +381,7 @@ pub async fn signup(
                ON CONFLICT (email) DO UPDATE SET subscribed = true, confirmed = true, updated_at = NOW()"#,
         )
         .bind(&body.email)
-        .execute(pool.get_ref())
+        .execute(&platform_pool.0)
         .await;
     }
 
@@ -391,7 +394,7 @@ pub async fn signup(
     )
     .bind(user_id)
     .bind(tier_slug)
-    .execute(pool.get_ref())
+    .execute(&platform_pool.0)
     .await;
 
     let _ = sqlx::query(
@@ -399,7 +402,7 @@ pub async fn signup(
     )
     .bind(user_id)
     .bind(tier_slug)
-    .execute(pool.get_ref())
+    .execute(&platform_pool.0)
     .await;
 
     if is_oss {
@@ -408,7 +411,7 @@ pub async fn signup(
             "SELECT id, email, password_hash, display_name, role, tier, created_at FROM users WHERE id = $1",
         )
         .bind(user_id)
-        .fetch_one(pool.get_ref())
+        .fetch_one(&platform_pool.0)
         .await?;
 
         let token = create_jwt(
@@ -428,7 +431,7 @@ pub async fn signup(
         .bind(user.id)
         .bind(&token_hash)
         .bind(expires_at)
-        .execute(pool.get_ref())
+        .execute(&platform_pool.0)
         .await?;
 
         // Send welcome email (non-blocking)
@@ -474,7 +477,7 @@ pub async fn signup(
     .bind(user_id)
     .bind(&verification_token)
     .bind(expires_at)
-    .execute(pool.get_ref())
+    .execute(&platform_pool.0)
     .await
     .map_err(|e| {
         tracing::error!("Failed to insert verification token: {:?}", e);
@@ -542,6 +545,7 @@ pub struct VerifyQuery {
 
 pub async fn verify_email(
     pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     config: web::Data<Config>,
     email_provider: web::Data<Arc<dyn EmailProvider>>,
     notifier: web::Data<crate::services::notify::Notifier>,
@@ -556,7 +560,7 @@ pub async fn verify_email(
         "SELECT id, user_id, expires_at, used_at FROM email_verifications WHERE token = $1 AND purpose = 'registration'",
     )
     .bind(token)
-    .fetch_optional(pool.get_ref())
+    .fetch_optional(&platform_pool.0)
     .await?;
 
     let row = match row {
@@ -594,20 +598,20 @@ pub async fn verify_email(
     // Mark token as used
     sqlx::query("UPDATE email_verifications SET used_at = NOW() WHERE id = $1")
         .bind(verification_id)
-        .execute(pool.get_ref())
+        .execute(&platform_pool.0)
         .await?;
 
     // Mark user as verified
     sqlx::query("UPDATE users SET email_verified = true, email_verified_at = NOW() WHERE id = $1")
         .bind(user_id)
-        .execute(pool.get_ref())
+        .execute(&platform_pool.0)
         .await?;
 
     // Get user email + locale for Mailgun sync and welcome email
     let user_row =
         sqlx::query("SELECT email, COALESCE(locale, 'en') as locale FROM users WHERE id = $1")
             .bind(user_id)
-            .fetch_optional(pool.get_ref())
+            .fetch_optional(&platform_pool.0)
             .await?;
 
     // Notify admins
@@ -624,6 +628,7 @@ pub async fn verify_email(
         let email_addr: String = row.try_get("email").unwrap_or_default();
         let user_locale: String = row.try_get("locale").unwrap_or_else(|_| "en".to_string());
         let provider = email_provider.get_ref().clone();
+        let platform_pool_ref = platform_pool.0.clone();
         let pool_ref = pool.get_ref().clone();
         let uid = user_id;
         let addr = email_addr.clone();
@@ -634,7 +639,7 @@ pub async fn verify_email(
             }
             let _ = sqlx::query("UPDATE user_profile SET mailgun_synced = true WHERE user_id = $1")
                 .bind(uid)
-                .execute(&pool_ref)
+                .execute(&platform_pool_ref)
                 .await;
             let _ = crate::services::segments::update_user_segments(&pool_ref, uid).await;
         });
@@ -668,7 +673,7 @@ pub struct ResendVerificationRequest {
 }
 
 pub async fn resend_verification(
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     config: web::Data<Config>,
     email_provider: web::Data<Arc<dyn EmailProvider>>,
     rate_limiters: web::Data<AuthRateLimiters>,
@@ -696,7 +701,7 @@ pub async fn resend_verification(
     let user_row =
         sqlx::query("SELECT id, email_verified, COALESCE(locale, 'en') as locale FROM users WHERE email = $1 AND is_deleted = false")
             .bind(&email)
-            .fetch_optional(pool.get_ref())
+            .fetch_optional(&platform_pool.0)
             .await?;
 
     let user_row = match user_row {
@@ -720,7 +725,7 @@ pub async fn resend_verification(
         "UPDATE email_verifications SET used_at = NOW() WHERE user_id = $1 AND purpose = 'registration' AND used_at IS NULL",
     )
     .bind(user_id)
-    .execute(pool.get_ref())
+    .execute(&platform_pool.0)
     .await?;
 
     // Generate new token
@@ -733,7 +738,7 @@ pub async fn resend_verification(
     .bind(user_id)
     .bind(&token)
     .bind(expires_at)
-    .execute(pool.get_ref())
+    .execute(&platform_pool.0)
     .await?;
 
     // Send email (non-blocking)
@@ -780,7 +785,7 @@ pub struct ForgotPasswordRequest {
 }
 
 pub async fn forgot_password(
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     config: web::Data<Config>,
     email_provider: web::Data<Arc<dyn EmailProvider>>,
     rate_limiters: web::Data<AuthRateLimiters>,
@@ -807,7 +812,7 @@ pub async fn forgot_password(
     let user_row =
         sqlx::query("SELECT id, COALESCE(locale, 'en') as locale FROM users WHERE email = $1 AND is_deleted = false")
             .bind(&email)
-            .fetch_optional(pool.get_ref())
+            .fetch_optional(&platform_pool.0)
             .await?;
 
     let user_row = match user_row {
@@ -836,7 +841,7 @@ pub async fn forgot_password(
     .bind(user_id)
     .bind(&token)
     .bind(expires_at)
-    .execute(pool.get_ref())
+    .execute(&platform_pool.0)
     .await?;
 
     // Send email (non-blocking)
@@ -882,7 +887,7 @@ pub struct ResetPasswordRequest {
 
 pub async fn reset_password(
     req: HttpRequest,
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     rate_limiters: web::Data<AuthRateLimiters>,
     notifier: web::Data<crate::services::notify::Notifier>,
     body: web::Json<ResetPasswordRequest>,
@@ -907,7 +912,7 @@ pub async fn reset_password(
         "SELECT id, user_id, expires_at, used_at FROM email_verifications WHERE token = $1 AND purpose = 'password_reset'",
     )
     .bind(body.token.trim())
-    .fetch_optional(pool.get_ref())
+    .fetch_optional(&platform_pool.0)
     .await?;
 
     let row = match row {
@@ -936,7 +941,7 @@ pub async fn reset_password(
     // Mark token as used
     sqlx::query("UPDATE email_verifications SET used_at = NOW() WHERE id = $1")
         .bind(verification_id)
-        .execute(pool.get_ref())
+        .execute(&platform_pool.0)
         .await?;
 
     // Hash new password
@@ -946,13 +951,13 @@ pub async fn reset_password(
     sqlx::query("UPDATE users SET password_hash = $1, updated_at = NOW() WHERE id = $2")
         .bind(&password_hash)
         .bind(user_id)
-        .execute(pool.get_ref())
+        .execute(&platform_pool.0)
         .await?;
 
     // Revoke all refresh tokens for this user
     sqlx::query("UPDATE refresh_tokens SET revoked = true WHERE user_id = $1 AND revoked = false")
         .bind(user_id)
-        .execute(pool.get_ref())
+        .execute(&platform_pool.0)
         .await?;
 
     // Notify admins
@@ -976,6 +981,7 @@ pub async fn reset_password(
 pub async fn login(
     req: HttpRequest,
     pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     config: web::Data<Config>,
     rate_limiters: web::Data<AuthRateLimiters>,
     body: web::Json<LoginRequest>,
@@ -998,7 +1004,7 @@ pub async fn login(
         "SELECT id, email, password_hash, display_name, role, tier, created_at FROM users WHERE email = $1 AND is_deleted = false",
     )
     .bind(&email)
-    .fetch_optional(pool.get_ref())
+    .fetch_optional(&platform_pool.0)
     .await?
     .ok_or(AppError::InvalidCredentials)?;
 
@@ -1011,7 +1017,7 @@ pub async fn login(
     if !config.is_oss() {
         let verified: bool = sqlx::query_scalar("SELECT email_verified FROM users WHERE id = $1")
             .bind(user.id)
-            .fetch_one(pool.get_ref())
+            .fetch_one(&platform_pool.0)
             .await
             .unwrap_or(false);
 
@@ -1028,7 +1034,7 @@ pub async fn login(
         "SELECT COALESCE((SELECT enabled FROM user_mfa WHERE user_id = $1), false)",
     )
     .bind(user.id)
-    .fetch_one(pool.get_ref())
+    .fetch_one(&platform_pool.0)
     .await
     .unwrap_or(false);
 
@@ -1043,7 +1049,7 @@ pub async fn login(
         .bind(user.id)
         .bind(format!("{}::0", mfa_token)) // token::attempts
         .bind(mfa_expires)
-        .execute(pool.get_ref())
+        .execute(&platform_pool.0)
         .await?;
 
         return Ok(HttpResponse::Ok().json(json!({
@@ -1071,16 +1077,16 @@ pub async fn login(
         .bind(user.id)
         .bind(&token_hash)
         .bind(expires_at)
-        .execute(pool.get_ref())
+        .execute(&platform_pool.0)
         .await?;
 
     // Update last_login_at
     let _ = sqlx::query("UPDATE users SET last_login_at = NOW() WHERE id = $1")
         .bind(user.id)
-        .execute(pool.get_ref())
+        .execute(&platform_pool.0)
         .await;
 
-    // Audit log: successful login
+    // Audit log: successful login (audit_log is an app table)
     crate::services::audit::log(
         pool.get_ref(),
         Some(user.id),
@@ -1118,7 +1124,7 @@ pub async fn login(
 // ---------------------------------------------------------------------------
 
 pub async fn refresh(
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     config: web::Data<Config>,
     body: web::Json<RefreshRequest>,
 ) -> Result<HttpResponse, AppError> {
@@ -1128,7 +1134,7 @@ pub async fn refresh(
         "SELECT id, user_id FROM refresh_tokens WHERE token_hash = $1 AND revoked = false AND expires_at > now()",
     )
     .bind(&token_hash)
-    .fetch_optional(pool.get_ref())
+    .fetch_optional(&platform_pool.0)
     .await?
     .ok_or(AppError::Unauthorized)?;
 
@@ -1136,13 +1142,13 @@ pub async fn refresh(
         "SELECT id, email, password_hash, display_name, role, tier, created_at FROM users WHERE id = $1 AND is_deleted = false",
     )
     .bind(record.user_id)
-    .fetch_optional(pool.get_ref())
+    .fetch_optional(&platform_pool.0)
     .await?
     .ok_or(AppError::Unauthorized)?;
 
     sqlx::query("UPDATE refresh_tokens SET revoked = true WHERE id = $1")
         .bind(record.id)
-        .execute(pool.get_ref())
+        .execute(&platform_pool.0)
         .await?;
 
     let new_token = create_jwt(
@@ -1160,7 +1166,7 @@ pub async fn refresh(
         .bind(user.id)
         .bind(&new_token_hash)
         .bind(expires_at)
-        .execute(pool.get_ref())
+        .execute(&platform_pool.0)
         .await?;
 
     Ok(HttpResponse::Ok().json(json!({
@@ -1177,7 +1183,7 @@ pub async fn refresh(
 // ---------------------------------------------------------------------------
 
 pub async fn me(
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     auth: AuthenticatedUser,
     enc: web::Data<crate::services::encryption::Encryptor>,
 ) -> Result<HttpResponse, AppError> {
@@ -1185,7 +1191,7 @@ pub async fn me(
         "SELECT id, email, password_hash, display_name, role, tier, created_at FROM users WHERE id = $1 AND is_deleted = false",
     )
     .bind(auth.user_id)
-    .fetch_optional(pool.get_ref())
+    .fetch_optional(&platform_pool.0)
     .await?
     .ok_or(AppError::NotFound)?;
 
@@ -1195,7 +1201,7 @@ pub async fn me(
          FROM user_profile WHERE user_id = $1",
     )
     .bind(auth.user_id)
-    .fetch_optional(pool.get_ref())
+    .fetch_optional(&platform_pool.0)
     .await?;
 
     let (height_cm, default_waist_cm, default_weight_kg, country_code) = match profile_row {
@@ -1236,7 +1242,7 @@ pub async fn me(
         WHERE ul.user_id = $1"#,
     )
     .bind(auth.user_id)
-    .fetch_optional(pool.get_ref())
+    .fetch_optional(&platform_pool.0)
     .await?;
 
     let (tier_slug, tier_name) = match tier_row {
@@ -1343,7 +1349,7 @@ pub struct UnsubscribeQuery {
 /// GET /auth/unsubscribe?uid=...&token=...
 /// One-click email unsubscribe (no login required).
 pub async fn unsubscribe(
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     config: web::Data<Config>,
     query: web::Query<UnsubscribeQuery>,
 ) -> Result<HttpResponse, AppError> {
@@ -1359,14 +1365,14 @@ pub async fn unsubscribe(
         "INSERT INTO user_preferences (user_id) VALUES ($1) ON CONFLICT (user_id) DO NOTHING",
     )
     .bind(query.uid)
-    .execute(pool.get_ref())
+    .execute(&platform_pool.0)
     .await?;
 
     sqlx::query(
         "UPDATE user_preferences SET email_unsubscribed = true, updated_at = now() WHERE user_id = $1",
     )
     .bind(query.uid)
-    .execute(pool.get_ref())
+    .execute(&platform_pool.0)
     .await?;
 
     Ok(HttpResponse::Ok()

@@ -5,14 +5,14 @@ use serde::Deserialize;
 use serde_json::json;
 use sqlx::PgPool;
 
-use crate::{error::AppError, middleware::auth::AdminUser};
+use crate::{error::AppError, middleware::auth::AdminUser, PlatformPool};
 
 // ---------------------------------------------------------------------------
 // GET /admin/settings
 // ---------------------------------------------------------------------------
 
 pub async fn list_settings(
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     _admin: AdminUser,
 ) -> Result<HttpResponse, AppError> {
     use sqlx::Row;
@@ -22,7 +22,7 @@ pub async fn list_settings(
            FROM app_settings
            ORDER BY category, key"#,
     )
-    .fetch_all(pool.get_ref())
+    .fetch_all(&platform_pool.0)
     .await?;
 
     let mut categories: std::collections::BTreeMap<String, Vec<serde_json::Value>> =
@@ -60,7 +60,7 @@ pub struct UpdateSettingBody {
 }
 
 pub async fn update_setting(
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     admin: AdminUser,
     path: web::Path<String>,
     body: web::Json<UpdateSettingBody>,
@@ -72,7 +72,7 @@ pub async fn update_setting(
     // Verify setting exists
     let existing = sqlx::query("SELECT key, value FROM app_settings WHERE key = $1")
         .bind(&key)
-        .fetch_optional(pool.get_ref())
+        .fetch_optional(&platform_pool.0)
         .await?;
 
     let existing =
@@ -97,7 +97,7 @@ pub async fn update_setting(
     .bind(&body.value)
     .bind(admin.user_id)
     .bind(&key)
-    .execute(pool.get_ref())
+    .execute(&platform_pool.0)
     .await?;
 
     tracing::info!(
@@ -124,7 +124,7 @@ pub async fn update_setting(
 
 pub async fn debug_whitelist(
     req: actix_web::HttpRequest,
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     _admin: AdminUser,
 ) -> Result<HttpResponse, AppError> {
     let cf_ip = req
@@ -151,11 +151,11 @@ pub async fn debug_whitelist(
     let resolved = cf_ip.as_deref().map(|s| s.trim()).unwrap_or(&peer);
     let normalized = normalize_ip(resolved);
 
-    let admin_wl = get_setting(pool.get_ref(), "admin_whitelist_ips", json!([])).await;
-    let reg_wl = get_setting(pool.get_ref(), "registration_whitelist_ips", json!([])).await;
-    let pay_wl = get_setting(pool.get_ref(), "payment_whitelist_ips", json!([])).await;
-    let reg_enabled = get_setting_bool(pool.get_ref(), "registration_enabled", false).await;
-    let pay_enabled = get_setting_bool(pool.get_ref(), "payment_enabled", false).await;
+    let admin_wl = get_setting(&platform_pool.0, "admin_whitelist_ips", json!([])).await;
+    let reg_wl = get_setting(&platform_pool.0, "registration_whitelist_ips", json!([])).await;
+    let pay_wl = get_setting(&platform_pool.0, "payment_whitelist_ips", json!([])).await;
+    let reg_enabled = get_setting_bool(&platform_pool.0, "registration_enabled", false).await;
+    let pay_enabled = get_setting_bool(&platform_pool.0, "payment_enabled", false).await;
 
     let admin_match = ip_matches_whitelist(&normalized, &admin_wl);
     let reg_match = ip_matches_whitelist(&normalized, &reg_wl);
@@ -234,7 +234,7 @@ pub async fn get_setting_i64(pool: &PgPool, key: &str, default: i64) -> i64 {
 // ---------------------------------------------------------------------------
 
 pub async fn public_infobar(
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     query: web::Query<std::collections::HashMap<String, String>>,
 ) -> HttpResponse {
     let target = query.get("target").map(|s| s.as_str()).unwrap_or("app");
@@ -244,7 +244,7 @@ pub async fn public_infobar(
         "app_infobar"
     };
 
-    let enabled = get_setting_bool(pool.get_ref(), &format!("{prefix}_enabled"), false).await;
+    let enabled = get_setting_bool(&platform_pool.0, &format!("{prefix}_enabled"), false).await;
 
     if !enabled {
         return HttpResponse::Ok().json(json!({
@@ -253,12 +253,12 @@ pub async fn public_infobar(
         }));
     }
 
-    let message = get_setting_string(pool.get_ref(), &format!("{prefix}_message"), "").await;
-    let color = get_setting_string(pool.get_ref(), &format!("{prefix}_color"), "blue").await;
-    let button = get_setting_bool(pool.get_ref(), &format!("{prefix}_button"), false).await;
+    let message = get_setting_string(&platform_pool.0, &format!("{prefix}_message"), "").await;
+    let color = get_setting_string(&platform_pool.0, &format!("{prefix}_color"), "blue").await;
+    let button = get_setting_bool(&platform_pool.0, &format!("{prefix}_button"), false).await;
     let button_text =
-        get_setting_string(pool.get_ref(), &format!("{prefix}_button_text"), "").await;
-    let button_url = get_setting_string(pool.get_ref(), &format!("{prefix}_button_url"), "").await;
+        get_setting_string(&platform_pool.0, &format!("{prefix}_button_text"), "").await;
+    let button_url = get_setting_string(&platform_pool.0, &format!("{prefix}_button_url"), "").await;
 
     HttpResponse::Ok().json(json!({
         "data": {

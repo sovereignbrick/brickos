@@ -1,0 +1,10 @@
+[package]
+name = "brickos-i18n"
+version = "0.1.0"
+edition = "2021"
+description = "BrickOS i18n translation status monitoring"
+license = "AGPL-3.0"
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
