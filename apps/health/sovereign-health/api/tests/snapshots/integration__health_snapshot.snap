@@ -14,5 +14,5 @@ expression: body
   },
   "service": "sovereign-health-backend",
   "status": "ok",
-  "version": "0.36.0"
+  "version": "0.40.0"
 }
