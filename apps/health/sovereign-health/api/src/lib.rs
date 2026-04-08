@@ -787,6 +787,14 @@ pub fn configure_routes(cfg: &mut actix_web::web::ServiceConfig) {
                 actix_web::web::delete().to(handlers::admin_orgs::remove_org_member),
             )
             .route(
+                "/organizations/{org_id}/apps",
+                actix_web::web::get().to(handlers::admin_org_apps::list_org_apps),
+            )
+            .route(
+                "/organizations/{org_id}/apps",
+                actix_web::web::put().to(handlers::admin_org_apps::update_org_apps),
+            )
+            .route(
                 "/users",
                 actix_web::web::get().to(handlers::admin::list_users),
             )
