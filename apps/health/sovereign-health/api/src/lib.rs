@@ -38,6 +38,11 @@ pub mod templates;
 pub const VERSION: &str = "0.41.0";
 pub const SERVICE_NAME: &str = "sovereign-health-backend";
 
+/// Platform database pool (brickos DB -- users, orgs, billing, service accounts).
+/// Distinguished from the app pool (health DB) via newtype pattern.
+#[derive(Clone)]
+pub struct PlatformPool(pub sqlx::PgPool);
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct HealthResponse {
     pub status: String,
@@ -66,6 +71,8 @@ pub struct AiSystemInfo {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct HealthChecks {
     pub database: HealthCheckResult,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub platform_database: Option<HealthCheckResult>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -785,14 +792,6 @@ pub fn configure_routes(cfg: &mut actix_web::web::ServiceConfig) {
             .route(
                 "/organizations/{org_id}/members/{member_id}",
                 actix_web::web::delete().to(handlers::admin_orgs::remove_org_member),
-            )
-            .route(
-                "/organizations/{org_id}/apps",
-                actix_web::web::get().to(handlers::admin_org_apps::list_org_apps),
-            )
-            .route(
-                "/organizations/{org_id}/apps",
-                actix_web::web::put().to(handlers::admin_org_apps::update_org_apps),
             )
             .route(
                 "/users",

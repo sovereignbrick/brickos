@@ -6,8 +6,8 @@ use sqlx::PgPool;
 
 use crate::config::Config;
 use crate::{
-    AiSystemInfo, HealthCheckResult, HealthChecks, HealthResponse, HelloResponse, SERVICE_NAME,
-    VERSION,
+    AiSystemInfo, HealthCheckResult, HealthChecks, HealthResponse, HelloResponse, PlatformPool,
+    SERVICE_NAME, VERSION,
 };
 
 fn ai_system_info() -> AiSystemInfo {
@@ -27,6 +27,7 @@ pub async fn health(
     req: HttpRequest,
     config: Option<web::Data<Config>>,
     pool: Option<web::Data<PgPool>>,
+    platform_pool: Option<web::Data<PlatformPool>>,
 ) -> impl Responder {
     let mode = config
         .as_ref()
@@ -58,7 +59,31 @@ pub async fn health(
             }
         };
 
-        let overall_status = if db_check.status == "ok" {
+        let platform_db_check = if let Some(pp) = platform_pool {
+            let start = std::time::Instant::now();
+            match sqlx::query_scalar::<_, i32>("SELECT 1")
+                .fetch_one(&pp.0)
+                .await
+            {
+                Ok(_) => Some(HealthCheckResult {
+                    status: "ok".to_string(),
+                    latency_ms: start.elapsed().as_millis() as i64,
+                }),
+                Err(_) => Some(HealthCheckResult {
+                    status: "down".to_string(),
+                    latency_ms: start.elapsed().as_millis() as i64,
+                }),
+            }
+        } else {
+            None
+        };
+
+        let platform_ok = platform_db_check
+            .as_ref()
+            .map(|c| c.status == "ok")
+            .unwrap_or(true); // no platform pool registered = not degraded
+
+        let overall_status = if db_check.status == "ok" && platform_ok {
             "ok"
         } else {
             "degraded"
@@ -70,7 +95,10 @@ pub async fn health(
             version: VERSION.to_string(),
             timestamp: Utc::now().to_rfc3339(),
             mode,
-            checks: Some(HealthChecks { database: db_check }),
+            checks: Some(HealthChecks {
+                database: db_check,
+                platform_database: platform_db_check,
+            }),
             ai_system: Some(ai_system_info()),
         };
 
