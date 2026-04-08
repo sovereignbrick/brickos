@@ -146,14 +146,16 @@ pub async fn list_users(
     };
 
     let org_id_filter = query.org_id.as_deref().unwrap_or("");
-    let org_join = if !org_id_filter.is_empty() {
-        "INNER JOIN org_members om ON om.user_id = u.id AND om.org_id = $4::uuid"
-    } else {
-        ""
-    };
 
     let (rows, total) = if let Some(ref search) = query.search {
         let pattern = format!("%{}%", search);
+        // With search: $1=pattern, $2=per_page, $3=offset, $4=org_id (optional)
+        let org_join = if !org_id_filter.is_empty() {
+            "INNER JOIN org_members om ON om.user_id = u.id AND om.org_id = $4::uuid"
+        } else {
+            ""
+        };
+
         let count_sql = if !org_id_filter.is_empty() {
             "SELECT COUNT(*) FROM users u INNER JOIN org_members om ON om.user_id = u.id AND om.org_id = $2::uuid WHERE u.is_deleted = false AND (u.email ILIKE $1 OR u.display_name ILIKE $1)"
         } else {
@@ -193,6 +195,13 @@ pub async fn list_users(
 
         (rows, total)
     } else {
+        // Without search: $1=per_page, $2=offset, $3=org_id (optional)
+        let org_join = if !org_id_filter.is_empty() {
+            "INNER JOIN org_members om ON om.user_id = u.id AND om.org_id = $3::uuid"
+        } else {
+            ""
+        };
+
         let count_sql = if !org_id_filter.is_empty() {
             "SELECT COUNT(*) FROM users u INNER JOIN org_members om ON om.user_id = u.id AND om.org_id = $1::uuid WHERE u.is_deleted = false"
         } else {
