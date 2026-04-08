@@ -1,0 +1,40 @@
+# BrickOS Gatus Status Page
+# Runs a branded nginx proxy in front of the standard Gatus image.
+#
+# Usage: docker compose up -d
+# Access: http://localhost:8083 (proxied to Gatus on :8082)
+
+name: brickos-gatus
+
+services:
+  gatus:
+    image: twinproduction/gatus:latest
+    container_name: brickos-gatus-upstream
+    volumes:
+      - /opt/sovereign-health/gatus-config.yaml:/config/config.yaml:ro
+      - gatus-data:/data
+    env_file:
+      - /opt/sovereign-health/.env.monitoring
+    networks:
+      - gatus-net
+      - default
+
+  proxy:
+    build: .
+    container_name: brickos-gatus-proxy
+    ports:
+      - "127.0.0.1:8083:80"
+    depends_on:
+      - gatus
+    networks:
+      - gatus-net
+
+volumes:
+  gatus-data:
+
+networks:
+  gatus-net:
+    driver: bridge
+  default:
+    name: sovereign-health_default
+    external: true

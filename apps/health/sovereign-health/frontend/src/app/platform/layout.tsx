@@ -242,9 +242,14 @@ export default function PlatformLayout({ children }: { children: React.ReactNode
           ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         `}>
           {/* Header */}
-          <div className="flex items-center gap-3 px-4 py-3 border-b border-zinc-800">
+          <div className="flex items-center gap-3 px-3 py-3 border-b border-zinc-800">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/brickos-cube.png" alt="BrickOS" className="w-8 h-8 shrink-0" />
+            <img
+              src="/brickos-cube.png" alt="BrickOS"
+              className={`w-8 h-8 shrink-0 ${collapsed ? 'cursor-pointer hover:opacity-80' : ''}`}
+              onClick={collapsed ? () => setCollapsed(false) : undefined}
+              title={collapsed ? 'Expand sidebar' : undefined}
+            />
             {!collapsed && (
               <>
                 <div className="min-w-0 flex-1">
@@ -260,17 +265,6 @@ export default function PlatformLayout({ children }: { children: React.ReactNode
                   </svg>
                 </button>
               </>
-            )}
-            {collapsed && (
-              <button
-                onClick={() => setCollapsed(false)}
-                className="text-zinc-500 hover:text-zinc-300 transition-colors p-1 -ml-1"
-                title="Expand sidebar"
-              >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
-                </svg>
-              </button>
             )}
           </div>
 
