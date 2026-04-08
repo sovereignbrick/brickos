@@ -242,18 +242,58 @@ export default function PlatformLayout({ children }: { children: React.ReactNode
           ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         `}>
           {/* Header */}
-          <div className="flex items-center gap-3 px-4 py-4 border-b border-zinc-800">
+          <div className="flex items-center gap-3 px-4 py-3 border-b border-zinc-800">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/brickos-cube.png" alt="BrickOS" className="w-8 h-8 shrink-0" />
             {!collapsed && (
-              <div className="min-w-0">
-                <p className="text-sm font-semibold truncate">{appTitle}</p>
-              </div>
+              <>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold truncate">{appTitle}</p>
+                </div>
+                <button
+                  onClick={() => setCollapsed(true)}
+                  className="text-zinc-500 hover:text-zinc-300 transition-colors p-1"
+                  title="Collapse sidebar"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+                  </svg>
+                </button>
+              </>
+            )}
+            {collapsed && (
+              <button
+                onClick={() => setCollapsed(false)}
+                className="text-zinc-500 hover:text-zinc-300 transition-colors p-1 -ml-1"
+                title="Expand sidebar"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+                </svg>
+              </button>
             )}
           </div>
 
+          {/* Search */}
+          {!collapsed && (
+            <div className="px-3 py-2 border-b border-zinc-800">
+              <input
+                type="text"
+                placeholder="Search pages..."
+                className="w-full bg-zinc-800/50 border border-zinc-700/50 rounded-lg px-3 py-1.5 text-xs text-zinc-300 placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-orange-500/50"
+                onChange={(e) => {
+                  const q = e.target.value.toLowerCase()
+                  document.querySelectorAll('[data-nav-item]').forEach(el => {
+                    const label = el.getAttribute('data-nav-item') || ''
+                    ;(el as HTMLElement).style.display = !q || label.includes(q) ? '' : 'none'
+                  })
+                }}
+              />
+            </div>
+          )}
+
           {/* Nav sections */}
-          <nav className="py-2">
+          <nav className="py-2 overflow-y-auto flex-1">
             {Object.entries(sections).map(([section, items]) => (
               <div key={section}>
                 {!collapsed && (
@@ -267,6 +307,7 @@ export default function PlatformLayout({ children }: { children: React.ReactNode
                     <Link
                       key={item.key}
                       href={item.href}
+                      data-nav-item={item.label.toLowerCase()}
                       className={`
                         flex items-center gap-3 mx-2 px-3 py-2 rounded-lg text-sm transition-colors
                         ${isActive
@@ -284,15 +325,7 @@ export default function PlatformLayout({ children }: { children: React.ReactNode
             ))}
           </nav>
 
-          {/* Collapse toggle */}
-          <div className="hidden lg:block absolute bottom-4 left-0 right-0 px-2">
-            <button
-              onClick={() => setCollapsed(!collapsed)}
-              className="w-full flex items-center justify-center py-2 rounded-lg text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/50 transition-colors text-xs"
-            >
-              {collapsed ? '\u25B6' : '\u25C0'}
-            </button>
-          </div>
+          {/* Collapse toggle removed -- now in header */}
         </aside>
 
         {/* Mobile overlay */}
