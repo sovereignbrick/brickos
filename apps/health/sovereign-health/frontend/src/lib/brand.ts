@@ -71,10 +71,12 @@ function readBrandCookie(): BrandConfig {
   return cookie?.split('=')[1] === 'brickos' ? BRICKOS_BRAND : SHI_BRAND
 }
 
-export function useBrand(): BrandConfig {
-  const [brand, setBrand] = useState<BrandConfig>(readBrandCookie)
+export function useBrand(): { brand: BrandConfig; mounted: boolean } {
+  const [brand, setBrand] = useState<BrandConfig>(SHI_BRAND)
+  const [mounted, setMounted] = useState(false)
   useEffect(() => {
     setBrand(getBrandConfig())
+    setMounted(true)
   }, [])
-  return brand
+  return { brand, mounted }
 }

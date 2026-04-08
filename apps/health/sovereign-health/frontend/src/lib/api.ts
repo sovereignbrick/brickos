@@ -65,16 +65,20 @@ function getToken(): string | undefined {
 }
 
 export function setToken(token: string): void {
+  const isBrickOS = typeof window !== 'undefined' && window.location.hostname.endsWith('.brickos.io')
   Cookies.set('auth_token', token, {
     expires: APP_CONFIG.sessionTimeoutHours / 24,
     sameSite: 'lax',
     secure: window.location.protocol === 'https:',
     path: '/',
+    // Set domain to .brickos.io for cross-subdomain session sharing
+    ...(isBrickOS ? { domain: '.brickos.io' } : {}),
   })
 }
 
 export function clearToken(): void {
-  Cookies.remove('auth_token')
+  const isBrickOS = typeof window !== 'undefined' && window.location.hostname.endsWith('.brickos.io')
+  Cookies.remove('auth_token', { path: '/', ...(isBrickOS ? { domain: '.brickos.io' } : {}) })
 }
 
 function getLocale(): string {

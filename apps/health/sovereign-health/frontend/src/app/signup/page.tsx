@@ -48,7 +48,7 @@ function SignupContent() {
   const tCommon = useTranslations('common')
   const ts = useTranslations('auth.signup')
   const tToast = useTranslations('auth.toast')
-  const brand = useBrand()
+  const { brand, mounted } = useBrand()
   const [registrationEnabled, setRegistrationEnabled] = useState<boolean | null>(null)
   const [submitted, setSubmitted] = useState(false)
   const [submittedEmail, setSubmittedEmail] = useState('')
@@ -259,7 +259,7 @@ function SignupContent() {
 
   const brandingHeader = (title?: string) => (
     <div className="mb-8 flex flex-col items-center gap-3">
-      <img src={brand.logo} alt={brand.logoAlt} width={64} height={64} className="rounded-lg" />
+      {mounted ? <img src={brand.logo} alt={brand.logoAlt} width={64} height={64} className="rounded-lg" /> : <div className="w-16 h-16 rounded-lg bg-zinc-800 animate-pulse" />}
       <h1 className="text-2xl font-bold">{t('brandName')}</h1>
       {title && <p className="text-muted-foreground text-sm">{title}</p>}
     </div>

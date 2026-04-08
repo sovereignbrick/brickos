@@ -302,8 +302,26 @@ export default function PlatformLayout({ children }: { children: React.ReactNode
 
         {/* Main content */}
         <div className="flex-1 min-w-0 overflow-x-hidden flex flex-col">
-          {/* Top header with user profile */}
-          <header className="h-14 border-b border-zinc-800 flex items-center justify-end px-4 sm:px-6 shrink-0">
+          {/* Top header with app switcher + user profile */}
+          <header className="h-14 border-b border-zinc-800 flex items-center justify-between px-4 sm:px-6 shrink-0">
+            <nav className="flex items-center gap-1">
+              {[
+                { label: 'Platform', href: '/platform', active: pathname.startsWith('/platform') && !pathname.startsWith('/platform/apps') },
+                { label: 'Health', href: '/sovereignhealth/', active: false },
+                { label: 'Links', href: '/platform/links', active: pathname === '/platform/links' },
+                { label: 'Voice', href: '/platform/apps', active: false },
+              ].map(app => (
+                <Link
+                  key={app.label}
+                  href={app.href}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                    app.active ? 'bg-zinc-800 text-zinc-50' : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50'
+                  }`}
+                >
+                  {app.label}
+                </Link>
+              ))}
+            </nav>
             <UserProfileMenu user={user} />
           </header>
 
