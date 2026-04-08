@@ -1,3 +1,5 @@
-export default function AuditPage() {
-  return <div><h1 className="text-2xl font-bold mb-4">Audit</h1><p className="text-zinc-400 text-sm">Coming soon.</p></div>
+'use client'
+import { AuditLogsTab } from '@/components/admin/audit-logs-tab'
+export default function PlatformAuditPage() {
+  return <div className="space-y-4"><h1 className="text-2xl font-bold">Audit Logs</h1><AuditLogsTab /></div>
 }

@@ -1,3 +1,5 @@
-export default function BillingPage() {
-  return <div><h1 className="text-2xl font-bold mb-4">Billing</h1><p className="text-zinc-400 text-sm">Coming soon.</p></div>
+'use client'
+import { PaymentGatewaysTab } from '@/components/admin/payment-gateways-tab'
+export default function PlatformBillingPage() {
+  return <div className="space-y-4"><h1 className="text-2xl font-bold">Billing & Payments</h1><PaymentGatewaysTab /></div>
 }

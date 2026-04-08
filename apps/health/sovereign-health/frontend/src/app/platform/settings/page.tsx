@@ -1,3 +1,5 @@
-export default function SettingsPage() {
-  return <div><h1 className="text-2xl font-bold mb-4">Settings</h1><p className="text-zinc-400 text-sm">Coming soon.</p></div>
+'use client'
+import { SettingsTab } from '@/components/admin/settings-tab'
+export default function PlatformSettingsPage() {
+  return <div className="space-y-4"><h1 className="text-2xl font-bold">Platform Settings</h1><SettingsTab /></div>
 }

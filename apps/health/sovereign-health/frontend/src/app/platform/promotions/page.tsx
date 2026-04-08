@@ -1,3 +1,5 @@
-export default function PromotionsPage() {
-  return <div><h1 className="text-2xl font-bold mb-4">Promotions</h1><p className="text-zinc-400 text-sm">Coming soon.</p></div>
+'use client'
+import { PromotionsTab } from '@/components/admin/promotions-tab'
+export default function PlatformPromotionsPage() {
+  return <div className="space-y-4"><h1 className="text-2xl font-bold">Promotions</h1><PromotionsTab /></div>
 }

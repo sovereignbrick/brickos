@@ -59,14 +59,20 @@ export function getBrandConfig(): BrandConfig {
 }
 
 /**
- * React hook that returns brand config after client-side mount.
- * Use this instead of getBrandConfig() in components with Next.js Image,
- * because Image src must be correct on first render (SSR hydration).
+ * React hook that returns brand config.
+ * Reads from brand_context cookie (set by Next.js middleware server-side)
+ * so the correct brand is available on first render without flash.
  */
 import { useState, useEffect } from 'react'
 
+function readBrandCookie(): BrandConfig {
+  if (typeof document === 'undefined') return SHI_BRAND
+  const cookie = document.cookie.split('; ').find(c => c.startsWith('brand_context='))
+  return cookie?.split('=')[1] === 'brickos' ? BRICKOS_BRAND : SHI_BRAND
+}
+
 export function useBrand(): BrandConfig {
-  const [brand, setBrand] = useState<BrandConfig>(SHI_BRAND)
+  const [brand, setBrand] = useState<BrandConfig>(readBrandCookie)
   useEffect(() => {
     setBrand(getBrandConfig())
   }, [])
