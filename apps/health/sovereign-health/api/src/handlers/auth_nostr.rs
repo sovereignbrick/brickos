@@ -8,12 +8,12 @@ use chrono::Utc;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use sha2::{Digest, Sha256};
-use sqlx::PgPool;
 use uuid::Uuid;
 
 use crate::{
     config::Config,
     services::auth::{create_jwt, generate_refresh_token, hash_refresh_token},
+    PlatformPool,
 };
 
 // ---------------------------------------------------------------------------
@@ -132,7 +132,7 @@ fn verify_schnorr_signature(msg_hex: &str, pubkey_hex: &str, sig_hex: &str) -> R
 /// - If user with this pubkey exists: issue JWT
 /// - If not: create user (email=placeholder, nostr_pubkey=pubkey) and issue JWT
 pub async fn nostr_login(
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     config: web::Data<Config>,
     body: web::Json<Nip98AuthRequest>,
 ) -> HttpResponse {
@@ -151,7 +151,7 @@ pub async fn nostr_login(
         "SELECT id, role, tier, COALESCE(display_name, '') FROM users WHERE nostr_pubkey = $1 AND is_deleted = false",
     )
     .bind(pubkey)
-    .fetch_optional(pool.get_ref())
+    .fetch_optional(&platform_pool.0)
     .await;
 
     let (user_id, role, tier, created) = match existing {
@@ -174,7 +174,7 @@ pub async fn nostr_login(
             .bind(placeholder_hash)
             .bind(&display_name)
             .bind(pubkey)
-            .execute(pool.get_ref())
+            .execute(&platform_pool.0)
             .await;
 
             match result {
@@ -187,7 +187,7 @@ pub async fn nostr_login(
                         "SELECT id, role, tier FROM users WHERE nostr_pubkey = $1 AND is_deleted = false",
                     )
                     .bind(pubkey)
-                    .fetch_optional(pool.get_ref())
+                    .fetch_optional(&platform_pool.0)
                     .await
                     {
                         Ok(Some((id, role, tier))) => (id, role, tier, false),
@@ -247,7 +247,7 @@ pub async fn nostr_login(
     .bind(user_id)
     .bind(&token_hash)
     .bind(expires_at)
-    .execute(pool.get_ref())
+    .execute(&platform_pool.0)
     .await;
 
     HttpResponse::Ok().json(json!({

@@ -4,7 +4,6 @@ use actix_web::{web, HttpResponse};
 use chrono::Utc;
 use serde::Deserialize;
 use serde_json::json;
-use sqlx::PgPool;
 use uuid::Uuid;
 
 use crate::{
@@ -15,6 +14,7 @@ use crate::{
         encryption::Encryptor,
         mfa,
     },
+    PlatformPool,
 };
 
 // ---------------------------------------------------------------------------
@@ -22,7 +22,7 @@ use crate::{
 // ---------------------------------------------------------------------------
 
 pub async fn mfa_setup(
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     config: web::Data<crate::config::Config>,
     auth: AuthenticatedUser,
     enc: web::Data<Encryptor>,
@@ -31,7 +31,7 @@ pub async fn mfa_setup(
     let existing: Option<bool> =
         sqlx::query_scalar("SELECT enabled FROM user_mfa WHERE user_id = $1")
             .bind(auth.user_id)
-            .fetch_optional(pool.get_ref())
+            .fetch_optional(&platform_pool.0)
             .await?;
 
     if existing == Some(true) {
@@ -44,7 +44,7 @@ pub async fn mfa_setup(
     // Get user email
     let email: String = sqlx::query_scalar("SELECT email FROM users WHERE id = $1")
         .bind(auth.user_id)
-        .fetch_one(pool.get_ref())
+        .fetch_one(&platform_pool.0)
         .await?;
 
     // Generate TOTP secret
@@ -67,7 +67,7 @@ pub async fn mfa_setup(
         "UPDATE email_verifications SET used_at = NOW() WHERE user_id = $1 AND purpose = 'mfa_setup' AND used_at IS NULL",
     )
     .bind(auth.user_id)
-    .execute(pool.get_ref())
+    .execute(&platform_pool.0)
     .await?;
 
     // Store "setup_token::encrypted_secret" in the token field
@@ -77,7 +77,7 @@ pub async fn mfa_setup(
     .bind(auth.user_id)
     .bind(format!("{}::{}", setup_token, encrypted_secret))
     .bind(expires_at)
-    .execute(pool.get_ref())
+    .execute(&platform_pool.0)
     .await?;
 
     let display_secret = mfa::format_secret_for_display(&secret_base32);
@@ -104,7 +104,7 @@ pub struct MfaVerifySetupRequest {
 }
 
 pub async fn mfa_verify_setup(
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     auth: AuthenticatedUser,
     enc: web::Data<Encryptor>,
     notifier: web::Data<crate::services::notify::Notifier>,
@@ -115,7 +115,7 @@ pub async fn mfa_verify_setup(
         "SELECT id, token, expires_at, used_at FROM email_verifications WHERE user_id = $1 AND purpose = 'mfa_setup' AND used_at IS NULL ORDER BY created_at DESC LIMIT 1",
     )
     .bind(auth.user_id)
-    .fetch_optional(pool.get_ref())
+    .fetch_optional(&platform_pool.0)
     .await?;
 
     let row = match row {
@@ -158,7 +158,7 @@ pub async fn mfa_verify_setup(
     // Get user email for TOTP verification
     let email: String = sqlx::query_scalar("SELECT email FROM users WHERE id = $1")
         .bind(auth.user_id)
-        .fetch_one(pool.get_ref())
+        .fetch_one(&platform_pool.0)
         .await?;
 
     // Verify TOTP code
@@ -204,13 +204,13 @@ pub async fn mfa_verify_setup(
     .bind(auth.user_id)
     .bind(&permanent_encrypted_secret)
     .bind(&encrypted_recovery)
-    .execute(pool.get_ref())
+    .execute(&platform_pool.0)
     .await?;
 
     // Mark setup token as used
     sqlx::query("UPDATE email_verifications SET used_at = NOW() WHERE id = $1")
         .bind(verification_id)
-        .execute(pool.get_ref())
+        .execute(&platform_pool.0)
         .await?;
 
     // Notify admins
@@ -240,7 +240,7 @@ pub struct MfaDisableRequest {
 }
 
 pub async fn mfa_disable(
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     auth: AuthenticatedUser,
     enc: web::Data<Encryptor>,
     notifier: web::Data<crate::services::notify::Notifier>,
@@ -251,7 +251,7 @@ pub async fn mfa_disable(
         "SELECT totp_secret_encrypted, recovery_codes_encrypted FROM user_mfa WHERE user_id = $1 AND enabled = true",
     )
     .bind(auth.user_id)
-    .fetch_optional(pool.get_ref())
+    .fetch_optional(&platform_pool.0)
     .await?;
 
     let row = match row {
@@ -276,7 +276,7 @@ pub async fn mfa_disable(
 
     let email: String = sqlx::query_scalar("SELECT email FROM users WHERE id = $1")
         .bind(auth.user_id)
-        .fetch_one(pool.get_ref())
+        .fetch_one(&platform_pool.0)
         .await?;
 
     // Try TOTP verification first
@@ -297,7 +297,7 @@ pub async fn mfa_disable(
     // Delete MFA record
     sqlx::query("DELETE FROM user_mfa WHERE user_id = $1")
         .bind(auth.user_id)
-        .execute(pool.get_ref())
+        .execute(&platform_pool.0)
         .await?;
 
     // Notify admins (security event)
@@ -328,7 +328,7 @@ pub struct MfaVerifyLoginRequest {
 }
 
 pub async fn mfa_verify_login(
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     config: web::Data<crate::config::Config>,
     enc: web::Data<Encryptor>,
     notifier: web::Data<crate::services::notify::Notifier>,
@@ -341,7 +341,7 @@ pub async fn mfa_verify_login(
         "SELECT id, user_id, token, expires_at FROM email_verifications WHERE purpose = 'mfa_login' AND used_at IS NULL AND token LIKE $1",
     )
     .bind(format!("{}%", body.mfa_token))
-    .fetch_optional(pool.get_ref())
+    .fetch_optional(&platform_pool.0)
     .await?;
 
     let row = match row {
@@ -363,7 +363,7 @@ pub async fn mfa_verify_login(
     if Utc::now() > expires_at {
         sqlx::query("UPDATE email_verifications SET used_at = NOW() WHERE id = $1")
             .bind(verification_id)
-            .execute(pool.get_ref())
+            .execute(&platform_pool.0)
             .await?;
         return Ok(HttpResponse::Unauthorized().json(json!({
             "data": null,
@@ -382,7 +382,7 @@ pub async fn mfa_verify_login(
     if attempts >= 5 {
         sqlx::query("UPDATE email_verifications SET used_at = NOW() WHERE id = $1")
             .bind(verification_id)
-            .execute(pool.get_ref())
+            .execute(&platform_pool.0)
             .await?;
 
         // Notify admins (potential brute force)
@@ -407,7 +407,7 @@ pub async fn mfa_verify_login(
         "SELECT totp_secret_encrypted, recovery_codes_encrypted FROM user_mfa WHERE user_id = $1 AND enabled = true",
     )
     .bind(user_id)
-    .fetch_optional(pool.get_ref())
+    .fetch_optional(&platform_pool.0)
     .await?;
 
     let mfa_row = match mfa_row {
@@ -431,7 +431,7 @@ pub async fn mfa_verify_login(
 
     let email: String = sqlx::query_scalar("SELECT email FROM users WHERE id = $1")
         .bind(user_id)
-        .fetch_one(pool.get_ref())
+        .fetch_one(&platform_pool.0)
         .await?;
 
     let mut valid = false;
@@ -459,7 +459,7 @@ pub async fn mfa_verify_login(
                     )
                     .bind(&updated)
                     .bind(user_id)
-                    .execute(pool.get_ref())
+                    .execute(&platform_pool.0)
                     .await?;
                 }
             }
@@ -473,7 +473,7 @@ pub async fn mfa_verify_login(
         sqlx::query("UPDATE email_verifications SET token = $1 WHERE id = $2")
             .bind(&new_token)
             .bind(verification_id)
-            .execute(pool.get_ref())
+            .execute(&platform_pool.0)
             .await?;
 
         return Ok(HttpResponse::Unauthorized().json(json!({
@@ -489,7 +489,7 @@ pub async fn mfa_verify_login(
     // Mark token as used
     sqlx::query("UPDATE email_verifications SET used_at = NOW() WHERE id = $1")
         .bind(verification_id)
-        .execute(pool.get_ref())
+        .execute(&platform_pool.0)
         .await?;
 
     // Issue JWT
@@ -497,7 +497,7 @@ pub async fn mfa_verify_login(
         "SELECT id, email, password_hash, display_name, role, tier, created_at FROM users WHERE id = $1",
     )
     .bind(user_id)
-    .fetch_one(pool.get_ref())
+    .fetch_one(&platform_pool.0)
     .await?;
 
     let token = crate::services::auth::create_jwt(
@@ -515,7 +515,7 @@ pub async fn mfa_verify_login(
         .bind(user.id)
         .bind(&token_hash)
         .bind(rt_expires_at)
-        .execute(pool.get_ref())
+        .execute(&platform_pool.0)
         .await?;
 
     let user_response = crate::models::user::UserResponse::from(user);
@@ -551,7 +551,7 @@ pub struct MfaRegenerateRequest {
 }
 
 pub async fn mfa_regenerate_recovery(
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     auth: AuthenticatedUser,
     enc: web::Data<Encryptor>,
     body: web::Json<MfaRegenerateRequest>,
@@ -561,7 +561,7 @@ pub async fn mfa_regenerate_recovery(
         "SELECT totp_secret_encrypted FROM user_mfa WHERE user_id = $1 AND enabled = true",
     )
     .bind(auth.user_id)
-    .fetch_optional(pool.get_ref())
+    .fetch_optional(&platform_pool.0)
     .await?;
 
     let row = match row {
@@ -584,7 +584,7 @@ pub async fn mfa_regenerate_recovery(
 
     let email: String = sqlx::query_scalar("SELECT email FROM users WHERE id = $1")
         .bind(auth.user_id)
-        .fetch_one(pool.get_ref())
+        .fetch_one(&platform_pool.0)
         .await?;
 
     // Verify current TOTP code
@@ -613,7 +613,7 @@ pub async fn mfa_regenerate_recovery(
     )
     .bind(&encrypted_recovery)
     .bind(auth.user_id)
-    .execute(pool.get_ref())
+    .execute(&platform_pool.0)
     .await?;
 
     Ok(HttpResponse::Ok().json(json!({
@@ -629,14 +629,14 @@ pub async fn mfa_regenerate_recovery(
 // ---------------------------------------------------------------------------
 
 pub async fn mfa_status(
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     auth: AuthenticatedUser,
 ) -> Result<HttpResponse, AppError> {
     use sqlx::Row;
 
     let row = sqlx::query("SELECT enabled, verified_at FROM user_mfa WHERE user_id = $1")
         .bind(auth.user_id)
-        .fetch_optional(pool.get_ref())
+        .fetch_optional(&platform_pool.0)
         .await?;
 
     let (enabled, verified_at) = match row {
@@ -670,7 +670,7 @@ pub struct ChangePasswordRequest {
 }
 
 pub async fn change_password(
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     auth: AuthenticatedUser,
     enc: web::Data<Encryptor>,
     notifier: web::Data<crate::services::notify::Notifier>,
@@ -681,7 +681,7 @@ pub async fn change_password(
         "SELECT id, email, password_hash, display_name, role, tier, created_at FROM users WHERE id = $1",
     )
     .bind(auth.user_id)
-    .fetch_one(pool.get_ref())
+    .fetch_one(&platform_pool.0)
     .await?;
 
     // Verify current password
@@ -697,7 +697,7 @@ pub async fn change_password(
         "SELECT totp_secret_encrypted FROM user_mfa WHERE user_id = $1 AND enabled = true",
     )
     .bind(auth.user_id)
-    .fetch_optional(pool.get_ref())
+    .fetch_optional(&platform_pool.0)
     .await?;
 
     if let Some(mfa_row) = mfa_row {
@@ -739,13 +739,13 @@ pub async fn change_password(
     sqlx::query("UPDATE users SET password_hash = $1, updated_at = NOW() WHERE id = $2")
         .bind(&new_hash)
         .bind(auth.user_id)
-        .execute(pool.get_ref())
+        .execute(&platform_pool.0)
         .await?;
 
     // Revoke all refresh tokens (logout other sessions)
     sqlx::query("UPDATE refresh_tokens SET revoked = true WHERE user_id = $1 AND revoked = false")
         .bind(auth.user_id)
-        .execute(pool.get_ref())
+        .execute(&platform_pool.0)
         .await?;
 
     // Notify admins
