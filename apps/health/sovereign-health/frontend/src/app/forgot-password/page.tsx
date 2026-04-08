@@ -8,14 +8,14 @@ import { toast } from '@/lib/toast'
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import Image from 'next/image'
-import { getBrandConfig } from '@/lib/brand'
+import { useBrand } from '@/lib/brand'
 
 export default function ForgotPasswordPage() {
   const t = useTranslations('auth')
   const tCommon = useTranslations('common')
   const tFP = useTranslations('auth.forgotPasswordPage')
   const tToast = useTranslations('auth.toast')
-  const brand = getBrandConfig()
+  const brand = useBrand()
   const [submitted, setSubmitted] = useState(false)
 
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<ForgotPasswordInput>({

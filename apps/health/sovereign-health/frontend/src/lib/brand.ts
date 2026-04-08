@@ -57,3 +57,18 @@ export function getBrandConfig(): BrandConfig {
   // On sovereignhealth.io domain, use SHI branding
   return SHI_BRAND
 }
+
+/**
+ * React hook that returns brand config after client-side mount.
+ * Use this instead of getBrandConfig() in components with Next.js Image,
+ * because Image src must be correct on first render (SSR hydration).
+ */
+import { useState, useEffect } from 'react'
+
+export function useBrand(): BrandConfig {
+  const [brand, setBrand] = useState<BrandConfig>(SHI_BRAND)
+  useEffect(() => {
+    setBrand(getBrandConfig())
+  }, [])
+  return brand
+}

@@ -4,7 +4,7 @@ import { useEffect, useState, useRef, Suspense } from 'react'
 import { api } from '@/lib/api'
 import Link from 'next/link'
 import Image from 'next/image'
-import { getBrandConfig } from '@/lib/brand'
+import { useBrand } from '@/lib/brand'
 import { useTranslations } from 'next-intl'
 import { useContent } from '@/lib/content-context'
 import { locales, localeNames } from '@/i18n/config'
@@ -12,7 +12,7 @@ import { locales, localeNames } from '@/i18n/config'
 function VerifyEmailContent() {
   const t = useTranslations('auth')
   const tCommon = useTranslations('common')
-  const brand = getBrandConfig()
+  const brand = useBrand()
   const tVE = useTranslations('auth.verifyEmail')
   const searchParams = useSearchParams()
   const router = useRouter()

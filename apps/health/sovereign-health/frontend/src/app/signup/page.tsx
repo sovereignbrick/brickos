@@ -6,7 +6,7 @@ import { api, setToken } from '@/lib/api'
 import Cookies from 'js-cookie'
 import Link from 'next/link'
 import Image from 'next/image'
-import { getBrandConfig } from '@/lib/brand'
+import { useBrand } from '@/lib/brand'
 import { toast } from '@/lib/toast'
 import { useAuth } from '@/lib/auth-context'
 import { useState, useEffect, useRef, Suspense } from 'react'
@@ -48,7 +48,7 @@ function SignupContent() {
   const tCommon = useTranslations('common')
   const ts = useTranslations('auth.signup')
   const tToast = useTranslations('auth.toast')
-  const brand = getBrandConfig()
+  const brand = useBrand()
   const [registrationEnabled, setRegistrationEnabled] = useState<boolean | null>(null)
   const [submitted, setSubmitted] = useState(false)
   const [submittedEmail, setSubmittedEmail] = useState('')

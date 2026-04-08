@@ -10,7 +10,7 @@ import Link from 'next/link'
 import { useState, useEffect, useRef, Suspense } from 'react'
 import { useTranslations } from 'next-intl'
 import Image from 'next/image'
-import { getBrandConfig } from '@/lib/brand'
+import { useBrand } from '@/lib/brand'
 
 function MfaVerifyForm({
   mfaToken,
@@ -147,7 +147,7 @@ function LoginContent() {
   const [showResend, setShowResend] = useState(false)
   const [resendEmail, setResendEmail] = useState('')
   const [registrationEnabled, setRegistrationEnabled] = useState(false)
-  const brand = getBrandConfig()
+  const brand = useBrand()
   const [mfaToken, setMfaToken] = useState<string | null>(null)
 
   const { register, handleSubmit, watch, formState: { errors, isSubmitting } } = useForm<LoginInput>({
