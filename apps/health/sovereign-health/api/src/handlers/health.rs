@@ -27,7 +27,7 @@ pub async fn health(
     req: HttpRequest,
     config: Option<web::Data<Config>>,
     pool: Option<web::Data<PgPool>>,
-    platform_pool: Option<web::Data<PlatformPool>>,
+    _platform_pool: Option<web::Data<PlatformPool>>,
 ) -> impl Responder {
     let mode = config
         .as_ref()
@@ -59,31 +59,7 @@ pub async fn health(
             }
         };
 
-        let platform_db_check = if let Some(pp) = platform_pool {
-            let start = std::time::Instant::now();
-            match sqlx::query_scalar::<_, i32>("SELECT 1")
-                .fetch_one(&pp.0)
-                .await
-            {
-                Ok(_) => Some(HealthCheckResult {
-                    status: "ok".to_string(),
-                    latency_ms: start.elapsed().as_millis() as i64,
-                }),
-                Err(_) => Some(HealthCheckResult {
-                    status: "down".to_string(),
-                    latency_ms: start.elapsed().as_millis() as i64,
-                }),
-            }
-        } else {
-            None
-        };
-
-        let platform_ok = platform_db_check
-            .as_ref()
-            .map(|c| c.status == "ok")
-            .unwrap_or(true); // no platform pool registered = not degraded
-
-        let overall_status = if db_check.status == "ok" && platform_ok {
+        let overall_status = if db_check.status == "ok" {
             "ok"
         } else {
             "degraded"
@@ -95,10 +71,7 @@ pub async fn health(
             version: VERSION.to_string(),
             timestamp: Utc::now().to_rfc3339(),
             mode,
-            checks: Some(HealthChecks {
-                database: db_check,
-                platform_database: platform_db_check,
-            }),
+            checks: Some(HealthChecks { database: db_check, platform_database: None }),
             ai_system: Some(ai_system_info()),
         };
 
@@ -129,7 +102,10 @@ pub async fn hello() -> impl Responder {
 
 /// GET /api/v1/health/metrics — external API monitoring endpoint.
 /// Returns live system metrics for admin dashboard and external uptime monitors.
-pub async fn metrics(pool: Option<web::Data<PgPool>>) -> impl Responder {
+pub async fn metrics(
+    pool: Option<web::Data<PgPool>>,
+    platform_pool: Option<web::Data<PlatformPool>>,
+) -> impl Responder {
     let pool = match pool {
         Some(p) => p,
         None => {
@@ -148,18 +124,22 @@ pub async fn metrics(pool: Option<web::Data<PgPool>>) -> impl Responder {
         .is_ok();
     let db_latency_ms = db_start.elapsed().as_millis() as i64;
 
-    // Active users (last 5 min, last 24h)
+    // Active users (last 5 min, last 24h) (platform table)
+    let pp = platform_pool
+        .as_ref()
+        .map(|p| &p.0)
+        .unwrap_or_else(|| pool.get_ref());
     let active_5m: i64 = sqlx::query_scalar(
         "SELECT COUNT(*) FROM users WHERE last_active_at > NOW() - INTERVAL '5 minutes' AND is_deleted = false",
     )
-    .fetch_one(pool.get_ref())
+    .fetch_one(pp)
     .await
     .unwrap_or(0);
 
     let active_24h: i64 = sqlx::query_scalar(
         "SELECT COUNT(*) FROM users WHERE last_active_at > NOW() - INTERVAL '24 hours' AND is_deleted = false",
     )
-    .fetch_one(pool.get_ref())
+    .fetch_one(pp)
     .await
     .unwrap_or(0);
 
@@ -188,17 +168,17 @@ pub async fn metrics(pool: Option<web::Data<PgPool>>) -> impl Responder {
     .await
     .unwrap_or((0, 0));
 
-    // Error rate (last 1h from audit_log)
+    // Error rate (last 1h from audit_log) (platform table)
     let errors_1h: i64 = sqlx::query_scalar(
         "SELECT COUNT(*) FROM audit_log WHERE action LIKE '%.error' AND created_at > NOW() - INTERVAL '1 hour'",
     )
-    .fetch_one(pool.get_ref())
+    .fetch_one(pp)
     .await
     .unwrap_or(0);
 
-    // Audit log stats
+    // Audit log stats (platform table)
     let audit_total: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM audit_log")
-        .fetch_one(pool.get_ref())
+        .fetch_one(pp)
         .await
         .unwrap_or(0);
 
