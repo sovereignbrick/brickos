@@ -11,6 +11,7 @@ members = [
     "crates/brickos-startos",
     "apps/health/sovereign-health/api",
     "apps/technology/sovereign-link",
+    "apps/platform/brickos-platform-api",
     # "apps/finance/btc-tracker/api",
 ]
 

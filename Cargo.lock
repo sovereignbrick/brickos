@@ -4712,7 +4712,7 @@ dependencies = [
 
 [[package]]
 name = "sovereign-health-backend"
-version = "0.39.0"
+version = "0.41.0"
 dependencies = [
  "actix-cors",
  "actix-governor",
