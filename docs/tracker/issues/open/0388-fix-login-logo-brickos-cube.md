@@ -26,3 +26,8 @@ The logo image must not be rendered during SSR at all. Instead:
 3. The placeholder should be the same size as the logo (64x64) to prevent layout shift
 
 OR: Use CSS background-image that can be overridden by a class set via middleware.
+
+## Update 2026-04-08
+
+Login at app.brickos.io still shows SHI shield logo. Text "BrickOS Platform" is correct.
+User confirmed demo.brickos.io login works fine -- issue is production only.

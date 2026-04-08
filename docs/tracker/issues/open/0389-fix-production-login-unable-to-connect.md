@@ -35,3 +35,18 @@ The .brickos.io cookie domain should share the session.
 2. Try incognito mode
 3. Open browser DevTools Network tab and check the actual failed request
 4. Check if the request goes to api.brickos.io or somewhere else
+
+## Update 2026-04-08
+
+User confirmed: logged in as admin on SHI (app.sovereignhealth.io) in same browser,
+but app.brickos.io/login shows "Unable to connect to server" on submit.
+This rules out general network/DNS issues -- the browser CAN reach *.brickos.io.
+The cross-origin fetch from app.brickos.io to api.brickos.io is being blocked by the browser.
+
+Likely cause: Brave browser shields blocking third-party domain API calls.
+api.brickos.io is a different origin than app.brickos.io.
+
+Fix options:
+1. Proxy API through same origin: app.brickos.io/api/* -> nginx proxy to backend
+2. Add api.brickos.io to Brave shields allowlist
+3. Use api.sovereignhealth.io as API URL on app.brickos.io (same backend, different domain)
