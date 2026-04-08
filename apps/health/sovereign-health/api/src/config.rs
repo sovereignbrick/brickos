@@ -49,6 +49,8 @@ pub struct Config {
     pub host: String,
     pub port: u16,
     pub db_pool_max: u32,
+    pub platform_database_url: Option<String>,
+    pub platform_db_pool_max: Option<u32>,
     pub cors_max_age: usize,
 
     // Auth rate limits
@@ -149,6 +151,8 @@ impl Config {
             host: env_or("HOST", "0.0.0.0"),
             port: env_parse("PORT", 8080),
             db_pool_max: env_parse("DB_POOL_MAX", 5),
+            platform_database_url: std::env::var("SHI_PLATFORM_DATABASE_URL").ok(),
+            platform_db_pool_max: std::env::var("SHI_PLATFORM_DB_POOL_MAX").ok().and_then(|v| v.parse().ok()),
             cors_max_age: env_parse("CORS_MAX_AGE", 3600),
 
             // Auth rate limits
@@ -218,6 +222,8 @@ impl Config {
             host: "127.0.0.1".into(),
             port: 8080,
             db_pool_max: 5,
+            platform_database_url: None,
+            platform_db_pool_max: None,
             cors_max_age: 3600,
             rate_limit_register: 100,
             rate_limit_login: 100,
@@ -250,6 +256,11 @@ impl Config {
             base_url: self.sli_api_url.clone(),
             api_key: self.sli_api_key.clone(),
         }
+    }
+
+    /// Platform database URL. Falls back to main DATABASE_URL for backward compat.
+    pub fn platform_database_url(&self) -> &str {
+        self.platform_database_url.as_deref().unwrap_or(&self.database_url)
     }
 
     pub fn is_oss(&self) -> bool {
