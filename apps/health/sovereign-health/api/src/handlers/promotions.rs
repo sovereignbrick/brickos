@@ -10,6 +10,7 @@ use uuid::Uuid;
 use brickos_billing::stripe::StripeService;
 
 use crate::{error::AppError, middleware::auth::AdminUser};
+use crate::PlatformPool;
 
 // ---------------------------------------------------------------------------
 // Public: POST /promotions/validate
@@ -22,7 +23,7 @@ pub struct ValidateRequest {
 }
 
 pub async fn validate(
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     body: web::Json<ValidateRequest>,
 ) -> Result<HttpResponse, AppError> {
     let code = body.code.trim().to_uppercase();
@@ -34,7 +35,7 @@ pub async fn validate(
            FROM promotions WHERE UPPER(code) = $1"#,
     )
     .bind(&code)
-    .fetch_optional(pool.get_ref())
+    .fetch_optional(&platform_pool.0)
     .await?;
 
     let row = match row {
@@ -128,7 +129,7 @@ pub async fn validate(
     };
 
     // Calculate example prices for each applicable tier
-    let tier_prices = get_tier_prices(&pool).await;
+    let tier_prices = get_tier_prices(&platform_pool.0).await;
     let mut price_examples = Vec::new();
     let check_tiers = applicable_tiers.as_deref().unwrap_or(&[]);
     for (tier_slug, monthly_price) in &tier_prices {
@@ -171,7 +172,7 @@ pub async fn validate(
 // ---------------------------------------------------------------------------
 
 pub async fn admin_list(
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     _admin: AdminUser,
 ) -> Result<HttpResponse, AppError> {
     let rows = sqlx::query(
@@ -184,7 +185,7 @@ pub async fn admin_list(
            LEFT JOIN users u ON u.id = p.created_by
            ORDER BY p.created_at DESC"#,
     )
-    .fetch_all(pool.get_ref())
+    .fetch_all(&platform_pool.0)
     .await?;
 
     let promos: Vec<serde_json::Value> = rows
@@ -253,7 +254,7 @@ pub struct CreatePromotionRequest {
 }
 
 pub async fn admin_create(
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     stripe: Option<web::Data<StripeService>>,
     admin: AdminUser,
     body: web::Json<CreatePromotionRequest>,
@@ -271,7 +272,7 @@ pub async fn admin_create(
     // Check for duplicate
     let existing = sqlx::query("SELECT id FROM promotions WHERE UPPER(code) = $1")
         .bind(&code)
-        .fetch_optional(pool.get_ref())
+        .fetch_optional(&platform_pool.0)
         .await?;
     if existing.is_some() {
         return Err(AppError::Validation(format!(
@@ -394,7 +395,7 @@ pub async fn admin_create(
     .bind(starts_at)
     .bind(expires_at)
     .bind(admin.user_id)
-    .fetch_one(pool.get_ref())
+    .fetch_one(&platform_pool.0)
     .await?;
 
     let promo_id: Uuid = row.try_get("id").map_err(|_| AppError::Internal)?;
@@ -425,7 +426,7 @@ pub struct UpdatePromotionRequest {
 }
 
 pub async fn admin_update(
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     stripe: Option<web::Data<StripeService>>,
     _admin: AdminUser,
     path: web::Path<Uuid>,
@@ -436,7 +437,7 @@ pub async fn admin_update(
     let row =
         sqlx::query("SELECT stripe_promo_code_id, stripe_coupon_id FROM promotions WHERE id = $1")
             .bind(promo_id)
-            .fetch_optional(pool.get_ref())
+            .fetch_optional(&platform_pool.0)
             .await?
             .ok_or(AppError::NotFound)?;
 
@@ -480,7 +481,7 @@ pub async fn admin_update(
     .bind(&body.name)
     .bind(&body.applicable_tiers)
     .bind(promo_id)
-    .execute(pool.get_ref())
+    .execute(&platform_pool.0)
     .await?;
 
     Ok(HttpResponse::Ok().json(json!({
@@ -494,7 +495,7 @@ pub async fn admin_update(
 // ---------------------------------------------------------------------------
 
 pub async fn admin_deactivate(
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     stripe: Option<web::Data<StripeService>>,
     _admin: AdminUser,
     path: web::Path<Uuid>,
@@ -503,7 +504,7 @@ pub async fn admin_deactivate(
 
     let row = sqlx::query("SELECT stripe_promo_code_id FROM promotions WHERE id = $1")
         .bind(promo_id)
-        .fetch_optional(pool.get_ref())
+        .fetch_optional(&platform_pool.0)
         .await?
         .ok_or(AppError::NotFound)?;
 
@@ -519,7 +520,7 @@ pub async fn admin_deactivate(
 
     sqlx::query("UPDATE promotions SET is_active = false, updated_at = NOW() WHERE id = $1")
         .bind(promo_id)
-        .execute(pool.get_ref())
+        .execute(&platform_pool.0)
         .await?;
 
     Ok(HttpResponse::Ok().json(json!({
@@ -533,7 +534,7 @@ pub async fn admin_deactivate(
 // ---------------------------------------------------------------------------
 
 pub async fn admin_redemptions(
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     _admin: AdminUser,
     path: web::Path<Uuid>,
 ) -> Result<HttpResponse, AppError> {
@@ -548,7 +549,7 @@ pub async fn admin_redemptions(
            ORDER BY pr.redeemed_at DESC"#,
     )
     .bind(promo_id)
-    .fetch_all(pool.get_ref())
+    .fetch_all(&platform_pool.0)
     .await?;
 
     let redemptions: Vec<serde_json::Value> = rows
@@ -572,7 +573,7 @@ pub async fn admin_redemptions(
         "SELECT code, name, discount_type, discount_value::float8 as dv, redemption_count FROM promotions WHERE id = $1",
     )
     .bind(promo_id)
-    .fetch_optional(pool.get_ref())
+    .fetch_optional(&platform_pool.0)
     .await?;
 
     let summary = promo.map(|p| {
@@ -632,7 +633,7 @@ pub struct PaymentPreviewRequest {
 }
 
 pub async fn payment_preview(
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     user: crate::middleware::auth::AuthenticatedUser,
     body: web::Json<PaymentPreviewRequest>,
 ) -> Result<HttpResponse, AppError> {
@@ -663,7 +664,7 @@ pub async fn payment_preview(
                FROM promotions WHERE UPPER(code) = $1"#,
         )
         .bind(&code_upper)
-        .fetch_optional(pool.get_ref())
+        .fetch_optional(&platform_pool.0)
         .await?;
 
         if let Some(r) = row {
@@ -704,7 +705,7 @@ pub async fn payment_preview(
         "SELECT EXISTS(SELECT 1 FROM affiliate_conversions WHERE user_id = $1)",
     )
     .bind(user.user_id)
-    .fetch_one(pool.get_ref())
+    .fetch_one(&platform_pool.0)
     .await
     .unwrap_or(false);
 
@@ -712,7 +713,7 @@ pub async fn payment_preview(
         "SELECT EXISTS(SELECT 1 FROM payment_events WHERE user_id = $1 AND status = 'succeeded')",
     )
     .bind(user.user_id)
-    .fetch_one(pool.get_ref())
+    .fetch_one(&platform_pool.0)
     .await
     .unwrap_or(false);
 

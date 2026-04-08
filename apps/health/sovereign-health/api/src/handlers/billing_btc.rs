@@ -10,6 +10,7 @@ use uuid::Uuid;
 use brickos_billing::strike::{CreateInvoiceRequest, InvoiceAmount, StrikeService};
 
 use crate::middleware::auth::AuthenticatedUser;
+use crate::PlatformPool;
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -30,9 +31,9 @@ const DEFAULT_BTC_DISCOUNT_PERCENT: f64 = 5.0;
 const ANNUAL_FREE_MONTHS: u32 = 2;
 
 /// Read BTC discount from app_settings (admin panel), falling back to default
-async fn btc_discount_percent(pool: &PgPool) -> f64 {
+async fn btc_discount_percent(platform_pool: &PgPool) -> f64 {
     let val = crate::handlers::admin_settings::get_setting(
-        pool,
+        platform_pool,
         "btc_discount_percent",
         json!(DEFAULT_BTC_DISCOUNT_PERCENT),
     )
@@ -141,13 +142,13 @@ struct BtcPriceBreakdown {
 
 pub async fn create_invoice(
     req: HttpRequest,
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     strike: Option<web::Data<StrikeService>>,
     user: AuthenticatedUser,
     body: web::Json<CreateBtcInvoiceRequest>,
 ) -> HttpResponse {
     // Check payment whitelist gate
-    if let Err(resp) = crate::handlers::payments::check_payment_allowed(&req, pool.get_ref()).await
+    if let Err(resp) = crate::handlers::payments::check_payment_allowed(&req, &platform_pool.0).await
     {
         return resp;
     }
@@ -190,7 +191,7 @@ pub async fn create_invoice(
                FROM promotions WHERE UPPER(code) = $1"#,
         )
         .bind(&code_upper)
-        .fetch_optional(pool.get_ref())
+        .fetch_optional(&platform_pool.0)
         .await;
 
         if let Ok(Some(row)) = promo_row {
@@ -227,7 +228,7 @@ pub async fn create_invoice(
     }
 
     // Calculate price (BTC discount from admin settings)
-    let btc_pct = btc_discount_percent(pool.get_ref()).await;
+    let btc_pct = btc_discount_percent(&platform_pool.0).await;
     let price = match calculate_btc_price(
         &body.tier,
         body.period_months,
@@ -336,7 +337,7 @@ pub async fn create_invoice(
     .bind(&quote.ln_invoice)
     .bind(&quote.onchain_address)
     .bind(expires_at)
-    .execute(pool.get_ref())
+    .execute(&platform_pool.0)
     .await;
 
     if let Err(e) = insert_result {
@@ -395,7 +396,7 @@ pub async fn create_invoice(
 // ---------------------------------------------------------------------------
 
 pub async fn check_invoice(
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     strike: Option<web::Data<StrikeService>>,
     user: AuthenticatedUser,
     path: web::Path<Uuid>,
@@ -409,7 +410,7 @@ pub async fn check_invoice(
     )
     .bind(payment_id)
     .bind(user.user_id)
-    .fetch_optional(pool.get_ref())
+    .fetch_optional(&platform_pool.0)
     .await;
 
     let row = match row {
@@ -449,7 +450,7 @@ pub async fn check_invoice(
                 "UPDATE btc_payments SET status = 'expired', updated_at = NOW() WHERE id = $1",
             )
             .bind(payment_id)
-            .execute(pool.get_ref())
+            .execute(&platform_pool.0)
             .await;
             return HttpResponse::Ok().json(json!({
                 "data": { "status": "expired", "paid_at": null },
@@ -470,7 +471,7 @@ pub async fn check_invoice(
                     let prepaid_until = now + Duration::days(period_months as i64 * 30);
 
                     let _ = activate_btc_payment(
-                        pool.get_ref(),
+                        &platform_pool.0,
                         payment_id,
                         user.user_id,
                         &tier,
@@ -489,7 +490,7 @@ pub async fn check_invoice(
                         "UPDATE btc_payments SET status = 'expired', updated_at = NOW() WHERE id = $1",
                     )
                     .bind(payment_id)
-                    .execute(pool.get_ref())
+                    .execute(&platform_pool.0)
                     .await;
                     return HttpResponse::Ok().json(json!({
                         "data": { "status": "expired", "paid_at": null },
@@ -513,7 +514,7 @@ pub async fn check_invoice(
 
 pub async fn webhook(
     req: HttpRequest,
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     strike: Option<web::Data<StrikeService>>,
     body: web::Bytes,
 ) -> HttpResponse {
@@ -556,7 +557,7 @@ pub async fn webhook(
             // Fetch full invoice from Strike to get latest state
             match strike.get_invoice(invoice_id).await {
                 Ok(inv) if inv.state == "PAID" => {
-                    if let Err(e) = handle_invoice_paid(&pool, invoice_id).await {
+                    if let Err(e) = handle_invoice_paid(&platform_pool.0, invoice_id).await {
                         tracing::error!("Failed to handle paid invoice {}: {}", invoice_id, e);
                     }
                 }
@@ -580,7 +581,7 @@ pub async fn webhook(
 // GET /billing/btc/status - current BTC prepaid status
 // ---------------------------------------------------------------------------
 
-pub async fn btc_status(pool: web::Data<PgPool>, user: AuthenticatedUser) -> HttpResponse {
+pub async fn btc_status(platform_pool: web::Data<PlatformPool>, user: AuthenticatedUser) -> HttpResponse {
     let row = sqlx::query(
         r#"SELECT id, tier, period_months, amount_eur, amount_btc, amount_sats,
                   status, paid_at, prepaid_from, prepaid_until, promo_code, created_at
@@ -589,7 +590,7 @@ pub async fn btc_status(pool: web::Data<PgPool>, user: AuthenticatedUser) -> Htt
            ORDER BY prepaid_until DESC LIMIT 1"#,
     )
     .bind(user.user_id)
-    .fetch_optional(pool.get_ref())
+    .fetch_optional(&platform_pool.0)
     .await;
 
     match row {
@@ -624,8 +625,8 @@ pub async fn btc_status(pool: web::Data<PgPool>, user: AuthenticatedUser) -> Htt
 // GET /billing/btc/prices - get BTC pricing table
 // ---------------------------------------------------------------------------
 
-pub async fn prices(pool: web::Data<PgPool>, _user: AuthenticatedUser) -> HttpResponse {
-    let btc_pct = btc_discount_percent(pool.get_ref()).await;
+pub async fn prices(platform_pool: web::Data<PlatformPool>, _user: AuthenticatedUser) -> HttpResponse {
+    let btc_pct = btc_discount_percent(&platform_pool.0).await;
     let mut tiers = Vec::new();
 
     for (tier_slug, monthly) in TIER_PRICES {
