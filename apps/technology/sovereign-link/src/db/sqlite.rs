@@ -700,6 +700,9 @@ fn row_to_short_link(row: &rusqlite::Row<'_>) -> ShortLink {
         updated_at: chrono::DateTime::parse_from_rfc3339(&created_at_str)
             .map(|dt| dt.with_timezone(&chrono::Utc))
             .unwrap_or_else(|_| chrono::Utc::now()),
+        total_clicks: 0,
+        clicks_7d: 0,
+        clicks_30d: 0,
     }
 }
 
@@ -735,6 +738,9 @@ fn make_short_link(
         }),
         created_at: now,
         updated_at: now,
+        total_clicks: 0,
+        clicks_7d: 0,
+        clicks_30d: 0,
     }
 }
 
