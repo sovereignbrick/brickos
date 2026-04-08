@@ -7,6 +7,13 @@ pub mod nostr;
 pub mod auth;
 #[cfg(feature = "standalone")]
 pub mod config;
+#[cfg(feature = "platform")]
+pub mod platform_config;
+
+/// Platform database pool (brickos DB -- users, orgs, service accounts).
+/// Newtype wrapper to distinguish from the app-specific pool in Actix app_data.
+#[cfg(feature = "platform")]
+pub struct PlatformPool(pub sqlx::PgPool);
 
 use actix_web::web;
 
