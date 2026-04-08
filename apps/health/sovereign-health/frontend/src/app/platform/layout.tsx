@@ -7,6 +7,7 @@ import { useAuth } from '@/lib/auth-context'
 import { useTranslations } from 'next-intl'
 import { AdminContext } from './admin-context'
 import type { AdminContextType } from './admin-context'
+import { PlatformFilterProvider, usePlatformFilter } from './platform-context'
 
 // ---------------------------------------------------------------------------
 // Navigation
@@ -79,6 +80,33 @@ function buildNavItems(t: (key: string) => string): NavItem[] {
 // ---------------------------------------------------------------------------
 // Layout
 // ---------------------------------------------------------------------------
+
+/** Data scoping filter dropdowns in the platform header */
+function FilterDropdowns() {
+  const { appFilter, orgFilter, setAppFilter, setOrgFilter } = usePlatformFilter()
+
+  return (
+    <div className="hidden sm:flex items-center gap-2">
+      <select
+        value={appFilter}
+        onChange={e => setAppFilter(e.target.value)}
+        className="bg-zinc-800/50 border border-zinc-700/50 rounded-lg px-2 py-1 text-[11px] text-zinc-400 focus:outline-none focus:ring-1 focus:ring-orange-500/50"
+      >
+        <option value="all">All Apps</option>
+        <option value="shi">Sovereign Health</option>
+        <option value="sovereign-link">Sovereign Link</option>
+        <option value="sovereign-voice">Sovereign Voice</option>
+      </select>
+      <select
+        value={orgFilter}
+        onChange={e => setOrgFilter(e.target.value)}
+        className="bg-zinc-800/50 border border-zinc-700/50 rounded-lg px-2 py-1 text-[11px] text-zinc-400 focus:outline-none focus:ring-1 focus:ring-orange-500/50"
+      >
+        <option value="all">All Orgs</option>
+      </select>
+    </div>
+  )
+}
 
 /** Set BrickOS favicon + title when on brickos.io domain */
 function BrickOSHead() {
@@ -224,6 +252,7 @@ export default function PlatformLayout({ children }: { children: React.ReactNode
 
   return (
     <AdminContext.Provider value={ctx}>
+      <PlatformFilterProvider>
       <BrickOSHead />
       <div className="min-h-screen bg-[#09090b] text-zinc-50 flex">
         {/* Mobile toggle */}
@@ -349,7 +378,10 @@ export default function PlatformLayout({ children }: { children: React.ReactNode
                 </Link>
               ))}
             </nav>
-            <UserProfileMenu user={user} />
+            <div className="flex items-center gap-2">
+              <FilterDropdowns />
+              <UserProfileMenu user={user} />
+            </div>
           </header>
 
           <main className="flex-1 overflow-y-auto">
@@ -359,6 +391,7 @@ export default function PlatformLayout({ children }: { children: React.ReactNode
           </main>
         </div>
       </div>
+    </PlatformFilterProvider>
     </AdminContext.Provider>
   )
 }
