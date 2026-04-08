@@ -6,9 +6,7 @@
 use actix_web::{web, HttpRequest, HttpResponse};
 use serde::Deserialize;
 use serde_json::json;
-use sqlx::PgPool;
-
-use crate::{config::Config, error::AppError, middleware::auth::AuthenticatedUser};
+use crate::{config::Config, error::AppError, middleware::auth::AuthenticatedUser, PlatformPool};
 
 #[derive(Debug, Deserialize)]
 pub struct SubscribeRequest {
@@ -36,7 +34,7 @@ pub async fn vapid_key(config: web::Data<Config>) -> Result<HttpResponse, AppErr
 /// POST /api/v1/push/subscribe
 /// Save a push subscription for the authenticated user.
 pub async fn subscribe(
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     auth: AuthenticatedUser,
     body: web::Json<SubscribeRequest>,
     req: HttpRequest,
@@ -61,7 +59,7 @@ pub async fn subscribe(
     .bind(&body.keys.p256dh)
     .bind(&body.keys.auth)
     .bind(&user_agent)
-    .execute(pool.get_ref())
+    .execute(&platform_pool.0)
     .await?;
 
     Ok(HttpResponse::Ok().json(json!({
@@ -73,14 +71,14 @@ pub async fn subscribe(
 /// DELETE /api/v1/push/unsubscribe
 /// Remove a push subscription.
 pub async fn unsubscribe(
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     auth: AuthenticatedUser,
     body: web::Json<UnsubscribeRequest>,
 ) -> Result<HttpResponse, AppError> {
     sqlx::query("DELETE FROM push_subscriptions WHERE user_id = $1 AND endpoint = $2")
         .bind(auth.user_id)
         .bind(&body.endpoint)
-        .execute(pool.get_ref())
+        .execute(&platform_pool.0)
         .await?;
 
     Ok(HttpResponse::Ok().json(json!({

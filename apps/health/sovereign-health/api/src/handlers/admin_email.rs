@@ -7,14 +7,13 @@ use actix_web::{web, HttpResponse};
 use chrono::Utc;
 use serde::Deserialize;
 use serde_json::json;
-use sqlx::PgPool;
-
 use brickos_email::EmailProvider;
 
 use crate::error::AppError;
 use crate::middleware::auth::AuthenticatedUser;
 use crate::services::segments::get_users_by_segments;
 use crate::templates::emails;
+use crate::PlatformPool;
 
 // ---------------------------------------------------------------------------
 // POST /admin/email/send
@@ -30,7 +29,7 @@ pub struct SendCampaignRequest {
 }
 
 pub async fn send_campaign(
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     auth: AuthenticatedUser,
     config: web::Data<crate::config::Config>,
     email_provider: web::Data<Arc<dyn EmailProvider>>,
@@ -49,7 +48,7 @@ pub async fn send_campaign(
         "SELECT EXISTS(SELECT 1 FROM email_campaigns WHERE sent_by = $1 AND created_at > now() - interval '1 hour' AND status != 'draft')",
     )
     .bind(auth.user_id)
-    .fetch_one(pool.get_ref())
+    .fetch_one(&platform_pool.0)
     .await
     .unwrap_or(false);
 
@@ -64,7 +63,7 @@ pub async fn send_campaign(
     let dry_run = body.dry_run.unwrap_or(false);
 
     // Find matching users
-    let recipients = get_users_by_segments(pool.get_ref(), &filters)
+    let recipients = get_users_by_segments(&platform_pool.0, &filters)
         .await
         .map_err(|e| {
             tracing::error!("Segment query failed: {e}");
@@ -93,7 +92,7 @@ pub async fn send_campaign(
     .bind(recipients.len() as i32)
     .bind(auth.user_id)
     .bind(Utc::now())
-    .fetch_one(pool.get_ref())
+    .fetch_one(&platform_pool.0)
     .await
     .map_err(|e| {
         tracing::error!("Failed to create campaign: {e}");
@@ -165,7 +164,7 @@ pub async fn send_campaign(
         .bind(&body.template_name)
         .bind(status)
         .bind(error_msg)
-        .execute(pool.get_ref())
+        .execute(&platform_pool.0)
         .await;
     }
 
@@ -174,7 +173,7 @@ pub async fn send_campaign(
     let _ = sqlx::query("UPDATE email_campaigns SET status = $1, updated_at = now() WHERE id = $2")
         .bind(final_status)
         .bind(campaign_id)
-        .execute(pool.get_ref())
+        .execute(&platform_pool.0)
         .await;
 
     tracing::info!(
@@ -200,7 +199,7 @@ pub async fn send_campaign(
 // ---------------------------------------------------------------------------
 
 pub async fn email_stats(
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     auth: AuthenticatedUser,
 ) -> Result<HttpResponse, AppError> {
     if auth.role != "admin" {
@@ -221,7 +220,7 @@ pub async fn email_stats(
             COALESCE(SUM(recipient_count), 0) as total_recipients
         FROM email_campaigns"#,
     )
-    .fetch_one(pool.get_ref())
+    .fetch_one(&platform_pool.0)
     .await
     .map_err(|_| AppError::Internal)?;
 
@@ -235,7 +234,7 @@ pub async fn email_stats(
         FROM email_sends
         WHERE created_at > now() - interval '30 days'"#,
     )
-    .fetch_one(pool.get_ref())
+    .fetch_one(&platform_pool.0)
     .await
     .map_err(|_| AppError::Internal)?;
 
@@ -246,7 +245,7 @@ pub async fn email_stats(
         ORDER BY created_at DESC
         LIMIT 10"#,
     )
-    .fetch_all(pool.get_ref())
+    .fetch_all(&platform_pool.0)
     .await
     .map_err(|_| AppError::Internal)?;
 
@@ -274,7 +273,7 @@ pub async fn email_stats(
             COUNT(*) FILTER (WHERE mailgun_synced = true) as mailgun_synced
         FROM user_profile"#,
     )
-    .fetch_one(pool.get_ref())
+    .fetch_one(&platform_pool.0)
     .await
     .map_err(|_| AppError::Internal)?;
 

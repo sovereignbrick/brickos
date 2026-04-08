@@ -5,7 +5,7 @@ use serde::Deserialize;
 use serde_json::json;
 use sqlx::PgPool;
 
-use crate::{error::AppError, middleware::auth::AdminUser};
+use crate::{error::AppError, middleware::auth::AdminUser, PlatformPool};
 
 // ---------------------------------------------------------------------------
 // GET /admin/dashboard
@@ -13,20 +13,21 @@ use crate::{error::AppError, middleware::auth::AdminUser};
 
 pub async fn dashboard(
     pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     _admin: AdminUser,
 ) -> Result<HttpResponse, AppError> {
     use sqlx::Row;
 
     let total_users: i64 =
         sqlx::query_scalar("SELECT COUNT(*) FROM users WHERE is_deleted = false")
-            .fetch_one(pool.get_ref())
+            .fetch_one(&platform_pool.0)
             .await
             .unwrap_or(0);
 
     let verified_users: i64 = sqlx::query_scalar(
         "SELECT COUNT(*) FROM users WHERE is_deleted = false AND email_verified = true",
     )
-    .fetch_one(pool.get_ref())
+    .fetch_one(&platform_pool.0)
     .await
     .unwrap_or(0);
 
@@ -54,7 +55,7 @@ pub async fn dashboard(
     let signups_7d: i64 = sqlx::query_scalar(
         "SELECT COUNT(*) FROM users WHERE created_at > NOW() - INTERVAL '7 days'",
     )
-    .fetch_one(pool.get_ref())
+    .fetch_one(&platform_pool.0)
     .await
     .unwrap_or(0);
 
@@ -68,7 +69,7 @@ pub async fn dashboard(
            GROUP BY COALESCE(lt.slug, 'glimpse')
            ORDER BY count DESC"#,
     )
-    .fetch_all(pool.get_ref())
+    .fetch_all(&platform_pool.0)
     .await
     .unwrap_or_default();
 
@@ -118,7 +119,7 @@ pub struct UserListQuery {
 }
 
 pub async fn list_users(
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     _admin: AdminUser,
     query: web::Query<UserListQuery>,
 ) -> Result<HttpResponse, AppError> {
@@ -162,9 +163,9 @@ pub async fn list_users(
             "SELECT COUNT(*) FROM users u WHERE u.is_deleted = false AND (u.email ILIKE $1 OR u.display_name ILIKE $1)"
         };
         let total: i64 = if !org_id_filter.is_empty() {
-            sqlx::query_scalar(count_sql).bind(&pattern).bind(org_id_filter).fetch_one(pool.get_ref()).await.unwrap_or(0)
+            sqlx::query_scalar(count_sql).bind(&pattern).bind(org_id_filter).fetch_one(&platform_pool.0).await.unwrap_or(0)
         } else {
-            sqlx::query_scalar(count_sql).bind(&pattern).fetch_one(pool.get_ref()).await.unwrap_or(0)
+            sqlx::query_scalar(count_sql).bind(&pattern).fetch_one(&platform_pool.0).await.unwrap_or(0)
         };
 
         let sql = format!(
@@ -188,9 +189,9 @@ pub async fn list_users(
         );
 
         let rows = if !org_id_filter.is_empty() {
-            sqlx::query(&sql).bind(&pattern).bind(per_page).bind(offset).bind(org_id_filter).fetch_all(pool.get_ref()).await?
+            sqlx::query(&sql).bind(&pattern).bind(per_page).bind(offset).bind(org_id_filter).fetch_all(&platform_pool.0).await?
         } else {
-            sqlx::query(&sql).bind(&pattern).bind(per_page).bind(offset).fetch_all(pool.get_ref()).await?
+            sqlx::query(&sql).bind(&pattern).bind(per_page).bind(offset).fetch_all(&platform_pool.0).await?
         };
 
         (rows, total)
@@ -208,9 +209,9 @@ pub async fn list_users(
             "SELECT COUNT(*) FROM users WHERE is_deleted = false"
         };
         let total: i64 = if !org_id_filter.is_empty() {
-            sqlx::query_scalar(count_sql).bind(org_id_filter).fetch_one(pool.get_ref()).await.unwrap_or(0)
+            sqlx::query_scalar(count_sql).bind(org_id_filter).fetch_one(&platform_pool.0).await.unwrap_or(0)
         } else {
-            sqlx::query_scalar(count_sql).fetch_one(pool.get_ref()).await.unwrap_or(0)
+            sqlx::query_scalar(count_sql).fetch_one(&platform_pool.0).await.unwrap_or(0)
         };
 
         let sql = format!(
@@ -234,9 +235,9 @@ pub async fn list_users(
         );
 
         let rows = if !org_id_filter.is_empty() {
-            sqlx::query(&sql).bind(per_page).bind(offset).bind(org_id_filter).fetch_all(pool.get_ref()).await?
+            sqlx::query(&sql).bind(per_page).bind(offset).bind(org_id_filter).fetch_all(&platform_pool.0).await?
         } else {
-            sqlx::query(&sql).bind(per_page).bind(offset).fetch_all(pool.get_ref()).await?
+            sqlx::query(&sql).bind(per_page).bind(offset).fetch_all(&platform_pool.0).await?
         };
 
         (rows, total)
@@ -294,7 +295,7 @@ pub struct UpdateRoleBody {
 }
 
 pub async fn update_user_role(
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     _admin: AdminUser,
     path: web::Path<uuid::Uuid>,
     body: web::Json<UpdateRoleBody>,
@@ -310,7 +311,7 @@ pub async fn update_user_role(
     )
     .bind(&body.role)
     .bind(user_id)
-    .execute(pool.get_ref())
+    .execute(&platform_pool.0)
     .await?;
 
     Ok(HttpResponse::Ok().json(json!({
@@ -329,7 +330,7 @@ pub struct UpdateTierBody {
 }
 
 pub async fn update_user_tier(
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     _admin: AdminUser,
     path: web::Path<uuid::Uuid>,
     body: web::Json<UpdateTierBody>,
@@ -340,7 +341,7 @@ pub async fn update_user_tier(
     let tier_id: Option<uuid::Uuid> =
         sqlx::query_scalar("SELECT id FROM license_tiers WHERE slug = $1")
             .bind(&body.tier_slug)
-            .fetch_optional(pool.get_ref())
+            .fetch_optional(&platform_pool.0)
             .await?;
 
     let tier_id = tier_id.ok_or(AppError::Validation("Unknown tier".to_string()))?;
@@ -352,7 +353,7 @@ pub async fn update_user_tier(
     )
     .bind(user_id)
     .bind(tier_id)
-    .execute(pool.get_ref())
+    .execute(&platform_pool.0)
     .await?;
 
     Ok(HttpResponse::Ok().json(json!({
@@ -373,7 +374,7 @@ pub struct LicenseOverrideRequest {
 }
 
 pub async fn update_user_license(
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     admin: AdminUser,
     path: web::Path<uuid::Uuid>,
     body: web::Json<LicenseOverrideRequest>,
@@ -385,7 +386,7 @@ pub async fn update_user_license(
     // Verify the target user exists
     let user_row = sqlx::query("SELECT id, email FROM users WHERE id = $1 AND is_deleted = false")
         .bind(user_id)
-        .fetch_optional(pool.get_ref())
+        .fetch_optional(&platform_pool.0)
         .await?;
 
     let user_row = user_row.ok_or(AppError::NotFound)?;
@@ -399,7 +400,7 @@ pub async fn update_user_license(
            WHERE ul.user_id = $1"#,
     )
     .bind(user_id)
-    .fetch_optional(pool.get_ref())
+    .fetch_optional(&platform_pool.0)
     .await?
     .unwrap_or_else(|| "glimpse".to_string());
 
@@ -413,7 +414,7 @@ pub async fn update_user_license(
         let new_tier_id: Option<uuid::Uuid> =
             sqlx::query_scalar("SELECT id FROM license_tiers WHERE slug = $1")
                 .bind(tier_slug)
-                .fetch_optional(pool.get_ref())
+                .fetch_optional(&platform_pool.0)
                 .await?;
 
         let new_tier_id =
@@ -435,7 +436,7 @@ pub async fn update_user_license(
         .bind(new_tier_id)
         .bind(admin.user_id)
         .bind(&body.note)
-        .execute(pool.get_ref())
+        .execute(&platform_pool.0)
         .await?;
 
         tracing::info!(
@@ -471,7 +472,7 @@ pub async fn update_user_license(
                WHERE user_id = $1"#,
         )
         .bind(user_id)
-        .execute(pool.get_ref())
+        .execute(&platform_pool.0)
         .await?;
 
         tracing::info!(
@@ -509,6 +510,7 @@ pub struct BackfillQuery {
 
 pub async fn backfill_calculated_markers(
     pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     enc: web::Data<crate::services::encryption::Encryptor>,
     _admin: AdminUser,
     query: web::Query<BackfillQuery>,
@@ -544,11 +546,11 @@ pub async fn backfill_calculated_markers(
         .fetch_all(pool.get_ref())
         .await?;
 
-        // Get user's height
+        // Get user's height (platform table)
         let height_cm: Option<f64> =
             sqlx::query_scalar("SELECT height_cm FROM user_profile WHERE user_id = $1")
                 .bind(user_id)
-                .fetch_optional(pool.get_ref())
+                .fetch_optional(&platform_pool.0)
                 .await?
                 .flatten()
                 .map(|v: String| enc.decrypt_f64(&v));
@@ -686,7 +688,7 @@ pub async fn backfill_calculated_markers(
 // ---------------------------------------------------------------------------
 
 pub async fn affiliate_summary(
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     _admin: AdminUser,
 ) -> Result<HttpResponse, AppError> {
     use sqlx::Row;
@@ -698,7 +700,7 @@ pub async fn affiliate_summary(
              (SELECT COUNT(DISTINCT affiliate_code) FROM users WHERE is_deleted = false AND affiliate_code IS NOT NULL) as total_affiliates,
              (SELECT COUNT(*) FROM affiliate_conversions WHERE status = 'approved') as total_conversions"#,
     )
-    .fetch_one(pool.get_ref())
+    .fetch_one(&platform_pool.0)
     .await?;
 
     let affiliate_users = stats.try_get::<i64, _>("affiliate_users").unwrap_or(0);
@@ -725,7 +727,7 @@ pub async fn affiliate_summary(
            ORDER BY referral_count DESC
            LIMIT 5"#,
     )
-    .fetch_all(pool.get_ref())
+    .fetch_all(&platform_pool.0)
     .await?;
 
     let top_affiliates: Vec<serde_json::Value> = top_rows

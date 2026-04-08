@@ -13,6 +13,7 @@ use crate::{
         zone::{StatusSummary, ZoneSummary},
     },
     services::content,
+    PlatformPool,
 };
 
 #[derive(serde::Deserialize)]
@@ -75,13 +76,14 @@ fn extract_locale(req: &HttpRequest, query_locale: Option<&str>) -> String {
 
 pub async fn demo_zones(
     pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     _enc: web::Data<crate::services::encryption::Encryptor>,
     req: HttpRequest,
     query: web::Query<ProfileQuery>,
 ) -> Result<HttpResponse, AppError> {
     let locale = extract_locale(&req, None);
     let profile = profile_or_default(&query.profile);
-    let user_id = resolve_demo_user_id(pool.get_ref(), profile).await?;
+    let user_id = resolve_demo_user_id(&platform_pool.0, profile).await?;
     let rows = sqlx::query(
         r#"SELECT
             z.zone_slug,
@@ -135,6 +137,7 @@ pub async fn demo_zones(
 
 pub async fn demo_measurements(
     pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     enc: web::Data<crate::services::encryption::Encryptor>,
     req: HttpRequest,
     query: web::Query<ListQuery>,
@@ -144,7 +147,7 @@ pub async fn demo_measurements(
     let per_page = query.per_page.unwrap_or(50).clamp(1, 200);
     let offset = (page - 1) * per_page;
     let profile = profile_or_default(&query.profile);
-    let user_id = resolve_demo_user_id(pool.get_ref(), profile).await?;
+    let user_id = resolve_demo_user_id(&platform_pool.0, profile).await?;
 
     // Parse comma-separated marker slugs
     let marker_slugs: Option<Vec<String>> = query.marker.as_ref().map(|m| {
@@ -292,6 +295,7 @@ pub async fn demo_measurements(
 
 pub async fn demo_trends(
     pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     enc: web::Data<crate::services::encryption::Encryptor>,
     req: HttpRequest,
     path: web::Path<String>,
@@ -301,7 +305,7 @@ pub async fn demo_trends(
     let marker_slug = path.into_inner();
     let days = query.days.unwrap_or(30);
     let profile = profile_or_default(&query.profile);
-    let user_id = resolve_demo_user_id(pool.get_ref(), profile).await?;
+    let user_id = resolve_demo_user_id(&platform_pool.0, profile).await?;
     if !(1..=365).contains(&days) {
         return Err(AppError::Validation(
             "days must be between 1 and 365".to_string(),
@@ -369,6 +373,7 @@ pub async fn demo_trends(
 
 pub async fn demo_zone_detail(
     pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     enc: web::Data<crate::services::encryption::Encryptor>,
     req: HttpRequest,
     path: web::Path<String>,
@@ -377,7 +382,7 @@ pub async fn demo_zone_detail(
     let locale = extract_locale(&req, None);
     let zone_slug = path.into_inner();
     let profile = profile_or_default(&query.profile);
-    let user_id = resolve_demo_user_id(pool.get_ref(), profile).await?;
+    let user_id = resolve_demo_user_id(&platform_pool.0, profile).await?;
 
     let zone_row = sqlx::query(
         r#"SELECT z.zone_slug,
@@ -475,11 +480,11 @@ pub async fn demo_zone_detail(
         }
     }
 
-    // Get height from demo user profile (may be encrypted or NULL)
+    // Get height from demo user profile (may be encrypted or NULL) (platform table)
     let height_cm: Option<f64> = {
         let row = sqlx::query("SELECT height_cm FROM user_profile WHERE user_id = $1")
             .bind(user_id)
-            .fetch_optional(pool.get_ref())
+            .fetch_optional(&platform_pool.0)
             .await?;
         row.and_then(|r| r.try_get::<Option<String>, _>("height_cm").ok().flatten())
             .map(|v| {
@@ -570,6 +575,7 @@ pub async fn demo_zone_detail(
 
 pub async fn demo_measurements_filters(
     pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     _enc: web::Data<crate::services::encryption::Encryptor>,
     req: HttpRequest,
     query: web::Query<ProfileQuery>,
@@ -577,7 +583,7 @@ pub async fn demo_measurements_filters(
     use sqlx::Row;
     let locale = extract_locale(&req, None);
     let profile = profile_or_default(&query.profile);
-    let user_id = resolve_demo_user_id(pool.get_ref(), profile).await?;
+    let user_id = resolve_demo_user_id(&platform_pool.0, profile).await?;
 
     let device_rows = sqlx::query(
         r#"SELECT DISTINCT d.id, d.device_name, d.device_type

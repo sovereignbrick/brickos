@@ -4,7 +4,7 @@ use actix_web::{web, HttpRequest, HttpResponse};
 use chrono::Utc;
 use serde::Deserialize;
 use serde_json::json;
-use sqlx::{PgPool, Row};
+use sqlx::Row;
 use std::sync::Arc;
 use uuid::Uuid;
 
@@ -12,6 +12,7 @@ use brickos_email::EmailProvider;
 
 use crate::error::AppError;
 use crate::middleware::auth::AdminUser;
+use crate::PlatformPool;
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -60,14 +61,13 @@ fn is_valid_email(email: &str) -> bool {
 pub struct SubscribeRequest {
     pub email: String,
     pub source: Option<String>,
-    pub app_source: Option<String>,
     #[serde(default)]
     pub website_url: String, // honeypot field - reject if filled
 }
 
 pub async fn subscribe(
     _req: HttpRequest,
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     email_provider: web::Data<Arc<dyn EmailProvider>>,
     notifier: web::Data<crate::services::notify::Notifier>,
     body: web::Json<SubscribeRequest>,
@@ -91,36 +91,12 @@ pub async fn subscribe(
 
     let source = body.source.as_deref().unwrap_or("website");
 
-    // Determine app_source: explicit field > Referer header > default 'website'
-    let app_source = body
-        .app_source
-        .as_deref()
-        .map(|s| s.to_string())
-        .unwrap_or_else(|| {
-            _req.headers()
-                .get("referer")
-                .and_then(|v| v.to_str().ok())
-                .and_then(|referer| {
-                    if referer.contains("sovereign-link") || referer.contains("link.brickos") {
-                        Some("sovereign-link".to_string())
-                    } else if referer.contains("sovereign-health")
-                        || referer.contains("health.brickos")
-                        || referer.contains("sovereignhealth")
-                    {
-                        Some("sovereign-health".to_string())
-                    } else {
-                        None
-                    }
-                })
-                .unwrap_or_else(|| "website".to_string())
-        });
-
     // Check if already exists
     let existing = sqlx::query(
         "SELECT id, confirmed, subscribed FROM newsletter_subscribers WHERE email = $1",
     )
     .bind(&email)
-    .fetch_optional(pool.get_ref())
+    .fetch_optional(&platform_pool.0)
     .await?;
 
     let confirm_token = generate_confirm_token(&email);
@@ -147,7 +123,7 @@ pub async fn subscribe(
             )
             .bind(&confirm_token)
             .bind(&email)
-            .execute(pool.get_ref())
+            .execute(&platform_pool.0)
             .await?;
         } else {
             // Exists but not confirmed - update token
@@ -156,28 +132,27 @@ pub async fn subscribe(
             )
             .bind(&confirm_token)
             .bind(&email)
-            .execute(pool.get_ref())
+            .execute(&platform_pool.0)
             .await?;
         }
     } else {
         // New subscriber
         sqlx::query(
-            r#"INSERT INTO newsletter_subscribers (email, source, app_source, confirm_token)
-               VALUES ($1, $2, $3, $4)
+            r#"INSERT INTO newsletter_subscribers (email, source, confirm_token)
+               VALUES ($1, $2, $3)
                ON CONFLICT (email) DO NOTHING"#,
         )
         .bind(&email)
         .bind(source)
-        .bind(&app_source)
         .bind(&confirm_token)
-        .execute(pool.get_ref())
+        .execute(&platform_pool.0)
         .await?;
 
         notifier.send(
             crate::services::notify::Channel::Info,
             crate::services::notify::Priority::Default,
             "New newsletter subscriber",
-            &format!("source={source} app_source={app_source}"),
+            &format!("source={source}"),
         );
     }
 
@@ -237,7 +212,7 @@ pub struct ConfirmQuery {
     pub email: String,
 }
 
-pub async fn confirm(pool: web::Data<PgPool>, query: web::Query<ConfirmQuery>) -> HttpResponse {
+pub async fn confirm(platform_pool: web::Data<PlatformPool>, query: web::Query<ConfirmQuery>) -> HttpResponse {
     let email = query.email.trim().to_lowercase();
     let expected_token = generate_confirm_token(&email);
 
@@ -255,7 +230,7 @@ pub async fn confirm(pool: web::Data<PgPool>, query: web::Query<ConfirmQuery>) -
            RETURNING id"#,
     )
     .bind(&email)
-    .fetch_optional(pool.get_ref())
+    .fetch_optional(&platform_pool.0)
     .await;
 
     match result {
@@ -286,7 +261,7 @@ pub async fn confirm(pool: web::Data<PgPool>, query: web::Query<ConfirmQuery>) -
                         "UPDATE newsletter_subscribers SET mailgun_synced = true, updated_at = NOW() WHERE email = $1",
                     )
                     .bind(&email)
-                    .execute(pool.get_ref())
+                    .execute(&platform_pool.0)
                     .await;
                 }
             }
@@ -316,7 +291,7 @@ pub struct UnsubscribeRequest {
 }
 
 pub async fn unsubscribe(
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     body: web::Json<UnsubscribeRequest>,
 ) -> Result<HttpResponse, AppError> {
     let email = body.email.trim().to_lowercase();
@@ -335,7 +310,7 @@ pub async fn unsubscribe(
            WHERE email = $1"#,
     )
     .bind(&email)
-    .execute(pool.get_ref())
+    .execute(&platform_pool.0)
     .await?;
 
     // Remove from Mailgun
@@ -373,11 +348,10 @@ pub struct SubscriberQuery {
     pub page: Option<i64>,
     pub per_page: Option<i64>,
     pub app_key: Option<String>,
-    pub app_source: Option<String>,
 }
 
 pub async fn admin_subscribers(
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     _admin: AdminUser,
     query: web::Query<SubscriberQuery>,
 ) -> Result<HttpResponse, AppError> {
@@ -385,53 +359,47 @@ pub async fn admin_subscribers(
     let per_page = query.per_page.unwrap_or(50).min(200);
     let offset = (page - 1) * per_page;
     let app_key = query.app_key.as_deref().unwrap_or("");
-    let app_source_filter = query.app_source.as_deref().unwrap_or("");
 
     let total: i64 = sqlx::query_scalar(
-        "SELECT COUNT(*) FROM newsletter_subscribers WHERE ($1 = '' OR source = $1) AND ($2 = '' OR app_source = $2)",
+        "SELECT COUNT(*) FROM newsletter_subscribers WHERE ($1 = '' OR source = $1)",
     )
     .bind(app_key)
-    .bind(app_source_filter)
-    .fetch_one(pool.get_ref())
+    .fetch_one(&platform_pool.0)
     .await?;
 
     let subscribed: i64 = sqlx::query_scalar(
-        "SELECT COUNT(*) FROM newsletter_subscribers WHERE subscribed = true AND confirmed = true AND ($1 = '' OR source = $1) AND ($2 = '' OR app_source = $2)",
+        "SELECT COUNT(*) FROM newsletter_subscribers WHERE subscribed = true AND confirmed = true AND ($1 = '' OR source = $1)",
     )
     .bind(app_key)
-    .bind(app_source_filter)
-    .fetch_one(pool.get_ref())
+    .fetch_one(&platform_pool.0)
     .await?;
 
     let unsubscribed: i64 = sqlx::query_scalar(
-        "SELECT COUNT(*) FROM newsletter_subscribers WHERE subscribed = false AND ($1 = '' OR source = $1) AND ($2 = '' OR app_source = $2)",
+        "SELECT COUNT(*) FROM newsletter_subscribers WHERE subscribed = false AND ($1 = '' OR source = $1)",
     )
     .bind(app_key)
-    .bind(app_source_filter)
-    .fetch_one(pool.get_ref())
+    .fetch_one(&platform_pool.0)
     .await?;
 
     let pending: i64 = sqlx::query_scalar(
-        "SELECT COUNT(*) FROM newsletter_subscribers WHERE subscribed = true AND confirmed = false AND ($1 = '' OR source = $1) AND ($2 = '' OR app_source = $2)",
+        "SELECT COUNT(*) FROM newsletter_subscribers WHERE subscribed = true AND confirmed = false AND ($1 = '' OR source = $1)",
     )
     .bind(app_key)
-    .bind(app_source_filter)
-    .fetch_one(pool.get_ref())
+    .fetch_one(&platform_pool.0)
     .await?;
 
     let rows = sqlx::query(
-        r#"SELECT id, email, source, app_source, subscribed, confirmed, confirmed_at,
+        r#"SELECT id, email, source, subscribed, confirmed, confirmed_at,
                   unsubscribed_at, mailgun_synced, created_at
            FROM newsletter_subscribers
-           WHERE ($3 = '' OR source = $3) AND ($4 = '' OR app_source = $4)
+           WHERE ($3 = '' OR source = $3)
            ORDER BY created_at DESC
            LIMIT $1 OFFSET $2"#,
     )
     .bind(per_page)
     .bind(offset)
     .bind(app_key)
-    .bind(app_source_filter)
-    .fetch_all(pool.get_ref())
+    .fetch_all(&platform_pool.0)
     .await?;
 
     let subscribers: Vec<serde_json::Value> = rows
@@ -441,7 +409,6 @@ pub async fn admin_subscribers(
                 "id": r.try_get::<Uuid, _>("id").unwrap_or_default(),
                 "email": r.try_get::<String, _>("email").unwrap_or_default(),
                 "source": r.try_get::<String, _>("source").unwrap_or_default(),
-                "app_source": r.try_get::<Option<String>, _>("app_source").ok().flatten().unwrap_or_default(),
                 "subscribed": r.try_get::<bool, _>("subscribed").unwrap_or(false),
                 "confirmed": r.try_get::<bool, _>("confirmed").unwrap_or(false),
                 "confirmed_at": r.try_get::<Option<chrono::DateTime<Utc>>, _>("confirmed_at").ok().flatten().map(|d| d.to_rfc3339()),
@@ -473,28 +440,22 @@ pub async fn admin_subscribers(
 // ---------------------------------------------------------------------------
 
 pub async fn admin_export(
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     _admin: AdminUser,
 ) -> Result<HttpResponse, AppError> {
     let rows = sqlx::query(
-        r#"SELECT email, source, app_source, subscribed, confirmed, confirmed_at, created_at
+        r#"SELECT email, source, subscribed, confirmed, confirmed_at, created_at
            FROM newsletter_subscribers
            WHERE subscribed = true AND confirmed = true
            ORDER BY created_at DESC"#,
     )
-    .fetch_all(pool.get_ref())
+    .fetch_all(&platform_pool.0)
     .await?;
 
-    let mut csv =
-        String::from("email,source,app_source,subscribed,confirmed,confirmed_at,created_at\n");
+    let mut csv = String::from("email,source,subscribed,confirmed,confirmed_at,created_at\n");
     for r in &rows {
         let email: String = r.try_get("email").unwrap_or_default();
         let source: String = r.try_get("source").unwrap_or_default();
-        let app_source: String = r
-            .try_get::<Option<String>, _>("app_source")
-            .ok()
-            .flatten()
-            .unwrap_or_default();
         let subscribed: bool = r.try_get("subscribed").unwrap_or(false);
         let confirmed: bool = r.try_get("confirmed").unwrap_or(false);
         let confirmed_at: Option<chrono::DateTime<Utc>> = r.try_get("confirmed_at").ok().flatten();
@@ -502,10 +463,9 @@ pub async fn admin_export(
             r.try_get("created_at").unwrap_or_else(|_| Utc::now());
 
         csv.push_str(&format!(
-            "{},{},{},{},{},{},{}\n",
+            "{},{},{},{},{},{}\n",
             email,
             source,
-            app_source,
             subscribed,
             confirmed,
             confirmed_at.map(|d| d.to_rfc3339()).unwrap_or_default(),
@@ -527,7 +487,7 @@ pub async fn admin_export(
 // ---------------------------------------------------------------------------
 
 pub async fn admin_sync(
-    pool: web::Data<PgPool>,
+    platform_pool: web::Data<PlatformPool>,
     _admin: AdminUser,
 ) -> Result<HttpResponse, AppError> {
     let mailgun_key = std::env::var("MAILGUN_API_KEY").unwrap_or_default();
@@ -547,7 +507,7 @@ pub async fn admin_sync(
         r#"SELECT id, email FROM newsletter_subscribers
            WHERE subscribed = true AND confirmed = true AND mailgun_synced = false"#,
     )
-    .fetch_all(pool.get_ref())
+    .fetch_all(&platform_pool.0)
     .await?;
 
     let client = reqwest::Client::new();
@@ -578,7 +538,7 @@ pub async fn admin_sync(
                     "UPDATE newsletter_subscribers SET mailgun_synced = true, updated_at = NOW() WHERE id = $1",
                 )
                 .bind(id)
-                .execute(pool.get_ref())
+                .execute(&platform_pool.0)
                 .await;
                 synced += 1;
             }
