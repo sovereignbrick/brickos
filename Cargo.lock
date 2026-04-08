@@ -792,14 +792,15 @@ dependencies = [
 name = "brickos-platform-api"
 version = "0.1.0"
 dependencies = [
+ "actix-cors",
  "actix-web",
- "brickos-auth",
- "brickos-crypto",
- "brickos-db",
  "chrono",
  "dotenvy",
+ "hex",
+ "rand 0.9.2",
  "serde",
  "serde_json",
+ "sha2",
  "sqlx",
  "tokio",
  "tracing",
