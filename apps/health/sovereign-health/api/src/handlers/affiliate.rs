@@ -965,10 +965,20 @@ pub async fn check_vanity(
 // Admin: GET /api/admin/links — All short links with click stats
 // ---------------------------------------------------------------------------
 
+#[derive(serde::Deserialize)]
+pub struct AdminLinksQuery {
+    pub app_key: Option<String>,
+    pub org_id: Option<String>,
+}
+
 pub async fn admin_list_links(
     pool: web::Data<PgPool>,
     _admin: AdminUser,
+    query: web::Query<AdminLinksQuery>,
 ) -> Result<HttpResponse, AppError> {
+    let app_filter = query.app_key.as_deref().filter(|s| !s.is_empty() && *s != "all");
+    let org_filter = query.org_id.as_deref().filter(|s| !s.is_empty() && *s != "all");
+
     let rows = sqlx::query(
         r#"SELECT sl.id, sl.code, sl.target_url, sl.link_type, sl.domain, sl.app_key,
                   sl.affiliate_code, sl.title, sl.is_active, sl.created_at,
@@ -982,9 +992,13 @@ pub async fn admin_list_links(
                       COUNT(*) FILTER (WHERE clicked_at > now() - interval '30 days') as clicks_30d
                FROM short_link_clicks WHERE short_link_id = sl.id
            ) c ON true
+           WHERE ($1::text IS NULL OR sl.app_key = $1)
+             AND ($2::text IS NULL OR sl.owner_org_id::text = $2)
            ORDER BY c.total_clicks DESC NULLS LAST, sl.created_at DESC
            LIMIT 200"#,
     )
+    .bind(app_filter)
+    .bind(org_filter)
     .fetch_all(pool.get_ref())
     .await?;
 
