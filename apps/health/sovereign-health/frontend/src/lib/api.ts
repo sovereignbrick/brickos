@@ -55,7 +55,7 @@ const API_BASE = (() => {
   if (typeof window === 'undefined') return APP_CONFIG.apiUrl
   const host = window.location.hostname
   if (host.endsWith('.onion')) return ''
-  if (host === 'app.brickos.io') return 'https://api.brickos.io'
+  if (host === 'app.brickos.io') return '' // same-origin API proxy via nginx (avoids cross-origin blocks)
   if (host === 'demo.brickos.io') return 'https://api-demo.sovereignhealth.io'
   return APP_CONFIG.apiUrl
 })()
