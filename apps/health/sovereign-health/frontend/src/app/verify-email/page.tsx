@@ -93,7 +93,7 @@ function VerifyEmailContent() {
       {languageSelector}
       <div className="w-full max-w-sm text-center">
         <div className="mb-8 flex flex-col items-center gap-3">
-          {mounted ? <img src={brand.logo} alt={brand.logoAlt} width={64} height={64} className="rounded-lg" /> : <div className="w-16 h-16 rounded-lg bg-zinc-800 animate-pulse" />}
+          <div className="w-16 h-16 rounded-lg brand-logo" data-brand={brand.logo.includes("brickos") ? "brickos" : "shi"} />
           <h1 className="text-2xl font-bold">{t('brandName')}</h1>
         </div>
 

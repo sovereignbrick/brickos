@@ -301,3 +301,17 @@ input[type="date"], input[type="time"], input[type="datetime-local"] {
   background-color: #3f3f46 !important;
   color: #fafafa !important;
 }
+
+/* Brand-aware logo: uses CSS background-image based on data attribute set by middleware.
+   Default is SHI logo. On brickos.io domains, the brand_context cookie is "brickos"
+   and the middleware adds a class or the JS reads it. For pure CSS approach,
+   we use the default SHI logo and let JS override. */
+.brand-logo {
+  background-image: url('/logo.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+.brand-logo[data-brand="brickos"] {
+  background-image: url('/brickos-cube.png');
+}
