@@ -1,8 +1,9 @@
 # 018 - Platform Data Scoping & Consistency
 
-**Status:** Draft
+**Status:** Implemented (Phases 1-4) -- v0.41.0
 **Author:** Helmut / Claude
 **Date:** 2026-04-08
+**Implemented:** 2026-04-08 (Sprint 033)
 **Related:** 014-brickos-platform-gui, 005-platform-multi-tenant
 
 ---
@@ -172,24 +173,38 @@ Most tables already have user_id which maps to org via org_members. For direct o
 
 ## 6. Phased Implementation
 
-### Phase 1: Add Filter Dropdowns (Sprint 033)
-- Add org + app filter dropdowns to platform header
-- Store in PlatformContext
-- Pass as query params to API calls from pages that already support filtering (links, analytics)
+### Phase 1: Add Filter Dropdowns (Sprint 033) -- DONE v0.41.0
+- [x] App filter dropdown (All/SHI/Link/Voice) in platform header
+- [x] Org filter dropdown (loaded from API) in platform header
+- [x] PlatformFilterProvider context with appFilter, orgFilter, orgs
+- [x] FilterDropdowns component in layout header
 
-### Phase 2: Backend Filter Support (Sprint 033-034)
-- Add ?app_key and ?org_id to admin API endpoints
-- Audit log app_key migration
-- Newsletter app_source detection
+### Phase 2: Backend Filter Support (Sprint 033) -- DONE v0.41.0
+- [x] ?app_key + ?org_id on /admin/links (affiliate.rs)
+- [x] ?app_key + ?org_id on /admin/audit/access-logs + /admin/audit/events (admin_audit.rs)
+- [x] ?app_key on /admin/ai-usage (admin_ai_usage.rs)
+- [x] ?app_key on /admin/newsletter/subscribers (newsletter.rs)
+- [x] ?org_id on /admin/users via org_members join (admin.rs)
+- [x] Migration 20260408000004: app_key + org_id on data_access_log and audit_log
+- [x] Migration 20260408000005: app_key on ai_usage_log
 
-### Phase 3: Per-Page Scoping (Sprint 034)
-- Each page reads the filters and adjusts its API calls
-- Pages that don't support filtering show "All" and ignore the dropdowns
+### Phase 3: Per-Page Scoping (Sprint 033) -- DONE v0.41.0
+- [x] Links page: reads appFilter + orgFilter, re-fetches on change
+- [x] Audit page: passes app_key + org_id to both access-logs and events
+- [x] AI Usage page: passes appFilter to aiUsage()
+- [x] Newsletter page: passes appFilter to newsletterSubscribers()
+- [x] Users page: passes orgFilter as org_id to listUsers()
+- [x] Analytics page: switched to admin.links(appFilter, orgFilter)
+- [x] Members page: auto-selects org from orgFilter context
+- [x] Branding page: shows selected org name from context
+- Affiliates, promotions, contact: platform-wide (no per-app/org schema needed)
 
-### Phase 4: Org Admin Scoping (Sprint 035)
-- Org admin sees only their org's data automatically
-- No "Org" dropdown for org admin -- locked to their org
-- "App" dropdown shows only enabled apps for their org
+### Phase 4: Org Admin Scoping (Sprint 033) -- DONE v0.41.0
+- [x] PlatformContext detects non-platform admin with orgId
+- [x] Org filter auto-locked to user's org (setOrgFilter becomes no-op)
+- [x] Org dropdown replaced with static label for org admins
+- [x] isOrgLocked flag exposed in context
+- [ ] App dropdown shows only enabled apps for their org (deferred -- needs org_apps table)
 
 ---
 
@@ -209,11 +224,15 @@ Org Admin sees: SCOPED sidebar items
 
 ---
 
-## 8. Issues to Create
+## 8. Issues
 
-- [ ] Add app_key + org_id filter dropdowns to platform header
-- [ ] Add ?app_key filter to audit log API
-- [ ] Add ?org_id filter to links, analytics, newsletter APIs
-- [ ] Show Members + Branding for platform admin (with org selector)
-- [ ] Per-page filter bar component (reusable)
-- [ ] audit_log app_key migration
+- [x] Add app_key + org_id filter dropdowns to platform header
+- [x] Add ?app_key filter to audit log API
+- [x] Add ?org_id filter to links, users APIs
+- [x] Add ?app_key filter to AI usage, newsletter APIs
+- [x] Show Members + Branding for platform admin (with org selector via context)
+- [x] audit_log + data_access_log app_key/org_id migration
+- [x] ai_usage_log app_key migration
+- [x] Org admin auto-scoping (locked org filter)
+- [ ] Per-org app enablement (org_apps table -- future)
+- [ ] Newsletter app_source auto-detection from user activity (future)
