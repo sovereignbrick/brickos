@@ -31,49 +31,49 @@ function buildNavItems(t: (key: string) => string): NavItem[] {
 
   return [
     // Overview
-    { key: 'home', label: t('home'), href: '/platform', icon: '\u25C9', section: 'OVERVIEW', visible: () => true },
+    { key: 'home', label: t('home'), href: '/platform', icon: '\u2302', section: 'OVERVIEW', visible: () => true },
 
     // Manage
-    { key: 'apps', label: t('apps'), href: '/platform/apps', icon: '\u25A3', section: 'MANAGE', visible: () => true },
-    { key: 'orgs', label: t('organizations'), href: '/platform/orgs', icon: '\u25A3', section: 'MANAGE', visible: p },
-    { key: 'users', label: t('users'), href: '/platform/users', icon: '\u25A3', section: 'MANAGE', visible: p },
-    { key: 'members', label: t('members'), href: '/platform/members', icon: '\u25A3', section: 'MANAGE', visible: (ctx) => ctx.isPlatform || ctx.isOrgOwner || ctx.isTechAdmin || ctx.isCommercialAdmin },
+    { key: 'apps', label: t('apps'), href: '/platform/apps', icon: '\u25A6', section: 'MANAGE', visible: () => true },
+    { key: 'orgs', label: t('organizations'), href: '/platform/orgs', icon: '\u2616', section: 'MANAGE', visible: p },
+    { key: 'users', label: t('users'), href: '/platform/users', icon: '\u263A', section: 'MANAGE', visible: p },
+    { key: 'members', label: t('members'), href: '/platform/members', icon: '\u2639', section: 'MANAGE', visible: (ctx) => ctx.isPlatform || ctx.isOrgOwner || ctx.isTechAdmin || ctx.isCommercialAdmin },
 
     // Commerce
-    { key: 'billing', label: t('billing'), href: '/platform/billing', icon: '\u25A3', section: 'COMMERCE', visible: comm },
-    { key: 'affiliates', label: t('affiliates'), href: '/platform/affiliates', icon: '\u25A3', section: 'COMMERCE', visible: comm },
-    { key: 'promotions', label: t('promotions'), href: '/platform/promotions', icon: '\u25A3', section: 'COMMERCE', visible: p },
-    { key: 'revenue', label: t('revenue'), href: '/platform/revenue', icon: '\u25A3', section: 'COMMERCE', visible: p },
+    { key: 'billing', label: t('billing'), href: '/platform/billing', icon: '\u2637', section: 'COMMERCE', visible: comm },
+    { key: 'affiliates', label: t('affiliates'), href: '/platform/affiliates', icon: '\u2764', section: 'COMMERCE', visible: comm },
+    { key: 'promotions', label: t('promotions'), href: '/platform/promotions', icon: '\u2606', section: 'COMMERCE', visible: p },
+    { key: 'revenue', label: t('revenue'), href: '/platform/revenue', icon: '\u2696', section: 'COMMERCE', visible: p },
 
     // Links
-    { key: 'links', label: t('links'), href: '/platform/links', icon: '\u25A3', section: 'LINKS', visible: any },
-    { key: 'analytics', label: t('analytics'), href: '/platform/analytics', icon: '\u25A3', section: 'LINKS', visible: any },
+    { key: 'links', label: t('links'), href: '/platform/links', icon: '\u2197', section: 'LINKS', visible: any },
+    { key: 'analytics', label: t('analytics'), href: '/platform/analytics', icon: '\u2261', section: 'LINKS', visible: any },
 
     // Content
-    { key: 'content-app', label: t('contentApp'), href: '/platform/content/app', icon: '\u25A3', section: 'CONTENT', visible: p },
-    { key: 'content-web', label: t('contentWeb'), href: '/platform/content/web', icon: '\u25A3', section: 'CONTENT', visible: tech },
-    { key: 'content-strings', label: t('strings'), href: '/platform/content/strings', icon: '\u25A3', section: 'CONTENT', visible: p },
-    { key: 'newsletter', label: t('newsletter'), href: '/platform/newsletter', icon: '\u25A3', section: 'CONTENT', visible: comm },
-    { key: 'contact', label: t('contact'), href: '/platform/contact', icon: '\u25A3', section: 'CONTENT', visible: any },
+    { key: 'content-app', label: t('contentApp'), href: '/platform/content/app', icon: '\u270E', section: 'CONTENT', visible: p },
+    { key: 'content-web', label: t('contentWeb'), href: '/platform/content/web', icon: '\u2318', section: 'CONTENT', visible: tech },
+    { key: 'content-strings', label: t('strings'), href: '/platform/content/strings', icon: '\u2630', section: 'CONTENT', visible: p },
+    { key: 'newsletter', label: t('newsletter'), href: '/platform/newsletter', icon: '\u2709', section: 'CONTENT', visible: comm },
+    { key: 'contact', label: t('contact'), href: '/platform/contact', icon: '\u2706', section: 'CONTENT', visible: any },
 
     // AI
-    { key: 'ai-config', label: t('aiConfig'), href: '/platform/ai/config', icon: '\u25A3', section: 'AI', visible: tech },
-    { key: 'ai-usage', label: t('aiUsage'), href: '/platform/ai/usage', icon: '\u25A3', section: 'AI', visible: any },
+    { key: 'ai-config', label: t('aiConfig'), href: '/platform/ai/config', icon: '\u2699', section: 'AI', visible: tech },
+    { key: 'ai-usage', label: t('aiUsage'), href: '/platform/ai/usage', icon: '\u2604', section: 'AI', visible: any },
 
     // Ops
-    { key: 'services', label: t('services'), href: '/platform/services', icon: '\u25A3', section: 'OPS', visible: tech },
-    { key: 'alerts', label: t('alerts'), href: '/platform/alerts', icon: '\u25A3', section: 'OPS', visible: tech },
-    { key: 'deploy', label: t('deploy'), href: '/platform/deploy', icon: '\u25A3', section: 'OPS', visible: p },
+    { key: 'services', label: t('services'), href: '/platform/services', icon: '\u2665', section: 'OPS', visible: tech },
+    { key: 'alerts', label: t('alerts'), href: '/platform/alerts', icon: '\u26A0', section: 'OPS', visible: tech },
+    { key: 'deploy', label: t('deploy'), href: '/platform/deploy', icon: '\u2191', section: 'OPS', visible: p },
 
     // Security
-    { key: 'audit', label: t('audit'), href: '/platform/audit', icon: '\u25A3', section: 'SECURITY', visible: tech },
-    { key: 'compliance', label: t('compliance'), href: '/platform/compliance', icon: '\u25A3', section: 'SECURITY', visible: p },
+    { key: 'audit', label: t('audit'), href: '/platform/audit', icon: '\u2610', section: 'SECURITY', visible: tech },
+    { key: 'compliance', label: t('compliance'), href: '/platform/compliance', icon: '\u2611', section: 'SECURITY', visible: p },
 
     // Settings
-    { key: 'settings', label: t('settings'), href: '/platform/settings', icon: '\u25A3', section: 'SETTINGS', visible: p },
-    { key: 'branding', label: t('branding'), href: '/platform/branding', icon: '\u25A3', section: 'SETTINGS', visible: (ctx) => ctx.isPlatform || ctx.isOrgOwner || ctx.isTechAdmin },
-    { key: 'domains', label: t('domains'), href: '/platform/domains', icon: '\u25A3', section: 'SETTINGS', visible: (ctx) => ctx.isPlatform || ctx.isOrgOwner || ctx.isTechAdmin },
-    { key: 'licensing', label: t('licensing'), href: '/platform/licensing', icon: '\u25A3', section: 'SETTINGS', visible: p },
+    { key: 'settings', label: t('settings'), href: '/platform/settings', icon: '\u2638', section: 'SETTINGS', visible: p },
+    { key: 'branding', label: t('branding'), href: '/platform/branding', icon: '\u2740', section: 'SETTINGS', visible: (ctx) => ctx.isPlatform || ctx.isOrgOwner || ctx.isTechAdmin },
+    { key: 'domains', label: t('domains'), href: '/platform/domains', icon: '\u2601', section: 'SETTINGS', visible: (ctx) => ctx.isPlatform || ctx.isOrgOwner || ctx.isTechAdmin },
+    { key: 'licensing', label: t('licensing'), href: '/platform/licensing', icon: '\u2694', section: 'SETTINGS', visible: p },
   ]
 }
 
@@ -348,7 +348,20 @@ export default function PlatformLayout({ children }: { children: React.ReactNode
             ))}
           </nav>
 
-          {/* Collapse toggle removed -- now in header */}
+          {/* Expand button when collapsed */}
+          {collapsed && (
+            <div className="px-2 py-3 border-t border-zinc-800">
+              <button
+                onClick={() => setCollapsed(false)}
+                className="w-full flex items-center justify-center py-2 rounded-lg text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/50 transition-colors"
+                title="Expand sidebar"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+                </svg>
+              </button>
+            </div>
+          )}
         </aside>
 
         {/* Mobile overlay */}

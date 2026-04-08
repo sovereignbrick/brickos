@@ -100,6 +100,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang={locale} className="dark" suppressHydrationWarning>
       <head>
+        {/* Brand detection script -- runs BEFORE React hydration to prevent logo flash.
+            Reads brand_context cookie set by middleware and adds class to <html>. */}
+        <script dangerouslySetInnerHTML={{ __html: `
+          (function(){var m=document.cookie.match(/brand_context=([^;]+)/);
+          if(m&&m[1]==='brickos')document.documentElement.classList.add('brand-brickos');})();
+        ` }} />
         <Suspense>
           <CanonicalMeta />
         </Suspense>

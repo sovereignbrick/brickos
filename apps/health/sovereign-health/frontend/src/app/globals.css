@@ -306,12 +306,14 @@ input[type="date"], input[type="time"], input[type="datetime-local"] {
    Default is SHI logo. On brickos.io domains, the brand_context cookie is "brickos"
    and the middleware adds a class or the JS reads it. For pure CSS approach,
    we use the default SHI logo and let JS override. */
+/* Brand-aware logo: default SHI, BrickOS cube when .brand-brickos class on <html>.
+   The class is set by a sync script in <head> BEFORE first paint. */
 .brand-logo {
   background-image: url('/logo.png');
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
 }
-.brand-logo[data-brand="brickos"] {
+.brand-brickos .brand-logo {
   background-image: url('/brickos-cube.png');
 }
