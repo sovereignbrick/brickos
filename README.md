@@ -119,16 +119,26 @@ Sovereignty is not one thing. It is a stack of capabilities -- each a brick in a
 
 ## Products
 
-| Product | Pillar | Status |
-|---------|--------|--------|
-| [**Sovereign Health Intelligence**](apps/health/sovereign-health/) | Health | **Live** -- [app.sovereignhealth.io](https://app.sovereignhealth.io) |
-| [**Sovereign Link**](apps/technology/sovereign-link/) | Technology | **Live** -- URL shortener + QR codes |
-| **BTC Tracker** | Finance | In progress |
-| **Sovereign Proposal Platform** | Data | Planned -- NOSTR-native governance, Bitcoin-anchored |
-| **Sovereign Exchange** | Finance | Planned -- P2P marketplace, barter + Bitcoin + Cashu |
-| **Sovereign Signal** | Attention | Planned -- Encrypted comms via NOSTR + BitChat mesh |
-| **Sovereign Almanac** | Energy | Planned -- Offline-first survival and life knowledge base |
-| **Sovereign Identity** | Technology | Planned -- NOSTR + Bitcoin identity, SSO, trust scores |
+| Product | Pillar | Prefix | Status |
+|---------|--------|--------|--------|
+| [**Sovereign Health Intelligence**](apps/health/sovereign-health/) | Health | `shi` | **Live** -- [app.sovereignhealth.io](https://app.sovereignhealth.io) |
+| [**Sovereign Link**](apps/technology/sovereign-link/) | Technology | `sli` | **Live** -- URL shortener + QR + Start9 |
+| [**Sovereign CRM**](docs/design/017-sovereign-crm.md) | Data | `scr` | Design -- Contact intelligence platform |
+| [**Sovereign Voice**](apps/attention/sovereign-voice/) | Attention | `svo` | Early -- NOSTR content management |
+| **Sovereign Exchange** | Finance | `sex` | Planned -- P2P marketplace, barter + Bitcoin + Cashu |
+| **Sovereign Identity** | Technology | `sid` | Planned -- NOSTR + Bitcoin identity, SSO, trust scores |
+| **Sovereign Proposal Platform** | Data | -- | Planned -- NOSTR-native governance, Bitcoin-anchored |
+| **Sovereign Almanac** | Energy | -- | Planned -- Offline-first survival and life knowledge base |
+
+### Platform Architecture (Design 018)
+
+Each app is an independent service with its own database, process, Docker image, and domain. Apps share platform infrastructure (users, orgs, billing) via the `brickos` database and `brickos-*` crates. See [docs/design/018-platform-service-elevation.md](docs/design/018-platform-service-elevation.md).
+
+```
+PostgreSQL: brickos (platform) | shi (health) | sli (links) | scr (CRM) | svo (voice)
+Ports:      platform:9000      | shi:8080     | sli:8082    | scr:8084  | svo:8086
+Docker:     sovereignbrick/    shi-api        sli-api       scr-api     svo-api
+```
 
 ### Sovereign Health Intelligence
 
