@@ -84,20 +84,94 @@ function buildNavItems(t: (key: string) => string): NavItem[] {
 function BrickOSHead() {
   useEffect(() => {
     if (typeof window === 'undefined') return
-    if (!window.location.hostname.endsWith('.brickos.io')) return
 
-    document.title = 'BrickOS Platform'
-    const existing = document.querySelector('link[rel="icon"]')
-    if (existing) existing.setAttribute('href', '/brickos-favicon-32.png')
-    else {
-      const link = document.createElement('link')
+    const isBrickOS = window.location.hostname.endsWith('.brickos.io')
+    if (!isBrickOS) return
+
+    // Set favicon
+    let link = document.querySelector('link[rel="icon"]') as HTMLLinkElement | null
+    if (!link) {
+      link = document.createElement('link')
       link.rel = 'icon'
-      link.href = '/brickos-favicon-32.png'
-      link.type = 'image/png'
       document.head.appendChild(link)
     }
-  }, [])
+    link.type = 'image/png'
+    link.href = '/brickos-favicon-32.png'
+
+    // Set title
+    document.title = 'BrickOS Platform'
+
+    // Also set apple-touch-icon
+    let apple = document.querySelector('link[rel="apple-touch-icon"]') as HTMLLinkElement | null
+    if (apple) apple.href = '/brickos-favicon-32.png'
+  })
   return null
+}
+
+/** User profile dropdown in the top-right header */
+function UserProfileMenu({ user }: { user: { email: string; display_name: string | null; role: string } }) {
+  const [open, setOpen] = useState(false)
+
+  const initials = (user.display_name || user.email)
+    .split(/[\s@]/)
+    .slice(0, 2)
+    .map(s => s[0]?.toUpperCase() || '')
+    .join('')
+
+  const handleLogout = () => {
+    // Clear cookie and redirect
+    document.cookie = 'auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'
+    window.location.href = '/login'
+  }
+
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setOpen(!open)}
+        className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-zinc-800 transition-colors"
+      >
+        <div className="w-8 h-8 rounded-full bg-zinc-700 flex items-center justify-center text-xs font-bold text-zinc-200">
+          {initials}
+        </div>
+        <span className="hidden sm:block text-sm text-zinc-300 max-w-[150px] truncate">
+          {user.display_name || user.email}
+        </span>
+      </button>
+
+      {open && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+          <div className="absolute right-0 top-full mt-1 w-56 rounded-xl border border-zinc-800 bg-zinc-900 shadow-xl z-50 py-1">
+            <div className="px-3 py-2 border-b border-zinc-800">
+              <p className="text-sm font-medium truncate">{user.display_name || 'User'}</p>
+              <p className="text-xs text-zinc-400 truncate">{user.email}</p>
+              <p className="text-[10px] text-zinc-500 mt-0.5 capitalize">{user.role}</p>
+            </div>
+            <Link
+              href="/settings"
+              onClick={() => setOpen(false)}
+              className="flex items-center gap-2 px-3 py-2 text-sm text-zinc-300 hover:bg-zinc-800 transition-colors"
+            >
+              Settings
+            </Link>
+            <Link
+              href="/settings?tab=security"
+              onClick={() => setOpen(false)}
+              className="flex items-center gap-2 px-3 py-2 text-sm text-zinc-300 hover:bg-zinc-800 transition-colors"
+            >
+              Security & MFA
+            </Link>
+            <button
+              onClick={handleLogout}
+              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-400 hover:bg-zinc-800 transition-colors text-left"
+            >
+              Logout
+            </button>
+          </div>
+        </>
+      )}
+    </div>
+  )
 }
 
 export default function PlatformLayout({ children }: { children: React.ReactNode }) {
@@ -227,11 +301,18 @@ export default function PlatformLayout({ children }: { children: React.ReactNode
         )}
 
         {/* Main content */}
-        <main className="flex-1 min-w-0 overflow-x-hidden">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
-            {children}
-          </div>
-        </main>
+        <div className="flex-1 min-w-0 overflow-x-hidden flex flex-col">
+          {/* Top header with user profile */}
+          <header className="h-14 border-b border-zinc-800 flex items-center justify-end px-4 sm:px-6 shrink-0">
+            <UserProfileMenu user={user} />
+          </header>
+
+          <main className="flex-1 overflow-y-auto">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
+              {children}
+            </div>
+          </main>
+        </div>
       </div>
     </AdminContext.Provider>
   )
