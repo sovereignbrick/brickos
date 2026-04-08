@@ -8,12 +8,14 @@ import { toast } from '@/lib/toast'
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import Image from 'next/image'
+import { getBrandConfig } from '@/lib/brand'
 
 export default function ForgotPasswordPage() {
   const t = useTranslations('auth')
   const tCommon = useTranslations('common')
   const tFP = useTranslations('auth.forgotPasswordPage')
   const tToast = useTranslations('auth.toast')
+  const brand = getBrandConfig()
   const [submitted, setSubmitted] = useState(false)
 
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<ForgotPasswordInput>({
@@ -34,7 +36,7 @@ export default function ForgotPasswordPage() {
       <main className="min-h-screen flex items-center justify-center p-4">
         <div className="w-full max-w-sm text-center">
           <div className="mb-8 flex flex-col items-center gap-3">
-            <Image src="/logo.png" alt="Sovereign Health Intelligence" width={64} height={64} className="rounded-lg" />
+            <Image src={brand.logo} alt={brand.logoAlt} width={64} height={64} className="rounded-lg" />
             <h1 className="text-2xl font-bold">{t('brandName')}</h1>
           </div>
           <div className="rounded-2xl border p-8 space-y-4">
@@ -57,7 +59,7 @@ export default function ForgotPasswordPage() {
     <main className="min-h-screen flex items-center justify-center p-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8 flex flex-col items-center gap-3">
-          <Image src="/logo.png" alt="Sovereign Health Intelligence" width={64} height={64} className="rounded-lg" />
+          <Image src={brand.logo} alt={brand.logoAlt} width={64} height={64} className="rounded-lg" />
           <h1 className="text-2xl font-bold">{t('brandName')}</h1>
           <p className="text-muted-foreground text-sm">{tFP('title')}</p>
         </div>

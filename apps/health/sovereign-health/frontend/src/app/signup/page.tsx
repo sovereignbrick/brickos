@@ -6,6 +6,7 @@ import { api, setToken } from '@/lib/api'
 import Cookies from 'js-cookie'
 import Link from 'next/link'
 import Image from 'next/image'
+import { getBrandConfig } from '@/lib/brand'
 import { toast } from '@/lib/toast'
 import { useAuth } from '@/lib/auth-context'
 import { useState, useEffect, useRef, Suspense } from 'react'
@@ -47,6 +48,7 @@ function SignupContent() {
   const tCommon = useTranslations('common')
   const ts = useTranslations('auth.signup')
   const tToast = useTranslations('auth.toast')
+  const brand = getBrandConfig()
   const [registrationEnabled, setRegistrationEnabled] = useState<boolean | null>(null)
   const [submitted, setSubmitted] = useState(false)
   const [submittedEmail, setSubmittedEmail] = useState('')
@@ -257,7 +259,7 @@ function SignupContent() {
 
   const brandingHeader = (title?: string) => (
     <div className="mb-8 flex flex-col items-center gap-3">
-      <Image src="/logo.png" alt="Sovereign Health Intelligence" width={64} height={64} className="rounded-lg" />
+      <Image src={brand.logo} alt={brand.logoAlt} width={64} height={64} className="rounded-lg" />
       <h1 className="text-2xl font-bold">{t('brandName')}</h1>
       {title && <p className="text-muted-foreground text-sm">{title}</p>}
     </div>

@@ -4,6 +4,7 @@ import { useEffect, useState, useRef, Suspense } from 'react'
 import { api } from '@/lib/api'
 import Link from 'next/link'
 import Image from 'next/image'
+import { getBrandConfig } from '@/lib/brand'
 import { useTranslations } from 'next-intl'
 import { useContent } from '@/lib/content-context'
 import { locales, localeNames } from '@/i18n/config'
@@ -11,6 +12,7 @@ import { locales, localeNames } from '@/i18n/config'
 function VerifyEmailContent() {
   const t = useTranslations('auth')
   const tCommon = useTranslations('common')
+  const brand = getBrandConfig()
   const tVE = useTranslations('auth.verifyEmail')
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -91,7 +93,7 @@ function VerifyEmailContent() {
       {languageSelector}
       <div className="w-full max-w-sm text-center">
         <div className="mb-8 flex flex-col items-center gap-3">
-          <Image src="/logo.png" alt="Sovereign Health Intelligence" width={64} height={64} className="rounded-lg" />
+          <Image src={brand.logo} alt={brand.logoAlt} width={64} height={64} className="rounded-lg" />
           <h1 className="text-2xl font-bold">{t('brandName')}</h1>
         </div>
 
