@@ -48,8 +48,10 @@ COMPOSE_PROD="docker-compose.prod.yml"
 COMPOSE_STAGING="docker-compose.staging.yml"
 
 # Docker image names: Used for build, save, and transfer.
-BACKEND_IMAGE="sovereign-health-backend"
-FRONTEND_IMAGE="sovereign-health-frontend"
+# ADR-042: 3-char prefix convention. SHI = Sovereign Health Intelligence.
+# Previously: sovereign-health-backend, sovereign-health-frontend
+BACKEND_IMAGE="sovereignbrick/shi-api"
+FRONTEND_IMAGE="sovereignbrick/shi-web"
 POSTGRES_IMAGE="sovereign-health-postgres"
 
 # API URLs: Baked into frontend at build time (NEXT_PUBLIC_* vars).

@@ -17,7 +17,7 @@ services:
   #   - Uses separate ENCRYPTION_KEY and JWT_SECRET
   #   - Logs at 'info' level (more verbose than production 'warn')
   backend:
-    image: sovereign-health-backend:staging
+    image: sovereignbrick/shi-api:staging  # was: sovereign-health-backend (ADR-042)
     container_name: sh-staging-backend
     ports:
       - "127.0.0.1:8081:8080"
@@ -73,7 +73,7 @@ services:
   # Built with NEXT_PUBLIC_API_URL=https://api-demo.sovereignhealth.io
   # and NEXT_PUBLIC_ENVIRONMENT=staging (shows STAGING ribbon in UI).
   frontend:
-    image: sovereign-health-frontend:staging
+    image: sovereignbrick/shi-web:staging  # was: sovereign-health-frontend (ADR-042)
     container_name: sh-staging-frontend
     ports:
       - "127.0.0.1:3001:3000"
