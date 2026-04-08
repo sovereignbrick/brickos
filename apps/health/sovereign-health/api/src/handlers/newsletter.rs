@@ -60,6 +60,7 @@ fn is_valid_email(email: &str) -> bool {
 pub struct SubscribeRequest {
     pub email: String,
     pub source: Option<String>,
+    pub app_source: Option<String>,
     #[serde(default)]
     pub website_url: String, // honeypot field - reject if filled
 }
@@ -89,6 +90,30 @@ pub async fn subscribe(
     }
 
     let source = body.source.as_deref().unwrap_or("website");
+
+    // Determine app_source: explicit field > Referer header > default 'website'
+    let app_source = body
+        .app_source
+        .as_deref()
+        .map(|s| s.to_string())
+        .unwrap_or_else(|| {
+            _req.headers()
+                .get("referer")
+                .and_then(|v| v.to_str().ok())
+                .and_then(|referer| {
+                    if referer.contains("sovereign-link") || referer.contains("link.brickos") {
+                        Some("sovereign-link".to_string())
+                    } else if referer.contains("sovereign-health")
+                        || referer.contains("health.brickos")
+                        || referer.contains("sovereignhealth")
+                    {
+                        Some("sovereign-health".to_string())
+                    } else {
+                        None
+                    }
+                })
+                .unwrap_or_else(|| "website".to_string())
+        });
 
     // Check if already exists
     let existing = sqlx::query(
@@ -137,12 +162,13 @@ pub async fn subscribe(
     } else {
         // New subscriber
         sqlx::query(
-            r#"INSERT INTO newsletter_subscribers (email, source, confirm_token)
-               VALUES ($1, $2, $3)
+            r#"INSERT INTO newsletter_subscribers (email, source, app_source, confirm_token)
+               VALUES ($1, $2, $3, $4)
                ON CONFLICT (email) DO NOTHING"#,
         )
         .bind(&email)
         .bind(source)
+        .bind(&app_source)
         .bind(&confirm_token)
         .execute(pool.get_ref())
         .await?;
@@ -151,7 +177,7 @@ pub async fn subscribe(
             crate::services::notify::Channel::Info,
             crate::services::notify::Priority::Default,
             "New newsletter subscriber",
-            &format!("source={source}"),
+            &format!("source={source} app_source={app_source}"),
         );
     }
 
@@ -347,6 +373,7 @@ pub struct SubscriberQuery {
     pub page: Option<i64>,
     pub per_page: Option<i64>,
     pub app_key: Option<String>,
+    pub app_source: Option<String>,
 }
 
 pub async fn admin_subscribers(
@@ -358,46 +385,52 @@ pub async fn admin_subscribers(
     let per_page = query.per_page.unwrap_or(50).min(200);
     let offset = (page - 1) * per_page;
     let app_key = query.app_key.as_deref().unwrap_or("");
+    let app_source_filter = query.app_source.as_deref().unwrap_or("");
 
     let total: i64 = sqlx::query_scalar(
-        "SELECT COUNT(*) FROM newsletter_subscribers WHERE ($1 = '' OR source = $1)",
+        "SELECT COUNT(*) FROM newsletter_subscribers WHERE ($1 = '' OR source = $1) AND ($2 = '' OR app_source = $2)",
     )
     .bind(app_key)
+    .bind(app_source_filter)
     .fetch_one(pool.get_ref())
     .await?;
 
     let subscribed: i64 = sqlx::query_scalar(
-        "SELECT COUNT(*) FROM newsletter_subscribers WHERE subscribed = true AND confirmed = true AND ($1 = '' OR source = $1)",
+        "SELECT COUNT(*) FROM newsletter_subscribers WHERE subscribed = true AND confirmed = true AND ($1 = '' OR source = $1) AND ($2 = '' OR app_source = $2)",
     )
     .bind(app_key)
+    .bind(app_source_filter)
     .fetch_one(pool.get_ref())
     .await?;
 
     let unsubscribed: i64 = sqlx::query_scalar(
-        "SELECT COUNT(*) FROM newsletter_subscribers WHERE subscribed = false AND ($1 = '' OR source = $1)",
+        "SELECT COUNT(*) FROM newsletter_subscribers WHERE subscribed = false AND ($1 = '' OR source = $1) AND ($2 = '' OR app_source = $2)",
     )
     .bind(app_key)
+    .bind(app_source_filter)
     .fetch_one(pool.get_ref())
     .await?;
 
     let pending: i64 = sqlx::query_scalar(
-        "SELECT COUNT(*) FROM newsletter_subscribers WHERE subscribed = true AND confirmed = false AND ($1 = '' OR source = $1)",
+        "SELECT COUNT(*) FROM newsletter_subscribers WHERE subscribed = true AND confirmed = false AND ($1 = '' OR source = $1) AND ($2 = '' OR app_source = $2)",
     )
     .bind(app_key)
+    .bind(app_source_filter)
     .fetch_one(pool.get_ref())
     .await?;
 
     let rows = sqlx::query(
-        r#"SELECT id, email, source, subscribed, confirmed, confirmed_at,
+        r#"SELECT id, email, source, app_source, subscribed, confirmed, confirmed_at,
                   unsubscribed_at, mailgun_synced, created_at
            FROM newsletter_subscribers
-           WHERE ($3 = '' OR source = $3)
+           WHERE ($3 = '' OR source = $3) AND ($4 = '' OR app_source = $4)
            ORDER BY created_at DESC
            LIMIT $1 OFFSET $2"#,
     )
     .bind(per_page)
     .bind(offset)
     .bind(app_key)
+    .bind(app_source_filter)
     .fetch_all(pool.get_ref())
     .await?;
 
@@ -408,6 +441,7 @@ pub async fn admin_subscribers(
                 "id": r.try_get::<Uuid, _>("id").unwrap_or_default(),
                 "email": r.try_get::<String, _>("email").unwrap_or_default(),
                 "source": r.try_get::<String, _>("source").unwrap_or_default(),
+                "app_source": r.try_get::<Option<String>, _>("app_source").ok().flatten().unwrap_or_default(),
                 "subscribed": r.try_get::<bool, _>("subscribed").unwrap_or(false),
                 "confirmed": r.try_get::<bool, _>("confirmed").unwrap_or(false),
                 "confirmed_at": r.try_get::<Option<chrono::DateTime<Utc>>, _>("confirmed_at").ok().flatten().map(|d| d.to_rfc3339()),
@@ -443,7 +477,7 @@ pub async fn admin_export(
     _admin: AdminUser,
 ) -> Result<HttpResponse, AppError> {
     let rows = sqlx::query(
-        r#"SELECT email, source, subscribed, confirmed, confirmed_at, created_at
+        r#"SELECT email, source, app_source, subscribed, confirmed, confirmed_at, created_at
            FROM newsletter_subscribers
            WHERE subscribed = true AND confirmed = true
            ORDER BY created_at DESC"#,
@@ -451,10 +485,16 @@ pub async fn admin_export(
     .fetch_all(pool.get_ref())
     .await?;
 
-    let mut csv = String::from("email,source,subscribed,confirmed,confirmed_at,created_at\n");
+    let mut csv =
+        String::from("email,source,app_source,subscribed,confirmed,confirmed_at,created_at\n");
     for r in &rows {
         let email: String = r.try_get("email").unwrap_or_default();
         let source: String = r.try_get("source").unwrap_or_default();
+        let app_source: String = r
+            .try_get::<Option<String>, _>("app_source")
+            .ok()
+            .flatten()
+            .unwrap_or_default();
         let subscribed: bool = r.try_get("subscribed").unwrap_or(false);
         let confirmed: bool = r.try_get("confirmed").unwrap_or(false);
         let confirmed_at: Option<chrono::DateTime<Utc>> = r.try_get("confirmed_at").ok().flatten();
@@ -462,9 +502,10 @@ pub async fn admin_export(
             r.try_get("created_at").unwrap_or_else(|_| Utc::now());
 
         csv.push_str(&format!(
-            "{},{},{},{},{},{}\n",
+            "{},{},{},{},{},{},{}\n",
             email,
             source,
+            app_source,
             subscribed,
             confirmed,
             confirmed_at.map(|d| d.to_rfc3339()).unwrap_or_default(),

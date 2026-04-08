@@ -373,9 +373,9 @@ pub async fn signup(
     // Add to newsletter_subscribers if user opted in
     if body.consent_newsletter.unwrap_or(false) {
         let _ = sqlx::query(
-            r#"INSERT INTO newsletter_subscribers (email, source, confirmed, subscribed)
-               VALUES ($1, 'signup', true, true)
-               ON CONFLICT (email) DO UPDATE SET subscribed = true, confirmed = true, updated_at = NOW()"#,
+            r#"INSERT INTO newsletter_subscribers (email, source, app_source, confirmed, subscribed)
+               VALUES ($1, 'signup', 'sovereign-health', true, true)
+               ON CONFLICT (email) DO UPDATE SET subscribed = true, confirmed = true, app_source = COALESCE(newsletter_subscribers.app_source, 'sovereign-health'), updated_at = NOW()"#,
         )
         .bind(&body.email)
         .execute(pool.get_ref())

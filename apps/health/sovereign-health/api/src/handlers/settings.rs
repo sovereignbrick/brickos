@@ -1421,9 +1421,9 @@ pub async fn update_consent(
     if let (Some(v), Some(ref email)) = (newsletter, &email) {
         if v {
             let _ = sqlx::query(
-                r#"INSERT INTO newsletter_subscribers (email, source, confirmed, subscribed)
-                   VALUES ($1, 'settings', true, true)
-                   ON CONFLICT (email) DO UPDATE SET subscribed = true, confirmed = true, updated_at = NOW()"#,
+                r#"INSERT INTO newsletter_subscribers (email, source, app_source, confirmed, subscribed)
+                   VALUES ($1, 'settings', 'sovereign-health', true, true)
+                   ON CONFLICT (email) DO UPDATE SET subscribed = true, confirmed = true, app_source = COALESCE(newsletter_subscribers.app_source, 'sovereign-health'), updated_at = NOW()"#,
             )
             .bind(email)
             .execute(pool.get_ref())
