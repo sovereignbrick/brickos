@@ -56,3 +56,28 @@ export async function loginViaUI(
   await page.click('button:has-text("Sign in")')
   await page.waitForURL('**/dashboard', { timeout: 15000 })
 }
+
+/**
+ * Login via UI with a return URL. Waits for the return page to load.
+ */
+export async function loginAndNavigate(
+  page: import('@playwright/test').Page,
+  email: string,
+  password: string,
+  returnUrl: string,
+): Promise<void> {
+  await page.goto(`/login?return=${encodeURIComponent(returnUrl)}`)
+  await page.fill('input[type="email"]', email)
+  await page.fill('input[type="password"]', password)
+  await page.click('button:has-text("Sign in")')
+  await page.waitForURL(
+    url => url.pathname.startsWith(returnUrl) || url.pathname === '/dashboard',
+    { timeout: 15000 },
+  )
+}
+
+/** Staging demo admin credentials */
+export const DEMO_ADMIN = {
+  email: 'demo@sovereignhealth.io',
+  password: 'SovereignDemo1',
+}
