@@ -1,0 +1,24 @@
+name: ${PREFIX}-dev
+
+services:
+  ${PREFIX}-db:
+    image: postgres:16-alpine
+    container_name: ${PREFIX}-dev-db
+    restart: unless-stopped
+    ports:
+      - "${DEV_DB_PORT}:5432"
+    environment:
+      POSTGRES_USER: brickos
+      POSTGRES_PASSWORD: brickos
+      POSTGRES_DB: ${PREFIX}
+    volumes:
+      - ${PREFIX}-dev-data:/var/lib/postgresql/data
+      - ./init-dev-db.sql:/docker-entrypoint-initdb.d/01-init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U brickos -d ${PREFIX}"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  ${PREFIX}-dev-data:

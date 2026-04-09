@@ -690,6 +690,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "brickos-ai"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "base64",
+ "chrono",
+ "reqwest 0.12.28",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
+ "tokio",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
 name = "brickos-auth"
 version = "0.1.0"
 dependencies = [
@@ -4747,6 +4763,49 @@ checksum = "3a766e1110788c36f4fa1c2b71b387a7815aa65f88ce0229841826633d93723e"
 dependencies = [
  "libc",
  "windows-sys 0.61.2",
+]
+
+[[package]]
+name = "sovereign-crm-api"
+version = "0.1.0"
+dependencies = [
+ "actix-cors",
+ "actix-governor",
+ "actix-web",
+ "anyhow",
+ "argon2",
+ "async-trait",
+ "base64",
+ "brickos-ai",
+ "brickos-auth",
+ "brickos-billing",
+ "brickos-crypto",
+ "brickos-db",
+ "brickos-email",
+ "brickos-i18n",
+ "brickos-notify",
+ "chrono",
+ "criterion",
+ "dotenvy",
+ "futures-util",
+ "hex",
+ "insta",
+ "jsonwebtoken",
+ "proptest",
+ "qrcode",
+ "rand 0.10.0",
+ "reqwest 0.12.28",
+ "serde",
+ "serde_json",
+ "sha2",
+ "sqlx",
+ "thiserror 2.0.18",
+ "tokio",
+ "totp-rs",
+ "tracing",
+ "tracing-actix-web",
+ "tracing-subscriber",
+ "uuid",
 ]
 
 [[package]]

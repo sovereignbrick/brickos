@@ -10,10 +10,12 @@ members = [
     "crates/brickos-billing",
     "crates/brickos-notify",
     "crates/brickos-i18n",
+    "crates/brickos-ai",
     "crates/brickos-startos",
     "apps/health/sovereign-health/api",
     "apps/technology/sovereign-link",
     "apps/platform/brickos-platform-api",
+    "apps/data/sovereign-crm/api",
     # "apps/finance/btc-tracker/api",
 ]
 
@@ -34,6 +36,7 @@ thiserror = "2"
 anyhow = "1"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+brickos-ai = { path = "crates/brickos-ai" }
 brickos-auth = { path = "crates/brickos-auth" }
 brickos-crypto = { path = "crates/brickos-crypto" }
 brickos-db = { path = "crates/brickos-db" }

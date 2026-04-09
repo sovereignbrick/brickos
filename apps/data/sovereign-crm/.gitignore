@@ -1,0 +1,22 @@
+# Rust
+target/
+*.swp
+*.swo
+
+# Node
+node_modules/
+.next/
+out/
+.env
+.env.local
+.env.staging
+.env.production
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db

@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+# ${APP_TITLE} Deployment Script
+# Usage: bash ops/deploy.sh staging|production [--confirm]
+set -euo pipefail
+
+VERSION="0.1.0"
+APP_NAME="${APP_NAME}"
+PREFIX="${PREFIX}"
+DOCKER_API="${DOCKER_PREFIX}-api"
+DOCKER_WEB="${DOCKER_PREFIX}-web"
+PROD_PORT=${PROD_PORT}
+
+echo "Deploy ${DOLLAR}{APP_NAME} v${DOLLAR}{VERSION}"
+echo "Target: ${DOLLAR}{1:-staging}"
+echo ""
+
+# TODO: Implement full deploy script following SHI pattern:
+# 1. Pre-flight checks (version, env vars, connectivity)
+# 2. Build with --no-cache
+# 3. Push images
+# 4. docker compose up -d
+# 5. Verify container creation time
+# 6. Smoke test /health endpoint
+# 7. ntfy notification on success/failure
+
+echo "ERROR: Deploy script not yet implemented. Use SHI ops/deploy.sh as template."
+exit 1

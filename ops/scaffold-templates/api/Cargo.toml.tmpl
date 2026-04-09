@@ -1,0 +1,72 @@
+[package]
+name = "${CRATE_NAME}"
+version = "0.1.0"
+edition = "2021"
+description = "${APP_TITLE} -- BrickOS Application"
+license = "AGPL-3.0"
+
+[[bin]]
+name = "${CRATE_NAME}"
+path = "src/main.rs"
+
+[dependencies]
+# Web framework
+actix-web = { workspace = true }
+actix-cors = { workspace = true }
+actix-governor = "0.10"
+
+# Database
+sqlx = { workspace = true }
+
+# Serialization
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+# Time & IDs
+chrono = { workspace = true }
+uuid = { workspace = true }
+
+# Auth & crypto
+jsonwebtoken = { workspace = true }
+argon2 = { workspace = true }
+sha2 = "0.10"
+hex = "0.4"
+rand = "0.10"
+totp-rs = { version = "5", features = ["gen_secret", "otpauth"] }
+qrcode = { version = "0.14", default-features = false, features = ["svg"] }
+
+# Async
+tokio = { workspace = true }
+
+# Logging & config
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+tracing-actix-web = "0.7"
+dotenvy = "0.15"
+
+# BrickOS platform crates
+brickos-auth = { workspace = true }
+brickos-crypto = { workspace = true }
+brickos-db = { workspace = true }
+brickos-email = { workspace = true }
+brickos-billing = { workspace = true }
+brickos-notify = { workspace = true }
+brickos-i18n = { workspace = true }
+
+# Utilities
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+async-trait = "0.1"
+reqwest = { workspace = true }
+base64 = "0.22"
+futures-util = "0.3"
+
+[dev-dependencies]
+proptest = "1"
+insta = { version = "1", features = ["json"] }
+criterion = "0.8"
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+
+[[bench]]
+name = "endpoints"
+harness = false

@@ -1,0 +1,24 @@
+name: ${PREFIX}-prod
+
+services:
+  ${PREFIX}-api:
+    image: ${DOCKER_PREFIX}-api:${DOLLAR}{VERSION:-0.1.0}
+    container_name: ${PREFIX}-api
+    restart: unless-stopped
+    ports:
+      - "${PROD_PORT}:${PROD_PORT}"
+    env_file: ../api/.env.production
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${PROD_PORT}/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  ${PREFIX}-web:
+    image: ${DOCKER_PREFIX}-web:${DOLLAR}{VERSION:-0.1.0}
+    container_name: ${PREFIX}-web
+    restart: unless-stopped
+    ports:
+      - "3001:3000"
+    environment:
+      - NODE_ENV=production

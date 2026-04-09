@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head><title>CRM Login Test</title>
+<style>
+body { font-family: sans-serif; max-width: 400px; margin: 50px auto; background: #09090b; color: #fafafa; }
+input { display: block; width: 100%; padding: 8px; margin: 8px 0; background: #18181b; color: #fafafa; border: 1px solid #333; border-radius: 4px; box-sizing: border-box; }
+button { padding: 10px 20px; background: #2563eb; color: white; border: none; border-radius: 4px; cursor: pointer; width: 100%; margin-top: 10px; }
+#result { margin-top: 20px; padding: 10px; background: #18181b; border-radius: 4px; white-space: pre-wrap; font-size: 12px; max-height: 400px; overflow: auto; }
+.error { color: #ef4444; }
+.success { color: #22c55e; }
+</style>
+</head>
+<body>
+<h2>Sovereign CRM - Login Test</h2>
+<p style="color:#888">Direct API test (no React)</p>
+<input id="email" type="email" value="dev@test.com" placeholder="Email">
+<input id="password" type="password" value="TestPass1" placeholder="Password">
+<button onclick="doLogin()">Sign In</button>
+<div id="result"></div>
+
+<script>
+const API = 'http://localhost:8084';
+const result = document.getElementById('result');
+
+async function doLogin() {
+  result.innerHTML = 'Logging in...';
+  try {
+    const res = await fetch(`${API}/api/v1/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: document.getElementById('email').value,
+        password: document.getElementById('password').value
+      })
+    });
+    const json = await res.json();
+    if (!res.ok) {
+      result.innerHTML = `<span class="error">Error ${res.status}: ${json.error?.message || 'Unknown'}</span>\n\n${JSON.stringify(json, null, 2)}`;
+      return;
+    }
+    const token = json.data?.token;
+    result.innerHTML = `<span class="success">Login OK!</span>\nToken: ${token?.substring(0, 30)}...\n\nFetching /me...`;
+
+    // Test /me
+    const meRes = await fetch(`${API}/api/v1/auth/me`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const meJson = await meRes.json();
+    result.innerHTML += `\n\n/me response:\n${JSON.stringify(meJson, null, 2)}`;
+
+    // Test contacts
+    const cRes = await fetch(`${API}/api/v1/contacts`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const cJson = await cRes.json();
+    result.innerHTML += `\n\nContacts: ${JSON.stringify(cJson.data?.length ?? cJson.length ?? 0)} found`;
+
+  } catch (e) {
+    result.innerHTML = `<span class="error">Network error: ${e.message}</span>`;
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,18 @@
+[package]
+name = "brickos-ai"
+version = "0.1.0"
+edition = "2021"
+description = "AI provider abstraction for BrickOS -- Anthropic, Ollama, OpenAI with fallback"
+license = "AGPL-3.0"
+
+[dependencies]
+reqwest = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+async-trait = "0.1"
+thiserror = "2"
+uuid = { workspace = true }
+chrono = { workspace = true }
+base64 = "0.22"

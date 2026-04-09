@@ -1,0 +1,21 @@
+name: scr-staging
+
+services:
+  scr-staging-api:
+    image: sovereignbrick/scr-api:${VERSION:-0.1.0}
+    container_name: scr-staging-api
+    restart: unless-stopped
+    ports:
+      - "8085:8084"
+    env_file: .env.staging
+    networks:
+      - sh-staging_default
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8084/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+networks:
+  sh-staging_default:
+    external: true

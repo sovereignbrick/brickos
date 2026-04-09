@@ -1,0 +1,24 @@
+name: ${PREFIX}-staging
+
+services:
+  ${PREFIX}-staging-api:
+    image: ${DOCKER_PREFIX}-api:${DOLLAR}{VERSION:-0.1.0}
+    container_name: ${PREFIX}-staging-api
+    restart: unless-stopped
+    ports:
+      - "${STAGING_PORT}:${PROD_PORT}"
+    env_file: ../api/.env.staging
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${PROD_PORT}/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  ${PREFIX}-staging-web:
+    image: ${DOCKER_PREFIX}-web:${DOLLAR}{VERSION:-0.1.0}
+    container_name: ${PREFIX}-staging-web
+    restart: unless-stopped
+    ports:
+      - "3002:3000"
+    environment:
+      - NODE_ENV=production
