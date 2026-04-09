@@ -1,6 +1,6 @@
 # ADR-045: Shared brickos-ai Crate with Ollama Fallback
 
-**Status:** Proposed
+**Status:** Accepted
 **Date:** 2026-04-09
 
 ## Context
@@ -71,3 +71,13 @@ Create a shared `brickos-ai` crate at `crates/brickos-ai/` that provides:
 - Provider trait must be general enough for chat + vision + future modalities
 - SHI migration is a separate sprint (not part of CRM foundation)
 - Ollama quality for medical/health AI may not meet Dr. Alex standards (requires evaluation)
+
+## Post-Implementation Notes (2026-04-09)
+
+Implemented in Sprint 037-038:
+- brickos-ai crate at crates/brickos-ai/ (623 lines)
+- AnthropicProvider: Claude Sonnet 4 vision, 6s per photo extraction
+- OllamaProvider: qwen2.5:1.5b (text, 10s), moondream (vision, 1.7GB)
+- AiProviderManager with failover chain
+- Verified on VPS: 3.8GB RAM + 4GB swap handles both Ollama models
+- Default chain: Anthropic -> Ollama (configurable via env vars)
