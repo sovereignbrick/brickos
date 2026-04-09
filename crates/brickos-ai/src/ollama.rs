@@ -9,7 +9,7 @@ use crate::provider::{AiProvider, ChatResponse, InferenceConfig, Message};
 
 const DEFAULT_BASE_URL: &str = "http://localhost:11434";
 const DEFAULT_MODEL: &str = "llama3.2";
-const DEFAULT_VISION_MODEL: &str = "llama3.2-vision:11b";
+const DEFAULT_VISION_MODEL: &str = "moondream"; // 1.7GB, works on 4GB RAM
 
 pub struct OllamaProvider {
     base_url: String,
