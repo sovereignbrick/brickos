@@ -33,18 +33,18 @@ export default function CapturePage() {
       .catch(() => {})
   }, [])
 
-  const resizeImage = (dataUrl: string, maxWidth = 1920): Promise<string> => {
+  const resizeImage = (dataUrl: string, maxWidth = 1280): Promise<string> => {
     return new Promise((resolve) => {
       const img = new window.Image()
       img.onload = () => {
-        if (img.width <= maxWidth) { resolve(dataUrl); return }
-        const scale = maxWidth / img.width
+        const scale = img.width > maxWidth ? maxWidth / img.width : 1
         const canvas = document.createElement('canvas')
-        canvas.width = maxWidth
+        canvas.width = img.width * scale
         canvas.height = img.height * scale
         const ctx = canvas.getContext('2d')!
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
-        resolve(canvas.toDataURL('image/jpeg', 0.85))
+        // Always convert to JPEG to reduce size
+        resolve(canvas.toDataURL('image/jpeg', 0.75))
       }
       img.src = dataUrl
     })
@@ -87,6 +87,13 @@ export default function CapturePage() {
       }
 
       if (captureMode === 'photo' && preview) {
+        const payloadSize = preview.length
+        if (payloadSize > 30 * 1024 * 1024) {
+          setStatus(`Error: Image too large (${Math.round(payloadSize / 1024 / 1024)}MB). Max 30MB.`)
+          setUploading(false)
+          return
+        }
+        setStatus(`Uploading ${Math.round(payloadSize / 1024)}KB to ${API_URL}...`)
         const res = await fetch(`${API_URL}/api/v1/captures`, {
           method: 'POST',
           headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
