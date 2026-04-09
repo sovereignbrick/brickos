@@ -186,6 +186,7 @@ Analyze and specify how Sovereign Health can be white-labeled for customers (cli
 | #455 | Enhance shared service tests (brickos/org/consumer layers) | 1 |
 | #456 | Website marker consistency audit (117 markers) | 4 |
 | #457 | Design: SHI white-label architecture (doc 021) | 5 |
+| #458 | Review GitHub, GitLab pages + all README docs | 4 |
 
 ---
 
@@ -198,4 +199,6 @@ Analyze and specify how Sovereign Health can be white-labeled for customers (cli
 - [ ] Website content matches DB (markers, tiers, features)
 - [ ] White-label design document written with gap analysis
 - [ ] All testing findings documented and critical bugs fixed
+- [ ] All README files reflect current architecture and features
+- [ ] GitHub + GitLab pages up to date
 - [ ] Staging deployed with all fixes
