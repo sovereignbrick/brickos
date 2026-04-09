@@ -37,7 +37,7 @@ export default function GraphPage() {
 
   useEffect(() => {
     const token = Cookies.get('auth_token')
-    if (!token) return
+    if (!token) { setLoading(false); return }
 
     Promise.all([
       fetch(`${API_URL}/api/v1/graph`, { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json()),

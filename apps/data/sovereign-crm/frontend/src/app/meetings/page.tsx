@@ -23,7 +23,7 @@ export default function MeetingsPage() {
 
   useEffect(() => {
     const token = Cookies.get('auth_token')
-    if (!token) return
+    if (!token) { setLoading(false); return }
     fetch(`${API_URL}/api/v1/meetings`, {
       headers: { Authorization: `Bearer ${token}` },
     })

@@ -20,7 +20,7 @@ export default function ProjectsPage() {
 
   useEffect(() => {
     const token = Cookies.get('auth_token')
-    if (!token) return
+    if (!token) { setLoading(false); return }
     fetch(`${API_URL}/api/v1/projects`, {
       headers: { Authorization: `Bearer ${token}` },
     })

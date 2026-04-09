@@ -32,7 +32,7 @@ export default function PipelinePage() {
 
   useEffect(() => {
     const token = Cookies.get('auth_token')
-    if (!token) return
+    if (!token) { setLoading(false); return }
     fetch(`${API_URL}/api/v1/pipeline`, {
       headers: { Authorization: `Bearer ${token}` },
     })
