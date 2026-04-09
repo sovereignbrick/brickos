@@ -26,9 +26,11 @@ RUN cargo build --release -p ${CRATE_NAME}
 # Stage 4: Runtime
 FROM debian:bookworm-slim
 WORKDIR /app
-RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/lists/*
-COPY --from=builder /app/target/release/${CRATE_NAME} ./
-COPY --from=builder /app/apps/${PILLAR}/${APP_NAME}/api/migrations ./migrations
+RUN apt-get update && apt-get install -y ca-certificates curl && rm -rf /var/lib/apt/lists/*
+RUN groupadd --system appuser && useradd --system --gid appuser appuser
+COPY --from=builder --chown=appuser:appuser /app/target/release/${CRATE_NAME} ./
+COPY --from=builder --chown=appuser:appuser /app/apps/${PILLAR}/${APP_NAME}/api/migrations ./migrations
+USER appuser
 EXPOSE ${PROD_PORT}
 ENV RUST_LOG=info
 CMD ["./${CRATE_NAME}"]

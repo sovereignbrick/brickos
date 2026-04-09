@@ -27,8 +27,10 @@ RUN cargo build --release -p sovereign-crm-api
 FROM debian:bookworm-slim
 WORKDIR /app
 RUN apt-get update && apt-get install -y ca-certificates curl && rm -rf /var/lib/apt/lists/*
-COPY --from=builder /app/target/release/sovereign-crm-api ./
-COPY --from=builder /app/apps/data/sovereign-crm/api/migrations ./migrations
+RUN groupadd --system appuser && useradd --system --gid appuser appuser
+COPY --from=builder --chown=appuser:appuser /app/target/release/sovereign-crm-api ./
+COPY --from=builder --chown=appuser:appuser /app/apps/data/sovereign-crm/api/migrations ./migrations
+USER appuser
 EXPOSE 8084
 ENV RUST_LOG=info
 CMD ["./sovereign-crm-api"]
