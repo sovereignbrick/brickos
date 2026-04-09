@@ -1,11 +1,8 @@
 # Stage 1: Deps
 FROM node:22-alpine AS deps
-RUN corepack enable && corepack prepare pnpm@latest --activate
 WORKDIR /app
-COPY apps/data/sovereign-crm/frontend/package.json apps/data/sovereign-crm/frontend/pnpm-lock.yaml ./
-COPY packages/ui /packages/ui
-RUN sed -i 's|"workspace:\\*"|"file:/packages/ui"|g' package.json
-RUN echo 'node-linker=hoisted' >> .npmrc && pnpm install --no-frozen-lockfile
+COPY apps/data/sovereign-crm/frontend/package.json ./
+RUN sed -i '/"@brickos\/ui"/d' package.json && npm install --legacy-peer-deps
 
 # Stage 2: Builder
 FROM node:22-alpine AS builder
