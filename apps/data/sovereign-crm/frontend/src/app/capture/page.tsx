@@ -128,15 +128,19 @@ export default function CapturePage() {
             }`}>Quick Note</button>
         </div>
 
-        <div className="mt-4">
-          <label className="text-sm font-medium">Project scope</label>
-          <select value={selectedProject} onChange={e => setSelectedProject(e.target.value)}
-            className="mt-1 w-full rounded-md border bg-background px-3 py-2 text-sm">
-            <option value="">No project</option>
-            {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-          </select>
-          <input type="text" value={newProjectName} onChange={e => setNewProjectName(e.target.value)}
-            placeholder="Or create new project..." className="mt-2 w-full rounded-md border bg-background px-3 py-2 text-sm" />
+        <div className="mt-4 space-y-2">
+          <div>
+            <label className="text-sm font-medium">Project scope</label>
+            <select value={selectedProject} onChange={e => setSelectedProject(e.target.value)}
+              className="mt-1 w-full rounded-md border bg-background px-3 py-2 text-sm">
+              <option value="">No project</option>
+              {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+            </select>
+          </div>
+          <div>
+            <input type="text" value={newProjectName} onChange={e => setNewProjectName(e.target.value)}
+              placeholder="Or create new project..." className="w-full rounded-md border bg-background px-3 py-2 text-sm" />
+          </div>
         </div>
 
         <div className="mt-6">
