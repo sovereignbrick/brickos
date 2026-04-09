@@ -7,6 +7,7 @@ import { usePathname } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
 import { useTheme } from '@/lib/theme-context'
 import { getBrand } from '@/lib/brand'
+import { SearchOverlay } from '@/components/search-overlay'
 
 const NAV_ITEMS = [
   { href: '/dashboard', label: 'Dashboard' },
@@ -56,6 +57,20 @@ export default function Navbar() {
   }
   const tierSlug = user?.tier || 'glimpse'
 
+  // -- Search overlay --
+  const [searchOpen, setSearchOpen] = useState(false)
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault()
+        setSearchOpen(prev => !prev)
+      }
+    }
+    document.addEventListener('keydown', handler)
+    return () => document.removeEventListener('keydown', handler)
+  }, [])
+
   // -- Mobile menu --
   const [mobileOpen, setMobileOpen] = useState(false)
 
@@ -88,7 +103,7 @@ export default function Navbar() {
         {/* Right side */}
         <div className="flex items-center gap-2">
           {/* Search shortcut */}
-          <button className="p-2 text-muted-foreground hover:text-foreground transition-colors" title="Search (Ctrl+K)">
+          <button onClick={() => setSearchOpen(true)} className="p-2 text-muted-foreground hover:text-foreground transition-colors" title="Search (Ctrl+K)">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
             </svg>
@@ -185,6 +200,9 @@ export default function Navbar() {
           </button>
         </div>
       </div>
+
+      {/* Search overlay */}
+      <SearchOverlay open={searchOpen} onClose={() => setSearchOpen(false)} />
 
       {/* Mobile menu */}
       {mobileOpen && (

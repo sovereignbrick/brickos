@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import { Navbar } from '@/components/layout/navbar'
+import { AudioRecorder } from '@/components/audio-recorder'
 import { API_URL } from '@/lib/api-config'
 import Cookies from 'js-cookie'
 
@@ -27,6 +28,7 @@ interface Meeting {
   transcript: string | null
   duration_secs: number | null
   recorded_at: string | null
+  audio_blob_ref: string | null
   action_items: ActionItem[]
   attendees: Attendee[]
   created_at: string
@@ -42,6 +44,8 @@ export default function MeetingDetailPage() {
   const [transcript, setTranscript] = useState('')
   const [transcribing, setTranscribing] = useState(false)
   const [summarizing, setSummarizing] = useState(false)
+  const [audioUploading, setAudioUploading] = useState(false)
+  const [audioSrc, setAudioSrc] = useState<string | null>(null)
   const [error, setError] = useState('')
 
   const fetchMeeting = () => {
@@ -103,6 +107,32 @@ export default function MeetingDetailPage() {
       setError(json.error?.message || 'Failed to summarize')
     }
     setSummarizing(false)
+  }
+
+  const handleAudioComplete = async (audioBase64: string, durationSecs: number) => {
+    setAudioUploading(true)
+    setError('')
+    const token = Cookies.get('auth_token')
+    try {
+      const res = await fetch(`${API_URL}/api/v1/meetings/${id}`, {
+        method: 'PATCH',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          audio_blob_ref: audioBase64,
+          duration_secs: durationSecs,
+        }),
+      })
+      if (res.ok) {
+        setAudioSrc(audioBase64)
+        fetchMeeting()
+      } else {
+        const json = await res.json().catch(() => ({}))
+        setError(json.error?.message || 'Failed to save audio')
+      }
+    } catch {
+      setError('Failed to upload audio')
+    }
+    setAudioUploading(false)
   }
 
   const statusBadgeClass = (status: string) => {
@@ -196,6 +226,26 @@ export default function MeetingDetailPage() {
               </div>
             </div>
           )}
+
+          {/* Audio */}
+          <div>
+            <p className="text-xs text-muted-foreground mb-2">Audio</p>
+            {(meeting.audio_blob_ref || audioSrc) ? (
+              <div className="rounded-lg border bg-muted/30 p-4 space-y-2">
+                <audio controls className="w-full" src={meeting.audio_blob_ref || audioSrc || undefined} />
+                <p className="text-xs text-muted-foreground">
+                  Recording attached{meeting.duration_secs ? ` - ${Math.floor(meeting.duration_secs / 60)} min` : ''}
+                </p>
+              </div>
+            ) : (
+              <>
+                <AudioRecorder onRecordingComplete={handleAudioComplete} />
+                {audioUploading && (
+                  <p className="mt-2 text-sm text-muted-foreground">Uploading audio...</p>
+                )}
+              </>
+            )}
+          </div>
 
           {/* Actions */}
           <div className="flex flex-wrap gap-3 border-t pt-4">

@@ -107,15 +107,24 @@ async fn resolve_org_id(
 }
 
 const EXTRACTION_PROMPT: &str = "\
-Extract contact information from this image. Return JSON:\n\
-{\"contacts\": [{\"name\": \"...\", \"email\": \"...\", \"role\": \"...\", \"company\": \"...\"}], \
-\"companies\": [{\"name\": \"...\", \"domain\": \"...\"}], \"subject\": \"...\", \"topics\": [\"...\"]}\n\
+Extract ALL contact information from this image. This may be an email, business card, or document.\n\
+Extract EVERY person mentioned: sender (From), recipients (To, CC), and anyone in signature blocks.\n\
+For each person, extract: full name, email address, job title/role, company name, phone number if visible.\n\
+Also extract company details from signatures, footers, or letterheads.\n\n\
+Return ONLY valid JSON (no markdown, no code fences):\n\
+{\"contacts\": [{\"name\": \"Full Name\", \"email\": \"email@example.com\", \"role\": \"Job Title\", \"company\": \"Company Name\"}], \
+\"companies\": [{\"name\": \"Company Name\", \"domain\": \"example.com\"}], \
+\"subject\": \"Brief description of the content\", \"topics\": [\"topic1\", \"topic2\"]}\n\
 If no contacts found, return {\"contacts\": [], \"companies\": [], \"subject\": \"\", \"topics\": []}";
 
 const TEXT_EXTRACTION_PROMPT: &str = "\
-Extract contact and company information from the following text. Return JSON:\n\
-{\"contacts\": [{\"name\": \"...\", \"email\": \"...\", \"role\": \"...\", \"company\": \"...\"}], \
-\"companies\": [{\"name\": \"...\", \"domain\": \"...\"}], \"subject\": \"...\", \"topics\": [\"...\"]}\n\
+Extract ALL contact and company information from the following text.\n\
+Extract every person mentioned with their full name, email, role/title, and company.\n\
+Also extract company names and domains.\n\n\
+Return ONLY valid JSON (no markdown, no code fences):\n\
+{\"contacts\": [{\"name\": \"Full Name\", \"email\": \"email@example.com\", \"role\": \"Job Title\", \"company\": \"Company Name\"}], \
+\"companies\": [{\"name\": \"Company Name\", \"domain\": \"example.com\"}], \
+\"subject\": \"Brief description\", \"topics\": [\"topic1\"]}\n\
 If no contacts found, return {\"contacts\": [], \"companies\": [], \"subject\": \"\", \"topics\": []}";
 
 // ---------------------------------------------------------------------------

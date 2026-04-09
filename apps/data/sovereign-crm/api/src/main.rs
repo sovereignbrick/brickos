@@ -78,6 +78,33 @@ async fn main() -> std::io::Result<()> {
     let notify_config = brickos_notify::NotifyConfig::from_env();
     let notifier = brickos_notify::Notifier::new(notify_config);
 
+    // -- Background capture queue processor --
+    let queue_pool = app_pool.clone();
+    tokio::spawn(async move {
+        loop {
+            tokio::time::sleep(std::time::Duration::from_secs(30)).await;
+            // Pick one pending capture and mark it as queued
+            let result = sqlx::query(
+                "UPDATE crm_captures SET status = 'queued', attempts = attempts + 1 \
+                 WHERE id = (SELECT id FROM crm_captures WHERE status = 'pending' AND attempts < 3 \
+                 ORDER BY created_at ASC LIMIT 1) RETURNING id",
+            )
+            .fetch_optional(&queue_pool)
+            .await;
+
+            match result {
+                Ok(Some(row)) => {
+                    let id: uuid::Uuid = sqlx::Row::get(&row, "id");
+                    tracing::info!("Queue: moved capture {} to queued", id);
+                }
+                Ok(None) => {} // no pending captures
+                Err(e) => {
+                    tracing::warn!("Queue: error polling captures: {}", e);
+                }
+            }
+        }
+    });
+
     // -- CORS --
     let frontend_url = config.frontend_url.clone();
 

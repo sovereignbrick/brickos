@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { Navbar } from '@/components/layout/navbar'
 import { API_URL } from '@/lib/api-config'
+import { encryptData } from '@/lib/crypto'
 import Cookies from 'js-cookie'
 
 interface Project {
@@ -93,13 +94,15 @@ export default function CapturePage() {
           setUploading(false)
           return
         }
-        setStatus(`Uploading ${Math.round(payloadSize / 1024)}KB to ${API_URL}...`)
+        setStatus('Encrypting image...')
+        const encryptedImage = await encryptData(preview, token)
+        setStatus(`Uploading ${Math.round(payloadSize / 1024)}KB (E2E encrypted) to ${API_URL}...`)
         const res = await fetch(`${API_URL}/api/v1/captures`, {
           method: 'POST',
           headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
           body: JSON.stringify({
             capture_type: 'photo',
-            image_data: preview,
+            image_data: encryptedImage,
             project_id: projectId || null,
           }),
         })
@@ -260,6 +263,15 @@ export default function CapturePage() {
           className="mt-4 w-full rounded-md bg-blue-600 px-4 py-3 text-sm font-medium text-white hover:bg-blue-500 disabled:opacity-50">
           {uploading ? 'Processing with AI...' : captureMode === 'photo' ? 'Capture & Extract' : 'Save & Extract'}
         </button>
+
+        {captureMode === 'photo' && (
+          <div className="mt-2 flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
+            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+            </svg>
+            E2E Encrypted
+          </div>
+        )}
 
         {status && (
           <p className={`mt-3 text-center text-sm ${status.includes('Error') ? 'text-red-400' : 'text-green-400'}`}>
