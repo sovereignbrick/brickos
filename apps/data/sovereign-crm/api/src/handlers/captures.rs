@@ -305,7 +305,7 @@ pub async fn process_capture(
     // Call AI based on capture type
     let ai_result = if capture_type == "photo" {
         let image_enc: Option<String> = row.get("image_encrypted");
-        let image_base64 = match image_enc {
+        let image_raw = match image_enc {
             Some(enc) => encryptor.decrypt(&enc).map_err(AppError::Internal)?,
             None => {
                 return Err(AppError::Validation(
@@ -313,10 +313,18 @@ pub async fn process_capture(
                 ))
             }
         };
+        // Strip data URL prefix (e.g. "data:image/jpeg;base64,") if present
+        let image_base64 = if let Some(pos) = image_raw.find(",base64,") {
+            &image_raw[pos + 8..]
+        } else if let Some(pos) = image_raw.find(";base64,") {
+            &image_raw[pos + 8..]
+        } else {
+            &image_raw
+        };
         ai_manager
             .vision(
                 "You are a CRM data extraction assistant.",
-                &image_base64,
+                image_base64,
                 EXTRACTION_PROMPT,
                 &config,
             )
