@@ -534,11 +534,11 @@ async fn persist_extraction(
             .await?;
 
         if existing.is_none() {
-            sqlx::query("INSERT INTO crm_companies (org_id, name, domain) VALUES ($1, $2, $3)")
+            sqlx::query("INSERT INTO crm_companies (org_id, name, domain) VALUES ($1, $2, $3) ON CONFLICT (org_id, domain) DO NOTHING")
                 .bind(org_id)
                 .bind(&company.name)
                 .bind(company.domain.as_deref())
-                .fetch_optional(pool)
+                .execute(pool)
                 .await?;
             companies_created += 1;
         }
