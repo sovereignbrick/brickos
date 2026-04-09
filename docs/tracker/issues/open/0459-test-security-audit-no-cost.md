@@ -1,7 +1,7 @@
 ---
 number: 459
 title: "test: security audit -- dependency, code, config checks (no 3rd party cost)"
-milestone: "privacy-and-security"
+milestone: "Sovereign Health Intelligence -- Production Quality"
 labels: [security, testing]
 created: 2026-04-10
 priority: P1

@@ -1,7 +1,7 @@
 ---
 github_number: 186
 title: "feat: import history page (frontend)"
-milestone: ux-and-onboarding
+milestone: "Sovereign Health Intelligence -- Production Quality"
 labels: [feat]
 points: 0
 ---

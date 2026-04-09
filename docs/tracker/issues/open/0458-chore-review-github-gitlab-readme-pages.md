@@ -1,7 +1,7 @@
 ---
 number: 458
 title: "chore: review GitHub, GitLab pages + README docs for latest SHI state"
-milestone: "Sovereign Health App Elevation"
+milestone: "Sovereign Health Intelligence -- Production Quality"
 labels: [docs, chore]
 created: 2026-04-10
 priority: P1

@@ -1,7 +1,7 @@
 ---
 number: 456
 title: "chore: website marker consistency audit -- 117 markers vs DB vs app"
-milestone: "Sovereign Health App Elevation"
+milestone: "Sovereign Health Intelligence -- Production Quality"
 labels: [content, website]
 created: 2026-04-10
 priority: P1

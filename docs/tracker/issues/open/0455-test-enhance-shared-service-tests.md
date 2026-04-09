@@ -1,7 +1,7 @@
 ---
 number: 455
 title: "test: enhance shared service tests for brickos/org/consumer layers"
-milestone: "Sovereign Health App Elevation"
+milestone: "Sovereign Health Intelligence -- Production Quality"
 labels: [testing, platform-elevation]
 created: 2026-04-10
 priority: P1

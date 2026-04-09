@@ -1,7 +1,7 @@
 ---
 number: 454
 title: "fix: SHI production testing findings -- bugs from manual testing"
-milestone: "Sovereign Health App Elevation"
+milestone: "Sovereign Health Intelligence -- Production Quality"
 labels: [bug, testing]
 created: 2026-04-10
 priority: P1

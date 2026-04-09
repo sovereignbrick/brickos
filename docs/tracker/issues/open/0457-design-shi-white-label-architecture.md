@@ -1,7 +1,7 @@
 ---
 number: 457
 title: "design: SHI white-label architecture -- multi-tenant branding for first customer"
-milestone: "horizon-tier"
+milestone: "Sovereign Health Intelligence -- Production Quality"
 labels: [design, platform-elevation, business]
 created: 2026-04-10
 priority: P1
