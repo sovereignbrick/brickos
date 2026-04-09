@@ -91,6 +91,8 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .wrap(cors)
             .wrap(tracing_actix_web::TracingLogger::default())
+            // 35MB payload limit for image uploads
+            .app_data(web::JsonConfig::default().limit(35 * 1024 * 1024))
             .app_data(web::Data::new(PlatformPool(platform_pool.clone())))
             .app_data(web::Data::new(app_pool.clone()))
             .app_data(web::Data::new(config.clone()))
