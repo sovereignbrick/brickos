@@ -33,11 +33,32 @@ export default function CapturePage() {
       .catch(() => {})
   }, [])
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const resizeImage = (dataUrl: string, maxWidth = 1920): Promise<string> => {
+    return new Promise((resolve) => {
+      const img = new window.Image()
+      img.onload = () => {
+        if (img.width <= maxWidth) { resolve(dataUrl); return }
+        const scale = maxWidth / img.width
+        const canvas = document.createElement('canvas')
+        canvas.width = maxWidth
+        canvas.height = img.height * scale
+        const ctx = canvas.getContext('2d')!
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+        resolve(canvas.toDataURL('image/jpeg', 0.85))
+      }
+      img.src = dataUrl
+    })
+  }
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
     const reader = new FileReader()
-    reader.onload = () => setPreview(reader.result as string)
+    reader.onload = async () => {
+      const resized = await resizeImage(reader.result as string)
+      setPreview(resized)
+      setStatus(`Image loaded (${Math.round(resized.length / 1024)}KB)`)
+    }
     reader.readAsDataURL(file)
   }
 
@@ -101,8 +122,10 @@ export default function CapturePage() {
           setStatus(`Error: ${err.error?.message || 'Save failed'}`)
         }
       }
-    } catch {
-      setStatus('Network error')
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err)
+      setStatus(`Error: ${msg}`)
+      console.error('Capture error:', err)
     } finally {
       setUploading(false)
     }
