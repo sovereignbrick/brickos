@@ -120,6 +120,17 @@ impl AiProvider for AnthropicProvider {
     ) -> Result<ChatResponse, AiError> {
         let start = Instant::now();
 
+        // Detect media type from base64 header bytes
+        let media_type = if image_base64.starts_with("/9j/") {
+            "image/jpeg"
+        } else if image_base64.starts_with("iVBOR") {
+            "image/png"
+        } else if image_base64.starts_with("UklGR") {
+            "image/webp"
+        } else {
+            "image/jpeg" // default to JPEG (most common from cameras)
+        };
+
         let body = json!({
             "model": self.model,
             "max_tokens": config.max_tokens,
@@ -132,7 +143,7 @@ impl AiProvider for AnthropicProvider {
                         "type": "image",
                         "source": {
                             "type": "base64",
-                            "media_type": "image/png",
+                            "media_type": media_type,
                             "data": image_base64,
                         }
                     },
