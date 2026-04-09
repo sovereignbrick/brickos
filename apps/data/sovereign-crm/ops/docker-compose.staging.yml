@@ -6,7 +6,7 @@ services:
     container_name: scr-staging-api
     restart: unless-stopped
     ports:
-      - "8085:8084"
+      - "127.0.0.1:8085:8084"
     env_file: .env.staging
     networks:
       - sh-staging_default
