@@ -19,7 +19,7 @@ const NAV_ITEMS = [
   { href: '/graph', label: 'Graph' },
 ]
 
-export default function NavbarClient() {
+export default function Navbar() {
   const { user, loading, logout } = useAuth()
   const { theme, toggleTheme } = useTheme()
   const pathname = usePathname()

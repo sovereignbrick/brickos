@@ -1,12 +1,5 @@
 'use client'
 
-import dynamic from 'next/dynamic'
-
-const NavbarClient = dynamic(
-  () => import('./navbar-client').then(mod => mod.default),
-  { ssr: false }
-)
-
-export function Navbar() {
-  return <NavbarClient />
-}
+// Re-export from client component
+// suppressHydrationWarning handles browser extension mismatches
+export { default as Navbar } from './navbar-client'
