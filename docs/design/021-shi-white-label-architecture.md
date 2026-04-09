@@ -310,22 +310,285 @@ Implementation: Check `org.branding.features.{feature}` before rendering UI elem
 
 ---
 
-## 11. Risk Assessment
+## 10b. Admin Setup Interface: Platform vs App
+
+**Decision: Platform-level (BrickOS admin), not SHI app.**
+
+The white-label setup happens at the BrickOS platform level because:
+1. Organizations span apps (an org might use SHI + CRM + Sovereign Link)
+2. Domain mapping, branding, and billing are platform concerns
+3. The org admin manages their app usage, not the platform setup
+
+**Interface location:** `/platform/organizations` in the BrickOS admin GUI.
+
+The SHI app admin view shows org-specific settings (feature toggles, member management) but not platform setup (domains, billing, branding).
+
+---
+
+## 10c. User Journey: BrickOS Admin Onboards White-Label Customer
+
+### Step 1: Customer Inquiry
+
+Customer provides:
+- Organization name + type (clinic, coach, enterprise)
+- Contact person (name, email)
+- Desired plan (Starter/Professional/Enterprise)
+- Logo (PNG/SVG, max 100KB)
+- Brand colors (primary, accent) -- or "use defaults"
+- Custom domain (optional): e.g., `health.clinic-name.com`
+
+### Step 2: BrickOS Admin Creates Organization
+
+**In platform admin (`/platform/organizations/new`):**
+
+```
+1. Create organization
+   - Name: "Praxis Dr. Mueller"
+   - Slug: "praxis-mueller"
+   - Type: "clinic"
+   - Billing email: admin@praxis-mueller.de
+
+2. Set branding
+   - Upload logo
+   - Set primary color: #2563eb
+   - Set app name: "Praxis Dr. Mueller Health"
+   - Footer: "Powered by Sovereign Health"
+
+3. Configure domain (optional)
+   - Add: health.praxis-mueller.de
+   - Status: pending (customer must add CNAME)
+   - Instructions sent to customer email
+
+4. Assign plan
+   - Tier: Professional (or create org-level license JWT)
+   - Max users: 50
+   - Features: all SHI features enabled
+
+5. Create org admin user
+   - Email: dr.mueller@praxis-mueller.de
+   - Role: org_owner
+   - Send invitation email with temp password or magic link
+```
+
+### Step 3: Customer DNS Setup (if custom domain)
+
+BrickOS admin sends instructions:
+```
+Add this DNS record:
+  Type: CNAME
+  Name: health
+  Value: app.sovereignhealth.io
+
+We'll verify and activate SSL within 24 hours.
+```
+
+### Step 4: BrickOS Admin Verifies
+
+- [ ] Login at customer domain shows custom branding
+- [ ] Org admin can log in
+- [ ] Data isolation verified (no other org's data visible)
+- [ ] Plan limits enforced
+
+### Step 5: Handover
+
+Customer admin receives:
+- Login URL (custom domain or `app.sovereignhealth.io`)
+- Admin credentials
+- User invitation instructions
+- Support contact
+
+---
+
+## 10d. Billing Model Challenge: User-Centric vs Org-Centric
+
+### Current State (Problem)
+
+Billing is entirely **user-centric**:
+- `stripe_customer_id` on `users` table (not organizations)
+- `subscriptions` keyed by `user_id` (not org_id)
+- Each user pays individually
+- No org-level invoice or payment method
+
+### The White-Label Billing Problem
+
+When clinic "Praxis Dr. Mueller" onboards with 20 users:
+- **Who pays?** The clinic (1 invoice), not 20 individual users
+- **What's on the invoice?** "Sovereign Brick GmbH" or "Praxis Dr. Mueller"?
+- **How does Stripe know?** It doesn't -- Stripe customer is per-user
+
+### Proposed Solution: Org-Level Billing (Phase 2)
+
+**Option A: Org-Level Stripe Customer (Recommended)**
+
+```sql
+ALTER TABLE brickos.organizations 
+  ADD COLUMN stripe_customer_id TEXT UNIQUE,
+  ADD COLUMN billing_model TEXT DEFAULT 'individual'; -- 'individual' or 'organization'
+```
+
+When `billing_model = 'organization'`:
+- One Stripe customer per org (using org's billing_email)
+- One subscription per org (tier + seat count)
+- Org admin manages payment method via billing portal
+- Individual users don't need Stripe customers
+- Invoice shows: "Sovereign Brick GmbH" (our company)
+
+**Option B: Reseller Model (Future)**
+
+Customer buys a license from us, resells to their users under their own brand. They handle their own billing. We provide:
+- API for license activation/deactivation
+- Usage metering
+- Wholesale pricing
+
+### Invoice Branding
+
+Stripe invoices always show **our legal entity** (Sovereign Brick). This is correct and required by tax law -- we are the service provider. The customer's branding appears in the app, not on the invoice.
+
+If the customer wants invoices under their brand (reseller), they need their own Stripe account and we provide a wholesale API. This is Phase 3+.
+
+### Strike (BTC) Payments
+
+Same challenge -- `btc_payments` is user-keyed. For org billing:
+- Add `org_id` to `btc_payments` table
+- Allow org admin to prepay BTC for all members
+- BTC discount applies to org-level payment
+
+---
+
+## 10e. Licensing Across Organizations
+
+### Current Model (Per-User)
+
+```
+User A (org: Praxis Mueller) -> tier: focus -> user_licenses row
+User B (org: Praxis Mueller) -> tier: focus -> user_licenses row  
+User C (org: Personal)       -> tier: glimpse -> user_licenses row
+```
+
+Each user has their own tier. No org-level enforcement.
+
+### White-Label Model (Per-Org)
+
+```
+Org: Praxis Mueller -> plan: Professional -> 50 seats
+  User A -> inherits org plan (no individual subscription)
+  User B -> inherits org plan
+  ...
+  User 50 -> inherits org plan
+  User 51 -> REJECTED (seat limit reached)
+```
+
+### Implementation
+
+```sql
+-- Check user's effective tier:
+-- 1. If user's org has billing_model='organization', use org.tier_id
+-- 2. Else use user_licenses.tier_id
+-- 3. Fallback to 'glimpse' (free)
+
+SELECT COALESCE(
+  (SELECT lt.slug FROM organizations o 
+   JOIN org_members om ON om.org_id = o.id
+   JOIN license_tiers lt ON lt.id = o.tier_id
+   WHERE om.user_id = $1 AND o.billing_model = 'organization'),
+  (SELECT lt.slug FROM user_licenses ul
+   JOIN license_tiers lt ON lt.id = ul.tier_id
+   WHERE ul.user_id = $1),
+  'glimpse'
+) AS effective_tier;
+```
+
+### Seat Count Enforcement
+
+```rust
+// In org member invitation handler:
+let current_count = sqlx::query_scalar(
+    "SELECT COUNT(*) FROM org_members WHERE org_id = $1"
+).fetch_one(pool).await?;
+
+let max_seats = get_org_plan_seats(org_id).await?;
+if current_count >= max_seats {
+    return Err(AppError::Validation("Seat limit reached".into()));
+}
+```
+
+---
+
+## 11. Risk Assessment (Updated)
 
 | Risk | Impact | Mitigation |
 |------|--------|------------|
 | CSS injection breaks existing theme | High | Use CSS custom properties with fallback values |
-| Custom domain SSL issues | Medium | Start with subdomain (clinic.sovereignhealth.io), custom domain later |
-| Data leak between orgs | Critical | All queries already enforce org_id. Add E2E test for isolation. |
-| Performance with many orgs | Low | Current architecture handles 100+ orgs easily. Index org_id. |
-| Customer expects dedicated instance | Medium | Document shared model upfront. Offer dedicated for Enterprise tier. |
+| Custom domain SSL issues | Medium | Start with subdomain (clinic.sovereignhealth.io) first |
+| Data leak between orgs | Critical | All queries enforce org_id. Add E2E isolation test. |
+| Performance with many orgs | Low | Architecture handles 100+ orgs. Index org_id. |
+| Customer expects dedicated instance | Medium | Document shared model upfront. Enterprise = dedicated. |
+| **Billing model mismatch** | **High** | **User-centric billing vs org-centric need. Must add org billing.** |
+| **Invoice shows our company, not customer's** | **Medium** | **Correct by law. Customer branding is in-app, not on invoice.** |
+| **License tier inheritance broken** | **High** | **Need effective_tier query that checks org plan first.** |
+| **Seat limit not enforced** | **Medium** | **Add count check before org member invitation.** |
+| **No email invitation flow** | **Medium** | **Members must already exist. Need invite-by-email.** |
+| **Two parallel license systems** | **High** | **JWT license tokens + Stripe subscriptions can conflict. Unify.** |
 
 ---
 
-## 12. Conclusion
+## 12. Open Issues
 
-**The foundation is surprisingly complete.** Database schema, REST API, hostname detection, domain mapping, and org-scoped data isolation are all implemented. The main gap is **frontend wiring** -- connecting the existing branding page UI to the existing API endpoints, and injecting org colors into CSS.
+| # | Issue | Priority | Description |
+|---|-------|----------|-------------|
+| NEW | Org-level Stripe customer | P0 | Add `stripe_customer_id` to organizations table |
+| NEW | Org billing model flag | P0 | `billing_model: 'individual' \| 'organization'` on orgs |
+| NEW | Effective tier query | P0 | Check org plan first, then user plan, fallback to glimpse |
+| NEW | Seat count enforcement | P1 | Block invitation when seat limit reached |
+| NEW | Org admin billing portal | P1 | Org owner manages payment method, sees invoices |
+| NEW | Email invitation flow | P1 | Invite user by email (creates account if needed) |
+| NEW | Unify license systems | P2 | JWT tokens + Stripe subs should not conflict |
+| NEW | BTC org-level prepayment | P2 | Add org_id to btc_payments for org billing |
+| NEW | Branding page API wiring | P0 | Connect UI to existing REST endpoints |
+| NEW | Dynamic CSS injection | P0 | BrandProvider with CSS custom properties |
 
-**Estimated time to first white-label customer: 2-3 days of implementation + 1 day of testing.**
+---
 
-The biggest risk is not technical -- it's ensuring the customer onboarding process is smooth and the branding looks polished across all pages (login, dashboard, settings, emails).
+## 13. Revised Implementation Phases
+
+### Phase 1: Visual White-Label (first customer, 3-5 days)
+
+Branding only -- no billing changes. Customer pays via manual invoice or admin-assigned license.
+
+- [ ] Wire branding page to API
+- [ ] Dynamic CSS injection (BrandProvider)
+- [ ] Logo upload (base64 in JSONB)
+- [ ] Hostname -> org resolution in SHI
+- [ ] Branding API in SHI backend
+- [ ] Admin creates org + admin user manually
+- [ ] Admin assigns license via JWT token (existing endpoint)
+
+**Billing:** Manual. Admin creates org, assigns tier via admin panel. No Stripe for org.
+
+### Phase 2: Org-Level Billing (2-3 weeks)
+
+- [ ] Add `stripe_customer_id` + `billing_model` to organizations
+- [ ] Effective tier query (org plan -> user plan -> default)
+- [ ] Seat count enforcement on member invitation
+- [ ] Org billing portal (Stripe customer portal for org)
+- [ ] Email invitation flow (invite by email, auto-create user)
+- [ ] Org admin dashboard (member count, usage, plan)
+
+### Phase 3: Self-Service + Scale (1-2 months)
+
+- [ ] Self-service onboarding wizard
+- [ ] SSL automation (Let's Encrypt)
+- [ ] Feature toggles per org
+- [ ] Reseller API (wholesale pricing)
+- [ ] BTC org-level prepayment
+- [ ] Unify JWT + Stripe license systems
+
+---
+
+## 14. Conclusion
+
+**The visual white-label (Phase 1) is 3-5 days of work** -- branding, CSS injection, hostname resolution. The customer pays via manual license assignment. This is enough for the first customer.
+
+**The billing model (Phase 2) is the real challenge.** The entire billing system is user-centric. Moving to org-level billing requires: org Stripe customer, effective tier query, seat enforcement, and billing portal. This is 2-3 weeks of work.
+
+**Recommendation:** Ship Phase 1 for the first customer with manual billing. Build Phase 2 when you have 2-3 customers and the manual process becomes painful.
