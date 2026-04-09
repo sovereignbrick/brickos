@@ -187,6 +187,7 @@ Analyze and specify how Sovereign Health can be white-labeled for customers (cli
 | #456 | Website marker consistency audit (117 markers) | 4 |
 | #457 | Design: SHI white-label architecture (doc 021) | 5 |
 | #458 | Review GitHub, GitLab pages + all README docs | 4 |
+| #459 | Security audit -- dependency, code, config, OWASP (no cost) | 1 |
 
 ---
 
