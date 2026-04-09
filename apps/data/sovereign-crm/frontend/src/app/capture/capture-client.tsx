@@ -104,9 +104,35 @@ export default function CapturePage() {
           }),
         })
         if (res.ok) {
-          setStatus('Captured! Ready for AI processing.')
+          const captureJson = await res.json()
+          const captureId = captureJson.data?.id
           setPreview(null)
           if (fileRef.current) fileRef.current.value = ''
+
+          // Auto-process with AI
+          if (captureId) {
+            setStatus('Extracting contacts with AI...')
+            try {
+              const processRes = await fetch(`${API_URL}/api/v1/captures/${captureId}/process`, {
+                method: 'POST',
+                headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+                body: '{}',
+              })
+              const processJson = await processRes.json()
+              const data = processJson.data || {}
+              const meta = data.processing_metadata || {}
+              if (data.status === 'extracted') {
+                const extracted = JSON.parse(data.extracted_text || '{}')
+                const contactCount = (extracted.contacts || []).length
+                const companyCount = (extracted.companies || []).length
+                setStatus(`Done! Extracted ${contactCount} contact${contactCount !== 1 ? 's' : ''} and ${companyCount} compan${companyCount !== 1 ? 'ies' : 'y'} (${meta.provider}, ${Math.round((meta.latency_ms || 0) / 1000)}s)`)
+              } else {
+                setStatus(`Processing failed: ${data.error_message || 'unknown error'}`)
+              }
+            } catch {
+              setStatus('Saved but AI processing failed. Try again from queue.')
+            }
+          }
         } else {
           const err = await res.json()
           setStatus(`Error: ${err.error?.message || 'Upload failed'}`)
@@ -122,8 +148,31 @@ export default function CapturePage() {
           }),
         })
         if (res.ok) {
-          setStatus('Note saved!')
+          const captureJson = await res.json()
+          const captureId = captureJson.data?.id
           setTextNote('')
+
+          if (captureId) {
+            setStatus('Extracting contacts from note...')
+            try {
+              const processRes = await fetch(`${API_URL}/api/v1/captures/${captureId}/process`, {
+                method: 'POST',
+                headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+                body: '{}',
+              })
+              const processJson = await processRes.json()
+              const data = processJson.data || {}
+              if (data.status === 'extracted') {
+                const extracted = JSON.parse(data.extracted_text || '{}')
+                const contactCount = (extracted.contacts || []).length
+                setStatus(`Done! Extracted ${contactCount} contact${contactCount !== 1 ? 's' : ''} from note.`)
+              } else {
+                setStatus('Note saved. AI extraction had no results.')
+              }
+            } catch {
+              setStatus('Note saved!')
+            }
+          }
         } else {
           const err = await res.json()
           setStatus(`Error: ${err.error?.message || 'Save failed'}`)
@@ -209,7 +258,7 @@ export default function CapturePage() {
         <button onClick={handleCapture}
           disabled={uploading || (captureMode === 'photo' && !preview) || (captureMode === 'text' && !textNote.trim())}
           className="mt-4 w-full rounded-md bg-blue-600 px-4 py-3 text-sm font-medium text-white hover:bg-blue-500 disabled:opacity-50">
-          {uploading ? 'Processing...' : captureMode === 'photo' ? 'Capture & Save' : 'Save Note'}
+          {uploading ? 'Processing with AI...' : captureMode === 'photo' ? 'Capture & Extract' : 'Save & Extract'}
         </button>
 
         {status && (
