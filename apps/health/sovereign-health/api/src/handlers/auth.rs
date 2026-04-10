@@ -1279,6 +1279,49 @@ pub async fn me(
     })))
 }
 
+/// GET /me/orgs -- Sprint 040 #484
+///
+/// Returns the current user's org memberships (id, name, slug, role,
+/// last_active_at-style sort key) for the multi-org switcher in the user
+/// profile dropdown. Personal/individual orgs are included so the switcher
+/// can offer "Personal" as an option without a special case.
+pub async fn list_my_orgs(
+    platform_pool: web::Data<PlatformPool>,
+    auth: AuthenticatedUser,
+) -> Result<HttpResponse, AppError> {
+    use sqlx::Row;
+
+    let rows = sqlx::query(
+        r#"SELECT o.id, o.name, o.slug, o.org_type, om.role, om.joined_at
+           FROM org_members om
+           JOIN organizations o ON o.id = om.org_id
+           WHERE om.user_id = $1 AND o.is_deleted = false
+           ORDER BY om.joined_at DESC"#,
+    )
+    .bind(auth.user_id)
+    .fetch_all(&platform_pool.0)
+    .await?;
+
+    let orgs: Vec<serde_json::Value> = rows
+        .iter()
+        .map(|r| {
+            json!({
+                "id": r.try_get::<uuid::Uuid, _>("id").unwrap_or_default(),
+                "name": r.try_get::<String, _>("name").unwrap_or_default(),
+                "slug": r.try_get::<String, _>("slug").unwrap_or_default(),
+                "org_type": r.try_get::<String, _>("org_type").unwrap_or_default(),
+                "role": r.try_get::<String, _>("role").unwrap_or_default(),
+                "joined_at": r.try_get::<chrono::DateTime<chrono::Utc>, _>("joined_at").ok(),
+            })
+        })
+        .collect();
+
+    Ok(HttpResponse::Ok().json(json!({
+        "data": orgs,
+        "error": null
+    })))
+}
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------

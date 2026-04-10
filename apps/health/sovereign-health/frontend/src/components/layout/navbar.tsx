@@ -6,6 +6,7 @@ import Image from 'next/image'
 import { useAuth } from '@/lib/auth-context'
 import { usePathname, useRouter } from 'next/navigation'
 import { InfoBar } from '@/components/layout/info-bar'
+import { OrgSwitcher } from '@/components/org-switcher'
 import { useDemoHref } from '@/lib/use-demo-href'
 import { APP_NAME, IS_OSS } from '@/lib/mode'
 import { api } from '@/lib/api'
@@ -121,6 +122,8 @@ function UserMenu({ user, logout }: { user: { email: string; display_name: strin
             )}
             {t('theme')}
           </button>
+          {/* Sprint 040 #484 -- multi-org switcher (hidden when 0 memberships) */}
+          <OrgSwitcher />
           <div className="border-t border-border my-1" />
           <button
             onClick={() => { setOpen(false); logout() }}

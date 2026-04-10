@@ -210,6 +210,11 @@ pub fn configure_routes(cfg: &mut actix_web::web::ServiceConfig) {
                 actix_web::web::post().to(handlers::auth::refresh),
             )
             .route("/me", actix_web::web::get().to(handlers::auth::me))
+            // Sprint 040 #484 -- multi-org switcher
+            .route(
+                "/me/orgs",
+                actix_web::web::get().to(handlers::auth::list_my_orgs),
+            )
             .route(
                 "/unsubscribe",
                 actix_web::web::get().to(handlers::auth::unsubscribe),

@@ -1802,6 +1802,11 @@
       "licensing": "Licensing",
       "features": "Features"
     },
+    "orgSwitcher": {
+      "label": "Org",
+      "personal": "Personal (Individual)",
+      "switchedTo": "Switched to {name}"
+    },
     "licensingScreens": {
       "tiers": {
         "title": "Tier configuration",

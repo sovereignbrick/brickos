@@ -757,6 +757,18 @@ export const api = {
         body: JSON.stringify({ code, tier: tier || undefined }),
       }),
   },
+  // Sprint 040 #484 -- multi-org switcher
+  myOrgs: () =>
+    request<{
+      data: Array<{
+        id: string
+        name: string
+        slug: string
+        org_type: string
+        role: string
+        joined_at: string
+      }>
+    }>('/me/orgs'),
   license: {
     get: () =>
       request<{ data: import('./types').LicenseInfo }>('/license'),

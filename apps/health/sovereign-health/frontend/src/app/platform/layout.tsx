@@ -8,6 +8,7 @@ import { useTranslations } from 'next-intl'
 import { AdminContext } from './admin-context'
 import type { AdminContextType } from './admin-context'
 import { PlatformFilterProvider, usePlatformFilter } from './platform-context'
+import { OrgSwitcher } from '@/components/org-switcher'
 
 // ---------------------------------------------------------------------------
 // Navigation
@@ -185,6 +186,8 @@ function UserProfileMenu({ user }: { user: { email: string; display_name: string
               <p className="text-xs text-zinc-400 truncate">{user.email}</p>
               <p className="text-[10px] text-zinc-500 mt-0.5 capitalize">{user.role}</p>
             </div>
+            {/* Sprint 040 #484 -- multi-org switcher (hidden if 0 memberships) */}
+            <OrgSwitcher />
             <Link
               href="/settings"
               onClick={() => setOpen(false)}
