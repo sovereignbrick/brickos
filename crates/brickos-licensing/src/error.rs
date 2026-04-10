@@ -30,6 +30,12 @@ pub enum LicensingError {
         max: i64,
     },
 
+    #[error("cache empty -- never refreshed and no stored data")]
+    CacheEmpty,
+
+    #[error("cache stale -- 370-day offline grace exceeded; license server unreachable")]
+    CacheStale,
+
     #[error("feature not allowed: {0}")]
     FeatureNotAllowed(String),
 

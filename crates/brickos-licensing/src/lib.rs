@@ -32,6 +32,9 @@ pub mod jwt;
 pub mod embedded;
 
 #[cfg(feature = "client")]
+pub mod cache;
+
+#[cfg(feature = "client")]
 pub mod client;
 
 pub use claims::{
