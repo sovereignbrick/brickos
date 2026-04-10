@@ -1291,6 +1291,32 @@ export const api = {
         `/admin/organizations/${orgId}/license/revoke`,
         { method: 'POST', body: JSON.stringify({ reason }) },
       ),
+    // Sprint 040 #480 -- branding tab
+    updateOrgBranding: (orgId: string, branding: Record<string, unknown>) =>
+      request<{ data: { updated: boolean } }>(`/admin/organizations/${orgId}/branding`, {
+        method: 'PUT',
+        body: JSON.stringify({ branding }),
+      }),
+    listOrgDomains: (orgId: string) =>
+      request<{
+        data: Array<{
+          id: string
+          domain: string
+          ssl_status: 'pending' | 'active' | 'failed'
+          verified_at: string | null
+          created_at: string
+        }>
+      }>(`/admin/organizations/${orgId}/domains`),
+    addOrgDomain: (orgId: string, domain: string) =>
+      request<{ data: { id: string; domain: string; ssl_status: string } }>(
+        `/admin/organizations/${orgId}/domains`,
+        { method: 'POST', body: JSON.stringify({ domain }) },
+      ),
+    deleteOrgDomain: (orgId: string, domainId: string) =>
+      request<{ data: { deleted: boolean } }>(
+        `/admin/organizations/${orgId}/domains/${domainId}`,
+        { method: 'DELETE' },
+      ),
     listOrgLicenseHistory: (orgId: string) =>
       request<{
         data: Array<{

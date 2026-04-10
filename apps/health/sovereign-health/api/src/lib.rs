@@ -810,6 +810,23 @@ pub fn configure_routes(cfg: &mut actix_web::web::ServiceConfig) {
                 "/organizations/{id}/license/history",
                 actix_web::web::get().to(handlers::admin_orgs::list_org_license_history),
             )
+            // Sprint 040 #480 -- branding tab
+            .route(
+                "/organizations/{id}/branding",
+                actix_web::web::put().to(handlers::admin_orgs::update_org_branding),
+            )
+            .route(
+                "/organizations/{id}/domains",
+                actix_web::web::get().to(handlers::admin_orgs::list_org_domains),
+            )
+            .route(
+                "/organizations/{id}/domains",
+                actix_web::web::post().to(handlers::admin_orgs::add_org_domain),
+            )
+            .route(
+                "/organizations/{org_id}/domains/{domain_id}",
+                actix_web::web::delete().to(handlers::admin_orgs::delete_org_domain),
+            )
             .route(
                 "/organizations/{id}/members",
                 actix_web::web::post().to(handlers::admin_orgs::add_org_member),

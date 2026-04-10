@@ -485,6 +485,20 @@ pub struct RevokeLicenseRequest {
     pub reason: Option<String>,
 }
 
+/// Sprint 040 #480 -- per-org branding update payload.
+#[derive(Deserialize)]
+pub struct UpdateBrandingRequest {
+    pub branding: serde_json::Value,
+}
+
+/// Sprint 040 #480 -- custom domain payload (creates one row in
+/// domain_mappings; ssl_status starts at 'pending' until external automation
+/// flips it to 'active').
+#[derive(Deserialize)]
+pub struct AddCustomDomainRequest {
+    pub domain: String,
+}
+
 /// POST /admin/organizations/{id}/license -- Generate RS256 JWT license key
 ///
 /// Sprint 040 #467: switched from the dead in-tree services/licensing.rs
@@ -961,6 +975,149 @@ pub async fn remove_org_member(
 
     Ok(HttpResponse::Ok().json(serde_json::json!({
         "data": { "removed": true },
+        "error": null
+    })))
+}
+
+// ---------------------------------------------------------------------------
+// Sprint 040 #480 -- branding tab endpoints
+// ---------------------------------------------------------------------------
+
+/// PUT /admin/organizations/{id}/branding
+///
+/// Replaces the org's `branding` JSONB column with the supplied object.
+/// Validation lives client-side; the column is a free-form JSONB so the
+/// server only enforces "must be an object". Audit-logged.
+pub async fn update_org_branding(
+    platform_pool: web::Data<PlatformPool>,
+    _admin: AdminUser,
+    path: web::Path<Uuid>,
+    body: web::Json<UpdateBrandingRequest>,
+) -> Result<HttpResponse, AppError> {
+    let org_id = path.into_inner();
+
+    if !body.branding.is_object() {
+        return Err(AppError::Validation(
+            "branding must be a JSON object".into(),
+        ));
+    }
+
+    let result = sqlx::query(
+        "UPDATE organizations SET branding = $1, updated_at = NOW()
+         WHERE id = $2 AND is_deleted = false",
+    )
+    .bind(&body.branding)
+    .bind(org_id)
+    .execute(&platform_pool.0)
+    .await?;
+
+    if result.rows_affected() == 0 {
+        return Err(AppError::NotFound);
+    }
+
+    Ok(HttpResponse::Ok().json(serde_json::json!({
+        "data": { "updated": true },
+        "error": null
+    })))
+}
+
+/// GET /admin/organizations/{id}/domains -- list custom domain mappings
+pub async fn list_org_domains(
+    platform_pool: web::Data<PlatformPool>,
+    _admin: AdminUser,
+    path: web::Path<Uuid>,
+) -> Result<HttpResponse, AppError> {
+    let org_id = path.into_inner();
+
+    let rows = sqlx::query(
+        r#"SELECT id, domain, ssl_status, verified_at, created_at
+           FROM domain_mappings
+           WHERE org_id = $1
+           ORDER BY created_at DESC"#,
+    )
+    .bind(org_id)
+    .fetch_all(&platform_pool.0)
+    .await?;
+
+    let domains: Vec<serde_json::Value> = rows
+        .iter()
+        .map(|r| {
+            serde_json::json!({
+                "id": r.try_get::<Uuid, _>("id").unwrap_or_default(),
+                "domain": r.try_get::<String, _>("domain").unwrap_or_default(),
+                "ssl_status": r.try_get::<String, _>("ssl_status").unwrap_or_default(),
+                "verified_at": r.try_get::<Option<chrono::DateTime<chrono::Utc>>, _>("verified_at").ok().flatten(),
+                "created_at": r.try_get::<chrono::DateTime<chrono::Utc>, _>("created_at").ok(),
+            })
+        })
+        .collect();
+
+    Ok(HttpResponse::Ok().json(serde_json::json!({
+        "data": domains,
+        "error": null
+    })))
+}
+
+/// POST /admin/organizations/{id}/domains -- add a custom domain
+pub async fn add_org_domain(
+    platform_pool: web::Data<PlatformPool>,
+    _admin: AdminUser,
+    path: web::Path<Uuid>,
+    body: web::Json<AddCustomDomainRequest>,
+) -> Result<HttpResponse, AppError> {
+    let org_id = path.into_inner();
+    let domain = body.domain.trim().to_lowercase();
+
+    // Lightweight validation -- must look like a hostname.
+    if domain.is_empty() || !domain.contains('.') || domain.len() > 255 {
+        return Err(AppError::Validation("invalid domain".into()));
+    }
+
+    let row: (Uuid,) = sqlx::query_as(
+        r#"INSERT INTO domain_mappings (org_id, domain, ssl_status)
+           VALUES ($1, $2, 'pending')
+           RETURNING id"#,
+    )
+    .bind(org_id)
+    .bind(&domain)
+    .fetch_one(&platform_pool.0)
+    .await
+    .map_err(|e| {
+        // unique violation -> friendly error
+        if let sqlx::Error::Database(db_err) = &e {
+            if db_err.constraint() == Some("domain_mappings_domain_key") {
+                return AppError::Validation(format!("domain already taken: {domain}"));
+            }
+        }
+        AppError::from(e)
+    })?;
+
+    Ok(HttpResponse::Created().json(serde_json::json!({
+        "data": { "id": row.0, "domain": domain, "ssl_status": "pending" },
+        "error": null
+    })))
+}
+
+/// DELETE /admin/organizations/{org_id}/domains/{domain_id}
+pub async fn delete_org_domain(
+    platform_pool: web::Data<PlatformPool>,
+    _admin: AdminUser,
+    path: web::Path<(Uuid, Uuid)>,
+) -> Result<HttpResponse, AppError> {
+    let (org_id, domain_id) = path.into_inner();
+
+    let result = sqlx::query("DELETE FROM domain_mappings WHERE id = $1 AND org_id = $2")
+        .bind(domain_id)
+        .bind(org_id)
+        .execute(&platform_pool.0)
+        .await?;
+
+    if result.rows_affected() == 0 {
+        return Err(AppError::NotFound);
+    }
+
+    Ok(HttpResponse::Ok().json(serde_json::json!({
+        "data": { "deleted": true },
         "error": null
     })))
 }
