@@ -1154,6 +1154,297 @@ pub fn payment_failure_day_13_de() -> EmailTemplate {
     }
 }
 
+// ===========================================================================
+// Sprint 040 #474 -- Org termination, downgrade, renewal, expiring,
+//                    inactivity warning templates (brickos.io branded)
+//
+// Six templates × 2 languages = 12 functions. All use render_template_brickos
+// for the brickos.io chrome.
+//
+// Variable conventions:
+//   {{display_name}}    -- recipient name
+//   {{tier_name}}       -- e.g. "Focus"
+//   {{org_name}}        -- e.g. "Acme Clinic"
+//   {{access_until}}    -- ISO date string
+//   {{reactivate_url}}  -- 1-click re-subscribe link
+//   {{individual_url}}  -- 1-click switch-to-individual link
+//   {{export_url}}      -- data export link
+//   {{renewal_amount}}  -- e.g. "EUR 99.99"
+//   {{expires_at}}      -- ISO date string
+// ===========================================================================
+
+// ----- 1. Downgraded to Glimpse (after grace expires) -----------------------
+
+pub fn downgraded_to_glimpse() -> EmailTemplate {
+    EmailTemplate {
+        subject: "Your subscription ended -- you're now on Glimpse",
+        html: concat!(
+            r#"<h2 class="email-heading" style="margin: 0 0 16px; font-size: 22px; font-weight: 600; color: #1a1a1a;">You're now on Glimpse</h2>"#,
+            r#"<p class="email-text" style="margin: 0 0 12px; font-size: 16px; line-height: 1.6; color: #333333;">Hi {{display_name}},</p>"#,
+            r#"<p class="email-text" style="margin: 0 0 12px; font-size: 16px; line-height: 1.6; color: #333333;">Your <strong>{{tier_name}}</strong> grace period ended and your account has moved to the free Glimpse plan.</p>"#,
+            r#"<p class="email-text" style="margin: 0 0 12px; font-size: 16px; line-height: 1.6; color: #333333;">Your data is safe -- nothing was deleted. You keep read access to everything you tracked. The 10 most recent biomarkers stay active; the rest are preserved (read-only) until you reactivate them.</p>"#,
+            r#"<div style="text-align: center; margin: 24px 0;"><a href="{{reactivate_url}}" style="background-color: #2563eb; color: #ffffff; padding: 14px 36px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px; display: inline-block;">Reactivate {{tier_name}}</a></div>"#,
+            r#"<p class="email-subtext" style="margin: 24px 0 0; font-size: 14px; line-height: 1.5; color: #666666;">One click and you're back to where you were.</p>"#,
+        ),
+        text: concat!(
+            "You're now on Glimpse\n\n",
+            "Hi {{display_name}},\n\n",
+            "Your {{tier_name}} grace period ended and your account has moved to the free Glimpse plan.\n\n",
+            "Your data is safe -- nothing was deleted. You keep read access to everything you tracked.\n\n",
+            "Reactivate {{tier_name}}: {{reactivate_url}}\n\n",
+            "-- BrickOS\n",
+            "   brickos.io\n",
+        ),
+    }
+}
+
+pub fn downgraded_to_glimpse_de() -> EmailTemplate {
+    EmailTemplate {
+        subject: "Ihr Abonnement endete -- Sie sind jetzt auf Glimpse",
+        html: concat!(
+            r#"<h2 class="email-heading" style="margin: 0 0 16px; font-size: 22px; font-weight: 600; color: #1a1a1a;">Sie sind jetzt auf Glimpse</h2>"#,
+            r#"<p class="email-text" style="margin: 0 0 12px; font-size: 16px; line-height: 1.6; color: #333333;">Hallo {{display_name}},</p>"#,
+            r#"<p class="email-text" style="margin: 0 0 12px; font-size: 16px; line-height: 1.6; color: #333333;">Ihre Schonfrist fuer den <strong>{{tier_name}}</strong>-Plan ist abgelaufen und Ihr Konto wurde auf den kostenlosen Glimpse-Plan umgestellt.</p>"#,
+            r#"<p class="email-text" style="margin: 0 0 12px; font-size: 16px; line-height: 1.6; color: #333333;">Ihre Daten bleiben erhalten -- nichts wurde geloescht. Sie behalten Lesezugriff auf alles. Die 10 zuletzt verfolgten Biomarker bleiben aktiv; die uebrigen werden archiviert.</p>"#,
+            r#"<div style="text-align: center; margin: 24px 0;"><a href="{{reactivate_url}}" style="background-color: #2563eb; color: #ffffff; padding: 14px 36px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px; display: inline-block;">{{tier_name}} reaktivieren</a></div>"#,
+        ),
+        text: concat!(
+            "Sie sind jetzt auf Glimpse\n\n",
+            "Hallo {{display_name}},\n\n",
+            "Ihre Schonfrist fuer den {{tier_name}}-Plan ist abgelaufen.\n\n",
+            "{{tier_name}} reaktivieren: {{reactivate_url}}\n\n",
+            "-- BrickOS\n   brickos.io\n",
+        ),
+    }
+}
+
+// ----- 2. Org terminated -- member notification ----------------------------
+
+pub fn org_terminated_for_member() -> EmailTemplate {
+    EmailTemplate {
+        subject: "{{org_name}}'s subscription has ended -- your data is yours",
+        html: concat!(
+            r#"<h2 class="email-heading" style="margin: 0 0 16px; font-size: 22px; font-weight: 600; color: #1a1a1a;">{{org_name}} has ended their subscription</h2>"#,
+            r#"<p class="email-text" style="margin: 0 0 12px; font-size: 16px; line-height: 1.6; color: #333333;">Hi {{display_name}},</p>"#,
+            r#"<p class="email-text" style="margin: 0 0 12px; font-size: 16px; line-height: 1.6; color: #333333;"><strong>{{org_name}}</strong>'s subscription has ended. Your health data is yours, and you have <strong>30 days</strong> to choose what to do next.</p>"#,
+            r#"<p class="email-text" style="margin: 0 0 12px; font-size: 16px; line-height: 1.6; color: #333333;"><strong>Option 1:</strong> Continue with a free Glimpse account. Same data, same login, no charge.</p>"#,
+            r#"<div style="text-align: center; margin: 16px 0;"><a href="{{individual_url}}" style="background-color: #2563eb; color: #ffffff; padding: 12px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 15px; display: inline-block;">Switch to individual now</a></div>"#,
+            r#"<p class="email-text" style="margin: 16px 0 12px; font-size: 16px; line-height: 1.6; color: #333333;"><strong>Option 2:</strong> Download your data and close your account.</p>"#,
+            r#"<div style="text-align: center; margin: 16px 0;"><a href="{{export_url}}" style="background-color: #6b7280; color: #ffffff; padding: 12px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 15px; display: inline-block;">Export and delete</a></div>"#,
+            r#"<p class="email-subtext" style="margin: 24px 0 0; font-size: 14px; line-height: 1.5; color: #666666;">Either way, no surprises. Your data, your choice.</p>"#,
+        ),
+        text: concat!(
+            "{{org_name}} has ended their subscription\n\n",
+            "Hi {{display_name}},\n\n",
+            "{{org_name}}'s subscription has ended. You have 30 days to choose:\n\n",
+            "Option 1: Continue with a free Glimpse account.\n  Switch: {{individual_url}}\n\n",
+            "Option 2: Download your data and close your account.\n  Export: {{export_url}}\n\n",
+            "-- BrickOS\n   brickos.io\n",
+        ),
+    }
+}
+
+pub fn org_terminated_for_member_de() -> EmailTemplate {
+    EmailTemplate {
+        subject: "Das Abonnement von {{org_name}} ist beendet -- Ihre Daten gehoeren Ihnen",
+        html: concat!(
+            r#"<h2 class="email-heading" style="margin: 0 0 16px; font-size: 22px; font-weight: 600; color: #1a1a1a;">{{org_name}} hat das Abonnement beendet</h2>"#,
+            r#"<p class="email-text" style="margin: 0 0 12px; font-size: 16px; line-height: 1.6; color: #333333;">Hallo {{display_name}},</p>"#,
+            r#"<p class="email-text" style="margin: 0 0 12px; font-size: 16px; line-height: 1.6; color: #333333;">Das Abonnement von <strong>{{org_name}}</strong> ist beendet. Ihre Gesundheitsdaten gehoeren Ihnen, und Sie haben <strong>30 Tage</strong>, um zu entscheiden.</p>"#,
+            r#"<p class="email-text" style="margin: 0 0 12px; font-size: 16px; line-height: 1.6; color: #333333;"><strong>Option 1:</strong> Mit einem kostenlosen Glimpse-Konto weitermachen.</p>"#,
+            r#"<div style="text-align: center; margin: 16px 0;"><a href="{{individual_url}}" style="background-color: #2563eb; color: #ffffff; padding: 12px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 15px; display: inline-block;">Jetzt zu Individual wechseln</a></div>"#,
+            r#"<p class="email-text" style="margin: 16px 0 12px; font-size: 16px; line-height: 1.6; color: #333333;"><strong>Option 2:</strong> Daten herunterladen und Konto schliessen.</p>"#,
+            r#"<div style="text-align: center; margin: 16px 0;"><a href="{{export_url}}" style="background-color: #6b7280; color: #ffffff; padding: 12px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 15px; display: inline-block;">Exportieren und loeschen</a></div>"#,
+        ),
+        text: concat!(
+            "{{org_name}} hat das Abonnement beendet\n\n",
+            "Hallo {{display_name}},\n\n",
+            "Sie haben 30 Tage, um zu entscheiden:\n\n",
+            "Option 1: Mit Glimpse weitermachen. {{individual_url}}\n\n",
+            "Option 2: Daten exportieren. {{export_url}}\n\n",
+            "-- BrickOS\n   brickos.io\n",
+        ),
+    }
+}
+
+// ----- 3. Org terminated -- staff notification ----------------------------
+
+pub fn org_terminated_for_staff() -> EmailTemplate {
+    EmailTemplate {
+        subject: "{{org_name}}'s subscription has ended -- what changes for you",
+        html: concat!(
+            r#"<h2 class="email-heading" style="margin: 0 0 16px; font-size: 22px; font-weight: 600; color: #1a1a1a;">{{org_name}} subscription ended</h2>"#,
+            r#"<p class="email-text" style="margin: 0 0 12px; font-size: 16px; line-height: 1.6; color: #333333;">Hi {{display_name}},</p>"#,
+            r#"<p class="email-text" style="margin: 0 0 12px; font-size: 16px; line-height: 1.6; color: #333333;">The <strong>{{org_name}}</strong> subscription has ended. As a staff member of that org, here's what changes for you:</p>"#,
+            r#"<ul class="email-text" style="margin: 0 0 16px; padding-left: 20px; font-size: 16px; line-height: 1.6; color: #333333;">"#,
+            r#"<li>Your access to {{org_name}} patient data ends on <strong>{{access_until}}</strong>.</li>"#,
+            r#"<li>If you're a member of other orgs, your work there continues unchanged.</li>"#,
+            r#"<li>If you have a personal subscription, that continues unchanged too.</li>"#,
+            r#"<li>If you have neither, your account moves to the free Glimpse plan.</li>"#,
+            r#"</ul>"#,
+            r#"<p class="email-subtext" style="margin: 16px 0 0; font-size: 14px; line-height: 1.5; color: #666666;">Questions about your specific situation? Reply to this email and we'll sort it out.</p>"#,
+        ),
+        text: concat!(
+            "{{org_name}} subscription ended\n\n",
+            "Hi {{display_name}},\n\n",
+            "  - Your access to {{org_name}} patient data ends on {{access_until}}.\n",
+            "  - Other org memberships continue unchanged.\n",
+            "  - Personal subscriptions continue unchanged.\n",
+            "  - Otherwise your account moves to the free Glimpse plan.\n\n",
+            "-- BrickOS\n   brickos.io\n",
+        ),
+    }
+}
+
+pub fn org_terminated_for_staff_de() -> EmailTemplate {
+    EmailTemplate {
+        subject: "Das Abonnement von {{org_name}} ist beendet -- was sich fuer Sie aendert",
+        html: concat!(
+            r#"<h2 class="email-heading" style="margin: 0 0 16px; font-size: 22px; font-weight: 600; color: #1a1a1a;">{{org_name}}-Abonnement beendet</h2>"#,
+            r#"<p class="email-text" style="margin: 0 0 12px; font-size: 16px; line-height: 1.6; color: #333333;">Hallo {{display_name}},</p>"#,
+            r#"<p class="email-text" style="margin: 0 0 12px; font-size: 16px; line-height: 1.6; color: #333333;">Das Abonnement von <strong>{{org_name}}</strong> ist beendet. Was sich fuer Sie aendert:</p>"#,
+            r#"<ul class="email-text" style="margin: 0 0 16px; padding-left: 20px; font-size: 16px; line-height: 1.6; color: #333333;">"#,
+            r#"<li>Ihr Zugriff auf die Patientendaten von {{org_name}} endet am <strong>{{access_until}}</strong>.</li>"#,
+            r#"<li>Andere Org-Mitgliedschaften bleiben unveraendert.</li>"#,
+            r#"<li>Persoenliche Abonnements bleiben unveraendert.</li>"#,
+            r#"<li>Andernfalls wechselt Ihr Konto auf den kostenlosen Glimpse-Plan.</li>"#,
+            r#"</ul>"#,
+        ),
+        text: concat!(
+            "{{org_name}}-Abonnement beendet\n\n",
+            "Hallo {{display_name}},\n\n",
+            "  - Zugriff endet am {{access_until}}.\n",
+            "  - Andere Mitgliedschaften unveraendert.\n",
+            "-- BrickOS\n   brickos.io\n",
+        ),
+    }
+}
+
+// ----- 4. License renewed (org owner notification) -------------------------
+
+pub fn license_renewed() -> EmailTemplate {
+    EmailTemplate {
+        subject: "{{org_name}}: license renewed for another year",
+        html: concat!(
+            r#"<h2 class="email-heading" style="margin: 0 0 16px; font-size: 22px; font-weight: 600; color: #1a1a1a;">License renewed</h2>"#,
+            r#"<p class="email-text" style="margin: 0 0 12px; font-size: 16px; line-height: 1.6; color: #333333;">Hi {{display_name}},</p>"#,
+            r#"<p class="email-text" style="margin: 0 0 12px; font-size: 16px; line-height: 1.6; color: #333333;">Your <strong>{{org_name}}</strong> license has been renewed for another year. Renewal amount: <strong>{{renewal_amount}}</strong>. Valid until <strong>{{access_until}}</strong>.</p>"#,
+            r#"<p class="email-text" style="margin: 0 0 16px; font-size: 16px; line-height: 1.6; color: #333333;">The new license file is attached and uploaded to your admin panel. No action needed unless you self-host -- in that case, drop the new <code>license.jwt</code> into your installation directory at your next maintenance window.</p>"#,
+            r#"<p class="email-subtext" style="margin: 16px 0 0; font-size: 14px; line-height: 1.5; color: #666666;">Thanks for being a BrickOS customer.</p>"#,
+        ),
+        text: concat!(
+            "License renewed\n\n",
+            "Hi {{display_name}},\n\n",
+            "Your {{org_name}} license has been renewed.\n",
+            "  Amount: {{renewal_amount}}\n",
+            "  Valid until: {{access_until}}\n\n",
+            "Thanks for being a BrickOS customer.\n\n",
+            "-- BrickOS\n   brickos.io\n",
+        ),
+    }
+}
+
+pub fn license_renewed_de() -> EmailTemplate {
+    EmailTemplate {
+        subject: "{{org_name}}: Lizenz fuer ein weiteres Jahr verlaengert",
+        html: concat!(
+            r#"<h2 class="email-heading" style="margin: 0 0 16px; font-size: 22px; font-weight: 600; color: #1a1a1a;">Lizenz verlaengert</h2>"#,
+            r#"<p class="email-text" style="margin: 0 0 12px; font-size: 16px; line-height: 1.6; color: #333333;">Hallo {{display_name}},</p>"#,
+            r#"<p class="email-text" style="margin: 0 0 12px; font-size: 16px; line-height: 1.6; color: #333333;">Ihre <strong>{{org_name}}</strong>-Lizenz wurde fuer ein weiteres Jahr verlaengert. Betrag: <strong>{{renewal_amount}}</strong>. Gueltig bis <strong>{{access_until}}</strong>.</p>"#,
+            r#"<p class="email-subtext" style="margin: 16px 0 0; font-size: 14px; line-height: 1.5; color: #666666;">Vielen Dank, dass Sie BrickOS-Kunde sind.</p>"#,
+        ),
+        text: concat!(
+            "Lizenz verlaengert\n\n",
+            "Hallo {{display_name}},\n\n",
+            "Betrag: {{renewal_amount}}\n",
+            "Gueltig bis: {{access_until}}\n\n",
+            "-- BrickOS\n   brickos.io\n",
+        ),
+    }
+}
+
+// ----- 5. License expiring soon (30 days warning) --------------------------
+
+pub fn license_expiring_soon() -> EmailTemplate {
+    EmailTemplate {
+        subject: "{{org_name}}: license expires in 30 days",
+        html: concat!(
+            r#"<h2 class="email-heading" style="margin: 0 0 16px; font-size: 22px; font-weight: 600; color: #1a1a1a;">License expires in 30 days</h2>"#,
+            r#"<p class="email-text" style="margin: 0 0 12px; font-size: 16px; line-height: 1.6; color: #333333;">Hi {{display_name}},</p>"#,
+            r#"<p class="email-text" style="margin: 0 0 12px; font-size: 16px; line-height: 1.6; color: #333333;">Your <strong>{{org_name}}</strong> license expires on <strong>{{expires_at}}</strong> -- 30 days from today.</p>"#,
+            r#"<p class="email-text" style="margin: 0 0 16px; font-size: 16px; line-height: 1.6; color: #333333;">If you'd like to renew, reply to this email and we'll send you the renewal invoice. If you don't renew, your org's seats will be moved to individual plans on the expiry date.</p>"#,
+        ),
+        text: concat!(
+            "License expires in 30 days\n\n",
+            "Hi {{display_name}},\n\n",
+            "Your {{org_name}} license expires on {{expires_at}}.\n\n",
+            "Reply to renew.\n\n",
+            "-- BrickOS\n   brickos.io\n",
+        ),
+    }
+}
+
+pub fn license_expiring_soon_de() -> EmailTemplate {
+    EmailTemplate {
+        subject: "{{org_name}}: Lizenz laeuft in 30 Tagen ab",
+        html: concat!(
+            r#"<h2 class="email-heading" style="margin: 0 0 16px; font-size: 22px; font-weight: 600; color: #1a1a1a;">Lizenz laeuft in 30 Tagen ab</h2>"#,
+            r#"<p class="email-text" style="margin: 0 0 12px; font-size: 16px; line-height: 1.6; color: #333333;">Hallo {{display_name}},</p>"#,
+            r#"<p class="email-text" style="margin: 0 0 12px; font-size: 16px; line-height: 1.6; color: #333333;">Ihre <strong>{{org_name}}</strong>-Lizenz laeuft am <strong>{{expires_at}}</strong> ab.</p>"#,
+            r#"<p class="email-text" style="margin: 0 0 16px; font-size: 16px; line-height: 1.6; color: #333333;">Antworten Sie auf diese E-Mail, um zu verlaengern.</p>"#,
+        ),
+        text: concat!(
+            "Lizenz laeuft in 30 Tagen ab\n\n",
+            "Hallo {{display_name}},\n\n",
+            "Ablauf: {{expires_at}}.\n\n",
+            "-- BrickOS\n   brickos.io\n",
+        ),
+    }
+}
+
+// ----- 6. Inactivity warning (dormant flag) --------------------------------
+
+pub fn inactivity_warning() -> EmailTemplate {
+    EmailTemplate {
+        subject: "We haven't seen you in a year",
+        html: concat!(
+            r#"<h2 class="email-heading" style="margin: 0 0 16px; font-size: 22px; font-weight: 600; color: #1a1a1a;">We haven't seen you in a year</h2>"#,
+            r#"<p class="email-text" style="margin: 0 0 12px; font-size: 16px; line-height: 1.6; color: #333333;">Hi {{display_name}},</p>"#,
+            r#"<p class="email-text" style="margin: 0 0 12px; font-size: 16px; line-height: 1.6; color: #333333;">It's been 365 days since you last used your BrickOS account. We're not deleting anything yet -- this is just a check-in.</p>"#,
+            r#"<p class="email-text" style="margin: 0 0 16px; font-size: 16px; line-height: 1.6; color: #333333;">Your data is yours and is still here. If you want to come back, just log in. If you'd rather close the account, you can export your data and delete it on your terms.</p>"#,
+            r#"<div style="text-align: center; margin: 24px 0;"><a href="{{reactivate_url}}" style="background-color: #2563eb; color: #ffffff; padding: 14px 36px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px; display: inline-block;">Log in</a></div>"#,
+            r#"<p class="email-subtext" style="margin: 16px 0 0; font-size: 14px; line-height: 1.5; color: #666666;">Per our T&C, free accounts that stay dormant may be archived. We will give you separate notice before any deletion.</p>"#,
+        ),
+        text: concat!(
+            "We haven't seen you in a year\n\n",
+            "Hi {{display_name}},\n\n",
+            "365 days since your last visit. Your data is still here.\n\n",
+            "Log in: {{reactivate_url}}\n\n",
+            "Per our T&C, dormant free accounts may be archived. Separate notice before any deletion.\n\n",
+            "-- BrickOS\n   brickos.io\n",
+        ),
+    }
+}
+
+pub fn inactivity_warning_de() -> EmailTemplate {
+    EmailTemplate {
+        subject: "Wir haben Sie ein Jahr lang nicht gesehen",
+        html: concat!(
+            r#"<h2 class="email-heading" style="margin: 0 0 16px; font-size: 22px; font-weight: 600; color: #1a1a1a;">Wir haben Sie ein Jahr lang nicht gesehen</h2>"#,
+            r#"<p class="email-text" style="margin: 0 0 12px; font-size: 16px; line-height: 1.6; color: #333333;">Hallo {{display_name}},</p>"#,
+            r#"<p class="email-text" style="margin: 0 0 12px; font-size: 16px; line-height: 1.6; color: #333333;">Es ist 365 Tage her, seit Sie Ihr BrickOS-Konto zuletzt genutzt haben. Wir loeschen noch nichts -- das ist nur eine Erinnerung.</p>"#,
+            r#"<div style="text-align: center; margin: 24px 0;"><a href="{{reactivate_url}}" style="background-color: #2563eb; color: #ffffff; padding: 14px 36px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px; display: inline-block;">Anmelden</a></div>"#,
+            r#"<p class="email-subtext" style="margin: 16px 0 0; font-size: 14px; line-height: 1.5; color: #666666;">Gemaess AGB koennen kostenlose Konten, die zu lange inaktiv bleiben, archiviert werden.</p>"#,
+        ),
+        text: concat!(
+            "Wir haben Sie ein Jahr lang nicht gesehen\n\n",
+            "Hallo {{display_name}},\n\n",
+            "Anmelden: {{reactivate_url}}\n\n",
+            "-- BrickOS\n   brickos.io\n",
+        ),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1365,5 +1656,203 @@ mod tests {
         let (_subject, html, _text) = render_template_brickos(&tmpl, &vars, "en");
         assert!(html.contains("brickos.io/logo.png"));
         assert!(html.contains("alt=\"BrickOS\""));
+    }
+
+    // ===============================================================
+    // Sprint 040 #474 -- org termination, downgrade, renewal,
+    //                    expiring, inactivity warning templates
+    // ===============================================================
+
+    fn sample_lifecycle_vars() -> HashMap<&'static str, String> {
+        let mut vars = HashMap::new();
+        vars.insert("display_name", "Jane".to_string());
+        vars.insert("tier_name", "Focus".to_string());
+        vars.insert("org_name", "Acme Clinic".to_string());
+        vars.insert("access_until", "2026-05-15".to_string());
+        vars.insert("expires_at", "2026-05-15".to_string());
+        vars.insert(
+            "reactivate_url",
+            "https://app.brickos.io/billing/reactivate".to_string(),
+        );
+        vars.insert(
+            "individual_url",
+            "https://app.brickos.io/switch-to-individual".to_string(),
+        );
+        vars.insert(
+            "export_url",
+            "https://app.brickos.io/data/export".to_string(),
+        );
+        vars.insert("renewal_amount", "EUR 99.99".to_string());
+        vars.insert("subject", "test".to_string());
+        vars
+    }
+
+    #[test]
+    fn downgraded_to_glimpse_renders() {
+        let tmpl = downgraded_to_glimpse();
+        let vars = sample_lifecycle_vars();
+        let (subject, html, text) = render_template_brickos(&tmpl, &vars, "en");
+        assert!(subject.contains("Glimpse"));
+        assert!(html.contains("Jane"));
+        assert!(html.contains("Focus"));
+        assert!(html.contains("brickos.io"));
+        assert!(!html.contains("Sovereign Health"));
+        assert!(text.contains("data is safe"));
+    }
+
+    #[test]
+    fn downgraded_to_glimpse_de_uses_formal_sie() {
+        let tmpl = downgraded_to_glimpse_de();
+        let vars = sample_lifecycle_vars();
+        let (_subject, html, _text) = render_template_brickos(&tmpl, &vars, "de");
+        assert!(html.contains("Ihre"));
+        assert!(!html.contains(" deine "));
+    }
+
+    #[test]
+    fn org_terminated_for_member_offers_two_options() {
+        let tmpl = org_terminated_for_member();
+        let vars = sample_lifecycle_vars();
+        let (subject, html, text) = render_template_brickos(&tmpl, &vars, "en");
+        assert!(subject.contains("Acme Clinic"));
+        assert!(html.contains("Acme Clinic"));
+        assert!(html.contains("Option 1"));
+        assert!(html.contains("Option 2"));
+        assert!(html.contains("https://app.brickos.io/switch-to-individual"));
+        assert!(html.contains("https://app.brickos.io/data/export"));
+        assert!(text.contains("Option 1"));
+        assert!(text.contains("Option 2"));
+    }
+
+    #[test]
+    fn org_terminated_for_member_de_offers_two_options() {
+        let tmpl = org_terminated_for_member_de();
+        let vars = sample_lifecycle_vars();
+        let (_subject, html, _text) = render_template_brickos(&tmpl, &vars, "de");
+        assert!(html.contains("Option 1"));
+        assert!(html.contains("Option 2"));
+        assert!(html.contains("Sie") || html.contains("Ihre"));
+    }
+
+    #[test]
+    fn org_terminated_for_staff_explains_4_cases() {
+        let tmpl = org_terminated_for_staff();
+        let vars = sample_lifecycle_vars();
+        let (_subject, html, _text) = render_template_brickos(&tmpl, &vars, "en");
+        // The 4 bullets in the explanation
+        assert!(html.contains("ends on"));
+        assert!(html.contains("other orgs"));
+        assert!(html.contains("personal subscription"));
+        assert!(html.contains("Glimpse"));
+    }
+
+    #[test]
+    fn org_terminated_for_staff_de_uses_formal() {
+        let tmpl = org_terminated_for_staff_de();
+        let vars = sample_lifecycle_vars();
+        let (_subject, html, _text) = render_template_brickos(&tmpl, &vars, "de");
+        assert!(html.contains("Sie") || html.contains("Ihre"));
+    }
+
+    #[test]
+    fn license_renewed_includes_amount_and_date() {
+        let tmpl = license_renewed();
+        let vars = sample_lifecycle_vars();
+        let (subject, html, _text) = render_template_brickos(&tmpl, &vars, "en");
+        assert!(subject.contains("Acme Clinic"));
+        assert!(html.contains("EUR 99.99"));
+        assert!(html.contains("2026-05-15"));
+        assert!(html.contains("license.jwt"));
+    }
+
+    #[test]
+    fn license_renewed_de_includes_amount_and_date() {
+        let tmpl = license_renewed_de();
+        let vars = sample_lifecycle_vars();
+        let (_subject, html, _text) = render_template_brickos(&tmpl, &vars, "de");
+        assert!(html.contains("EUR 99.99"));
+        assert!(html.contains("2026-05-15"));
+    }
+
+    #[test]
+    fn license_expiring_soon_includes_expiry_date() {
+        let tmpl = license_expiring_soon();
+        let vars = sample_lifecycle_vars();
+        let (subject, html, _text) = render_template_brickos(&tmpl, &vars, "en");
+        assert!(subject.contains("30 days"));
+        assert!(html.contains("2026-05-15"));
+    }
+
+    #[test]
+    fn license_expiring_soon_de_includes_expiry_date() {
+        let tmpl = license_expiring_soon_de();
+        let vars = sample_lifecycle_vars();
+        let (_subject, html, _text) = render_template_brickos(&tmpl, &vars, "de");
+        assert!(html.contains("2026-05-15"));
+    }
+
+    #[test]
+    fn inactivity_warning_does_not_threaten_immediate_deletion() {
+        let tmpl = inactivity_warning();
+        let vars = sample_lifecycle_vars();
+        let (subject, html, text) = render_template_brickos(&tmpl, &vars, "en");
+        assert!(subject.contains("year"));
+        // Reassures: "We're not deleting anything yet"
+        assert!(html.contains("not deleting") || html.contains("yet"));
+        // Notes T&C clause
+        assert!(html.contains("T&C") || html.contains("dormant"));
+        assert!(text.contains("data is yours") || text.contains("still here"));
+    }
+
+    #[test]
+    fn inactivity_warning_de_uses_formal() {
+        let tmpl = inactivity_warning_de();
+        let vars = sample_lifecycle_vars();
+        let (_subject, html, _text) = render_template_brickos(&tmpl, &vars, "de");
+        assert!(html.contains("Sie") || html.contains("Ihr"));
+    }
+
+    #[test]
+    fn all_lifecycle_templates_use_brickos_branding() {
+        // Sweep test: every #474 template should have brickos branding
+        // and never mention Sovereign Health.
+        let templates = [
+            ("downgraded_to_glimpse", downgraded_to_glimpse()),
+            ("downgraded_to_glimpse_de", downgraded_to_glimpse_de()),
+            ("org_terminated_for_member", org_terminated_for_member()),
+            (
+                "org_terminated_for_member_de",
+                org_terminated_for_member_de(),
+            ),
+            ("org_terminated_for_staff", org_terminated_for_staff()),
+            ("org_terminated_for_staff_de", org_terminated_for_staff_de()),
+            ("license_renewed", license_renewed()),
+            ("license_renewed_de", license_renewed_de()),
+            ("license_expiring_soon", license_expiring_soon()),
+            ("license_expiring_soon_de", license_expiring_soon_de()),
+            ("inactivity_warning", inactivity_warning()),
+            ("inactivity_warning_de", inactivity_warning_de()),
+        ];
+        let vars = sample_lifecycle_vars();
+        for (name, tmpl) in templates {
+            let lang = if name.ends_with("_de") { "de" } else { "en" };
+            let (_subject, html, text) = render_template_brickos(&tmpl, &vars, lang);
+            assert!(
+                html.contains("BrickOS") || html.contains("brickos.io"),
+                "{name}: html missing brickos branding"
+            );
+            assert!(
+                !html.contains("Sovereign Health"),
+                "{name}: html must not contain 'Sovereign Health'"
+            );
+            assert!(
+                !html.contains("sovereignhealth.io"),
+                "{name}: html must not link sovereignhealth.io"
+            );
+            assert!(
+                text.contains("BrickOS") || text.contains("brickos.io"),
+                "{name}: text missing brickos branding"
+            );
+        }
     }
 }
