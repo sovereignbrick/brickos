@@ -37,7 +37,13 @@ pub async fn chat(
         ));
     }
 
-    // 1. Check AI credit pool (SSoT enforcement)
+    // 1a. Hard daily ceiling -- defense-in-depth (Sprint 040 #472, design 022 §13.5 M5)
+    // Runs in parallel with the tier credit gate. Even if the credit gate
+    // fails open due to a refactor bug, this stops a runaway from burning
+    // through the Anthropic budget.
+    crate::services::ai_chat_ceiling::check_and_increment(pool.get_ref(), auth.user_id).await?;
+
+    // 1b. Check AI credit pool (SSoT enforcement)
     let agent_type = body
         .agent_type
         .clone()
