@@ -142,6 +142,9 @@ async fn main() -> std::io::Result<()> {
         });
     }
 
+    // (Sprint 040 #475 lifecycle jobs are spawned later, after the
+    // email_provider is constructed -- see below.)
+
     if config.is_oss() {
         tracing::info!("Mode: OSS (self-hosted, no tier enforcement)");
     } else {
@@ -166,7 +169,63 @@ async fn main() -> std::io::Result<()> {
     let encryptor_data = web::Data::new(encryptor);
 
     let email_provider = brickos_email::create_email_provider(!config.is_oss());
-    let email_data = web::Data::new(email_provider);
+    let email_data = web::Data::new(email_provider.clone());
+
+    // Sprint 040 #475: lifecycle jobs (payment failure cadence, dormant flag,
+    // org termination grace). Three independent daily jobs that drive the
+    // licensing/billing lifecycle. Each is staggered so the batch jobs don't
+    // all run at the same instant on the same minute.
+    {
+        let pool_clone = platform_pool.clone();
+        let email_clone = email_provider.clone();
+        let frontend_url = config.frontend_url.clone();
+        tokio::spawn(async move {
+            tokio::time::sleep(std::time::Duration::from_secs(180)).await;
+            loop {
+                sovereign_health_backend::services::lifecycle_jobs::payment_failure_reminder_cron(
+                    &pool_clone,
+                    email_clone.clone(),
+                    &frontend_url,
+                )
+                .await;
+                tokio::time::sleep(std::time::Duration::from_secs(24 * 60 * 60)).await;
+            }
+        });
+    }
+    {
+        let pool_clone = platform_pool.clone();
+        let email_clone = email_provider.clone();
+        let frontend_url = config.frontend_url.clone();
+        tokio::spawn(async move {
+            tokio::time::sleep(std::time::Duration::from_secs(240)).await;
+            loop {
+                sovereign_health_backend::services::lifecycle_jobs::dormant_user_flag_cron(
+                    &pool_clone,
+                    email_clone.clone(),
+                    &frontend_url,
+                )
+                .await;
+                tokio::time::sleep(std::time::Duration::from_secs(24 * 60 * 60)).await;
+            }
+        });
+    }
+    {
+        let pool_clone = platform_pool.clone();
+        let email_clone = email_provider.clone();
+        let frontend_url = config.frontend_url.clone();
+        tokio::spawn(async move {
+            tokio::time::sleep(std::time::Duration::from_secs(300)).await;
+            loop {
+                sovereign_health_backend::services::lifecycle_jobs::org_termination_grace_cron(
+                    &pool_clone,
+                    email_clone.clone(),
+                    &frontend_url,
+                )
+                .await;
+                tokio::time::sleep(std::time::Duration::from_secs(24 * 60 * 60)).await;
+            }
+        });
+    }
 
     let rate_limiters = web::Data::new(
         sovereign_health_backend::services::rate_limit::AuthRateLimiters::from_config(&config),
