@@ -6,6 +6,7 @@ import { toast } from '@/lib/toast'
 import { api } from '@/lib/api'
 import { AdminUser } from '@/lib/types'
 import { usePlatformFilter } from '@/app/platform/platform-context'
+import { SendTemplateModal } from '@/components/admin/send-template-modal'
 
 const TIERS = ['core', 'glimpse', 'focus', 'insight', 'clarity', 'horizon']
 const TIER_COLORS: Record<string, string> = {
@@ -211,6 +212,7 @@ function LicenseManager({ user, onUpdate }: { user: AdminUser; onUpdate: () => v
   const [refundReason, setRefundReason] = useState('')
   const [refundForce, setRefundForce] = useState(false)
   const [refunding, setRefunding] = useState(false)
+  const [showSendTemplate, setShowSendTemplate] = useState(false)
 
   const handleApplyOverride = async () => {
     setLoading(true)
@@ -408,6 +410,23 @@ function LicenseManager({ user, onUpdate }: { user: AdminUser; onUpdate: () => v
           )}
         </div>
       )}
+
+      {/* Send template (Sprint 040 #476) */}
+      <div className="border-t border-border pt-4 mt-4">
+        <button
+          onClick={() => setShowSendTemplate(true)}
+          className="text-xs text-blue-400 hover:text-blue-300 transition-colors"
+        >
+          Send template
+        </button>
+        {showSendTemplate && (
+          <SendTemplateModal
+            defaultRecipient={user.email}
+            defaultDisplayName={user.display_name || ''}
+            onClose={() => setShowSendTemplate(false)}
+          />
+        )}
+      </div>
 
       {/* Warning */}
       <div className="text-[10px] text-muted-foreground leading-relaxed">

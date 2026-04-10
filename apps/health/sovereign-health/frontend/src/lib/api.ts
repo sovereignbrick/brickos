@@ -959,6 +959,19 @@ export const api = {
     },
     updateUserLicense: (userId: string, body: { tier?: string; override_active: boolean; note?: string }) =>
       request<{ data: import('./types').LicenseOverrideResult }>(`/admin/users/${userId}/license`, { method: 'PUT', body: JSON.stringify(body) }),
+    // Sprint 040 #476 -- manual lifecycle template send
+    listLifecycleTemplates: () =>
+      request<{ data: { templates: string[] } }>('/admin/templates/list'),
+    sendLifecycleTemplate: (body: {
+      template_name: string
+      recipient_email: string
+      locale?: string
+      vars?: Record<string, string | number>
+    }) =>
+      request<{ data: { template_name: string; recipient: string; locale: string; status: string } }>(
+        '/admin/templates/send',
+        { method: 'POST', body: JSON.stringify(body) },
+      ),
     listWebPages: () =>
       request<{ data: import('./types').WebPage[] }>('/admin/content/web-pages'),
     addWebSection: (pageId: string, body: { key: string; section_type?: string }) =>

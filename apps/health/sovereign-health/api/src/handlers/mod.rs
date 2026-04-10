@@ -6,6 +6,7 @@ pub mod admin_audit;
 pub mod admin_content;
 pub mod admin_email;
 pub mod admin_health;
+pub mod admin_lifecycle_email;
 pub mod admin_org_apps;
 pub mod admin_orgs;
 pub mod admin_publish;

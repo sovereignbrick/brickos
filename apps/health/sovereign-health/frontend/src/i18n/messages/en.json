@@ -1692,6 +1692,14 @@
     "drAlex": "Dr. Alex AI chat",
     "labImport": "Lab result import"
   },
+  "graceBanner": {
+    "title": "Your subscription failed",
+    "messageDays": "You have {days} days until you are downgraded to Glimpse.",
+    "messageOneDay": "You have 1 day until you are downgraded to Glimpse.",
+    "messageToday": "Your downgrade to Glimpse happens today.",
+    "cta": "Update payment method",
+    "dismiss": "Dismiss"
+  },
   "install": {
     "title": "Install Sovereign Health",
     "description": "Add to your home screen for quick access.",

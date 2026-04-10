@@ -39,6 +39,7 @@ import { ReferralTracker } from '@/components/referral-tracker'
 import { InstallProvider } from '@/lib/install-context'
 import { OfflineProvider } from '@/lib/offline-context'
 import { OfflineBanner } from '@/components/offline-banner'
+import { GraceBanner } from '@/components/grace-banner'
 import { SyncProvider } from '@/lib/sync-context'
 import { PushProvider } from '@/lib/push-context'
 
@@ -123,6 +124,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 <Suspense>
                   <DemoProfileProvider>
                     <OfflineBanner />
+                    <GraceBanner />
                     {process.env.NEXT_PUBLIC_ENVIRONMENT === 'staging' && (
                       <div className="fixed top-0 left-0 z-[9999] pointer-events-none">
                         <div className="bg-orange-500 text-black text-[10px] font-bold px-8 py-0.5 -rotate-45 -translate-x-[30%] translate-y-[40%]">

@@ -834,6 +834,15 @@ pub fn configure_routes(cfg: &mut actix_web::web::ServiceConfig) {
                 "/email/stats",
                 actix_web::web::get().to(handlers::admin_email::email_stats),
             )
+            // Sprint 040 #476 -- manual lifecycle template send
+            .route(
+                "/templates/list",
+                actix_web::web::get().to(handlers::admin_lifecycle_email::list_templates),
+            )
+            .route(
+                "/templates/send",
+                actix_web::web::post().to(handlers::admin_lifecycle_email::send_template),
+            )
             .route(
                 "/early-access",
                 actix_web::web::get().to(handlers::early_access::list_early_access),

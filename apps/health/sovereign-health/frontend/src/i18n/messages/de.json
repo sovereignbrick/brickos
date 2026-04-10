@@ -1692,6 +1692,14 @@
     "drAlex": "Dr. Alex KI-Chat",
     "labImport": "Laborbefund-Import"
   },
+  "graceBanner": {
+    "title": "Ihre Zahlung ist fehlgeschlagen",
+    "messageDays": "Sie haben noch {days} Tage, bevor Sie auf Glimpse herabgestuft werden.",
+    "messageOneDay": "Sie haben noch 1 Tag, bevor Sie auf Glimpse herabgestuft werden.",
+    "messageToday": "Ihre Herabstufung auf Glimpse erfolgt heute.",
+    "cta": "Zahlungsmethode aktualisieren",
+    "dismiss": "Schließen"
+  },
   "install": {
     "title": "Sovereign Health installieren",
     "description": "Zum Startbildschirm hinzufügen für schnellen Zugriff.",
