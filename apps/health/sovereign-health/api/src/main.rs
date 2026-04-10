@@ -265,6 +265,15 @@ async fn main() -> std::io::Result<()> {
     }
     let notifier_data = web::Data::new(notifier);
 
+    // Sprint 040 #467 part 2: brickos-licensing embedded provider over the
+    // platform pool. Used by handlers to call the new resolver / has_feature
+    // path. The legacy services::tier::* functions continue to work in
+    // parallel until #467 part 3 (the full caller migration).
+    let licensing_provider = web::Data::new(brickos_licensing::embedded::EmbeddedProvider::new(
+        platform_pool.clone(),
+    ));
+    tracing::info!("brickos-licensing embedded provider configured");
+
     let extra_origins = config.cors_origins.clone();
     let bind_addr = format!("{}:{}", config.host, config.port);
     let cors_max_age = config.cors_max_age;
@@ -328,6 +337,7 @@ async fn main() -> std::io::Result<()> {
             .app_data(content_strings_cache.clone())
             .app_data(payment_router_data.clone())
             .app_data(notifier_data.clone())
+            .app_data(licensing_provider.clone())
             .app_data(web::Data::new(PlatformPool(platform_pool.clone())));
 
         // Sovereign Link decoupled: runs as independent sli-api service (design 018)

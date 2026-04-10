@@ -13,6 +13,7 @@ pub mod encryption;
 pub mod extraction_prompts;
 // licensing module removed in Sprint 040 #467 -- replaced by brickos-licensing
 // crate. The dead in-tree HS256 generator and its tests are gone.
+pub mod licensing_facade;
 pub mod link_client;
 pub mod marker_matcher;
 pub mod measurement;

@@ -30,6 +30,12 @@ pub struct Config {
     /// Production: real key from 1Password Business.
     /// Dev: crates/brickos-licensing/keys/dev_signing_key.pem
     pub license_signing_key_path: String,
+    /// Sprint 040 #467 part 2: when true, every tier::check_feature call also
+    /// runs the brickos-licensing has_feature path and logs any divergence to
+    /// the metric `licensing_divergence`. The OLD path's result is still
+    /// returned (no behavior change). Used to validate the upcoming facade
+    /// refactor on staging before flipping the canonical path.
+    pub licensing_shadow_mode: bool,
     pub refresh_expiry_secs: i64,
     pub anthropic_api_key: String,
     pub registration_enabled: bool,
@@ -133,6 +139,10 @@ impl Config {
             license_signing_key_path: std::env::var("LICENSE_SIGNING_KEY_PATH").unwrap_or_else(
                 |_| "crates/brickos-licensing/keys/dev_signing_key.pem".to_string(),
             ),
+            licensing_shadow_mode: std::env::var("LICENSING_SHADOW_MODE")
+                .ok()
+                .map(|v| v == "1" || v.eq_ignore_ascii_case("true"))
+                .unwrap_or(false),
             refresh_expiry_secs,
             anthropic_api_key,
             registration_enabled,
@@ -216,6 +226,7 @@ impl Config {
             jwt_expiry_secs: 3600,
             license_signing_key_path: "crates/brickos-licensing/keys/dev_signing_key.pem"
                 .to_string(),
+            licensing_shadow_mode: false,
             refresh_expiry_secs: 86400,
             anthropic_api_key: String::new(),
             registration_enabled: true,
