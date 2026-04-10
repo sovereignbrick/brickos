@@ -1,4 +1,10 @@
-# Sprint 040 -- Lessons Learned (Live Document)
+# Sprint 040 -- Lessons Learned
+
+**Status:** CLOSED 2026-04-10. Stable lessons have been promoted to
+`~/.claude/projects/-home-dev-comp-Projects-brickos/memory/`. The
+consolidated retrospective is at
+`../retrospectives/2026-04-10_sprint-040-retro.md`. The external review is
+at `../reviews/2026-04-10_sprint-040-review.md`.
 
 This file is updated **continuously** during the sprint. After each phase, write a brief retro entry. At sprint end, stable lessons get promoted to `~/.claude/projects/-home-dev-comp-Projects-brickos/memory/` per the auto-memory protocol.
 
@@ -207,7 +213,40 @@ What happened.
 
 ## Promoted to memory at sprint end
 
-(populated during Phase E retro -- list of memory files created or updated)
+Populated at sprint close 2026-04-10. All files written to
+`~/.claude/projects/-home-dev-comp-Projects-brickos/memory/`.
+
+**New memory files:**
+- `project_sprint040_completed.md` -- sprint close-out summary, carry-over,
+  file index for Sprint 040 new code
+- `feedback_three_state_refactor.md` -- shadow mode + USE_NEW_PATH env flag
+  pattern for any "rewrite this load-bearing thing" refactor
+- `reference_brickos_licensing_crate.md` -- crate reference (EmbeddedProvider
+  vs ClientProvider, feature slug namespaces, RS256 key mgmt, cache rules)
+- `feedback_pr_based_sprint_flow.md` -- future sprints land via PR, not direct
+  push to main (GitHub branch protection rule already exists; bypassed for
+  Sprint 040)
+- `feedback_sprint_close_checklist.md` -- the 5-step close-out sequence
+  (commit backfills -> move to closed/ -> ff-merge -> push both remotes ->
+  write review + ADRs + memory)
+- `feedback_dev_cors_localhost_fallback.md` -- Next.js :3000 -> :3001 port
+  fallback requires both ports in DEV_CORS allowlist
+
+**Updated memory files:**
+- `MEMORY.md` -- index updated with the six new entries
+- `project_sovereign_stack_vision.md` -- linked from new files (no edit)
+
+**Already captured earlier in sprint (Phase A):**
+- `feedback_bash_sync_script_hardening.md` -- auto-sync.sh pipe-safe log +
+  per-run cap + self-heal on 422
+- `feedback_gh_bulk_issue_sync.md` -- jq +--input - for label arrays;
+  validate ghnum is numeric
+- `feedback_signed_artifact_keys.md` -- dev keypair pattern (gitignore
+  *.pem, allow *_public_key.pem)
+- `feedback_grep_schema_before_migration.md` -- always grep both migrations
+  dirs before writing CREATE TABLE; prefer additive
+- `feedback_migration_test_pattern.md` -- 30-second ephemeral postgres +
+  stub schema migration test
 
 ---
 

@@ -1,10 +1,15 @@
 # Sprint 040 -- Licensing Foundation
 
+**Status:** SHIPPED 2026-04-10 -- 29/30 issues closed, #491 + #490 carry over to Sprint 041
 **Started:** 2026-04-10
+**Closed:** 2026-04-10 (single-day compressed push)
 **Goal:** Ship the brickos-licensing platform service as the single source of truth across all BrickOS apps. Refactor SHI from per-app feature gating to a shared crate. Land active/preserved markers, role consolidation (5→3), org_licenses with RS256 JWT, Stripe-synced manual invoicing, brickos.io-branded billing emails, multi-org switcher, dormant accounts review, and four Playwright E2E journeys.
 **Design doc:** [022-licensing-model.md](../../../docs/design/022-licensing-model.md)
+**Retrospective:** [2026-04-10_sprint-040-retro.md](../retrospectives/2026-04-10_sprint-040-retro.md)
+**Review:** [2026-04-10_sprint-040-review.md](../reviews/2026-04-10_sprint-040-review.md)
 **Previous:** Sprint 039 (SHI Production Quality, white-label design 021)
-**Mode:** **One-week focused push.** Claude Code drives, owner reviews daily (~30-60 min/day).
+**Next:** Sprint 041 (#491 two-pool E2E, #490 dead code cleanup, visual branding, first Horizon onboarding)
+**Mode:** **One-week focused push** -- compressed to single day. Claude Code drives, owner reviews daily (~30-60 min/day).
 
 ---
 
