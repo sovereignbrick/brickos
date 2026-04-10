@@ -379,6 +379,223 @@ db_test!(has_feature_calc_markers_unlimited_for_glimpse, p, {
     );
 });
 
+// ============================================================================
+//  Org license issuance + validation + revocation tests (issue #466)
+// ============================================================================
+
+use brickos_licensing::LicenseInput;
+use rsa::pkcs8::{EncodePrivateKey, EncodePublicKey, LineEnding};
+use rsa::{RsaPrivateKey, RsaPublicKey};
+
+/// Generate an ephemeral RS256 keypair for issue/validate roundtrip tests.
+fn ephemeral_keypair() -> (Vec<u8>, Vec<u8>) {
+    let mut rng = rand::thread_rng();
+    let private = RsaPrivateKey::new(&mut rng, 2048).expect("keygen");
+    let public = RsaPublicKey::from(&private);
+    let priv_pem = private
+        .to_pkcs8_pem(LineEnding::LF)
+        .unwrap()
+        .as_bytes()
+        .to_vec();
+    let pub_pem = public
+        .to_public_key_pem(LineEnding::LF)
+        .unwrap()
+        .as_bytes()
+        .to_vec();
+    (priv_pem, pub_pem)
+}
+
+/// Insert a fresh org and return its UUID.
+async fn insert_org(p: &EmbeddedProvider, org_type: &str) -> Uuid {
+    let org_id = Uuid::new_v4();
+    sqlx::query(
+        "INSERT INTO brickos.organizations (id, name, slug, org_type)
+         VALUES ($1, $2, $3, $4)",
+    )
+    .bind(org_id)
+    .bind(format!("Test Org {}", org_id))
+    .bind(format!("test-{}", org_id))
+    .bind(org_type)
+    .execute(p.pool())
+    .await
+    .expect("insert org");
+    org_id
+}
+
+fn sample_input(org_id_str: &str) -> LicenseInput<'_> {
+    LicenseInput {
+        org_id: org_id_str,
+        org_name: "Test Clinic",
+        tier: "horizon",
+        aud: vec!["sovereign-health".to_string()],
+        features: vec![
+            "shi.csv_export".to_string(),
+            "shi.pdf_reports".to_string(),
+            "branding.custom_logo".to_string(),
+        ],
+        max_owners: 1,
+        max_practitioners: 5,
+        max_members: 50,
+        expires_days: 365,
+        billing_model: "manual_invoice",
+    }
+}
+
+db_test!(issue_org_license_persists_row, p, {
+    let (priv_pem, pub_pem) = ephemeral_keypair();
+    let org_id = insert_org(&p, "clinic").await;
+    let org_id_str = org_id.to_string();
+
+    let row = p
+        .issue_org_license(
+            &sample_input(&org_id_str),
+            &priv_pem,
+            None,
+            None,
+            "manual_invoice",
+        )
+        .await
+        .expect("issue");
+
+    assert_eq!(row.org_id, org_id);
+    assert_eq!(row.tier_slug, "horizon");
+    assert_eq!(row.max_owners, 1);
+    assert_eq!(row.max_practitioners, 5);
+    assert_eq!(row.max_members, 50);
+    assert!(row.features.contains(&"shi.csv_export".to_string()));
+    assert!(row.revoked_at.is_none());
+    assert!(!row.jwt_token.is_empty());
+
+    // Validate the JWT round-trip
+    let claims = p
+        .validate_org_license(&row.jwt_token, &pub_pem, &["sovereign-health"])
+        .await
+        .expect("validate");
+    assert_eq!(claims.tier, "horizon");
+    assert_eq!(claims.org_name, "Test Clinic");
+
+    // Confirm the row is loadable via load_active_org_license
+    let loaded = p
+        .load_active_org_license(org_id)
+        .await
+        .expect("load")
+        .expect("must exist");
+    assert_eq!(loaded.id, row.id);
+});
+
+db_test!(issue_second_license_revokes_first, p, {
+    let (priv_pem, _pub_pem) = ephemeral_keypair();
+    let org_id = insert_org(&p, "clinic").await;
+    let org_id_str = org_id.to_string();
+
+    let first = p
+        .issue_org_license(
+            &sample_input(&org_id_str),
+            &priv_pem,
+            None,
+            None,
+            "manual_invoice",
+        )
+        .await
+        .expect("first issue");
+
+    // Issue a second license (e.g. seat upgrade)
+    let mut input2 = sample_input(&org_id_str);
+    input2.max_members = 100;
+    let second = p
+        .issue_org_license(&input2, &priv_pem, None, None, "manual_invoice")
+        .await
+        .expect("second issue");
+
+    assert_ne!(first.id, second.id);
+    assert_eq!(second.max_members, 100);
+
+    // Active load returns ONLY the second
+    let active = p
+        .load_active_org_license(org_id)
+        .await
+        .expect("load")
+        .expect("exists");
+    assert_eq!(active.id, second.id, "active license must be the new one");
+
+    // First license's jti is on the revocation list
+    let revoked = p.is_revoked(first.jti).await.expect("revoked check");
+    assert!(
+        revoked,
+        "first jti must be on revocation list after replacement"
+    );
+});
+
+db_test!(validate_rejects_revoked_license, p, {
+    let (priv_pem, pub_pem) = ephemeral_keypair();
+    let org_id = insert_org(&p, "clinic").await;
+    let org_id_str = org_id.to_string();
+
+    let row = p
+        .issue_org_license(
+            &sample_input(&org_id_str),
+            &priv_pem,
+            None,
+            None,
+            "manual_invoice",
+        )
+        .await
+        .expect("issue");
+
+    // Validation works before revocation
+    p.validate_org_license(&row.jwt_token, &pub_pem, &["sovereign-health"])
+        .await
+        .expect("validate before revocation");
+
+    // Revoke
+    p.revoke_org_license(row.id, None, Some("test revocation".to_string()))
+        .await
+        .expect("revoke");
+
+    // Validation now fails with Revoked error
+    let result = p
+        .validate_org_license(&row.jwt_token, &pub_pem, &["sovereign-health"])
+        .await;
+    assert!(
+        matches!(result, Err(brickos_licensing::LicensingError::Revoked(_))),
+        "expected Revoked error, got {result:?}"
+    );
+
+    // Active load returns None
+    let active = p.load_active_org_license(org_id).await.expect("load");
+    assert!(active.is_none(), "no active license after revocation");
+});
+
+db_test!(resolver_uses_org_license_when_in_org_context, p, {
+    let (priv_pem, _pub_pem) = ephemeral_keypair();
+    let org_id = insert_org(&p, "clinic").await;
+    let org_id_str = org_id.to_string();
+
+    p.issue_org_license(
+        &sample_input(&org_id_str),
+        &priv_pem,
+        None,
+        None,
+        "manual_invoice",
+    )
+    .await
+    .expect("issue");
+
+    // A user with a Glimpse individual license but acting in an org with Horizon
+    // should resolve to Horizon
+    let user_id = insert_user_with_tier(&p, "glimpse").await;
+    let tier = p
+        .resolve_effective(user_id, OrgContext::Org(org_id))
+        .await
+        .expect("resolve");
+
+    assert_eq!(tier.tier_slug, "horizon");
+    assert_eq!(tier.source, LicenseSource::OrgLicense);
+    assert!(tier.features.contains(&"branding.custom_logo".to_string()));
+    assert_eq!(tier.max_practitioners, 5);
+    assert_eq!(tier.max_members, 50);
+});
+
 db_test!(horizon_includes_branding_features, p, {
     let horizon = p.load_tier_features("horizon").await.expect("load");
 

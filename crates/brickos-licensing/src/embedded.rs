@@ -338,4 +338,170 @@ impl EmbeddedProvider {
         let tier = self.resolve_effective(user_id, ctx).await?;
         Ok(tier.has_feature(feature_slug))
     }
+
+    // ------------------------------------------------------------------------
+    // Org license issuance + revocation (issue #466)
+    // ------------------------------------------------------------------------
+
+    /// Issue a new org license: generate the RS256 JWT, persist to
+    /// org_licenses, and revoke any previously active license for the same org.
+    ///
+    /// Returns the persisted OrgLicenseRow (with the new jti).
+    pub async fn issue_org_license(
+        &self,
+        input: &crate::claims::LicenseInput<'_>,
+        private_key_pem: &[u8],
+        issued_by: Option<Uuid>,
+        notes: Option<String>,
+        billing_model: &str,
+    ) -> Result<OrgLicenseRow> {
+        let _ = billing_model; // already encoded in input.billing_model
+                               // 1. Generate the JWT
+        let (token, jti_str) = crate::jwt::generate_license(input, private_key_pem)?;
+        let jti = Uuid::parse_str(&jti_str)
+            .map_err(|e| LicensingError::Internal(format!("invalid jti: {e}")))?;
+
+        let org_id = Uuid::parse_str(input.org_id)
+            .map_err(|e| LicensingError::Internal(format!("invalid org_id: {e}")))?;
+
+        let mut tx = self.pool.begin().await?;
+
+        // 2. Revoke any currently-active license for this org
+        let prior: Option<(Uuid, chrono::DateTime<chrono::Utc>, Uuid)> = sqlx::query_as(
+            "SELECT id, expires_at, jti FROM brickos.org_licenses
+             WHERE org_id = $1 AND revoked_at IS NULL FOR UPDATE",
+        )
+        .bind(org_id)
+        .fetch_optional(&mut *tx)
+        .await?;
+
+        if let Some((prior_id, prior_exp, prior_jti)) = prior {
+            sqlx::query("UPDATE brickos.org_licenses SET revoked_at = NOW() WHERE id = $1")
+                .bind(prior_id)
+                .execute(&mut *tx)
+                .await?;
+            sqlx::query(
+                "INSERT INTO brickos.org_licenses_revoked (jti, org_id, revoked_by, reason, original_exp)
+                 VALUES ($1, $2, $3, 'replaced by new license', $4)
+                 ON CONFLICT (jti) DO NOTHING",
+            )
+            .bind(prior_jti)
+            .bind(org_id)
+            .bind(issued_by)
+            .bind(prior_exp)
+            .execute(&mut *tx)
+            .await?;
+        }
+
+        // 3. Insert the new license
+        let features_json = serde_json::to_value(&input.features)
+            .map_err(|e| LicensingError::Internal(format!("features serialize: {e}")))?;
+
+        let row = sqlx::query(
+            r#"INSERT INTO brickos.org_licenses
+                 (org_id, tier_slug, features, max_owners, max_practitioners, max_members,
+                  expires_at, jwt_token, jti, issued_by, notes)
+               VALUES ($1, $2, $3, $4, $5, $6, NOW() + ($7 || ' days')::interval, $8, $9, $10, $11)
+               RETURNING id, org_id, tier_slug, features, max_owners, max_practitioners, max_members,
+                         issued_at, expires_at, revoked_at, jwt_token, jti"#,
+        )
+        .bind(org_id)
+        .bind(input.tier)
+        .bind(&features_json)
+        .bind(input.max_owners)
+        .bind(input.max_practitioners)
+        .bind(input.max_members)
+        .bind(input.expires_days.to_string())
+        .bind(&token)
+        .bind(jti)
+        .bind(issued_by)
+        .bind(notes)
+        .fetch_one(&mut *tx)
+        .await?;
+
+        tx.commit().await?;
+
+        let features: serde_json::Value = row.get("features");
+        let features: Vec<String> = serde_json::from_value(features)
+            .map_err(|e| LicensingError::Internal(format!("features parse: {e}")))?;
+
+        Ok(OrgLicenseRow {
+            id: row.get("id"),
+            org_id: row.get("org_id"),
+            tier_slug: row.get("tier_slug"),
+            features,
+            max_owners: row.get("max_owners"),
+            max_practitioners: row.get("max_practitioners"),
+            max_members: row.get("max_members"),
+            issued_at: row.get("issued_at"),
+            expires_at: row.get("expires_at"),
+            revoked_at: row.try_get("revoked_at").ok().flatten(),
+            jwt_token: row.get("jwt_token"),
+            jti: row.get("jti"),
+        })
+    }
+
+    /// Validate an org license JWT against the public key, the audience list,
+    /// and the revocation list. Returns the parsed claims on success.
+    ///
+    /// This is the full validation chain from design 022 §6.2:
+    ///   1. Signature verification (RS256)
+    ///   2. exp / nbf time bounds (with 60s clock skew)
+    ///   3. Audience match (must contain at least one expected_audience)
+    ///   4. Revocation list lookup
+    pub async fn validate_org_license(
+        &self,
+        token: &str,
+        public_key_pem: &[u8],
+        expected_audience: &[&str],
+    ) -> Result<crate::claims::LicenseClaims> {
+        let claims = crate::jwt::validate_license(token, public_key_pem, expected_audience)?;
+        let jti = Uuid::parse_str(&claims.jti)
+            .map_err(|e| LicensingError::Internal(format!("invalid jti in token: {e}")))?;
+        if self.is_revoked(jti).await? {
+            return Err(LicensingError::Revoked(claims.jti.clone()));
+        }
+        Ok(claims)
+    }
+
+    /// Revoke an active org license. Sets `org_licenses.revoked_at = NOW()`
+    /// and inserts a row in `org_licenses_revoked` so the in-memory revocation
+    /// cache picks it up on the next 60s reload.
+    pub async fn revoke_org_license(
+        &self,
+        license_id: Uuid,
+        revoked_by: Option<Uuid>,
+        reason: Option<String>,
+    ) -> Result<()> {
+        let mut tx = self.pool.begin().await?;
+        let row: (Uuid, Uuid, chrono::DateTime<chrono::Utc>) = sqlx::query_as(
+            "UPDATE brickos.org_licenses
+             SET revoked_at = NOW()
+             WHERE id = $1 AND revoked_at IS NULL
+             RETURNING jti, org_id, expires_at",
+        )
+        .bind(license_id)
+        .fetch_optional(&mut *tx)
+        .await?
+        .ok_or(LicensingError::Internal(
+            "license not found or already revoked".into(),
+        ))?;
+
+        let (jti, org_id, exp) = row;
+        sqlx::query(
+            "INSERT INTO brickos.org_licenses_revoked (jti, org_id, revoked_by, reason, original_exp)
+             VALUES ($1, $2, $3, $4, $5)
+             ON CONFLICT (jti) DO NOTHING",
+        )
+        .bind(jti)
+        .bind(org_id)
+        .bind(revoked_by)
+        .bind(reason)
+        .bind(exp)
+        .execute(&mut *tx)
+        .await?;
+
+        tx.commit().await?;
+        Ok(())
+    }
 }
