@@ -469,26 +469,88 @@ pub async fn increment_chat_quota(
 }
 
 /// Check if user can access a specific marker (Glimpse restriction)
+/// Sprint 040 #468 part 2a: 3-state evaluation for marker access.
+///
+/// 1. **Default** (no env vars): legacy GLIMPSE_MARKERS const lookup.
+///    Identical to pre-#468 behavior. Glimpse users can only enter
+///    measurements for the 8 hardcoded markers.
+///
+/// 2. **`MARKER_ACCESS_SHADOW_MODE=1`**: legacy + new user_markers query.
+///    Both paths run, divergences logged via tracing::error with structured
+///    fields. The LEGACY result is returned.
+///
+/// 3. **`MARKER_ACCESS_USE_NEW_PATH=1`**: new user_markers path is canonical.
+///    The user can enter measurements for any marker that has
+///    user_markers.is_active = true. The cap of 10 active markers for
+///    Glimpse is enforced at the activate handler, NOT here.
+///
+/// After zero divergences in shadow mode, set MARKER_ACCESS_USE_NEW_PATH=1
+/// and the GLIMPSE_MARKERS const can be deleted (per #490 item 5).
 pub async fn check_marker_access(
     pool: &PgPool,
     user_id: Uuid,
     marker_slug: &str,
 ) -> Result<(), AppError> {
+    let shadow_mode = std::env::var("MARKER_ACCESS_SHADOW_MODE")
+        .map(|v| v == "1" || v.eq_ignore_ascii_case("true"))
+        .unwrap_or(false);
+    let use_new_path = std::env::var("MARKER_ACCESS_USE_NEW_PATH")
+        .map(|v| v == "1" || v.eq_ignore_ascii_case("true"))
+        .unwrap_or(false);
+
     let tier = get_user_tier(pool, user_id).await?;
+
+    // Unlimited tiers always pass (regardless of which path is in use)
     if tier.max_markers.is_none() {
-        return Ok(()); // unlimited
-    }
-    if GLIMPSE_MARKERS.contains(&marker_slug) {
         return Ok(());
     }
-    Err(AppError::UpgradeRequired(Box::new(
-        TierError::upgrade_required(
-            "marker_access",
-            &tier.tier_slug,
-            "focus",
-            "Unlock all markers with Focus. Upgrade to track everything that matters.",
-        ),
-    )))
+
+    // Legacy path: hardcoded GLIMPSE_MARKERS list
+    let legacy_allowed = GLIMPSE_MARKERS.contains(&marker_slug);
+
+    // New path: user_markers table with the active flag
+    let new_allowed = if shadow_mode || use_new_path {
+        Some(
+            crate::services::user_markers::is_marker_active_by_slug(pool, user_id, marker_slug)
+                .await?,
+        )
+    } else {
+        None
+    };
+
+    if shadow_mode {
+        if let Some(new) = new_allowed {
+            if new != legacy_allowed {
+                tracing::error!(
+                    user_id = %user_id,
+                    marker_slug = %marker_slug,
+                    tier = %tier.tier_slug,
+                    legacy = legacy_allowed,
+                    new = new,
+                    "MARKER ACCESS DIVERGENCE: legacy GLIMPSE_MARKERS and user_markers disagree"
+                );
+            }
+        }
+    }
+
+    let allowed = if use_new_path {
+        new_allowed.unwrap_or(legacy_allowed)
+    } else {
+        legacy_allowed
+    };
+
+    if allowed {
+        Ok(())
+    } else {
+        Err(AppError::UpgradeRequired(Box::new(
+            TierError::upgrade_required(
+                "marker_access",
+                &tier.tier_slug,
+                "focus",
+                "Unlock all markers with Focus. Upgrade to track everything that matters.",
+            ),
+        )))
+    }
 }
 
 /// Get max history days for the user (None = unlimited)

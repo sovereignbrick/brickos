@@ -325,6 +325,23 @@ pub fn configure_routes(cfg: &mut actix_web::web::ServiceConfig) {
                 actix_web::web::get().to(handlers::markers::marker_references_list),
             ),
     )
+    // Sprint 040 #468 part 2a -- active vs preserved markers
+    .service(
+        actix_web::web::scope("/user-markers")
+            .route("", actix_web::web::get().to(handlers::user_markers::list))
+            .route(
+                "/{slug}/activate",
+                actix_web::web::put().to(handlers::user_markers::activate),
+            )
+            .route(
+                "/{slug}/deactivate",
+                actix_web::web::put().to(handlers::user_markers::deactivate),
+            )
+            .route(
+                "/swap",
+                actix_web::web::post().to(handlers::user_markers::swap),
+            ),
+    )
     .service(
         actix_web::web::scope("/devices")
             .route("", actix_web::web::get().to(handlers::devices::list))

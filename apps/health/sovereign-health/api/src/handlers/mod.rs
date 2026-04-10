@@ -47,6 +47,7 @@ pub mod settings;
 pub mod sync;
 pub mod templates;
 pub mod trends;
+pub mod user_markers;
 pub mod user_medications;
 pub mod web_content;
 pub mod zones;
