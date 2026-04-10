@@ -1,5 +1,6 @@
 ---
 number: 325
+github_number: 451
 title: "compliance: Establish BSI/CSIRT incident reporting channel"
 labels: [compliance, security, nis2]
 milestone: post-launch

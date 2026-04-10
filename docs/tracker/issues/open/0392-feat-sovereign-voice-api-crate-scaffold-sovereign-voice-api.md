@@ -1,5 +1,6 @@
 ---
 number: 392
+github_number: 455
 title: "feat: Sovereign Voice API crate scaffold (sovereign-voice-api)"
 milestone: "Sovereign Voice App Elevation"
 labels: [platform-elevation]

@@ -1,5 +1,6 @@
 ---
 number: 454
+github_number: 462
 title: "fix: SHI production testing findings -- bugs from manual testing"
 milestone: "Sovereign Health Intelligence -- Production Quality"
 labels: [bug, testing]

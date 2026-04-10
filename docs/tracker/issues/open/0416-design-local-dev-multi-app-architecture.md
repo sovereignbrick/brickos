@@ -1,5 +1,6 @@
 ---
 number: 416
+github_number: 459
 title: "design: Local dev multi-app architecture -- shared DB, port registry, dev portal"
 milestone: "infrastructure"
 labels: [infrastructure, developer-experience]

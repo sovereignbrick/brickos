@@ -1,5 +1,6 @@
 ---
 number: 326
+github_number: 452
 title: "compliance: Supply chain security policy document"
 labels: [compliance, security, nis2, docs]
 milestone: post-launch

@@ -1,5 +1,6 @@
 ---
 number: 453
+github_number: 461
 title: "feat: CRM audio recorder integration into meeting detail page"
 milestone: "Sovereign CRM MVP"
 labels: [feature, frontend]

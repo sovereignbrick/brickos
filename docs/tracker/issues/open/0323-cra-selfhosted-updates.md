@@ -1,5 +1,6 @@
 ---
 number: 323
+github_number: 449
 title: "ops: Security update notification for self-hosted users"
 labels: [ops, compliance, cra]
 milestone: post-launch

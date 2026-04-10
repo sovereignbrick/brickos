@@ -1,5 +1,6 @@
 ---
 number: 447
+github_number: 460
 title: "feat: CRM audio recording via MediaRecorder API in PWA"
 milestone: "Sovereign CRM MVP"
 labels: [feature, frontend]
