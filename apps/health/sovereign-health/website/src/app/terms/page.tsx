@@ -140,6 +140,32 @@ export default function TermsPage() {
           monthly or annually, at your choice. All prices are listed in EUR. Applicable taxes
           (such as VAT) may be added at checkout depending on your country of residence.
         </p>
+        <p className="mb-3 leading-relaxed text-[var(--muted)]">
+          <span className="font-semibold text-[var(--foreground)]">Tier changes.</span>{" "}
+          Sovereign Brick may modify tier definitions, feature inclusions, and pricing.
+          Changes apply to all users immediately, including users on existing subscriptions.
+          Users may cancel before the next billing cycle if they disagree.
+        </p>
+
+        {/* 7a. Account Inactivity */}
+        <h2 className="mt-6 mb-3 text-xl font-bold">7a. Account Inactivity</h2>
+        <p className="mb-3 leading-relaxed text-[var(--muted)]">
+          Free-tier (Glimpse) accounts that show no activity for 365 consecutive days may
+          be flagged as dormant. Sovereign Brick reserves the right to delete dormant
+          free-tier accounts and their associated data after written notice to the email
+          on file. Paid-tier accounts are not subject to inactivity-based deletion as long
+          as the subscription is active. Users may export their data at any time via the
+          in-app export feature, including from the free tier.
+        </p>
+
+        {/* 7b. Organization Termination */}
+        <h2 className="mt-6 mb-3 text-xl font-bold">7b. Organization Subscriptions</h2>
+        <p className="mb-3 leading-relaxed text-[var(--muted)]">
+          When an organization&apos;s subscription ends, members are offered a grace period
+          of 30 days to switch to an individual plan or export and delete their data. After
+          the grace period, organization-only data may be removed; data tied to individual
+          accounts is retained subject to the standard inactivity policy above.
+        </p>
 
         {/* 8. Payments */}
         <h2 className="mt-6 mb-3 text-xl font-bold">8. Payments</h2>
