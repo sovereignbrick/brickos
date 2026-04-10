@@ -12,7 +12,7 @@
 #![cfg(feature = "embedded")]
 
 use crate::claims::{
-    EffectiveTier, FeatureRegistryRow, OrgLicenseRow, TierFeature, UserLicenseRow,
+    EffectiveTier, FeatureRegistryRow, LicenseSource, OrgLicenseRow, TierFeature, UserLicenseRow,
 };
 use crate::error::{LicensingError, Result};
 use crate::OrgContext;
@@ -207,30 +207,135 @@ impl EmbeddedProvider {
     }
 
     // ------------------------------------------------------------------------
-    // Effective tier resolution -- stub for #465
+    // Effective tier resolution (issue #465)
     // ------------------------------------------------------------------------
 
-    /// Stub for #465 -- the resolver lives in services/effective_tier.rs and
-    /// is implemented in the next issue.
-    pub async fn resolve_effective(
-        &self,
-        _user_id: Uuid,
-        _ctx: OrgContext,
-    ) -> Result<EffectiveTier> {
-        Err(LicensingError::Internal(
-            "resolve_effective not yet implemented (issue #465)".into(),
-        ))
+    /// Resolve a user's effective tier in the given org context.
+    ///
+    /// Resolution order (design 022 §3.5, §2.5, §2.6):
+    ///
+    /// 1. **Org context**: load active org_licenses for the org. If found,
+    ///    return EffectiveTier from the JWT claims. The org license takes
+    ///    precedence over individual subscriptions while the user is acting
+    ///    in an org context.
+    ///
+    /// 2. **Individual context**: load user_licenses row.
+    ///    - If `admin_override = true` AND `admin_override_tier_slug IS NOT NULL`
+    ///      AND `(admin_override_expires_at IS NULL OR > now())`,
+    ///      return the override tier (LicenseSource::AdminOverride).
+    ///    - Else if `status = 'downgrade_grace'` AND `grace_period_ends > now()`,
+    ///      return the previous tier (LicenseSource::GracePeriod).
+    ///    - Else return the current tier (LicenseSource::UserLicense).
+    ///    - If no row at all, return Glimpse default (LicenseSource::Default).
+    pub async fn resolve_effective(&self, user_id: Uuid, ctx: OrgContext) -> Result<EffectiveTier> {
+        // Org path
+        if let OrgContext::Org(org_id) = ctx {
+            if let Some(org_license) = self.load_active_org_license(org_id).await? {
+                return self.build_effective_from_org_license(org_license).await;
+            }
+            // Org has no active license -- fall through to user's individual tier
+        }
+
+        // Individual path
+        let user_license = self.load_user_license(user_id).await?;
+
+        let (tier_slug, source) = match user_license {
+            None => ("glimpse".to_string(), LicenseSource::Default),
+            Some(ul) => {
+                let now = chrono::Utc::now();
+
+                // Check admin override first (short-circuits all other paths)
+                if ul.admin_override {
+                    if let Some(override_slug) = ul.admin_override_tier_slug.clone() {
+                        let still_valid = ul
+                            .admin_override_expires_at
+                            .map(|exp| exp > now)
+                            .unwrap_or(true);
+                        if still_valid {
+                            (override_slug, LicenseSource::AdminOverride)
+                        } else {
+                            // Override expired -- fall through to normal resolution
+                            self.resolve_normal(&ul, now)
+                        }
+                    } else {
+                        self.resolve_normal(&ul, now)
+                    }
+                } else {
+                    self.resolve_normal(&ul, now)
+                }
+            }
+        };
+
+        self.build_effective_from_tier_slug(tier_slug, source).await
     }
 
-    /// Stub for #465 -- depends on resolve_effective.
+    /// Helper: normal (non-override) tier resolution. Honors grace period.
+    fn resolve_normal(
+        &self,
+        ul: &UserLicenseRow,
+        now: chrono::DateTime<chrono::Utc>,
+    ) -> (String, LicenseSource) {
+        if ul.status == "downgrade_grace" {
+            if let Some(grace_end) = ul.grace_period_ends {
+                if grace_end > now {
+                    if let Some(prev) = ul.previous_tier_slug.clone() {
+                        return (prev, LicenseSource::GracePeriod);
+                    }
+                }
+            }
+        }
+        (ul.tier_slug.clone(), LicenseSource::UserLicense)
+    }
+
+    /// Helper: build EffectiveTier from a tier slug by loading its features.
+    async fn build_effective_from_tier_slug(
+        &self,
+        tier_slug: String,
+        source: LicenseSource,
+    ) -> Result<EffectiveTier> {
+        let limits = self.load_tier_features(&tier_slug).await?;
+        let features: Vec<String> = limits.iter().map(|f| f.feature_slug.clone()).collect();
+
+        Ok(EffectiveTier {
+            tier_slug,
+            features,
+            limits,
+            // Individual users have implicit seat caps of 1/0/0
+            max_owners: 1,
+            max_practitioners: 0,
+            max_members: 0,
+            source,
+        })
+    }
+
+    /// Helper: build EffectiveTier from an org_licenses row. The row's
+    /// features list is the source of truth (it was set when the JWT was
+    /// issued); we still load the tier_features for limit_value lookups.
+    async fn build_effective_from_org_license(
+        &self,
+        org_license: OrgLicenseRow,
+    ) -> Result<EffectiveTier> {
+        let limits = self.load_tier_features(&org_license.tier_slug).await?;
+
+        Ok(EffectiveTier {
+            tier_slug: org_license.tier_slug,
+            features: org_license.features,
+            limits,
+            max_owners: org_license.max_owners,
+            max_practitioners: org_license.max_practitioners,
+            max_members: org_license.max_members,
+            source: LicenseSource::OrgLicense,
+        })
+    }
+
+    /// Returns true iff the resolved effective tier grants the named feature.
     pub async fn has_feature(
         &self,
-        _user_id: Uuid,
-        _ctx: OrgContext,
-        _feature_slug: &str,
+        user_id: Uuid,
+        ctx: OrgContext,
+        feature_slug: &str,
     ) -> Result<bool> {
-        Err(LicensingError::Internal(
-            "has_feature not yet implemented (issue #465)".into(),
-        ))
+        let tier = self.resolve_effective(user_id, ctx).await?;
+        Ok(tier.has_feature(feature_slug))
     }
 }

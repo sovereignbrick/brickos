@@ -190,6 +190,195 @@ db_test!(focus_includes_csv_export_glimpse_does_not, p, {
     );
 });
 
+// ============================================================================
+//  Resolver tests (issue #465)
+//
+//  These tests insert real users + user_licenses rows + (optionally) org rows
+//  and verify the effective tier resolver returns the correct tier + source.
+// ============================================================================
+
+use brickos_licensing::{LicenseSource, OrgContext};
+
+/// Insert a fresh user and a user_licenses row pointing at the given tier.
+/// Returns the user_id.
+async fn insert_user_with_tier(p: &EmbeddedProvider, tier_slug: &str) -> Uuid {
+    let user_id = Uuid::new_v4();
+    sqlx::query("INSERT INTO brickos.users (id, email) VALUES ($1, $2)")
+        .bind(user_id)
+        .bind(format!("{user_id}@test.local"))
+        .execute(p.pool())
+        .await
+        .expect("insert user");
+
+    let tier_id: Uuid = sqlx::query_scalar("SELECT id FROM brickos.license_tiers WHERE slug = $1")
+        .bind(tier_slug)
+        .fetch_one(p.pool())
+        .await
+        .expect("tier lookup");
+
+    sqlx::query(
+        "INSERT INTO brickos.user_licenses (user_id, tier_id, status) VALUES ($1, $2, 'active')",
+    )
+    .bind(user_id)
+    .bind(tier_id)
+    .execute(p.pool())
+    .await
+    .expect("insert user_license");
+
+    user_id
+}
+
+db_test!(resolver_unknown_user_returns_glimpse_default, p, {
+    let unknown = Uuid::new_v4();
+    let tier = p
+        .resolve_effective(unknown, OrgContext::Individual)
+        .await
+        .expect("resolve");
+    assert_eq!(tier.tier_slug, "glimpse");
+    assert_eq!(tier.source, LicenseSource::Default);
+    assert!(tier.features.iter().any(|f| f == "shi.markers_active"));
+});
+
+db_test!(resolver_focus_user_individual_context, p, {
+    let user_id = insert_user_with_tier(&p, "focus").await;
+    let tier = p
+        .resolve_effective(user_id, OrgContext::Individual)
+        .await
+        .expect("resolve");
+    assert_eq!(tier.tier_slug, "focus");
+    assert_eq!(tier.source, LicenseSource::UserLicense);
+    assert!(tier.features.iter().any(|f| f == "shi.csv_export"));
+});
+
+db_test!(resolver_admin_override_active_short_circuits, p, {
+    let user_id = insert_user_with_tier(&p, "glimpse").await;
+
+    // Apply admin override -> insight
+    sqlx::query(
+        "UPDATE brickos.user_licenses
+         SET admin_override = true,
+             admin_override_tier_slug = 'insight',
+             admin_override_expires_at = NULL
+         WHERE user_id = $1",
+    )
+    .bind(user_id)
+    .execute(p.pool())
+    .await
+    .expect("set override");
+
+    let tier = p
+        .resolve_effective(user_id, OrgContext::Individual)
+        .await
+        .expect("resolve");
+    assert_eq!(tier.tier_slug, "insight");
+    assert_eq!(tier.source, LicenseSource::AdminOverride);
+});
+
+db_test!(resolver_admin_override_expired_falls_through, p, {
+    let user_id = insert_user_with_tier(&p, "glimpse").await;
+
+    sqlx::query(
+        "UPDATE brickos.user_licenses
+         SET admin_override = true,
+             admin_override_tier_slug = 'insight',
+             admin_override_expires_at = NOW() - INTERVAL '1 day'
+         WHERE user_id = $1",
+    )
+    .bind(user_id)
+    .execute(p.pool())
+    .await
+    .expect("set expired override");
+
+    let tier = p
+        .resolve_effective(user_id, OrgContext::Individual)
+        .await
+        .expect("resolve");
+    assert_eq!(
+        tier.tier_slug, "glimpse",
+        "expired override must fall through"
+    );
+    assert_eq!(tier.source, LicenseSource::UserLicense);
+});
+
+db_test!(resolver_grace_period_returns_previous_tier, p, {
+    let user_id = insert_user_with_tier(&p, "glimpse").await;
+
+    // Simulate downgrade grace: user is "currently" on glimpse but previously on focus
+    sqlx::query(
+        "UPDATE brickos.user_licenses
+         SET status = 'downgrade_grace',
+             previous_tier_slug = 'focus',
+             grace_period_ends = NOW() + INTERVAL '7 days'
+         WHERE user_id = $1",
+    )
+    .bind(user_id)
+    .execute(p.pool())
+    .await
+    .expect("set grace");
+
+    let tier = p
+        .resolve_effective(user_id, OrgContext::Individual)
+        .await
+        .expect("resolve");
+    assert_eq!(tier.tier_slug, "focus");
+    assert_eq!(tier.source, LicenseSource::GracePeriod);
+});
+
+db_test!(resolver_grace_period_expired_returns_current_tier, p, {
+    let user_id = insert_user_with_tier(&p, "glimpse").await;
+    sqlx::query(
+        "UPDATE brickos.user_licenses
+         SET status = 'downgrade_grace',
+             previous_tier_slug = 'focus',
+             grace_period_ends = NOW() - INTERVAL '1 day'
+         WHERE user_id = $1",
+    )
+    .bind(user_id)
+    .execute(p.pool())
+    .await
+    .expect("set expired grace");
+
+    let tier = p
+        .resolve_effective(user_id, OrgContext::Individual)
+        .await
+        .expect("resolve");
+    assert_eq!(
+        tier.tier_slug, "glimpse",
+        "expired grace returns current tier"
+    );
+    assert_eq!(tier.source, LicenseSource::UserLicense);
+});
+
+db_test!(has_feature_glimpse_blocks_csv_export, p, {
+    let user_id = insert_user_with_tier(&p, "glimpse").await;
+    let allowed = p
+        .has_feature(user_id, OrgContext::Individual, "shi.csv_export")
+        .await
+        .expect("check");
+    assert!(!allowed, "Glimpse must NOT have shi.csv_export");
+});
+
+db_test!(has_feature_focus_allows_csv_export, p, {
+    let user_id = insert_user_with_tier(&p, "focus").await;
+    let allowed = p
+        .has_feature(user_id, OrgContext::Individual, "shi.csv_export")
+        .await
+        .expect("check");
+    assert!(allowed, "Focus must have shi.csv_export");
+});
+
+db_test!(has_feature_calc_markers_unlimited_for_glimpse, p, {
+    let user_id = insert_user_with_tier(&p, "glimpse").await;
+    let allowed = p
+        .has_feature(user_id, OrgContext::Individual, "shi.calculated_markers")
+        .await
+        .expect("check");
+    assert!(
+        allowed,
+        "Glimpse must include calculated_markers (locked decision: unlimited for all tiers)"
+    );
+});
+
 db_test!(horizon_includes_branding_features, p, {
     let horizon = p.load_tier_features("horizon").await.expect("load");
 
