@@ -344,7 +344,10 @@ pub async fn add_org_member(
     body: web::Json<AddMemberRequest>,
 ) -> Result<HttpResponse, AppError> {
     let org_id = path.into_inner();
-    let valid_roles = ["owner", "tech_admin", "commercial_admin", "editor", "consumer"];
+    // Sprint 040 #463: roles consolidated 5->3.
+    // Legacy owner|tech_admin|commercial_admin -> org_owner.
+    // Legacy editor -> practitioner. Legacy consumer -> member.
+    let valid_roles = ["org_owner", "practitioner", "member"];
     if !valid_roles.contains(&body.role.as_str()) {
         return Err(AppError::Validation(format!("Invalid role: {}", body.role)));
     }
@@ -386,7 +389,10 @@ pub async fn update_member_role(
     body: web::Json<UpdateMemberRoleRequest>,
 ) -> Result<HttpResponse, AppError> {
     let (org_id, member_id) = path.into_inner();
-    let valid_roles = ["owner", "tech_admin", "commercial_admin", "editor", "consumer"];
+    // Sprint 040 #463: roles consolidated 5->3.
+    // Legacy owner|tech_admin|commercial_admin -> org_owner.
+    // Legacy editor -> practitioner. Legacy consumer -> member.
+    let valid_roles = ["org_owner", "practitioner", "member"];
     if !valid_roles.contains(&body.role.as_str()) {
         return Err(AppError::Validation(format!("Invalid role: {}", body.role)));
     }

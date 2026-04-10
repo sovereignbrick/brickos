@@ -263,10 +263,9 @@ fn measurement_value_has_correct_fields() {
 
 #[test]
 fn measurement_response_serializes() {
-    use sovereign_health_backend::models::measurement::MeasurementResponse;
-
-    // MeasurementResponse is a Serialize struct (output to API)
-    // Verify it has the expected output fields via construction from JSON
+    // MeasurementResponse is a Serialize struct (output to API).
+    // Verify the expected output shape via JSON parse to serde_json::Value.
+    // (Sprint 040 #463 drive-by: removed unused typed import that broke clippy.)
     let json_str = r#"{
         "id": "00000000-0000-0000-0000-000000000001",
         "timestamp": "2026-01-01T00:00:00Z",

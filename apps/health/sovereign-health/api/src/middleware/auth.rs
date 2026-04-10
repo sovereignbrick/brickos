@@ -138,11 +138,15 @@ impl FromRequest for OrgAdmin {
                 return Ok(OrgAdmin {
                     user_id: u.user_id,
                     org_id: u.org_id.unwrap_or_default(),
-                    org_role: "owner".to_string(),
+                    org_role: "org_owner".to_string(),
                 });
             }
             match (u.org_id, u.org_role.as_deref()) {
-                (Some(org_id), Some("owner" | "tech_admin" | "commercial_admin")) => Ok(OrgAdmin {
+                // Sprint 040 #463: roles consolidated 5->3. The legacy
+                // "owner" | "tech_admin" | "commercial_admin" all collapse
+                // into "org_owner". The migration in 011_roles_seed.sql
+                // rewrites existing rows.
+                (Some(org_id), Some("org_owner")) => Ok(OrgAdmin {
                     user_id: u.user_id,
                     org_id,
                     org_role: u.org_role.unwrap_or_default(),
@@ -154,12 +158,21 @@ impl FromRequest for OrgAdmin {
     }
 }
 
-/// Extractor for org tech admin (or owner). No commercial access.
+/// Extractor for org tech admin (or owner).
+///
+/// Sprint 040 #463: after the 5->3 role consolidation, tech_admin no longer
+/// exists as a distinct role. This extractor now matches only "org_owner".
+/// It is functionally identical to OrgAdmin and exists only so existing
+/// handler call sites continue to compile. Sprint 040 #467 (SHI tier.rs
+/// facade refactor) will collapse OrgTechAdmin and OrgCommercialAdmin into
+/// OrgAdmin.
+#[deprecated(note = "use OrgAdmin instead; will be removed in #467")]
 pub struct OrgTechAdmin {
     pub user_id: Uuid,
     pub org_id: Uuid,
 }
 
+#[allow(deprecated)]
 impl FromRequest for OrgTechAdmin {
     type Error = AppError;
     type Future = Ready<Result<Self, Self::Error>>;
@@ -173,7 +186,7 @@ impl FromRequest for OrgTechAdmin {
                 });
             }
             match (u.org_id, u.org_role.as_deref()) {
-                (Some(org_id), Some("owner" | "tech_admin")) => Ok(OrgTechAdmin {
+                (Some(org_id), Some("org_owner")) => Ok(OrgTechAdmin {
                     user_id: u.user_id,
                     org_id,
                 }),
@@ -184,12 +197,18 @@ impl FromRequest for OrgTechAdmin {
     }
 }
 
-/// Extractor for org commercial admin (or owner). No tech access.
+/// Extractor for org commercial admin (or owner).
+///
+/// Sprint 040 #463: after the 5->3 role consolidation, commercial_admin no
+/// longer exists. Same situation as OrgTechAdmin -- functionally identical
+/// to OrgAdmin, kept for call-site compat, will be removed in #467.
+#[deprecated(note = "use OrgAdmin instead; will be removed in #467")]
 pub struct OrgCommercialAdmin {
     pub user_id: Uuid,
     pub org_id: Uuid,
 }
 
+#[allow(deprecated)]
 impl FromRequest for OrgCommercialAdmin {
     type Error = AppError;
     type Future = Ready<Result<Self, Self::Error>>;
@@ -203,7 +222,7 @@ impl FromRequest for OrgCommercialAdmin {
                 });
             }
             match (u.org_id, u.org_role.as_deref()) {
-                (Some(org_id), Some("owner" | "commercial_admin")) => Ok(OrgCommercialAdmin {
+                (Some(org_id), Some("org_owner")) => Ok(OrgCommercialAdmin {
                     user_id: u.user_id,
                     org_id,
                 }),
