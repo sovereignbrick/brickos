@@ -788,6 +788,10 @@ pub fn configure_routes(cfg: &mut actix_web::web::ServiceConfig) {
             )
             .route(
                 "/organizations/{id}",
+                actix_web::web::get().to(handlers::admin_orgs::get_organization),
+            )
+            .route(
+                "/organizations/{id}",
                 actix_web::web::put().to(handlers::admin_orgs::update_organization),
             )
             .route(

@@ -1831,6 +1831,56 @@
       "renewalSent": "{count} Erinnerungen versendet",
       "noOrgs": "Keine Organisationen entsprechen den aktuellen Filtern",
       "page": "Seite {page} von {total}"
+    },
+    "orgDetail": {
+      "backToList": "← Alle Organisationen",
+      "tabs": {
+        "overview": "Übersicht",
+        "members": "Mitglieder",
+        "license": "Lizenz",
+        "branding": "Branding",
+        "invoices": "Rechnungen",
+        "audit": "Audit"
+      },
+      "metadata": "Organisations-Metadaten",
+      "name": "Name",
+      "slug": "Slug",
+      "type": "Typ",
+      "billingEmail": "Rechnungs-E-Mail",
+      "createdAt": "Erstellt am",
+      "currentLicense": "Aktuelle Lizenz",
+      "tier": "Tarif",
+      "expiresAt": "Läuft ab",
+      "issuedAt": "Ausgestellt",
+      "noActiveLicense": "Keine aktive Lizenz ausgestellt",
+      "seats": "Sitzplätze",
+      "owners": "Inhaber",
+      "practitioners": "Praktiker",
+      "members": "Mitglieder",
+      "quickActions": "Schnellaktionen",
+      "actionGenerate": "Lizenz generieren",
+      "actionInvoices": "Rechnungen anzeigen",
+      "actionBranding": "Branding bearbeiten",
+      "stripeCustomer": "Stripe-Kunde",
+      "noStripe": "Keine Stripe-Verknüpfung",
+      "membersTab": {
+        "filterAllRoles": "Alle Rollen",
+        "addMember": "Mitglied hinzufügen",
+        "addEmail": "Benutzer-E-Mail",
+        "add": "Hinzufügen",
+        "addCancel": "Abbrechen",
+        "memberCol": "Benutzer",
+        "roleCol": "Rolle",
+        "joinedCol": "Beigetreten",
+        "lastActiveCol": "Zuletzt aktiv",
+        "actions": "Aktionen",
+        "removeConfirm": "Dieses Mitglied entfernen?",
+        "memberAdded": "Mitglied hinzugefügt",
+        "memberRemoved": "Mitglied entfernt",
+        "roleUpdated": "Rolle aktualisiert",
+        "noMembers": "Noch keine Mitglieder",
+        "seatLimit": "Sitzplatzlimit für {role} erreicht ({current}/{max})"
+      }
     }
   }
 }

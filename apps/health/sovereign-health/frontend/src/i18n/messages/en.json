@@ -1831,6 +1831,56 @@
       "renewalSent": "Sent {count} renewal reminders",
       "noOrgs": "No organizations match the current filters",
       "page": "Page {page} of {total}"
+    },
+    "orgDetail": {
+      "backToList": "← All organizations",
+      "tabs": {
+        "overview": "Overview",
+        "members": "Members",
+        "license": "License",
+        "branding": "Branding",
+        "invoices": "Invoices",
+        "audit": "Audit"
+      },
+      "metadata": "Organization metadata",
+      "name": "Name",
+      "slug": "Slug",
+      "type": "Type",
+      "billingEmail": "Billing email",
+      "createdAt": "Created at",
+      "currentLicense": "Current license",
+      "tier": "Tier",
+      "expiresAt": "Expires",
+      "issuedAt": "Issued",
+      "noActiveLicense": "No active license issued",
+      "seats": "Seats",
+      "owners": "Owners",
+      "practitioners": "Practitioners",
+      "members": "Members",
+      "quickActions": "Quick actions",
+      "actionGenerate": "Generate license",
+      "actionInvoices": "View invoices",
+      "actionBranding": "Edit branding",
+      "stripeCustomer": "Stripe customer",
+      "noStripe": "No Stripe link",
+      "membersTab": {
+        "filterAllRoles": "All roles",
+        "addMember": "Add member",
+        "addEmail": "User email",
+        "add": "Add",
+        "addCancel": "Cancel",
+        "memberCol": "User",
+        "roleCol": "Role",
+        "joinedCol": "Joined",
+        "lastActiveCol": "Last active",
+        "actions": "Actions",
+        "removeConfirm": "Remove this member?",
+        "memberAdded": "Member added",
+        "memberRemoved": "Member removed",
+        "roleUpdated": "Role updated",
+        "noMembers": "No members yet",
+        "seatLimit": "Seat limit reached for {role} ({current}/{max})"
+      }
     }
   }
 }

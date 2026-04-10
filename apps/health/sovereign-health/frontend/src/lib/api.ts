@@ -1213,6 +1213,34 @@ export const api = {
         meta: { page: number; per_page: number; total: number }
       }>(`/admin/organizations?${params}`)
     },
+    // Sprint 040 #478 -- single org detail (Overview/License/Branding)
+    getOrganization: (id: string) =>
+      request<{
+        data: {
+          id: string
+          name: string
+          slug: string
+          org_type: string
+          billing_email: string | null
+          is_active: boolean
+          created_at: string
+          branding: Record<string, unknown>
+          license: {
+            tier_slug: string | null
+            features: string[]
+            max_owners: number | null
+            max_practitioners: number | null
+            max_members: number | null
+            expires_at: string | null
+            revoked_at: string | null
+            issued_at: string | null
+            jti: string | null
+            stripe_invoice_id: string | null
+            lifecycle_status: 'active' | 'grace' | 'expired' | 'revoked' | 'no_license'
+          }
+          seats: { owners: number; practitioners: number; members: number; total: number }
+        }
+      }>(`/admin/organizations/${id}`),
     createOrganization: (body: { name: string; slug: string; org_type: string; billing_email?: string; admin_email?: string }) =>
       request<{ data: { id: string; slug: string } }>('/admin/organizations', { method: 'POST', body: JSON.stringify(body) }),
     updateOrganization: (id: string, body: { name?: string; org_type?: string; billing_email?: string; is_active?: boolean }) =>

@@ -193,6 +193,106 @@ pub async fn list_organizations(
     })))
 }
 
+/// GET /admin/organizations/{id} -- Single org detail
+///
+/// Sprint 040 #478: returns the org metadata + active license summary +
+/// member counts by role + branding so the platform admin Org detail page
+/// can render Overview without N+1 follow-ups.
+pub async fn get_organization(
+    platform_pool: web::Data<PlatformPool>,
+    _admin: AdminUser,
+    path: web::Path<Uuid>,
+) -> Result<HttpResponse, AppError> {
+    let org_id = path.into_inner();
+
+    let row = sqlx::query(
+        r#"WITH active_lic AS (
+               SELECT DISTINCT ON (org_id)
+                      org_id, tier_slug, features, max_owners, max_practitioners,
+                      max_members, expires_at, revoked_at, jti, stripe_invoice_id,
+                      issued_at
+               FROM brickos.org_licenses
+               WHERE org_id = $1
+               ORDER BY org_id, issued_at DESC
+           )
+           SELECT o.id, o.name, o.slug, o.org_type, o.billing_email, o.is_active,
+                  o.created_at, o.branding,
+                  al.tier_slug, al.features, al.max_owners, al.max_practitioners,
+                  al.max_members, al.expires_at, al.revoked_at, al.jti,
+                  al.stripe_invoice_id, al.issued_at,
+                  COUNT(DISTINCT om.user_id) FILTER (WHERE om.role = 'org_owner') AS owners_count,
+                  COUNT(DISTINCT om.user_id) FILTER (WHERE om.role = 'practitioner') AS practitioners_count,
+                  COUNT(DISTINCT om.user_id) FILTER (WHERE om.role = 'member') AS members_count,
+                  COUNT(DISTINCT om.user_id) AS total_count
+           FROM organizations o
+           LEFT JOIN active_lic al ON al.org_id = o.id
+           LEFT JOIN org_members om ON om.org_id = o.id
+           WHERE o.id = $1 AND o.is_deleted = false
+           GROUP BY o.id, al.tier_slug, al.features, al.max_owners,
+                    al.max_practitioners, al.max_members, al.expires_at,
+                    al.revoked_at, al.jti, al.stripe_invoice_id, al.issued_at"#,
+    )
+    .bind(org_id)
+    .fetch_optional(&platform_pool.0)
+    .await?;
+
+    let row = row.ok_or(AppError::NotFound)?;
+
+    let lifecycle_status = {
+        let revoked: Option<chrono::DateTime<chrono::Utc>> =
+            row.try_get("revoked_at").ok().flatten();
+        let expires: Option<chrono::DateTime<chrono::Utc>> =
+            row.try_get("expires_at").ok().flatten();
+        let tier: Option<String> = row.try_get("tier_slug").ok().flatten();
+        if tier.is_none() {
+            "no_license"
+        } else if revoked.is_some() {
+            "revoked"
+        } else if expires.is_some_and(|e| e < chrono::Utc::now()) {
+            "expired"
+        } else if expires.is_some_and(|e| e < chrono::Utc::now() + chrono::Duration::days(7)) {
+            "grace"
+        } else {
+            "active"
+        }
+    };
+
+    let detail = serde_json::json!({
+        "id": row.try_get::<Uuid, _>("id").unwrap_or_default(),
+        "name": row.try_get::<String, _>("name").unwrap_or_default(),
+        "slug": row.try_get::<String, _>("slug").unwrap_or_default(),
+        "org_type": row.try_get::<String, _>("org_type").unwrap_or_default(),
+        "billing_email": row.try_get::<Option<String>, _>("billing_email").ok().flatten(),
+        "is_active": row.try_get::<bool, _>("is_active").unwrap_or(true),
+        "created_at": row.try_get::<chrono::DateTime<chrono::Utc>, _>("created_at").ok(),
+        "branding": row.try_get::<serde_json::Value, _>("branding").unwrap_or(serde_json::json!({})),
+        "license": {
+            "tier_slug": row.try_get::<Option<String>, _>("tier_slug").ok().flatten(),
+            "features": row.try_get::<Option<serde_json::Value>, _>("features").ok().flatten().unwrap_or(serde_json::json!([])),
+            "max_owners": row.try_get::<Option<i32>, _>("max_owners").ok().flatten(),
+            "max_practitioners": row.try_get::<Option<i32>, _>("max_practitioners").ok().flatten(),
+            "max_members": row.try_get::<Option<i32>, _>("max_members").ok().flatten(),
+            "expires_at": row.try_get::<Option<chrono::DateTime<chrono::Utc>>, _>("expires_at").ok().flatten(),
+            "revoked_at": row.try_get::<Option<chrono::DateTime<chrono::Utc>>, _>("revoked_at").ok().flatten(),
+            "issued_at": row.try_get::<Option<chrono::DateTime<chrono::Utc>>, _>("issued_at").ok().flatten(),
+            "jti": row.try_get::<Option<Uuid>, _>("jti").ok().flatten(),
+            "stripe_invoice_id": row.try_get::<Option<String>, _>("stripe_invoice_id").ok().flatten(),
+            "lifecycle_status": lifecycle_status,
+        },
+        "seats": {
+            "owners": row.try_get::<i64, _>("owners_count").unwrap_or(0),
+            "practitioners": row.try_get::<i64, _>("practitioners_count").unwrap_or(0),
+            "members": row.try_get::<i64, _>("members_count").unwrap_or(0),
+            "total": row.try_get::<i64, _>("total_count").unwrap_or(0),
+        }
+    });
+
+    Ok(HttpResponse::Ok().json(serde_json::json!({
+        "data": detail,
+        "error": null
+    })))
+}
+
 /// POST /admin/organizations -- Create new organization
 pub async fn create_organization(
     platform_pool: web::Data<PlatformPool>,
