@@ -17,6 +17,10 @@ pub struct ListOrgsQuery {
     pub per_page: Option<i64>,
     pub search: Option<String>,
     pub org_type: Option<String>,
+    /// Sprint 040 #477: lifecycle filter -- "active" | "grace" | "expired" | "revoked"
+    pub status: Option<String>,
+    /// Sprint 040 #477: only orgs whose active license expires within N days
+    pub expires_within: Option<i64>,
 }
 
 #[derive(Deserialize)]
@@ -37,6 +41,10 @@ pub struct UpdateOrgRequest {
 }
 
 /// GET /admin/organizations -- List all organizations
+///
+/// Sprint 040 #477: extended to include the active brickos.org_licenses
+/// summary (tier_slug, max_members, expires_at, revoked, status) so the
+/// admin Orgs list view can show license state without N+1 follow-ups.
 pub async fn list_organizations(
     platform_pool: web::Data<PlatformPool>,
     _admin: AdminUser,
@@ -53,35 +61,103 @@ pub async fn list_organizations(
         .map(|s| format!("%{}%", s.to_lowercase()));
 
     let type_filter = query.org_type.as_deref().filter(|s| !s.is_empty());
+    let status_filter = query.status.as_deref().filter(|s| !s.is_empty());
+    let expires_within = query.expires_within.filter(|d| *d > 0);
 
+    // We pull the latest non-revoked license per org via DISTINCT ON. The
+    // partial unique index `idx_org_licenses_org_active` guarantees at most
+    // one row, so the ORDER BY is just a tie-breaker.
+    //
+    // status is computed once in SQL so the WHERE filter can use it via a
+    // CTE; the same expression is mirrored in the response so the frontend
+    // never has to recompute it.
     let rows = sqlx::query(
-        r#"SELECT o.id, o.name, o.slug, o.org_type, o.billing_email, o.is_active,
-                  o.created_at, o.branding,
-                  COUNT(DISTINCT om.user_id) as member_count
-           FROM organizations o
-           LEFT JOIN org_members om ON om.org_id = o.id
-           WHERE o.is_deleted = false
-             AND ($1::text IS NULL OR LOWER(o.name) LIKE $1 OR LOWER(o.slug) LIKE $1)
-             AND ($2::text IS NULL OR o.org_type = $2)
-           GROUP BY o.id
-           ORDER BY o.created_at DESC
-           LIMIT $3 OFFSET $4"#,
+        r#"WITH active_lic AS (
+               SELECT DISTINCT ON (org_id)
+                      org_id, tier_slug, max_members, max_owners, max_practitioners,
+                      expires_at, revoked_at, stripe_invoice_id
+               FROM brickos.org_licenses
+               ORDER BY org_id, issued_at DESC
+           ),
+           org_summary AS (
+               SELECT o.id, o.name, o.slug, o.org_type, o.billing_email, o.is_active,
+                      o.created_at, o.branding,
+                      COUNT(DISTINCT om.user_id) AS member_count,
+                      al.tier_slug, al.max_members, al.max_owners, al.max_practitioners,
+                      al.expires_at, al.revoked_at, al.stripe_invoice_id,
+                      CASE
+                          WHEN al.tier_slug IS NULL THEN 'no_license'
+                          WHEN al.revoked_at IS NOT NULL THEN 'revoked'
+                          WHEN al.expires_at < NOW() THEN 'expired'
+                          WHEN al.expires_at < NOW() + interval '7 days' THEN 'grace'
+                          ELSE 'active'
+                      END AS lifecycle_status
+               FROM organizations o
+               LEFT JOIN org_members om ON om.org_id = o.id
+               LEFT JOIN active_lic al ON al.org_id = o.id
+               WHERE o.is_deleted = false
+                 AND ($1::text IS NULL OR LOWER(o.name) LIKE $1 OR LOWER(o.slug) LIKE $1
+                      OR LOWER(COALESCE(o.billing_email, '')) LIKE $1)
+                 AND ($2::text IS NULL OR o.org_type = $2)
+               GROUP BY o.id, al.tier_slug, al.max_members, al.max_owners,
+                        al.max_practitioners, al.expires_at, al.revoked_at,
+                        al.stripe_invoice_id
+           )
+           SELECT * FROM org_summary
+           WHERE ($3::text IS NULL OR lifecycle_status = $3)
+             AND ($4::bigint IS NULL OR (
+                    expires_at IS NOT NULL
+                    AND expires_at < NOW() + ($4 || ' days')::interval
+                    AND revoked_at IS NULL
+                 ))
+           ORDER BY created_at DESC
+           LIMIT $5 OFFSET $6"#,
     )
     .bind(search_pattern.as_deref())
     .bind(type_filter)
+    .bind(status_filter)
+    .bind(expires_within)
     .bind(per_page)
     .bind(offset)
     .fetch_all(&platform_pool.0)
     .await?;
 
     let total: (i64,) = sqlx::query_as(
-        r#"SELECT COUNT(*) FROM organizations
-           WHERE is_deleted = false
-             AND ($1::text IS NULL OR LOWER(name) LIKE $1 OR LOWER(slug) LIKE $1)
-             AND ($2::text IS NULL OR org_type = $2)"#,
+        r#"WITH active_lic AS (
+               SELECT DISTINCT ON (org_id)
+                      org_id, tier_slug, expires_at, revoked_at
+               FROM brickos.org_licenses
+               ORDER BY org_id, issued_at DESC
+           ),
+           org_summary AS (
+               SELECT o.id,
+                      CASE
+                          WHEN al.tier_slug IS NULL THEN 'no_license'
+                          WHEN al.revoked_at IS NOT NULL THEN 'revoked'
+                          WHEN al.expires_at < NOW() THEN 'expired'
+                          WHEN al.expires_at < NOW() + interval '7 days' THEN 'grace'
+                          ELSE 'active'
+                      END AS lifecycle_status,
+                      al.expires_at, al.revoked_at
+               FROM organizations o
+               LEFT JOIN active_lic al ON al.org_id = o.id
+               WHERE o.is_deleted = false
+                 AND ($1::text IS NULL OR LOWER(o.name) LIKE $1 OR LOWER(o.slug) LIKE $1
+                      OR LOWER(COALESCE(o.billing_email, '')) LIKE $1)
+                 AND ($2::text IS NULL OR o.org_type = $2)
+           )
+           SELECT COUNT(*) FROM org_summary
+           WHERE ($3::text IS NULL OR lifecycle_status = $3)
+             AND ($4::bigint IS NULL OR (
+                    expires_at IS NOT NULL
+                    AND expires_at < NOW() + ($4 || ' days')::interval
+                    AND revoked_at IS NULL
+                 ))"#,
     )
     .bind(search_pattern.as_deref())
     .bind(type_filter)
+    .bind(status_filter)
+    .bind(expires_within)
     .fetch_one(&platform_pool.0)
     .await?;
 
@@ -98,6 +174,14 @@ pub async fn list_organizations(
                 "member_count": r.try_get::<i64, _>("member_count").unwrap_or(0),
                 "branding": r.try_get::<serde_json::Value, _>("branding").unwrap_or(serde_json::json!({})),
                 "created_at": r.try_get::<chrono::DateTime<chrono::Utc>, _>("created_at").ok(),
+                "tier_slug": r.try_get::<Option<String>, _>("tier_slug").ok().flatten(),
+                "max_members": r.try_get::<Option<i32>, _>("max_members").ok().flatten(),
+                "max_owners": r.try_get::<Option<i32>, _>("max_owners").ok().flatten(),
+                "max_practitioners": r.try_get::<Option<i32>, _>("max_practitioners").ok().flatten(),
+                "expires_at": r.try_get::<Option<chrono::DateTime<chrono::Utc>>, _>("expires_at").ok().flatten(),
+                "revoked_at": r.try_get::<Option<chrono::DateTime<chrono::Utc>>, _>("revoked_at").ok().flatten(),
+                "stripe_invoice_id": r.try_get::<Option<String>, _>("stripe_invoice_id").ok().flatten(),
+                "lifecycle_status": r.try_get::<String, _>("lifecycle_status").unwrap_or_else(|_| "no_license".to_string()),
             })
         })
         .collect();

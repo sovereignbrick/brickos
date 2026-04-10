@@ -1800,6 +1800,37 @@
       "branding": "Branding",
       "domains": "Domains",
       "licensing": "Licensing"
+    },
+    "orgs": {
+      "title": "Organizations",
+      "newButton": "New organization",
+      "search": "Search by name, slug or billing email...",
+      "filterAllTypes": "All types",
+      "filterAllStatus": "All status",
+      "filterExpiresAny": "Any expiry",
+      "filterExpiresWithin": "Expires within {days}d",
+      "status": {
+        "active": "Active",
+        "grace": "Grace",
+        "expired": "Expired",
+        "revoked": "Revoked",
+        "no_license": "No license"
+      },
+      "col": {
+        "name": "Name",
+        "type": "Type",
+        "tier": "Tier",
+        "members": "Members",
+        "expires": "Expires",
+        "status": "Status",
+        "stripe": "Stripe"
+      },
+      "selected": "{count} selected",
+      "exportCsv": "Export CSV",
+      "sendRenewal": "Send renewal reminder",
+      "renewalSent": "Sent {count} renewal reminders",
+      "noOrgs": "No organizations match the current filters",
+      "page": "Page {page} of {total}"
     }
   }
 }

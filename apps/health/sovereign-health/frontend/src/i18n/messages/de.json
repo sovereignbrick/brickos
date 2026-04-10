@@ -1800,6 +1800,37 @@
       "branding": "Branding",
       "domains": "Domains",
       "licensing": "Lizenzierung"
+    },
+    "orgs": {
+      "title": "Organisationen",
+      "newButton": "Neue Organisation",
+      "search": "Suche nach Name, Slug oder Rechnungs-E-Mail...",
+      "filterAllTypes": "Alle Typen",
+      "filterAllStatus": "Alle Status",
+      "filterExpiresAny": "Beliebiger Ablauf",
+      "filterExpiresWithin": "Läuft in {days}T ab",
+      "status": {
+        "active": "Aktiv",
+        "grace": "Karenz",
+        "expired": "Abgelaufen",
+        "revoked": "Widerrufen",
+        "no_license": "Keine Lizenz"
+      },
+      "col": {
+        "name": "Name",
+        "type": "Typ",
+        "tier": "Tarif",
+        "members": "Mitglieder",
+        "expires": "Läuft ab",
+        "status": "Status",
+        "stripe": "Stripe"
+      },
+      "selected": "{count} ausgewählt",
+      "exportCsv": "CSV exportieren",
+      "sendRenewal": "Verlängerungserinnerung senden",
+      "renewalSent": "{count} Erinnerungen versendet",
+      "noOrgs": "Keine Organisationen entsprechen den aktuellen Filtern",
+      "page": "Seite {page} von {total}"
     }
   }
 }

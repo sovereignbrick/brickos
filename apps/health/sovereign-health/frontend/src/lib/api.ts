@@ -1171,11 +1171,47 @@ export const api = {
       }),
     affiliateSummary: () =>
       request<{ data: { total_users: number; affiliate_users: number; direct_users: number; total_affiliates: number; total_conversions: number; conversion_rate: number; top_affiliates: Array<{ affiliate_code: string; email: string; display_name: string | null; referral_count: number; org_name: string | null }> } }>('/admin/affiliate-summary'),
-    organizations: (page = 1, perPage = 25, search?: string, orgType?: string) => {
+    organizations: (
+      page = 1,
+      perPage = 25,
+      search?: string,
+      orgType?: string,
+      status?: string,
+      expiresWithin?: number,
+    ) => {
       const params = new URLSearchParams({ page: String(page), per_page: String(perPage) })
       if (search) params.set('search', search)
       if (orgType) params.set('org_type', orgType)
-      return request<{ data: Array<{ id: string; name: string; slug: string; org_type: string; billing_email: string | null; is_active: boolean; member_count: number; branding: Record<string, unknown>; created_at: string }>; meta: { page: number; per_page: number; total: number } }>(`/admin/organizations?${params}`)
+      if (status) params.set('status', status)
+      if (expiresWithin) params.set('expires_within', String(expiresWithin))
+      return request<{
+        data: Array<{
+          id: string
+          name: string
+          slug: string
+          org_type: string
+          billing_email: string | null
+          is_active: boolean
+          member_count: number
+          branding: Record<string, unknown>
+          created_at: string
+          // Sprint 040 #477: license summary fields
+          tier_slug: string | null
+          max_members: number | null
+          max_owners: number | null
+          max_practitioners: number | null
+          expires_at: string | null
+          revoked_at: string | null
+          stripe_invoice_id: string | null
+          lifecycle_status:
+            | 'active'
+            | 'grace'
+            | 'expired'
+            | 'revoked'
+            | 'no_license'
+        }>
+        meta: { page: number; per_page: number; total: number }
+      }>(`/admin/organizations?${params}`)
     },
     createOrganization: (body: { name: string; slug: string; org_type: string; billing_email?: string; admin_email?: string }) =>
       request<{ data: { id: string; slug: string } }>('/admin/organizations', { method: 'POST', body: JSON.stringify(body) }),
