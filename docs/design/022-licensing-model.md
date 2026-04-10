@@ -1,9 +1,15 @@
 ---
 number: 022
 title: BrickOS Licensing Model -- Individual, Organization, Self-Hosted
-status: draft (v2 -- decisions locked, ready for sprint)
+status: shipped (Sprint 040 -- all phases complete, 29/30 issues closed)
 created: 2026-04-10
 updated: 2026-04-10
+sprint: 040
+shipped_commits:
+  - "3874174..2d6a09f on sprint-040/phase-b (39 commits)"
+carry_over:
+  - "#491 two-pool E2E env (gates Playwright journeys 3 and 4)"
+  - "#490 dead code cleanup (sequenced, requires staging shadow-mode validation)"
 related:
   - 010-multi-tenant-platform-offering.md
   - 014-brickos-platform-gui.md
