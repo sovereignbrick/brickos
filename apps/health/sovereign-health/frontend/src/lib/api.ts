@@ -1291,6 +1291,29 @@ export const api = {
         `/admin/organizations/${orgId}/license/revoke`,
         { method: 'POST', body: JSON.stringify({ reason }) },
       ),
+    // Sprint 040 #482 -- dormant user cohort
+    listDormantUsers: () =>
+      request<{
+        data: Array<{
+          id: string
+          email: string
+          display_name: string | null
+          tier: string
+          lifecycle_status: 'active' | 'dormant' | 'pending_deletion'
+          created_at: string
+          last_active_at: string | null
+          pending_deletion_at: string | null
+          org_count: number
+        }>
+      }>('/admin/users/dormant'),
+    updateUserLifecycleStatus: (
+      userId: string,
+      lifecycleStatus: 'active' | 'dormant' | 'pending_deletion',
+    ) =>
+      request<{ data: { updated: boolean; lifecycle_status: string } }>(
+        `/admin/users/${userId}/lifecycle-status`,
+        { method: 'PUT', body: JSON.stringify({ lifecycle_status: lifecycleStatus }) },
+      ),
     // Sprint 040 #481 -- per-org invoices (Stripe Invoices API)
     listInvoiceProducts: () =>
       request<{

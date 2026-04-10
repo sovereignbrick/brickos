@@ -1801,6 +1801,28 @@
       "domains": "Domains",
       "licensing": "Lizenzierung"
     },
+    "dormantUsers": {
+      "title": "Inaktive Konten",
+      "description": "Benutzer, die seit 12+ Monaten inaktiv sind. Reaktivieren, zur Löschung vormerken oder Markierung entfernen.",
+      "selected": "{count} ausgewählt",
+      "sendReengagement": "Reaktivierungs-E-Mail senden",
+      "scheduleDeletion": "Zur Löschung vormerken",
+      "clearFlag": "Markierung entfernen",
+      "scheduledForDeletion": "Zur Löschung vorgemerkt (manuelle Entfernung durch Ops)",
+      "noDormant": "Keine inaktiven Konten",
+      "col": {
+        "email": "E-Mail",
+        "tier": "Tarif",
+        "lastActive": "Zuletzt aktiv",
+        "accountAge": "Kontoalter",
+        "orgs": "Orgs",
+        "status": "Status"
+      },
+      "reengagementSent": "{count} Reaktivierungs-E-Mails versendet",
+      "scheduledCount": "{count} Konten zur Löschung vorgemerkt",
+      "clearedCount": "{count} Markierungen entfernt",
+      "ageDays": "{days}T"
+    },
     "orgs": {
       "title": "Organisationen",
       "newButton": "Neue Organisation",

@@ -860,6 +860,15 @@ pub fn configure_routes(cfg: &mut actix_web::web::ServiceConfig) {
                 "/users",
                 actix_web::web::get().to(handlers::admin::list_users),
             )
+            // Sprint 040 #482 -- dormant cohort + lifecycle status mutate
+            .route(
+                "/users/dormant",
+                actix_web::web::get().to(handlers::admin::list_dormant_users),
+            )
+            .route(
+                "/users/{id}/lifecycle-status",
+                actix_web::web::put().to(handlers::admin::update_user_lifecycle_status),
+            )
             .route(
                 "/users/{id}/role",
                 actix_web::web::put().to(handlers::admin::update_user_role),

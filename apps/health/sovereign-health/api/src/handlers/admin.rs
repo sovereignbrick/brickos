@@ -116,6 +116,8 @@ pub struct UserListQuery {
     pub sort: Option<String>,
     pub order: Option<String>,
     pub org_id: Option<String>,
+    /// Sprint 040 #482: filter by users.lifecycle_status (active|dormant|pending_deletion)
+    pub lifecycle_status: Option<String>,
 }
 
 pub async fn list_users(
@@ -790,6 +792,110 @@ pub async fn affiliate_summary(
             "conversion_rate": conversion_rate,
             "top_affiliates": top_affiliates,
         },
+        "error": null
+    })))
+}
+
+// ---------------------------------------------------------------------------
+// Sprint 040 #482 -- dormant user cohort review
+// ---------------------------------------------------------------------------
+
+/// GET /admin/users/dormant
+///
+/// Returns the most recent users where lifecycle_status='dormant'
+/// (set by services::lifecycle_jobs::dormant_user_flag_cron). The list is
+/// ordered by oldest last_active_at first so the most-stale accounts are
+/// at the top of the review queue. The pending_deletion_at column is
+/// surfaced so the admin can see who has been scheduled for the manual
+/// hard-delete pass.
+pub async fn list_dormant_users(
+    platform_pool: web::Data<PlatformPool>,
+    _admin: AdminUser,
+) -> Result<HttpResponse, AppError> {
+    use sqlx::Row;
+
+    let rows = sqlx::query(
+        r#"SELECT u.id, u.email, u.display_name, u.created_at, u.last_active_at,
+                  u.lifecycle_status, u.pending_deletion_at,
+                  COALESCE(lt.slug, 'glimpse') AS tier,
+                  (SELECT COUNT(*) FROM org_members om WHERE om.user_id = u.id) AS org_count
+           FROM users u
+           LEFT JOIN user_licenses ul ON ul.user_id = u.id
+           LEFT JOIN license_tiers lt ON lt.id = ul.tier_id
+           WHERE u.is_deleted = false
+             AND u.lifecycle_status IN ('dormant', 'pending_deletion')
+           ORDER BY u.last_active_at NULLS FIRST
+           LIMIT 500"#,
+    )
+    .fetch_all(&platform_pool.0)
+    .await?;
+
+    let users: Vec<serde_json::Value> = rows
+        .iter()
+        .map(|r| {
+            json!({
+                "id": r.try_get::<uuid::Uuid, _>("id").unwrap_or_default(),
+                "email": r.try_get::<String, _>("email").unwrap_or_default(),
+                "display_name": r.try_get::<Option<String>, _>("display_name").ok().flatten(),
+                "tier": r.try_get::<String, _>("tier").unwrap_or_else(|_| "glimpse".to_string()),
+                "lifecycle_status": r.try_get::<String, _>("lifecycle_status").unwrap_or_else(|_| "dormant".to_string()),
+                "created_at": r.try_get::<chrono::DateTime<chrono::Utc>, _>("created_at").ok(),
+                "last_active_at": r.try_get::<Option<chrono::DateTime<chrono::Utc>>, _>("last_active_at").ok().flatten(),
+                "pending_deletion_at": r.try_get::<Option<chrono::DateTime<chrono::Utc>>, _>("pending_deletion_at").ok().flatten(),
+                "org_count": r.try_get::<i64, _>("org_count").unwrap_or(0),
+            })
+        })
+        .collect();
+
+    Ok(HttpResponse::Ok().json(json!({
+        "data": users,
+        "error": null
+    })))
+}
+
+/// PUT /admin/users/{id}/lifecycle-status
+///
+/// Sprint 040 #482: lets the operator transition a dormant account to
+/// 'pending_deletion' (does NOT actually delete -- per design 022 §2.5
+/// the deletion is a separate manual ops step). Also lets them clear back
+/// to 'active' if the user was incorrectly flagged.
+#[derive(Deserialize)]
+pub struct UpdateLifecycleStatusBody {
+    pub lifecycle_status: String,
+}
+
+pub async fn update_user_lifecycle_status(
+    platform_pool: web::Data<PlatformPool>,
+    _admin: AdminUser,
+    path: web::Path<uuid::Uuid>,
+    body: web::Json<UpdateLifecycleStatusBody>,
+) -> Result<HttpResponse, AppError> {
+    let user_id = path.into_inner();
+    let next = body.lifecycle_status.as_str();
+    if !matches!(next, "active" | "dormant" | "pending_deletion") {
+        return Err(AppError::Validation(format!(
+            "invalid lifecycle_status: {next}"
+        )));
+    }
+
+    let pending_at = if next == "pending_deletion" {
+        Some(chrono::Utc::now())
+    } else {
+        None
+    };
+
+    sqlx::query(
+        "UPDATE users SET lifecycle_status = $1, pending_deletion_at = $2
+         WHERE id = $3 AND is_deleted = false",
+    )
+    .bind(next)
+    .bind(pending_at)
+    .bind(user_id)
+    .execute(&platform_pool.0)
+    .await?;
+
+    Ok(HttpResponse::Ok().json(json!({
+        "data": { "updated": true, "lifecycle_status": next },
         "error": null
     })))
 }

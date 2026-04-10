@@ -1801,6 +1801,28 @@
       "domains": "Domains",
       "licensing": "Licensing"
     },
+    "dormantUsers": {
+      "title": "Dormant accounts",
+      "description": "Users flagged as inactive for 12+ months by the dormant cron. Review and either re-engage, schedule for manual deletion, or clear the flag.",
+      "selected": "{count} selected",
+      "sendReengagement": "Send re-engagement email",
+      "scheduleDeletion": "Schedule for deletion",
+      "clearFlag": "Clear dormant flag",
+      "scheduledForDeletion": "Scheduled for deletion (no auto-delete; ops removes manually)",
+      "noDormant": "No dormant accounts",
+      "col": {
+        "email": "Email",
+        "tier": "Tier",
+        "lastActive": "Last active",
+        "accountAge": "Account age",
+        "orgs": "Orgs",
+        "status": "Status"
+      },
+      "reengagementSent": "Sent {count} re-engagement emails",
+      "scheduledCount": "Scheduled {count} accounts for deletion",
+      "clearedCount": "Cleared {count} flags",
+      "ageDays": "{days}d"
+    },
     "orgs": {
       "title": "Organizations",
       "newButton": "New organization",
