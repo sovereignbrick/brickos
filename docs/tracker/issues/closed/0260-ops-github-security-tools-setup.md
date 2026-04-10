@@ -1,5 +1,6 @@
 ---
 number: 260
+github_number: 479
 title: "ops: set up GitHub security tools — Advanced Security, GitGuardian, Semgrep, Snyk, Trivy"
 labels: [ops, security, infrastructure, priority-high]
 milestone: privacy-and-security

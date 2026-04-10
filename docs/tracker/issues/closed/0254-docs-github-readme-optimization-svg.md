@@ -1,5 +1,6 @@
 ---
 number: 254
+github_number: 475
 title: "docs: optimize GitHub README for BrickOS + Sovereign Health — philosophy, visuals, SVGs"
 labels: [docs, marketing, ux, sprint-014]
 milestone: ux-and-onboarding

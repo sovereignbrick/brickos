@@ -1,5 +1,6 @@
 ---
 number: 267
+github_number: 483
 title: "fix: missing i18n keys for device types (fora6, qardio_arm, qardio_base)"
 labels: [fix, frontend, i18n]
 milestone: ux-and-onboarding

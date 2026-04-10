@@ -1,5 +1,6 @@
 ---
 number: 224
+github_number: 471
 title: "fix: Sovereign Link /r/{code} returns 404 on production despite route + data existing"
 labels: [bug, sovereign-link]
 milestone: infrastructure

@@ -1,5 +1,6 @@
 ---
 number: 256
+github_number: 476
 title: "fix: PWA does not load in airplane mode — define expected offline behavior"
 labels: [fix, frontend, pwa]
 milestone: ux-and-onboarding

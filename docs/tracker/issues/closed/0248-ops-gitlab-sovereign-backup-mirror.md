@@ -1,5 +1,6 @@
 ---
 number: 248
+github_number: 472
 title: "ops: GitLab sovereign backup mirror — manual push on critical releases"
 labels: [ops, infrastructure, data-sovereignty]
 milestone: infrastructure

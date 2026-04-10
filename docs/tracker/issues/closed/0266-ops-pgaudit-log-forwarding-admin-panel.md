@@ -1,5 +1,6 @@
 ---
 number: 266
+github_number: 482
 title: "ops: pgAudit log forwarding to admin panel"
 labels: [ops, security, admin, infrastructure]
 milestone: privacy-and-security

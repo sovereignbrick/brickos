@@ -1,5 +1,6 @@
 ---
 number: 262
+github_number: 480
 title: "fix: URGENT — demo mode calculated markers show no values"
 labels: [fix, backend, demo, priority-critical, sprint-014]
 milestone: health-intelligence

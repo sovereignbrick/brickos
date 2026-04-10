@@ -1,5 +1,6 @@
 ---
 number: 269
+github_number: 484
 title: "feat: settings tab restructure -- split Profile into Health Profile + Account"
 labels: [feat, frontend, ux, design-018]
 milestone: ux-and-onboarding

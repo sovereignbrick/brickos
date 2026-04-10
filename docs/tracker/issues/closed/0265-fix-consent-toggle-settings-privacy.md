@@ -1,5 +1,6 @@
 ---
 number: 265
+github_number: 481
 title: "fix: consent toggles on settings/privacy page cannot be selected"
 labels: [fix, frontend, gdpr, priority-high]
 milestone: privacy-and-security

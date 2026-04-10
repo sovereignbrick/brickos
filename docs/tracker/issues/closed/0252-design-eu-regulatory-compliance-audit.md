@@ -1,5 +1,6 @@
 ---
 number: 252
+github_number: 473
 title: "design: EU regulatory compliance audit — structured evaluation across 14 regimes"
 labels: [design, compliance, legal, priority-high]
 milestone: privacy-and-security

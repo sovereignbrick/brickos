@@ -1,5 +1,6 @@
 ---
 number: 257
+github_number: 477
 title: "fix: Gatus/ntfy alerts — include full datetime stamp and detailed error info"
 labels: [fix, ops, monitoring]
 milestone: infrastructure

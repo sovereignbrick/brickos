@@ -1,5 +1,6 @@
 ---
 number: 258
+github_number: 478
 title: "fix: admin panel — data access log empty, mobile menu missing, user card default, pgAudit"
 labels: [fix, frontend, backend, admin, priority-high]
 milestone: health-intelligence

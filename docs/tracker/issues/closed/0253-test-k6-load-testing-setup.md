@@ -1,5 +1,6 @@
 ---
 number: 253
+github_number: 474
 title: "test: evaluate K6 for load testing — PoC setup"
 labels: [test, infrastructure, performance]
 milestone: infrastructure
