@@ -1,5 +1,6 @@
 ---
 number: 489
+github_number: 470
 title: "epic: Sprint 040 -- Licensing Foundation (rolls up all phases)"
 milestone: "SHI Licensing Foundation -- Sprint 040"
 labels: [licensing, sprint-040, epic]

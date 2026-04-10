@@ -1,5 +1,6 @@
 ---
 number: 488
+github_number: 469
 title: "chore: Sprint 040 retrospective + design 022 final review"
 milestone: "SHI Licensing Foundation -- Sprint 040"
 labels: [licensing, sprint-040, phase-e, chore, retrospective]

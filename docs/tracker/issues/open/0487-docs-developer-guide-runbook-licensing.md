@@ -1,5 +1,6 @@
 ---
 number: 487
+github_number: 468
 title: "docs: developer guide + brickos admin runbook + customer-facing licensing page"
 milestone: "SHI Licensing Foundation -- Sprint 040"
 labels: [licensing, sprint-040, phase-e, docs]

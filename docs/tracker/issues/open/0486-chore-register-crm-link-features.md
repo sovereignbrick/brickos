@@ -1,5 +1,6 @@
 ---
 number: 486
+github_number: 467
 title: "chore: register CRM + Link features in feature_registry namespaces"
 milestone: "SHI Licensing Foundation -- Sprint 040"
 labels: [licensing, sprint-040, phase-e, chore]
