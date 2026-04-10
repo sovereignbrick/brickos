@@ -1799,7 +1799,44 @@
       "settings": "Einstellungen",
       "branding": "Branding",
       "domains": "Domains",
-      "licensing": "Lizenzierung"
+      "licensing": "Lizenzierung",
+      "features": "Features"
+    },
+    "licensingScreens": {
+      "tiers": {
+        "title": "Tarif-Konfiguration",
+        "description": "Schreibgeschützte Ansicht aller brickos-Tarife. Bearbeitung erfordert super_admin und ist auf einen späteren Sprint verschoben.",
+        "noTiers": "Keine Tarife konfiguriert",
+        "featuresHint": "Tarif-Feature-Listen liegen in brickos.tier_features (siehe Feature-Registry für den vollständigen Katalog)."
+      },
+      "features": {
+        "title": "Feature-Registry",
+        "byApp": "Features nach App",
+        "description": "Jedes BrickOS-Feature existiert hier genau einmal mit einem namespaced Slug.",
+        "empty": "Keine Features registriert",
+        "col": {
+          "slug": "Slug",
+          "category": "Kategorie",
+          "name": "Name",
+          "active": "Aktiv"
+        }
+      },
+      "revocations": {
+        "title": "Widerrufsliste",
+        "description": "Jede widerrufene Org-Lizenz. Wiederherstellen entfernt das revoked_at-Flag und die Zeile aus dem Revocation-Cache.",
+        "noRows": "Keine Widerrufe vorhanden",
+        "restore": "Wiederherstellen",
+        "restoreConfirm": "Diese Lizenz wiederherstellen? Sie wird beim nächsten 60s-Cache-Reload wieder gültig.",
+        "restored": "Lizenz wiederhergestellt",
+        "col": {
+          "org": "Organisation",
+          "jti": "jti",
+          "revokedAt": "Widerrufen am",
+          "reason": "Grund",
+          "revokedBy": "Widerrufen von",
+          "actions": "Aktionen"
+        }
+      }
     },
     "dormantUsers": {
       "title": "Inaktive Konten",

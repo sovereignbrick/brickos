@@ -74,6 +74,7 @@ function buildNavItems(t: (key: string) => string): NavItem[] {
     { key: 'branding', label: t('branding'), href: '/platform/branding', icon: '\u2740', section: 'SETTINGS', visible: (ctx) => ctx.isPlatform || ctx.isOrgOwner || ctx.isTechAdmin },
     { key: 'domains', label: t('domains'), href: '/platform/domains', icon: '\u2601', section: 'SETTINGS', visible: (ctx) => ctx.isPlatform || ctx.isOrgOwner || ctx.isTechAdmin },
     { key: 'licensing', label: t('licensing'), href: '/platform/licensing', icon: '\u2694', section: 'SETTINGS', visible: p },
+    { key: 'features', label: t('features'), href: '/platform/features', icon: '\u269B', section: 'SETTINGS', visible: p },
   ]
 }
 

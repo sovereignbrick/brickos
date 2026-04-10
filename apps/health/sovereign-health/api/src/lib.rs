@@ -912,6 +912,10 @@ pub fn configure_routes(cfg: &mut actix_web::web::ServiceConfig) {
                 actix_web::web::get().to(handlers::admin_licensing::list_revocations),
             )
             .route(
+                "/licensing/revocations/{jti}/restore",
+                actix_web::web::post().to(handlers::admin_licensing::restore_revoked_license),
+            )
+            .route(
                 "/early-access",
                 actix_web::web::get().to(handlers::early_access::list_early_access),
             )

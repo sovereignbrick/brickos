@@ -88,6 +88,60 @@ pub async fn list_tiers(
     })))
 }
 
+/// POST /admin/licensing/revocations/{jti}/restore
+///
+/// Sprint 040 #483: un-revoke a license. Clears `org_licenses.revoked_at`
+/// for the row matching `jti` AND removes the matching `org_licenses_revoked`
+/// row so the next 60s revocation cache reload picks up the change.
+/// Audit-logged.
+pub async fn restore_revoked_license(
+    platform_pool: web::Data<PlatformPool>,
+    admin: AdminUser,
+    path: web::Path<Uuid>,
+) -> Result<HttpResponse, AppError> {
+    let jti = path.into_inner();
+
+    let mut tx = platform_pool.0.begin().await?;
+
+    // Look up the org_id (for audit) and clear revoked_at on the matching license.
+    let row: Option<(Uuid, Uuid)> = sqlx::query_as(
+        r#"UPDATE brickos.org_licenses
+           SET revoked_at = NULL, updated_at = NOW()
+           WHERE jti = $1
+           RETURNING id, org_id"#,
+    )
+    .bind(jti)
+    .fetch_optional(&mut *tx)
+    .await?;
+
+    let (license_id, org_id) = row.ok_or(AppError::NotFound)?;
+
+    sqlx::query("DELETE FROM brickos.org_licenses_revoked WHERE jti = $1")
+        .bind(jti)
+        .execute(&mut *tx)
+        .await?;
+
+    tx.commit().await?;
+
+    let _ = crate::services::audit_log::write(
+        &platform_pool.0,
+        Some(admin.user_id),
+        "license.restore",
+        crate::services::audit_log::targets::ORGANIZATION,
+        org_id,
+        json!({
+            "license_id": license_id,
+            "jti": jti,
+        }),
+    )
+    .await;
+
+    Ok(HttpResponse::Ok().json(json!({
+        "data": { "restored": true, "license_id": license_id },
+        "error": null
+    })))
+}
+
 /// GET /admin/licensing/revocations
 ///
 /// Returns the most recent 200 revocations across all orgs. Used by #483's

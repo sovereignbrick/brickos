@@ -1238,6 +1238,11 @@ export const api = {
           is_active: boolean
         }>
       }>('/admin/licensing/tiers'),
+    restoreRevokedLicense: (jti: string) =>
+      request<{ data: { restored: boolean; license_id: string } }>(
+        `/admin/licensing/revocations/${jti}/restore`,
+        { method: 'POST' },
+      ),
     listRevocations: () =>
       request<{
         data: Array<{

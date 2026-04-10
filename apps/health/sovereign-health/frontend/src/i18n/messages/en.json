@@ -1799,7 +1799,44 @@
       "settings": "Settings",
       "branding": "Branding",
       "domains": "Domains",
-      "licensing": "Licensing"
+      "licensing": "Licensing",
+      "features": "Features"
+    },
+    "licensingScreens": {
+      "tiers": {
+        "title": "Tier configuration",
+        "description": "Read-only view of every brickos tier. Editing tiers requires super_admin and is deferred to a follow-up sprint.",
+        "noTiers": "No tiers configured",
+        "featuresHint": "Per-tier feature lists live in brickos.tier_features (see Feature registry for the full catalogue)."
+      },
+      "features": {
+        "title": "Feature registry",
+        "byApp": "Features by app",
+        "description": "Every BrickOS feature lives here exactly once with a namespaced slug.",
+        "empty": "No features registered",
+        "col": {
+          "slug": "Slug",
+          "category": "Category",
+          "name": "Name",
+          "active": "Active"
+        }
+      },
+      "revocations": {
+        "title": "Revocation list",
+        "description": "Every revoked org license. Restore clears the revoked_at flag and removes the row from the revocation cache.",
+        "noRows": "No revocations on record",
+        "restore": "Restore",
+        "restoreConfirm": "Restore this license? It will become valid again on the next 60s cache reload.",
+        "restored": "License restored",
+        "col": {
+          "org": "Organization",
+          "jti": "jti",
+          "revokedAt": "Revoked at",
+          "reason": "Reason",
+          "revokedBy": "Revoked by",
+          "actions": "Actions"
+        }
+      }
     },
     "dormantUsers": {
       "title": "Dormant accounts",
