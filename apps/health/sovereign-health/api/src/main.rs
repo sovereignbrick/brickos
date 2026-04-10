@@ -353,6 +353,10 @@ async fn main() -> std::io::Result<()> {
         cors = cors.allowed_origin("https://api.brickos.io");
         if config_data.is_oss() || std::env::var("DEV_CORS").unwrap_or_default() == "true" {
             cors = cors.allowed_origin("http://localhost:3000");
+            // Next.js falls back to :3001 when :3000 is taken (common during
+            // parallel dev stacks). Without this, the frontend hits CORS on
+            // every backend call and the admin GUI silently fails to load.
+            cors = cors.allowed_origin("http://localhost:3001");
         }
         for origin in &extra_origins {
             cors = cors.allowed_origin(origin);
