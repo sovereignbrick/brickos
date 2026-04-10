@@ -21,6 +21,50 @@ Next: Phase A starts after issue files synced to GitHub. Target Day 1 complete =
 
 ---
 
+## 2026-04-10 -- A -- Phase A CLOSED ✅
+
+**Type:** daily-note + decision
+**Phase:** A → B
+
+Phase A complete. All 4 issues + 1 maintenance commit + 1 cron-hardening commit on `sprint-040/phase-a` (8 commits total). All gate checks green.
+
+**Issues delivered:**
+- #460 -- 5 new tables in brickos schema (feature_registry, tier_features, org_licenses, org_licenses_revoked, admin_audit_log)
+- #461 -- Individual pseudo-org migration + lifecycle_status + admin_override_tier_slug/expires_at columns
+- #462 -- brickos-licensing crate skeleton (7 tests passing, RS256 keypair, README, dev key gitignored)
+- #463 -- Roles 5→3 consolidation in code + SQL + canonical tier seed (28 features, 130 tier_features rows, Glimpse=10 markers, calc unlimited locked in)
+
+**Phase A gate (all green):**
+- [x] DB migrations 009/010/011 apply cleanly on a fresh DB (verified with throwaway postgres + stub schema)
+- [x] All existing SHI tests pass (107 unit + 10 integration + 2 smoke = 119 tests, 0 failures)
+- [x] brickos-licensing crate compiles + 7 unit tests pass
+- [x] cargo fmt --all -- --check clean (after the maintenance commit)
+- [x] cargo check --workspace clean
+- [x] cargo clippy -p sovereign-health-backend --all-targets -- -D warnings clean
+- [x] cargo clippy -p brickos-licensing --all-targets -- -D warnings clean
+- [x] No live customers, no production deploys (constraint observed)
+
+**Commits on the branch:**
+```
+51d6eef chore: cargo fmt --all (Phase A gate, pre-existing drift across 27 files)
+3874174 chore(licensing): #463 roles 5->3 + canonical tier/feature seed
+0de6f19 chore(tracker): harden auto-sync.sh + first cron-fire backlog drain
+e6ab308 feat(licensing): #462 brickos-licensing crate skeleton + RS256 keypair
+fee2b8b chore(licensing): #461 individual pseudo-org + lifecycle + admin override extensions
+c175a38 chore(licensing): #460 schema migrations for brickos-licensing foundation
+de1fdc8 chore(sprint-040): bootstrap licensing foundation sprint
+```
+
+**Surprise findings (de-risked the sprint):**
+1. The "20 occurrences across 7 files" role-string-literal scope was misleading -- only 2 files actually had org_member role strings (4 + 2 occurrences). The other 5 files matched on chat-message roles ("user"/"assistant") and payment-gateway roles ("fiat"/"btc") that have nothing to do with org_members. Real blast radius was much smaller.
+2. SHI middleware does not query brickos.org_members for normal user requests. Deleting personal orgs (#461) was safe with no handler shim required.
+3. `product_features` and `tier_features` already exist in SHI's database from sprint 011, with `app_key` columns added in sprint 035 for multi-app awareness. Migration 009 created NEW tables in brickos schema alongside the legacy SHI tables, avoiding any risk to current SHI behavior. The SHI tables get deprecated and dropped in #467.
+4. Dockerfiles use bulk `COPY crates ./crates` so adding the brickos-licensing crate required zero Dockerfile edits. Updated outdated `feedback_dockerfile_new_crates.md` memory.
+
+**Next: Phase B kickoff** (#464 brickos-licensing runtime → #467 SHI tier.rs facade refactor → #470 regression matrix → #471 Playwright E2E → #472 AI hard ceiling). Phase B is the critical path; #467 is the most-critical single issue in the entire sprint.
+
+---
+
 ## 2026-04-10 -- pre-A -- auto-sync.sh hardening (cron fire #1)
 
 **Type:** lesson + decision
