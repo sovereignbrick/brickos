@@ -2,15 +2,16 @@
 number: 490
 github_number: 487
 title: "chore: licensing dead code cleanup after #467 stabilization"
-milestone: "SHI Licensing Foundation -- Sprint 040"
-labels: [licensing, sprint-040, phase-b, chore, cleanup, refactor]
+milestone: "Sprint 041 -- Staging Quality Gate"
+labels: [licensing, sprint-041, phase-h, chore, cleanup, refactor]
 created: 2026-04-10
 priority: P2
-sprint: 040
-phase: B
+sprint: 041
+phase: H
 design: 022
 estimate: 0.75d
-blocked_by: [467, 468]
+blocked_by: [467, 468, 520]
+carry_over_from: sprint-040
 ---
 
 Dead code cleanup deferred from Sprint 040 #467 part 3 (canonical path

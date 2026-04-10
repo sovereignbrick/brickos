@@ -2,15 +2,16 @@
 number: 491
 github_number: 488
 title: "ops: build two-pool E2E env so #471 licensing journey suite can actually run"
-milestone: "SHI Licensing Foundation -- Sprint 040"
-labels: [licensing, sprint-040, phase-b, ops, e2e, follow-up]
+milestone: "Sprint 041 -- Staging Quality Gate"
+labels: [licensing, sprint-041, phase-b, ops, e2e, follow-up]
 created: 2026-04-10
-priority: P2
-sprint: 040
+priority: P1
+sprint: 041
 phase: B
 design: 022
 estimate: 0.5d
 blocked_by: [471]
+carry_over_from: sprint-040
 ---
 
 #471 ships the Playwright suite skeleton (`apps/health/sovereign-health/frontend/e2e/suite-licensing-journeys.spec.ts`)
