@@ -1863,6 +1863,40 @@
       "actionBranding": "Branding bearbeiten",
       "stripeCustomer": "Stripe-Kunde",
       "noStripe": "Keine Stripe-Verknüpfung",
+      "invoicesTab": {
+        "title": "Rechnungen",
+        "newButton": "Neue Rechnung",
+        "noInvoices": "Noch keine Rechnungen",
+        "col": {
+          "created": "Erstellt",
+          "memo": "Memo",
+          "amount": "Betrag",
+          "status": "Status",
+          "stripe": "Stripe",
+          "actions": "Aktionen"
+        },
+        "syncToStripe": "Mit Stripe synchronisieren",
+        "synced": "Über Stripe versendet",
+        "syncStripeMissing": "Stripe-Kunden-ID erforderlich",
+        "form": {
+          "title": "Neue Rechnung",
+          "currency": "Währung",
+          "lineItems": "Positionen",
+          "addLine": "+ Position",
+          "product": "Produkt",
+          "quantity": "Menge",
+          "unitPrice": "Einzel (€)",
+          "removeLine": "×",
+          "memo": "Memo",
+          "dueDays": "Fällig in (Tagen)",
+          "saveDraft": "Entwurf speichern",
+          "saveAndSync": "Speichern und an Stripe senden",
+          "stripeCustomerId": "Stripe-Kunden-ID (cus_...)",
+          "subtotal": "Zwischensumme",
+          "draftCreated": "Entwurf gespeichert",
+          "syncedSuccess": "Rechnung über Stripe versendet"
+        }
+      },
       "brandingTab": {
         "logo": "Logo",
         "logoUpload": "PNG oder SVG hochladen (max. 200KB)",

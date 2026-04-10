@@ -1594,6 +1594,37 @@ async fn handle_invoice_payment(
     .execute(pool)
     .await?;
 
+    // Sprint 040 #481 -- update org_invoices row if this webhook fires for
+    // an invoice we manually created via the admin Invoices tab. Best-effort:
+    // a missing row is fine (the invoice may have been created outside the
+    // manual flow), errors are logged but don't fail the webhook.
+    if !stripe_invoice_id.is_empty() {
+        let next_status = if result == "succeeded" {
+            "paid"
+        } else {
+            "failed"
+        };
+        let update = if result == "succeeded" {
+            sqlx::query(
+                "UPDATE org_invoices SET status = $1, paid_at = NOW(), updated_at = NOW()
+                 WHERE stripe_invoice_id = $2",
+            )
+        } else {
+            sqlx::query(
+                "UPDATE org_invoices SET status = $1, updated_at = NOW()
+                 WHERE stripe_invoice_id = $2",
+            )
+        };
+        if let Err(e) = update
+            .bind(next_status)
+            .bind(&stripe_invoice_id)
+            .execute(pool)
+            .await
+        {
+            tracing::warn!(error = ?e, "org_invoices update on webhook failed");
+        }
+    }
+
     // Mirror invoice locally for billing data sovereignty
     if result == "succeeded" {
         if let Some(uid) = user_id {

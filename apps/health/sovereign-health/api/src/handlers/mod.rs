@@ -9,6 +9,7 @@ pub mod admin_health;
 pub mod admin_licensing;
 pub mod admin_lifecycle_email;
 pub mod admin_org_apps;
+pub mod admin_org_invoices;
 pub mod admin_orgs;
 pub mod admin_publish;
 pub mod admin_settings;

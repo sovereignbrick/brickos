@@ -1291,6 +1291,55 @@ export const api = {
         `/admin/organizations/${orgId}/license/revoke`,
         { method: 'POST', body: JSON.stringify({ reason }) },
       ),
+    // Sprint 040 #481 -- per-org invoices (Stripe Invoices API)
+    listInvoiceProducts: () =>
+      request<{
+        data: Array<{ slug: string; name: string; default_unit_amount_cents: number }>
+      }>('/admin/invoice-products'),
+    listOrgInvoices: (orgId: string) =>
+      request<{
+        data: Array<{
+          id: string
+          stripe_invoice_id: string | null
+          currency: string
+          status: 'draft' | 'sent' | 'paid' | 'overdue' | 'void' | 'failed'
+          line_items: Array<{
+            product_slug: string
+            name: string
+            quantity: number
+            unit_amount_cents: number
+          }>
+          total_amount_cents: number
+          due_days: number
+          memo: string | null
+          created_at: string
+          sent_at: string | null
+          paid_at: string | null
+        }>
+      }>(`/admin/organizations/${orgId}/invoices`),
+    createOrgInvoice: (
+      orgId: string,
+      body: {
+        currency: string
+        line_items: Array<{
+          product_slug: string
+          name: string
+          quantity: number
+          unit_amount_cents: number
+        }>
+        due_days?: number
+        memo?: string
+      },
+    ) =>
+      request<{ data: { id: string; status: string; total_amount_cents: number } }>(
+        `/admin/organizations/${orgId}/invoices`,
+        { method: 'POST', body: JSON.stringify(body) },
+      ),
+    syncOrgInvoiceToStripe: (orgId: string, invoiceId: string, stripeCustomerId: string) =>
+      request<{ data: { id: string; stripe_invoice_id: string; status: string } }>(
+        `/admin/organizations/${orgId}/invoices/${invoiceId}/sync`,
+        { method: 'POST', body: JSON.stringify({ stripe_customer_id: stripeCustomerId }) },
+      ),
     // Sprint 040 #480 -- branding tab
     updateOrgBranding: (orgId: string, branding: Record<string, unknown>) =>
       request<{ data: { updated: boolean } }>(`/admin/organizations/${orgId}/branding`, {

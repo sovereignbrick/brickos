@@ -17,6 +17,7 @@ import { toast } from '@/lib/toast'
 import { formatDate } from '@/lib/date-format'
 import { LicenseTab } from './license-tab'
 import { BrandingTab } from './branding-tab'
+import { InvoicesTab } from './invoices-tab'
 
 interface OrgDetail {
   id: string
@@ -102,7 +103,9 @@ export default function OrgDetailPage() {
   const orgId = params.id
   const t = useTranslations('platform.orgDetail')
   const locale = useLocale()
-  const [tab, setTab] = useState<'overview' | 'members' | 'license' | 'branding'>('overview')
+  const [tab, setTab] = useState<'overview' | 'members' | 'license' | 'branding' | 'invoices'>(
+    'overview',
+  )
   const [org, setOrg] = useState<OrgDetail | null>(null)
   const [members, setMembers] = useState<OrgMember[]>([])
   const [loading, setLoading] = useState(true)
@@ -216,6 +219,7 @@ export default function OrgDetailPage() {
             ['members', t('tabs.members')],
             ['license', t('tabs.license')],
             ['branding', t('tabs.branding')],
+            ['invoices', t('tabs.invoices')],
           ] as const
         ).map(([key, label]) => (
           <button
@@ -231,8 +235,8 @@ export default function OrgDetailPage() {
             {label}
           </button>
         ))}
-        {/* Tabs reserved for #481/#483 -- placeholders so the URL exists */}
-        {(['invoices', 'audit'] as const).map((key) => (
+        {/* Tab reserved for #483 -- placeholder so the URL exists */}
+        {(['audit'] as const).map((key) => (
           <span
             key={key}
             className="px-4 py-2 text-sm font-medium border-b-2 border-transparent text-zinc-700 cursor-not-allowed"
@@ -393,6 +397,9 @@ export default function OrgDetailPage() {
           }}
         />
       )}
+
+      {/* Invoices tab (Sprint 040 #481) */}
+      {tab === 'invoices' && <InvoicesTab orgId={orgId} />}
 
       {/* Members tab */}
       {tab === 'members' && (

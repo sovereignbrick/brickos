@@ -470,4 +470,79 @@ impl StripeService {
             .get(&(tier_slug.to_string(), interval.to_string()))
             .cloned()
     }
+
+    // ------------------------------------------------------------------------
+    // Sprint 040 #481 -- manual invoice flow (Stripe Invoices API).
+    //
+    // Three-step server-side dance:
+    //   1. POST /v1/invoices              -> create draft, returns invoice_id
+    //   2. POST /v1/invoiceitems (xN)     -> attach each line item
+    //   3. POST /v1/invoices/{id}/finalize -> lock + transition to "open"
+    //   4. POST /v1/invoices/{id}/send     -> Stripe emails the customer
+    //
+    // The customer must already exist (we re-use the existing customer lookup
+    // path; for orgs without a Stripe customer this returns an error so the
+    // caller can fall back to the local-only draft).
+    // ------------------------------------------------------------------------
+
+    /// Create an empty draft invoice for a customer.
+    /// `due_days` controls `days_until_due`. `memo` becomes `description`.
+    pub async fn create_draft_invoice(
+        &self,
+        customer_id: &str,
+        currency: &str,
+        due_days: i32,
+        memo: Option<&str>,
+    ) -> Result<String> {
+        let mut params = vec![
+            ("customer".to_string(), customer_id.to_string()),
+            ("currency".to_string(), currency.to_string()),
+            ("collection_method".to_string(), "send_invoice".to_string()),
+            ("days_until_due".to_string(), due_days.to_string()),
+            ("auto_advance".to_string(), "false".to_string()),
+        ];
+        if let Some(m) = memo {
+            params.push(("description".to_string(), m.to_string()));
+        }
+        let res = self.raw_post("invoices", &params).await?;
+        res["id"]
+            .as_str()
+            .map(|s| s.to_string())
+            .ok_or_else(|| anyhow!("Stripe create_draft_invoice: missing id in response"))
+    }
+
+    /// Attach a single line item to an existing draft invoice.
+    /// `unit_amount_cents` is in the smallest currency unit (cents).
+    pub async fn add_invoice_item(
+        &self,
+        customer_id: &str,
+        invoice_id: &str,
+        currency: &str,
+        name: &str,
+        quantity: i64,
+        unit_amount_cents: i64,
+    ) -> Result<()> {
+        let params = vec![
+            ("customer".to_string(), customer_id.to_string()),
+            ("invoice".to_string(), invoice_id.to_string()),
+            ("currency".to_string(), currency.to_string()),
+            ("description".to_string(), name.to_string()),
+            ("quantity".to_string(), quantity.to_string()),
+            ("unit_amount".to_string(), unit_amount_cents.to_string()),
+        ];
+        self.raw_post("invoiceitems", &params).await?;
+        Ok(())
+    }
+
+    /// Finalize an open draft (locks line items, computes totals, generates PDF).
+    pub async fn finalize_invoice(&self, invoice_id: &str) -> Result<serde_json::Value> {
+        self.raw_post(&format!("invoices/{invoice_id}/finalize"), &[])
+            .await
+    }
+
+    /// Send the finalized invoice to the customer via Stripe's email.
+    pub async fn send_invoice(&self, invoice_id: &str) -> Result<serde_json::Value> {
+        self.raw_post(&format!("invoices/{invoice_id}/send"), &[])
+            .await
+    }
 }

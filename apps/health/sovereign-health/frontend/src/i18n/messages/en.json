@@ -1863,6 +1863,40 @@
       "actionBranding": "Edit branding",
       "stripeCustomer": "Stripe customer",
       "noStripe": "No Stripe link",
+      "invoicesTab": {
+        "title": "Invoices",
+        "newButton": "New invoice",
+        "noInvoices": "No invoices yet",
+        "col": {
+          "created": "Created",
+          "memo": "Memo",
+          "amount": "Amount",
+          "status": "Status",
+          "stripe": "Stripe",
+          "actions": "Actions"
+        },
+        "syncToStripe": "Sync to Stripe",
+        "synced": "Sent via Stripe",
+        "syncStripeMissing": "Stripe customer ID required",
+        "form": {
+          "title": "New invoice",
+          "currency": "Currency",
+          "lineItems": "Line items",
+          "addLine": "+ Add line",
+          "product": "Product",
+          "quantity": "Qty",
+          "unitPrice": "Unit (€)",
+          "removeLine": "×",
+          "memo": "Memo",
+          "dueDays": "Due in (days)",
+          "saveDraft": "Save draft",
+          "saveAndSync": "Save and sync to Stripe",
+          "stripeCustomerId": "Stripe customer ID (cus_...)",
+          "subtotal": "Subtotal",
+          "draftCreated": "Draft saved",
+          "syncedSuccess": "Invoice sent via Stripe"
+        }
+      },
       "brandingTab": {
         "logo": "Logo",
         "logoUpload": "Upload PNG or SVG (max 200KB)",

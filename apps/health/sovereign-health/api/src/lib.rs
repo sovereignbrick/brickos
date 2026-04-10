@@ -827,6 +827,23 @@ pub fn configure_routes(cfg: &mut actix_web::web::ServiceConfig) {
                 "/organizations/{org_id}/domains/{domain_id}",
                 actix_web::web::delete().to(handlers::admin_orgs::delete_org_domain),
             )
+            // Sprint 040 #481 -- per-org invoices (Stripe Invoices API)
+            .route(
+                "/invoice-products",
+                actix_web::web::get().to(handlers::admin_org_invoices::list_invoice_products),
+            )
+            .route(
+                "/organizations/{id}/invoices",
+                actix_web::web::get().to(handlers::admin_org_invoices::list_org_invoices),
+            )
+            .route(
+                "/organizations/{id}/invoices",
+                actix_web::web::post().to(handlers::admin_org_invoices::create_org_invoice),
+            )
+            .route(
+                "/organizations/{org_id}/invoices/{invoice_id}/sync",
+                actix_web::web::post().to(handlers::admin_org_invoices::sync_org_invoice_to_stripe),
+            )
             .route(
                 "/organizations/{id}/members",
                 actix_web::web::post().to(handlers::admin_orgs::add_org_member),
