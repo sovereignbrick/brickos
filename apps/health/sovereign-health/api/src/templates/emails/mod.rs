@@ -157,6 +157,155 @@ fn wrap_html_de(body: &str) -> String {
 }
 
 // ---------------------------------------------------------------------------
+// brickos.io HTML wrapper -- Sprint 040 #473
+//
+// Per design 022 §1.3, billing/license transactional emails carry brickos.io
+// branding (NOT Sovereign Health branding) because the customer's contract is
+// with Sovereign Brick the platform, not with the SHI app. SHI continues to
+// brand its own clinical emails. The split is:
+//   - billing & license = brickos.io
+//   - clinical = app brand
+//
+// Wrapper differences from the SHI version:
+//   - Logo: brickos.io
+//   - Footer brand name: BrickOS / Sovereign Brick
+//   - Footer links to brickos.io (not sovereignhealth.io)
+//   - Same dark-mode + WCAG 2.1 AA structure as the SHI wrapper
+// ---------------------------------------------------------------------------
+
+const HTML_WRAPPER_START_BRICKOS: &str = r#"<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>{{subject}}</title>
+<style>
+:root { color-scheme: light dark; }
+@media (prefers-color-scheme: dark) {
+  .email-body { background-color: #0f1115 !important; }
+  .email-card { background-color: #1a1d24 !important; border-color: #2a2e38 !important; }
+  .email-heading { color: #ffffff !important; }
+  .email-text { color: #e0e0e0 !important; }
+  .email-subtext { color: #a8a8a8 !important; }
+  .email-footer { color: #888888 !important; }
+  .email-footer a { color: #888888 !important; }
+  .email-info-box { background-color: #1a2638 !important; border-color: #2d3f5a !important; }
+  .email-info-text { color: #93c5fd !important; }
+}
+</style>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; -webkit-font-smoothing: antialiased;">
+<div class="email-body" style="background-color: #f5f6f8; padding: 32px 16px;">
+<div style="max-width: 560px; margin: 0 auto;">
+
+<!-- Logo -->
+<div style="text-align: center; padding: 24px 0 16px;">
+  <img src="https://brickos.io/logo.png" alt="BrickOS" width="160" style="max-width: 160px; height: auto;" />
+</div>
+
+<!-- Card -->
+<div class="email-card" style="background-color: #ffffff; border-radius: 12px; padding: 32px; box-shadow: 0 1px 3px rgba(0,0,0,0.08);">
+"#;
+
+const HTML_WRAPPER_END_BRICKOS: &str = r#"
+</div>
+
+<!-- Footer -->
+<div class="email-footer" style="text-align: center; padding: 24px 0; font-size: 13px; color: #666666; line-height: 1.5;">
+  <p style="margin: 0;">BrickOS &mdash; the sovereign suite</p>
+  <p style="margin: 4px 0 0;"><a href="https://brickos.io" style="color: #666666; text-decoration: none;">brickos.io</a></p>
+  <p style="margin: 12px 0 0; font-size: 11px; color: #999999;">&copy; 2026 Sovereign Brick. All rights reserved.</p>
+  <p style="margin: 4px 0 0; font-size: 11px;">
+    <a href="https://brickos.io/terms" style="color: #999999; text-decoration: none;">Terms</a> &nbsp;|&nbsp;
+    <a href="https://brickos.io/privacy" style="color: #999999; text-decoration: none;">Privacy</a> &nbsp;|&nbsp;
+    <a href="https://brickos.io/impressum" style="color: #999999; text-decoration: none;">Impressum</a>
+  </p>
+  <p style="margin: 8px 0 0; font-size: 11px; color: #999999;">
+    This is a billing notice from your BrickOS account. You cannot opt out of billing notices while you have an active subscription or grace period.
+  </p>
+  {{unsubscribe_block}}
+</div>
+
+</div>
+</div>
+</body>
+</html>"#;
+
+fn wrap_html_brickos(body: &str) -> String {
+    format!(
+        "{}{}{}",
+        HTML_WRAPPER_START_BRICKOS, body, HTML_WRAPPER_END_BRICKOS
+    )
+}
+
+const HTML_WRAPPER_START_BRICKOS_DE: &str = r#"<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>{{subject}}</title>
+<style>
+:root { color-scheme: light dark; }
+@media (prefers-color-scheme: dark) {
+  .email-body { background-color: #0f1115 !important; }
+  .email-card { background-color: #1a1d24 !important; border-color: #2a2e38 !important; }
+  .email-heading { color: #ffffff !important; }
+  .email-text { color: #e0e0e0 !important; }
+  .email-subtext { color: #a8a8a8 !important; }
+  .email-footer { color: #888888 !important; }
+  .email-footer a { color: #888888 !important; }
+}
+</style>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; -webkit-font-smoothing: antialiased;">
+<div class="email-body" style="background-color: #f5f6f8; padding: 32px 16px;">
+<div style="max-width: 560px; margin: 0 auto;">
+
+<!-- Logo -->
+<div style="text-align: center; padding: 24px 0 16px;">
+  <img src="https://brickos.io/logo.png" alt="BrickOS" width="160" style="max-width: 160px; height: auto;" />
+</div>
+
+<!-- Card -->
+<div class="email-card" style="background-color: #ffffff; border-radius: 12px; padding: 32px; box-shadow: 0 1px 3px rgba(0,0,0,0.08);">
+"#;
+
+const HTML_WRAPPER_END_BRICKOS_DE: &str = r#"
+</div>
+
+<!-- Footer -->
+<div class="email-footer" style="text-align: center; padding: 24px 0; font-size: 13px; color: #666666; line-height: 1.5;">
+  <p style="margin: 0;">BrickOS &mdash; die souveraene Suite</p>
+  <p style="margin: 4px 0 0;"><a href="https://brickos.io" style="color: #666666; text-decoration: none;">brickos.io</a></p>
+  <p style="margin: 12px 0 0; font-size: 11px; color: #999999;">&copy; 2026 Sovereign Brick. Alle Rechte vorbehalten.</p>
+  <p style="margin: 4px 0 0; font-size: 11px;">
+    <a href="https://brickos.io/terms" style="color: #999999; text-decoration: none;">Nutzungsbedingungen</a> &nbsp;|&nbsp;
+    <a href="https://brickos.io/privacy" style="color: #999999; text-decoration: none;">Datenschutz</a> &nbsp;|&nbsp;
+    <a href="https://brickos.io/impressum" style="color: #999999; text-decoration: none;">Impressum</a>
+  </p>
+  <p style="margin: 8px 0 0; font-size: 11px; color: #999999;">
+    Dies ist eine Abrechnungs-Mitteilung Ihres BrickOS-Kontos. Solange Ihr Abonnement oder die Schonfrist aktiv ist, koennen Sie diese Benachrichtigungen nicht abbestellen.
+  </p>
+  {{unsubscribe_block}}
+</div>
+
+</div>
+</div>
+</body>
+</html>"#;
+
+fn wrap_html_brickos_de(body: &str) -> String {
+    format!(
+        "{}{}{}",
+        HTML_WRAPPER_START_BRICKOS_DE, body, HTML_WRAPPER_END_BRICKOS_DE
+    )
+}
+
+// ---------------------------------------------------------------------------
 // 1. Email Verification (EN)
 // ---------------------------------------------------------------------------
 
@@ -863,6 +1012,148 @@ pub fn render_template_localized(
     (subject, html, text)
 }
 
+// ---------------------------------------------------------------------------
+// Brickos.io render helper -- Sprint 040 #473
+//
+// Use this for ALL billing / license / org-lifecycle templates that should
+// carry brickos.io branding instead of Sovereign Health branding. The
+// template body is the same shape as the SHI templates (HTML body fragment
+// + plain text); only the outer chrome differs.
+// ---------------------------------------------------------------------------
+
+pub fn render_template_brickos(
+    template: &EmailTemplate,
+    vars: &HashMap<&str, String>,
+    lang: &str,
+) -> (String, String, String) {
+    let mut vars = vars.clone();
+    // Billing emails have NO unsubscribe link -- the user agreed to billing
+    // notices in the T&C. The unsubscribe_block is rendered empty.
+    vars.insert("unsubscribe_block", String::new());
+    let subject = render(template.subject, &vars);
+    let html_body = render(template.html, &vars);
+    let wrapper = if lang == "de" {
+        wrap_html_brickos_de(&html_body)
+    } else {
+        wrap_html_brickos(&html_body)
+    };
+    let html = minify_html(&render(&wrapper, &vars));
+    let text = render(template.text, &vars);
+    (subject, html, text)
+}
+
+// ===========================================================================
+// Sprint 040 #473 -- Payment failure cadence templates (brickos.io branded)
+//
+// Three-step reminder cadence per design 022 §2.5:
+//   - Day 0: payment failed (the existing payment_failed() template; will
+//     be re-rendered with the brickos wrapper via render_template_brickos)
+//   - Day 7: still no payment, half the grace period elapsed
+//   - Day 13: last warning, downgrade tomorrow
+//
+// All templates use {{display_name}}, {{tier_name}}, {{grace_days_remaining}},
+// {{update_payment_url}} for variable substitution. The grace_days_remaining
+// is computed by the scheduled job (#475), not hardcoded in the template.
+// ===========================================================================
+
+/// Day 7: midpoint reminder. The user has had a week to update their payment.
+pub fn payment_failure_day_7() -> EmailTemplate {
+    EmailTemplate {
+        subject: "Payment update needed -- {{grace_days_remaining}} days until downgrade",
+        html: concat!(
+            r#"<h2 class="email-heading" style="margin: 0 0 16px; font-size: 22px; font-weight: 600; color: #1a1a1a;">Reminder: Payment Update Needed</h2>"#,
+            r#"<p class="email-text" style="margin: 0 0 12px; font-size: 16px; line-height: 1.6; color: #333333;">Hi {{display_name}},</p>"#,
+            r#"<p class="email-text" style="margin: 0 0 12px; font-size: 16px; line-height: 1.6; color: #333333;">A week ago we couldn't process your payment for the <strong>{{tier_name}}</strong> plan, and we still haven't been able to charge your card.</p>"#,
+            r#"<p class="email-text" style="margin: 0 0 16px; font-size: 16px; line-height: 1.6; color: #333333;">You have <strong>{{grace_days_remaining}} days</strong> until your account is moved to the free Glimpse plan. Your data is safe -- nothing is deleted.</p>"#,
+            r#"<div style="text-align: center; margin: 24px 0;"><a href="{{update_payment_url}}" style="background-color: #2563eb; color: #ffffff; padding: 14px 36px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px; display: inline-block;">Update Payment Method</a></div>"#,
+            r#"<p class="email-subtext" style="margin: 24px 0 0; font-size: 14px; line-height: 1.5; color: #666666;">Need help? Reply to this email and a human will get back to you.</p>"#,
+        ),
+        text: concat!(
+            "Reminder: Payment Update Needed\n\n",
+            "Hi {{display_name}},\n\n",
+            "A week ago we couldn't process your payment for the {{tier_name}} plan, and we still haven't been able to charge your card.\n\n",
+            "You have {{grace_days_remaining}} days until your account is moved to the free Glimpse plan. Your data is safe -- nothing is deleted.\n\n",
+            "Update payment: {{update_payment_url}}\n\n",
+            "Need help? Reply to this email and a human will get back to you.\n\n",
+            "-- BrickOS\n",
+            "   brickos.io\n",
+        ),
+    }
+}
+
+pub fn payment_failure_day_7_de() -> EmailTemplate {
+    EmailTemplate {
+        subject: "Zahlung erforderlich -- noch {{grace_days_remaining}} Tage",
+        html: concat!(
+            r#"<h2 class="email-heading" style="margin: 0 0 16px; font-size: 22px; font-weight: 600; color: #1a1a1a;">Erinnerung: Zahlung erforderlich</h2>"#,
+            r#"<p class="email-text" style="margin: 0 0 12px; font-size: 16px; line-height: 1.6; color: #333333;">Hallo {{display_name}},</p>"#,
+            r#"<p class="email-text" style="margin: 0 0 12px; font-size: 16px; line-height: 1.6; color: #333333;">Vor einer Woche konnten wir Ihre Zahlung fuer den <strong>{{tier_name}}</strong>-Plan nicht verarbeiten, und wir koennen Ihre Karte bis heute nicht belasten.</p>"#,
+            r#"<p class="email-text" style="margin: 0 0 16px; font-size: 16px; line-height: 1.6; color: #333333;">Sie haben noch <strong>{{grace_days_remaining}} Tage</strong>, bis Ihr Konto auf den kostenlosen Glimpse-Plan umgestellt wird. Ihre Daten bleiben erhalten -- nichts wird geloescht.</p>"#,
+            r#"<div style="text-align: center; margin: 24px 0;"><a href="{{update_payment_url}}" style="background-color: #2563eb; color: #ffffff; padding: 14px 36px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px; display: inline-block;">Zahlungsmethode aktualisieren</a></div>"#,
+            r#"<p class="email-subtext" style="margin: 24px 0 0; font-size: 14px; line-height: 1.5; color: #666666;">Brauchen Sie Hilfe? Antworten Sie auf diese E-Mail, ein Mensch meldet sich bei Ihnen.</p>"#,
+        ),
+        text: concat!(
+            "Erinnerung: Zahlung erforderlich\n\n",
+            "Hallo {{display_name}},\n\n",
+            "Vor einer Woche konnten wir Ihre Zahlung fuer den {{tier_name}}-Plan nicht verarbeiten, und wir koennen Ihre Karte bis heute nicht belasten.\n\n",
+            "Sie haben noch {{grace_days_remaining}} Tage, bis Ihr Konto auf den kostenlosen Glimpse-Plan umgestellt wird. Ihre Daten bleiben erhalten -- nichts wird geloescht.\n\n",
+            "Zahlungsmethode aktualisieren: {{update_payment_url}}\n\n",
+            "Brauchen Sie Hilfe? Antworten Sie auf diese E-Mail, ein Mensch meldet sich bei Ihnen.\n\n",
+            "-- BrickOS\n",
+            "   brickos.io\n",
+        ),
+    }
+}
+
+/// Day 13: last warning. The user has 1 day until downgrade.
+pub fn payment_failure_day_13() -> EmailTemplate {
+    EmailTemplate {
+        subject: "Last warning: account downgrades tomorrow",
+        html: concat!(
+            r#"<h2 class="email-heading" style="margin: 0 0 16px; font-size: 22px; font-weight: 600; color: #dc2626;">Last Warning</h2>"#,
+            r#"<p class="email-text" style="margin: 0 0 12px; font-size: 16px; line-height: 1.6; color: #333333;">Hi {{display_name}},</p>"#,
+            r#"<p class="email-text" style="margin: 0 0 12px; font-size: 16px; line-height: 1.6; color: #333333;">This is the last reminder. Your <strong>{{tier_name}}</strong> subscription has been in grace period for 13 days. Tomorrow your account will be moved to the free Glimpse plan.</p>"#,
+            r#"<p class="email-text" style="margin: 0 0 16px; font-size: 16px; line-height: 1.6; color: #333333;">If you update your payment method in the next 24 hours, nothing will change for you.</p>"#,
+            r#"<div style="text-align: center; margin: 24px 0;"><a href="{{update_payment_url}}" style="background-color: #dc2626; color: #ffffff; padding: 14px 36px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px; display: inline-block;">Update Payment Method</a></div>"#,
+            r#"<p class="email-subtext" style="margin: 24px 0 0; font-size: 14px; line-height: 1.5; color: #666666;">After the downgrade your data stays safe -- you keep read access to everything. You can re-subscribe at any time and get your full plan back.</p>"#,
+        ),
+        text: concat!(
+            "LAST WARNING\n\n",
+            "Hi {{display_name}},\n\n",
+            "This is the last reminder. Your {{tier_name}} subscription has been in grace period for 13 days. Tomorrow your account will be moved to the free Glimpse plan.\n\n",
+            "If you update your payment method in the next 24 hours, nothing will change for you.\n\n",
+            "Update payment: {{update_payment_url}}\n\n",
+            "After the downgrade your data stays safe -- you keep read access to everything. You can re-subscribe at any time and get your full plan back.\n\n",
+            "-- BrickOS\n",
+            "   brickos.io\n",
+        ),
+    }
+}
+
+pub fn payment_failure_day_13_de() -> EmailTemplate {
+    EmailTemplate {
+        subject: "Letzte Warnung: Konto wird morgen herabgestuft",
+        html: concat!(
+            r#"<h2 class="email-heading" style="margin: 0 0 16px; font-size: 22px; font-weight: 600; color: #dc2626;">Letzte Warnung</h2>"#,
+            r#"<p class="email-text" style="margin: 0 0 12px; font-size: 16px; line-height: 1.6; color: #333333;">Hallo {{display_name}},</p>"#,
+            r#"<p class="email-text" style="margin: 0 0 12px; font-size: 16px; line-height: 1.6; color: #333333;">Dies ist die letzte Erinnerung. Ihr <strong>{{tier_name}}</strong>-Abonnement ist seit 13 Tagen in der Schonfrist. Morgen wird Ihr Konto auf den kostenlosen Glimpse-Plan umgestellt.</p>"#,
+            r#"<p class="email-text" style="margin: 0 0 16px; font-size: 16px; line-height: 1.6; color: #333333;">Wenn Sie Ihre Zahlungsmethode in den naechsten 24 Stunden aktualisieren, aendert sich fuer Sie nichts.</p>"#,
+            r#"<div style="text-align: center; margin: 24px 0;"><a href="{{update_payment_url}}" style="background-color: #dc2626; color: #ffffff; padding: 14px 36px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px; display: inline-block;">Zahlungsmethode aktualisieren</a></div>"#,
+            r#"<p class="email-subtext" style="margin: 24px 0 0; font-size: 14px; line-height: 1.5; color: #666666;">Nach der Herabstufung bleiben Ihre Daten erhalten -- Sie behalten Lesezugriff auf alles. Sie koennen jederzeit ein neues Abonnement abschliessen und Ihren vollen Plan zurueckbekommen.</p>"#,
+        ),
+        text: concat!(
+            "LETZTE WARNUNG\n\n",
+            "Hallo {{display_name}},\n\n",
+            "Dies ist die letzte Erinnerung. Ihr {{tier_name}}-Abonnement ist seit 13 Tagen in der Schonfrist. Morgen wird Ihr Konto auf den kostenlosen Glimpse-Plan umgestellt.\n\n",
+            "Wenn Sie Ihre Zahlungsmethode in den naechsten 24 Stunden aktualisieren, aendert sich fuer Sie nichts.\n\n",
+            "Zahlungsmethode aktualisieren: {{update_payment_url}}\n\n",
+            "Nach der Herabstufung bleiben Ihre Daten erhalten -- Sie behalten Lesezugriff auf alles. Sie koennen jederzeit ein neues Abonnement abschliessen und Ihren vollen Plan zurueckbekommen.\n\n",
+            "-- BrickOS\n",
+            "   brickos.io\n",
+        ),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -945,5 +1236,134 @@ mod tests {
         let tmpl = verification_de();
         assert!(tmpl.html.contains("Ihre"));
         assert!(!tmpl.html.contains("deine"));
+    }
+
+    // ===============================================================
+    // Sprint 040 #473 -- payment failure cadence + brickos branding
+    // ===============================================================
+
+    fn sample_brickos_vars() -> HashMap<&'static str, String> {
+        let mut vars = HashMap::new();
+        vars.insert("display_name", "Jane".to_string());
+        vars.insert("tier_name", "Focus".to_string());
+        vars.insert("grace_days_remaining", "7".to_string());
+        vars.insert(
+            "update_payment_url",
+            "https://app.brickos.io/billing".to_string(),
+        );
+        vars.insert("subject", "test".to_string());
+        vars
+    }
+
+    #[test]
+    fn payment_failure_day_7_renders_with_brickos_branding() {
+        let tmpl = payment_failure_day_7();
+        let vars = sample_brickos_vars();
+        let (subject, html, text) = render_template_brickos(&tmpl, &vars, "en");
+
+        // Subject substitution
+        assert!(subject.contains("7"), "subject must include grace days");
+
+        // Body substitution
+        assert!(html.contains("Jane"));
+        assert!(html.contains("Focus"));
+        assert!(html.contains("https://app.brickos.io/billing"));
+
+        // Brickos branding (NOT Sovereign Health)
+        assert!(
+            html.contains("brickos.io"),
+            "html must reference brickos.io"
+        );
+        assert!(
+            html.contains("BrickOS"),
+            "html must contain BrickOS brand name"
+        );
+        assert!(
+            !html.contains("Sovereign Health"),
+            "billing emails must NOT carry SHI branding"
+        );
+        assert!(
+            !html.contains("sovereignhealth.io"),
+            "billing emails must NOT link to sovereignhealth.io"
+        );
+
+        // Text version
+        assert!(text.contains("Jane"));
+        assert!(text.contains("BrickOS"));
+        assert!(text.contains("brickos.io"));
+        assert!(!text.contains("sovereignhealth.io"));
+    }
+
+    #[test]
+    fn payment_failure_day_13_emphasizes_last_warning() {
+        let tmpl = payment_failure_day_13();
+        let vars = sample_brickos_vars();
+        let (subject, html, _text) = render_template_brickos(&tmpl, &vars, "en");
+
+        assert!(
+            subject.to_lowercase().contains("last warning")
+                || subject.to_lowercase().contains("downgrades tomorrow"),
+            "subject must convey urgency"
+        );
+        assert!(html.contains("Last Warning"));
+        // Red CTA color for urgency
+        assert!(html.contains("#dc2626"));
+    }
+
+    #[test]
+    fn payment_failure_day_7_de_uses_formal_sie() {
+        let tmpl = payment_failure_day_7_de();
+        let vars = sample_brickos_vars();
+        let (_subject, html, text) = render_template_brickos(&tmpl, &vars, "de");
+
+        // Formal "Sie" address (not informal "du"/"dein")
+        assert!(html.contains("Ihre") || html.contains("Sie"));
+        assert!(!html.contains(" deine "));
+        assert!(!html.contains(" dein "));
+
+        // German wrapper
+        assert!(html.contains("souveraene") || html.contains("Schonfrist"));
+        assert!(text.contains("Schonfrist") || text.contains("Glimpse"));
+    }
+
+    #[test]
+    fn payment_failure_day_13_de_uses_formal_sie() {
+        let tmpl = payment_failure_day_13_de();
+        let vars = sample_brickos_vars();
+        let (_subject, html, _text) = render_template_brickos(&tmpl, &vars, "de");
+        assert!(html.contains("Sie"));
+        assert!(!html.contains(" deine "));
+    }
+
+    #[test]
+    fn brickos_render_helper_omits_unsubscribe_link() {
+        let tmpl = payment_failure_day_7();
+        let mut vars = sample_brickos_vars();
+        // Even if a caller passes an unsubscribe_url, billing emails MUST NOT
+        // render an unsubscribe link (per design 022 §1.3 + the brickos
+        // wrapper notice text).
+        vars.insert("unsubscribe_url", "https://example.com/unsub".to_string());
+        let (_subject, html, _text) = render_template_brickos(&tmpl, &vars, "en");
+        assert!(!html.contains("Unsubscribe"));
+        assert!(!html.contains("unsubscribe"));
+        assert!(!html.contains("Abmelden"));
+    }
+
+    #[test]
+    fn brickos_wrapper_includes_billing_notice_text() {
+        // The wrapper footer notes that billing notices cannot be opted out
+        let tmpl = payment_failure_day_7();
+        let vars = sample_brickos_vars();
+        let (_subject, html, _text) = render_template_brickos(&tmpl, &vars, "en");
+        assert!(html.contains("billing notice"));
+    }
+
+    #[test]
+    fn brickos_branded_html_has_brickos_logo() {
+        let tmpl = payment_failure_day_7();
+        let vars = sample_brickos_vars();
+        let (_subject, html, _text) = render_template_brickos(&tmpl, &vars, "en");
+        assert!(html.contains("brickos.io/logo.png"));
+        assert!(html.contains("alt=\"BrickOS\""));
     }
 }
