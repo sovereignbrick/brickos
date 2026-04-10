@@ -305,7 +305,7 @@ pub struct GenerateLicenseRequest {
 pub async fn generate_org_license(
     platform_pool: web::Data<PlatformPool>,
     config: web::Data<Config>,
-    _admin: AdminUser,
+    admin: AdminUser,
     path: web::Path<Uuid>,
     body: web::Json<GenerateLicenseRequest>,
 ) -> Result<HttpResponse, AppError> {
@@ -362,6 +362,25 @@ pub async fn generate_org_license(
         AppError::Internal
     })?;
 
+    let _ = crate::services::audit_log::write(
+        &platform_pool.0,
+        Some(admin.user_id),
+        crate::services::audit_log::actions::ORG_LICENSE_ISSUE,
+        crate::services::audit_log::targets::ORGANIZATION,
+        org_id,
+        serde_json::json!({
+            "jti": jti,
+            "tier": org_type,
+            "max_owners": body.max_owners,
+            "max_practitioners": body.max_practitioners,
+            "max_members": body.max_members,
+            "features": body.features,
+            "expires_days": body.expires_days,
+            "billing_model": billing_model,
+        }),
+    )
+    .await;
+
     Ok(HttpResponse::Ok().json(serde_json::json!({
         "data": {
             "license_key": token,
@@ -388,8 +407,17 @@ pub struct UpdateMemberRoleRequest {
 }
 
 /// POST /admin/organizations/{id}/members -- Add member to org
+///
+/// Sprint 040 #469: enforces the role's seat cap from the active
+/// org_licenses JWT. If the org has no active license, no seat cap is
+/// enforced (the assumption is that this is a free/individual-style org
+/// without a paid bundle). If the cap is reached, returns 422
+/// SeatLimitExceeded with the role/current/max in the response body.
+///
+/// Also writes a row to brickos.admin_audit_log on success.
 pub async fn add_org_member(
     platform_pool: web::Data<PlatformPool>,
+    licensing: web::Data<brickos_licensing::embedded::EmbeddedProvider>,
     admin: AdminUser,
     path: web::Path<Uuid>,
     body: web::Json<AddMemberRequest>,
@@ -401,6 +429,38 @@ pub async fn add_org_member(
     let valid_roles = ["org_owner", "practitioner", "member"];
     if !valid_roles.contains(&body.role.as_str()) {
         return Err(AppError::Validation(format!("Invalid role: {}", body.role)));
+    }
+
+    // Sprint 040 #469: enforce seat cap from active org_licenses JWT.
+    if let Some(org_license) = licensing
+        .load_active_org_license(org_id)
+        .await
+        .map_err(|e| {
+            tracing::error!(error = ?e, "load_active_org_license failed");
+            AppError::Internal
+        })?
+    {
+        let current = licensing
+            .count_org_members_by_role(org_id, &body.role)
+            .await
+            .map_err(|e| {
+                tracing::error!(error = ?e, "count_org_members_by_role failed");
+                AppError::Internal
+            })?;
+        let max = match body.role.as_str() {
+            "org_owner" => org_license.max_owners as i64,
+            "practitioner" => org_license.max_practitioners as i64,
+            "member" => org_license.max_members as i64,
+            _ => i64::MAX,
+        };
+        // -1 = unlimited (member role only)
+        if max >= 0 && current >= max {
+            return Err(AppError::SeatLimitExceeded {
+                role: body.role.clone(),
+                current,
+                max,
+            });
+        }
     }
 
     let user_row: Option<(Uuid,)> =
@@ -431,6 +491,21 @@ pub async fn add_org_member(
     .execute(&platform_pool.0)
     .await?;
 
+    // Best-effort audit log
+    let _ = crate::services::audit_log::write(
+        &platform_pool.0,
+        Some(admin.user_id),
+        crate::services::audit_log::actions::ORG_MEMBER_ADD,
+        crate::services::audit_log::targets::ORGANIZATION,
+        org_id,
+        serde_json::json!({
+            "user_id": user_id,
+            "role": body.role,
+            "email": body.email,
+        }),
+    )
+    .await;
+
     Ok(HttpResponse::Created().json(serde_json::json!({
         "data": { "added": true, "user_id": user_id, "role": body.role },
         "error": null
@@ -438,19 +513,68 @@ pub async fn add_org_member(
 }
 
 /// PUT /admin/organizations/{org_id}/members/{member_id} -- Change member role
+///
+/// Sprint 040 #469: enforces seat cap on the NEW role. Promoting a member
+/// to practitioner needs the practitioner cap. Audit-logged on success.
 pub async fn update_member_role(
     platform_pool: web::Data<PlatformPool>,
-    _admin: AdminUser,
+    licensing: web::Data<brickos_licensing::embedded::EmbeddedProvider>,
+    admin: AdminUser,
     path: web::Path<(Uuid, Uuid)>,
     body: web::Json<UpdateMemberRoleRequest>,
 ) -> Result<HttpResponse, AppError> {
     let (org_id, member_id) = path.into_inner();
-    // Sprint 040 #463: roles consolidated 5->3.
-    // Legacy owner|tech_admin|commercial_admin -> org_owner.
-    // Legacy editor -> practitioner. Legacy consumer -> member.
     let valid_roles = ["org_owner", "practitioner", "member"];
     if !valid_roles.contains(&body.role.as_str()) {
         return Err(AppError::Validation(format!("Invalid role: {}", body.role)));
+    }
+
+    // Look up the member's CURRENT role so we know whether this is a
+    // promotion (which needs the new role's cap) or a no-op.
+    let prior: Option<(String, Uuid)> =
+        sqlx::query_as("SELECT role, user_id FROM org_members WHERE id = $1 AND org_id = $2")
+            .bind(member_id)
+            .bind(org_id)
+            .fetch_optional(&platform_pool.0)
+            .await?;
+
+    let (prior_role, user_id) = match prior {
+        Some(t) => t,
+        None => return Err(AppError::NotFound),
+    };
+
+    // If the new role is different and the org has an active license,
+    // enforce the new role's seat cap.
+    if prior_role != body.role {
+        if let Some(org_license) = licensing
+            .load_active_org_license(org_id)
+            .await
+            .map_err(|e| {
+                tracing::error!(error = ?e, "load_active_org_license failed");
+                AppError::Internal
+            })?
+        {
+            let current = licensing
+                .count_org_members_by_role(org_id, &body.role)
+                .await
+                .map_err(|e| {
+                    tracing::error!(error = ?e, "count_org_members_by_role failed");
+                    AppError::Internal
+                })?;
+            let max = match body.role.as_str() {
+                "org_owner" => org_license.max_owners as i64,
+                "practitioner" => org_license.max_practitioners as i64,
+                "member" => org_license.max_members as i64,
+                _ => i64::MAX,
+            };
+            if max >= 0 && current >= max {
+                return Err(AppError::SeatLimitExceeded {
+                    role: body.role.clone(),
+                    current,
+                    max,
+                });
+            }
+        }
     }
 
     sqlx::query("UPDATE org_members SET role = $1 WHERE id = $2 AND org_id = $3")
@@ -460,6 +584,21 @@ pub async fn update_member_role(
         .execute(&platform_pool.0)
         .await?;
 
+    let _ = crate::services::audit_log::write(
+        &platform_pool.0,
+        Some(admin.user_id),
+        crate::services::audit_log::actions::ORG_MEMBER_ROLE_CHANGE,
+        crate::services::audit_log::targets::ORGANIZATION,
+        org_id,
+        serde_json::json!({
+            "member_id": member_id,
+            "user_id": user_id,
+            "from_role": prior_role,
+            "to_role": body.role,
+        }),
+    )
+    .await;
+
     Ok(HttpResponse::Ok().json(serde_json::json!({
         "data": { "updated": true },
         "error": null
@@ -467,18 +606,44 @@ pub async fn update_member_role(
 }
 
 /// DELETE /admin/organizations/{org_id}/members/{member_id} -- Remove member
+///
+/// Sprint 040 #469: audit-logged on success.
 pub async fn remove_org_member(
     platform_pool: web::Data<PlatformPool>,
-    _admin: AdminUser,
+    admin: AdminUser,
     path: web::Path<(Uuid, Uuid)>,
 ) -> Result<HttpResponse, AppError> {
     let (org_id, member_id) = path.into_inner();
+
+    // Capture the role + user_id for the audit payload before deletion
+    let row: Option<(String, Uuid)> =
+        sqlx::query_as("SELECT role, user_id FROM org_members WHERE id = $1 AND org_id = $2")
+            .bind(member_id)
+            .bind(org_id)
+            .fetch_optional(&platform_pool.0)
+            .await?;
 
     sqlx::query("DELETE FROM org_members WHERE id = $1 AND org_id = $2")
         .bind(member_id)
         .bind(org_id)
         .execute(&platform_pool.0)
         .await?;
+
+    if let Some((role, user_id)) = row {
+        let _ = crate::services::audit_log::write(
+            &platform_pool.0,
+            Some(admin.user_id),
+            crate::services::audit_log::actions::ORG_MEMBER_REMOVE,
+            crate::services::audit_log::targets::ORGANIZATION,
+            org_id,
+            serde_json::json!({
+                "member_id": member_id,
+                "user_id": user_id,
+                "role": role,
+            }),
+        )
+        .await;
+    }
 
     Ok(HttpResponse::Ok().json(serde_json::json!({
         "data": { "removed": true },

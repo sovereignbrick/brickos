@@ -45,6 +45,17 @@ pub enum AppError {
     #[error("Upgrade required")]
     UpgradeRequired(Box<crate::services::tier::TierError>),
 
+    /// Sprint 040 #469: org seat limit reached for the requested role.
+    /// Returned by add_org_member / update_member_role when adding the
+    /// next member would exceed the role's seat cap from the active
+    /// org_licenses JWT.
+    #[error("Seat limit exceeded: role {role} ({current}/{max})")]
+    SeatLimitExceeded {
+        role: String,
+        current: i64,
+        max: i64,
+    },
+
     #[error("Forbidden")]
     Forbidden,
 }
@@ -127,6 +138,22 @@ impl ResponseError for AppError {
                         "current_tier": tier_err.current_tier,
                         "required_tier": tier_err.required_tier,
                         "upgrade_url": tier_err.upgrade_url
+                    }
+                }));
+            }
+            AppError::SeatLimitExceeded {
+                ref role,
+                current,
+                max,
+            } => {
+                return HttpResponse::UnprocessableEntity().json(json!({
+                    "data": null,
+                    "error": {
+                        "code": "seat_limit_exceeded",
+                        "message": self.to_string(),
+                        "role": role,
+                        "current": current,
+                        "max": max,
                     }
                 }));
             }

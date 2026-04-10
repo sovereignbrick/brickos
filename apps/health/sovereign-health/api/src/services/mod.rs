@@ -5,6 +5,7 @@ pub mod ai_chat_ceiling;
 pub mod ai_provider;
 pub mod ai_usage;
 pub mod audit;
+pub mod audit_log;
 pub mod auth;
 pub mod calculated;
 pub mod content;
