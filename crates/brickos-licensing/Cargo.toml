@@ -1,0 +1,38 @@
+[package]
+name = "brickos-licensing"
+version = "0.1.0"
+edition = "2021"
+description = "BrickOS shared licensing service -- feature gates, tier resolution, RS256 org JWT certificates"
+license = "AGPL-3.0"
+
+[dependencies]
+# Workspace deps (rustls, no native-tls, per project rules)
+anyhow = { workspace = true }
+chrono = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+uuid = { workspace = true }
+
+# JWT signing/validation -- jsonwebtoken v10 with rust_crypto feature (no openssl)
+jsonwebtoken = { workspace = true }
+
+# RSA keypair handling (for tests + production key load)
+# rust_crypto feature of jsonwebtoken pulls these in transitively, but we
+# declare them explicitly so the test fixtures can generate keys on the fly.
+rsa = { version = "0.9", features = ["pem"] }
+rand = "0.8"
+
+# Optional async runtime + DB for embedded mode (lightweight feature gate)
+sqlx = { workspace = true, optional = true }
+tokio = { workspace = true, optional = true }
+reqwest = { workspace = true, optional = true }
+
+[features]
+default = ["embedded", "client"]
+embedded = ["dep:sqlx", "dep:tokio"]
+client = ["dep:tokio", "dep:reqwest"]
+
+[dev-dependencies]
+tokio = { workspace = true }

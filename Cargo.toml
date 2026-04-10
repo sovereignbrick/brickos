@@ -11,6 +11,7 @@ members = [
     "crates/brickos-notify",
     "crates/brickos-i18n",
     "crates/brickos-ai",
+    "crates/brickos-licensing",
     "crates/brickos-startos",
     "apps/health/sovereign-health/api",
     "apps/technology/sovereign-link",
@@ -45,4 +46,5 @@ brickos-email = { path = "crates/brickos-email" }
 brickos-billing = { path = "crates/brickos-billing" }
 brickos-notify = { path = "crates/brickos-notify" }
 brickos-i18n = { path = "crates/brickos-i18n" }
+brickos-licensing = { path = "crates/brickos-licensing" }
 sovereign-link = { path = "apps/technology/sovereign-link" }

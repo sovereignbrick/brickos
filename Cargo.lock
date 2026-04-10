@@ -794,6 +794,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "brickos-licensing"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "jsonwebtoken",
+ "rand 0.8.5",
+ "reqwest 0.12.28",
+ "rsa",
+ "serde",
+ "serde_json",
+ "sqlx",
+ "thiserror 2.0.18",
+ "tokio",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
 name = "brickos-notify"
 version = "0.1.0"
 dependencies = [

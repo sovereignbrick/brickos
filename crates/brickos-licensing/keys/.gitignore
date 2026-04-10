@@ -1,0 +1,21 @@
+# NEVER commit private keys.
+# The production license signing private key lives in 1Password Business
+# under "BrickOS / License Signing Key (PROD)". Pull it from there to a
+# secure path on the build host (e.g. ~/.brickos/license_signing_key.pem)
+# and pass via env var to the brickos-platform-api binary.
+#
+# Public keys ARE committed (they have to ship with the binary so customers
+# can validate licenses offline).
+
+# Block all PEM files by default
+*.pem
+
+# Then explicitly allow public keys (re-enable specific paths)
+!*_public_key.pem
+!license_public_key.pem
+
+# Also block any leaked keystore exports
+*.p12
+*.pfx
+*.jks
+*.keystore
