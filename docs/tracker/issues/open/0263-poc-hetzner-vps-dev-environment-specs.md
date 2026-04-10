@@ -1,5 +1,6 @@
 ---
 number: 263
+github_number: 433
 title: "PoC: Hetzner VPS for development — specs, OS, GUI access, billing model"
 labels: [poc, infrastructure, developer-experience]
 milestone: infrastructure

@@ -15,7 +15,13 @@ LOG_DIR="$ROOT/docs/tracker/sync/logs"
 mkdir -p "$LOG_DIR"
 LOG="$LOG_DIR/auto-sync-$(date +%Y%m%d-%H%M).log"
 
-log() { echo "[$(date +%H:%M:%S)] $*" | tee -a "$LOG"; }
+# Pipe-safe log function: writes to both the log file and stdout, but never
+# crashes on SIGPIPE from a broken caller (e.g. `... | tail -30`).
+log() {
+    local msg="[$(date +%H:%M:%S)] $*"
+    printf '%s\n' "$msg" >> "$LOG"
+    printf '%s\n' "$msg" 2>/dev/null || true
+}
 
 log "=== auto-sync start ==="
 
@@ -64,7 +70,15 @@ for file in "$TRACKER"/milestones/*.md; do
     sed -i "/^name: /a github_number: $ms_num" "$file"
     ms_created=$((ms_created + 1))
   else
-    log "  FAIL milestone '$title' (response not numeric)"
+    # Self-heal: maybe it already exists by title (422 from earlier sync attempt).
+    # Look it up and backfill the github_number.
+    existing=$(gh api "repos/$REPO/milestones?state=all&per_page=100" --jq ".[] | select(.title == \"$title\") | .number" 2>>"$LOG" | head -1)
+    if [[ "$existing" =~ ^[0-9]+$ ]]; then
+      log "  ADOPTED existing milestone '$title' -> #$existing"
+      sed -i "/^name: /a github_number: $existing" "$file"
+    else
+      log "  FAIL milestone '$title' (response not numeric, no match by title)"
+    fi
   fi
 
   # Re-check rate budget every iteration
@@ -83,6 +97,13 @@ log "Milestones created: $ms_created"
 log "--- Issues ---"
 issues_created=0
 issues_failed=0
+issues_skipped=0
+issues_remaining_after_cap=0
+
+# Cap creates per run so a backlog of 100+ issues doesn't burn the entire
+# 60/hour rate budget in one cron fire. The cron runs hourly so the backlog
+# drains over a few cycles.
+ISSUES_PER_RUN_CAP=20
 
 # Process both open and closed dirs
 for dir in "$TRACKER/issues/open" "$TRACKER/issues/closed"; do
@@ -90,6 +111,17 @@ for dir in "$TRACKER/issues/open" "$TRACKER/issues/closed"; do
   for file in "$dir"/*.md; do
     [ -f "$file" ] || continue
     if grep -q "^github_number:" "$file"; then
+      continue
+    fi
+    # Honor skip flag for issues that should remain local-only
+    if grep -q "^skip_github_sync: *true" "$file"; then
+      issues_skipped=$((issues_skipped + 1))
+      continue
+    fi
+
+    # Cap reached -- count remaining and stop
+    if [ "$issues_created" -ge "$ISSUES_PER_RUN_CAP" ]; then
+      issues_remaining_after_cap=$((issues_remaining_after_cap + 1))
       continue
     fi
 
@@ -115,10 +147,15 @@ for dir in "$TRACKER/issues/open" "$TRACKER/issues/closed"; do
     ms_name=$(awk -F': ' '/^milestone:/ {sub(/^milestone: /, ""); gsub(/^"/, ""); gsub(/"$/, ""); print; exit}' "$file")
     ms_arg=""
     if [ -n "$ms_name" ] && [ "$ms_name" != "none" ]; then
-      # Look up the milestone's github_number from local milestone files
-      ms_file=$(grep -lF "name: $ms_name" "$TRACKER"/milestones/*.md 2>/dev/null | head -1)
+      # Look up the milestone's github_number from local milestone files.
+      # `set -e` + pipefail would kill us if grep finds nothing, so we wrap.
+      ms_file=""
+      while IFS= read -r mf; do
+        ms_file="$mf"
+        break
+      done < <(grep -lF "name: $ms_name" "$TRACKER"/milestones/*.md 2>/dev/null || true)
       if [ -n "$ms_file" ]; then
-        ms_num=$(awk '/^github_number:/ {sub(/^github_number: /, ""); print; exit}' "$ms_file")
+        ms_num=$(awk '/^github_number:/ {sub(/^github_number: /, ""); print; exit}' "$ms_file" 2>/dev/null || true)
         if [ -n "$ms_num" ]; then
           ms_arg="$ms_num"
         fi
@@ -162,7 +199,7 @@ for dir in "$TRACKER/issues/open" "$TRACKER/issues/closed"; do
   done
 done
 
-log "Issues created: $issues_created, failed: $issues_failed"
+log "Issues created: $issues_created, failed: $issues_failed, skipped(local-only): $issues_skipped, remaining(over cap): $issues_remaining_after_cap"
 
 # ----------------------------------------------------------------------------
 # Step 3: State sync for issues that have github_number but moved between

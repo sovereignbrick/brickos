@@ -1,5 +1,6 @@
 ---
 number: 250
+github_number: 428
 title: "test: local Linux deployment on Pop!_OS laptop"
 labels: [test, ops, infrastructure]
 milestone: infrastructure

@@ -1,5 +1,6 @@
 ---
 number: 273
+github_number: 436
 title: "ops: OpenVAS vulnerability scan + compliance audit + remediation"
 labels: [ops, security, infrastructure, priority-high]
 milestone: privacy-and-security

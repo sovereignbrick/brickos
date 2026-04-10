@@ -1,5 +1,6 @@
 ---
 number: 261
+github_number: 432
 title: "docs: project presentation — architecture, CI/CD, stats, features, lessons, outlook"
 labels: [docs, presentation, marketing]
 milestone: ux-and-onboarding

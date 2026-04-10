@@ -1,5 +1,6 @@
 ---
 number: 287
+github_number: 440
 github: 268
 title: "design: discount structure + revenue split simulator (multi-stakeholder)"
 labels: [design, business, admin, priority-medium]

@@ -46,3 +46,6 @@ build/
 api/.env
 tsconfig.tsbuildinfo
 *.snap.new
+
+# Tracker sync logs (per-run output)
+docs/tracker/sync/logs/

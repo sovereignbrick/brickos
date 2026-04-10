@@ -1,5 +1,6 @@
 ---
 number: 320
+github_number: 446
 title: "compliance: Formal risk management framework (NIS 2)"
 labels: [compliance, security, nis2]
 milestone: post-launch

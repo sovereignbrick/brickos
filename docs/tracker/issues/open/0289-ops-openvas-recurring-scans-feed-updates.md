@@ -1,5 +1,6 @@
 ---
 number: 289
+github_number: 441
 title: "ops: OpenVAS recurring monthly scans + automatic feed updates"
 labels: [ops, security, infrastructure]
 milestone: privacy-and-security

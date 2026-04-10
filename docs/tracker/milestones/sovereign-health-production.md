@@ -1,5 +1,6 @@
 ---
 name: Sovereign Health Intelligence -- Production Quality
+github_number: 36
 description: Production hardening, quality assurance, fresh data import, website consistency, white-label readiness, security audit
 status: active
 sprint: 039

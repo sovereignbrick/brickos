@@ -1,5 +1,6 @@
 ---
 number: 286
+github_number: 439
 github: 267
 title: "design: BrickOS AI skills marketplace + revenue stream opportunities"
 labels: [design, business, strategy, priority-medium]

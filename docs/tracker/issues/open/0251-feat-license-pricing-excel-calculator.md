@@ -1,5 +1,6 @@
 ---
 number: 251
+github_number: 429
 title: "feat: Excel calculator for hierarchical license pricing with discounts"
 labels: [feat, business, billing, sprint-current]
 milestone: horizon-tier

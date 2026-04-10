@@ -21,6 +21,63 @@ Next: Phase A starts after issue files synced to GitHub. Target Day 1 complete =
 
 ---
 
+## 2026-04-10 -- pre-A -- auto-sync.sh hardening (cron fire #1)
+
+**Type:** lesson + decision
+**Phase:** pre-A (cron maintenance)
+
+First hourly cron run found three real bugs in `auto-sync.sh`:
+
+1. **`log()` function used `tee` piped from echo.** When the caller pipes the script through `tail -30` and tail closes the pipe, the echo gets SIGPIPE, the function exits non-zero, `set -e` kills the script silently. Fixed by replacing `echo | tee` with two separate `printf` calls (one to file, one to stdout with `2>/dev/null || true`).
+
+2. **`set -e` + `pipefail` + `grep -lF` returning 1 (no matches)** killed the script on the first issue with an unmatched milestone name. Fixed by replacing the grep-pipe with a `while read` loop fed via process substitution + `|| true`.
+
+3. **Milestone-by-name lookup is brittle.** Issues use `milestone: infrastructure` (a slug) but milestone files have `name: Infrastructure & Chores` (a display title). Lookup never matches. Solution for now: when lookup fails, create the issue without a milestone link (graceful degradation). Future: standardize on either slug or title across both files.
+
+Plus added two safety mechanisms:
+
+- **Per-run create cap (20)** so a backlog of 100+ issues doesn't burn the entire 60/hr rate budget in one cron fire. Drains over 7-8 cycles.
+- **`skip_github_sync: true` frontmatter flag** for issues that should remain local-only.
+- **Self-heal milestone-by-title** on 422 conflict: look up the existing GitHub milestone by title and backfill the local `github_number`.
+
+After fixes, the cron's first useful run created **20 issues (#427-#446)** + 1 milestone (#36 SHI Production Quality) and stopped at the cap. 134 issues remain queued.
+
+**Why it matters:** without the cap, the cron would have either burned the budget on 60 issues then crashed, OR wedged with no budget for state sync. The cap turns "all-or-nothing" into "steady drain over hours". The pipe-safe log function eliminates a class of silent failures common to bash scripts.
+
+**How to apply:** any future bash sync script should:
+- Use printf-based logging instead of `echo | tee`
+- Wrap any `grep` whose absence-of-match is OK in `|| true` or feed it through process substitution
+- Have a per-run cap on writes
+- Honor a per-item skip flag in source files
+- Self-heal on duplicate-title 422 conflicts by looking up the existing item
+
+**Follow-up:** memory `feedback_bash_sync_script_hardening.md`. The patches are in `auto-sync.sh` (commit pending in next commit batch).
+
+---
+
+## 2026-04-10 -- A -- #462 dev keypair pattern + Dockerfile crate copy
+
+**Type:** lesson + decision
+**Phase:** A
+
+Two findings while building the brickos-licensing crate:
+
+**1. Dev keypair without committing the private key.**
+Used `keys/.gitignore` with `*.pem` block + `!*_public_key.pem` allow. Generated dev keypair with `openssl genpkey -algorithm RSA -out dev_signing_key.pem -pkeyopt rsa_keygen_bits:2048` then `openssl pkey -pubout`. The private file has 600 perms by default and is gitignored; the public file is committed. Tests use the `rsa` crate to generate ephemeral keypairs at runtime instead of relying on the on-disk dev key, so a fresh `cargo test` works without any setup. The on-disk dev key is for manual smoke testing and for binaries that load it from `LICENSE_FILE` env var.
+
+**Why it matters:** every signed-artifact crate needs a key management story. This pattern (gitignore *.pem, allow *_public_key.pem, generate ephemeral keys in tests) is the safest default. Production private keys live in 1Password Business and never touch the repo.
+
+**How to apply:** copy `crates/brickos-licensing/keys/.gitignore` and the README's "Key management" section as the template for any future crate that signs artifacts.
+
+**2. Dockerfiles already do bulk crate copy.**
+The saved memory `feedback_dockerfile_new_crates.md` says "every new crate needs Dockerfile COPY lines in planner + builder stages". This is **outdated** -- the current Dockerfiles all use `COPY crates ./crates` (bulk). Adding a new crate requires zero Dockerfile edits. Verified across SHI api, SHI ops, sovereign-crm api, and sovereign-link Dockerfiles.
+
+**Why it matters:** the old per-crate-COPY pattern wastes time editing Dockerfiles whenever a crate is added, and it's a common forgotten step that causes Docker build failures on Sprint cleanup.
+
+**How to apply:** updated the memory file. Future crate additions skip the Dockerfile step entirely unless a crate has unusual paths (assets, fixtures) that need special copying.
+
+---
+
 ## 2026-04-10 -- A -- #460 schema landscape discovery + scope reduction
 
 **Type:** lesson + decision

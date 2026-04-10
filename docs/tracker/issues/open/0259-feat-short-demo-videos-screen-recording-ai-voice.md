@@ -1,5 +1,6 @@
 ---
 number: 259
+github_number: 431
 title: "feat: create short demo videos — screen recording + AI transcription + voice rendering"
 labels: [feat, marketing, docs, content]
 milestone: ux-and-onboarding

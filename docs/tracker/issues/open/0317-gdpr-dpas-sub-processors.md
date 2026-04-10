@@ -1,5 +1,6 @@
 ---
 number: 317
+github_number: 443
 title: "compliance: Formalize DPAs with Anthropic, Stripe, Strike"
 labels: [compliance, gdpr, legal, priority-high]
 milestone: pre-launch

@@ -1,5 +1,6 @@
 ---
 name: Sovereign CRM MVP
+github_number: 32
 description: Privacy-first, self-hosted contact relationship management for BrickOS -- Phase 1 foundation with full auth, SHI-parity base UI, and AI provider abstraction
 design: 017-sovereign-crm
 pillar: data

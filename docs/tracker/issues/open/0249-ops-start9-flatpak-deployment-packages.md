@@ -1,5 +1,6 @@
 ---
 number: 249
+github_number: 427
 title: "ops: specify deployment packages for Start9 and Flatpak"
 labels: [ops, infrastructure, sovereign-link, packaging]
 milestone: infrastructure

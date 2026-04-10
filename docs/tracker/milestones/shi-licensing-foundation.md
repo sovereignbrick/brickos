@@ -1,5 +1,6 @@
 ---
 name: SHI Licensing Foundation -- Sprint 040
+github_number: 35
 description: Brickos-licensing platform service, SHI tier.rs refactor, active/preserved markers, 5→3 role consolidation, RS256 org JWT, Stripe-synced manual invoicing, brickos.io email branding, multi-org switcher, dormant accounts review, 4 Playwright E2E journeys, AI chat hard daily ceiling
 status: active
 sprint: 040

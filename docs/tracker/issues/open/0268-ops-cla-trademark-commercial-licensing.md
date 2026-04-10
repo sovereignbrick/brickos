@@ -1,5 +1,6 @@
 ---
 number: 268
+github_number: 434
 title: "ops: CLA setup, trademark registration, commercial licensing page"
 labels: [ops, legal, business]
 milestone: release-workflow
