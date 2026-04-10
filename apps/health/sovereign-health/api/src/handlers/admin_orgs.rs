@@ -120,7 +120,9 @@ pub async fn create_organization(
         return Err(AppError::Validation("Slug must be 2-50 characters".into()));
     }
     if !body.slug.chars().all(|c| c.is_alphanumeric() || c == '-') {
-        return Err(AppError::Validation("Slug must be alphanumeric with hyphens".into()));
+        return Err(AppError::Validation(
+            "Slug must be alphanumeric with hyphens".into(),
+        ));
     }
 
     // Check slug uniqueness
@@ -129,7 +131,9 @@ pub async fn create_organization(
         .fetch_optional(&platform_pool.0)
         .await?;
     if exists.is_some() {
-        return Err(AppError::Validation("Organization slug already exists".into()));
+        return Err(AppError::Validation(
+            "Organization slug already exists".into(),
+        ));
     }
 
     let org_id = Uuid::new_v4();
@@ -289,11 +293,13 @@ pub async fn generate_org_license(
 ) -> Result<HttpResponse, AppError> {
     let org_id = path.into_inner();
 
-    let org_row = sqlx::query("SELECT name, org_type FROM organizations WHERE id = $1 AND is_deleted = false")
-        .bind(org_id)
-        .fetch_optional(&platform_pool.0)
-        .await?
-        .ok_or(AppError::NotFound)?;
+    let org_row = sqlx::query(
+        "SELECT name, org_type FROM organizations WHERE id = $1 AND is_deleted = false",
+    )
+    .bind(org_id)
+    .fetch_optional(&platform_pool.0)
+    .await?
+    .ok_or(AppError::NotFound)?;
 
     let org_name: String = org_row.try_get("name").unwrap_or_default();
     let org_type: String = org_row.try_get("org_type").unwrap_or_default();
@@ -360,7 +366,12 @@ pub async fn add_org_member(
 
     let user_id = match user_row {
         Some((uid,)) => uid,
-        None => return Err(AppError::Validation(format!("User not found: {}", body.email))),
+        None => {
+            return Err(AppError::Validation(format!(
+                "User not found: {}",
+                body.email
+            )))
+        }
     };
 
     sqlx::query(

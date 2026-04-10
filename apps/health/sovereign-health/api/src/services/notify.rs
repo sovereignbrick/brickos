@@ -3,4 +3,4 @@
 // Re-exports from the shared brickos-notify crate.
 // All handler code continues to use `crate::services::notify::*` unchanged.
 
-pub use brickos_notify::{Channel, NotifyConfig, Notifier, Priority};
+pub use brickos_notify::{Channel, Notifier, NotifyConfig, Priority};

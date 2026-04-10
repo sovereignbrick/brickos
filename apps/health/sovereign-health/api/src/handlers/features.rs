@@ -264,7 +264,10 @@ pub async fn feature_stats(
 
 // ── Admin: GET /admin/features ──────────────────────────────────────────────
 
-pub async fn admin_list_features(platform_pool: web::Data<PlatformPool>, user: AuthenticatedUser) -> HttpResponse {
+pub async fn admin_list_features(
+    platform_pool: web::Data<PlatformPool>,
+    user: AuthenticatedUser,
+) -> HttpResponse {
     if user.role != "admin" {
         return HttpResponse::Forbidden().json(serde_json::json!({
             "data": null,

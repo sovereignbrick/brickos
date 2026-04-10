@@ -152,7 +152,9 @@ impl Config {
             port: env_parse("PORT", 8080),
             db_pool_max: env_parse("DB_POOL_MAX", 5),
             platform_database_url: std::env::var("SHI_PLATFORM_DATABASE_URL").ok(),
-            platform_db_pool_max: std::env::var("SHI_PLATFORM_DB_POOL_MAX").ok().and_then(|v| v.parse().ok()),
+            platform_db_pool_max: std::env::var("SHI_PLATFORM_DB_POOL_MAX")
+                .ok()
+                .and_then(|v| v.parse().ok()),
             cors_max_age: env_parse("CORS_MAX_AGE", 3600),
 
             // Auth rate limits
@@ -260,7 +262,9 @@ impl Config {
 
     /// Platform database URL. Falls back to main DATABASE_URL for backward compat.
     pub fn platform_database_url(&self) -> &str {
-        self.platform_database_url.as_deref().unwrap_or(&self.database_url)
+        self.platform_database_url
+            .as_deref()
+            .unwrap_or(&self.database_url)
     }
 
     pub fn is_oss(&self) -> bool {

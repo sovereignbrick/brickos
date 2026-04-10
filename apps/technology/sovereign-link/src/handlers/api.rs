@@ -177,7 +177,9 @@ fn extract_user_id(req: &HttpRequest) -> Option<Uuid> {
 
     // Decode JWT payload without verification (the host API already verified it)
     let parts: Vec<&str> = token.split('.').collect();
-    if parts.len() != 3 { return None; }
+    if parts.len() != 3 {
+        return None;
+    }
 
     let payload = base64_decode(parts[1])?;
     let json: serde_json::Value = serde_json::from_slice(&payload).ok()?;

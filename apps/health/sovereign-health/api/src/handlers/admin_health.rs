@@ -71,12 +71,28 @@ pub async fn service_health(
 
 async fn poll_services() -> HealthDashboard {
     let endpoints = vec![
-        ("SHI API", "production", "https://api.sovereignhealth.io/health"),
-        ("SHI Frontend", "production", "https://app.sovereignhealth.io/"),
+        (
+            "SHI API",
+            "production",
+            "https://api.sovereignhealth.io/health",
+        ),
+        (
+            "SHI Frontend",
+            "production",
+            "https://app.sovereignhealth.io/",
+        ),
         ("SHI Website", "production", "https://sovereignhealth.io/"),
         ("BrickOS Website", "production", "https://brickos.io/"),
-        ("SHI API", "staging", "https://api-demo.sovereignhealth.io/health"),
-        ("SHI Frontend", "staging", "https://demo.sovereignhealth.io/"),
+        (
+            "SHI API",
+            "staging",
+            "https://api-demo.sovereignhealth.io/health",
+        ),
+        (
+            "SHI Frontend",
+            "staging",
+            "https://demo.sovereignhealth.io/",
+        ),
     ];
 
     let client = reqwest::Client::builder()

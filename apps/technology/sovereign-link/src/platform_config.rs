@@ -19,8 +19,7 @@ impl PlatformConfig {
             .ok()
             .and_then(|v| v.parse().ok())
             .unwrap_or(8082);
-        let database_url =
-            std::env::var("SLI_DATABASE_URL").expect("SLI_DATABASE_URL must be set");
+        let database_url = std::env::var("SLI_DATABASE_URL").expect("SLI_DATABASE_URL must be set");
         let platform_database_url = std::env::var("SLI_PLATFORM_DATABASE_URL")
             .expect("SLI_PLATFORM_DATABASE_URL must be set");
         let jwt_secret = std::env::var("SLI_JWT_SECRET").expect("SLI_JWT_SECRET must be set");

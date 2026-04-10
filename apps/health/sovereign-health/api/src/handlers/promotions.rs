@@ -9,8 +9,8 @@ use uuid::Uuid;
 
 use brickos_billing::stripe::StripeService;
 
-use crate::{error::AppError, middleware::auth::AdminUser};
 use crate::PlatformPool;
+use crate::{error::AppError, middleware::auth::AdminUser};
 
 // ---------------------------------------------------------------------------
 // Public: POST /promotions/validate

@@ -867,13 +867,8 @@ pub async fn set_vanity(
 
     // Create vanity link via Sovereign Link service API (#385)
     let link_cfg = config.link_service_config();
-    match crate::services::link_client::create_vanity_link(
-        &link_cfg,
-        &code,
-        &target_url,
-        user_id,
-    )
-    .await
+    match crate::services::link_client::create_vanity_link(&link_cfg, &code, &target_url, user_id)
+        .await
     {
         Ok(_created_code) => Ok(HttpResponse::Ok().json(json!({
             "data": {
@@ -969,8 +964,14 @@ pub async fn admin_list_links(
     _admin: AdminUser,
     query: web::Query<AdminLinksQuery>,
 ) -> Result<HttpResponse, AppError> {
-    let app_filter = query.app_key.as_deref().filter(|s| !s.is_empty() && *s != "all");
-    let org_filter = query.org_id.as_deref().filter(|s| !s.is_empty() && *s != "all");
+    let app_filter = query
+        .app_key
+        .as_deref()
+        .filter(|s| !s.is_empty() && *s != "all");
+    let org_filter = query
+        .org_id
+        .as_deref()
+        .filter(|s| !s.is_empty() && *s != "all");
 
     let rows = sqlx::query(
         r#"SELECT sl.id, sl.code, sl.target_url, sl.link_type, sl.domain, sl.app_key,

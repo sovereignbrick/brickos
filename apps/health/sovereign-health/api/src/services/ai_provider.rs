@@ -14,8 +14,8 @@ use serde::{Deserialize, Serialize};
 pub struct AiProfile {
     pub id: String,
     pub name: String,
-    pub provider: String,    // "anthropic", "openai", "ollama", "custom"
-    pub model: String,       // "claude-sonnet-4", "gpt-4o", "llama3", etc.
+    pub provider: String,         // "anthropic", "openai", "ollama", "custom"
+    pub model: String,            // "claude-sonnet-4", "gpt-4o", "llama3", etc.
     pub base_url: Option<String>, // for ollama/custom endpoints
     pub api_key_masked: String,   // "sk-...1234" (masked for display)
     pub temperature: f32,
@@ -44,7 +44,9 @@ pub struct AiProviderManager {
 }
 
 impl Default for AiProviderManager {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl AiProviderManager {
@@ -106,7 +108,9 @@ impl AiProviderManager {
         let now = Instant::now();
 
         // Remove old failures outside the window
-        state.failure_timestamps.retain(|t| now.duration_since(*t) < self.failure_window);
+        state
+            .failure_timestamps
+            .retain(|t| now.duration_since(*t) < self.failure_window);
         state.failure_timestamps.push(now);
 
         if state.failure_timestamps.len() >= self.failure_threshold {
@@ -119,7 +123,10 @@ impl AiProviderManager {
                 state.failure_timestamps.clear();
                 tracing::warn!(
                     "AI failover triggered: {} -> {} after {} failures in {:?}",
-                    old, failover.id, self.failure_threshold, self.failure_window
+                    old,
+                    failover.id,
+                    self.failure_threshold,
+                    self.failure_window
                 );
                 return true;
             }

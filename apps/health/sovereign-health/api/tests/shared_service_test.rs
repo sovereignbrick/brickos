@@ -385,10 +385,7 @@ fn protocol_context_resolution() {
         "standard_mediterranean"
     );
     // Default standard
-    assert_eq!(
-        resolve_protocol_context("standard", None, None),
-        "standard"
-    );
+    assert_eq!(resolve_protocol_context("standard", None, None), "standard");
 }
 
 /// User model: BaseUserResponse converts from User correctly
@@ -447,7 +444,7 @@ fn service_name_is_correct() {
 /// Notification config: Notifier can be constructed without panicking
 #[test]
 fn notifier_construction_does_not_panic() {
-    use sovereign_health_backend::services::notify::{NotifyConfig, Notifier};
+    use sovereign_health_backend::services::notify::{Notifier, NotifyConfig};
 
     let config = NotifyConfig::from_env();
     let _notifier = Notifier::new(config);

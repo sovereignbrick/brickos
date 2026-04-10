@@ -4,10 +4,10 @@ use std::collections::HashMap;
 use std::sync::Arc;
 
 use actix_web::{web, HttpResponse};
+use brickos_email::EmailProvider;
 use chrono::Utc;
 use serde::Deserialize;
 use serde_json::json;
-use brickos_email::EmailProvider;
 
 use crate::error::AppError;
 use crate::middleware::auth::AuthenticatedUser;

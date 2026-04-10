@@ -212,7 +212,10 @@ pub struct ConfirmQuery {
     pub email: String,
 }
 
-pub async fn confirm(platform_pool: web::Data<PlatformPool>, query: web::Query<ConfirmQuery>) -> HttpResponse {
+pub async fn confirm(
+    platform_pool: web::Data<PlatformPool>,
+    query: web::Query<ConfirmQuery>,
+) -> HttpResponse {
     let email = query.email.trim().to_lowercase();
     let expected_token = generate_confirm_token(&email);
 

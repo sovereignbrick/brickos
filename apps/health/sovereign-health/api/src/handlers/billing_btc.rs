@@ -148,7 +148,8 @@ pub async fn create_invoice(
     body: web::Json<CreateBtcInvoiceRequest>,
 ) -> HttpResponse {
     // Check payment whitelist gate
-    if let Err(resp) = crate::handlers::payments::check_payment_allowed(&req, &platform_pool.0).await
+    if let Err(resp) =
+        crate::handlers::payments::check_payment_allowed(&req, &platform_pool.0).await
     {
         return resp;
     }
@@ -581,7 +582,10 @@ pub async fn webhook(
 // GET /billing/btc/status - current BTC prepaid status
 // ---------------------------------------------------------------------------
 
-pub async fn btc_status(platform_pool: web::Data<PlatformPool>, user: AuthenticatedUser) -> HttpResponse {
+pub async fn btc_status(
+    platform_pool: web::Data<PlatformPool>,
+    user: AuthenticatedUser,
+) -> HttpResponse {
     let row = sqlx::query(
         r#"SELECT id, tier, period_months, amount_eur, amount_btc, amount_sats,
                   status, paid_at, prepaid_from, prepaid_until, promo_code, created_at
@@ -625,7 +629,10 @@ pub async fn btc_status(platform_pool: web::Data<PlatformPool>, user: Authentica
 // GET /billing/btc/prices - get BTC pricing table
 // ---------------------------------------------------------------------------
 
-pub async fn prices(platform_pool: web::Data<PlatformPool>, _user: AuthenticatedUser) -> HttpResponse {
+pub async fn prices(
+    platform_pool: web::Data<PlatformPool>,
+    _user: AuthenticatedUser,
+) -> HttpResponse {
     let btc_pct = btc_discount_percent(&platform_pool.0).await;
     let mut tiers = Vec::new();
 

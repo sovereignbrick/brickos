@@ -158,10 +158,7 @@ pub async fn create(
 ///
 /// Rotate the API key. Old key stops working immediately.
 /// Returns the new plaintext key exactly once.
-pub async fn rotate_key(
-    pool: web::Data<PgPool>,
-    path: web::Path<Uuid>,
-) -> HttpResponse {
+pub async fn rotate_key(pool: web::Data<PgPool>, path: web::Path<Uuid>) -> HttpResponse {
     let account_id = path.into_inner();
     let new_key = generate_api_key();
     let new_hash = hash_api_key(&new_key);
@@ -204,10 +201,7 @@ pub async fn rotate_key(
 /// DELETE /platform/api/v1/service-accounts/{id}
 ///
 /// Soft-delete: sets is_active=false. The row is preserved for audit purposes.
-pub async fn soft_delete(
-    pool: web::Data<PgPool>,
-    path: web::Path<Uuid>,
-) -> HttpResponse {
+pub async fn soft_delete(pool: web::Data<PgPool>, path: web::Path<Uuid>) -> HttpResponse {
     let account_id = path.into_inner();
 
     let result = sqlx::query(

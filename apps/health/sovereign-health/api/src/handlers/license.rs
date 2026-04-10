@@ -309,7 +309,9 @@ pub async fn downgrade(
 
 // ── GET /api/tiers/features (public, no auth) ──────────────────────────────
 
-pub async fn tiers_features(platform_pool: web::Data<PlatformPool>) -> Result<HttpResponse, AppError> {
+pub async fn tiers_features(
+    platform_pool: web::Data<PlatformPool>,
+) -> Result<HttpResponse, AppError> {
     // 1. Fetch all active tiers (exclude 'core')
     let tier_rows = sqlx::query(
         r#"SELECT slug, name, name AS name_de,

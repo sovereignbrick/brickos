@@ -71,7 +71,10 @@ pub async fn health(
             version: VERSION.to_string(),
             timestamp: Utc::now().to_rfc3339(),
             mode,
-            checks: Some(HealthChecks { database: db_check, platform_database: None }),
+            checks: Some(HealthChecks {
+                database: db_check,
+                platform_database: None,
+            }),
             ai_system: Some(ai_system_info()),
         };
 

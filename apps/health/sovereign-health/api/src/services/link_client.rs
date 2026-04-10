@@ -131,8 +131,14 @@ pub async fn create_campaign_link(
 }
 
 /// Internal helper: POST to SLI service API.
-async fn call_create(config: &LinkServiceConfig, body: &CreateLinkRequest) -> Result<String, String> {
-    let url = format!("{}/api/v1/service/links", config.base_url.trim_end_matches('/'));
+async fn call_create(
+    config: &LinkServiceConfig,
+    body: &CreateLinkRequest,
+) -> Result<String, String> {
+    let url = format!(
+        "{}/api/v1/service/links",
+        config.base_url.trim_end_matches('/')
+    );
 
     let client = reqwest::Client::builder()
         .timeout(std::time::Duration::from_secs(5))

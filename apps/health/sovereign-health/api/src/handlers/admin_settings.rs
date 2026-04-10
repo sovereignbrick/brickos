@@ -258,7 +258,8 @@ pub async fn public_infobar(
     let button = get_setting_bool(&platform_pool.0, &format!("{prefix}_button"), false).await;
     let button_text =
         get_setting_string(&platform_pool.0, &format!("{prefix}_button_text"), "").await;
-    let button_url = get_setting_string(&platform_pool.0, &format!("{prefix}_button_url"), "").await;
+    let button_url =
+        get_setting_string(&platform_pool.0, &format!("{prefix}_button_url"), "").await;
 
     HttpResponse::Ok().json(json!({
         "data": {

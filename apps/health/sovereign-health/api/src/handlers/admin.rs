@@ -163,9 +163,18 @@ pub async fn list_users(
             "SELECT COUNT(*) FROM users u WHERE u.is_deleted = false AND (u.email ILIKE $1 OR u.display_name ILIKE $1)"
         };
         let total: i64 = if !org_id_filter.is_empty() {
-            sqlx::query_scalar(count_sql).bind(&pattern).bind(org_id_filter).fetch_one(&platform_pool.0).await.unwrap_or(0)
+            sqlx::query_scalar(count_sql)
+                .bind(&pattern)
+                .bind(org_id_filter)
+                .fetch_one(&platform_pool.0)
+                .await
+                .unwrap_or(0)
         } else {
-            sqlx::query_scalar(count_sql).bind(&pattern).fetch_one(&platform_pool.0).await.unwrap_or(0)
+            sqlx::query_scalar(count_sql)
+                .bind(&pattern)
+                .fetch_one(&platform_pool.0)
+                .await
+                .unwrap_or(0)
         };
 
         let sql = format!(
@@ -189,9 +198,20 @@ pub async fn list_users(
         );
 
         let rows = if !org_id_filter.is_empty() {
-            sqlx::query(&sql).bind(&pattern).bind(per_page).bind(offset).bind(org_id_filter).fetch_all(&platform_pool.0).await?
+            sqlx::query(&sql)
+                .bind(&pattern)
+                .bind(per_page)
+                .bind(offset)
+                .bind(org_id_filter)
+                .fetch_all(&platform_pool.0)
+                .await?
         } else {
-            sqlx::query(&sql).bind(&pattern).bind(per_page).bind(offset).fetch_all(&platform_pool.0).await?
+            sqlx::query(&sql)
+                .bind(&pattern)
+                .bind(per_page)
+                .bind(offset)
+                .fetch_all(&platform_pool.0)
+                .await?
         };
 
         (rows, total)
@@ -209,9 +229,16 @@ pub async fn list_users(
             "SELECT COUNT(*) FROM users WHERE is_deleted = false"
         };
         let total: i64 = if !org_id_filter.is_empty() {
-            sqlx::query_scalar(count_sql).bind(org_id_filter).fetch_one(&platform_pool.0).await.unwrap_or(0)
+            sqlx::query_scalar(count_sql)
+                .bind(org_id_filter)
+                .fetch_one(&platform_pool.0)
+                .await
+                .unwrap_or(0)
         } else {
-            sqlx::query_scalar(count_sql).fetch_one(&platform_pool.0).await.unwrap_or(0)
+            sqlx::query_scalar(count_sql)
+                .fetch_one(&platform_pool.0)
+                .await
+                .unwrap_or(0)
         };
 
         let sql = format!(
@@ -235,9 +262,18 @@ pub async fn list_users(
         );
 
         let rows = if !org_id_filter.is_empty() {
-            sqlx::query(&sql).bind(per_page).bind(offset).bind(org_id_filter).fetch_all(&platform_pool.0).await?
+            sqlx::query(&sql)
+                .bind(per_page)
+                .bind(offset)
+                .bind(org_id_filter)
+                .fetch_all(&platform_pool.0)
+                .await?
         } else {
-            sqlx::query(&sql).bind(per_page).bind(offset).fetch_all(&platform_pool.0).await?
+            sqlx::query(&sql)
+                .bind(per_page)
+                .bind(offset)
+                .fetch_all(&platform_pool.0)
+                .await?
         };
 
         (rows, total)

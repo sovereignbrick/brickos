@@ -67,7 +67,8 @@ pub async fn checkout(
     body: web::Json<CheckoutRequest>,
 ) -> HttpResponse {
     // Check payment whitelist gate
-    if let Err(resp) = crate::handlers::payments::check_payment_allowed(&req, &platform_pool.0).await
+    if let Err(resp) =
+        crate::handlers::payments::check_payment_allowed(&req, &platform_pool.0).await
     {
         return resp;
     }
@@ -557,7 +558,8 @@ pub async fn change_plan(
     body: web::Json<ChangePlanRequest>,
 ) -> HttpResponse {
     // Check payment whitelist gate
-    if let Err(resp) = crate::handlers::payments::check_payment_allowed(&req, &platform_pool.0).await
+    if let Err(resp) =
+        crate::handlers::payments::check_payment_allowed(&req, &platform_pool.0).await
     {
         return resp;
     }
@@ -646,7 +648,8 @@ pub async fn change_interval(
     user: AuthenticatedUser,
     body: web::Json<ChangeIntervalRequest>,
 ) -> HttpResponse {
-    if let Err(resp) = crate::handlers::payments::check_payment_allowed(&req, &platform_pool.0).await
+    if let Err(resp) =
+        crate::handlers::payments::check_payment_allowed(&req, &platform_pool.0).await
     {
         return resp;
     }
@@ -744,7 +747,10 @@ pub async fn change_interval(
 // GET /billing/history
 // ---------------------------------------------------------------------------
 
-pub async fn payment_history(platform_pool: web::Data<PlatformPool>, user: AuthenticatedUser) -> HttpResponse {
+pub async fn payment_history(
+    platform_pool: web::Data<PlatformPool>,
+    user: AuthenticatedUser,
+) -> HttpResponse {
     let rows = sqlx::query(
         r#"SELECT stripe_event_id, event_type, amount_cents, status, created_at
            FROM payment_events
@@ -1068,20 +1074,24 @@ pub async fn webhook(
         }
         "invoice.payment_succeeded" => {
             if let Err(e) =
-                handle_invoice_payment(&platform_pool.0, &notifier, &event, &event_id, "succeeded").await
+                handle_invoice_payment(&platform_pool.0, &notifier, &event, &event_id, "succeeded")
+                    .await
             {
                 tracing::error!("Error handling invoice.payment_succeeded: {}", e);
             }
         }
         "invoice.payment_failed" => {
             if let Err(e) =
-                handle_invoice_payment(&platform_pool.0, &notifier, &event, &event_id, "failed").await
+                handle_invoice_payment(&platform_pool.0, &notifier, &event, &event_id, "failed")
+                    .await
             {
                 tracing::error!("Error handling invoice.payment_failed: {}", e);
             }
         }
         "charge.refunded" => {
-            if let Err(e) = handle_charge_refunded(&platform_pool.0, &notifier, &event, &event_id).await {
+            if let Err(e) =
+                handle_charge_refunded(&platform_pool.0, &notifier, &event, &event_id).await
+            {
                 tracing::error!("Error handling charge.refunded: {}", e);
             }
         }
@@ -2078,7 +2088,10 @@ pub async fn admin_refund(
 // GET /admin/refunds  (admin only)
 // ---------------------------------------------------------------------------
 
-pub async fn admin_refund_list(platform_pool: web::Data<PlatformPool>, _admin: AdminUser) -> HttpResponse {
+pub async fn admin_refund_list(
+    platform_pool: web::Data<PlatformPool>,
+    _admin: AdminUser,
+) -> HttpResponse {
     let rows = sqlx::query(
         r#"SELECT r.id, r.user_id, r.stripe_refund_id, r.amount_cents,
                   r.reason, r.forced, r.admin_id, r.created_at
@@ -2127,7 +2140,10 @@ pub async fn admin_refund_list(platform_pool: web::Data<PlatformPool>, _admin: A
 // GET /api/invoices  (auth required)
 // ---------------------------------------------------------------------------
 
-pub async fn invoices_list(platform_pool: web::Data<PlatformPool>, user: AuthenticatedUser) -> HttpResponse {
+pub async fn invoices_list(
+    platform_pool: web::Data<PlatformPool>,
+    user: AuthenticatedUser,
+) -> HttpResponse {
     let rows = sqlx::query(
         r#"SELECT id, stripe_event_id, stripe_invoice_id, event_type,
                   amount_cents, status, invoice_pdf_url, invoice_hosted_url,

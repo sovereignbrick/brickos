@@ -3,10 +3,10 @@
 // Push notification subscription management for PWA.
 // Stores Web Push API subscriptions and serves VAPID public key.
 
+use crate::{config::Config, error::AppError, middleware::auth::AuthenticatedUser, PlatformPool};
 use actix_web::{web, HttpRequest, HttpResponse};
 use serde::Deserialize;
 use serde_json::json;
-use crate::{config::Config, error::AppError, middleware::auth::AuthenticatedUser, PlatformPool};
 
 #[derive(Debug, Deserialize)]
 pub struct SubscribeRequest {
