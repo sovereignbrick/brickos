@@ -26,3 +26,4 @@ pub mod rate_limit;
 pub mod reference;
 pub mod segments;
 pub mod tier;
+pub mod user_markers;
