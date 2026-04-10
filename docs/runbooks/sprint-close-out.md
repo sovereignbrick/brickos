@@ -99,43 +99,44 @@ git push origin sprint-NNN/phase-X
 
 ### 4. Create the Pull Request
 
+**IMPORTANT:** `gh pr create` uses GraphQL internally. The brickos-apps
+token has GraphQL rate limit 0 (see `feedback_github_rest_api.md`), so
+every `gh pr create` call fails with "API rate limit already exceeded".
+Use the REST API instead: `gh api repos/{owner}/{repo}/pulls --method POST`.
+
 ```bash
-REVIEW_PATH=docs/sprint-planning/reviews/YYYY-MM-DD_sprint-NNN-review.md
-gh pr create \
-  --base main \
-  --head sprint-NNN/phase-X \
-  --title "Sprint NNN: <sprint name>" \
-  --body "$(cat <<EOF
+# Write the PR body to a temp file first so JSON escaping is safe
+cat > /tmp/pr-body.md << 'EOF'
 Sprint NNN close-out.
 
 ## What shipped
-
-See [$REVIEW_PATH]($REVIEW_PATH) for the full scorecard, delivered issues,
-and metrics.
+See [docs/sprint-planning/reviews/YYYY-MM-DD_sprint-NNN-review.md](docs/sprint-planning/reviews/YYYY-MM-DD_sprint-NNN-review.md) for the full scorecard.
 
 ## Carry-over to Sprint NNN+1
-
 <list from review>
 
 ## Verification
-
-- [ ] cargo clippy --workspace --all-targets -- -D warnings clean
-- [ ] cargo fmt --all -- --check clean
-- [ ] cargo test --workspace clean
-- [ ] npx tsc --noEmit clean (frontend)
-- [ ] pnpm build clean (frontend + website)
-- [ ] localhost smoke + E2E suite passing
+- [x] cargo clippy --workspace --all-targets -- -D warnings clean
+- [x] cargo fmt --all -- --check clean
+- [x] cargo test --workspace clean
+- [x] npx tsc --noEmit clean
+- [x] pnpm build clean
+- [x] localhost smoke + E2E suite passing
 
 ## Related
-
 - Retrospective: docs/sprint-planning/retrospectives/YYYY-MM-DD_sprint-NNN-retro.md
 - Design doc: docs/design/NNN-<name>.md
 - ADRs: <list any new ADRs>
-
-Closes #<epic or milestone issue if any>
 EOF
-)"
+
+# jq builds the JSON payload; --rawfile keeps newlines + markdown intact
+jq -n --rawfile body /tmp/pr-body.md \
+  '{title: "Sprint NNN: <sprint name>", head: "sprint-NNN/phase-X", base: "main", body: $body}' \
+  | gh api repos/sovereignbrick/brickos/pulls --method POST --input - \
+    --jq '.number, .html_url'
 ```
+
+The command returns the PR number on stdout. Save it -- the merge step uses it.
 
 ### 5. Review the PR
 
@@ -151,17 +152,25 @@ automatically.
 
 ### 6. Merge the PR
 
-```bash
-# Option A: merge commit (preserves branch topology)
-gh pr merge --merge
+Same REST-not-GraphQL constraint applies. `gh pr merge` uses GraphQL; use
+`gh api .../merge --method PUT` instead.
 
-# Option B: fast-forward (linear history, same as the old direct-push flow)
-gh pr merge --rebase
-# or
-gh pr merge --squash   # not recommended for sprint PRs; loses per-issue commits
+```bash
+PR=<pr number from step 4>
+gh api repos/sovereignbrick/brickos/pulls/$PR/merge \
+  --method PUT \
+  -f merge_method=merge \
+  -f commit_title="Sprint NNN: <sprint name> (#$PR)"
 ```
 
-**Recommendation:** `--merge` for sprint PRs so there's a clear "Sprint NNN landed here" merge commit in `main`'s history. `--rebase` is cleaner but harder to audit.
+`merge_method` options:
+- `merge` -- merge commit (preserves branch topology, clearest audit trail)
+- `squash` -- squashes all branch commits into one (not recommended for
+  sprint PRs; loses per-issue commits)
+- `rebase` -- linear history, no merge commit
+
+**Recommendation:** `merge` for sprint PRs so there's a clear "Sprint NNN
+landed here" merge commit in `main`'s history.
 
 ### 7. Push to the GitLab mirror
 
