@@ -9,7 +9,7 @@ use crate::config::Config;
 use crate::error::AppError;
 use crate::middleware::auth::AdminUser;
 use crate::PlatformPool;
-use brickos_licensing::{generate_license, LicenseInput};
+use brickos_licensing::LicenseInput;
 
 #[derive(Deserialize)]
 pub struct ListOrgsQuery {
@@ -464,6 +464,9 @@ pub async fn list_org_members(
 /// as int). The aud array names which BrickOS apps the license grants
 /// access to. The billing_model identifies which billing rail issued
 /// the license.
+///
+/// Sprint 040 #479: added optional `tier` (overrides org_type as the JWT
+/// `tier` claim) and `notes` (free-form text persisted to brickos.org_licenses).
 #[derive(Deserialize)]
 pub struct GenerateLicenseRequest {
     pub features: Vec<String>,
@@ -473,6 +476,13 @@ pub struct GenerateLicenseRequest {
     pub max_members: i32,
     pub expires_days: i64,
     pub billing_model: Option<String>,
+    pub tier: Option<String>,
+    pub notes: Option<String>,
+}
+
+#[derive(Deserialize)]
+pub struct RevokeLicenseRequest {
+    pub reason: Option<String>,
 }
 
 /// POST /admin/organizations/{id}/license -- Generate RS256 JWT license key
@@ -482,13 +492,15 @@ pub struct GenerateLicenseRequest {
 /// (RS256 with disk-loaded private key). Reads the signing key from the
 /// path in `config.license_signing_key_path`.
 ///
-/// Future #467 part 2: also persist to brickos.org_licenses via
-/// EmbeddedProvider::issue_org_license once the provider is wired into
-/// SHI app_data. For now this only generates the JWT (the persistence
-/// is the missing wire that #469 will close).
+/// Sprint 040 #479: now uses `EmbeddedProvider::issue_org_license` for
+/// the full persistence path (writes to brickos.org_licenses, auto-revokes
+/// the prior active license, returns the persisted row including jti).
+/// The handler also accepts an optional `tier` override (otherwise the
+/// org_type is used) and optional `notes`.
 pub async fn generate_org_license(
     platform_pool: web::Data<PlatformPool>,
     config: web::Data<Config>,
+    licensing: web::Data<brickos_licensing::embedded::EmbeddedProvider>,
     admin: AdminUser,
     path: web::Path<Uuid>,
     body: web::Json<GenerateLicenseRequest>,
@@ -525,26 +537,33 @@ pub async fn generate_org_license(
         .billing_model
         .clone()
         .unwrap_or_else(|| "manual_invoice".to_string());
+    // The tier on the JWT claim is the requested tier or the org_type fallback
+    let tier_value = body.tier.clone().unwrap_or_else(|| org_type.clone());
 
-    let (token, jti) = generate_license(
-        &LicenseInput {
-            org_id: &org_id.to_string(),
-            org_name: &org_name,
-            tier: &org_type,
-            aud,
-            features: body.features.clone(),
-            max_owners: body.max_owners,
-            max_practitioners: body.max_practitioners,
-            max_members: body.max_members,
-            expires_days: body.expires_days,
-            billing_model: &billing_model,
-        },
-        &private_key_pem,
-    )
-    .map_err(|e| {
-        tracing::error!(error = ?e, "license generation failed");
-        AppError::Internal
-    })?;
+    let row = licensing
+        .issue_org_license(
+            &LicenseInput {
+                org_id: &org_id.to_string(),
+                org_name: &org_name,
+                tier: &tier_value,
+                aud,
+                features: body.features.clone(),
+                max_owners: body.max_owners,
+                max_practitioners: body.max_practitioners,
+                max_members: body.max_members,
+                expires_days: body.expires_days,
+                billing_model: &billing_model,
+            },
+            &private_key_pem,
+            Some(admin.user_id),
+            body.notes.clone(),
+            &billing_model,
+        )
+        .await
+        .map_err(|e| {
+            tracing::error!(error = ?e, "license issue failed");
+            AppError::Internal
+        })?;
 
     let _ = crate::services::audit_log::write(
         &platform_pool.0,
@@ -553,8 +572,8 @@ pub async fn generate_org_license(
         crate::services::audit_log::targets::ORGANIZATION,
         org_id,
         serde_json::json!({
-            "jti": jti,
-            "tier": org_type,
+            "jti": row.jti,
+            "tier": tier_value,
             "max_owners": body.max_owners,
             "max_practitioners": body.max_practitioners,
             "max_members": body.max_members,
@@ -567,14 +586,125 @@ pub async fn generate_org_license(
 
     Ok(HttpResponse::Ok().json(serde_json::json!({
         "data": {
-            "license_key": token,
-            "jti": jti,
+            "id": row.id,
+            "license_key": row.jwt_token,
+            "jti": row.jti,
             "org_id": org_id,
             "org_name": org_name,
-            "expires_days": body.expires_days,
-            "features": body.features,
+            "tier_slug": row.tier_slug,
+            "features": row.features,
+            "max_owners": row.max_owners,
+            "max_practitioners": row.max_practitioners,
+            "max_members": row.max_members,
+            "issued_at": row.issued_at,
+            "expires_at": row.expires_at,
             "billing_model": billing_model,
         },
+        "error": null
+    })))
+}
+
+/// POST /admin/organizations/{id}/license/revoke -- Revoke the active license
+///
+/// Sprint 040 #479: thin wrapper around `EmbeddedProvider::revoke_org_license`.
+/// Looks up the currently-active license for the org (DISTINCT ON, partial
+/// unique index guarantees at most one) and revokes it. Audit-logged.
+pub async fn revoke_org_license(
+    platform_pool: web::Data<PlatformPool>,
+    licensing: web::Data<brickos_licensing::embedded::EmbeddedProvider>,
+    admin: AdminUser,
+    path: web::Path<Uuid>,
+    body: web::Json<RevokeLicenseRequest>,
+) -> Result<HttpResponse, AppError> {
+    let org_id = path.into_inner();
+
+    let active = licensing
+        .load_active_org_license(org_id)
+        .await
+        .map_err(|e| {
+            tracing::error!(error = ?e, "load_active_org_license failed");
+            AppError::Internal
+        })?
+        .ok_or(AppError::NotFound)?;
+
+    licensing
+        .revoke_org_license(active.id, Some(admin.user_id), body.reason.clone())
+        .await
+        .map_err(|e| {
+            tracing::error!(error = ?e, "revoke_org_license failed");
+            AppError::Internal
+        })?;
+
+    let _ = crate::services::audit_log::write(
+        &platform_pool.0,
+        Some(admin.user_id),
+        crate::services::audit_log::actions::ORG_LICENSE_REVOKE,
+        crate::services::audit_log::targets::ORGANIZATION,
+        org_id,
+        serde_json::json!({
+            "license_id": active.id,
+            "jti": active.jti,
+            "reason": body.reason,
+        }),
+    )
+    .await;
+
+    Ok(HttpResponse::Ok().json(serde_json::json!({
+        "data": { "revoked": true, "license_id": active.id },
+        "error": null
+    })))
+}
+
+/// GET /admin/organizations/{id}/license/history
+///
+/// Sprint 040 #479: returns every license ever issued for the org, newest
+/// first. The frontend renders this as a collapsible timeline below the
+/// current license card.
+pub async fn list_org_license_history(
+    platform_pool: web::Data<PlatformPool>,
+    _admin: AdminUser,
+    path: web::Path<Uuid>,
+) -> Result<HttpResponse, AppError> {
+    let org_id = path.into_inner();
+
+    let rows = sqlx::query(
+        r#"SELECT ol.id, ol.tier_slug, ol.features, ol.max_owners, ol.max_practitioners,
+                  ol.max_members, ol.issued_at, ol.expires_at, ol.revoked_at,
+                  ol.jti, ol.notes, ol.stripe_invoice_id,
+                  u.email AS issued_by_email
+           FROM brickos.org_licenses ol
+           LEFT JOIN brickos.users u ON u.id = ol.issued_by
+           WHERE ol.org_id = $1
+           ORDER BY ol.issued_at DESC
+           LIMIT 100"#,
+    )
+    .bind(org_id)
+    .fetch_all(&platform_pool.0)
+    .await?;
+
+    let history: Vec<serde_json::Value> = rows
+        .iter()
+        .map(|r| {
+            serde_json::json!({
+                "id": r.try_get::<Uuid, _>("id").unwrap_or_default(),
+                "tier_slug": r.try_get::<String, _>("tier_slug").unwrap_or_default(),
+                "features": r.try_get::<serde_json::Value, _>("features").unwrap_or(serde_json::json!([])),
+                "max_owners": r.try_get::<i32, _>("max_owners").unwrap_or(0),
+                "max_practitioners": r.try_get::<i32, _>("max_practitioners").unwrap_or(0),
+                "max_members": r.try_get::<i32, _>("max_members").unwrap_or(0),
+                "issued_at": r.try_get::<chrono::DateTime<chrono::Utc>, _>("issued_at").ok(),
+                "expires_at": r.try_get::<chrono::DateTime<chrono::Utc>, _>("expires_at").ok(),
+                "revoked_at": r.try_get::<Option<chrono::DateTime<chrono::Utc>>, _>("revoked_at").ok().flatten(),
+                "jti": r.try_get::<Uuid, _>("jti").unwrap_or_default(),
+                "notes": r.try_get::<Option<String>, _>("notes").ok().flatten(),
+                "stripe_invoice_id": r.try_get::<Option<String>, _>("stripe_invoice_id").ok().flatten(),
+                "issued_by_email": r.try_get::<Option<String>, _>("issued_by_email").ok().flatten(),
+            })
+        })
+        .collect();
+
+    Ok(HttpResponse::Ok().json(serde_json::json!({
+        "data": history,
         "error": null
     })))
 }

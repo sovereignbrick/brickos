@@ -1213,6 +1213,102 @@ export const api = {
         meta: { page: number; per_page: number; total: number }
       }>(`/admin/organizations?${params}`)
     },
+    // Sprint 040 #479/#483 -- licensing data model read endpoints
+    listFeatureRegistry: () =>
+      request<{
+        data: Array<{
+          slug: string
+          app_slug: string
+          category: string
+          name_en: string
+          name_de: string
+          description_en: string | null
+          description_de: string | null
+          is_active: boolean
+        }>
+      }>('/admin/licensing/feature-registry'),
+    listLicensingTiers: () =>
+      request<{
+        data: Array<{
+          slug: string
+          name: string
+          description: string | null
+          app_key: string | null
+          sort_order: number
+          is_active: boolean
+        }>
+      }>('/admin/licensing/tiers'),
+    listRevocations: () =>
+      request<{
+        data: Array<{
+          jti: string
+          org_id: string
+          org_name: string | null
+          org_slug: string | null
+          revoked_at: string
+          reason: string | null
+          original_exp: string
+          revoked_by_email: string | null
+        }>
+      }>('/admin/licensing/revocations'),
+    // Sprint 040 #479 -- license issuance / revoke / history per org
+    generateOrgLicense: (
+      orgId: string,
+      body: {
+        features: string[]
+        aud?: string[]
+        max_owners: number
+        max_practitioners: number
+        max_members: number
+        expires_days: number
+        billing_model?: string
+        tier?: string
+        notes?: string
+      },
+    ) =>
+      request<{
+        data: {
+          id: string
+          license_key: string
+          jti: string
+          org_id: string
+          org_name: string
+          tier_slug: string
+          features: string[]
+          max_owners: number
+          max_practitioners: number
+          max_members: number
+          issued_at: string
+          expires_at: string
+          billing_model: string
+        }
+      }>(`/admin/organizations/${orgId}/license`, {
+        method: 'POST',
+        body: JSON.stringify(body),
+      }),
+    revokeOrgLicense: (orgId: string, reason?: string) =>
+      request<{ data: { revoked: boolean; license_id: string } }>(
+        `/admin/organizations/${orgId}/license/revoke`,
+        { method: 'POST', body: JSON.stringify({ reason }) },
+      ),
+    listOrgLicenseHistory: (orgId: string) =>
+      request<{
+        data: Array<{
+          id: string
+          tier_slug: string
+          features: string[]
+          max_owners: number
+          max_practitioners: number
+          max_members: number
+          issued_at: string
+          expires_at: string
+          revoked_at: string | null
+          jti: string
+          notes: string | null
+          stripe_invoice_id: string | null
+          issued_by_email: string | null
+        }>
+      }>(`/admin/organizations/${orgId}/license/history`),
     // Sprint 040 #478 -- single org detail (Overview/License/Branding)
     getOrganization: (id: string) =>
       request<{

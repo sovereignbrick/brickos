@@ -11,10 +11,11 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
-import { useTranslations } from 'next-intl'
+import { useTranslations, useLocale } from 'next-intl'
 import { api } from '@/lib/api'
 import { toast } from '@/lib/toast'
 import { formatDate } from '@/lib/date-format'
+import { LicenseTab } from './license-tab'
 
 interface OrgDetail {
   id: string
@@ -99,7 +100,8 @@ export default function OrgDetailPage() {
   const params = useParams<{ id: string }>()
   const orgId = params.id
   const t = useTranslations('platform.orgDetail')
-  const [tab, setTab] = useState<'overview' | 'members'>('overview')
+  const locale = useLocale()
+  const [tab, setTab] = useState<'overview' | 'members' | 'license'>('overview')
   const [org, setOrg] = useState<OrgDetail | null>(null)
   const [members, setMembers] = useState<OrgMember[]>([])
   const [loading, setLoading] = useState(true)
@@ -211,6 +213,7 @@ export default function OrgDetailPage() {
           [
             ['overview', t('tabs.overview')],
             ['members', t('tabs.members')],
+            ['license', t('tabs.license')],
           ] as const
         ).map(([key, label]) => (
           <button
@@ -226,8 +229,8 @@ export default function OrgDetailPage() {
             {label}
           </button>
         ))}
-        {/* Tabs reserved for #479/#480/#481 -- placeholders so the URL exists */}
-        {(['license', 'branding', 'invoices', 'audit'] as const).map((key) => (
+        {/* Tabs reserved for #480/#481/#483 -- placeholders so the URL exists */}
+        {(['branding', 'invoices', 'audit'] as const).map((key) => (
           <span
             key={key}
             className="px-4 py-2 text-sm font-medium border-b-2 border-transparent text-zinc-700 cursor-not-allowed"
@@ -361,6 +364,20 @@ export default function OrgDetailPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* License tab (Sprint 040 #479) */}
+      {tab === 'license' && (
+        <LicenseTab
+          orgId={orgId}
+          orgName={org.name}
+          billingEmail={org.billing_email}
+          locale={locale}
+          onChanged={() => {
+            fetchOrg()
+            fetchMembers()
+          }}
+        />
       )}
 
       {/* Members tab */}

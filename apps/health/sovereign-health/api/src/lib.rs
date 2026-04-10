@@ -803,6 +803,14 @@ pub fn configure_routes(cfg: &mut actix_web::web::ServiceConfig) {
                 actix_web::web::post().to(handlers::admin_orgs::generate_org_license),
             )
             .route(
+                "/organizations/{id}/license/revoke",
+                actix_web::web::post().to(handlers::admin_orgs::revoke_org_license),
+            )
+            .route(
+                "/organizations/{id}/license/history",
+                actix_web::web::get().to(handlers::admin_orgs::list_org_license_history),
+            )
+            .route(
                 "/organizations/{id}/members",
                 actix_web::web::post().to(handlers::admin_orgs::add_org_member),
             )
@@ -846,6 +854,19 @@ pub fn configure_routes(cfg: &mut actix_web::web::ServiceConfig) {
             .route(
                 "/templates/send",
                 actix_web::web::post().to(handlers::admin_lifecycle_email::send_template),
+            )
+            // Sprint 040 #479/#483 -- licensing data model read endpoints
+            .route(
+                "/licensing/feature-registry",
+                actix_web::web::get().to(handlers::admin_licensing::list_feature_registry),
+            )
+            .route(
+                "/licensing/tiers",
+                actix_web::web::get().to(handlers::admin_licensing::list_tiers),
+            )
+            .route(
+                "/licensing/revocations",
+                actix_web::web::get().to(handlers::admin_licensing::list_revocations),
             )
             .route(
                 "/early-access",
