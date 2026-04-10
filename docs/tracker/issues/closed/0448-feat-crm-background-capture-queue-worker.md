@@ -1,5 +1,6 @@
 ---
 number: 448
+github_number: 543
 title: "feat: CRM background capture processing queue (tokio worker)"
 milestone: "Sovereign CRM MVP"
 labels: [feature, backend]

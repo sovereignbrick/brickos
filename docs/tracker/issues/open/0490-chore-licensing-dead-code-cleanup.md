@@ -1,5 +1,6 @@
 ---
 number: 490
+github_number: 487
 title: "chore: licensing dead code cleanup after #467 stabilization"
 milestone: "SHI Licensing Foundation -- Sprint 040"
 labels: [licensing, sprint-040, phase-b, chore, cleanup, refactor]

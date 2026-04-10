@@ -1,5 +1,6 @@
 ---
 number: 401
+github_number: 523
 title: "feat: create scr database on staging + register app in platform"
 milestone: "Sovereign CRM MVP"
 labels: [platform-elevation, infrastructure]

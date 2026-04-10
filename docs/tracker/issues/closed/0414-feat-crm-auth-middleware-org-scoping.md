@@ -1,5 +1,6 @@
 ---
 number: 414
+github_number: 536
 title: "feat: CRM auth middleware + org-scoping on protected routes"
 milestone: "Sovereign CRM MVP"
 labels: [platform-elevation, auth]

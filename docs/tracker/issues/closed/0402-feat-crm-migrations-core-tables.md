@@ -1,5 +1,6 @@
 ---
 number: 402
+github_number: 524
 title: "feat: CRM migrations -- contacts, companies, projects, contact_company"
 milestone: "Sovereign CRM MVP"
 labels: [platform-elevation, database]

@@ -1,5 +1,6 @@
 ---
 number: 294
+github_number: 503
 github: 274
 title: "ops: professional penetration test"
 labels: [ops, security]

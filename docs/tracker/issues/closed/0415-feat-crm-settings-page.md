@@ -1,5 +1,6 @@
 ---
 number: 415
+github_number: 537
 title: "feat: CRM settings page (profile, security/MFA, account, data & privacy)"
 milestone: "Sovereign CRM MVP"
 labels: [platform-elevation, feature]

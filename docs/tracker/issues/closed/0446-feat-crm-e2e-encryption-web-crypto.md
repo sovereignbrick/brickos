@@ -1,5 +1,6 @@
 ---
 number: 446
+github_number: 542
 title: "feat: CRM client-side E2E encryption for photo captures (Web Crypto API)"
 milestone: "Sovereign CRM MVP"
 labels: [feature, security]

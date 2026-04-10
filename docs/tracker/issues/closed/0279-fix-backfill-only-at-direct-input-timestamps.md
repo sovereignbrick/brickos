@@ -1,5 +1,6 @@
 ---
 number: 279
+github_number: 494
 title: "fix: backfill must only create calculated markers at timestamps where BOTH direct inputs were measured"
 labels: [fix, backend, calculated-markers, priority-high, sprint-016]
 milestone: health-intelligence

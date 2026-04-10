@@ -1,5 +1,6 @@
 ---
 number: 281
+github_number: 496
 github: 263
 title: "ops: ntfy DNS record exposes VPS origin IP (DNS only, not Proxied)"
 labels: [ops, security, infrastructure, priority-high]

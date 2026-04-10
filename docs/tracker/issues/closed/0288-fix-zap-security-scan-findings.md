@@ -1,5 +1,6 @@
 ---
 number: 288
+github_number: 499
 github: 269
 title: "fix: ZAP security scan findings -- CSP, HSTS, X-Content-Type-Options"
 labels: [fix, security, infrastructure, priority-high]

@@ -1,5 +1,6 @@
 ---
 number: 410
+github_number: 532
 title: "feat: CRM i18n setup (EN + DE) + /api/v1/i18n/status endpoint"
 milestone: "Sovereign CRM MVP"
 labels: [platform-elevation, i18n]

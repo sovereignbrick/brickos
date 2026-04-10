@@ -1,5 +1,6 @@
 ---
 number: 391
+github_number: 517
 title: "feat: Sovereign CRM frontend scaffold -- full SHI-parity base UI"
 milestone: "Sovereign CRM MVP"
 labels: [platform-elevation]

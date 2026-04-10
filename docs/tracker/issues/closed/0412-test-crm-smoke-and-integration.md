@@ -1,5 +1,6 @@
 ---
 number: 412
+github_number: 534
 title: "test: CRM smoke tests + integration tests"
 milestone: "Sovereign CRM MVP"
 labels: [platform-elevation, testing]

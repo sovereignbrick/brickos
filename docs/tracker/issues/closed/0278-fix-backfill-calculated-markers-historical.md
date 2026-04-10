@@ -1,5 +1,6 @@
 ---
 number: 278
+github_number: 493
 title: "fix: backfill calculated markers for historical measurements"
 labels: [fix, backend, calculated-markers, priority-high, sprint-016]
 milestone: health-intelligence

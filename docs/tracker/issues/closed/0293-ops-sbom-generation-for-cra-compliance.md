@@ -1,5 +1,6 @@
 ---
 number: 293
+github_number: 502
 github: 273
 title: "ops: SBOM generation for CRA compliance"
 labels: [ops, security, compliance]

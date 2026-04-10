@@ -1,5 +1,6 @@
 ---
 number: 444
+github_number: 540
 title: "feat: CRM search overlay (Ctrl+K) with suggestions and results page"
 milestone: "Sovereign CRM MVP"
 labels: [feature, frontend]

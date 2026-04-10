@@ -1,5 +1,6 @@
 ---
 number: 449
+github_number: 544
 title: "ops: CRM staging nginx subdomain (crm-api-demo.brickos.io)"
 milestone: "Sovereign CRM MVP"
 labels: [ops, infrastructure]

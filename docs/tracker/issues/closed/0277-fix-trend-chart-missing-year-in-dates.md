@@ -1,5 +1,6 @@
 ---
 number: 277
+github_number: 492
 title: "fix: trend charts and tooltips must show year in dates"
 labels: [fix, frontend, ux, sprint-016]
 milestone: ux-and-onboarding

@@ -1,5 +1,6 @@
 ---
 number: 442
+github_number: 538
 title: "feat: CRM contact detail page with timeline, companies, tags"
 milestone: "Sovereign CRM MVP"
 labels: [feature, frontend]

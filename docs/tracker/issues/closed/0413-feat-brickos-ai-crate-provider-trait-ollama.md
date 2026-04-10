@@ -1,5 +1,6 @@
 ---
 number: 413
+github_number: 535
 title: "feat: brickos-ai crate -- AiProvider trait, Anthropic + Ollama impls, fallback manager"
 milestone: "BrickOS Platform API"
 labels: [platform-elevation, ai, shared-crate]

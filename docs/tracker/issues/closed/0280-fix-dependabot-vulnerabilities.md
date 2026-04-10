@@ -1,5 +1,6 @@
 ---
 number: 280
+github_number: 495
 title: "fix: address 38 Dependabot vulnerabilities (5 high, 28 moderate, 5 low)"
 labels: [fix, security, dependencies, priority-high]
 milestone: privacy-and-security

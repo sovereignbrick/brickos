@@ -1,5 +1,6 @@
 ---
 number: 404
+github_number: 526
 title: "feat: CRM auth handlers -- signup, login, MFA, password reset, email verify, token refresh"
 milestone: "Sovereign CRM MVP"
 labels: [platform-elevation, auth]

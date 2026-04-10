@@ -1,5 +1,6 @@
 ---
 number: 491
+github_number: 488
 title: "ops: build two-pool E2E env so #471 licensing journey suite can actually run"
 milestone: "SHI Licensing Foundation -- Sprint 040"
 labels: [licensing, sprint-040, phase-b, ops, e2e, follow-up]

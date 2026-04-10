@@ -1,5 +1,6 @@
 ---
 number: 390
+github_number: 516
 title: "feat: Sovereign CRM API crate scaffold (sovereign-crm-api)"
 milestone: "Sovereign CRM MVP"
 labels: [platform-elevation]

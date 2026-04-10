@@ -1,5 +1,6 @@
 ---
 number: 411
+github_number: 533
 title: "feat: CRM Docker compose + deploy.sh + staging deployment"
 milestone: "Sovereign CRM MVP"
 labels: [platform-elevation, ops]

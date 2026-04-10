@@ -1,5 +1,6 @@
 ---
 number: 282
+github_number: 497
 github: 264
 title: "ops: Cloudflare Tunnel for ntfy to hide VPS origin IP"
 labels: [ops, security, infrastructure, priority-high]

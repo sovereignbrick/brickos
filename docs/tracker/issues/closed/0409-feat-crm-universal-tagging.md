@@ -1,5 +1,6 @@
 ---
 number: 409
+github_number: 531
 title: "feat: Universal tagging system (API + UI)"
 milestone: "Sovereign CRM MVP"
 labels: [platform-elevation, feature]

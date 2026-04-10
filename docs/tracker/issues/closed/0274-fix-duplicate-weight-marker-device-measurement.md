@@ -1,5 +1,6 @@
 ---
 number: 274
+github_number: 489
 title: "fix: duplicate Weight marker shown when adding measurement with Qardio Base device"
 labels: [fix, frontend, measurements, priority-high, sprint-016]
 milestone: health-intelligence

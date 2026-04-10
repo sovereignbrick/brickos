@@ -1,5 +1,6 @@
 ---
 number: 275
+github_number: 490
 title: "fix: remove 'Fast started' datetime field from measurement form"
 labels: [fix, frontend, measurements, ux, sprint-016]
 milestone: ux-and-onboarding

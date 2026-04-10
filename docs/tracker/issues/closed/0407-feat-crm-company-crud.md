@@ -1,5 +1,6 @@
 ---
 number: 407
+github_number: 529
 title: "feat: Company CRUD endpoints + frontend pages"
 milestone: "Sovereign CRM MVP"
 labels: [platform-elevation, feature]

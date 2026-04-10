@@ -1,5 +1,6 @@
 ---
 number: 403
+github_number: 525
 title: "feat: CRM migrations -- tags, taggings, search_index"
 milestone: "Sovereign CRM MVP"
 labels: [platform-elevation, database]

@@ -1,5 +1,6 @@
 ---
 number: 276
+github_number: 491
 title: "fix: Dr. Alex chat blocked for Clarity user (helmut@schindlwick.com)"
 labels: [fix, backend, doctor-chat, priority-critical, sprint-016, production]
 milestone: health-intelligence

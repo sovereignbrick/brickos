@@ -1,5 +1,6 @@
 ---
 number: 292
+github_number: 501
 github: 272
 title: "feat: JWT secret rotation mechanism"
 labels: [feat, security]

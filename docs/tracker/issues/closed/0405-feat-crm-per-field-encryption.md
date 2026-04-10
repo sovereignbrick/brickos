@@ -1,5 +1,6 @@
 ---
 number: 405
+github_number: 527
 title: "feat: CRM per-field encryption via brickos-crypto"
 milestone: "Sovereign CRM MVP"
 labels: [platform-elevation, security]

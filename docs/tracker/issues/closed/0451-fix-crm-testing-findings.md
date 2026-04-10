@@ -1,5 +1,6 @@
 ---
 number: 451
+github_number: 546
 title: "fix: CRM testing findings -- bugs and issues found during manual testing"
 milestone: "Sovereign CRM MVP"
 labels: [bug, testing]

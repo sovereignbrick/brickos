@@ -1,5 +1,6 @@
 ---
 number: 445
+github_number: 541
 title: "feat: CRM interactive relationship graph with Cytoscape.js"
 milestone: "Sovereign CRM MVP"
 labels: [feature, frontend]
