@@ -110,6 +110,52 @@ pub struct TierFeature {
     pub limit_label_de: Option<String>,
 }
 
+/// A single feature_registry row. Used by the brickos admin GUI to render
+/// the multi-app feature picker, and by client mode to populate the local cache.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FeatureRegistryRow {
+    pub slug: String,
+    pub app_slug: String,
+    pub category: String,
+    pub name_en: String,
+    pub name_de: String,
+    pub description_en: Option<String>,
+    pub description_de: Option<String>,
+    pub is_active: bool,
+}
+
+/// A user_licenses row from brickos schema. Holds Stripe-driven tier state
+/// plus admin override fields. Read by the effective tier resolver in #465.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UserLicenseRow {
+    pub user_id: uuid::Uuid,
+    pub tier_slug: String,
+    pub status: String,
+    pub grace_period_ends: Option<chrono::DateTime<chrono::Utc>>,
+    pub previous_tier_slug: Option<String>,
+    pub admin_override: bool,
+    pub admin_override_tier_slug: Option<String>,
+    pub admin_override_expires_at: Option<chrono::DateTime<chrono::Utc>>,
+}
+
+/// An org_licenses row from brickos schema. Holds the cached JWT, seat caps,
+/// and metadata for the active license certificate of an organization.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OrgLicenseRow {
+    pub id: uuid::Uuid,
+    pub org_id: uuid::Uuid,
+    pub tier_slug: String,
+    pub features: Vec<String>,
+    pub max_owners: i32,
+    pub max_practitioners: i32,
+    pub max_members: i32,
+    pub issued_at: chrono::DateTime<chrono::Utc>,
+    pub expires_at: chrono::DateTime<chrono::Utc>,
+    pub revoked_at: Option<chrono::DateTime<chrono::Utc>>,
+    pub jwt_token: String,
+    pub jti: uuid::Uuid,
+}
+
 impl EffectiveTier {
     /// Returns true if the tier grants the named feature.
     pub fn has_feature(&self, feature_slug: &str) -> bool {

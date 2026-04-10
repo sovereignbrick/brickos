@@ -34,7 +34,10 @@ pub mod embedded;
 #[cfg(feature = "client")]
 pub mod client;
 
-pub use claims::{EffectiveTier, LicenseClaims, LicenseInput, LicenseSource, TierFeature};
+pub use claims::{
+    EffectiveTier, FeatureRegistryRow, LicenseClaims, LicenseInput, LicenseSource, OrgLicenseRow,
+    TierFeature, UserLicenseRow,
+};
 pub use error::{LicensingError, Result};
 pub use jwt::{generate_license, validate_license};
 
