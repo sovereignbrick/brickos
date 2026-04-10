@@ -25,6 +25,11 @@ pub struct Config {
     /// always signed with `jwt_secret`). See rotation procedure in brickos-auth/src/jwt.rs.
     pub jwt_secret_previous: Option<String>,
     pub jwt_expiry_secs: i64,
+    /// Path to the RS256 private key used to sign org license JWTs.
+    /// Sprint 040 #467: brickos-licensing crate signs with this key.
+    /// Production: real key from 1Password Business.
+    /// Dev: crates/brickos-licensing/keys/dev_signing_key.pem
+    pub license_signing_key_path: String,
     pub refresh_expiry_secs: i64,
     pub anthropic_api_key: String,
     pub registration_enabled: bool,
@@ -125,6 +130,9 @@ impl Config {
                 .ok()
                 .filter(|s| !s.is_empty()),
             jwt_expiry_secs,
+            license_signing_key_path: std::env::var("LICENSE_SIGNING_KEY_PATH").unwrap_or_else(
+                |_| "crates/brickos-licensing/keys/dev_signing_key.pem".to_string(),
+            ),
             refresh_expiry_secs,
             anthropic_api_key,
             registration_enabled,
@@ -206,6 +214,8 @@ impl Config {
             }),
             jwt_secret_previous: None,
             jwt_expiry_secs: 3600,
+            license_signing_key_path: "crates/brickos-licensing/keys/dev_signing_key.pem"
+                .to_string(),
             refresh_expiry_secs: 86400,
             anthropic_api_key: String::new(),
             registration_enabled: true,

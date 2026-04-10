@@ -4845,6 +4845,7 @@ dependencies = [
  "brickos-crypto",
  "brickos-db",
  "brickos-email",
+ "brickos-licensing",
  "brickos-notify",
  "chrono",
  "criterion",

@@ -10,7 +10,8 @@ pub mod content;
 pub mod doctor_chat;
 pub mod encryption;
 pub mod extraction_prompts;
-pub mod licensing;
+// licensing module removed in Sprint 040 #467 -- replaced by brickos-licensing
+// crate. The dead in-tree HS256 generator and its tests are gone.
 pub mod link_client;
 pub mod marker_matcher;
 pub mod measurement;

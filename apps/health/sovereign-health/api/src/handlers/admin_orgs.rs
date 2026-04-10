@@ -8,8 +8,8 @@ use uuid::Uuid;
 use crate::config::Config;
 use crate::error::AppError;
 use crate::middleware::auth::AdminUser;
-use crate::services::licensing;
 use crate::PlatformPool;
+use brickos_licensing::{generate_license, LicenseInput};
 
 #[derive(Deserialize)]
 pub struct ListOrgsQuery {
@@ -274,16 +274,34 @@ pub async fn list_org_members(
     })))
 }
 
+/// Sprint 040 #467: switched from the legacy 5-role seat model
+/// (max_admins/max_editors/max_consumers as String) to the 3-role
+/// brickos-licensing seat model (max_owners/max_practitioners/max_members
+/// as int). The aud array names which BrickOS apps the license grants
+/// access to. The billing_model identifies which billing rail issued
+/// the license.
 #[derive(Deserialize)]
 pub struct GenerateLicenseRequest {
     pub features: Vec<String>,
-    pub max_admins: i32,
-    pub max_editors: i32,
-    pub max_consumers: String,
+    pub aud: Option<Vec<String>>,
+    pub max_owners: i32,
+    pub max_practitioners: i32,
+    pub max_members: i32,
     pub expires_days: i64,
+    pub billing_model: Option<String>,
 }
 
-/// POST /admin/organizations/{id}/license -- Generate JWT license key
+/// POST /admin/organizations/{id}/license -- Generate RS256 JWT license key
+///
+/// Sprint 040 #467: switched from the dead in-tree services/licensing.rs
+/// (HS256 with config.jwt_secret) to the brickos-licensing crate
+/// (RS256 with disk-loaded private key). Reads the signing key from the
+/// path in `config.license_signing_key_path`.
+///
+/// Future #467 part 2: also persist to brickos.org_licenses via
+/// EmbeddedProvider::issue_org_license once the provider is wired into
+/// SHI app_data. For now this only generates the JWT (the persistence
+/// is the missing wire that #469 will close).
 pub async fn generate_org_license(
     platform_pool: web::Data<PlatformPool>,
     config: web::Data<Config>,
@@ -304,28 +322,55 @@ pub async fn generate_org_license(
     let org_name: String = org_row.try_get("name").unwrap_or_default();
     let org_type: String = org_row.try_get("org_type").unwrap_or_default();
 
-    let token = licensing::generate_license(
-        &licensing::LicenseInput {
+    // Load the RS256 signing key from disk. In production this is the
+    // real key from 1Password Business; in dev it's the committed dev key.
+    let private_key_pem = std::fs::read(&config.license_signing_key_path).map_err(|e| {
+        tracing::error!(
+            path = %config.license_signing_key_path,
+            error = %e,
+            "failed to read license signing key"
+        );
+        AppError::Internal
+    })?;
+
+    let aud = body
+        .aud
+        .clone()
+        .unwrap_or_else(|| vec!["sovereign-health".to_string()]);
+    let billing_model = body
+        .billing_model
+        .clone()
+        .unwrap_or_else(|| "manual_invoice".to_string());
+
+    let (token, jti) = generate_license(
+        &LicenseInput {
             org_id: &org_id.to_string(),
             org_name: &org_name,
             tier: &org_type,
+            aud,
             features: body.features.clone(),
-            max_admins: body.max_admins,
-            max_editors: body.max_editors,
-            max_consumers: &body.max_consumers,
+            max_owners: body.max_owners,
+            max_practitioners: body.max_practitioners,
+            max_members: body.max_members,
             expires_days: body.expires_days,
+            billing_model: &billing_model,
         },
-        &config.jwt_secret,
+        &private_key_pem,
     )
-    .map_err(|_| AppError::Internal)?;
+    .map_err(|e| {
+        tracing::error!(error = ?e, "license generation failed");
+        AppError::Internal
+    })?;
 
     Ok(HttpResponse::Ok().json(serde_json::json!({
         "data": {
             "license_key": token,
+            "jti": jti,
             "org_id": org_id,
             "org_name": org_name,
             "expires_days": body.expires_days,
             "features": body.features,
+            "billing_model": billing_model,
         },
         "error": null
     })))

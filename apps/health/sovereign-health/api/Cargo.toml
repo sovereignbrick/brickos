@@ -36,6 +36,7 @@ brickos-db = { path = "../../../../crates/brickos-db" }
 brickos-billing = { path = "../../../../crates/brickos-billing" }
 brickos-email = { path = "../../../../crates/brickos-email" }
 brickos-notify = { path = "../../../../crates/brickos-notify" }
+brickos-licensing = { path = "../../../../crates/brickos-licensing" }
 # sovereign-link removed: runs as independent sli-api service (design 018)
 async-trait = "0.1"
 base64 = "0.22"
