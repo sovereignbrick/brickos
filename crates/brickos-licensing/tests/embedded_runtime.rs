@@ -596,6 +596,122 @@ db_test!(resolver_uses_org_license_when_in_org_context, p, {
     assert_eq!(tier.max_members, 50);
 });
 
+// ============================================================================
+//  Tier x feature regression matrix (issue #470, brickos-licensing side)
+//
+//  This is the M3 safety net for #467 from the brickos-licensing-side
+//  perspective. The SHI-side matrix lives at
+//  apps/health/sovereign-health/api/tests/tier_feature_matrix_test.rs and
+//  exercises SHI's `tier::check_feature` directly.
+//
+//  Both must agree on the same truth table. Any divergence is a real
+//  regression worth investigating.
+// ============================================================================
+
+const MATRIX_TIERS: &[&str] = &["glimpse", "focus", "insight", "clarity", "horizon"];
+
+const MATRIX_FEATURES: &[(&str, &str)] = &[
+    ("csv_export", "shi.csv_export"),
+    ("json_export", "shi.json_export"),
+    ("custom_thresholds", "shi.custom_thresholds"),
+    ("lifestyle_presets", "shi.lifestyle_presets"),
+    ("protocol_comparison", "shi.protocol_comparison"),
+    ("body_composition", "shi.body_composition"),
+    ("supplement_marker_impact", "shi.supplement_marker_impact"),
+    ("ai_dashboard_insights", "shi.ai_dashboard_insights"),
+    ("cohort_comparison", "shi.cohort_comparison"),
+    ("mfa_totp", "shi.mfa_totp"),
+    ("api_access", "shi.api_access"),
+];
+
+/// Truth table per design 022 §2.2-§2.3 + migration 011_roles_consolidation_canonical_seed.
+///
+/// IMPORTANT: MFA TOTP is "always available, never gated" per the locked
+/// decision in design 022 §2.2. It is INCLUDED on every tier including Glimpse.
+/// The matrix test caught this when an earlier draft denied mfa_totp on
+/// Glimpse -- the test was wrong, the canonical seed is right.
+fn matrix_expected(tier: &str, legacy_feature: &str) -> bool {
+    match (tier, legacy_feature) {
+        // MFA is universal -- never gated regardless of tier
+        (_, "mfa_totp") => true,
+
+        ("glimpse", _) => false,
+
+        ("focus", "csv_export") => true,
+        ("focus", "json_export") => true,
+        ("focus", "custom_thresholds") => true,
+        ("focus", "lifestyle_presets") => true,
+        ("focus", "protocol_comparison") => true,
+        ("focus", "body_composition") => true,
+        ("focus", "supplement_marker_impact") => false,
+        ("focus", "ai_dashboard_insights") => false,
+        ("focus", "cohort_comparison") => false,
+        ("focus", "api_access") => false,
+
+        ("insight", "csv_export") => true,
+        ("insight", "json_export") => true,
+        ("insight", "custom_thresholds") => true,
+        ("insight", "lifestyle_presets") => true,
+        ("insight", "protocol_comparison") => true,
+        ("insight", "body_composition") => true,
+        ("insight", "supplement_marker_impact") => true,
+        ("insight", "ai_dashboard_insights") => true,
+        ("insight", "cohort_comparison") => false,
+        ("insight", "api_access") => false,
+
+        ("clarity", "csv_export") => true,
+        ("clarity", "json_export") => true,
+        ("clarity", "custom_thresholds") => true,
+        ("clarity", "lifestyle_presets") => true,
+        ("clarity", "protocol_comparison") => true,
+        ("clarity", "body_composition") => true,
+        ("clarity", "supplement_marker_impact") => true,
+        ("clarity", "ai_dashboard_insights") => true,
+        ("clarity", "cohort_comparison") => true,
+        ("clarity", "api_access") => true,
+
+        ("horizon", _) => true,
+
+        _ => false,
+    }
+}
+
+db_test!(tier_feature_matrix_55_combinations_brickos_side, p, {
+    let mut failures: Vec<String> = Vec::new();
+    let mut total = 0usize;
+
+    for tier in MATRIX_TIERS {
+        let user_id = insert_user_with_tier(&p, tier).await;
+
+        for (legacy, namespaced) in MATRIX_FEATURES {
+            total += 1;
+            let expected = matrix_expected(tier, legacy);
+            let actual = p
+                .has_feature(user_id, OrgContext::Individual, namespaced)
+                .await
+                .unwrap_or_else(|e| {
+                    failures.push(format!("ERROR: tier={tier} feature={namespaced} -- {e:?}"));
+                    false
+                });
+
+            if actual != expected {
+                failures.push(format!(
+                    "MISMATCH: tier={tier} feature={namespaced} -- expected {} got {}",
+                    if expected { "ALLOWED" } else { "DENIED" },
+                    if actual { "ALLOWED" } else { "DENIED" },
+                ));
+            }
+        }
+    }
+
+    if !failures.is_empty() {
+        let n = failures.len();
+        let summary = failures.join("\n  ");
+        panic!("{n} of {total} matrix cases failed:\n  {summary}");
+    }
+    eprintln!("brickos-side matrix: {total}/{total} cases passed");
+});
+
 db_test!(horizon_includes_branding_features, p, {
     let horizon = p.load_tier_features("horizon").await.expect("load");
 
