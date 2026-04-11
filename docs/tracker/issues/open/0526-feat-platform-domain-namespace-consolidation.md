@@ -1,7 +1,7 @@
 ---
 number: 526
 title: "feat: [P1] consolidate all apps under brickos.io platform namespace (staging + production)"
-milestone: "Sprint 042 -- SHI Production Readiness"
+milestone: "Sprint 043 -- SHI Production Push"
 labels: [feature, platform-admin-gui, architecture, p1, staging, production]
 created: 2026-04-11
 priority: P1

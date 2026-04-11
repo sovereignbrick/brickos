@@ -2,7 +2,7 @@
 number: 490
 github_number: 487
 title: "chore: licensing dead code cleanup after #467 stabilization"
-milestone: "Sprint 042 -- SHI Production Readiness"
+milestone: "Sprint 043 -- SHI Production Push"
 labels: [licensing, sprint-041, phase-h, chore, cleanup, refactor]
 created: 2026-04-10
 priority: P2

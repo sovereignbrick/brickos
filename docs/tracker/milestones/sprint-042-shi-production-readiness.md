@@ -1,12 +1,16 @@
 ---
 name: Sprint 042 -- SHI Production Readiness
 description: Clear every doubt blocking the SHI production push. Land the schema cleanup that eliminates the staging-only hotfix dependency, the architectural design work for settings + AI provider config + URL namespace, and the remaining SHI consumer-facing bug fixes. Goal: Sprint 042 closes with the green light to deploy SHI to production.
-status: active
+status: closed
 sprint: 042
 opened_at: 2026-04-11
+closed_at: 2026-04-11
 parent: sovereign-health-production
 predecessor: sprint-041-staging-quality
-constraint: No production push until every P0/P1 in this sprint is closed and the staging bake is clean for 4 hours after the final fix.
+successor: sprint-043-shi-production-push
+outcome: |
+  5 of 7 implementation phases shipped end-to-end on staging in a single-day compressed push (2026-04-11). Phase A codified the Sprint 041 #527 staging hotfix as a real migration (20260411180000). Phase B shipped #538 -- nginx no-cache on /sw.js + serwist skipWaiting (already present) + a new deploy.sh post-step that asserts the no-cache header on every redeploy. Phase C closed #530 with a schema migration adding default_max_* columns to brickos.license_tiers, seeded per-tier defaults, plus License tab form pre-fill + soft validation banner. Phase D closed #528 with the brickos master / SHI extension architecture (5 master tabs + 4 SHI extension tabs, with Notifications and Billing folded back into Account as inline sections per production layout). Phase F closed #531 with unit-aware backend validation + frontend pre-flight + display_value field. 4 carry-over issues to Sprint 043 (the production push sprint): #526 URL namespace consolidation, #529 Dr. Alex AI defaults, #524 Playwright fixture, #490 dead code cleanup. Production push deferred to Sprint 043 by design -- Sprint 042's job was the final stabilization, not the deploy.
+constraint: No production push until every P0/P1 in this sprint is closed and the staging bake is clean for 4 hours after the final fix. (Sprint 043 picks up the actual production push.)
 ---
 
 # Sprint 042 -- SHI Production Readiness
