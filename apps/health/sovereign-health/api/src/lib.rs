@@ -800,6 +800,10 @@ pub fn configure_routes(cfg: &mut actix_web::web::ServiceConfig) {
                 actix_web::web::put().to(handlers::admin_orgs::update_organization),
             )
             .route(
+                "/organizations/{id}",
+                actix_web::web::delete().to(handlers::admin_orgs::delete_organization),
+            )
+            .route(
                 "/organizations/{id}/members",
                 actix_web::web::get().to(handlers::admin_orgs::list_org_members),
             )

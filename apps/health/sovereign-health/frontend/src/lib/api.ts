@@ -1477,9 +1477,21 @@ export const api = {
         }
       }>(`/admin/organizations/${id}`),
     createOrganization: (body: { name: string; slug: string; org_type: string; billing_email?: string; admin_email?: string }) =>
-      request<{ data: { id: string; slug: string } }>('/admin/organizations', { method: 'POST', body: JSON.stringify(body) }),
+      request<{
+        data: {
+          id: string
+          slug: string
+          admin_user_id: string | null
+          admin_was_invited: boolean
+        }
+      }>('/admin/organizations', { method: 'POST', body: JSON.stringify(body) }),
     updateOrganization: (id: string, body: { name?: string; org_type?: string; billing_email?: string; is_active?: boolean }) =>
       request<{ data: { updated: boolean } }>(`/admin/organizations/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
+    deleteOrganization: (id: string) =>
+      request<{ data: { deleted: boolean; mode: 'hard' | 'soft' } }>(
+        `/admin/organizations/${id}`,
+        { method: 'DELETE' },
+      ),
     orgMembers: (orgId: string) =>
       request<{ data: Array<{ id: string; user_id: string; email: string; display_name: string | null; role: string; joined_at: string; last_active_at: string | null }> }>(`/admin/organizations/${orgId}/members`),
     addOrgMember: (orgId: string, body: { email: string; role: string }) =>
