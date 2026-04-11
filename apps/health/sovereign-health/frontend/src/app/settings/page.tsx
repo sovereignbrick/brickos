@@ -25,19 +25,22 @@ import { NotificationsTab } from './components/notifications-tab'
 //      Medications) -- contributed by the SHI app, visible until
 //      Sprint 04N+ wires entitlement-based hiding
 //
-//   2. brickos master tabs (Account / Security / Privacy + the new
-//      Billing and Notifications) -- always present, app-agnostic
+//   2. brickos master tabs (Account / Security / Privacy) -- always
+//      present, app-agnostic
 //
 // Sprint 042 user feedback: the render order matches the pre-Sprint-040
 // production layout, which puts SHI tabs FIRST and the cross-cutting
-// brickos tabs after. The two new master tabs (Billing, Notifications)
-// land at the very end so existing bookmarks aren't surprised by a tab
-// suddenly appearing in the middle of the list.
+// brickos tabs after.
+//
+// **brickos master template default layout:** the Account tab embeds
+// Push Notifications and Billing/License as INLINE sections, NOT as
+// standalone tabs. This is the production layout the user signed off on
+// and is the canonical default for any future BrickOS app's settings
+// page. Apps can override the embed if they want their own dedicated
+// Notifications/Billing tabs, but the default is "fold them into Account".
 //
 // MASTER_TABS / SHI_EXTENSION_TABS are still defined separately so the
-// architectural split is documented in the source -- the structural
-// distinction is preserved even though the render is interleaved by
-// production-order convention.
+// architectural split is documented in the source.
 
 const SHI_EXTENSION_TABS = [
   'Health profile',
@@ -50,36 +53,35 @@ const MASTER_TABS = [
   'Account',
   'Security',
   'Data & Privacy',
-  'Billing',
-  'Notifications',
 ] as const
 
-// Render order = pre-Sprint-040 production layout + the two new master
-// tabs at the end. NOT the same as MASTER_TABS first.
+// Render order = pre-Sprint-040 production layout. SHI tabs first, then
+// brickos master tabs.
 const ALL_TABS = [
-  // Pre-Sprint-040 production order
+  // SHI app extension tabs
   'Health profile',
   'Devices',
   'Thresholds',
   'Medications',
+  // brickos master tabs
   'Account',
   'Security',
   'Data & Privacy',
-  // Sprint 042 #528 Phase D additions
-  'Billing',
-  'Notifications',
 ] as const
 type Tab = (typeof ALL_TABS)[number]
 
 const TAB_SLUGS: Record<string, Tab> = {
   // Master tabs
   account: 'Account',
+  // Sprint 042: Notifications and Billing are now inline sections inside
+  // Account (matching production), so any old bookmark like ?tab=billing
+  // or ?tab=notifications resolves back to the Account tab.
+  billing: 'Account',
+  license: 'Account',
+  notifications: 'Account',
   security: 'Security',
   privacy: 'Data & Privacy',
   data: 'Data & Privacy',
-  billing: 'Billing',
-  license: 'Billing', // legacy alias -- old bookmarks
-  notifications: 'Notifications',
   // SHI extension tabs
   profile: 'Health profile',
   'health-profile': 'Health profile',
@@ -93,8 +95,6 @@ const TAB_TO_SLUG: Record<Tab, string> = {
   'Account': 'account',
   'Security': 'security',
   'Data & Privacy': 'privacy',
-  'Billing': 'billing',
-  'Notifications': 'notifications',
   // SHI
   'Health profile': 'health-profile',
   'Devices': 'devices',
@@ -196,8 +196,6 @@ function SettingsContent() {
               'Account': t('tabs.account'),
               'Security': t('tabs.security'),
               'Data & Privacy': t('tabs.privacy'),
-              'Billing': t('tabs.billing'),
-              'Notifications': t('tabs.notifications'),
               'Health profile': t('tabs.healthProfile'),
               'Devices': t('tabs.devices'),
               'Thresholds': t('tabs.thresholds'),
@@ -228,19 +226,27 @@ function SettingsContent() {
         <div className="max-w-4xl mx-auto px-4 pt-6 pb-12 w-full">
         {/* ── brickos master tabs ─────────────────────────────────────── */}
         {tab === 'Account' && (
-          <AccountTab
-            profile={settings.profile}
-            units={settings.units}
-            onUpdate={p => setSettings({ ...settings, profile: { ...settings.profile, ...p } })}
-            onUnitsUpdate={u => setSettings({ ...settings, units: { ...settings.units, ...u } })}
-            setSaveStatus={setSaveStatus}
-            showSaved={showSaved}
-          />
+          // Sprint 042 #528 brickos master template default: the Account
+          // tab embeds Notifications and Billing as inline sections
+          // (matching the pre-Sprint-040 production layout). Apps that
+          // want their own dedicated Notifications/Billing tabs can
+          // override the embed; the default is "fold them into Account".
+          <div className="space-y-8">
+            <AccountTab
+              profile={settings.profile}
+              units={settings.units}
+              onUpdate={p => setSettings({ ...settings, profile: { ...settings.profile, ...p } })}
+              onUnitsUpdate={u => setSettings({ ...settings, units: { ...settings.units, ...u } })}
+              setSaveStatus={setSaveStatus}
+              showSaved={showSaved}
+            />
+            <NotificationsTab />
+            <hr className="border-border" />
+            <LicenseTab />
+          </div>
         )}
         {tab === 'Security' && <SecurityTab />}
         {tab === 'Data & Privacy' && <DataPrivacyTab shareAnonymousData={settings.share_anonymous_data ?? false} onToggle={(v) => setSettings({ ...settings, share_anonymous_data: v })} />}
-        {tab === 'Billing' && <LicenseTab />}
-        {tab === 'Notifications' && <NotificationsTab />}
 
         {/* ── SHI extension tabs ──────────────────────────────────────── */}
         {tab === 'Health profile' && (
