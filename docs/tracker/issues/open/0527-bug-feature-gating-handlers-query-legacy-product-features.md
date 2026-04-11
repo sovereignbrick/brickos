@@ -70,33 +70,81 @@ This hotfix is **staging-only**. It is not in any migration file. The proper
 fix is to update the Rust handlers (option A below) and let the bootstrap
 migration's rename-aside continue to be the dev/staging story.
 
-## Proper fix (Sprint 042)
+## Proper fix (Sprint 042) -- REVISED 2026-04-11 after reading the code
 
-Two paths, with strong preference for option A:
+The original plan was "update handlers to query the new
+`brickos.tier_features` (tier_slug, feature_slug) shape". **That plan was
+wrong.** Reading the actual handlers in features.rs / license.rs / tier.rs
+shows they query columns the new shape doesn't have:
 
-**Option A -- update the handlers to query the new shape (correct, scales).**
-- Replace `JOIN product_features pf ON pf.id = tf.feature_id` with
-  `... tf.feature_slug` (no join needed; the slug *is* the identifier)
-- Replace `feature_id` UUID parameters with `feature_slug` String parameters
-- Drop `product_features` from the schema entirely (it no longer has a
-  reason to exist; the slug is the canonical identifier)
-- Update any seed migrations that still write to `product_features`
-- The new `brickos.tier_features` already has the right rows (156) -- it's
-  just unused
-- Touches ~11 SQL sites + their type signatures + their callers
-- After this lands, drop the staging hotfix tables (`public.product_features`,
-  `public.tier_features`)
+`product_features.feature_key`, `.name_en`, `.name_de`, `.description_en`,
+`.description_de`, `.tooltip_en`, `.tooltip_de`, `.category`, `.sort_order`,
+`.status`, `.icon`
 
-**Option B -- restore the legacy schema as the canonical (regressive).**
-- Make the bootstrap migration NOT rename product_features/tier_features
-- Find another way to create `brickos.tier_features` without conflict (use
-  a different name, or delete the legacy first)
-- Keep the Rust handlers as-is
-- Carries technical debt forward; loses the work in Sprint 040 #467
+The new `brickos.tier_features` schema has only `tier_slug` + `feature_slug`
++ `included` + `limit_value` + `limit_label_en/de` + timestamps. **No
+feature metadata at all.** It's a tier-feature *mapping* table, not a
+feature *catalog* table.
 
-Recommend **Option A** because it completes the Sprint 040 #467 work that
-was left half-finished, deletes a confusing legacy table, and removes the
-"this works on dev but not staging" trap that bit us in Sprint 041.
+So the new shape is **incomplete** -- it can't replace the legacy. The
+Sprint 040 #467 redesign migrated half the data model and stopped. The
+new `brickos.tier_features` is unused dead code (156 rows seeded but
+nothing queries it).
+
+### Revised fix path
+
+**Option C (correct) -- the legacy is canonical. Drop the dead new shape,
+update the bootstrap migration to leave the legacy alone.**
+
+1. Update `migrations/20260411000001_bootstrap_brickos_schema_for_dev.sql`
+   reconciliation block: instead of `RENAME TO *_legacy_sprint040`, use
+   `SET SCHEMA public` so the legacy tables move to where the search_path
+   resolves them.
+2. Remove the new-shape `CREATE TABLE brickos.tier_features` from the
+   bootstrap migration entirely -- nothing queries it.
+3. Drop the existing dead `brickos.tier_features` (new shape, 156 rows)
+   on both dev and staging.
+4. Drop the renamed-aside `*_legacy_sprint040` tables on staging once
+   the SET SCHEMA approach replaces them.
+5. **Touch zero Rust files.**
+6. Re-run the bootstrap migration on staging (delete the
+   `_sqlx_migrations` row first -- the same pattern used for the four
+   modified migrations earlier in the sprint). On dev, since the legacy
+   already lives in public, the SET SCHEMA blocks become no-ops via
+   IF EXISTS guards.
+
+This is **the smaller fix and the correct one**. Sprint 040 #467's
+intent (move tier→feature mapping to slug-based) is good, but the work
+to also migrate `product_features` to a slug-based catalog was never
+done, so the new shape is half-built and unsafe to ship until that work
+also lands.
+
+### Original Option A (rejected)
+
+Originally I thought "update the 11 handler sites to query the new
+shape". This is wrong because the new shape is missing the feature
+metadata columns. To make it work, we'd ALSO need to migrate
+`product_features` to a new table (`feature_registry` or similar) with
+slug-based identity, *and* migrate all the seed data, *and* migrate the
+existing `tier_features` rows from feature_id UUID → feature_slug
+namespaced. That's a multi-week piece of work, not a Sprint 042 chore.
+
+### Why C is safe
+
+- Dev never broke (legacy was always in public schema)
+- Staging is currently working via the manual hotfix that does exactly
+  what option C codifies
+- Zero Rust changes -> zero risk of regressions in feature gating logic
+- Sprint 040 #467's slug-based design is preserved as a future-work
+  reference; nothing is deleted from history
+
+### What option C does NOT solve
+
+- The slug-based feature identifier *is* the right long-term direction.
+  Option C explicitly defers that work. When it gets picked up
+  (Sprint 04N+), the right approach is a coordinated migration that
+  ships handler changes + schema changes + seed data + a backfill
+  script in one PR, not piecemeal.
 
 ## Acceptance criteria
 
