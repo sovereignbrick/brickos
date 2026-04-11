@@ -403,24 +403,33 @@ ON CONFLICT (org_id, app_key) DO NOTHING;
 --
 -- Production safety: this insert is gated on the absence of the
 -- production admin row (admin@schindlwick.com) which the protected_users
--- migration designates. On any DB where the production admin exists, this
--- INSERT is skipped, so production cannot accidentally inherit a dev
--- backdoor account from this migration. The dummy password hash also
--- never matches a real argon2id verification, so this user cannot log in
--- via the password flow -- only via cookie/JWT injection in tests.
+-- migration designates. On any DB where the production admin exists,
+-- this INSERT is skipped, so production cannot accidentally inherit a
+-- dev backdoor account from this migration.
 --
--- The migration runner is gated by ADR-048 to never auto-deploy without a
--- review pass, but this defence-in-depth keeps the row out of prod even
+-- Password is `SovereignDev1` (argon2id, same parameters m=19456, t=2,
+-- p=1 as the demo user from migration 20260308000012). The hash is
+-- committed -- the only way it becomes a real risk is if the migration
+-- ever runs against a production DB, which the WHERE NOT EXISTS guard
+-- prevents.
+--
+-- email_verified must be true so the auth handler does not block login
+-- with EMAIL_NOT_VERIFIED on the dev account.
+--
+-- The migration runner is gated by ADR-048 to never auto-deploy without
+-- a review pass; this defence-in-depth keeps the row out of prod even
 -- if the gate is bypassed.
 -- ----------------------------------------------------------------------------
 
-INSERT INTO users (id, email, password_hash, display_name, role)
+INSERT INTO users (id, email, password_hash, display_name, role, email_verified, email_verified_at)
 SELECT
     '00000000-0000-0000-0000-000000000002'::uuid,
     'dev@sovereignhealth.io',
-    'dev_no_login',
+    '$argon2id$v=19$m=19456,t=2,p=1$Q1gRZjFT2Dy7/7DMww3+6Q$1W6q0Hx0rDgH2XcKcYAH5Zm4DJXXKt0WlovpHgxSH4Q',
     'Dev Admin',
-    'admin'
+    'admin',
+    true,
+    NOW()
 WHERE NOT EXISTS (
     SELECT 1 FROM users WHERE email = 'admin@schindlwick.com'
 )
