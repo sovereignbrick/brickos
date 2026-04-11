@@ -92,28 +92,28 @@ async fn main() -> std::io::Result<()> {
     let notify_config = sovereign_health_backend::services::notify::NotifyConfig::from_env();
     let notifier = sovereign_health_backend::services::notify::Notifier::new(notify_config.clone());
 
-    // Run migrations on startup (non-fatal if DB is unavailable)
-    {
-        let pool_clone = pool.clone();
-        let notifier_clone = notifier.clone();
-        tokio::spawn(async move {
-            match sqlx::migrate!("./migrations").run(&pool_clone).await {
-                Ok(_) => {
-                    tracing::info!("Migrations ran successfully");
-                    // Auto-purge expired audit/access logs (DSGVO compliance)
-                    sovereign_health_backend::services::audit::auto_purge(&pool_clone).await;
-                }
-                Err(e) => {
-                    tracing::error!("Migration failure: {e}");
-                    notifier_clone.send(
-                        sovereign_health_backend::services::notify::Channel::Errors,
-                        sovereign_health_backend::services::notify::Priority::Urgent,
-                        "Migration failure on startup",
-                        &format!("{e}"),
-                    );
-                }
-            }
-        });
+    // Run migrations on startup. Hard-fails the process on any migration
+    // error so partial-schema boots cannot serve traffic. See Sprint 041 #522:
+    // previously this was tokio::spawn'd and errors were only logged, which
+    // let the backend serve /health 200 with a half-applied schema.
+    match sqlx::migrate!("./migrations").run(&pool).await {
+        Ok(_) => {
+            tracing::info!("Migrations ran successfully");
+            // Auto-purge expired audit/access logs (DSGVO compliance)
+            sovereign_health_backend::services::audit::auto_purge(&pool).await;
+        }
+        Err(e) => {
+            tracing::error!("Migration failure: {e}");
+            notifier.send(
+                sovereign_health_backend::services::notify::Channel::Errors,
+                sovereign_health_backend::services::notify::Priority::Urgent,
+                "Migration failure on startup",
+                &format!("{e}"),
+            );
+            // Hard-fail: do not let the backend serve traffic with a
+            // partially-applied schema. /health must lie about nothing.
+            std::process::exit(1);
+        }
     }
 
     // Affiliate evaluation cron: auto-approve expired pending conversions (daily)

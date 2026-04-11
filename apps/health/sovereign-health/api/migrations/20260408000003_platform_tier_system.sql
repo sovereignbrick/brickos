@@ -5,6 +5,13 @@
 --
 -- The tier_features table (already exists) gets app_key awareness.
 -- New table: app_tier_names maps platform tier -> app display name + price.
+--
+-- Sprint 041 #491 hardening: this migration referenced public.tier_features.app_key
+-- without ever adding the column. The "added in 20260406000001" comment was wrong --
+-- no migration ever created it. This was masked by the previous spawn-and-swallow
+-- migration runner. Now that #522 hard-fails on errors, we add the column inline.
+
+ALTER TABLE tier_features ADD COLUMN IF NOT EXISTS app_key TEXT;
 
 -- 1. Create app_tier_names table
 CREATE TABLE IF NOT EXISTS app_tier_names (
