@@ -9,10 +9,114 @@
 //
 // design 022 §7.2 Screen 2 (License tab) + §3.4.
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { useTranslations } from 'next-intl'
 import { api } from '@/lib/api'
 import { toast } from '@/lib/toast'
+
+/**
+ * Inline CSS-only tooltip. Renders the trigger inline; on hover the
+ * `content` appears as an absolutely-positioned panel. No JS, no
+ * portals -- the parent element gets `group` automatically.
+ *
+ * Sprint 041 round 2: replaces the HTML `title` attribute on feature
+ * checkboxes which had a 1.5s browser-default delay and was easy to
+ * miss. This tooltip shows immediately on hover.
+ */
+function InlineTooltip({
+  children,
+  content,
+  testid,
+}: {
+  children: ReactNode
+  content: ReactNode
+  testid?: string
+}) {
+  return (
+    <span className="relative inline-flex items-center group">
+      {children}
+      <span
+        data-testid={testid}
+        className="pointer-events-none absolute left-0 top-full mt-1 z-50 hidden group-hover:block w-72 rounded-lg border border-zinc-700 bg-zinc-950 p-3 text-[11px] text-zinc-200 shadow-xl"
+      >
+        {content}
+      </span>
+    </span>
+  )
+}
+
+/**
+ * Sprint 041 round 2: feature lifecycle status tags. Hard-coded
+ * frontend map until the feature_registry table grows a `status`
+ * column. Slugs not listed here default to 'live'.
+ *
+ * - `live`: in-tree, enforced, ready to sell
+ * - `preview`: in-tree but not yet enforced everywhere; safe to grant
+ *   but the customer may see gaps
+ * - `coming-soon`: planned, not implemented; should NOT be sold yet
+ */
+const FEATURE_STATUS: Record<string, 'live' | 'preview' | 'coming-soon'> = {
+  // SHI core (all live since Sprint 040)
+  'shi.markers_active': 'live',
+  'shi.history_days': 'live',
+  'shi.calculated_markers': 'live',
+  'shi.measurement_templates': 'live',
+  'shi.medications': 'live',
+  'shi.measurement_count': 'live',
+  'shi.body_composition': 'live',
+  'shi.custom_thresholds': 'live',
+  'shi.lifestyle_presets': 'live',
+  'shi.protocol_comparison': 'live',
+  'shi.csv_export': 'live',
+  'shi.json_export': 'live',
+  'shi.mfa_totp': 'live',
+  'shi.ai_chat_quota': 'live',
+  // SHI partial / preview
+  'shi.supplement_marker_impact': 'preview',
+  'shi.pdf_reports': 'preview',
+  'shi.ai_dashboard_insights': 'preview',
+  'shi.smart_import': 'preview',
+  'shi.cohort_comparison': 'coming-soon',
+  'shi.api_access': 'coming-soon',
+  // Branding (all live in dev, custom_domain partially -- depends on nginx)
+  'branding.custom_logo': 'live',
+  'branding.custom_colors': 'live',
+  'branding.custom_domain': 'preview',
+  'branding.role_labels': 'live',
+  // Support tiers (operational, not feature-flagged)
+  'support.community': 'live',
+  'support.email': 'live',
+  'support.priority': 'live',
+  'support.sla_24x7': 'preview',
+  // CRM (sovereign-crm app not yet wired into the cross-app feature gate)
+  'crm.lead_capture': 'coming-soon',
+  'crm.email_sequences': 'coming-soon',
+  'crm.audio_recording': 'coming-soon',
+  'crm.audio_transcription': 'coming-soon',
+  'crm.advanced_search': 'coming-soon',
+  'crm.api_access': 'coming-soon',
+  'crm.csv_export': 'coming-soon',
+  'crm.custom_pipelines': 'coming-soon',
+  // Link (sovereign-link app is wired but not all features)
+  'link.api_access': 'live',
+  'link.custom_domains': 'preview',
+  'link.affiliate_tracking': 'preview',
+  'link.click_analytics': 'live',
+  'link.bulk_create': 'preview',
+}
+
+const STATUS_BADGE: Record<'live' | 'preview' | 'coming-soon', { label: string; cls: string }> = {
+  live: { label: 'live', cls: 'bg-green-500/15 text-green-300 border-green-500/30' },
+  preview: { label: 'preview', cls: 'bg-amber-500/15 text-amber-300 border-amber-500/30' },
+  'coming-soon': {
+    label: 'soon',
+    cls: 'bg-zinc-700 text-zinc-400 border-zinc-600',
+  },
+}
+
+function featureStatus(slug: string): 'live' | 'preview' | 'coming-soon' {
+  return FEATURE_STATUS[slug] ?? 'live'
+}
 import { formatDate } from '@/lib/date-format'
 
 interface LicenseHistoryRow {
@@ -376,6 +480,7 @@ export function LicenseTab({ orgId, orgName, billingEmail, locale, onChanged }: 
         <button
           type="button"
           onClick={() => setShowForm(true)}
+          data-testid="license-generate-new-button"
           className="text-xs bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded transition-colors"
         >
           {t('generateNew')}
@@ -496,25 +601,58 @@ export function LicenseTab({ orgId, orgName, billingEmail, locale, onChanged }: 
                       {items.map((f) => {
                         const description =
                           (locale === 'de' ? f.description_de : f.description_en) ?? f.slug
+                        const status = featureStatus(f.slug)
+                        const badge = STATUS_BADGE[status]
                         return (
-                          <label
+                          <div
                             key={f.slug}
-                            title={description}
-                            className="flex items-start gap-2 text-xs text-zinc-300 hover:text-zinc-100 cursor-pointer"
+                            data-testid={`license-feature-${f.slug}`}
+                            className="flex items-start gap-2 text-xs text-zinc-300 hover:text-zinc-100"
                           >
                             <input
                               type="checkbox"
+                              id={`feat-${f.slug}`}
                               checked={selectedFeatures.has(f.slug)}
                               onChange={() => toggleFeature(f.slug)}
-                              className="mt-0.5"
+                              className="mt-0.5 cursor-pointer"
                               aria-label={f.slug}
                             />
-                            <span>
-                              <span className="font-mono text-[10px] text-zinc-500">{f.slug}</span>
-                              <br />
-                              <span>{locale === 'de' ? f.name_de : f.name_en}</span>
-                            </span>
-                          </label>
+                            <label
+                              htmlFor={`feat-${f.slug}`}
+                              className="cursor-pointer flex-1 min-w-0"
+                            >
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <InlineTooltip
+                                  testid={`license-feature-tooltip-${f.slug}`}
+                                  content={
+                                    <>
+                                      <div className="font-mono text-[10px] text-zinc-500 mb-1">
+                                        {f.slug}
+                                      </div>
+                                      <div className="font-semibold text-zinc-100 mb-1">
+                                        {locale === 'de' ? f.name_de : f.name_en}
+                                      </div>
+                                      <div className="text-zinc-300">{description}</div>
+                                      <div className="mt-2 text-[10px] text-zinc-500 uppercase tracking-wider">
+                                        Status: {badge.label}
+                                      </div>
+                                    </>
+                                  }
+                                >
+                                  <span className="font-mono text-[10px] text-zinc-500 underline decoration-dotted decoration-zinc-700">
+                                    {f.slug}
+                                  </span>
+                                </InlineTooltip>
+                                <span
+                                  className={`text-[9px] uppercase tracking-wider px-1.5 py-0.5 rounded-full border ${badge.cls}`}
+                                  data-testid={`license-feature-status-${f.slug}`}
+                                >
+                                  {badge.label}
+                                </span>
+                              </div>
+                              <div>{locale === 'de' ? f.name_de : f.name_en}</div>
+                            </label>
+                          </div>
                         )
                       })}
                     </div>

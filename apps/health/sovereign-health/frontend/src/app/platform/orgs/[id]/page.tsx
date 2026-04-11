@@ -9,7 +9,7 @@
 // design 022 §7.2 Screen 2.
 
 import { useState, useEffect, useCallback } from 'react'
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useTranslations, useLocale } from 'next-intl'
 import { api } from '@/lib/api'
@@ -100,9 +100,11 @@ function SeatBar({ label, current, max }: { label: string; current: number; max:
 
 export default function OrgDetailPage() {
   const params = useParams<{ id: string }>()
+  const router = useRouter()
   const orgId = params.id
   const t = useTranslations('platform.orgDetail')
   const locale = useLocale()
+  const [deleting, setDeleting] = useState(false)
   const [tab, setTab] = useState<
     'overview' | 'members' | 'license' | 'branding' | 'invoices' | 'audit'
   >('overview')
@@ -195,6 +197,29 @@ export default function OrgDetailPage() {
     }
   }
 
+  const handleDeleteOrg = async () => {
+    if (!org) return
+    if (
+      !confirm(
+        `Delete organization "${org.name}"?\n\nIn dev mode this is a HARD delete -- the org row, all members, all licenses, all invoices, and all audit log entries cascade-delete. This cannot be undone.\n\nIn production this would be a soft delete (is_deleted=true).\n\nProceed?`,
+      )
+    )
+      return
+    setDeleting(true)
+    try {
+      const res = await api.admin.deleteOrganization(orgId)
+      toast.success(
+        res.data.mode === 'hard'
+          ? `Hard-deleted "${org.name}"`
+          : `Soft-deleted "${org.name}"`,
+      )
+      router.push('/platform/orgs')
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to delete org')
+      setDeleting(false)
+    }
+  }
+
   const handleRemoveMember = async (memberId: string) => {
     if (!confirm(t('membersTab.removeConfirm'))) return
     try {
@@ -228,13 +253,25 @@ export default function OrgDetailPage() {
         </Link>
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold">{org.name}</h1>
-          <span
-            className={`text-xs font-medium px-2 py-1 rounded-full ${
-              STATUS_COLORS[org.license.lifecycle_status]
-            }`}
-          >
-            {org.license.lifecycle_status}
-          </span>
+          <div className="flex items-center gap-3">
+            <span
+              className={`text-xs font-medium px-2 py-1 rounded-full ${
+                STATUS_COLORS[org.license.lifecycle_status]
+              }`}
+            >
+              {org.license.lifecycle_status}
+            </span>
+            <button
+              type="button"
+              onClick={handleDeleteOrg}
+              disabled={deleting}
+              data-testid="org-delete-button"
+              className="text-xs bg-red-600/20 hover:bg-red-600/30 text-red-300 border border-red-500/40 px-3 py-1.5 rounded transition-colors disabled:opacity-50"
+              title="Delete this organization (hard delete in dev, soft delete in production)"
+            >
+              {deleting ? 'Deleting...' : 'Delete org'}
+            </button>
+          </div>
         </div>
         <p className="text-sm text-zinc-500 font-mono">{org.slug}</p>
       </div>
@@ -255,6 +292,7 @@ export default function OrgDetailPage() {
             key={key}
             type="button"
             onClick={() => setTab(key)}
+            data-testid={`org-tab-${key}`}
             className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
               tab === key
                 ? 'border-orange-500 text-zinc-50'
