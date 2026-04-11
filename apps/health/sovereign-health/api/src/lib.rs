@@ -815,6 +815,11 @@ pub fn configure_routes(cfg: &mut actix_web::web::ServiceConfig) {
                 "/organizations/{id}/license/history",
                 actix_web::web::get().to(handlers::admin_orgs::list_org_license_history),
             )
+            // Sprint 041 #523 follow-up -- audit log tab
+            .route(
+                "/organizations/{id}/audit",
+                actix_web::web::get().to(handlers::admin_orgs::list_org_audit_log),
+            )
             // Sprint 040 #480 -- branding tab
             .route(
                 "/organizations/{id}/branding",
@@ -848,6 +853,10 @@ pub fn configure_routes(cfg: &mut actix_web::web::ServiceConfig) {
             .route(
                 "/organizations/{org_id}/invoices/{invoice_id}/sync",
                 actix_web::web::post().to(handlers::admin_org_invoices::sync_org_invoice_to_stripe),
+            )
+            .route(
+                "/organizations/{org_id}/invoices/{invoice_id}",
+                actix_web::web::delete().to(handlers::admin_org_invoices::delete_org_invoice),
             )
             .route(
                 "/organizations/{id}/members",
