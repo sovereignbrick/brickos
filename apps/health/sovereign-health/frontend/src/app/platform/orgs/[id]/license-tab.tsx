@@ -149,15 +149,23 @@ interface TierRow {
   slug: string
   name: string
   app_key: string | null
+  // Sprint 042 #530: per-tier seat defaults; null = unknown (form falls back).
+  // -1 = unlimited (matches the backend seat-enforcement sentinel).
+  default_max_owners?: number | null
+  default_max_practitioners?: number | null
+  default_max_members?: number | null
 }
 
+// Sprint 042 #530: TIER_FALLBACK now carries sensible seat defaults so even
+// if the /admin/licensing/tiers fetch fails, the operator never sees the
+// dead-on-arrival 1/0/0 defaults that blocked Sprint 041 #530 testing.
 const TIER_FALLBACK: TierRow[] = [
-  { slug: 'glimpse', name: 'Glimpse', app_key: null },
-  { slug: 'focus', name: 'Focus', app_key: null },
-  { slug: 'insight', name: 'Insight', app_key: null },
-  { slug: 'clarity', name: 'Clarity', app_key: null },
-  { slug: 'horizon', name: 'Horizon', app_key: null },
-  { slug: 'custom', name: 'Custom', app_key: null },
+  { slug: 'glimpse', name: 'Glimpse', app_key: null, default_max_owners: 1, default_max_practitioners: 0, default_max_members: 0 },
+  { slug: 'focus', name: 'Focus', app_key: null, default_max_owners: 1, default_max_practitioners: 0, default_max_members: 0 },
+  { slug: 'insight', name: 'Insight', app_key: null, default_max_owners: 1, default_max_practitioners: 0, default_max_members: 1 },
+  { slug: 'clarity', name: 'Clarity', app_key: null, default_max_owners: 1, default_max_practitioners: 0, default_max_members: 5 },
+  { slug: 'horizon', name: 'Horizon', app_key: null, default_max_owners: 1, default_max_practitioners: 3, default_max_members: 10 },
+  { slug: 'custom', name: 'Custom', app_key: null, default_max_owners: 1, default_max_practitioners: 1, default_max_members: 5 },
 ]
 
 const EXPIRES_PRESETS: Array<[string, number]> = [
@@ -201,6 +209,22 @@ export function LicenseTab({ orgId, orgName, billingEmail, locale, onChanged }: 
   // Sprint 041 #523 follow-up: filter the feature picker by app_slug so
   // the licensing operator does not have to scroll a 41-feature list.
   const [appFilter, setAppFilter] = useState<string>('')
+
+  // Sprint 042 #530: when the operator picks a tier, pre-fill the seat
+  // fields with the tier's defaults from brickos.license_tiers. This
+  // replaces the dead-on-arrival 1/0/0 defaults that blocked the very
+  // first member-add in Sprint 041 manual testing. The operator can
+  // still override on a per-license basis (custom seat negotiation).
+  // Effect runs whenever `tier` changes OR when the tiers list arrives
+  // from the API (so the FALLBACK defaults get replaced as soon as the
+  // real per-tier rows load).
+  useEffect(() => {
+    const t = tiers.find((row) => row.slug === tier)
+    if (!t) return
+    if (t.default_max_owners != null) setMaxOwners(t.default_max_owners)
+    if (t.default_max_practitioners != null) setMaxPractitioners(t.default_max_practitioners)
+    if (t.default_max_members != null) setMaxMembers(t.default_max_members)
+  }, [tier, tiers])
 
   // Whitelabel SHI preset: pre-selects the canonical feature set for a
   // full white-label SHI deployment (all shi.* + all branding.* + the
@@ -695,6 +719,24 @@ export function LicenseTab({ orgId, orgName, billingEmail, locale, onChanged }: 
               />
             </div>
           </div>
+
+          {/* Sprint 042 #530: soft validation. The orgs that hit Sprint 041's
+              "Seat limit exceeded: role member (0/0)" trap accepted the form
+              defaults blindly. A 0 in any seat field is almost never the
+              intended value -- if it really is (single-user license), the
+              operator should see this banner and acknowledge it implicitly
+              by clicking Generate anyway. */}
+          {(maxOwners === 0 || maxPractitioners === 0 || maxMembers === 0) && (
+            <div className="rounded-lg border border-amber-700/40 bg-amber-950/30 p-3 text-xs text-amber-300">
+              <div className="font-semibold mb-1">⚠ Heads up</div>
+              <div className="text-amber-200/80 leading-relaxed">
+                One or more seat caps is <span className="font-semibold">0</span>. The org will not
+                be able to add any user with that role until this license is updated. If you really
+                want a single-user license, this is fine -- otherwise pick a tier from the dropdown
+                above to load its defaults, or set sensible numbers manually.
+              </div>
+            </div>
+          )}
 
           {/* Expires */}
           <div className="space-y-1">

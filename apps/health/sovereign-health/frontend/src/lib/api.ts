@@ -1252,6 +1252,14 @@ export const api = {
           app_key: string | null
           sort_order: number
           is_active: boolean
+          // Sprint 042 #530: per-tier seat defaults from brickos.license_tiers.
+          // -1 means unlimited (matches the seat-enforcement check
+          // `max >= 0` in admin_orgs.rs:921). null means the tier predates
+          // the seat-default seed migration -- the License tab will fall
+          // back to a hardcoded sensible minimum (1/0/0) in that case.
+          default_max_owners: number | null
+          default_max_practitioners: number | null
+          default_max_members: number | null
         }>
       }>('/admin/licensing/tiers'),
     restoreRevokedLicense: (jti: string) =>

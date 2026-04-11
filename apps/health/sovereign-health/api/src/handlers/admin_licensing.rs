@@ -55,12 +55,19 @@ pub async fn list_feature_registry(
 }
 
 /// GET /admin/licensing/tiers
+///
+/// Sprint 042 #530: now also returns per-tier seat-count defaults
+/// (default_max_owners / default_max_practitioners / default_max_members)
+/// so the License tab issue-license form can pre-fill the seat fields
+/// when the operator picks a tier. -1 means unlimited (matches the
+/// existing seat-enforcement check `max >= 0` in admin_orgs.rs:921).
 pub async fn list_tiers(
     platform_pool: web::Data<PlatformPool>,
     _admin: AdminUser,
 ) -> Result<HttpResponse, AppError> {
     let rows = sqlx::query(
-        r#"SELECT slug, name, description, app_key, sort_order, is_active
+        r#"SELECT slug, name, description, app_key, sort_order, is_active,
+                  default_max_owners, default_max_practitioners, default_max_members
            FROM brickos.license_tiers
            WHERE is_active = true
            ORDER BY app_key NULLS FIRST, sort_order, slug"#,
@@ -78,6 +85,9 @@ pub async fn list_tiers(
                 "app_key": r.try_get::<Option<String>, _>("app_key").ok().flatten(),
                 "sort_order": r.try_get::<i32, _>("sort_order").unwrap_or(0),
                 "is_active": r.try_get::<bool, _>("is_active").unwrap_or(true),
+                "default_max_owners": r.try_get::<Option<i32>, _>("default_max_owners").ok().flatten(),
+                "default_max_practitioners": r.try_get::<Option<i32>, _>("default_max_practitioners").ok().flatten(),
+                "default_max_members": r.try_get::<Option<i32>, _>("default_max_members").ok().flatten(),
             })
         })
         .collect();
