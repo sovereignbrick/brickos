@@ -18,8 +18,17 @@ import { LicenseTab } from './components/license-tab'
 import { SecurityTab } from './components/security-tab'
 import { AccountTab } from './components/account-tab'
 
-const TABS = ['Profile', 'Devices', 'Thresholds', 'Medications', 'Account', 'Security', 'Data & Privacy'] as const
-type Tab = (typeof TABS)[number]
+const ALL_TABS = ['Profile', 'Devices', 'Thresholds', 'Medications', 'Account', 'Security', 'Data & Privacy'] as const
+type Tab = (typeof ALL_TABS)[number]
+
+/**
+ * Sprint 041 round 3: BrickOS platform admins don't have an SHI health
+ * profile (no measurements, no devices, no biomarker thresholds, no
+ * medications). They only need the cross-cutting account/security/privacy
+ * tabs. The affiliate program is on a separate /affiliate page; the
+ * Account tab links there.
+ */
+const ADMIN_TABS = ['Account', 'Security', 'Data & Privacy'] as const satisfies readonly Tab[]
 
 const TAB_SLUGS: Record<string, Tab> = {
   profile: 'Profile',
@@ -53,8 +62,18 @@ function SettingsContent() {
   const pathname = usePathname()
   const tabParam = searchParams.get('tab')
 
-  // Derive active tab from URL param
-  const tab: Tab = TAB_SLUGS[tabParam ?? ''] ?? 'Profile'
+  // Derive active tab from URL param. Sprint 041 round 3: BrickOS admins
+  // default to Account (not Profile) since they don't have a health
+  // profile, and 'Profile' isn't in their tab list at all.
+  const isAdminUser = user?.role === 'admin'
+  const defaultTab: Tab = isAdminUser ? 'Account' : 'Profile'
+  const resolvedTab: Tab = TAB_SLUGS[tabParam ?? ''] ?? defaultTab
+  // If admin landed on a SHI-only tab (e.g. via a stale /settings?tab=profile
+  // bookmark), redirect to their default Account tab.
+  const tab: Tab =
+    isAdminUser && !(['Account', 'Security', 'Data & Privacy'] as Tab[]).includes(resolvedTab)
+      ? 'Account'
+      : resolvedTab
 
   const setTab = useCallback((t: Tab) => {
     const slug = TAB_TO_SLUG[t]
@@ -120,7 +139,7 @@ function SettingsContent() {
         </div>
 
         <div className="flex flex-wrap gap-0 mb-0 border-b border-border pb-0">
-          {TABS.map(tb => {
+          {(user?.role === 'admin' ? ADMIN_TABS : ALL_TABS).map(tb => {
             const tabLabelMap: Record<Tab, string> = {
               'Profile': t('tabs.healthProfile'),
               'Devices': t('tabs.devices'),

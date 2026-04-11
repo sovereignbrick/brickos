@@ -1492,6 +1492,35 @@ export const api = {
         `/admin/organizations/${id}`,
         { method: 'DELETE' },
       ),
+    deletePreviewOrganization: (id: string) =>
+      request<{
+        data: {
+          org: { id: string; name: string; slug: string }
+          counts: {
+            members: number
+            licenses: number
+            invoices: number
+            domains: number
+            audit_entries: number
+          }
+          details: {
+            members: Array<{ email: string; role: string }>
+            licenses: Array<{
+              tier_slug: string
+              issued_at: string | null
+              expires_at: string | null
+              revoked: boolean
+            }>
+            invoices: Array<{
+              memo: string
+              status: string
+              total_amount_cents: number
+              currency: string
+              created_at: string | null
+            }>
+          }
+        }
+      }>(`/admin/organizations/${id}/delete-preview`),
     orgMembers: (orgId: string) =>
       request<{ data: Array<{ id: string; user_id: string; email: string; display_name: string | null; role: string; joined_at: string; last_active_at: string | null }> }>(`/admin/organizations/${orgId}/members`),
     addOrgMember: (orgId: string, body: { email: string; role: string }) =>

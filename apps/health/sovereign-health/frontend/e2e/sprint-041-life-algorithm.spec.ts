@@ -359,46 +359,167 @@ test.describe('Sprint 041 -- Life Algorithm walkthrough', () => {
   })
 
   // ===========================================================================
-  // Round-2 feature: DELETE org button works (hard delete in dev)
+  // Round-3 features: sticky header, settings filtering, services version,
+  // newsletter banner, delete preview modal, orphan user cleanup
+  // ===========================================================================
+
+  test('round 3: sticky platform sidebar header (logo + name + search)', async ({ page }) => {
+    // The aside should be a flex column with the header + search shrink-0,
+    // so they stay visible regardless of nav scroll position.
+    await page.goto(`${BASE}/platform/orgs`)
+    const sidebarHeader = page.getByTestId('platform-sidebar-header')
+    const sidebarSearch = page.getByTestId('platform-sidebar-search')
+    await expect(sidebarHeader).toBeVisible({ timeout: 10000 })
+    await expect(sidebarSearch).toBeVisible()
+
+    // Scroll the nav inside the sidebar all the way down (the nav is the
+    // overflow-y-auto child). The header + search should still be visible.
+    await page.evaluate(() => {
+      const nav = document.querySelector('aside nav')
+      if (nav) nav.scrollTop = nav.scrollHeight
+    })
+    await expect(sidebarHeader).toBeVisible()
+    await expect(sidebarSearch).toBeVisible()
+  })
+
+  test('round 3: /platform/settings shows brickos-only categories', async ({ page }) => {
+    await page.goto(`${BASE}/platform/settings`)
+    await expect(page.locator('h1', { hasText: /platform settings/i })).toBeVisible({
+      timeout: 10000,
+    })
+    // SHI-specific category labels should NOT appear; brickos-relevant ones SHOULD.
+    await page.waitForLoadState('networkidle')
+    const html = await page.content()
+    // Hidden when scope=brickos:
+    expect(html).not.toContain('Dr. Alex (App)')
+    expect(html).not.toContain('Health Coach')
+    expect(html).not.toContain('Info Bar (App)')
+    // The "Cross-app BrickOS settings only" explainer should be present.
+    expect(html).toContain('Cross-app BrickOS settings only')
+  })
+
+  test('round 3: /settings for admin user only shows admin tabs', async ({ page }) => {
+    await page.goto(`${BASE}/settings`)
+    await page.waitForLoadState('networkidle')
+    // Admin tabs are visible
+    await expect(page.locator('button', { hasText: /^Account$/ }).first()).toBeVisible({
+      timeout: 10000,
+    })
+    await expect(page.locator('button', { hasText: /^Security$/ }).first()).toBeVisible()
+    // SHI-only tabs are hidden
+    const profileTab = page.locator('button', { hasText: /^Health Profile$/ })
+    expect(await profileTab.count()).toBe(0)
+    const devicesTab = page.locator('button', { hasText: /^Devices$/ })
+    expect(await devicesTab.count()).toBe(0)
+  })
+
+  test('round 3: SHI Frontend /api/health returns version', async ({ request }) => {
+    const res = await request.get(`${BASE}/api/health`)
+    expect(res.status()).toBe(200)
+    const body = await res.json()
+    expect(body.status).toBe('ok')
+    expect(body.service).toBe('sovereign-health-frontend')
+    expect(body.version).toBeTruthy()
+    expect(body.version).not.toBe('unknown')
+  })
+
+  test('round 3: newsletter empty state shows banner', async ({ page }) => {
+    await page.goto(`${BASE}/platform/newsletter`)
+    await page.waitForLoadState('networkidle')
+    await expect(page.getByTestId('newsletter-empty-banner')).toBeVisible({ timeout: 10000 })
+    await expect(page.getByTestId('newsletter-empty-banner')).toContainText(
+      /No newsletter subscribers/i,
+    )
+  })
+
+  test('round 3: delete-preview API returns counts + details', async ({ request }) => {
+    test.skip(!ctx.orgId, 'orgId from #496 required')
+    const token = mintJwt()
+    const res = await request.get(
+      `${API}/admin/organizations/${ctx.orgId}/delete-preview`,
+      { headers: { Authorization: `Bearer ${token}` } },
+    )
+    expect(res.status()).toBe(200)
+    const body = await res.json()
+    expect(body.data.counts).toBeTruthy()
+    expect(typeof body.data.counts.members).toBe('number')
+    expect(typeof body.data.counts.licenses).toBe('number')
+    expect(body.data.counts.licenses).toBeGreaterThan(0) // we issued a license earlier
+    expect(body.data.counts.members).toBeGreaterThan(0) // admin_email auto-create + #501
+    expect(body.data.details.members.length).toBeGreaterThan(0)
+    expect(body.data.details.licenses.length).toBeGreaterThan(0)
+  })
+
+  // ===========================================================================
+  // Round-3: DELETE org via the new modal flow (dependency counts + details)
   // This test runs LAST because it deletes the shared ctx.orgId.
   // ===========================================================================
-  test('zz delete org via Delete button (hard delete in dev mode)', async ({ page, request }) => {
+  test('zz delete org via modal (counts + details + cascade verified)', async ({ page, request }) => {
     test.skip(!ctx.orgId, 'orgId from #496 required')
     const orgIdToDelete = ctx.orgId
+    const token = mintJwt()
 
-    // Capture the confirm() dialog so the test doesn't hang. Set the
-    // listener BEFORE navigation so it catches the first prompt.
-    page.on('dialog', (dialog) => dialog.accept())
+    // Capture invited users that should be cleaned up after delete
+    const membersBefore = await request.get(
+      `${API}/admin/organizations/${orgIdToDelete}/members`,
+      { headers: { Authorization: `Bearer ${token}` } },
+    )
+    const memberEmails = (await membersBefore.json()).data.map((m: { email: string }) => m.email)
 
     await page.goto(`${BASE}/platform/orgs/${orgIdToDelete}`)
-    const deleteBtn = page.getByTestId('org-delete-button')
-    await expect(deleteBtn).toBeVisible({ timeout: 10000 })
+    await page.getByTestId('org-delete-button').click()
 
-    // Wait for the DELETE network response in parallel with the click so
-    // we can prove the request fired regardless of whether the navigation
-    // settles in time.
+    // Modal opens and loads the preview (counts visible)
+    await expect(page.getByTestId('org-delete-modal')).toBeVisible({ timeout: 10000 })
+    await expect(page.getByTestId('org-delete-counts')).toBeVisible({ timeout: 10000 })
+
+    // Toggle the details list and verify members + licenses are listed
+    await page.getByTestId('org-delete-details-toggle').click()
+    const details = page.getByTestId('org-delete-details')
+    await expect(details).toBeVisible()
+    // The details should mention at least one of the member emails we added
+    const detailsText = await details.textContent()
+    expect(detailsText).toBeTruthy()
+    expect(memberEmails.some((e: string) => detailsText!.includes(e))).toBe(true)
+
+    // Confirm delete via the modal button + intercept the DELETE response
     const [delResponse] = await Promise.all([
       page.waitForResponse(
         (r) =>
-          r.url().includes(`/admin/organizations/${orgIdToDelete}`) &&
+          r.url().endsWith(`/admin/organizations/${orgIdToDelete}`) &&
           r.request().method() === 'DELETE',
         { timeout: 15000 },
       ),
-      deleteBtn.click(),
+      page.getByTestId('org-delete-confirm').click(),
     ])
     expect(delResponse.status()).toBe(200)
     const delBody = await delResponse.json()
     expect(delBody.data.deleted).toBe(true)
     expect(delBody.data.mode).toBe('hard')
 
-    // Verify the org is gone via the API.
-    const token = mintJwt()
+    // Verify the org is gone (404) via the API
     const res = await request.get(`${API}/admin/organizations/${orgIdToDelete}`, {
       headers: { Authorization: `Bearer ${token}` },
     })
     expect(res.status()).toBe(404)
 
-    // Clear ctx so subsequent tests in a re-run don't reference the dead org.
+    // Verify orphan invited-user cleanup: the auto-created members from
+    // earlier in this describe should be gone (their email contains
+    // life-algorithm.test from the per-run RUN_ID).
+    const orphanCheck = await request.get(
+      `${API}/admin/users?search=life-algorithm-${RUN_ID}`,
+      { headers: { Authorization: `Bearer ${token}` } },
+    )
+    if (orphanCheck.status() === 200) {
+      const orphans = await orphanCheck.json()
+      const remaining = (orphans.data?.users ?? orphans.data ?? []).filter(
+        (u: { email: string }) => u.email && u.email.includes(`-${RUN_ID}@life-algorithm`),
+      )
+      expect(remaining.length, `expected 0 orphan invited users, got: ${JSON.stringify(remaining)}`).toBe(
+        0,
+      )
+    }
+
     ctx.orgId = null
   })
 })

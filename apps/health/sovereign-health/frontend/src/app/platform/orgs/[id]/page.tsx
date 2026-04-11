@@ -105,6 +105,38 @@ export default function OrgDetailPage() {
   const t = useTranslations('platform.orgDetail')
   const locale = useLocale()
   const [deleting, setDeleting] = useState(false)
+  // Sprint 041 round 3: delete confirmation modal state.
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [deletePreview, setDeletePreview] = useState<
+    | {
+        org: { id: string; name: string; slug: string }
+        counts: {
+          members: number
+          licenses: number
+          invoices: number
+          domains: number
+          audit_entries: number
+        }
+        details: {
+          members: Array<{ email: string; role: string }>
+          licenses: Array<{
+            tier_slug: string
+            issued_at: string | null
+            expires_at: string | null
+            revoked: boolean
+          }>
+          invoices: Array<{
+            memo: string
+            status: string
+            total_amount_cents: number
+            currency: string
+            created_at: string | null
+          }>
+        }
+      }
+    | null
+  >(null)
+  const [showDeleteDetails, setShowDeleteDetails] = useState(false)
   const [tab, setTab] = useState<
     'overview' | 'members' | 'license' | 'branding' | 'invoices' | 'audit'
   >('overview')
@@ -197,14 +229,22 @@ export default function OrgDetailPage() {
     }
   }
 
-  const handleDeleteOrg = async () => {
+  const handleOpenDeleteModal = async () => {
     if (!org) return
-    if (
-      !confirm(
-        `Delete organization "${org.name}"?\n\nIn dev mode this is a HARD delete -- the org row, all members, all licenses, all invoices, and all audit log entries cascade-delete. This cannot be undone.\n\nIn production this would be a soft delete (is_deleted=true).\n\nProceed?`,
-      )
-    )
-      return
+    setDeletePreview(null)
+    setShowDeleteDetails(false)
+    setShowDeleteModal(true)
+    try {
+      const res = await api.admin.deletePreviewOrganization(orgId)
+      setDeletePreview(res.data)
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to load delete preview')
+      setShowDeleteModal(false)
+    }
+  }
+
+  const handleConfirmDelete = async () => {
+    if (!org) return
     setDeleting(true)
     try {
       const res = await api.admin.deleteOrganization(orgId)
@@ -217,6 +257,7 @@ export default function OrgDetailPage() {
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to delete org')
       setDeleting(false)
+      setShowDeleteModal(false)
     }
   }
 
@@ -263,7 +304,7 @@ export default function OrgDetailPage() {
             </span>
             <button
               type="button"
-              onClick={handleDeleteOrg}
+              onClick={handleOpenDeleteModal}
               disabled={deleting}
               data-testid="org-delete-button"
               className="text-xs bg-red-600/20 hover:bg-red-600/30 text-red-300 border border-red-500/40 px-3 py-1.5 rounded transition-colors disabled:opacity-50"
@@ -654,6 +695,169 @@ export default function OrgDetailPage() {
                 ))}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* Sprint 041 round 3: delete confirmation modal with dependency counts */}
+      {showDeleteModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+          role="dialog"
+          aria-modal="true"
+          data-testid="org-delete-modal"
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !deleting) {
+              setShowDeleteModal(false)
+            }
+          }}
+        >
+          <div className="w-full max-w-2xl rounded-2xl border border-red-500/40 bg-zinc-950 p-6 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
+            <h2 className="text-lg font-bold text-red-300">Delete organization?</h2>
+            <p className="text-sm text-zinc-300">
+              This will <span className="font-bold">hard-delete</span>{' '}
+              <span className="font-mono text-orange-300">{org.name}</span> and every dependency
+              listed below. In production this would be a soft delete (is_deleted=true).
+              <span className="block mt-1 text-xs text-zinc-500">This cannot be undone.</span>
+            </p>
+
+            {!deletePreview && (
+              <div className="text-zinc-500 text-sm py-4">Loading dependency preview...</div>
+            )}
+            {deletePreview && (
+              <>
+                <div
+                  data-testid="org-delete-counts"
+                  className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs"
+                >
+                  <div className="rounded-lg border border-zinc-800 bg-zinc-900/40 px-3 py-2">
+                    <div className="text-zinc-500">Members</div>
+                    <div className="font-mono text-base text-zinc-100">
+                      {deletePreview.counts.members}
+                    </div>
+                  </div>
+                  <div className="rounded-lg border border-zinc-800 bg-zinc-900/40 px-3 py-2">
+                    <div className="text-zinc-500">Licenses (incl. revoked)</div>
+                    <div className="font-mono text-base text-zinc-100">
+                      {deletePreview.counts.licenses}
+                    </div>
+                  </div>
+                  <div className="rounded-lg border border-zinc-800 bg-zinc-900/40 px-3 py-2">
+                    <div className="text-zinc-500">Invoices</div>
+                    <div className="font-mono text-base text-zinc-100">
+                      {deletePreview.counts.invoices}
+                    </div>
+                  </div>
+                  <div className="rounded-lg border border-zinc-800 bg-zinc-900/40 px-3 py-2">
+                    <div className="text-zinc-500">Domains</div>
+                    <div className="font-mono text-base text-zinc-100">
+                      {deletePreview.counts.domains}
+                    </div>
+                  </div>
+                  <div className="rounded-lg border border-zinc-800 bg-zinc-900/40 px-3 py-2 col-span-2 sm:col-span-1">
+                    <div className="text-zinc-500">Audit entries (kept as record)</div>
+                    <div className="font-mono text-base text-zinc-100">
+                      {deletePreview.counts.audit_entries}
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setShowDeleteDetails((s) => !s)}
+                  data-testid="org-delete-details-toggle"
+                  className="text-xs text-blue-400 hover:text-blue-300 underline decoration-dotted"
+                >
+                  {showDeleteDetails ? 'Hide details ▴' : 'Show details ▾'}
+                </button>
+
+                {showDeleteDetails && (
+                  <div
+                    data-testid="org-delete-details"
+                    className="space-y-3 border-t border-zinc-800 pt-3"
+                  >
+                    {deletePreview.details.members.length > 0 && (
+                      <div>
+                        <div className="text-[10px] uppercase tracking-wider text-zinc-500 mb-1">
+                          Members
+                        </div>
+                        <ul className="space-y-0.5 text-xs">
+                          {deletePreview.details.members.map((m, i) => (
+                            <li key={i} className="flex justify-between">
+                              <span className="text-zinc-300">{m.email}</span>
+                              <span className="text-zinc-500 font-mono">{m.role}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {deletePreview.details.licenses.length > 0 && (
+                      <div>
+                        <div className="text-[10px] uppercase tracking-wider text-zinc-500 mb-1">
+                          Licenses
+                        </div>
+                        <ul className="space-y-0.5 text-xs">
+                          {deletePreview.details.licenses.map((l, i) => (
+                            <li key={i} className="flex justify-between">
+                              <span className="text-zinc-300">{l.tier_slug}</span>
+                              <span className="text-zinc-500">
+                                {l.revoked ? 'revoked' : 'active'}
+                                {l.expires_at && ` · expires ${formatDate(l.expires_at)}`}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {deletePreview.details.invoices.length > 0 && (
+                      <div>
+                        <div className="text-[10px] uppercase tracking-wider text-zinc-500 mb-1">
+                          Invoices
+                        </div>
+                        <ul className="space-y-0.5 text-xs">
+                          {deletePreview.details.invoices.map((inv, i) => (
+                            <li key={i} className="flex justify-between">
+                              <span className="text-zinc-300">{inv.memo || '(no memo)'}</span>
+                              <span className="text-zinc-500">
+                                {inv.status} · {(inv.total_amount_cents / 100).toFixed(2)}{' '}
+                                {inv.currency.toUpperCase()}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {deletePreview.details.members.length === 0 &&
+                      deletePreview.details.licenses.length === 0 &&
+                      deletePreview.details.invoices.length === 0 && (
+                        <div className="text-xs text-zinc-500 italic">
+                          No dependent rows. Just the org row itself.
+                        </div>
+                      )}
+                  </div>
+                )}
+              </>
+            )}
+
+            <div className="flex items-center justify-end gap-2 pt-3 border-t border-zinc-800">
+              <button
+                type="button"
+                onClick={() => setShowDeleteModal(false)}
+                disabled={deleting}
+                className="text-sm text-zinc-400 hover:text-zinc-200 px-3 py-2 disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDelete}
+                disabled={deleting || !deletePreview}
+                data-testid="org-delete-confirm"
+                className="text-sm bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white font-medium px-4 py-2 rounded-lg transition-colors"
+              >
+                {deleting ? 'Deleting...' : 'Yes, delete org'}
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -1328,6 +1328,154 @@ pub async fn delete_org_domain(
     })))
 }
 
+/// GET /admin/organizations/{id}/delete-preview
+///
+/// Sprint 041 round 3: returns counts + a small detail list of every
+/// row that would be deleted/updated by a hard delete of this org. Used
+/// by the platform admin GUI to render a confirmation modal that tells
+/// the operator what they're about to wipe out.
+pub async fn delete_preview_organization(
+    platform_pool: web::Data<PlatformPool>,
+    _admin: AdminUser,
+    path: web::Path<Uuid>,
+) -> Result<HttpResponse, AppError> {
+    let org_id = path.into_inner();
+
+    let row: Option<(String, String)> = sqlx::query_as(
+        "SELECT name, slug FROM public.organizations WHERE id = $1 AND is_deleted = false",
+    )
+    .bind(org_id)
+    .fetch_optional(&platform_pool.0)
+    .await?;
+    let (org_name, org_slug) = row.ok_or(AppError::NotFound)?;
+
+    // Counts (one query each, fast on small tables; the largest will be
+    // org_invoices but it's still bounded per-org).
+    let members_count: i64 =
+        sqlx::query_scalar("SELECT COUNT(*) FROM brickos.org_members WHERE org_id = $1")
+            .bind(org_id)
+            .fetch_one(&platform_pool.0)
+            .await
+            .unwrap_or(0);
+    let licenses_count: i64 =
+        sqlx::query_scalar("SELECT COUNT(*) FROM brickos.org_licenses WHERE org_id = $1")
+            .bind(org_id)
+            .fetch_one(&platform_pool.0)
+            .await
+            .unwrap_or(0);
+    let invoices_count: i64 =
+        sqlx::query_scalar("SELECT COUNT(*) FROM public.org_invoices WHERE org_id = $1")
+            .bind(org_id)
+            .fetch_one(&platform_pool.0)
+            .await
+            .unwrap_or(0);
+    let domains_count: i64 =
+        sqlx::query_scalar("SELECT COUNT(*) FROM public.domain_mappings WHERE org_id = $1")
+            .bind(org_id)
+            .fetch_one(&platform_pool.0)
+            .await
+            .unwrap_or(0);
+    let audit_count: i64 = sqlx::query_scalar(
+        "SELECT COUNT(*) FROM brickos.admin_audit_log WHERE target_type = 'organization' AND target_id = $1",
+    )
+    .bind(org_id)
+    .fetch_one(&platform_pool.0)
+    .await
+    .unwrap_or(0);
+
+    // Details (capped at 50 per category).
+    let member_rows = sqlx::query(
+        r#"SELECT u.email, om.role
+           FROM brickos.org_members om
+           JOIN brickos.users u ON u.id = om.user_id
+           WHERE om.org_id = $1
+           ORDER BY om.joined_at
+           LIMIT 50"#,
+    )
+    .bind(org_id)
+    .fetch_all(&platform_pool.0)
+    .await
+    .unwrap_or_default();
+
+    let members: Vec<serde_json::Value> = member_rows
+        .iter()
+        .map(|r| {
+            serde_json::json!({
+                "email": r.try_get::<String, _>("email").unwrap_or_default(),
+                "role": r.try_get::<String, _>("role").unwrap_or_default(),
+            })
+        })
+        .collect();
+
+    let license_rows = sqlx::query(
+        r#"SELECT tier_slug, issued_at, expires_at, revoked_at
+           FROM brickos.org_licenses
+           WHERE org_id = $1
+           ORDER BY issued_at DESC
+           LIMIT 50"#,
+    )
+    .bind(org_id)
+    .fetch_all(&platform_pool.0)
+    .await
+    .unwrap_or_default();
+
+    let licenses: Vec<serde_json::Value> = license_rows
+        .iter()
+        .map(|r| {
+            serde_json::json!({
+                "tier_slug": r.try_get::<String, _>("tier_slug").unwrap_or_default(),
+                "issued_at": r.try_get::<chrono::DateTime<chrono::Utc>, _>("issued_at").ok(),
+                "expires_at": r.try_get::<chrono::DateTime<chrono::Utc>, _>("expires_at").ok(),
+                "revoked": r.try_get::<Option<chrono::DateTime<chrono::Utc>>, _>("revoked_at").ok().flatten().is_some(),
+            })
+        })
+        .collect();
+
+    let invoice_rows = sqlx::query(
+        r#"SELECT memo, status, total_amount_cents, currency, created_at
+           FROM public.org_invoices
+           WHERE org_id = $1
+           ORDER BY created_at DESC
+           LIMIT 50"#,
+    )
+    .bind(org_id)
+    .fetch_all(&platform_pool.0)
+    .await
+    .unwrap_or_default();
+
+    let invoices: Vec<serde_json::Value> = invoice_rows
+        .iter()
+        .map(|r| {
+            serde_json::json!({
+                "memo": r.try_get::<Option<String>, _>("memo").ok().flatten().unwrap_or_default(),
+                "status": r.try_get::<String, _>("status").unwrap_or_default(),
+                "total_amount_cents": r.try_get::<i64, _>("total_amount_cents").unwrap_or(0),
+                "currency": r.try_get::<String, _>("currency").unwrap_or_default(),
+                "created_at": r.try_get::<chrono::DateTime<chrono::Utc>, _>("created_at").ok(),
+            })
+        })
+        .collect();
+
+    Ok(HttpResponse::Ok().json(serde_json::json!({
+        "data": {
+            "org": { "id": org_id, "name": org_name, "slug": org_slug },
+            "counts": {
+                "members": members_count,
+                "licenses": licenses_count,
+                "invoices": invoices_count,
+                "domains": domains_count,
+                "audit_entries": audit_count,
+            },
+            "details": {
+                "members": members,
+                "licenses": licenses,
+                "invoices": invoices,
+            }
+        },
+        "error": null
+    })))
+}
+
 /// DELETE /admin/organizations/{id}
 ///
 /// Sprint 041 round 2: lets the operator delete an org from the platform
@@ -1426,6 +1574,29 @@ pub async fn delete_organization(
             sqlx::query(stmt).bind(org_id).execute(&mut *tx).await?;
         }
 
+        // Snapshot the user_ids whose ONLY membership was in this org
+        // BEFORE we delete the org rows. We use this list to clean up
+        // orphan invited users (auto-created by add_org_member /
+        // create_organization with password_hash='pending_invite' and
+        // never logged in) after the org is gone.
+        let orphan_candidates: Vec<(Uuid,)> = sqlx::query_as(
+            r#"SELECT u.id
+               FROM public.users u
+               WHERE u.password_hash = 'pending_invite'
+                 AND EXISTS (
+                     SELECT 1 FROM public.org_members om
+                     WHERE om.user_id = u.id AND om.org_id = $1
+                 )
+                 AND NOT EXISTS (
+                     SELECT 1 FROM public.org_members om2
+                     WHERE om2.user_id = u.id AND om2.org_id != $1
+                 )"#,
+        )
+        .bind(org_id)
+        .fetch_all(&mut *tx)
+        .await
+        .unwrap_or_default();
+
         // Now delete the org rows themselves. The remaining FKs (org_apps,
         // org_licenses, org_members on the brickos side, domain_mappings,
         // org_invoices on the public side) all have ON DELETE CASCADE.
@@ -1437,6 +1608,24 @@ pub async fn delete_organization(
             .bind(org_id)
             .execute(&mut *tx)
             .await?;
+
+        // Clean up orphan invited users. Snapshot was taken before the
+        // org delete cascaded org_members away, so the candidates list
+        // captures users who lost their last membership.
+        for (uid,) in &orphan_candidates {
+            sqlx::query(
+                "DELETE FROM public.users WHERE id = $1 AND password_hash = 'pending_invite'",
+            )
+            .bind(uid)
+            .execute(&mut *tx)
+            .await?;
+            sqlx::query(
+                "DELETE FROM brickos.users WHERE id = $1 AND password_hash = 'pending_invite'",
+            )
+            .bind(uid)
+            .execute(&mut *tx)
+            .await?;
+        }
     }
 
     tx.commit().await?;

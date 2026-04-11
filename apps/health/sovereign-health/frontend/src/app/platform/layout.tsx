@@ -276,15 +276,23 @@ export default function PlatformLayout({ children }: { children: React.ReactNode
           {mobileOpen ? '\u2715' : '\u2630'}
         </button>
 
-        {/* Sidebar */}
+        {/* Sidebar
+            Sprint 041 round 3: aside is a flex column so the header
+            (logo + name) and search input STICK at the top while the
+            nav scrolls inside. Previously the whole aside had
+            overflow-y-auto, so scrolling the sidebar moved the brand
+            header out of view. */}
         <aside className={`
-          fixed lg:sticky top-0 left-0 z-40 h-screen overflow-y-auto
+          fixed lg:sticky top-0 left-0 z-40 h-screen flex flex-col
           ${collapsed ? 'w-16' : 'w-60'} border-r border-zinc-800 bg-[#09090b]
           transition-all duration-200
           ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         `}>
-          {/* Header */}
-          <div className="flex items-center gap-3 px-3 py-3 border-b border-zinc-800">
+          {/* Header (sticky -- shrink-0 means it doesn't get pushed down by the scrolling nav) */}
+          <div
+            data-testid="platform-sidebar-header"
+            className="flex items-center gap-3 px-3 py-3 border-b border-zinc-800 shrink-0"
+          >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/brickos-cube.png" alt="BrickOS"
@@ -310,9 +318,12 @@ export default function PlatformLayout({ children }: { children: React.ReactNode
             )}
           </div>
 
-          {/* Search */}
+          {/* Search (also sticky -- shrink-0) */}
           {!collapsed && (
-            <div className="px-3 py-2 border-b border-zinc-800">
+            <div
+              data-testid="platform-sidebar-search"
+              className="px-3 py-2 border-b border-zinc-800 shrink-0"
+            >
               <input
                 type="text"
                 placeholder="Search pages..."
@@ -328,8 +339,8 @@ export default function PlatformLayout({ children }: { children: React.ReactNode
             </div>
           )}
 
-          {/* Nav sections */}
-          <nav className="py-2 overflow-y-auto flex-1">
+          {/* Nav sections (the scrolling area; min-h-0 lets it shrink in the flex column) */}
+          <nav className="py-2 overflow-y-auto flex-1 min-h-0">
             {Object.entries(sections).map(([section, items]) => (
               <div key={section}>
                 {!collapsed && (
