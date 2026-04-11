@@ -435,6 +435,23 @@ WHERE NOT EXISTS (
 )
 ON CONFLICT (id) DO NOTHING;
 
+-- Mirror the dev admin into brickos.users so the licensing engine can
+-- FK-reference it as the issued_by of any org_license created via the
+-- platform admin GUI. Without this row, generating a license fails with
+-- `org_licenses_issued_by_fkey` violation. Same WHERE NOT EXISTS guard
+-- as above keeps it out of production.
+INSERT INTO brickos.users (id, email, password_hash, display_name, role)
+SELECT
+    '00000000-0000-0000-0000-000000000002'::uuid,
+    'dev@sovereignhealth.io',
+    '$argon2id$v=19$m=19456,t=2,p=1$Q1gRZjFT2Dy7/7DMww3+6Q$1W6q0Hx0rDgH2XcKcYAH5Zm4DJXXKt0WlovpHgxSH4Q',
+    'Dev Admin',
+    'admin'
+WHERE NOT EXISTS (
+    SELECT 1 FROM users WHERE email = 'admin@schindlwick.com'
+)
+ON CONFLICT (id) DO NOTHING;
+
 -- ----------------------------------------------------------------------------
 -- Feature registry: 28 rows from canonical Sprint 040 seed (migration 011)
 -- ----------------------------------------------------------------------------

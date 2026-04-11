@@ -322,9 +322,15 @@ pub async fn create_organization(
 
     let org_id = Uuid::new_v4();
 
-    // Create organization
+    // Sprint 041 #523: dual-write to both public.organizations and
+    // brickos.organizations so the licensing engine (which queries
+    // brickos.* explicitly) can FK-reference the new org. The dev DB has
+    // both schemas existing in parallel until the true two-pool E2E env
+    // from #491 Option A lands. Same UUID is used in both rows.
+    let mut tx = platform_pool.0.begin().await?;
+
     sqlx::query(
-        r#"INSERT INTO organizations (id, name, slug, org_type, billing_email, is_active)
+        r#"INSERT INTO public.organizations (id, name, slug, org_type, billing_email, is_active)
            VALUES ($1, $2, $3, $4, $5, true)"#,
     )
     .bind(org_id)
@@ -332,30 +338,67 @@ pub async fn create_organization(
     .bind(&body.slug)
     .bind(&body.org_type)
     .bind(&body.billing_email)
-    .execute(&platform_pool.0)
+    .execute(&mut *tx)
     .await?;
 
-    // If admin_email provided, create the org owner membership
+    sqlx::query(
+        r#"INSERT INTO brickos.organizations (id, name, slug, org_type, billing_email, is_active)
+           VALUES ($1, $2, $3, $4, $5, true)
+           ON CONFLICT (id) DO NOTHING"#,
+    )
+    .bind(org_id)
+    .bind(&body.name)
+    .bind(&body.slug)
+    .bind(&body.org_type)
+    .bind(&body.billing_email)
+    .execute(&mut *tx)
+    .await?;
+
+    // If admin_email provided, create the org owner membership in both schemas.
+    // public.org_members uses the legacy role enum 'owner', brickos.org_members
+    // uses the Sprint 040 #463 enum 'org_owner'.
     if let Some(admin_email) = &body.admin_email {
         let user_id: Option<(Uuid,)> =
-            sqlx::query_as("SELECT id FROM users WHERE email = $1 AND is_deleted = false")
+            sqlx::query_as("SELECT id FROM public.users WHERE email = $1 AND is_deleted = false")
                 .bind(admin_email)
-                .fetch_optional(&platform_pool.0)
+                .fetch_optional(&mut *tx)
                 .await?;
 
         if let Some((uid,)) = user_id {
             sqlx::query(
-                r#"INSERT INTO org_members (org_id, user_id, role, invited_by)
+                r#"INSERT INTO public.org_members (org_id, user_id, role, invited_by)
                    VALUES ($1, $2, 'owner', $3)
                    ON CONFLICT (org_id, user_id) DO NOTHING"#,
             )
             .bind(org_id)
             .bind(uid)
             .bind(admin.user_id)
-            .execute(&platform_pool.0)
+            .execute(&mut *tx)
             .await?;
+
+            // brickos.org_members FKs against brickos.users. Skip if the user
+            // is not present in the brickos schema (cold-boot dev only seeds
+            // the dev admin + 3 demo profile users into brickos.users).
+            let in_brickos: Option<(Uuid,)> =
+                sqlx::query_as("SELECT id FROM brickos.users WHERE id = $1")
+                    .bind(uid)
+                    .fetch_optional(&mut *tx)
+                    .await?;
+            if in_brickos.is_some() {
+                sqlx::query(
+                    r#"INSERT INTO brickos.org_members (org_id, user_id, role)
+                       VALUES ($1, $2, 'org_owner')
+                       ON CONFLICT (org_id, user_id) DO NOTHING"#,
+                )
+                .bind(org_id)
+                .bind(uid)
+                .execute(&mut *tx)
+                .await?;
+            }
         }
     }
+
+    tx.commit().await?;
 
     Ok(HttpResponse::Created().json(serde_json::json!({
         "data": { "id": org_id, "slug": body.slug },
