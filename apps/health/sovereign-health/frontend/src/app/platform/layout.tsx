@@ -53,12 +53,19 @@ function buildNavItems(t: (key: string) => string): NavItem[] {
     // Content
     { key: 'content-app', label: t('contentApp'), href: '/platform/content/app', icon: '\u270E', section: 'CONTENT', visible: p },
     { key: 'content-web', label: t('contentWeb'), href: '/platform/content/web', icon: '\u2318', section: 'CONTENT', visible: tech },
-    { key: 'content-strings', label: t('strings'), href: '/platform/content/strings', icon: '\u2630', section: 'CONTENT', visible: p },
+    // Sprint 041 #535: content-strings is a "Coming soon" stub. Hidden from
+    // nav until the i18n string editor is implemented. Re-enable by removing
+    // the `visible: () => false` override.
+    { key: 'content-strings', label: t('strings'), href: '/platform/content/strings', icon: '\u2630', section: 'CONTENT', visible: () => false },
     { key: 'newsletter', label: t('newsletter'), href: '/platform/newsletter', icon: '\u2709', section: 'CONTENT', visible: comm },
     { key: 'contact', label: t('contact'), href: '/platform/contact', icon: '\u2706', section: 'CONTENT', visible: any },
 
     // AI
-    { key: 'ai-config', label: t('aiConfig'), href: '/platform/ai/config', icon: '\u2699', section: 'AI', visible: tech },
+    // Sprint 041 #532: ai-config is a non-functional mockup (no onClick on
+    // Test Connection, no onChange on inputs, no save button). Hidden from
+    // nav until #529 (Dr. Alex consume brickos system AI defaults) lands
+    // and rebuilds this page properly.
+    { key: 'ai-config', label: t('aiConfig'), href: '/platform/ai/config', icon: '\u2699', section: 'AI', visible: () => false },
     { key: 'ai-usage', label: t('aiUsage'), href: '/platform/ai/usage', icon: '\u2604', section: 'AI', visible: any },
 
     // Ops
@@ -96,8 +103,13 @@ function FilterDropdowns() {
         onChange={e => setAppFilter(e.target.value)}
         className="bg-zinc-800/50 border border-zinc-700/50 rounded-lg px-2 py-1 text-[11px] text-zinc-400 focus:outline-none focus:ring-1 focus:ring-orange-500/50"
       >
+        {/* Sprint 041 #537 fix: option values must match the canonical app_key
+            stored in DB columns (short_links.app_key, org_apps.app_key). The
+            previous "shi" value mismatched the DB ("sovereign-health"), so
+            picking Sovereign Health from the filter returned 0 results on
+            every /platform/* page that respects this shared filter bar. */}
         <option value="all">All Apps</option>
-        <option value="shi">Sovereign Health</option>
+        <option value="sovereign-health">Sovereign Health</option>
         <option value="sovereign-link">Sovereign Link</option>
         <option value="sovereign-voice">Sovereign Voice</option>
       </select>
@@ -188,19 +200,17 @@ function UserProfileMenu({ user }: { user: { email: string; display_name: string
             </div>
             {/* Sprint 040 #484 -- multi-org switcher (hidden if 0 memberships) */}
             <OrgSwitcher />
+            {/* Sprint 041 #533 fix: collapsed "Security & MFA" sibling
+                back into the Settings entry. Per the brickos master template
+                (#528), Security is a tab inside Settings, not a sibling
+                navigation item. Users who want MFA find it via the Security
+                tab inside /settings. */}
             <Link
               href="/settings"
               onClick={() => setOpen(false)}
               className="flex items-center gap-2 px-3 py-2 text-sm text-zinc-300 hover:bg-zinc-800 transition-colors"
             >
               Settings
-            </Link>
-            <Link
-              href="/settings?tab=security"
-              onClick={() => setOpen(false)}
-              className="flex items-center gap-2 px-3 py-2 text-sm text-zinc-300 hover:bg-zinc-800 transition-colors"
-            >
-              Security & MFA
             </Link>
             <button
               onClick={handleLogout}

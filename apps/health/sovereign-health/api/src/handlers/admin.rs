@@ -149,30 +149,46 @@ pub async fn list_users(
     };
 
     let org_id_filter = query.org_id.as_deref().unwrap_or("");
+    // Sprint 041 #536/#537 fix: the "Individual User" pseudo-org represents
+    // users who have no org_members row at all. Strict equality on its UUID
+    // returned 0 results (no row in org_members points at it). Special-case
+    // it here to use NOT EXISTS semantics. The brickos.organizations row
+    // for Individual User is left in place so the frontend dropdown still
+    // populates from the orgs list -- it just becomes a synthetic category.
+    const INDIVIDUAL_USER_ORG_ID: &str = "00000000-0000-0000-0000-000000000001";
+    let is_individual_user = org_id_filter == INDIVIDUAL_USER_ORG_ID;
+    let has_real_org_filter = !org_id_filter.is_empty() && !is_individual_user;
 
     let (rows, total) = if let Some(ref search) = query.search {
         let pattern = format!("%{}%", search);
         // With search: $1=pattern, $2=per_page, $3=offset, $4=org_id (optional)
-        let org_join = if !org_id_filter.is_empty() {
+        let org_join = if has_real_org_filter {
             "INNER JOIN org_members om ON om.user_id = u.id AND om.org_id = $4::uuid"
         } else {
             ""
         };
-
-        let count_sql = if !org_id_filter.is_empty() {
-            "SELECT COUNT(*) FROM users u INNER JOIN org_members om ON om.user_id = u.id AND om.org_id = $2::uuid WHERE u.is_deleted = false AND (u.email ILIKE $1 OR u.display_name ILIKE $1)"
+        let individual_user_clause = if is_individual_user {
+            "AND NOT EXISTS (SELECT 1 FROM org_members om WHERE om.user_id = u.id)"
         } else {
-            "SELECT COUNT(*) FROM users u WHERE u.is_deleted = false AND (u.email ILIKE $1 OR u.display_name ILIKE $1)"
+            ""
         };
-        let total: i64 = if !org_id_filter.is_empty() {
-            sqlx::query_scalar(count_sql)
+
+        let count_sql: String = if has_real_org_filter {
+            "SELECT COUNT(*) FROM users u INNER JOIN org_members om ON om.user_id = u.id AND om.org_id = $2::uuid WHERE u.is_deleted = false AND (u.email ILIKE $1 OR u.display_name ILIKE $1)".to_string()
+        } else {
+            format!(
+                "SELECT COUNT(*) FROM users u WHERE u.is_deleted = false AND (u.email ILIKE $1 OR u.display_name ILIKE $1) {individual_user_clause}"
+            )
+        };
+        let total: i64 = if has_real_org_filter {
+            sqlx::query_scalar(&count_sql)
                 .bind(&pattern)
                 .bind(org_id_filter)
                 .fetch_one(&platform_pool.0)
                 .await
                 .unwrap_or(0)
         } else {
-            sqlx::query_scalar(count_sql)
+            sqlx::query_scalar(&count_sql)
                 .bind(&pattern)
                 .fetch_one(&platform_pool.0)
                 .await
@@ -194,12 +210,12 @@ pub async fn list_users(
                {org_join}
                LEFT JOIN user_licenses ul ON ul.user_id = u.id
                LEFT JOIN license_tiers lt ON lt.id = ul.tier_id
-               WHERE u.is_deleted = false AND (u.email ILIKE $1 OR u.display_name ILIKE $1)
+               WHERE u.is_deleted = false AND (u.email ILIKE $1 OR u.display_name ILIKE $1) {individual_user_clause}
                ORDER BY {order_clause}
                LIMIT $2 OFFSET $3"#
         );
 
-        let rows = if !org_id_filter.is_empty() {
+        let rows = if has_real_org_filter {
             sqlx::query(&sql)
                 .bind(&pattern)
                 .bind(per_page)
@@ -219,25 +235,30 @@ pub async fn list_users(
         (rows, total)
     } else {
         // Without search: $1=per_page, $2=offset, $3=org_id (optional)
-        let org_join = if !org_id_filter.is_empty() {
+        let org_join = if has_real_org_filter {
             "INNER JOIN org_members om ON om.user_id = u.id AND om.org_id = $3::uuid"
         } else {
             ""
         };
-
-        let count_sql = if !org_id_filter.is_empty() {
-            "SELECT COUNT(*) FROM users u INNER JOIN org_members om ON om.user_id = u.id AND om.org_id = $1::uuid WHERE u.is_deleted = false"
+        let individual_user_clause = if is_individual_user {
+            "AND NOT EXISTS (SELECT 1 FROM org_members om WHERE om.user_id = u.id)"
         } else {
-            "SELECT COUNT(*) FROM users WHERE is_deleted = false"
+            ""
         };
-        let total: i64 = if !org_id_filter.is_empty() {
-            sqlx::query_scalar(count_sql)
+
+        let count_sql: String = if has_real_org_filter {
+            "SELECT COUNT(*) FROM users u INNER JOIN org_members om ON om.user_id = u.id AND om.org_id = $1::uuid WHERE u.is_deleted = false".to_string()
+        } else {
+            format!("SELECT COUNT(*) FROM users u WHERE u.is_deleted = false {individual_user_clause}")
+        };
+        let total: i64 = if has_real_org_filter {
+            sqlx::query_scalar(&count_sql)
                 .bind(org_id_filter)
                 .fetch_one(&platform_pool.0)
                 .await
                 .unwrap_or(0)
         } else {
-            sqlx::query_scalar(count_sql)
+            sqlx::query_scalar(&count_sql)
                 .fetch_one(&platform_pool.0)
                 .await
                 .unwrap_or(0)
@@ -258,12 +279,12 @@ pub async fn list_users(
                {org_join}
                LEFT JOIN user_licenses ul ON ul.user_id = u.id
                LEFT JOIN license_tiers lt ON lt.id = ul.tier_id
-               WHERE u.is_deleted = false
+               WHERE u.is_deleted = false {individual_user_clause}
                ORDER BY {order_clause}
                LIMIT $1 OFFSET $2"#
         );
 
-        let rows = if !org_id_filter.is_empty() {
+        let rows = if has_real_org_filter {
             sqlx::query(&sql)
                 .bind(per_page)
                 .bind(offset)

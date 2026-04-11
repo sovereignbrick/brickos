@@ -1077,12 +1077,16 @@ export const api = {
       } }>(`/admin/newsletter/subscribers?${params}`)
     },
     newsletterExport: async () => {
-      const token = document.cookie.split(';').find(c => c.trim().startsWith('token='))?.split('=')[1]
-      const headers: Record<string, string> = {}
-      if (token) headers['Authorization'] = `Bearer ${token}`
+      // Sprint 041 #534 fix: previously sent an Authorization: Bearer header
+      // which triggered a CORS preflight on cross-origin (demo.* -> api-demo.*).
+      // The backend's CORS allow-list didn't advertise Authorization for this
+      // route, so the preflight failed and the browser threw NetworkError
+      // before the actual GET ever went out. Every other admin call uses the
+      // request() wrapper with cookie auth (credentials: 'include', no
+      // Authorization header), which counts as a simple request and skips
+      // the preflight entirely. Match that pattern.
       const r = await fetch(`${API_BASE}/admin/newsletter/export`, {
         credentials: 'include',
-        headers,
       })
       if (!r.ok) throw new Error('Export failed')
       return r.text()

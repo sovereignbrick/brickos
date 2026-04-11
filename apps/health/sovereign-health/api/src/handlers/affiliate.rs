@@ -964,16 +964,34 @@ pub async fn admin_list_links(
     _admin: AdminUser,
     query: web::Query<AdminLinksQuery>,
 ) -> Result<HttpResponse, AppError> {
+    // Sprint 041 #536/#537 fix: the "Individual User" pseudo-org represents
+    // links that have no owner_org_id set at all. Strict equality on its
+    // UUID returned 0 results because no short_links row has that UUID.
+    // Special-case it here to use IS NULL semantics. The brickos.organizations
+    // row for Individual User stays so the frontend dropdown still populates
+    // from the orgs list -- it just becomes a synthetic UI category.
+    const INDIVIDUAL_USER_ORG_ID: &str = "00000000-0000-0000-0000-000000000001";
+
     let app_filter = query
         .app_key
         .as_deref()
         .filter(|s| !s.is_empty() && *s != "all");
-    let org_filter = query
+    let raw_org = query
         .org_id
         .as_deref()
         .filter(|s| !s.is_empty() && *s != "all");
+    let is_individual_user = raw_org == Some(INDIVIDUAL_USER_ORG_ID);
+    let org_filter = if is_individual_user { None } else { raw_org };
 
-    let rows = sqlx::query(
+    // Build the org clause: real org -> strict equality, individual user
+    // -> IS NULL, no filter -> always-true.
+    let org_clause = if is_individual_user {
+        "AND sl.owner_org_id IS NULL"
+    } else {
+        "AND ($2::text IS NULL OR sl.owner_org_id::text = $2)"
+    };
+
+    let sql = format!(
         r#"SELECT sl.id, sl.code, sl.target_url, sl.link_type, sl.domain, sl.app_key,
                   sl.affiliate_code, sl.title, sl.is_active, sl.created_at,
                   COALESCE(c.total_clicks, 0) as total_clicks,
@@ -987,14 +1005,24 @@ pub async fn admin_list_links(
                FROM short_link_clicks WHERE short_link_id = sl.id
            ) c ON true
            WHERE ($1::text IS NULL OR sl.app_key = $1)
-             AND ($2::text IS NULL OR sl.owner_org_id::text = $2)
+             {org_clause}
            ORDER BY c.total_clicks DESC NULLS LAST, sl.created_at DESC
-           LIMIT 200"#,
-    )
-    .bind(app_filter)
-    .bind(org_filter)
-    .fetch_all(pool.get_ref())
-    .await?;
+           LIMIT 200"#
+    );
+
+    let rows = if is_individual_user {
+        // Only one bind ($1) -- the org clause is hardcoded IS NULL
+        sqlx::query(&sql)
+            .bind(app_filter)
+            .fetch_all(pool.get_ref())
+            .await?
+    } else {
+        sqlx::query(&sql)
+            .bind(app_filter)
+            .bind(org_filter)
+            .fetch_all(pool.get_ref())
+            .await?
+    };
 
     let links: Vec<serde_json::Value> = rows
         .iter()
