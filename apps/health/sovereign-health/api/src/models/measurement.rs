@@ -27,14 +27,20 @@ pub struct CreateMeasurementRequest {
 #[derive(Debug, Deserialize)]
 pub struct MeasurementValue {
     pub marker_slug: String,
+    /// Canonical value used for storage. The frontend converts the user's
+    /// input from the displayed unit to the marker's canonical unit before
+    /// posting (e.g. 5 mg/dL glucose -> 0.2775 mmol/L canonical).
     pub value: f64,
-    /// Sprint 042 #531: optional input unit. When the frontend sends what
-    /// the user actually typed in (mg/dL vs mmol/L for glucose, % vs
-    /// mmol/mol for HbA1c), the backend can range-check in the user's
-    /// unit and produce error messages with the user's numbers instead of
-    /// the converted-to-canonical value the user never saw. Backward
-    /// compatible: clients that don't send `unit` (mobile app, lab
-    /// import) still work via the canonical-unit fallback.
+    /// Sprint 042 #531: optional pair so the validator sees what the user
+    /// actually typed -- not the converted-to-canonical value. Both fields
+    /// are sent together: `display_value` is the raw number the user typed,
+    /// `unit` is the unit they typed it in. Backend uses (display_value,
+    /// unit) for the unit-aware range check and the human-friendly error
+    /// message; storage still uses `value` (canonical). Backward compatible:
+    /// clients that don't send these (mobile app, lab import) still work
+    /// via the canonical-unit fallback in validate_marker_value.
+    #[serde(default)]
+    pub display_value: Option<f64>,
     #[serde(default)]
     pub unit: Option<String>,
 }

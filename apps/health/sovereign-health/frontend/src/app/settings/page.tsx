@@ -19,23 +19,32 @@ import { SecurityTab } from './components/security-tab'
 import { AccountTab } from './components/account-tab'
 import { NotificationsTab } from './components/notifications-tab'
 
-// Sprint 042 #528 Phase D: settings tabs are split into two ordered groups:
+// Sprint 042 #528 Phase D: settings tabs are split into two logical groups:
 //
-//   1. brickos master tabs (always present, app-agnostic)
-//      Account / Security / Privacy / Billing / Notifications
+//   1. SHI app extension tabs (Health profile / Devices / Thresholds /
+//      Medications) -- contributed by the SHI app, visible until
+//      Sprint 04N+ wires entitlement-based hiding
 //
-//   2. App extension tabs (added when the user has the corresponding
-//      app entitlement; today only SHI contributes)
-//      Health profile / Devices / Thresholds / Medications
+//   2. brickos master tabs (Account / Security / Privacy + the new
+//      Billing and Notifications) -- always present, app-agnostic
 //
-// The render order is master first, then extensions in entitlement order.
-// This is Option A from the #528 plan -- the architectural split happens
-// at the page level today; the full registry-based extension pattern is
-// deferred until a second BrickOS app contributes settings (Option B).
+// Sprint 042 user feedback: the render order matches the pre-Sprint-040
+// production layout, which puts SHI tabs FIRST and the cross-cutting
+// brickos tabs after. The two new master tabs (Billing, Notifications)
+// land at the very end so existing bookmarks aren't surprised by a tab
+// suddenly appearing in the middle of the list.
 //
-// Detection of "user has SHI" is currently a no-op (always show all tabs)
-// because the only known SHI signal would require an extra API call.
-// Sprint 04N+ refines this with a real entitlement check.
+// MASTER_TABS / SHI_EXTENSION_TABS are still defined separately so the
+// architectural split is documented in the source -- the structural
+// distinction is preserved even though the render is interleaved by
+// production-order convention.
+
+const SHI_EXTENSION_TABS = [
+  'Health profile',
+  'Devices',
+  'Thresholds',
+  'Medications',
+] as const
 
 const MASTER_TABS = [
   'Account',
@@ -45,14 +54,21 @@ const MASTER_TABS = [
   'Notifications',
 ] as const
 
-const SHI_EXTENSION_TABS = [
+// Render order = pre-Sprint-040 production layout + the two new master
+// tabs at the end. NOT the same as MASTER_TABS first.
+const ALL_TABS = [
+  // Pre-Sprint-040 production order
   'Health profile',
   'Devices',
   'Thresholds',
   'Medications',
+  'Account',
+  'Security',
+  'Data & Privacy',
+  // Sprint 042 #528 Phase D additions
+  'Billing',
+  'Notifications',
 ] as const
-
-const ALL_TABS = [...MASTER_TABS, ...SHI_EXTENSION_TABS] as const
 type Tab = (typeof ALL_TABS)[number]
 
 const TAB_SLUGS: Record<string, Tab> = {
@@ -96,10 +112,9 @@ function SettingsContent() {
   const pathname = usePathname()
   const tabParam = searchParams.get('tab')
 
-  // Sprint 042 #528 Phase D: default to Account (the brickos master entry).
-  // The active tab list is computed below from MASTER_TABS + (optionally)
-  // the SHI_EXTENSION_TABS based on user entitlement.
-  const defaultTab: Tab = 'Account'
+  // Sprint 042 user feedback: keep the production default landing tab
+  // ("Health profile") so existing bookmarks land where they always did.
+  const defaultTab: Tab = 'Health profile'
   const resolvedTab: Tab = TAB_SLUGS[tabParam ?? ''] ?? defaultTab
   const tab: Tab = resolvedTab
 
@@ -167,12 +182,15 @@ function SettingsContent() {
         </div>
 
         <div className="flex flex-wrap gap-0 mb-0 border-b border-border pb-0">
-          {/* Sprint 042 #528 Phase D: render brickos master tabs first,
-              then SHI extension tabs. Currently always render both groups
-              -- the SHI entitlement check is a no-op until Sprint 04N+
-              wires it to a real signal. Pure brickos operators will see
-              SHI extension tabs they can ignore; dual-role users get
-              their full settings back. */}
+          {/* Sprint 042 #528 Phase D: render order matches the
+              pre-Sprint-040 production layout (SHI tabs first, then
+              brickos master tabs), with the two new master tabs
+              (Billing, Notifications) appended at the end. The
+              architectural distinction (brickos master vs SHI
+              extension) lives in the source comments + the MASTER_TABS
+              and SHI_EXTENSION_TABS constants -- the visual order
+              follows the production convention so existing users see
+              their familiar layout. */}
           {ALL_TABS.map(tb => {
             const tabLabelMap: Record<Tab, string> = {
               'Account': t('tabs.account'),
@@ -186,9 +204,6 @@ function SettingsContent() {
               'Medications': t('tabs.medications'),
             }
             const isMaster = (MASTER_TABS as readonly Tab[]).includes(tb)
-            // Visual hint: brickos master tabs first, then a small gap,
-            // then SHI extension tabs. Until we have a real grouping
-            // separator, the order alone communicates the structure.
             return (
               <button
                 key={tb}
@@ -197,7 +212,7 @@ function SettingsContent() {
                   tab === tb
                     ? 'border-blue-500 text-foreground'
                     : 'border-transparent text-muted-foreground hover:text-foreground'
-                } ${!isMaster ? 'ml-1' : ''}`}
+                }`}
                 title={isMaster ? 'BrickOS' : 'Sovereign Health'}
               >
                 {tabLabelMap[tb]}

@@ -665,12 +665,17 @@ export default function NewMeasurementPage() {
 
   // Submit
   const handleSubmit = async () => {
-    // Sprint 042 #531: now sends `unit` alongside `value` so the backend
-    // can range-check in the user's input unit and produce error messages
-    // with the user's actual numbers (not the converted-to-canonical
-    // value the user never typed). Backward compatible: the backend
-    // falls back to canonical-unit ranges if `unit` is missing.
-    const measurementValues: { marker_slug: string; value: number; unit: string }[] = []
+    // Sprint 042 #531: send the user's RAW input + unit alongside the
+    // canonical value. The backend uses (display_value, unit) for the
+    // unit-aware validation + human-friendly error message, and uses
+    // `value` (canonical) for storage. Sending both keeps storage
+    // backward compatible while fixing the validator's input source.
+    const measurementValues: {
+      marker_slug: string
+      value: number
+      display_value: number
+      unit: string
+    }[] = []
 
     // Pre-flight plausibility check (Sprint 042 #531). Collect all
     // suspicious values; if any, ask the user once before submitting.
@@ -697,7 +702,12 @@ export default function NewMeasurementPage() {
         suspicious.push(`${markerName}: ${hint}`)
       }
 
-      measurementValues.push({ marker_slug: slug, value: canonical, unit: displayUnit })
+      measurementValues.push({
+        marker_slug: slug,
+        value: canonical,
+        display_value: n,
+        unit: displayUnit,
+      })
     }
 
     if (suspicious.length > 0) {

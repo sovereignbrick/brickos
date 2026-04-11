@@ -111,10 +111,13 @@ pub async fn create(
 
     // Validate all marker values first
     for mv in &body.values {
-        // Sprint 042 #531: pass the user's input unit so the range check
-        // and error message use what they actually typed, not the
-        // converted-to-canonical value.
-        validate_marker_value(&mv.marker_slug, mv.value, mv.unit.as_deref())
+        // Sprint 042 #531: validate using the user's raw input
+        // (display_value, unit) when both are present; otherwise fall
+        // back to the canonical value. This produces human-friendly
+        // error messages with the user's actual numbers + unit instead
+        // of the converted-to-canonical value the user never typed.
+        let validate_value = mv.display_value.unwrap_or(mv.value);
+        validate_marker_value(&mv.marker_slug, validate_value, mv.unit.as_deref())
             .map_err(AppError::Validation)?;
     }
 
