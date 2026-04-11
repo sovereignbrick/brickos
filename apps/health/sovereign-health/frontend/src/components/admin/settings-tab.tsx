@@ -15,6 +15,27 @@ interface AppSetting {
 
 const CATEGORY_ORDER = ['access', 'infobar_app', 'infobar_web', 'health_coach', 'dr_alex', 'integrations', 'content', 'affiliate', 'notifications', 'security', 'promo']
 
+/**
+ * Sprint 041 round 3: scope filter so the same SettingsTab component
+ * can render either the full SHI app settings (legacy /admin path) or
+ * a brickos-only subset on /platform/settings.
+ *
+ * "brickos" scope keeps cross-app categories (access, integrations,
+ * notifications, security, promo) and hides SHI-specific tabs
+ * (infobar_app, infobar_web, health_coach, dr_alex, content, affiliate).
+ *
+ * Affiliate is also hidden in the brickos scope because the brickos
+ * platform admin manages affiliates from the dedicated
+ * /platform/affiliates page, not from settings.
+ */
+const BRICKOS_CATEGORIES = new Set([
+  'access',
+  'integrations',
+  'notifications',
+  'security',
+  'promo',
+])
+
 const CATEGORY_LABELS: Record<string, string> = {
   access: 'Access Control',
   infobar_app: 'Info Bar (App)',
@@ -370,7 +391,7 @@ function ObjectSetting({ setting, onUpdate }: { setting: AppSetting; onUpdate: (
   )
 }
 
-export function SettingsTab() {
+export function SettingsTab({ scope = 'all' }: { scope?: 'all' | 'brickos' } = {}) {
   const [settings, setSettings] = useState<Record<string, AppSetting[]>>({})
   const [loading, setLoading] = useState(true)
   const [activeCategory, setActiveCategory] = useState('access')
@@ -410,7 +431,9 @@ export function SettingsTab() {
 
   if (loading) return <p className="text-muted-foreground">Loading...</p>
 
-  const categories = CATEGORY_ORDER.filter(c => settings[c]?.length)
+  const categories = CATEGORY_ORDER.filter(
+    c => settings[c]?.length && (scope === 'all' || BRICKOS_CATEGORIES.has(c)),
+  )
 
   return (
     <div className="space-y-4">

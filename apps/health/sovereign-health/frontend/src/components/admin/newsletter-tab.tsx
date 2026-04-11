@@ -127,7 +127,17 @@ export function NewsletterTab() {
 
       {/* Table */}
       {subscribers.length === 0 ? (
-        <p className="text-muted-foreground text-sm text-center py-8">No subscribers yet.</p>
+        <div
+          className="rounded-lg border border-blue-500/20 bg-blue-500/5 p-4 text-xs text-blue-200 space-y-1"
+          data-testid="newsletter-empty-banner"
+        >
+          <p className="font-semibold">No newsletter subscribers in this database</p>
+          <p className="text-blue-300/80">
+            This is expected on a freshly cold-booted dev DB -- no one signed up locally.
+            On staging and production this table aggregates every email captured by the
+            sign-up forms across all SHI surfaces (homepage, app, embedded widgets).
+          </p>
+        </div>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
