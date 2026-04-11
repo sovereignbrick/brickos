@@ -47,19 +47,29 @@ Production deploy happens only when ALL of these are true at sprint close:
 
 ## Phases
 
-### Phase A -- The P0: schema cleanup migration (#527)
+### Phase A -- The P0: schema cleanup migration (#527) -- PARTIALLY DONE
 
-The staging hotfix is fragile. A re-bootstrap of staging would re-trigger the bug. Land the proper fix per option C in #527:
+**Update 2026-04-11 ~18:10 CEST:** The staging hotfix has been codified as migration `20260411180000_sprint041_close_out_legacy_feature_tables.sql` (commit `308c80c`). The hotfix is no longer fragile; SQLx applies it on every boot. Idempotent on dev, no-op on current staging, future re-bootstraps end up in the right state.
 
-1. Update the bootstrap migration's reconciliation block: `SET SCHEMA public` instead of `RENAME TO *_legacy_sprint040` for `product_features` and `tier_features`
-2. Remove the new-shape `CREATE TABLE brickos.tier_features` from the bootstrap migration
-3. Drop the dead `brickos.tier_features` (new shape) on dev + staging
-4. Drop the renamed-aside legacy tables
-5. Re-run the migration on staging via the `_sqlx_migrations` row deletion pattern
-6. Verify dev tests still pass
-7. Re-deploy and re-smoke
+**Important correction to the original plan:** the codified migration does NOT touch `brickos.tier_features` (the new `tier_slug, feature_slug` shape). That table is queried by `brickos-licensing::EmbeddedProvider::tier_features()` at `crates/brickos-licensing/src/embedded.rs:81` and must remain. The original "drop the new shape as dead code" idea was wrong -- it would break the brickos-licensing crate. The new shape is the long-term direction; it just isn't called from the SHI feature-gating handlers yet (Sprint 040 #467 was a shadow refactor that landed the new path but never flipped the old).
 
-**Acceptance:** Smart Import + Dr. Alex chat work end-to-end on staging without any direct DB hotfix. Zero `product_features` errors in `sh-staging-backend` logs for 1 hour.
+**Remaining work (smaller than originally scoped):**
+
+1. Update the bootstrap migration's reconciliation block (`20260411000001`): change `RENAME TO *_legacy_sprint040` -> `SET SCHEMA public` directly. This makes the bootstrap end-state correct without needing the separate fix-up migration to run.
+2. Optionally drop the fix-up migration `20260411180000` if step 1 makes it redundant. (Recommended: keep it as defensive belt + suspenders for any DB that gets restored from a staging backup.)
+3. Verify dev tests still pass after the bootstrap migration update.
+4. Apply the bootstrap update on staging via the `_sqlx_migrations` row deletion pattern (since the checksum will change).
+5. Verify staging still works.
+
+**Acceptance:** Smart Import + Dr. Alex chat work end-to-end on staging without any direct DB hotfix (already verified post-codification). Zero `product_features` errors in `sh-staging-backend` logs for 1 hour after the next deploy.
+
+**Already verified after the codification:**
+- Staging migration row recorded: `20260411180000 | sprint041 close out legacy feature tables | success=t`
+- Boot log NOTICE: `legacy_pf=f legacy_tf=f public_pf=t public_tf=t`
+- API smoke: 7/7 green (login -> create org -> license -> preview -> audit -> delete -> 404)
+- Data preserved: `public.product_features` 48 rows, `public.tier_features` 288 rows, `brickos.tier_features` 156 rows untouched
+
+The handler-side flip from legacy to slug-based is **explicitly out of scope** for Sprint 042 Phase A. It's a coordinated multi-PR refactor that needs handler updates + schema cleanup + seed data migration + backfill, all in one go. Sprint 042 keeps the legacy as canonical and ships SHI to production on the legacy path.
 
 ### Phase B -- Operational gap (#538)
 
