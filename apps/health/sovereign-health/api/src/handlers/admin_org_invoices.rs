@@ -26,29 +26,65 @@ use crate::error::AppError;
 use crate::middleware::auth::AdminUser;
 use crate::PlatformPool;
 
-/// The seven canonical SHI Horizon line items per design 022 §3.9. The
-/// `unit_amount_cents` is the operator-facing default; per-invoice overrides
-/// are still possible by editing the line item before sync. The `slug`
-/// matches the Stripe Product slug created during one-time ops setup.
-const INVOICE_PRODUCTS: &[(&str, &str, i64)] = &[
-    ("shi-horizon-base", "SHI Horizon Practice Base", 49900),
+/// The seven canonical SHI Horizon line items per design 022 §3.9. Each
+/// row is `(slug, name, default_unit_amount_cents, billing_period,
+/// description)`. The `unit_amount_cents` is the operator-facing default;
+/// per-invoice overrides are still possible by editing the line item
+/// before sync. The `slug` matches the Stripe Product slug created during
+/// one-time ops setup.
+///
+/// `billing_period` is one of: "monthly", "yearly", "one-time". The
+/// frontend uses this to clarify the form (the same invoice can mix
+/// recurring and one-time line items, e.g. onboarding + monthly base).
+const INVOICE_PRODUCTS: &[(&str, &str, i64, &str, &str)] = &[
+    (
+        "shi-horizon-base",
+        "SHI Horizon Practice Base",
+        49900,
+        "monthly",
+        "Recurring monthly base price for an SHI Horizon practice. Includes all SHI features at the Horizon tier, 1 owner seat, 5 practitioner seats, and unlimited members. Branding features and additional seats are billed separately.",
+    ),
     (
         "shi-horizon-patients-10",
         "Additional patient seats (block of 10)",
         8900,
+        "monthly",
+        "Adds 10 more patient seats to the org. Quantity is the number of blocks (not the number of patients). Recurring monthly.",
     ),
     (
         "shi-horizon-practitioner-1",
         "Additional practitioner seat",
         3900,
+        "monthly",
+        "Adds one more practitioner seat. Recurring monthly. Use for orgs that have grown beyond the 5 included with the Horizon base.",
     ),
-    ("shi-horizon-domain", "Custom domain (per month)", 4900),
-    ("shi-horizon-me", "M&E (calculated)", 0),
-    ("shi-horizon-onboarding", "Onboarding", 150000),
+    (
+        "shi-horizon-domain",
+        "Custom domain",
+        4900,
+        "monthly",
+        "Recurring monthly fee for an org-owned custom domain (e.g. health.acme.com). Requires the branding.custom_domain feature on the org's license.",
+    ),
+    (
+        "shi-horizon-me",
+        "M&E (measurements & exports)",
+        0,
+        "monthly",
+        "Calculated metered usage for storage + export volume above the included tier limits. Default is 0; the operator fills in the calculated amount before sync.",
+    ),
+    (
+        "shi-horizon-onboarding",
+        "Onboarding",
+        150000,
+        "one-time",
+        "One-time onboarding fee. Covers DB seed, domain DNS setup, branding asset upload, license issuance, and a 1h handover call. Charge once per org.",
+    ),
     (
         "shi-horizon-priority",
-        "Priority support SLA (per year)",
+        "Priority support SLA",
         19900,
+        "yearly",
+        "Annual flat fee for priority support (8h response SLA, business hours). Replaces the included community support. Charge once per year.",
     ),
 ];
 
@@ -75,11 +111,13 @@ pub struct CreateInvoiceRequest {
 pub async fn list_invoice_products(_admin: AdminUser) -> Result<HttpResponse, AppError> {
     let products: Vec<serde_json::Value> = INVOICE_PRODUCTS
         .iter()
-        .map(|(slug, name, cents)| {
+        .map(|(slug, name, cents, billing_period, description)| {
             json!({
                 "slug": slug,
                 "name": name,
                 "default_unit_amount_cents": cents,
+                "billing_period": billing_period,
+                "description": description,
             })
         })
         .collect();
@@ -318,6 +356,47 @@ pub async fn sync_org_invoice_to_stripe(
     })))
 }
 
+// ---------------------------------------------------------------------------
+// DELETE /admin/organizations/{org_id}/invoices/{invoice_id}
+//
+// Sprint 041 #523 follow-up: discard a DRAFT invoice. Once an invoice has
+// been synced to Stripe (status != 'draft'), it can no longer be deleted
+// here -- the operator must void it on the Stripe side.
+// ---------------------------------------------------------------------------
+
+pub async fn delete_org_invoice(
+    platform_pool: web::Data<PlatformPool>,
+    _admin: AdminUser,
+    path: web::Path<(Uuid, Uuid)>,
+) -> Result<HttpResponse, AppError> {
+    let (org_id, invoice_id) = path.into_inner();
+
+    let row: Option<(String,)> =
+        sqlx::query_as("SELECT status FROM org_invoices WHERE id = $1 AND org_id = $2")
+            .bind(invoice_id)
+            .bind(org_id)
+            .fetch_optional(&platform_pool.0)
+            .await?;
+
+    let status = row.ok_or(AppError::NotFound)?.0;
+    if status != "draft" {
+        return Err(AppError::Validation(format!(
+            "Cannot delete invoice in status {status}; only draft invoices can be discarded"
+        )));
+    }
+
+    sqlx::query("DELETE FROM org_invoices WHERE id = $1 AND org_id = $2")
+        .bind(invoice_id)
+        .bind(org_id)
+        .execute(&platform_pool.0)
+        .await?;
+
+    Ok(HttpResponse::Ok().json(json!({
+        "data": { "deleted": true },
+        "error": null
+    })))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -329,7 +408,7 @@ mod tests {
 
     #[test]
     fn invoice_product_slugs_match_design_022() {
-        let slugs: Vec<&str> = INVOICE_PRODUCTS.iter().map(|(s, _, _)| *s).collect();
+        let slugs: Vec<&str> = INVOICE_PRODUCTS.iter().map(|(s, _, _, _, _)| *s).collect();
         for expected in [
             "shi-horizon-base",
             "shi-horizon-patients-10",

@@ -50,7 +50,11 @@ interface OrgRow {
   lifecycle_status: 'active' | 'grace' | 'expired' | 'revoked' | 'no_license'
 }
 
-const ORG_TYPES = ['platform', 'clinic', 'enterprise', 'personal', 'demo']
+// Sprint 041: collapsed from 5 to 3 types. The dropped values were
+// labels with no behavior difference. Migrations may still hold them on
+// existing rows; the filter will silently include them but the create
+// modal only offers the 3 canonical values going forward.
+const ORG_TYPES = ['clinic', 'personal', 'platform']
 const STATUS_OPTIONS = ['active', 'grace', 'expired', 'revoked', 'no_license'] as const
 const EXPIRES_OPTIONS = [7, 30, 90] as const
 const PER_PAGE = 50

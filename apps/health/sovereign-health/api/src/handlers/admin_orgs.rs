@@ -834,35 +834,99 @@ pub async fn add_org_member(
         }
     }
 
+    // Sprint 041 #523 manual-test follow-up: auto-create the user when the
+    // email is not yet known instead of erroring. The created user is in
+    // an "invited" state with no password -- they must set one via the
+    // password reset / accept-invite flow before they can log in. The dev
+    // walkthrough does not actually log in as these users, so the invited
+    // state is sufficient to make the org membership flow self-contained.
+    //
+    // Mirrors the dual-write pattern from create_organization: writes to
+    // both public.users and brickos.users so the brickos.org_members FK
+    // can find the user. Wrapped in a transaction so partial state is
+    // impossible.
+
+    let mut tx = platform_pool.0.begin().await?;
+
     let user_row: Option<(Uuid,)> =
-        sqlx::query_as("SELECT id FROM users WHERE email = $1 AND is_deleted = false")
+        sqlx::query_as("SELECT id FROM public.users WHERE email = $1 AND is_deleted = false")
             .bind(&body.email)
-            .fetch_optional(&platform_pool.0)
+            .fetch_optional(&mut *tx)
             .await?;
 
-    let user_id = match user_row {
-        Some((uid,)) => uid,
+    let (user_id, was_invited) = match user_row {
+        Some((uid,)) => (uid, false),
         None => {
-            return Err(AppError::Validation(format!(
-                "User not found: {}",
-                body.email
-            )))
+            let uid = Uuid::new_v4();
+            // Insert into public.users with a placeholder password hash that
+            // can never match real argon2id verification. The user must use
+            // the password reset flow to set a real password.
+            sqlx::query(
+                r#"INSERT INTO public.users
+                     (id, email, password_hash, display_name, role, email_verified)
+                   VALUES ($1, $2, 'pending_invite', $3, 'user', false)"#,
+            )
+            .bind(uid)
+            .bind(&body.email)
+            .bind(&body.email)
+            .execute(&mut *tx)
+            .await?;
+            // Mirror to brickos.users (loose schema, no email_verified col).
+            sqlx::query(
+                r#"INSERT INTO brickos.users
+                     (id, email, password_hash, display_name, role)
+                   VALUES ($1, $2, 'pending_invite', $3, 'user')
+                   ON CONFLICT (id) DO NOTHING"#,
+            )
+            .bind(uid)
+            .bind(&body.email)
+            .bind(&body.email)
+            .execute(&mut *tx)
+            .await?;
+            (uid, true)
         }
     };
 
+    // Dual-write the membership. public.org_members uses the legacy enum
+    // ('owner' | ...), brickos.org_members uses the Sprint 040 #463 enum
+    // ('org_owner' | 'practitioner' | 'member'). Map our 3 roles to the
+    // legacy public enum so the public-side CHECK constraint passes:
+    //   org_owner    -> owner
+    //   practitioner -> editor
+    //   member       -> consumer
+    let public_role = match body.role.as_str() {
+        "org_owner" => "owner",
+        "practitioner" => "editor",
+        "member" => "consumer",
+        other => other,
+    };
+
     sqlx::query(
-        r#"INSERT INTO org_members (org_id, user_id, role, invited_by)
+        r#"INSERT INTO public.org_members (org_id, user_id, role, invited_by)
            VALUES ($1, $2, $3, $4)
            ON CONFLICT (org_id, user_id) DO UPDATE SET role = $3"#,
     )
     .bind(org_id)
     .bind(user_id)
-    .bind(&body.role)
+    .bind(public_role)
     .bind(admin.user_id)
-    .execute(&platform_pool.0)
+    .execute(&mut *tx)
     .await?;
 
-    // Best-effort audit log
+    sqlx::query(
+        r#"INSERT INTO brickos.org_members (org_id, user_id, role)
+           VALUES ($1, $2, $3)
+           ON CONFLICT (org_id, user_id) DO UPDATE SET role = $3"#,
+    )
+    .bind(org_id)
+    .bind(user_id)
+    .bind(&body.role)
+    .execute(&mut *tx)
+    .await?;
+
+    tx.commit().await?;
+
+    // Best-effort audit log (after commit so failures don't roll back the membership)
     let _ = crate::services::audit_log::write(
         &platform_pool.0,
         Some(admin.user_id),
@@ -873,12 +937,18 @@ pub async fn add_org_member(
             "user_id": user_id,
             "role": body.role,
             "email": body.email,
+            "was_invited": was_invited,
         }),
     )
     .await;
 
     Ok(HttpResponse::Created().json(serde_json::json!({
-        "data": { "added": true, "user_id": user_id, "role": body.role },
+        "data": {
+            "added": true,
+            "user_id": user_id,
+            "role": body.role,
+            "was_invited": was_invited,
+        },
         "error": null
     })))
 }
@@ -1161,6 +1231,54 @@ pub async fn delete_org_domain(
 
     Ok(HttpResponse::Ok().json(serde_json::json!({
         "data": { "deleted": true },
+        "error": null
+    })))
+}
+
+/// GET /admin/organizations/{id}/audit
+///
+/// Sprint 041 #523 follow-up: list the audit log entries that target this
+/// org. Reads from `brickos.admin_audit_log` (already written by every
+/// org-mutating handler in this file). Newest first, capped at 200.
+pub async fn list_org_audit_log(
+    platform_pool: web::Data<PlatformPool>,
+    _admin: AdminUser,
+    path: web::Path<Uuid>,
+) -> Result<HttpResponse, AppError> {
+    let org_id = path.into_inner();
+
+    let rows = sqlx::query(
+        r#"SELECT al.id, al.action, al.target_type, al.target_id, al.payload,
+                  al.created_at, al.actor_user_id,
+                  u.email AS actor_email
+           FROM brickos.admin_audit_log al
+           LEFT JOIN brickos.users u ON u.id = al.actor_user_id
+           WHERE al.target_type = 'organization' AND al.target_id = $1
+           ORDER BY al.created_at DESC
+           LIMIT 200"#,
+    )
+    .bind(org_id)
+    .fetch_all(&platform_pool.0)
+    .await?;
+
+    let entries: Vec<serde_json::Value> = rows
+        .iter()
+        .map(|r| {
+            serde_json::json!({
+                "id": r.try_get::<Uuid, _>("id").unwrap_or_default(),
+                "action": r.try_get::<String, _>("action").unwrap_or_default(),
+                "target_type": r.try_get::<String, _>("target_type").unwrap_or_default(),
+                "target_id": r.try_get::<Uuid, _>("target_id").unwrap_or_default(),
+                "payload": r.try_get::<serde_json::Value, _>("payload").unwrap_or(serde_json::json!({})),
+                "created_at": r.try_get::<chrono::DateTime<chrono::Utc>, _>("created_at").ok(),
+                "actor_user_id": r.try_get::<Option<Uuid>, _>("actor_user_id").ok().flatten(),
+                "actor_email": r.try_get::<Option<String>, _>("actor_email").ok().flatten(),
+            })
+        })
+        .collect();
+
+    Ok(HttpResponse::Ok().json(serde_json::json!({
+        "data": entries,
         "error": null
     })))
 }

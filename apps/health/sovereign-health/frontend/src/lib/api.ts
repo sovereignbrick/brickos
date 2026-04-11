@@ -1334,8 +1334,19 @@ export const api = {
     // Sprint 040 #481 -- per-org invoices (Stripe Invoices API)
     listInvoiceProducts: () =>
       request<{
-        data: Array<{ slug: string; name: string; default_unit_amount_cents: number }>
+        data: Array<{
+          slug: string
+          name: string
+          default_unit_amount_cents: number
+          billing_period: 'monthly' | 'yearly' | 'one-time'
+          description: string
+        }>
       }>('/admin/invoice-products'),
+    deleteOrgInvoice: (orgId: string, invoiceId: string) =>
+      request<{ data: { deleted: boolean } }>(
+        `/admin/organizations/${orgId}/invoices/${invoiceId}`,
+        { method: 'DELETE' },
+      ),
     listOrgInvoices: (orgId: string) =>
       request<{
         data: Array<{
@@ -1406,6 +1417,19 @@ export const api = {
         `/admin/organizations/${orgId}/domains/${domainId}`,
         { method: 'DELETE' },
       ),
+    listOrgAuditLog: (orgId: string) =>
+      request<{
+        data: Array<{
+          id: string
+          action: string
+          target_type: string
+          target_id: string
+          payload: Record<string, unknown>
+          created_at: string
+          actor_user_id: string | null
+          actor_email: string | null
+        }>
+      }>(`/admin/organizations/${orgId}/audit`),
     listOrgLicenseHistory: (orgId: string) =>
       request<{
         data: Array<{
