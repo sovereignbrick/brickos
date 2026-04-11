@@ -1,9 +1,12 @@
 ---
 name: Sprint 041 -- Staging Quality Gate
 description: Get brickos.io + sovereignhealth.io staging to a state where a real white-label customer could be onboarded end-to-end, using "Life Algorithm" as a demo fixture. Production push is conditional on zero-doubt staging validation.
-status: active
+status: closed
 sprint: 041
-constraint: No production deployments unless zero doubt after complete staging bake. When in doubt, defer to Sprint 042.
+closed_at: 2026-04-11
+outcome: |
+  Staging deployed end-to-end (brickos platform admin GUI + SHI api/frontend/website on demo VPS) with v0.41.0. Manual walkthrough surfaced 13 new issues: 6 fixed in-session and shipped to staging (all green), 9 carried to Sprint 042 SHI Production Readiness (one P0 with staging hotfix in place, four P1 architecture issues, three P1 SHI bugs, one ops gap). Staging bake monitor ran 1h45m with zero panics + zero LICENSING DIVERGENCE events; the only errors recorded were the #527 product_features hits, fully suppressed once the staging hotfix landed. Production push deferred to Sprint 042 per the milestone gate criterion -- not zero doubt yet.
+constraint: No production deployments unless zero doubt after complete staging bake. When in doubt, defer to Sprint 042. (Triggered: Sprint 042 picks up the production push.)
 ---
 
 # Sprint 041 -- Staging Quality Gate

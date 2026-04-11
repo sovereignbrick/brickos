@@ -1,7 +1,7 @@
 ---
 number: 524
 title: "test: [P2] fix DEMO_ADMIN Playwright fixture for cold-boot DBs"
-milestone: "Sprint 041 -- Staging Quality Gate"
+milestone: "Sprint 042 -- SHI Production Readiness"
 labels: [test, sprint-041, phase-a, automated, p2]
 created: 2026-04-11
 priority: P2

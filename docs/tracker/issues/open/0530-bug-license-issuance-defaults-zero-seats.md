@@ -1,7 +1,7 @@
 ---
 number: 530
 title: "bug: [P1] license issuance defaults to 0/0 practitioners/members blocking first member add"
-milestone: "BrickOS Platform Admin GUI"
+milestone: "Sprint 042 -- SHI Production Readiness"
 labels: [bug, p1, platform-admin-gui, licensing, sprint-041]
 created: 2026-04-11
 priority: P1

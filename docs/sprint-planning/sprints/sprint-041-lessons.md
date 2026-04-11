@@ -1,8 +1,61 @@
 # Sprint 041 -- Lessons Learned (Live Document)
 
+**Status:** CLOSED 2026-04-11. Sprint 042 picks up the carry-overs.
+
 This file is updated **continuously** during the sprint. After each phase, write a brief retro entry. At sprint end, stable lessons get promoted to `~/.claude/projects/-home-dev-comp-Projects-brickos/memory/` per the auto-memory protocol and `feedback_sprint_close_checklist.md`.
 
 **Format:** newest entries at the top. Each entry has a date, phase, and one of: `lesson`, `decision`, `blocker`, `daily-note`, `bug-found`, `feature-request`.
+
+---
+
+## 2026-04-11 -- Phase G+H -- manual session findings + in-session fix batch
+
+**Type:** lesson
+**Phase:** G/H
+
+The combination of (1) the user manually clicking through the platform admin GUI in real-time and (2) the background bake monitor scraping logs every 15 minutes turned out to be the most efficient bug-discovery loop of the entire sprint. The bake monitor's window 6 entry (3 errors) appeared at exactly the moment the user reported "Smart Import not working" -- automatic correlation, no extra effort.
+
+**13 bugs discovered in ~1 hour of manual testing**, of which 6 were fixed and shipped to staging in the same session via commit `2172ccb`:
+
+| # | Title | Status |
+|---|---|---|
+| #527 | feature gating handlers query missing legacy `product_features` (Smart Import + Dr. Alex chat 500s) | staging hotfix, deferred |
+| #530 | License issuance defaults to 1/0/0 seats blocking add-member | staging hotfix, deferred |
+| #531 | Glucose 4.7 typed as mmol/L silently converted then rejected | deferred |
+| #532 | `/platform/ai/config` is a static mockup | **fixed** (hidden from nav) |
+| #533 | User dropdown shows "Settings" + "Security & MFA" siblings | **fixed** (collapsed) |
+| #534 | `/platform/newsletter` Export CSV NetworkError | **fixed** (cookie auth) |
+| #535 | `/platform/content/strings` "Coming soon" stub | **fixed** (hidden from nav) |
+| #536 | `/platform/links` filter strict equality | **fixed** (Individual User special-case) |
+| #537 | `/platform/users` Individual User filter + dropdown value mismatch | **fixed** (backend + frontend) |
+| #538 | Service worker caches old JS for 4h, blocks deploy rollouts | deferred |
+| #526 | brickos.io URL namespace consolidation | deferred (architecture) |
+| #528 | Settings page brickos master + per-app tabs | deferred (architecture) |
+| #529 | Dr. Alex consume brickos AI defaults | deferred (architecture) |
+
+**Lesson:** Manual session + bake monitor is the gold standard for staging quality validation. Schedule it explicitly in every sprint that ships a customer-facing feature.
+
+**Follow-up:** Sprint 042 bootstraps with the 9 carry-overs as Phase A-H. The bake monitor pattern gets promoted to a deploy.sh post-step.
+
+---
+
+## 2026-04-11 -- Phase G -- the dead-code feature catalog
+
+**Type:** lesson
+**Phase:** G (#527 root cause)
+
+Three different "feature catalog" schemas existed at once and nobody knew:
+- `brickos.product_features` -- legacy SHI catalog with name/description/icon (queried by 11 handler sites)
+- `brickos.tier_features` (legacy `tier_key, feature_id` UUID) -- queried by the same 11 handlers
+- `brickos.tier_features` (NEW `tier_slug, feature_slug`) -- created by Sprint 040 #467, **seeded with 156 rows, queried by ZERO handlers**
+
+Sprint 041's bootstrap migration (#491) was written assuming the slug-based redesign was canonical and renamed the legacy aside as `*_legacy_sprint040`. On staging this broke every feature-gated endpoint with `relation "product_features" does not exist`.
+
+**Root cause:** Sprint 040 #467 was a "shadow refactor" that landed the new schema but left the handler-side flip for "later". "Later" was never scoped. Sprint 041 inherited a half-finished data model.
+
+**Lesson:** **Never ship half a schema migration.** Either ship the new schema *and* its handler users in the same PR, or don't ship the new schema. Sprint 042 #527 explicitly chooses option C (delete the dead new shape, keep legacy as canonical) and defers the slug-based redesign as a coordinated future-Sprint refactor.
+
+**Follow-up:** Memory `feedback_grep_schema_before_migration.md` strengthened to: **before any ALTER TABLE rename, grep workspace for queries against the table** (not just SQL files -- also `.rs` and `.ts`).
 
 ---
 
@@ -166,7 +219,16 @@ What happened.
 
 ## Promoted to memory at sprint end
 
-(populated at close-out per `feedback_sprint_close_checklist.md`)
+Stable lessons promoted to `~/.claude/projects/-home-dev-comp-Projects-brickos/memory/`:
+
+- **`project_sprint041_completed.md`** -- new, replaces `project_sprint041_staging_verified.md` (mid-sprint snapshot)
+- **`project_sprint042_ready.md`** -- new, the Sprint 042 carry-over plan
+- **`feedback_dual_schema_fk_cleanup.md`** -- already existed, validated by Sprint 041 experience
+- **`feedback_bake_monitor_pattern.md`** -- new, captures the manual session + bake monitor combo as the gold-standard validation pattern
+- **`feedback_never_ship_half_schema_migration.md`** -- new, captures the #527 lesson
+- **`feedback_sw_cache_no_cache.md`** -- new, captures the #538 lesson
+
+See the retrospective at `../retrospectives/2026-04-11_sprint-041-retro.md` and the review at `../reviews/2026-04-11_sprint-041-review.md`.
 
 ---
 

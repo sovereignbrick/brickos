@@ -1,7 +1,7 @@
 ---
 number: 527
 title: "bug: [P0] feature-gating handlers still query legacy product_features/tier_features shape"
-milestone: "Sprint 041 -- Staging Quality Gate"
+milestone: "Sprint 042 -- SHI Production Readiness"
 labels: [bug, p0, sprint-041, sprint-042, technical-debt]
 created: 2026-04-11
 priority: P0

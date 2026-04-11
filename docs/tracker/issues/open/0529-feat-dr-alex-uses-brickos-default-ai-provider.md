@@ -1,7 +1,7 @@
 ---
 number: 529
 title: "feat: [P1] Dr. Alex should pull AI provider config from brickos system defaults"
-milestone: "BrickOS Platform Admin GUI"
+milestone: "Sprint 042 -- SHI Production Readiness"
 labels: [feature, p1, platform-admin-gui, ai, architecture]
 created: 2026-04-11
 priority: P1

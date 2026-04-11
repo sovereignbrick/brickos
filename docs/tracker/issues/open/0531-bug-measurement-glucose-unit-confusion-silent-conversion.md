@@ -1,7 +1,7 @@
 ---
 number: 531
 title: "bug: [P1] glucose 4.7 (typed as mmol/L, form on mg/dL) silently converted to 0.26 mmol/L then rejected"
-milestone: "BrickOS Platform Admin GUI"
+milestone: "Sprint 042 -- SHI Production Readiness"
 labels: [bug, p1, sprint-041, shi, units, ux]
 created: 2026-04-11
 priority: P1

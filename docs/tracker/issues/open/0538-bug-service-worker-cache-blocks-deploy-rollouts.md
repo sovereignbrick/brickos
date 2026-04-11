@@ -1,7 +1,7 @@
 ---
 number: 538
 title: "bug: [P1] service worker caches old JS for 4 hours, blocks deploys from rolling out to existing browser sessions"
-milestone: "BrickOS Platform Admin GUI"
+milestone: "Sprint 042 -- SHI Production Readiness"
 labels: [bug, p1, sprint-041, frontend, deploy, service-worker, ops]
 created: 2026-04-11
 priority: P1

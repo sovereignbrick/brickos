@@ -1,7 +1,7 @@
 ---
 number: 528
 title: "feat: [P1] /settings page should be brickos master form + per-app tab extensions"
-milestone: "BrickOS Platform Admin GUI"
+milestone: "Sprint 042 -- SHI Production Readiness"
 labels: [feature, p1, platform-admin-gui, architecture, settings]
 created: 2026-04-11
 priority: P1
