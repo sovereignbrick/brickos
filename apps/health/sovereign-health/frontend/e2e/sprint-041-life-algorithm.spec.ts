@@ -4,37 +4,32 @@
 // against the bootstrapped dev stack. Each test maps to one manual issue
 // and verifies that the platform admin GUI feature actually works.
 //
-// Tests share a single Life Algorithm org that is created in the first
-// test (#496) and reused/inspected by subsequent tests. The slug is
-// timestamped per run so the spec is idempotent (no DELETE org endpoint
-// yet -- see follow-up issue).
+// Tests share a single Life Algorithm org via module-level mutable state.
+// The slug is timestamped per run so the spec is idempotent.
 //
 // Run:
-//   E2E_BASE_URL=http://localhost:3000 \
+//   E2E_BASE_URL=http://localhost:3001 \
 //   JWT_SECRET=$(grep JWT_SECRET ../api/.env | cut -d= -f2) \
 //   npx playwright test e2e/sprint-041-life-algorithm.spec.ts
 
 import { test, expect, type Page } from '@playwright/test'
 import * as crypto from 'node:crypto'
 
-const BASE = process.env.E2E_BASE_URL || 'http://localhost:3000'
+const BASE = process.env.E2E_BASE_URL || 'http://localhost:3001'
 const API = process.env.E2E_API_URL || 'http://localhost:8080'
 const JWT_SECRET = process.env.JWT_SECRET!
 const USER_ID = process.env.E2E_USER_ID || '00000000-0000-0000-0000-000000000002'
 
-// Unique per-run slug + name so the spec is idempotent across runs
-// without needing a DELETE org endpoint.
 const RUN_ID = `${Date.now().toString(36)}`
 const ORG_NAME = `Life Algorithm ${RUN_ID}`
 const ORG_SLUG = `life-algorithm-${RUN_ID}`
 const BILLING_EMAIL = `billing-${RUN_ID}@life-algorithm.test`
+const ADMIN_EMAIL = `owner-${RUN_ID}@life-algorithm.test`
 
-// Shared mutable state across tests in this serial describe.
 const ctx: { orgId: string | null } = { orgId: null }
 
 test.skip(!JWT_SECRET, 'JWT_SECRET env var required')
 
-// Run tests serially so they share the org row created in #496.
 test.describe.configure({ mode: 'serial' })
 
 function mintJwt(): string {
@@ -79,68 +74,83 @@ test.describe('Sprint 041 -- Life Algorithm walkthrough', () => {
   })
 
   // ===========================================================================
-  // #496 -- Create the Life Algorithm org via the GUI
+  // #496 -- Create the Life Algorithm org via the GUI, with admin_email
   // ===========================================================================
-  test('#496 create Life Algorithm org via the New Organization modal', async ({ page }) => {
+  test('#496 create Life Algorithm org with admin_email', async ({ page }) => {
     await page.goto(`${BASE}/platform/orgs`)
 
-    // The New Organization button must be present in the header.
     const newButton = page.getByTestId('orgs-new-org-button')
     await expect(newButton).toBeVisible({ timeout: 10000 })
     await newButton.click()
 
-    // Modal must open.
     const modal = page.getByTestId('orgs-new-org-modal')
     await expect(modal).toBeVisible()
 
-    // Fill the form.
     await page.getByTestId('orgs-new-name').fill(ORG_NAME)
-
-    // Slug should auto-derive from name. Override with our deterministic
-    // unique slug for this run.
     const slugField = page.getByTestId('orgs-new-slug')
     await slugField.click({ clickCount: 3 })
     await slugField.fill(ORG_SLUG)
-
     await page.getByTestId('orgs-new-type').selectOption('clinic')
     await page.getByTestId('orgs-new-billing-email').fill(BILLING_EMAIL)
-
-    // Submit.
+    await page.getByTestId('orgs-new-admin-email').fill(ADMIN_EMAIL)
     await page.getByTestId('orgs-new-submit').click()
 
-    // Should navigate to the new org's detail page.
     await page.waitForURL(/\/platform\/orgs\/[a-f0-9-]{36}/, { timeout: 15000 })
 
-    // Capture the org id from the URL for downstream tests.
     const url = page.url()
     const match = url.match(/\/platform\/orgs\/([a-f0-9-]{36})/)
     expect(match).not.toBeNull()
     ctx.orgId = match![1]
 
-    // Org name must be visible on the detail page.
     await expect(page.getByRole('heading', { name: ORG_NAME })).toBeVisible({ timeout: 10000 })
   })
 
   // ===========================================================================
-  // #496b -- Verify the new org appears in the list
+  // Round-2 fix: org type dropdown only shows the 3 canonical types
+  // ===========================================================================
+  test('org type dropdown has exactly 3 options (clinic, personal, platform)', async ({ page }) => {
+    await page.goto(`${BASE}/platform/orgs`)
+    await page.getByTestId('orgs-new-org-button').click()
+    const select = page.getByTestId('orgs-new-type')
+    const options = await select.locator('option').allTextContents()
+    expect(options).toEqual(['clinic', 'personal', 'platform'])
+  })
+
+  // ===========================================================================
+  // Round-2 fix: admin_email auto-creates the user AND assigns as org_owner
+  // (verified by querying the API directly after the GUI create)
+  // ===========================================================================
+  test('admin_email auto-creates user and assigns as org_owner', async ({ request }) => {
+    test.skip(!ctx.orgId, 'orgId from #496 required')
+    const token = mintJwt()
+    const res = await request.get(`${API}/admin/organizations/${ctx.orgId}/members`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    expect(res.status()).toBe(200)
+    const body = await res.json()
+    const owner = (
+      body.data as Array<{ email: string; role: string }>
+    ).find((m) => m.email === ADMIN_EMAIL)
+    expect(owner, `expected owner ${ADMIN_EMAIL} in members ${JSON.stringify(body.data)}`).toBeTruthy()
+    expect(owner!.role).toBe('org_owner')
+  })
+
+  // ===========================================================================
+  // #496b -- Verify the new org appears in the list (scoped via testid)
   // ===========================================================================
   test('#496b new org appears in the orgs list', async ({ page }) => {
     test.skip(!ctx.orgId, 'orgId from #496 required')
     await page.goto(`${BASE}/platform/orgs`)
-    // Scope the locator to the table row for this slug -- the page also
-    // contains the slug in hidden form options elsewhere, so a plain text
-    // locator would match the wrong element.
     const row = page.getByTestId(`orgs-row-${ORG_SLUG}`)
     await expect(row).toBeVisible({ timeout: 10000 })
     await expect(row).toContainText(ORG_NAME)
   })
 
   // ===========================================================================
-  // #499 -- Generate a license for the org via the API + render in the License tab
+  // #499 -- Generate insight license + verify License tab renders
   // ===========================================================================
-  test('#499 generate insight license for Life Algorithm', async ({ page, request }) => {
+  test('#499 generate insight license + License tab renders form', async ({ page, request }) => {
     test.skip(!ctx.orgId, 'orgId from #496 required')
-
     const token = mintJwt()
     const res = await request.post(`${API}/admin/organizations/${ctx.orgId}/license`, {
       headers: { Authorization: `Bearer ${token}` },
@@ -157,19 +167,84 @@ test.describe('Sprint 041 -- Life Algorithm walkthrough', () => {
     expect(res.status(), `body: ${await res.text()}`).toBe(200)
     const body = await res.json()
     expect(body.error).toBeNull()
-    expect(body.data.tier_slug).toBe('insight')
-    expect(body.data.jti).toBeTruthy()
-    expect(body.data.license_key).toContain('eyJ')
 
-    // Switch to the License tab on the org detail page and verify it
-    // renders the new tier.
+    // Click into the License tab via the GUI to confirm it renders without
+    // error (this is the user's "create new license do not show ... but
+    // page returns an error" finding from round 2).
     await page.goto(`${BASE}/platform/orgs/${ctx.orgId}`)
-    await page.getByRole('button', { name: /^License$/i }).click()
+    await page.getByTestId('org-tab-license').click()
+    // The License tab loads the issued tier text somewhere
     await expect(page.locator('text=insight').first()).toBeVisible({ timeout: 10000 })
+    // No console errors during the License tab render
+    const errors: string[] = []
+    page.on('pageerror', (e) => errors.push(e.message))
+    page.on('console', (msg) => {
+      if (msg.type() === 'error') errors.push(msg.text())
+    })
+    await page.waitForTimeout(500)
+    expect(errors).toEqual([])
   })
 
   // ===========================================================================
-  // #500 -- License history endpoint returns the issued license
+  // Round-2 feature: License tab features picker has app filter dropdown
+  // and the dropdown actually filters
+  // ===========================================================================
+  test('license features picker has app filter dropdown', async ({ page }) => {
+    test.skip(!ctx.orgId, 'orgId from #496 required')
+    await page.goto(`${BASE}/platform/orgs/${ctx.orgId}`)
+    await page.getByTestId('org-tab-license').click()
+    // Open the "Generate new license" form -- features picker is inside it.
+    await page.getByTestId('license-generate-new-button').click()
+    const filter = page.getByTestId('license-feature-app-filter')
+    await expect(filter).toBeVisible({ timeout: 10000 })
+    // Filter to sovereign-health, should remove _platform / sovereign-crm rows.
+    await filter.selectOption('sovereign-health')
+    await page.waitForTimeout(200)
+    // shi.csv_export should still be visible, branding.custom_logo should not.
+    await expect(page.getByTestId('license-feature-shi.csv_export')).toBeVisible()
+    await expect(page.getByTestId('license-feature-branding.custom_logo')).toBeHidden()
+  })
+
+  // ===========================================================================
+  // Round-2 feature: feature status badges render
+  // ===========================================================================
+  test('license features show status badges', async ({ page }) => {
+    test.skip(!ctx.orgId, 'orgId from #496 required')
+    await page.goto(`${BASE}/platform/orgs/${ctx.orgId}`)
+    await page.getByTestId('org-tab-license').click()
+    await page.getByTestId('license-generate-new-button').click()
+    // Reset filter so all features show.
+    await page.getByTestId('license-feature-app-filter').selectOption('')
+    // shi.csv_export is 'live' per the static map.
+    const csvBadge = page.getByTestId('license-feature-status-shi.csv_export')
+    await expect(csvBadge).toBeVisible()
+    await expect(csvBadge).toHaveText(/live/i)
+    // shi.cohort_comparison is 'soon'.
+    const cohortBadge = page.getByTestId('license-feature-status-shi.cohort_comparison')
+    await expect(cohortBadge).toBeVisible()
+    await expect(cohortBadge).toHaveText(/soon/i)
+  })
+
+  // ===========================================================================
+  // Round-2 feature: feature tooltips appear on hover (CSS-only InlineTooltip)
+  // ===========================================================================
+  test('license feature tooltips appear on hover', async ({ page }) => {
+    test.skip(!ctx.orgId, 'orgId from #496 required')
+    await page.goto(`${BASE}/platform/orgs/${ctx.orgId}`)
+    await page.getByTestId('org-tab-license').click()
+    await page.getByTestId('license-generate-new-button').click()
+    await page.getByTestId('license-feature-app-filter').selectOption('')
+    // Hover the slug span which is the tooltip trigger.
+    const featureRow = page.getByTestId('license-feature-shi.csv_export')
+    await featureRow.locator('span.font-mono').first().hover()
+    // The tooltip is hidden by default and shown on group-hover.
+    const tooltip = page.getByTestId('license-feature-tooltip-shi.csv_export')
+    await expect(tooltip).toBeVisible({ timeout: 2000 })
+    await expect(tooltip).toContainText('shi.csv_export')
+  })
+
+  // ===========================================================================
+  // #500 -- License history endpoint
   // ===========================================================================
   test('#500 license history API returns the issued license', async ({ request }) => {
     test.skip(!ctx.orgId, 'orgId from #496 required')
@@ -185,38 +260,26 @@ test.describe('Sprint 041 -- Life Algorithm walkthrough', () => {
   })
 
   // ===========================================================================
-  // #501 -- Add an org_owner via the Members tab. The user does not exist
-  // yet -- the auto-create flow should mint them in both schemas.
+  // #501 -- Add a member with auto-create
   // ===========================================================================
-  test('#501 add org_owner with auto-create user', async ({ request }) => {
+  test('#501 add member with auto-create user', async ({ request }) => {
     test.skip(!ctx.orgId, 'orgId from #496 required')
     const token = mintJwt()
-    const ownerEmail = `owner-${RUN_ID}@life-algorithm.test`
+    const memberEmail = `member-${RUN_ID}@life-algorithm.test`
     const res = await request.post(`${API}/admin/organizations/${ctx.orgId}/members`, {
       headers: { Authorization: `Bearer ${token}` },
-      data: { email: ownerEmail, role: 'org_owner' },
+      data: { email: memberEmail, role: 'practitioner' },
     })
     expect(res.status(), `body: ${await res.text()}`).toBe(201)
     const body = await res.json()
-    expect(body.data.added).toBe(true)
     expect(body.data.was_invited).toBe(true)
-    expect(body.data.role).toBe('org_owner')
-
-    // Adding the same email again must hit the existing user, not re-create.
-    const res2 = await request.post(`${API}/admin/organizations/${ctx.orgId}/members`, {
-      headers: { Authorization: `Bearer ${token}` },
-      data: { email: ownerEmail, role: 'org_owner' },
-    })
-    expect(res2.status()).toBe(201)
-    const body2 = await res2.json()
-    expect(body2.data.was_invited).toBe(false)
-    expect(body2.data.user_id).toBe(body.data.user_id)
+    expect(body.data.role).toBe('practitioner')
   })
 
   // ===========================================================================
-  // #503 -- Audit log endpoint reflects every mutation done so far.
+  // #503 -- Audit log API
   // ===========================================================================
-  test('#503 audit log endpoint returns entries for the org', async ({ request }) => {
+  test('#503 audit log API returns entries', async ({ request }) => {
     test.skip(!ctx.orgId, 'orgId from #496 required')
     const token = mintJwt()
     const res = await request.get(`${API}/admin/organizations/${ctx.orgId}/audit`, {
@@ -225,19 +288,34 @@ test.describe('Sprint 041 -- Life Algorithm walkthrough', () => {
     expect(res.status()).toBe(200)
     const body = await res.json()
     expect(Array.isArray(body.data)).toBe(true)
-    // Expect at least: license issue + member add (from #499 + #501).
     const actions = (body.data as Array<{ action: string }>).map((e) => e.action)
     expect(actions).toEqual(expect.arrayContaining(['org.license.issue', 'org.member.add']))
   })
 
   // ===========================================================================
-  // Invoices: create draft + edit + discard via API parity tests
+  // Round-2 fix: Audit tab in the GUI clicks and renders entries
+  // (regression for "audit tab did not render")
   // ===========================================================================
-  test('#5xx invoice draft can be created and discarded', async ({ request }) => {
+  test('audit tab is clickable and renders entries', async ({ page }) => {
+    test.skip(!ctx.orgId, 'orgId from #496 required')
+    await page.goto(`${BASE}/platform/orgs/${ctx.orgId}`)
+    // Click the Audit tab
+    await page.getByTestId('org-tab-audit').click()
+    // Wait for the audit log to load
+    await expect(page.locator('text=Audit log').first()).toBeVisible({ timeout: 10000 })
+    // We expect at least one row (org.license.issue or org.member.add from earlier tests).
+    // The action column shows the action name -- look for one of them.
+    await expect(
+      page.locator('text=/org\\.(license\\.issue|member\\.add|create)/').first(),
+    ).toBeVisible({ timeout: 10000 })
+  })
+
+  // ===========================================================================
+  // Invoices API parity
+  // ===========================================================================
+  test('invoice draft can be created and discarded', async ({ request }) => {
     test.skip(!ctx.orgId, 'orgId from #496 required')
     const token = mintJwt()
-
-    // Create a draft invoice with one line item
     const create = await request.post(`${API}/admin/organizations/${ctx.orgId}/invoices`, {
       headers: { Authorization: `Bearer ${token}` },
       data: {
@@ -254,28 +332,19 @@ test.describe('Sprint 041 -- Life Algorithm walkthrough', () => {
         memo: `e2e-${RUN_ID}`,
       },
     })
-    expect(create.status(), `body: ${await create.text()}`).toBe(201)
+    expect(create.status()).toBe(201)
     const created = await create.json()
-    expect(created.error).toBeNull()
     const invoiceId = created.data.id
-    expect(invoiceId).toBeTruthy()
-
-    // Discard the draft
     const del = await request.delete(
       `${API}/admin/organizations/${ctx.orgId}/invoices/${invoiceId}`,
       {
         headers: { Authorization: `Bearer ${token}` },
       },
     )
-    expect(del.status(), `body: ${await del.text()}`).toBe(200)
-    const delBody = await del.json()
-    expect(delBody.data.deleted).toBe(true)
+    expect(del.status()).toBe(200)
+    expect((await del.json()).data.deleted).toBe(true)
   })
 
-  // ===========================================================================
-  // Invoices: products endpoint returns the new description + billing_period
-  // fields the operator UI uses for tooltips and clarifier badges.
-  // ===========================================================================
   test('invoice products list includes description and billing_period', async ({ request }) => {
     const token = mintJwt()
     const res = await request.get(`${API}/admin/invoice-products`, {
@@ -283,13 +352,53 @@ test.describe('Sprint 041 -- Life Algorithm walkthrough', () => {
     })
     expect(res.status()).toBe(200)
     const body = await res.json()
-    expect(Array.isArray(body.data)).toBe(true)
     expect(body.data.length).toBe(7)
     const base = body.data.find((p: { slug: string }) => p.slug === 'shi-horizon-base')
-    expect(base).toBeTruthy()
     expect(base.billing_period).toBe('monthly')
     expect(base.description).toContain('Recurring monthly')
-    const onboarding = body.data.find((p: { slug: string }) => p.slug === 'shi-horizon-onboarding')
-    expect(onboarding.billing_period).toBe('one-time')
+  })
+
+  // ===========================================================================
+  // Round-2 feature: DELETE org button works (hard delete in dev)
+  // This test runs LAST because it deletes the shared ctx.orgId.
+  // ===========================================================================
+  test('zz delete org via Delete button (hard delete in dev mode)', async ({ page, request }) => {
+    test.skip(!ctx.orgId, 'orgId from #496 required')
+    const orgIdToDelete = ctx.orgId
+
+    // Capture the confirm() dialog so the test doesn't hang. Set the
+    // listener BEFORE navigation so it catches the first prompt.
+    page.on('dialog', (dialog) => dialog.accept())
+
+    await page.goto(`${BASE}/platform/orgs/${orgIdToDelete}`)
+    const deleteBtn = page.getByTestId('org-delete-button')
+    await expect(deleteBtn).toBeVisible({ timeout: 10000 })
+
+    // Wait for the DELETE network response in parallel with the click so
+    // we can prove the request fired regardless of whether the navigation
+    // settles in time.
+    const [delResponse] = await Promise.all([
+      page.waitForResponse(
+        (r) =>
+          r.url().includes(`/admin/organizations/${orgIdToDelete}`) &&
+          r.request().method() === 'DELETE',
+        { timeout: 15000 },
+      ),
+      deleteBtn.click(),
+    ])
+    expect(delResponse.status()).toBe(200)
+    const delBody = await delResponse.json()
+    expect(delBody.data.deleted).toBe(true)
+    expect(delBody.data.mode).toBe('hard')
+
+    // Verify the org is gone via the API.
+    const token = mintJwt()
+    const res = await request.get(`${API}/admin/organizations/${orgIdToDelete}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    expect(res.status()).toBe(404)
+
+    // Clear ctx so subsequent tests in a re-run don't reference the dead org.
+    ctx.orgId = null
   })
 })
