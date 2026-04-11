@@ -1020,6 +1020,27 @@ verify() {
     check_url "App    " "$app_url"
     check_url "Web    " "$web_url"
 
+    # Sprint 042 #538: assert /sw.js is served with Cache-Control: no-cache.
+    # Without this, the service worker caches old JS for up to 4 hours and
+    # every deploy silently fails to roll out for returning users until they
+    # manually clear site data. Catches reintroduction of the bug in nginx
+    # config drift.
+    local sw_url="${app_url%/}/sw.js"
+    local sw_cc
+    sw_cc=$(curl -sIf --max-time 10 $auth_flag "$sw_url" 2>/dev/null \
+        | grep -i '^cache-control:' | tr -d '\r' || true)
+    if [ -z "$sw_cc" ]; then
+        echo -e "  ${RED}ERR${NC}  SW JS    $sw_url (no Cache-Control header)"
+        all_ok=false
+        report_add "FAIL" "/sw.js missing Cache-Control header (#538 nginx regression)"
+    elif echo "$sw_cc" | grep -qiE 'no-cache|no-store'; then
+        echo -e "  ${GREEN}200${NC}  SW JS    $sw_url  (Cache-Control: no-cache OK)"
+    else
+        echo -e "  ${RED}ERR${NC}  SW JS    $sw_url  ($sw_cc)"
+        all_ok=false
+        report_add "FAIL" "/sw.js Cache-Control wrong: $sw_cc (#538 nginx regression -- must be no-cache)"
+    fi
+
     # Container creation time: verify containers were actually recreated (not stale).
     # Incident: deploy can succeed (image transferred) but containers survive from previous deploy.
     local container_prefix
