@@ -322,24 +322,33 @@ pub async fn create_organization(
 
     let org_id = Uuid::new_v4();
 
-    // Sprint 041 #523: dual-write to both public.organizations and
-    // brickos.organizations so the licensing engine (which queries
-    // brickos.* explicitly) can FK-reference the new org. The dev DB has
-    // both schemas existing in parallel until the true two-pool E2E env
-    // from #491 Option A lands. Same UUID is used in both rows.
+    // Sprint 041 #523 + staging deploy fix: write to brickos.organizations
+    // (the canonical post-brickos-db-migration-001 location) and ALSO to
+    // public.organizations IFF that table still exists. On staging the
+    // brickos-db migration successfully moved public.organizations to
+    // brickos via SET SCHEMA, so public.organizations no longer exists
+    // and the dual-write would fail with "relation does not exist". On
+    // dev both tables exist in parallel and need to stay in sync.
     let mut tx = platform_pool.0.begin().await?;
 
-    sqlx::query(
-        r#"INSERT INTO public.organizations (id, name, slug, org_type, billing_email, is_active)
-           VALUES ($1, $2, $3, $4, $5, true)"#,
-    )
-    .bind(org_id)
-    .bind(&body.name)
-    .bind(&body.slug)
-    .bind(&body.org_type)
-    .bind(&body.billing_email)
-    .execute(&mut *tx)
-    .await?;
+    let public_orgs_exists: bool =
+        sqlx::query_scalar("SELECT to_regclass('public.organizations') IS NOT NULL")
+            .fetch_one(&mut *tx)
+            .await?;
+
+    if public_orgs_exists {
+        sqlx::query(
+            r#"INSERT INTO public.organizations (id, name, slug, org_type, billing_email, is_active)
+               VALUES ($1, $2, $3, $4, $5, true)"#,
+        )
+        .bind(org_id)
+        .bind(&body.name)
+        .bind(&body.slug)
+        .bind(&body.org_type)
+        .bind(&body.billing_email)
+        .execute(&mut *tx)
+        .await?;
+    }
 
     sqlx::query(
         r#"INSERT INTO brickos.organizations (id, name, slug, org_type, billing_email, is_active)
@@ -361,33 +370,57 @@ pub async fn create_organization(
     // org_member insert was silently skipped, leaving the org orphaned.
     let mut admin_user_id: Option<Uuid> = None;
     let mut admin_was_invited = false;
+    // Sprint 041 round 3 staging fix: detect whether public.users +
+    // public.org_members exist (dev) or not (staging post brickos-db
+    // migration 001). All subsequent dual-writes are gated on these.
+    let public_users_exists: bool =
+        sqlx::query_scalar("SELECT to_regclass('public.users') IS NOT NULL")
+            .fetch_one(&mut *tx)
+            .await?;
+    let public_members_exists: bool =
+        sqlx::query_scalar("SELECT to_regclass('public.org_members') IS NOT NULL")
+            .fetch_one(&mut *tx)
+            .await?;
+
     if let Some(admin_email) = &body.admin_email {
         if !admin_email.trim().is_empty() {
-            let existing: Option<(Uuid,)> = sqlx::query_as(
-                "SELECT id FROM public.users WHERE email = $1 AND is_deleted = false",
-            )
-            .bind(admin_email)
-            .fetch_optional(&mut *tx)
-            .await?;
+            // Look up existing user from whichever schema has the canonical
+            // users table. On dev that's public.users; on staging it's
+            // brickos.users (post-migration-001).
+            let existing: Option<(Uuid,)> = if public_users_exists {
+                sqlx::query_as(
+                    "SELECT id FROM public.users WHERE email = $1 AND is_deleted = false",
+                )
+                .bind(admin_email)
+                .fetch_optional(&mut *tx)
+                .await?
+            } else {
+                sqlx::query_as(
+                    "SELECT id FROM brickos.users WHERE email = $1 AND is_deleted = false",
+                )
+                .bind(admin_email)
+                .fetch_optional(&mut *tx)
+                .await?
+            };
 
             let uid = match existing {
                 Some((u,)) => u,
                 None => {
                     let new_uid = Uuid::new_v4();
-                    // Mirror the auto-create pattern from add_org_member: write
-                    // to both schemas with a placeholder password hash that
-                    // never matches argon2id verification. The user must use
-                    // the password reset flow before they can log in.
-                    sqlx::query(
-                        r#"INSERT INTO public.users
-                             (id, email, password_hash, display_name, role, email_verified)
-                           VALUES ($1, $2, 'pending_invite', $3, 'user', false)"#,
-                    )
-                    .bind(new_uid)
-                    .bind(admin_email)
-                    .bind(admin_email)
-                    .execute(&mut *tx)
-                    .await?;
+                    // Auto-create the invited user. Conditionally write
+                    // to public.users only if it exists (dev case).
+                    if public_users_exists {
+                        sqlx::query(
+                            r#"INSERT INTO public.users
+                                 (id, email, password_hash, display_name, role, email_verified)
+                               VALUES ($1, $2, 'pending_invite', $3, 'user', false)"#,
+                        )
+                        .bind(new_uid)
+                        .bind(admin_email)
+                        .bind(admin_email)
+                        .execute(&mut *tx)
+                        .await?;
+                    }
                     sqlx::query(
                         r#"INSERT INTO brickos.users
                              (id, email, password_hash, display_name, role)
@@ -419,17 +452,20 @@ pub async fn create_organization(
             .await?;
 
             // Add as org_owner in both schemas. public uses legacy 'owner'
-            // enum value, brickos uses Sprint 040 #463 'org_owner'.
-            sqlx::query(
-                r#"INSERT INTO public.org_members (org_id, user_id, role, invited_by)
-                   VALUES ($1, $2, 'owner', $3)
-                   ON CONFLICT (org_id, user_id) DO NOTHING"#,
-            )
-            .bind(org_id)
-            .bind(uid)
-            .bind(admin.user_id)
-            .execute(&mut *tx)
-            .await?;
+            // enum value (and only if the table exists), brickos uses
+            // Sprint 040 #463 'org_owner'.
+            if public_members_exists {
+                sqlx::query(
+                    r#"INSERT INTO public.org_members (org_id, user_id, role, invited_by)
+                       VALUES ($1, $2, 'owner', $3)
+                       ON CONFLICT (org_id, user_id) DO NOTHING"#,
+                )
+                .bind(org_id)
+                .bind(uid)
+                .bind(admin.user_id)
+                .execute(&mut *tx)
+                .await?;
+            }
 
             sqlx::query(
                 r#"INSERT INTO brickos.org_members (org_id, user_id, role)
@@ -906,29 +942,46 @@ pub async fn add_org_member(
 
     let mut tx = platform_pool.0.begin().await?;
 
-    let user_row: Option<(Uuid,)> =
+    // Sprint 041 round 3 staging fix: detect public.* table existence
+    // (dev has them, staging post-migration-001 doesn't).
+    let public_users_exists: bool =
+        sqlx::query_scalar("SELECT to_regclass('public.users') IS NOT NULL")
+            .fetch_one(&mut *tx)
+            .await?;
+    let public_members_exists: bool =
+        sqlx::query_scalar("SELECT to_regclass('public.org_members') IS NOT NULL")
+            .fetch_one(&mut *tx)
+            .await?;
+
+    let user_row: Option<(Uuid,)> = if public_users_exists {
         sqlx::query_as("SELECT id FROM public.users WHERE email = $1 AND is_deleted = false")
             .bind(&body.email)
             .fetch_optional(&mut *tx)
-            .await?;
+            .await?
+    } else {
+        sqlx::query_as("SELECT id FROM brickos.users WHERE email = $1 AND is_deleted = false")
+            .bind(&body.email)
+            .fetch_optional(&mut *tx)
+            .await?
+    };
 
     let (user_id, was_invited) = match user_row {
         Some((uid,)) => (uid, false),
         None => {
             let uid = Uuid::new_v4();
-            // Insert into public.users with a placeholder password hash that
-            // can never match real argon2id verification. The user must use
-            // the password reset flow to set a real password.
-            sqlx::query(
-                r#"INSERT INTO public.users
-                     (id, email, password_hash, display_name, role, email_verified)
-                   VALUES ($1, $2, 'pending_invite', $3, 'user', false)"#,
-            )
-            .bind(uid)
-            .bind(&body.email)
-            .bind(&body.email)
-            .execute(&mut *tx)
-            .await?;
+            // Insert into public.users only if that table exists (dev case).
+            if public_users_exists {
+                sqlx::query(
+                    r#"INSERT INTO public.users
+                         (id, email, password_hash, display_name, role, email_verified)
+                       VALUES ($1, $2, 'pending_invite', $3, 'user', false)"#,
+                )
+                .bind(uid)
+                .bind(&body.email)
+                .bind(&body.email)
+                .execute(&mut *tx)
+                .await?;
+            }
             // Mirror to brickos.users (loose schema, no email_verified col).
             sqlx::query(
                 r#"INSERT INTO brickos.users
@@ -945,31 +998,27 @@ pub async fn add_org_member(
         }
     };
 
-    // Dual-write the membership. public.org_members uses the legacy enum
-    // ('owner' | ...), brickos.org_members uses the Sprint 040 #463 enum
-    // ('org_owner' | 'practitioner' | 'member'). Map our 3 roles to the
-    // legacy public enum so the public-side CHECK constraint passes:
-    //   org_owner    -> owner
-    //   practitioner -> editor
-    //   member       -> consumer
-    let public_role = match body.role.as_str() {
-        "org_owner" => "owner",
-        "practitioner" => "editor",
-        "member" => "consumer",
-        other => other,
-    };
-
-    sqlx::query(
-        r#"INSERT INTO public.org_members (org_id, user_id, role, invited_by)
-           VALUES ($1, $2, $3, $4)
-           ON CONFLICT (org_id, user_id) DO UPDATE SET role = $3"#,
-    )
-    .bind(org_id)
-    .bind(user_id)
-    .bind(public_role)
-    .bind(admin.user_id)
-    .execute(&mut *tx)
-    .await?;
+    // Dual-write the membership. public.org_members (only if exists) uses
+    // the legacy enum, brickos.org_members uses the Sprint 040 #463 enum.
+    if public_members_exists {
+        let public_role = match body.role.as_str() {
+            "org_owner" => "owner",
+            "practitioner" => "editor",
+            "member" => "consumer",
+            other => other,
+        };
+        sqlx::query(
+            r#"INSERT INTO public.org_members (org_id, user_id, role, invited_by)
+               VALUES ($1, $2, $3, $4)
+               ON CONFLICT (org_id, user_id) DO UPDATE SET role = $3"#,
+        )
+        .bind(org_id)
+        .bind(user_id)
+        .bind(public_role)
+        .bind(admin.user_id)
+        .execute(&mut *tx)
+        .await?;
+    }
 
     sqlx::query(
         r#"INSERT INTO brickos.org_members (org_id, user_id, role)
@@ -1080,7 +1129,8 @@ pub async fn update_member_role(
     }
 
     // Dual-write the role update. brickos uses the new enum directly;
-    // public.org_members needs the legacy enum mapping.
+    // public.org_members (only if exists -- staging post-migration-001
+    // doesn't have it) needs the legacy enum mapping.
     let public_role = match body.role.as_str() {
         "org_owner" => "owner",
         "practitioner" => "editor",
@@ -1088,20 +1138,26 @@ pub async fn update_member_role(
         other => other,
     };
     let mut tx = platform_pool.0.begin().await?;
+    let public_members_exists: bool =
+        sqlx::query_scalar("SELECT to_regclass('public.org_members') IS NOT NULL")
+            .fetch_one(&mut *tx)
+            .await?;
     sqlx::query("UPDATE brickos.org_members SET role = $1 WHERE id = $2 AND org_id = $3")
         .bind(&body.role)
         .bind(member_id)
         .bind(org_id)
         .execute(&mut *tx)
         .await?;
-    sqlx::query(
-        "UPDATE public.org_members SET role = $1 WHERE user_id = (SELECT user_id FROM brickos.org_members WHERE id = $2) AND org_id = $3",
-    )
-    .bind(public_role)
-    .bind(member_id)
-    .bind(org_id)
-    .execute(&mut *tx)
-    .await?;
+    if public_members_exists {
+        sqlx::query(
+            "UPDATE public.org_members SET role = $1 WHERE user_id = (SELECT user_id FROM brickos.org_members WHERE id = $2) AND org_id = $3",
+        )
+        .bind(public_role)
+        .bind(member_id)
+        .bind(org_id)
+        .execute(&mut *tx)
+        .await?;
+    }
     tx.commit().await?;
 
     let _ = crate::services::audit_log::write(
@@ -1146,15 +1202,22 @@ pub async fn remove_org_member(
     .fetch_optional(&platform_pool.0)
     .await?;
 
-    // Dual-delete in a transaction. brickos goes first (we have the
-    // member_id); public.org_members is matched by (org_id, user_id).
+    // Dual-delete in a transaction. brickos goes first; public.org_members
+    // (only if exists -- staging post-migration-001 doesn't have it) is
+    // matched by (org_id, user_id).
     let mut tx = platform_pool.0.begin().await?;
-    if let Some((_, uid)) = &row {
-        sqlx::query("DELETE FROM public.org_members WHERE org_id = $1 AND user_id = $2")
-            .bind(org_id)
-            .bind(uid)
-            .execute(&mut *tx)
+    let public_members_exists: bool =
+        sqlx::query_scalar("SELECT to_regclass('public.org_members') IS NOT NULL")
+            .fetch_one(&mut *tx)
             .await?;
+    if public_members_exists {
+        if let Some((_, uid)) = &row {
+            sqlx::query("DELETE FROM public.org_members WHERE org_id = $1 AND user_id = $2")
+                .bind(org_id)
+                .bind(uid)
+                .execute(&mut *tx)
+                .await?;
+        }
     }
     sqlx::query("DELETE FROM brickos.org_members WHERE id = $1 AND org_id = $2")
         .bind(member_id)
@@ -1503,13 +1566,28 @@ pub async fn delete_organization(
 ) -> Result<HttpResponse, AppError> {
     let org_id = path.into_inner();
 
-    // Look up the org's name + slug for the audit log payload + 404 check.
-    let row: Option<(String, String)> = sqlx::query_as(
-        "SELECT name, slug FROM public.organizations WHERE id = $1 AND is_deleted = false",
-    )
-    .bind(org_id)
-    .fetch_optional(&platform_pool.0)
-    .await?;
+    // Detect dual-schema (dev) vs single-schema (staging post-migration-001).
+    let public_orgs_exists: bool =
+        sqlx::query_scalar("SELECT to_regclass('public.organizations') IS NOT NULL")
+            .fetch_one(&platform_pool.0)
+            .await?;
+
+    // Look up the org's name + slug from whichever schema has the table.
+    let row: Option<(String, String)> = if public_orgs_exists {
+        sqlx::query_as(
+            "SELECT name, slug FROM public.organizations WHERE id = $1 AND is_deleted = false",
+        )
+        .bind(org_id)
+        .fetch_optional(&platform_pool.0)
+        .await?
+    } else {
+        sqlx::query_as(
+            "SELECT name, slug FROM brickos.organizations WHERE id = $1 AND is_deleted = false",
+        )
+        .bind(org_id)
+        .fetch_optional(&platform_pool.0)
+        .await?
+    };
     let (org_name, org_slug) = row.ok_or(AppError::NotFound)?;
 
     let mut tx = platform_pool.0.begin().await?;
@@ -1517,12 +1595,14 @@ pub async fn delete_organization(
 
     if config.is_production() {
         mode = "soft";
-        sqlx::query(
-            "UPDATE public.organizations SET is_deleted = true, deleted_at = NOW() WHERE id = $1",
-        )
-        .bind(org_id)
-        .execute(&mut *tx)
-        .await?;
+        if public_orgs_exists {
+            sqlx::query(
+                "UPDATE public.organizations SET is_deleted = true, deleted_at = NOW() WHERE id = $1",
+            )
+            .bind(org_id)
+            .execute(&mut *tx)
+            .await?;
+        }
         sqlx::query("UPDATE brickos.organizations SET is_deleted = true WHERE id = $1")
             .bind(org_id)
             .execute(&mut *tx)
@@ -1551,74 +1631,87 @@ pub async fn delete_organization(
             .await?;
 
         // public side: several legacy SHI tables FK to public.organizations
-        // without ON DELETE CASCADE. Clear them in dependency order.
-        // public.users.default_org_id is a soft reference -- null it out
-        // so users whose default_org pointed at this org are still valid.
-        sqlx::query("UPDATE public.users SET default_org_id = NULL WHERE default_org_id = $1")
-            .bind(org_id)
-            .execute(&mut *tx)
-            .await?;
-        // The rest of these tables may not exist on every DB (older
-        // migrations might have dropped them). Use IF EXISTS pattern via
-        // DO blocks so missing tables are silently ignored. But for the
-        // canonical SHI dev DB they all exist.
-        for stmt in [
-            "DELETE FROM public.app_roles WHERE org_id = $1",
-            "DELETE FROM public.audit_log WHERE org_id = $1",
-            "DELETE FROM public.data_shares WHERE org_id = $1",
-            "DELETE FROM public.org_members WHERE org_id = $1",
-        ] {
-            // Each query is independent; if a table doesn't exist on this
-            // schema we let the error surface (these are canonical SHI
-            // tables and should always exist).
-            sqlx::query(stmt).bind(org_id).execute(&mut *tx).await?;
+        // without ON DELETE CASCADE. Clear them in dependency order, but
+        // ONLY if those tables exist (staging post-migration-001 has none).
+        if public_orgs_exists {
+            // public.users.default_org_id is a soft reference -- null it out
+            sqlx::query("UPDATE public.users SET default_org_id = NULL WHERE default_org_id = $1")
+                .bind(org_id)
+                .execute(&mut *tx)
+                .await?;
+            for stmt in [
+                "DELETE FROM public.app_roles WHERE org_id = $1",
+                "DELETE FROM public.audit_log WHERE org_id = $1",
+                "DELETE FROM public.data_shares WHERE org_id = $1",
+                "DELETE FROM public.org_members WHERE org_id = $1",
+            ] {
+                sqlx::query(stmt).bind(org_id).execute(&mut *tx).await?;
+            }
         }
 
         // Snapshot the user_ids whose ONLY membership was in this org
-        // BEFORE we delete the org rows. We use this list to clean up
-        // orphan invited users (auto-created by add_org_member /
-        // create_organization with password_hash='pending_invite' and
-        // never logged in) after the org is gone.
-        let orphan_candidates: Vec<(Uuid,)> = sqlx::query_as(
-            r#"SELECT u.id
-               FROM public.users u
-               WHERE u.password_hash = 'pending_invite'
-                 AND EXISTS (
-                     SELECT 1 FROM public.org_members om
-                     WHERE om.user_id = u.id AND om.org_id = $1
-                 )
-                 AND NOT EXISTS (
-                     SELECT 1 FROM public.org_members om2
-                     WHERE om2.user_id = u.id AND om2.org_id != $1
-                 )"#,
-        )
-        .bind(org_id)
-        .fetch_all(&mut *tx)
-        .await
-        .unwrap_or_default();
+        // BEFORE we delete the org rows. Source-of-truth depends on
+        // whether public.* exists (dev) or not (staging).
+        let orphan_candidates: Vec<(Uuid,)> = if public_orgs_exists {
+            sqlx::query_as(
+                r#"SELECT u.id
+                   FROM public.users u
+                   WHERE u.password_hash = 'pending_invite'
+                     AND EXISTS (
+                         SELECT 1 FROM public.org_members om
+                         WHERE om.user_id = u.id AND om.org_id = $1
+                     )
+                     AND NOT EXISTS (
+                         SELECT 1 FROM public.org_members om2
+                         WHERE om2.user_id = u.id AND om2.org_id != $1
+                     )"#,
+            )
+            .bind(org_id)
+            .fetch_all(&mut *tx)
+            .await
+            .unwrap_or_default()
+        } else {
+            sqlx::query_as(
+                r#"SELECT u.id
+                   FROM brickos.users u
+                   WHERE u.password_hash = 'pending_invite'
+                     AND EXISTS (
+                         SELECT 1 FROM brickos.org_members om
+                         WHERE om.user_id = u.id AND om.org_id = $1
+                     )
+                     AND NOT EXISTS (
+                         SELECT 1 FROM brickos.org_members om2
+                         WHERE om2.user_id = u.id AND om2.org_id != $1
+                     )"#,
+            )
+            .bind(org_id)
+            .fetch_all(&mut *tx)
+            .await
+            .unwrap_or_default()
+        };
 
-        // Now delete the org rows themselves. The remaining FKs (org_apps,
-        // org_licenses, org_members on the brickos side, domain_mappings,
-        // org_invoices on the public side) all have ON DELETE CASCADE.
+        // Now delete the org rows themselves.
         sqlx::query("DELETE FROM brickos.organizations WHERE id = $1")
             .bind(org_id)
             .execute(&mut *tx)
             .await?;
-        sqlx::query("DELETE FROM public.organizations WHERE id = $1")
-            .bind(org_id)
-            .execute(&mut *tx)
-            .await?;
+        if public_orgs_exists {
+            sqlx::query("DELETE FROM public.organizations WHERE id = $1")
+                .bind(org_id)
+                .execute(&mut *tx)
+                .await?;
+        }
 
-        // Clean up orphan invited users. Snapshot was taken before the
-        // org delete cascaded org_members away, so the candidates list
-        // captures users who lost their last membership.
+        // Clean up orphan invited users.
         for (uid,) in &orphan_candidates {
-            sqlx::query(
-                "DELETE FROM public.users WHERE id = $1 AND password_hash = 'pending_invite'",
-            )
-            .bind(uid)
-            .execute(&mut *tx)
-            .await?;
+            if public_orgs_exists {
+                sqlx::query(
+                    "DELETE FROM public.users WHERE id = $1 AND password_hash = 'pending_invite'",
+                )
+                .bind(uid)
+                .execute(&mut *tx)
+                .await?;
+            }
             sqlx::query(
                 "DELETE FROM brickos.users WHERE id = $1 AND password_hash = 'pending_invite'",
             )
