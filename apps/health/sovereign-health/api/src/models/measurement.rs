@@ -28,6 +28,15 @@ pub struct CreateMeasurementRequest {
 pub struct MeasurementValue {
     pub marker_slug: String,
     pub value: f64,
+    /// Sprint 042 #531: optional input unit. When the frontend sends what
+    /// the user actually typed in (mg/dL vs mmol/L for glucose, % vs
+    /// mmol/mol for HbA1c), the backend can range-check in the user's
+    /// unit and produce error messages with the user's numbers instead of
+    /// the converted-to-canonical value the user never saw. Backward
+    /// compatible: clients that don't send `unit` (mobile app, lab
+    /// import) still work via the canonical-unit fallback.
+    #[serde(default)]
+    pub unit: Option<String>,
 }
 
 // DB row struct

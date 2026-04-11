@@ -111,7 +111,11 @@ pub async fn create(
 
     // Validate all marker values first
     for mv in &body.values {
-        validate_marker_value(&mv.marker_slug, mv.value).map_err(AppError::Validation)?;
+        // Sprint 042 #531: pass the user's input unit so the range check
+        // and error message use what they actually typed, not the
+        // converted-to-canonical value.
+        validate_marker_value(&mv.marker_slug, mv.value, mv.unit.as_deref())
+            .map_err(AppError::Validation)?;
     }
 
     let mut created_measurements: Vec<MeasurementResponse> = vec![];
@@ -717,7 +721,12 @@ pub async fn update(
             .await?;
         if let Some(slug_row) = slug_row {
             let slug: String = slug_row.try_get("marker_slug").unwrap_or_default();
-            validate_marker_value(&slug, v).map_err(AppError::Validation)?;
+            // Sprint 042 #531: update path doesn't currently carry the
+            // user's input unit (the request schema only has `value`),
+            // so this still uses the canonical-unit fallback. Adding the
+            // optional unit to UpdateMeasurementRequest is a follow-up
+            // when the update form actually shows a unit selector.
+            validate_marker_value(&slug, v, None).map_err(AppError::Validation)?;
         }
     }
 

@@ -786,7 +786,9 @@
       "thresholds": "Reference Ranges",
       "medications": "Influence Factors",
       "security": "Security",
-      "dataPrivacy": "Data & Privacy"
+      "dataPrivacy": "Data & Privacy",
+      "billing": "Billing",
+      "notifications": "Notifications"
     },
     "profile": {
       "displayName": "Display Name",

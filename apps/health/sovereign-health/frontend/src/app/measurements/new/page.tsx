@@ -628,9 +628,53 @@ export default function NewMeasurementPage() {
 
   const totalAddPages = Math.max(1, Math.ceil(paginatedAddMarkers.totalFlat / MARKERS_PER_PAGE))
 
+  // Sprint 042 #531: client-side plausibility check before submit. Catches
+  // the most common unit-confusion case (typing 4.7 mmol/L into a mg/dL
+  // field) BEFORE the request goes out, so the user gets an inline
+  // confirmation prompt instead of a confusing backend error after a
+  // round-trip. Returns a hint string if the value is implausible for
+  // the displayed unit, or null if it's fine.
+  const plausibilityHint = (slug: string, value: number, unit: string): string | null => {
+    const u = unit.toLowerCase()
+    if (slug === 'glucose') {
+      if (u.includes('mg') && value >= 1 && value < 18) {
+        return `${value} mg/dL is far below the normal range (54-540 mg/dL). Did you mean ${value} mmol/L? (normal: 3.9-7.8 mmol/L)`
+      }
+      if (u.includes('mmol') && value > 50) {
+        return `${value} mmol/L is far above the normal range. Did you mean ${value} mg/dL? (normal: 70-140 mg/dL)`
+      }
+    }
+    if (slug === 'total_cholesterol' || slug === 'ldl_c' || slug === 'hdl_c') {
+      if (u.includes('mg') && value >= 1 && value < 40) {
+        return `${value} mg/dL is far below the normal range. Did you mean ${value} mmol/L?`
+      }
+      if (u.includes('mmol') && value > 40) {
+        return `${value} mmol/L is far above the normal range. Did you mean ${value} mg/dL?`
+      }
+    }
+    if (slug === 'hba1c') {
+      if (u.includes('%') && value > 15) {
+        return `${value}% is physiologically extreme. Did you mean ${value} mmol/mol (IFCC)?`
+      }
+      if (!u.includes('%') && value >= 3 && value < 15) {
+        return `${value} mmol/mol is below the normal range. Did you mean ${value}%?`
+      }
+    }
+    return null
+  }
+
   // Submit
   const handleSubmit = async () => {
-    const measurementValues: { marker_slug: string; value: number }[] = []
+    // Sprint 042 #531: now sends `unit` alongside `value` so the backend
+    // can range-check in the user's input unit and produce error messages
+    // with the user's actual numbers (not the converted-to-canonical
+    // value the user never typed). Backward compatible: the backend
+    // falls back to canonical-unit ranges if `unit` is missing.
+    const measurementValues: { marker_slug: string; value: number; unit: string }[] = []
+
+    // Pre-flight plausibility check (Sprint 042 #531). Collect all
+    // suspicious values; if any, ask the user once before submitting.
+    const suspicious: string[] = []
 
     for (const [slug, val] of Object.entries(values)) {
       if (!val.trim()) continue
@@ -645,7 +689,22 @@ export default function NewMeasurementPage() {
       if (!marker) continue
       const displayUnit = getDisplayUnit(slug, marker.unit_canonical, units)
       const canonical = convertValue(slug, n, displayUnit, marker.unit_canonical)
-      measurementValues.push({ marker_slug: slug, value: canonical })
+
+      // Pre-flight check using the value-in-displayed-unit (NOT canonical)
+      const hint = plausibilityHint(slug, n, displayUnit)
+      if (hint) {
+        const markerName = contentMarkers[slug]?.name ?? marker.display_name ?? marker.marker_name
+        suspicious.push(`${markerName}: ${hint}`)
+      }
+
+      measurementValues.push({ marker_slug: slug, value: canonical, unit: displayUnit })
+    }
+
+    if (suspicious.length > 0) {
+      const ok = window.confirm(
+        `Some values look suspicious:\n\n${suspicious.join('\n\n')}\n\nSave anyway?`
+      )
+      if (!ok) return
     }
 
     if (measurementValues.length === 0) {

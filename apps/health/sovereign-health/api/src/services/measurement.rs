@@ -29,7 +29,93 @@ impl ValidationResult {
 }
 
 /// Returns Err with message if value is outside allowed physiological range.
-pub fn validate_marker_value(marker_slug: &str, value: f64) -> Result<(), String> {
+///
+/// Sprint 042 #531: now takes an optional `unit` so the validator can
+/// range-check in the user's input unit (mg/dL vs mmol/L for glucose, %
+/// vs mmol/mol for HbA1c) and produce error messages with the user's
+/// actual numbers instead of the converted-to-canonical value. Clients
+/// that don't pass a unit (mobile, lab import) fall back to the
+/// canonical-unit ranges, matching pre-Sprint-042 behaviour.
+///
+/// The bug this closes: a user typing `4.7` for glucose with the form
+/// set to mg/dL had the frontend silently convert to `0.26` mmol/L, the
+/// backend rejected with `value 0.26 outside range 1-30` -- a number the
+/// user never typed in a unit they didn't know was being used. Now the
+/// error reads `value 4.7 mg/dL is outside the mg/dL range 18-540 -- did
+/// you mean 4.7 mmol/L? (normal: 3.9-7.8 mmol/L)`.
+pub fn validate_marker_value(
+    marker_slug: &str,
+    value: f64,
+    unit: Option<&str>,
+) -> Result<(), String> {
+    // Sprint 042 #531: per-(marker, unit) range table. Returns the
+    // physiological range in the user's input unit if known, or None
+    // if the marker is unknown / the unit is unrecognised. Bounds are
+    // calibrated to the same physiological window as the canonical
+    // ranges below, just expressed in the alternative unit (e.g. for
+    // glucose, mmol/L (1, 30) corresponds to mg/dL (18, 540) via the
+    // 18.0182 conversion factor; we round to integers for clarity).
+    fn unit_specific_range(slug: &str, unit_lower: &str) -> Option<(f64, f64, &'static str)> {
+        match slug {
+            "glucose" => {
+                if unit_lower.contains("mmol") {
+                    Some((1.0, 30.0, "mmol/L"))
+                } else if unit_lower.contains("mg") {
+                    Some((18.0, 540.0, "mg/dL"))
+                } else {
+                    None
+                }
+            }
+            "ketones" => {
+                if unit_lower.contains("mmol") {
+                    Some((0.0, 10.0, "mmol/L"))
+                } else if unit_lower.contains("mg") {
+                    Some((0.0, 180.0, "mg/dL"))
+                } else {
+                    None
+                }
+            }
+            "total_cholesterol" | "ldl_c" | "hdl_c" => {
+                if unit_lower.contains("mmol") {
+                    Some((1.0, 15.0, "mmol/L"))
+                } else if unit_lower.contains("mg") {
+                    Some((40.0, 580.0, "mg/dL"))
+                } else {
+                    None
+                }
+            }
+            "hba1c" => {
+                if unit_lower.contains('%') {
+                    Some((3.0, 15.0, "%"))
+                } else if unit_lower.contains("mmol") {
+                    Some((10.0, 140.0, "mmol/mol"))
+                } else {
+                    None
+                }
+            }
+            _ => None,
+        }
+    }
+
+    // If a unit was provided AND the marker has a unit-specific range,
+    // use that. Otherwise fall back to the canonical-unit ranges below.
+    if let Some(u) = unit {
+        let unit_lower = u.to_lowercase();
+        if let Some((min, max, label)) = unit_specific_range(marker_slug, &unit_lower) {
+            if value < min || value > max {
+                // Compute the converted value in the OTHER unit and
+                // include it in the message so the user immediately
+                // sees the unit confusion if that's what's happening.
+                let hint = unit_confusion_hint(marker_slug, value, &unit_lower);
+                return Err(format!(
+                    "{marker_slug} value {value} {label} is outside the {label} range {min}–{max}{hint}"
+                ));
+            }
+            return Ok(());
+        }
+    }
+
+    // Fallback: canonical-unit ranges (pre-Sprint-042 behaviour).
     let (min, max) = match marker_slug {
         "glucose" => (1.0, 30.0),
         "ketones" => (0.0, 10.0),
@@ -55,6 +141,43 @@ pub fn validate_marker_value(marker_slug: &str, value: f64) -> Result<(), String
         ));
     }
     Ok(())
+}
+
+/// Sprint 042 #531: if the user's value is way out of range for their
+/// stated unit, suggest the alternative unit. Returns either an empty
+/// string (no useful hint) or " -- did you mean X UNIT?".
+fn unit_confusion_hint(slug: &str, value: f64, unit_lower: &str) -> String {
+    match slug {
+        "glucose" => {
+            if unit_lower.contains("mg") && (1.0..15.0).contains(&value) {
+                // 4.7 mg/dL hypoglycemic-coma -- almost certainly mmol/L
+                format!(" -- did you mean {value} mmol/L? (normal: 3.9-7.8 mmol/L)")
+            } else if unit_lower.contains("mmol") && (50.0..600.0).contains(&value) {
+                format!(" -- did you mean {value} mg/dL? (normal: 70-140 mg/dL)")
+            } else {
+                String::new()
+            }
+        }
+        "total_cholesterol" | "ldl_c" | "hdl_c" => {
+            if unit_lower.contains("mg") && (1.0..15.0).contains(&value) {
+                format!(" -- did you mean {value} mmol/L? (normal total: <5.2 mmol/L)")
+            } else if unit_lower.contains("mmol") && (40.0..400.0).contains(&value) {
+                format!(" -- did you mean {value} mg/dL? (normal total: <200 mg/dL)")
+            } else {
+                String::new()
+            }
+        }
+        "hba1c" => {
+            if unit_lower.contains('%') && (15.0..80.0).contains(&value) {
+                format!(" -- did you mean {value} mmol/mol (IFCC)? (normal: 20-42 mmol/mol)")
+            } else if !unit_lower.contains('%') && (3.0..15.0).contains(&value) {
+                format!(" -- did you mean {value}%? (normal: 4-6%)")
+            } else {
+                String::new()
+            }
+        }
+        _ => String::new(),
+    }
 }
 
 /// Comprehensive physiological validation with unit confusion detection.
@@ -366,12 +489,59 @@ mod tests {
 
     #[test]
     fn test_legacy_validate_glucose_valid() {
-        assert!(validate_marker_value("glucose", 5.5).is_ok());
+        // Backward-compatible call: no unit -> falls back to canonical mmol/L range.
+        assert!(validate_marker_value("glucose", 5.5, None).is_ok());
     }
 
     #[test]
     fn test_legacy_validate_glucose_out_of_range() {
-        assert!(validate_marker_value("glucose", 50.0).is_err());
+        assert!(validate_marker_value("glucose", 50.0, None).is_err());
+    }
+
+    // ── Sprint 042 #531: unit-aware validation ──
+
+    #[test]
+    fn test_glucose_47_in_mgdl_is_rejected_with_hint() {
+        // The bug from Sprint 041 manual testing: user types 4.7 thinking
+        // mmol/L, form is on mg/dL, frontend converts to 0.26 mmol/L,
+        // backend rejects with a meaningless number. Now the backend
+        // sees the user's actual 4.7 mg/dL, rejects it as physiologically
+        // implausible for mg/dL, AND suggests "did you mean 4.7 mmol/L?".
+        let err = validate_marker_value("glucose", 4.7, Some("mg/dL")).unwrap_err();
+        assert!(err.contains("4.7"), "error should reference user's value: {err}");
+        assert!(err.contains("mg/dL"), "error should reference user's unit: {err}");
+        assert!(err.contains("mmol/L"), "error should suggest mmol/L: {err}");
+    }
+
+    #[test]
+    fn test_glucose_85_mgdl_is_accepted() {
+        // Normal fasting glucose in mg/dL = ~85; should pass when unit is provided.
+        assert!(validate_marker_value("glucose", 85.0, Some("mg/dL")).is_ok());
+    }
+
+    #[test]
+    fn test_glucose_47_mmoll_is_accepted() {
+        // The same value (4.7) is normal in mmol/L.
+        assert!(validate_marker_value("glucose", 4.7, Some("mmol/L")).is_ok());
+    }
+
+    #[test]
+    fn test_glucose_300_mmoll_suggests_mgdl() {
+        // 300 mmol/L is way too high for mmol/L; suggest the user meant mg/dL.
+        let err = validate_marker_value("glucose", 300.0, Some("mmol/L")).unwrap_err();
+        assert!(err.contains("mg/dL"), "should suggest mg/dL: {err}");
+    }
+
+    #[test]
+    fn test_hba1c_unit_confusion_both_directions() {
+        // 5.5% is normal; 5.5 mmol/mol is way below normal -> hint mmol/mol.
+        assert!(validate_marker_value("hba1c", 5.5, Some("%")).is_ok());
+        let err = validate_marker_value("hba1c", 5.5, Some("mmol/mol")).unwrap_err();
+        assert!(err.contains("%"), "should suggest %: {err}");
+        // 30 mmol/mol is normal; 30% is way too high -> hint mmol/mol.
+        assert!(validate_marker_value("hba1c", 30.0, Some("mmol/mol")).is_ok());
+        let err = validate_marker_value("hba1c", 30.0, Some("%")).unwrap_err();
+        assert!(err.contains("mmol/mol"), "should suggest mmol/mol: {err}");
     }
 
     // ── Sprint 020 regression: comprehensive validation coverage ──

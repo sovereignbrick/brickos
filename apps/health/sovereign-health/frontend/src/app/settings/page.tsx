@@ -17,39 +17,73 @@ import { DataPrivacyTab } from './components/privacy-tab'
 import { LicenseTab } from './components/license-tab'
 import { SecurityTab } from './components/security-tab'
 import { AccountTab } from './components/account-tab'
+import { NotificationsTab } from './components/notifications-tab'
 
-const ALL_TABS = ['Profile', 'Devices', 'Thresholds', 'Medications', 'Account', 'Security', 'Data & Privacy'] as const
+// Sprint 042 #528 Phase D: settings tabs are split into two ordered groups:
+//
+//   1. brickos master tabs (always present, app-agnostic)
+//      Account / Security / Privacy / Billing / Notifications
+//
+//   2. App extension tabs (added when the user has the corresponding
+//      app entitlement; today only SHI contributes)
+//      Health profile / Devices / Thresholds / Medications
+//
+// The render order is master first, then extensions in entitlement order.
+// This is Option A from the #528 plan -- the architectural split happens
+// at the page level today; the full registry-based extension pattern is
+// deferred until a second BrickOS app contributes settings (Option B).
+//
+// Detection of "user has SHI" is currently a no-op (always show all tabs)
+// because the only known SHI signal would require an extra API call.
+// Sprint 04N+ refines this with a real entitlement check.
+
+const MASTER_TABS = [
+  'Account',
+  'Security',
+  'Data & Privacy',
+  'Billing',
+  'Notifications',
+] as const
+
+const SHI_EXTENSION_TABS = [
+  'Health profile',
+  'Devices',
+  'Thresholds',
+  'Medications',
+] as const
+
+const ALL_TABS = [...MASTER_TABS, ...SHI_EXTENSION_TABS] as const
 type Tab = (typeof ALL_TABS)[number]
 
-/**
- * Sprint 041 round 3: BrickOS platform admins don't have an SHI health
- * profile (no measurements, no devices, no biomarker thresholds, no
- * medications). They only need the cross-cutting account/security/privacy
- * tabs. The affiliate program is on a separate /affiliate page; the
- * Account tab links there.
- */
-const ADMIN_TABS = ['Account', 'Security', 'Data & Privacy'] as const satisfies readonly Tab[]
-
 const TAB_SLUGS: Record<string, Tab> = {
-  profile: 'Profile',
+  // Master tabs
   account: 'Account',
-  license: 'Account',
+  security: 'Security',
+  privacy: 'Data & Privacy',
+  data: 'Data & Privacy',
+  billing: 'Billing',
+  license: 'Billing', // legacy alias -- old bookmarks
+  notifications: 'Notifications',
+  // SHI extension tabs
+  profile: 'Health profile',
+  'health-profile': 'Health profile',
   devices: 'Devices',
   thresholds: 'Thresholds',
   medications: 'Medications',
   'influence-factors': 'Medications',
-  privacy: 'Data & Privacy',
-  data: 'Data & Privacy',
-  security: 'Security',
 }
 const TAB_TO_SLUG: Record<Tab, string> = {
-  'Profile': 'profile',
+  // Master
   'Account': 'account',
+  'Security': 'security',
+  'Data & Privacy': 'privacy',
+  'Billing': 'billing',
+  'Notifications': 'notifications',
+  // SHI
+  'Health profile': 'health-profile',
   'Devices': 'devices',
   'Thresholds': 'thresholds',
-  'Medications': 'influence-factors',
-  'Data & Privacy': 'privacy',
-  'Security': 'security',
+  'Medications': 'medications',
 }
 
 function SettingsContent() {
@@ -62,18 +96,12 @@ function SettingsContent() {
   const pathname = usePathname()
   const tabParam = searchParams.get('tab')
 
-  // Derive active tab from URL param. Sprint 041 round 3: BrickOS admins
-  // default to Account (not Profile) since they don't have a health
-  // profile, and 'Profile' isn't in their tab list at all.
-  const isAdminUser = user?.role === 'admin'
-  const defaultTab: Tab = isAdminUser ? 'Account' : 'Profile'
+  // Sprint 042 #528 Phase D: default to Account (the brickos master entry).
+  // The active tab list is computed below from MASTER_TABS + (optionally)
+  // the SHI_EXTENSION_TABS based on user entitlement.
+  const defaultTab: Tab = 'Account'
   const resolvedTab: Tab = TAB_SLUGS[tabParam ?? ''] ?? defaultTab
-  // If admin landed on a SHI-only tab (e.g. via a stale /settings?tab=profile
-  // bookmark), redirect to their default Account tab.
-  const tab: Tab =
-    isAdminUser && !(['Account', 'Security', 'Data & Privacy'] as Tab[]).includes(resolvedTab)
-      ? 'Account'
-      : resolvedTab
+  const tab: Tab = resolvedTab
 
   const setTab = useCallback((t: Tab) => {
     const slug = TAB_TO_SLUG[t]
@@ -139,16 +167,28 @@ function SettingsContent() {
         </div>
 
         <div className="flex flex-wrap gap-0 mb-0 border-b border-border pb-0">
-          {(user?.role === 'admin' ? ADMIN_TABS : ALL_TABS).map(tb => {
+          {/* Sprint 042 #528 Phase D: render brickos master tabs first,
+              then SHI extension tabs. Currently always render both groups
+              -- the SHI entitlement check is a no-op until Sprint 04N+
+              wires it to a real signal. Pure brickos operators will see
+              SHI extension tabs they can ignore; dual-role users get
+              their full settings back. */}
+          {ALL_TABS.map(tb => {
             const tabLabelMap: Record<Tab, string> = {
-              'Profile': t('tabs.healthProfile'),
-              'Devices': t('tabs.devices'),
-              'Thresholds': t('tabs.thresholds'),
-              'Medications': t('tabs.medications'),
               'Account': t('tabs.account'),
               'Security': t('tabs.security'),
               'Data & Privacy': t('tabs.privacy'),
+              'Billing': t('tabs.billing'),
+              'Notifications': t('tabs.notifications'),
+              'Health profile': t('tabs.healthProfile'),
+              'Devices': t('tabs.devices'),
+              'Thresholds': t('tabs.thresholds'),
+              'Medications': t('tabs.medications'),
             }
+            const isMaster = (MASTER_TABS as readonly Tab[]).includes(tb)
+            // Visual hint: brickos master tabs first, then a small gap,
+            // then SHI extension tabs. Until we have a real grouping
+            // separator, the order alone communicates the structure.
             return (
               <button
                 key={tb}
@@ -157,7 +197,8 @@ function SettingsContent() {
                   tab === tb
                     ? 'border-blue-500 text-foreground'
                     : 'border-transparent text-muted-foreground hover:text-foreground'
-                }`}
+                } ${!isMaster ? 'ml-1' : ''}`}
+                title={isMaster ? 'BrickOS' : 'Sovereign Health'}
               >
                 {tabLabelMap[tb]}
               </button>
@@ -170,7 +211,24 @@ function SettingsContent() {
       {/* Scrollable content area */}
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-4xl mx-auto px-4 pt-6 pb-12 w-full">
-        {tab === 'Profile' && (
+        {/* ── brickos master tabs ─────────────────────────────────────── */}
+        {tab === 'Account' && (
+          <AccountTab
+            profile={settings.profile}
+            units={settings.units}
+            onUpdate={p => setSettings({ ...settings, profile: { ...settings.profile, ...p } })}
+            onUnitsUpdate={u => setSettings({ ...settings, units: { ...settings.units, ...u } })}
+            setSaveStatus={setSaveStatus}
+            showSaved={showSaved}
+          />
+        )}
+        {tab === 'Security' && <SecurityTab />}
+        {tab === 'Data & Privacy' && <DataPrivacyTab shareAnonymousData={settings.share_anonymous_data ?? false} onToggle={(v) => setSettings({ ...settings, share_anonymous_data: v })} />}
+        {tab === 'Billing' && <LicenseTab />}
+        {tab === 'Notifications' && <NotificationsTab />}
+
+        {/* ── SHI extension tabs ──────────────────────────────────────── */}
+        {tab === 'Health profile' && (
           <ProfileTab
             profile={settings.profile}
             units={settings.units}
@@ -183,6 +241,7 @@ function SettingsContent() {
             showSaved={showSaved}
           />
         )}
+        {tab === 'Devices' && <DevicesTab markers={settings.all_markers} />}
         {tab === 'Thresholds' && (
           <ThresholdsTab
             markers={settings.all_markers}
@@ -192,30 +251,13 @@ function SettingsContent() {
             units={settings.units}
             dietProtocol={dietProtocol}
             onRefresh={() => api.settings.get().then(r => setSettings(r.data))}
-            onSwitchToProfile={() => setTab('Profile')}
+            onSwitchToProfile={() => setTab('Health profile')}
             onUnitsUpdate={u => setSettings({ ...settings, units: { ...settings.units, ...u } })}
             setSaveStatus={setSaveStatus}
             showSaved={showSaved}
           />
         )}
-        {tab === 'Devices' && <DevicesTab markers={settings.all_markers} />}
-        {tab === 'Account' && (
-          <div className="space-y-8">
-            <AccountTab
-              profile={settings.profile}
-              units={settings.units}
-              onUpdate={p => setSettings({ ...settings, profile: { ...settings.profile, ...p } })}
-              onUnitsUpdate={u => setSettings({ ...settings, units: { ...settings.units, ...u } })}
-              setSaveStatus={setSaveStatus}
-              showSaved={showSaved}
-            />
-            <hr className="border-border" />
-            <LicenseTab />
-          </div>
-        )}
         {tab === 'Medications' && <MedicationsTab />}
-        {tab === 'Data & Privacy' && <DataPrivacyTab shareAnonymousData={settings.share_anonymous_data ?? false} onToggle={(v) => setSettings({ ...settings, share_anonymous_data: v })} />}
-        {tab === 'Security' && <SecurityTab />}
         </div>
         <Footer />
       </div>
