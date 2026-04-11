@@ -292,6 +292,13 @@ impl Config {
         self.shi_mode == "oss"
     }
 
+    /// Returns true when SHI_MODE is "production". Anything else (dev,
+    /// staging, oss, unset) is considered non-prod. Used to gate
+    /// destructive admin operations like hard org delete.
+    pub fn is_production(&self) -> bool {
+        self.shi_mode == "production"
+    }
+
     /// Read Anthropic API URL from env (for use in services without Config reference)
     pub fn anthropic_api_url_static() -> String {
         std::env::var("ANTHROPIC_API_URL")
