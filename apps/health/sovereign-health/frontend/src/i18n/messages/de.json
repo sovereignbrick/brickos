@@ -1894,7 +1894,27 @@
       "sendRenewal": "Verlängerungserinnerung senden",
       "renewalSent": "{count} Erinnerungen versendet",
       "noOrgs": "Keine Organisationen entsprechen den aktuellen Filtern",
-      "page": "Seite {page} von {total}"
+      "page": "Seite {page} von {total}",
+      "newModal": {
+        "title": "Neue Organisation anlegen",
+        "name": "Name",
+        "namePlaceholder": "Life Algorithm",
+        "slug": "Slug",
+        "slugPlaceholder": "life-algorithm",
+        "slugHint": "URL-sicherer Bezeichner. Wird automatisch aus dem Namen abgeleitet, kann überschrieben werden.",
+        "type": "Typ",
+        "billingEmail": "Rechnungs-E-Mail",
+        "billingEmailPlaceholder": "rechnung@beispiel.de",
+        "adminEmail": "Admin-E-Mail (optional)",
+        "adminEmailPlaceholder": "admin@beispiel.de",
+        "adminEmailHint": "Optional. Wenn gesetzt, wird diese Person org_owner. Der Nutzer muss bereits existieren.",
+        "create": "Organisation anlegen",
+        "cancel": "Abbrechen",
+        "creating": "Wird angelegt…",
+        "created": "Organisation angelegt",
+        "errorRequired": "Name und Slug sind erforderlich",
+        "errorSlug": "Slug darf nur Kleinbuchstaben, Ziffern und Bindestriche enthalten"
+      }
     },
     "orgDetail": {
       "backToList": "← Alle Organisationen",
