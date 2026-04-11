@@ -183,4 +183,113 @@ test.describe('Sprint 041 -- Life Algorithm walkthrough', () => {
     expect(body.data.length).toBeGreaterThan(0)
     expect(body.data[0].tier_slug).toBe('insight')
   })
+
+  // ===========================================================================
+  // #501 -- Add an org_owner via the Members tab. The user does not exist
+  // yet -- the auto-create flow should mint them in both schemas.
+  // ===========================================================================
+  test('#501 add org_owner with auto-create user', async ({ request }) => {
+    test.skip(!ctx.orgId, 'orgId from #496 required')
+    const token = mintJwt()
+    const ownerEmail = `owner-${RUN_ID}@life-algorithm.test`
+    const res = await request.post(`${API}/admin/organizations/${ctx.orgId}/members`, {
+      headers: { Authorization: `Bearer ${token}` },
+      data: { email: ownerEmail, role: 'org_owner' },
+    })
+    expect(res.status(), `body: ${await res.text()}`).toBe(201)
+    const body = await res.json()
+    expect(body.data.added).toBe(true)
+    expect(body.data.was_invited).toBe(true)
+    expect(body.data.role).toBe('org_owner')
+
+    // Adding the same email again must hit the existing user, not re-create.
+    const res2 = await request.post(`${API}/admin/organizations/${ctx.orgId}/members`, {
+      headers: { Authorization: `Bearer ${token}` },
+      data: { email: ownerEmail, role: 'org_owner' },
+    })
+    expect(res2.status()).toBe(201)
+    const body2 = await res2.json()
+    expect(body2.data.was_invited).toBe(false)
+    expect(body2.data.user_id).toBe(body.data.user_id)
+  })
+
+  // ===========================================================================
+  // #503 -- Audit log endpoint reflects every mutation done so far.
+  // ===========================================================================
+  test('#503 audit log endpoint returns entries for the org', async ({ request }) => {
+    test.skip(!ctx.orgId, 'orgId from #496 required')
+    const token = mintJwt()
+    const res = await request.get(`${API}/admin/organizations/${ctx.orgId}/audit`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    expect(res.status()).toBe(200)
+    const body = await res.json()
+    expect(Array.isArray(body.data)).toBe(true)
+    // Expect at least: license issue + member add (from #499 + #501).
+    const actions = (body.data as Array<{ action: string }>).map((e) => e.action)
+    expect(actions).toEqual(expect.arrayContaining(['org.license.issue', 'org.member.add']))
+  })
+
+  // ===========================================================================
+  // Invoices: create draft + edit + discard via API parity tests
+  // ===========================================================================
+  test('#5xx invoice draft can be created and discarded', async ({ request }) => {
+    test.skip(!ctx.orgId, 'orgId from #496 required')
+    const token = mintJwt()
+
+    // Create a draft invoice with one line item
+    const create = await request.post(`${API}/admin/organizations/${ctx.orgId}/invoices`, {
+      headers: { Authorization: `Bearer ${token}` },
+      data: {
+        currency: 'eur',
+        line_items: [
+          {
+            product_slug: 'shi-horizon-base',
+            name: 'SHI Horizon Practice Base',
+            quantity: 1,
+            unit_amount_cents: 49900,
+          },
+        ],
+        due_days: 30,
+        memo: `e2e-${RUN_ID}`,
+      },
+    })
+    expect(create.status(), `body: ${await create.text()}`).toBe(201)
+    const created = await create.json()
+    expect(created.error).toBeNull()
+    const invoiceId = created.data.id
+    expect(invoiceId).toBeTruthy()
+
+    // Discard the draft
+    const del = await request.delete(
+      `${API}/admin/organizations/${ctx.orgId}/invoices/${invoiceId}`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      },
+    )
+    expect(del.status(), `body: ${await del.text()}`).toBe(200)
+    const delBody = await del.json()
+    expect(delBody.data.deleted).toBe(true)
+  })
+
+  // ===========================================================================
+  // Invoices: products endpoint returns the new description + billing_period
+  // fields the operator UI uses for tooltips and clarifier badges.
+  // ===========================================================================
+  test('invoice products list includes description and billing_period', async ({ request }) => {
+    const token = mintJwt()
+    const res = await request.get(`${API}/admin/invoice-products`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    expect(res.status()).toBe(200)
+    const body = await res.json()
+    expect(Array.isArray(body.data)).toBe(true)
+    expect(body.data.length).toBe(7)
+    const base = body.data.find((p: { slug: string }) => p.slug === 'shi-horizon-base')
+    expect(base).toBeTruthy()
+    expect(base.billing_period).toBe('monthly')
+    expect(base.description).toContain('Recurring monthly')
+    const onboarding = body.data.find((p: { slug: string }) => p.slug === 'shi-horizon-onboarding')
+    expect(onboarding.billing_period).toBe('one-time')
+  })
 })
