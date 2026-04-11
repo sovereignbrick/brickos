@@ -70,6 +70,12 @@ pub async fn service_health(
 }
 
 async fn poll_services() -> HealthDashboard {
+    // Sprint 041 round 3: use /api/health (Next.js route handler) for
+    // frontend services so they return JSON with a version. Static
+    // marketing sites (sovereignhealth.io, brickos.io) still use the
+    // root URL -- they'd need a /version.json static asset to expose
+    // their build version, which is a deploy-process change tracked
+    // separately.
     let endpoints = vec![
         (
             "SHI API",
@@ -79,10 +85,18 @@ async fn poll_services() -> HealthDashboard {
         (
             "SHI Frontend",
             "production",
-            "https://app.sovereignhealth.io/",
+            "https://app.sovereignhealth.io/api/health",
         ),
-        ("SHI Website", "production", "https://sovereignhealth.io/"),
-        ("BrickOS Website", "production", "https://brickos.io/"),
+        (
+            "SHI Website",
+            "production",
+            "https://sovereignhealth.io/version.json",
+        ),
+        (
+            "BrickOS Website",
+            "production",
+            "https://brickos.io/version.json",
+        ),
         (
             "SHI API",
             "staging",
@@ -91,7 +105,7 @@ async fn poll_services() -> HealthDashboard {
         (
             "SHI Frontend",
             "staging",
-            "https://demo.sovereignhealth.io/",
+            "https://demo.sovereignhealth.io/api/health",
         ),
     ];
 
@@ -110,14 +124,14 @@ async fn poll_services() -> HealthDashboard {
         let (status, version) = match result {
             Ok(resp) => {
                 if resp.status().is_success() {
-                    // Try to parse version from health endpoint JSON
-                    let ver = if url.contains("/health") {
+                    // Try to parse version from any JSON response. Sprint 041
+                    // round 3: any endpoint we list might return JSON now
+                    // (api/health, api/version.json), so don't gate on the
+                    // path containing "/health".
+                    let ver =
                         resp.json::<serde_json::Value>().await.ok().and_then(|v| {
                             v.get("version").and_then(|v| v.as_str().map(String::from))
-                        })
-                    } else {
-                        None
-                    };
+                        });
                     if latency > 3000 {
                         ("degraded".to_string(), ver)
                     } else {
