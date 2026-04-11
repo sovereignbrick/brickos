@@ -37,6 +37,8 @@ interface FeatureRegistryRow {
   category: string
   name_en: string
   name_de: string
+  description_en: string | null
+  description_de: string | null
 }
 
 interface TierRow {
@@ -92,6 +94,26 @@ export function LicenseTab({ orgId, orgName, billingEmail, locale, onChanged }: 
   // Revoke state
   const [revokeReason, setRevokeReason] = useState('')
 
+  // Sprint 041 #523 follow-up: filter the feature picker by app_slug so
+  // the licensing operator does not have to scroll a 41-feature list.
+  const [appFilter, setAppFilter] = useState<string>('')
+
+  // Whitelabel SHI preset: pre-selects the canonical feature set for a
+  // full white-label SHI deployment (all shi.* + all branding.* + the
+  // tier's support level). Drops in for the most common operator action.
+  const applyWhitelabelShiPreset = () => {
+    const next = new Set<string>()
+    for (const f of features) {
+      if (f.app_slug === 'sovereign-health') next.add(f.slug)
+      if (f.app_slug === '_platform' && f.category === 'branding') next.add(f.slug)
+    }
+    // Default support level: priority for paid tiers, community for glimpse/core.
+    if (tier === 'glimpse' || tier === 'core') next.add('support.community')
+    else if (tier === 'horizon' || tier === 'clarity') next.add('support.priority')
+    else next.add('support.email')
+    setSelectedFeatures(next)
+  }
+
   const fetchHistory = async () => {
     try {
       const res = await api.admin.listOrgLicenseHistory(orgId)
@@ -118,16 +140,23 @@ export function LicenseTab({ orgId, orgName, billingEmail, locale, onChanged }: 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [orgId])
 
-  // Group features by app_slug for the picker
+  // List of distinct app_slugs for the filter dropdown.
+  const appSlugs = useMemo(
+    () => Array.from(new Set(features.map((f) => f.app_slug))).sort(),
+    [features],
+  )
+
+  // Group features by app_slug for the picker, honoring the app filter.
   const grouped = useMemo(() => {
     const map = new Map<string, FeatureRegistryRow[]>()
     for (const f of features) {
+      if (appFilter && f.app_slug !== appFilter) continue
       const list = map.get(f.app_slug) ?? []
       list.push(f)
       map.set(f.app_slug, list)
     }
     return Array.from(map.entries()).sort(([a], [b]) => a.localeCompare(b))
-  }, [features])
+  }, [features, appFilter])
 
   const current = history[0] // newest first; null check below
   const isCurrentActive = current && !current.revoked_at && new Date(current.expires_at) > new Date()
@@ -384,37 +413,110 @@ export function LicenseTab({ orgId, orgName, billingEmail, locale, onChanged }: 
             </select>
           </div>
 
+          {/* Whitelabel SHI explainer + app filter + preset */}
+          <div className="rounded-lg border border-blue-500/20 bg-blue-500/5 p-3 text-xs text-blue-200 space-y-1">
+            <p className="font-semibold">Whitelabel SHI -- which features do I need?</p>
+            <p className="text-blue-300/80">
+              The features array on the JWT is the org&apos;s entitlement list. Each feature
+              slug toggles ONE capability in the running app. For a full whitelabel SHI
+              license:
+            </p>
+            <ul className="list-disc ml-5 text-blue-300/80 space-y-0.5">
+              <li>
+                <span className="font-mono">shi.*</span> -- enables SHI app capabilities (csv
+                export, AI chat, PDF reports, etc.)
+              </li>
+              <li>
+                <span className="font-mono">branding.custom_logo</span>,{' '}
+                <span className="font-mono">branding.custom_colors</span>,{' '}
+                <span className="font-mono">branding.custom_domain</span>,{' '}
+                <span className="font-mono">branding.role_labels</span> -- without these the
+                org cannot whitelabel
+              </li>
+              <li>
+                <span className="font-mono">support.priority</span> or{' '}
+                <span className="font-mono">support.sla_24x7</span> -- match what was sold
+              </li>
+            </ul>
+            <p className="text-blue-300/60 italic mt-1">
+              The license is org-scoped. The custom domain is configured separately on the
+              Branding tab; <span className="font-mono">branding.custom_domain</span> is the
+              feature that UNLOCKS the ability to set a domain.
+            </p>
+          </div>
+
+          {/* Feature picker controls */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <label className="text-xs text-zinc-500">{t('form.featurePicker')}</label>
+            <select
+              value={appFilter}
+              onChange={(e) => setAppFilter(e.target.value)}
+              className="bg-zinc-900 border border-zinc-800 rounded-lg px-2 py-1 text-xs"
+              data-testid="license-feature-app-filter"
+            >
+              <option value="">All apps ({features.length})</option>
+              {appSlugs.map((s) => (
+                <option key={s} value={s}>
+                  {s} ({features.filter((f) => f.app_slug === s).length})
+                </option>
+              ))}
+            </select>
+            <button
+              type="button"
+              onClick={applyWhitelabelShiPreset}
+              className="text-xs bg-blue-600/20 hover:bg-blue-600/30 text-blue-200 px-2 py-1 rounded border border-blue-500/30"
+              title="Pre-select all SHI features + all branding features + a support level matching the tier"
+            >
+              Preset: Whitelabel SHI
+            </button>
+            <button
+              type="button"
+              onClick={() => setSelectedFeatures(new Set())}
+              className="text-xs text-zinc-400 hover:text-zinc-200 px-2 py-1"
+            >
+              Clear
+            </button>
+            <span className="text-[11px] text-zinc-500 ml-auto">
+              {selectedFeatures.size} selected
+            </span>
+          </div>
+
           {/* Feature picker, grouped by app */}
           <div className="space-y-2">
-            <label className="text-xs text-zinc-500">{t('form.featurePicker')}</label>
             {grouped.length === 0 ? (
               <p className="text-xs text-zinc-600">{t('form.noFeatures')}</p>
             ) : (
-              <div className="space-y-3 max-h-64 overflow-y-auto rounded-lg border border-zinc-800 p-3">
+              <div className="space-y-3 max-h-80 overflow-y-auto rounded-lg border border-zinc-800 p-3">
                 {grouped.map(([app, items]) => (
                   <div key={app} className="space-y-1">
                     <p className="text-[10px] uppercase tracking-wider text-zinc-500 font-mono">
                       {app}
                     </p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-1">
-                      {items.map((f) => (
-                        <label
-                          key={f.slug}
-                          className="flex items-start gap-2 text-xs text-zinc-300 hover:text-zinc-100 cursor-pointer"
-                        >
-                          <input
-                            type="checkbox"
-                            checked={selectedFeatures.has(f.slug)}
-                            onChange={() => toggleFeature(f.slug)}
-                            className="mt-0.5"
-                          />
-                          <span>
-                            <span className="font-mono text-[10px] text-zinc-500">{f.slug}</span>
-                            <br />
-                            <span>{locale === 'de' ? f.name_de : f.name_en}</span>
-                          </span>
-                        </label>
-                      ))}
+                      {items.map((f) => {
+                        const description =
+                          (locale === 'de' ? f.description_de : f.description_en) ?? f.slug
+                        return (
+                          <label
+                            key={f.slug}
+                            title={description}
+                            className="flex items-start gap-2 text-xs text-zinc-300 hover:text-zinc-100 cursor-pointer"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={selectedFeatures.has(f.slug)}
+                              onChange={() => toggleFeature(f.slug)}
+                              className="mt-0.5"
+                              aria-label={f.slug}
+                            />
+                            <span>
+                              <span className="font-mono text-[10px] text-zinc-500">{f.slug}</span>
+                              <br />
+                              <span>{locale === 'de' ? f.name_de : f.name_en}</span>
+                            </span>
+                          </label>
+                        )
+                      })}
                     </div>
                   </div>
                 ))}

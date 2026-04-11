@@ -103,12 +103,25 @@ export default function OrgDetailPage() {
   const orgId = params.id
   const t = useTranslations('platform.orgDetail')
   const locale = useLocale()
-  const [tab, setTab] = useState<'overview' | 'members' | 'license' | 'branding' | 'invoices'>(
-    'overview',
-  )
+  const [tab, setTab] = useState<
+    'overview' | 'members' | 'license' | 'branding' | 'invoices' | 'audit'
+  >('overview')
   const [org, setOrg] = useState<OrgDetail | null>(null)
   const [members, setMembers] = useState<OrgMember[]>([])
   const [loading, setLoading] = useState(true)
+  const [auditEntries, setAuditEntries] = useState<
+    Array<{
+      id: string
+      action: string
+      target_type: string
+      target_id: string
+      payload: Record<string, unknown>
+      created_at: string
+      actor_user_id: string | null
+      actor_email: string | null
+    }>
+  >([])
+  const [auditLoaded, setAuditLoaded] = useState(false)
   const [roleFilter, setRoleFilter] = useState<Role | ''>('')
   const [showAdd, setShowAdd] = useState(false)
   const [addEmail, setAddEmail] = useState('')
@@ -140,6 +153,21 @@ export default function OrgDetailPage() {
     fetchOrg()
     fetchMembers()
   }, [fetchOrg, fetchMembers])
+
+  // Lazy-load the audit log when the user opens the Audit tab.
+  useEffect(() => {
+    if (tab !== 'audit' || auditLoaded) return
+    api.admin
+      .listOrgAuditLog(orgId)
+      .then((res) => {
+        setAuditEntries(res.data)
+        setAuditLoaded(true)
+      })
+      .catch((err) => {
+        toast.error(err instanceof Error ? err.message : 'Failed to load audit log')
+        setAuditLoaded(true)
+      })
+  }, [tab, auditLoaded, orgId])
 
   const handleAddMember = async () => {
     if (!addEmail || !addEmail.includes('@')) return
@@ -220,6 +248,7 @@ export default function OrgDetailPage() {
             ['license', t('tabs.license')],
             ['branding', t('tabs.branding')],
             ['invoices', t('tabs.invoices')],
+            ['audit', t('tabs.audit')],
           ] as const
         ).map(([key, label]) => (
           <button
@@ -234,16 +263,6 @@ export default function OrgDetailPage() {
           >
             {label}
           </button>
-        ))}
-        {/* Tab reserved for #483 -- placeholder so the URL exists */}
-        {(['audit'] as const).map((key) => (
-          <span
-            key={key}
-            className="px-4 py-2 text-sm font-medium border-b-2 border-transparent text-zinc-700 cursor-not-allowed"
-            title="Coming in a follow-up issue"
-          >
-            {t(`tabs.${key}`)}
-          </span>
         ))}
       </div>
 
@@ -401,6 +420,61 @@ export default function OrgDetailPage() {
       {/* Invoices tab (Sprint 040 #481) */}
       {tab === 'invoices' && <InvoicesTab orgId={orgId} />}
 
+      {/* Audit tab (Sprint 041 #523 follow-up) */}
+      {tab === 'audit' && (
+        <div className="space-y-4">
+          <h2 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
+            Audit log
+          </h2>
+          {!auditLoaded && <div className="text-zinc-500 text-sm">Loading...</div>}
+          {auditLoaded && auditEntries.length === 0 && (
+            <div className="text-zinc-500 text-sm rounded-2xl border border-zinc-800 p-6 text-center">
+              No audit entries for this organization yet.
+            </div>
+          )}
+          {auditLoaded && auditEntries.length > 0 && (
+            <div className="rounded-2xl border border-zinc-800 overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-zinc-800">
+                    <th className="text-xs text-zinc-400 font-medium uppercase tracking-wider text-left py-2.5 px-4">
+                      When
+                    </th>
+                    <th className="text-xs text-zinc-400 font-medium uppercase tracking-wider text-left py-2.5 px-4">
+                      Action
+                    </th>
+                    <th className="text-xs text-zinc-400 font-medium uppercase tracking-wider text-left py-2.5 px-4">
+                      Actor
+                    </th>
+                    <th className="text-xs text-zinc-400 font-medium uppercase tracking-wider text-left py-2.5 px-4">
+                      Payload
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {auditEntries.map((e) => (
+                    <tr key={e.id} className="border-b border-zinc-800/50 hover:bg-zinc-800/40">
+                      <td className="py-2 px-4 text-xs text-zinc-400 whitespace-nowrap">
+                        {formatDate(e.created_at)}
+                      </td>
+                      <td className="py-2 px-4 font-mono text-xs text-orange-300">{e.action}</td>
+                      <td className="py-2 px-4 text-xs text-zinc-300">
+                        {e.actor_email ?? <span className="text-zinc-600">system</span>}
+                      </td>
+                      <td className="py-2 px-4">
+                        <pre className="text-[10px] text-zinc-500 whitespace-pre-wrap break-all max-w-md">
+                          {JSON.stringify(e.payload, null, 0)}
+                        </pre>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Members tab */}
       {tab === 'members' && (
         <div className="space-y-4">
@@ -439,7 +513,7 @@ export default function OrgDetailPage() {
                 />
               </div>
               <div className="space-y-1">
-                <label className="text-xs text-zinc-500">{t('roleCol')}</label>
+                <label className="text-xs text-zinc-500">{t('membersTab.roleCol')}</label>
                 <select
                   value={addRole}
                   onChange={(e) => setAddRole(e.target.value as Role)}

@@ -19,6 +19,14 @@ interface Product {
   slug: string
   name: string
   default_unit_amount_cents: number
+  billing_period: 'monthly' | 'yearly' | 'one-time'
+  description: string
+}
+
+const PERIOD_BADGE: Record<Product['billing_period'], { label: string; color: string }> = {
+  monthly: { label: 'monthly', color: 'bg-blue-400/10 text-blue-300' },
+  yearly: { label: 'yearly', color: 'bg-purple-400/10 text-purple-300' },
+  'one-time': { label: 'one-time', color: 'bg-zinc-700 text-zinc-300' },
 }
 
 interface InvoiceRow {
@@ -86,6 +94,7 @@ export function InvoicesTab({ orgId }: InvoicesTabProps) {
 
   // Sync state per row
   const [syncingId, setSyncingId] = useState<string | null>(null)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
 
   const fetchInvoices = async () => {
     setLoading(true)
@@ -198,6 +207,47 @@ export function InvoicesTab({ orgId }: InvoicesTabProps) {
     }
   }
 
+  const handleEditDraft = (inv: InvoiceRow) => {
+    // Load the draft's line items into the form. We don't have a PUT
+    // endpoint, so editing means: load -> discard the original ->
+    // save as a new draft. The user must click "Save draft" again to
+    // persist the new version. The discard happens here, atomically
+    // with the form open.
+    setLineItems(
+      inv.line_items.map((li) => ({
+        product_slug: li.product_slug,
+        name: li.name,
+        quantity: li.quantity,
+        unit_amount_cents: li.unit_amount_cents,
+      })),
+    )
+    setCurrency(inv.currency)
+    setDueDays(inv.due_days)
+    setMemo(inv.memo ?? '')
+    setShowForm(true)
+    // Discard original after the form is populated.
+    api.admin
+      .deleteOrgInvoice(orgId, inv.id)
+      .then(() => fetchInvoices())
+      .catch((err) =>
+        toast.error(err instanceof Error ? err.message : 'Failed to discard original draft'),
+      )
+  }
+
+  const handleDiscardDraft = async (id: string) => {
+    if (!confirm('Discard this draft invoice? This cannot be undone.')) return
+    setDeletingId(id)
+    try {
+      await api.admin.deleteOrgInvoice(orgId, id)
+      toast.success('Draft discarded')
+      await fetchInvoices()
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to discard')
+    } finally {
+      setDeletingId(null)
+    }
+  }
+
   const handleSyncDraft = async (id: string) => {
     const cid = prompt(t('form.stripeCustomerId'))
     if (!cid) return
@@ -247,6 +297,18 @@ export function InvoicesTab({ orgId }: InvoicesTabProps) {
             </button>
           </div>
 
+          {/* Billing period clarifier */}
+          <div className="rounded-lg border border-blue-500/20 bg-blue-500/5 p-3 text-[11px] text-blue-200/90 space-y-1">
+            <p className="font-semibold">How is this invoice billed?</p>
+            <p className="text-blue-300/80">
+              The invoice is sent ONCE for the totals shown. Each line item is independently
+              tagged as monthly / yearly / one-time -- the badges next to the product name
+              tell you which. Mixing periods on a single invoice is supported (e.g. one-time
+              onboarding + monthly base on the first invoice). Stripe will create a
+              subscription only for recurring lines when you sync.
+            </p>
+          </div>
+
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
               <label className="text-xs text-zinc-500">{t('form.currency')}</label>
@@ -285,52 +347,71 @@ export function InvoicesTab({ orgId }: InvoicesTabProps) {
                 {t('form.addLine')}
               </button>
             </div>
-            <div className="space-y-2">
-              {lineItems.map((li, idx) => (
-                <div key={idx} className="grid grid-cols-12 gap-2 items-center">
-                  <select
-                    value={li.product_slug}
-                    onChange={(e) => handleProductChange(idx, e.target.value)}
-                    className="col-span-6 bg-zinc-900 border border-zinc-800 rounded-lg px-2 py-1.5 text-xs"
-                  >
-                    {products.map((p) => (
-                      <option key={p.slug} value={p.slug}>
-                        {p.name}
-                      </option>
-                    ))}
-                  </select>
-                  <input
-                    type="number"
-                    min={1}
-                    value={li.quantity}
-                    onChange={(e) =>
-                      updateLine(idx, { quantity: Number(e.target.value) })
-                    }
-                    placeholder={t('form.quantity')}
-                    className="col-span-2 bg-zinc-900 border border-zinc-800 rounded-lg px-2 py-1.5 text-xs tabular-nums"
-                  />
-                  <input
-                    type="number"
-                    min={0}
-                    step={0.01}
-                    value={(li.unit_amount_cents / 100).toFixed(2)}
-                    onChange={(e) =>
-                      updateLine(idx, {
-                        unit_amount_cents: Math.round(Number(e.target.value) * 100),
-                      })
-                    }
-                    placeholder={t('form.unitPrice')}
-                    className="col-span-3 bg-zinc-900 border border-zinc-800 rounded-lg px-2 py-1.5 text-xs tabular-nums"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => removeLine(idx)}
-                    className="col-span-1 text-zinc-500 hover:text-red-400 text-sm"
-                  >
-                    {t('form.removeLine')}
-                  </button>
-                </div>
-              ))}
+            <div className="space-y-3">
+              {lineItems.map((li, idx) => {
+                const product = products.find((p) => p.slug === li.product_slug)
+                const periodBadge = product ? PERIOD_BADGE[product.billing_period] : null
+                return (
+                  <div key={idx} className="space-y-1 rounded-lg border border-zinc-800/50 p-2">
+                    <div className="grid grid-cols-12 gap-2 items-center">
+                      <select
+                        value={li.product_slug}
+                        onChange={(e) => handleProductChange(idx, e.target.value)}
+                        className="col-span-6 bg-zinc-900 border border-zinc-800 rounded-lg px-2 py-1.5 text-xs"
+                      >
+                        {products.map((p) => (
+                          <option key={p.slug} value={p.slug} title={p.description}>
+                            {p.name} ({p.billing_period})
+                          </option>
+                        ))}
+                      </select>
+                      <input
+                        type="number"
+                        min={1}
+                        value={li.quantity}
+                        onChange={(e) =>
+                          updateLine(idx, { quantity: Number(e.target.value) })
+                        }
+                        placeholder={t('form.quantity')}
+                        className="col-span-2 bg-zinc-900 border border-zinc-800 rounded-lg px-2 py-1.5 text-xs tabular-nums"
+                      />
+                      <input
+                        type="number"
+                        min={0}
+                        step={0.01}
+                        value={(li.unit_amount_cents / 100).toFixed(2)}
+                        onChange={(e) =>
+                          updateLine(idx, {
+                            unit_amount_cents: Math.round(Number(e.target.value) * 100),
+                          })
+                        }
+                        placeholder={t('form.unitPrice')}
+                        className="col-span-3 bg-zinc-900 border border-zinc-800 rounded-lg px-2 py-1.5 text-xs tabular-nums"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeLine(idx)}
+                        className="col-span-1 text-zinc-500 hover:text-red-400 text-sm"
+                        title="Remove this line item"
+                      >
+                        {t('form.removeLine')}
+                      </button>
+                    </div>
+                    {product && (
+                      <div className="flex items-start gap-2 pl-1">
+                        {periodBadge && (
+                          <span
+                            className={`text-[9px] uppercase tracking-wider px-1.5 py-0.5 rounded-full whitespace-nowrap ${periodBadge.color}`}
+                          >
+                            {periodBadge.label}
+                          </span>
+                        )}
+                        <p className="text-[11px] text-zinc-500 italic">{product.description}</p>
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
             </div>
             {lineItems.length > 0 && (
               <div className="flex items-center justify-end text-xs text-zinc-300 pt-2 border-t border-zinc-800/50">
@@ -448,14 +529,33 @@ export function InvoicesTab({ orgId }: InvoicesTabProps) {
                   </td>
                   <td className="py-2.5 px-4 text-right">
                     {inv.status === 'draft' ? (
-                      <button
-                        type="button"
-                        onClick={() => handleSyncDraft(inv.id)}
-                        disabled={syncingId === inv.id}
-                        className="text-xs text-orange-400 hover:text-orange-300 disabled:opacity-50"
-                      >
-                        {syncingId === inv.id ? '...' : t('syncToStripe')}
-                      </button>
+                      <div className="flex items-center justify-end gap-3">
+                        <button
+                          type="button"
+                          onClick={() => handleEditDraft(inv)}
+                          className="text-xs text-blue-400 hover:text-blue-300"
+                          title="Reopen this draft in the form. The original is discarded; save the new version to keep changes."
+                        >
+                          Edit
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleSyncDraft(inv.id)}
+                          disabled={syncingId === inv.id}
+                          className="text-xs text-orange-400 hover:text-orange-300 disabled:opacity-50"
+                        >
+                          {syncingId === inv.id ? '...' : t('syncToStripe')}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDiscardDraft(inv.id)}
+                          disabled={deletingId === inv.id}
+                          className="text-xs text-red-400 hover:text-red-300 disabled:opacity-50"
+                          title="Permanently discard this draft"
+                        >
+                          {deletingId === inv.id ? '...' : 'Discard'}
+                        </button>
+                      </div>
                     ) : (
                       <span className="text-xs text-zinc-600">{t('synced')}</span>
                     )}
