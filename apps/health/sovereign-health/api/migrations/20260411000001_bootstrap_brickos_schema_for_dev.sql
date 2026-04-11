@@ -183,6 +183,26 @@ CREATE TABLE IF NOT EXISTS brickos.user_licenses (
     UNIQUE(user_id)
 );
 
+-- Sprint 041 staging deploy: brickos.user_licenses on staging was created
+-- by an older brickos-db migration with the legacy admin_override_by /
+-- admin_override_at / admin_override_note shape (manual override audit
+-- pattern). The Sprint 040 #467 redesign uses admin_override_tier_slug +
+-- admin_override_expires_at instead (lets you temporarily grant a
+-- different tier). The CREATE TABLE IF NOT EXISTS above is a no-op on
+-- staging because the table already exists, so we add the missing
+-- columns explicitly here. The legacy columns are kept as-is and ignored
+-- by the new code path.
+ALTER TABLE brickos.user_licenses
+    ADD COLUMN IF NOT EXISTS admin_override BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE brickos.user_licenses
+    ADD COLUMN IF NOT EXISTS admin_override_tier_slug VARCHAR(50);
+ALTER TABLE brickos.user_licenses
+    ADD COLUMN IF NOT EXISTS admin_override_expires_at TIMESTAMPTZ;
+ALTER TABLE brickos.user_licenses
+    ADD COLUMN IF NOT EXISTS previous_tier_slug VARCHAR(20);
+ALTER TABLE brickos.user_licenses
+    ADD COLUMN IF NOT EXISTS grace_period_ends TIMESTAMPTZ;
+
 CREATE INDEX IF NOT EXISTS idx_brickos_user_licenses_admin_override
     ON brickos.user_licenses(user_id)
     WHERE admin_override = true AND admin_override_tier_slug IS NOT NULL;
