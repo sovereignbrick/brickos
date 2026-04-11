@@ -77,6 +77,12 @@ COPY --from=builder /app/target/release/migrate-early-access ./migrate-early-acc
 COPY --from=builder /app/apps/health/sovereign-health/api/migrations ./migrations
 COPY --from=builder /app/apps/health/sovereign-health/api/src/config ./src/config
 COPY --from=builder /app/apps/health/sovereign-health/api/assets ./assets
+# Dev signing key for license issuance. The handler reads it from the
+# relative path `crates/brickos-licensing/keys/dev_signing_key.pem` (cwd
+# is /app), so we need to recreate that directory layout in the runtime
+# stage. Production deploys override LICENSE_SIGNING_KEY_PATH to point at
+# a real key mounted from secrets.
+COPY --from=builder /app/crates/brickos-licensing/keys/dev_signing_key.pem ./crates/brickos-licensing/keys/dev_signing_key.pem
 
 EXPOSE 8080
 ENV RUST_LOG=info

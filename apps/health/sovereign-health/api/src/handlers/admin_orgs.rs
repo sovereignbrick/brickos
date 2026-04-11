@@ -1404,8 +1404,11 @@ pub async fn delete_preview_organization(
 ) -> Result<HttpResponse, AppError> {
     let org_id = path.into_inner();
 
+    // Sprint 041 round 4 staging fix: read from brickos.organizations
+    // (canonical schema in both dev + staging) instead of public.organizations
+    // (which doesn't exist on staging post brickos-db migration 001 SET SCHEMA).
     let row: Option<(String, String)> = sqlx::query_as(
-        "SELECT name, slug FROM public.organizations WHERE id = $1 AND is_deleted = false",
+        "SELECT name, slug FROM brickos.organizations WHERE id = $1 AND is_deleted = false",
     )
     .bind(org_id)
     .fetch_optional(&platform_pool.0)
