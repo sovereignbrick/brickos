@@ -1633,6 +1633,37 @@ pub async fn delete_organization(
             .execute(&mut *tx)
             .await?;
 
+        // Sprint 041 round 4 staging fix: brickos-side tables that FK to
+        // brickos.organizations with NO ACTION (no cascade). On dev these
+        // tables don't all exist in the brickos schema (only org_members
+        // and service_accounts do), but on staging post brickos-db
+        // migration 001 they're the canonical copies and DO get populated.
+        // Probe each table with to_regclass before deleting so the same
+        // code is safe in both environments.
+        sqlx::query("UPDATE brickos.users SET default_org_id = NULL WHERE default_org_id = $1")
+            .bind(org_id)
+            .execute(&mut *tx)
+            .await?;
+        for table in [
+            "app_roles",
+            "audit_log",
+            "data_shares",
+            "domain_mappings",
+            "org_members",
+        ] {
+            let exists: bool = sqlx::query_scalar(&format!(
+                "SELECT to_regclass('brickos.{table}') IS NOT NULL"
+            ))
+            .fetch_one(&mut *tx)
+            .await?;
+            if exists {
+                sqlx::query(&format!("DELETE FROM brickos.{table} WHERE org_id = $1"))
+                    .bind(org_id)
+                    .execute(&mut *tx)
+                    .await?;
+            }
+        }
+
         // public side: several legacy SHI tables FK to public.organizations
         // without ON DELETE CASCADE. Clear them in dependency order, but
         // ONLY if those tables exist (staging post-migration-001 has none).
