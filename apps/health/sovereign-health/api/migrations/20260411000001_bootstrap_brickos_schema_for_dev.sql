@@ -44,6 +44,82 @@
 
 CREATE SCHEMA IF NOT EXISTS brickos;
 
+-- ============================================================================
+-- Sprint 041 staging deploy: self-reconciling pre-cleanup
+--
+-- Some pre-existing brickos.* tables on staging (and possibly production)
+-- were created by older brickos-db migrations with a LEGACY shape that's
+-- incompatible with the Sprint 040 #460/#463/#467 redesign. The CREATE
+-- TABLE IF NOT EXISTS clauses below are no-ops on those tables, leaving
+-- the schema mismatched and the indexes that reference new columns
+-- failing to create.
+--
+-- Strategy: rename the legacy tables aside (preserving data for archival),
+-- then let CREATE TABLE IF NOT EXISTS create the new shape fresh. The
+-- canonical Sprint 040 seed populates the new tables from scratch.
+--
+-- The legacy tier_features rows are NOT migrated -- the legacy
+-- (tier_key, feature_id UUID -> product_features.id) shape with
+-- unprefixed slugs (csv_export) is incompatible with the new
+-- (tier_slug, feature_slug VARCHAR) shape with namespaced slugs
+-- (shi.csv_export). Migrating row-by-row would require a 48-row
+-- mapping table that doesn't exist anywhere. The legacy tables remain
+-- as `*_legacy_sprint040` for the operator to inspect / drop later.
+--
+-- This block is idempotent: on a freshly cold-booted dev DB, none of
+-- the legacy tables exist, so all the IF EXISTS guards skip.
+-- ============================================================================
+DO $reconcile$
+BEGIN
+    -- 1. brickos.tier_features in legacy (tier_key, feature_id) shape
+    IF EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_schema = 'brickos'
+          AND table_name = 'tier_features'
+          AND column_name = 'tier_key'
+    ) THEN
+        ALTER TABLE brickos.tier_features RENAME TO tier_features_legacy_sprint040;
+        RAISE NOTICE 'Sprint 041 reconcile: renamed brickos.tier_features (legacy) to tier_features_legacy_sprint040';
+    END IF;
+
+    -- 2. brickos.product_features (legacy feature catalog, replaced by feature_registry)
+    IF EXISTS (
+        SELECT 1 FROM information_schema.tables
+        WHERE table_schema = 'brickos' AND table_name = 'product_features'
+    ) THEN
+        ALTER TABLE brickos.product_features RENAME TO product_features_legacy_sprint040;
+        RAISE NOTICE 'Sprint 041 reconcile: renamed brickos.product_features (legacy) to product_features_legacy_sprint040';
+    END IF;
+
+    -- 3. brickos.org_members CHECK constraint -- the legacy 5-role enum
+    -- (owner, tech_admin, commercial_admin, editor, consumer) blocks the
+    -- new 3-role enum (org_owner, practitioner, member). Drop the old
+    -- constraint if present so the dual-write in add_org_member can
+    -- write either the legacy or new role values during the transition.
+    -- Existing rows with legacy roles are NOT rewritten -- the dual-write
+    -- pattern handles both shapes.
+    --
+    -- Wrapped in a NESTED table-existence check because PostgreSQL
+    -- pre-resolves the regclass cast even when short-circuiting an
+    -- AND expression, so the cast must not be reachable until the
+    -- table is known to exist. (Same reason the inner SQL in the
+    -- defensive guards on 20260407000002 etc. uses EXECUTE.)
+    IF EXISTS (
+        SELECT 1 FROM information_schema.tables
+        WHERE table_schema = 'brickos' AND table_name = 'org_members'
+    ) THEN
+        IF EXISTS (
+            SELECT 1 FROM pg_constraint
+            WHERE conname = 'org_members_role_check'
+              AND conrelid = 'brickos.org_members'::regclass
+        ) THEN
+            ALTER TABLE brickos.org_members DROP CONSTRAINT org_members_role_check;
+            RAISE NOTICE 'Sprint 041 reconcile: dropped legacy org_members_role_check';
+        END IF;
+    END IF;
+END
+$reconcile$;
+
 -- ----------------------------------------------------------------------------
 -- 1. brickos.users
 --
@@ -115,6 +191,32 @@ CREATE INDEX IF NOT EXISTS idx_brickos_org_members_user
     ON brickos.org_members(user_id);
 CREATE INDEX IF NOT EXISTS idx_brickos_org_members_org
     ON brickos.org_members(org_id);
+
+-- Sprint 041 staging deploy: add the new role CHECK constraint if missing
+-- (the legacy 5-role constraint was dropped by the reconcile DO block at
+-- the top of this file). The constraint accepts BOTH the new 3-role enum
+-- (Sprint 040 #463) AND the legacy 5-role enum so existing rows aren't
+-- invalidated and the dual-write in add_org_member can still write
+-- legacy values to public.org_members.
+DO $org_members_constraint$
+BEGIN
+    -- This block runs AFTER the CREATE TABLE IF NOT EXISTS brickos.org_members
+    -- above, so the table is guaranteed to exist by now and the regclass
+    -- cast is safe.
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint
+        WHERE conname = 'org_members_role_check'
+          AND conrelid = 'brickos.org_members'::regclass
+    ) THEN
+        ALTER TABLE brickos.org_members
+            ADD CONSTRAINT org_members_role_check
+            CHECK (role IN (
+                'org_owner', 'practitioner', 'member',
+                'owner', 'tech_admin', 'commercial_admin', 'editor', 'consumer'
+            ));
+    END IF;
+END
+$org_members_constraint$;
 
 -- ----------------------------------------------------------------------------
 -- 4. brickos.service_accounts
