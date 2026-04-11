@@ -1894,7 +1894,27 @@
       "sendRenewal": "Send renewal reminder",
       "renewalSent": "Sent {count} renewal reminders",
       "noOrgs": "No organizations match the current filters",
-      "page": "Page {page} of {total}"
+      "page": "Page {page} of {total}",
+      "newModal": {
+        "title": "Create new organization",
+        "name": "Name",
+        "namePlaceholder": "Life Algorithm",
+        "slug": "Slug",
+        "slugPlaceholder": "life-algorithm",
+        "slugHint": "URL-safe identifier. Auto-derived from name; you can override.",
+        "type": "Type",
+        "billingEmail": "Billing email",
+        "billingEmailPlaceholder": "billing@example.com",
+        "adminEmail": "Initial admin email",
+        "adminEmailPlaceholder": "admin@example.com",
+        "adminEmailHint": "Optional. If set, this user becomes the org_owner. The user must already exist.",
+        "create": "Create organization",
+        "cancel": "Cancel",
+        "creating": "Creating…",
+        "created": "Organization created",
+        "errorRequired": "Name and slug are required",
+        "errorSlug": "Slug must be lowercase letters, digits and dashes only"
+      }
     },
     "orgDetail": {
       "backToList": "← All organizations",

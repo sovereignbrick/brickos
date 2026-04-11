@@ -11,10 +11,24 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { api } from '@/lib/api'
 import { toast } from '@/lib/toast'
 import { formatDate } from '@/lib/date-format'
+
+/** Slugify a free-text name into a URL-safe identifier. */
+function slugify(input: string): string {
+  return input
+    .toLowerCase()
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '') // strip diacritics
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 60)
+}
+
+const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 
 interface OrgRow {
   id: string
@@ -75,6 +89,7 @@ function formatMembers(row: OrgRow): string {
 
 export default function OrgsPage() {
   const t = useTranslations('platform.orgs')
+  const router = useRouter()
   const [orgs, setOrgs] = useState<OrgRow[]>([])
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(1)
@@ -87,6 +102,15 @@ export default function OrgsPage() {
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [loading, setLoading] = useState(true)
   const [bulkBusy, setBulkBusy] = useState(false)
+  // New-org modal state
+  const [showNewOrg, setShowNewOrg] = useState(false)
+  const [newName, setNewName] = useState('')
+  const [newSlug, setNewSlug] = useState('')
+  const [newSlugTouched, setNewSlugTouched] = useState(false)
+  const [newType, setNewType] = useState('clinic')
+  const [newBillingEmail, setNewBillingEmail] = useState('')
+  const [newAdminEmail, setNewAdminEmail] = useState('')
+  const [creatingOrg, setCreatingOrg] = useState(false)
 
   const fetchOrgs = useCallback(async () => {
     setLoading(true)
@@ -218,6 +242,47 @@ export default function OrgsPage() {
     if (failed > 0) toast.error(`${failed} sends failed`)
   }
 
+  const resetNewOrgForm = () => {
+    setNewName('')
+    setNewSlug('')
+    setNewSlugTouched(false)
+    setNewType('clinic')
+    setNewBillingEmail('')
+    setNewAdminEmail('')
+  }
+
+  const handleCreateOrg = async () => {
+    const name = newName.trim()
+    const slug = newSlug.trim()
+    if (!name || !slug) {
+      toast.error(t('newModal.errorRequired'))
+      return
+    }
+    if (!SLUG_RE.test(slug)) {
+      toast.error(t('newModal.errorSlug'))
+      return
+    }
+    setCreatingOrg(true)
+    try {
+      const res = await api.admin.createOrganization({
+        name,
+        slug,
+        org_type: newType,
+        ...(newBillingEmail.trim() ? { billing_email: newBillingEmail.trim() } : {}),
+        ...(newAdminEmail.trim() ? { admin_email: newAdminEmail.trim() } : {}),
+      })
+      toast.success(t('newModal.created'))
+      setShowNewOrg(false)
+      resetNewOrgForm()
+      // Navigate straight to the new org's detail page so the user can finish setup
+      router.push(`/platform/orgs/${res.data.id}`)
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to create organization')
+    } finally {
+      setCreatingOrg(false)
+    }
+  }
+
   const totalPages = Math.max(1, Math.ceil(total / PER_PAGE))
 
   return (
@@ -225,6 +290,17 @@ export default function OrgsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">{t('title')}</h1>
+        <button
+          type="button"
+          onClick={() => {
+            resetNewOrgForm()
+            setShowNewOrg(true)
+          }}
+          data-testid="orgs-new-org-button"
+          className="text-sm bg-orange-500 hover:bg-orange-600 text-white font-medium px-4 py-2 rounded-lg transition-colors"
+        >
+          + {t('newButton')}
+        </button>
       </div>
 
       {/* Filters */}
@@ -370,6 +446,7 @@ export default function OrgsPage() {
               sortedOrgs.map((org) => (
                 <tr
                   key={org.id}
+                  data-testid={`orgs-row-${org.slug}`}
                   className={`border-b border-zinc-800 hover:bg-zinc-800/50 transition-colors ${
                     selected.has(org.id) ? 'bg-zinc-800/30' : ''
                   }`}
@@ -452,6 +529,121 @@ export default function OrgsPage() {
           >
             Next →
           </button>
+        </div>
+      )}
+
+      {/* New organization modal */}
+      {showNewOrg && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+          role="dialog"
+          aria-modal="true"
+          data-testid="orgs-new-org-modal"
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !creatingOrg) {
+              setShowNewOrg(false)
+            }
+          }}
+        >
+          <div className="w-full max-w-lg rounded-2xl border border-zinc-800 bg-zinc-950 p-6 space-y-4 shadow-2xl">
+            <h2 className="text-lg font-bold">{t('newModal.title')}</h2>
+
+            <div className="space-y-1">
+              <label className="text-xs text-zinc-400">{t('newModal.name')}</label>
+              <input
+                type="text"
+                value={newName}
+                onChange={(e) => {
+                  const v = e.target.value
+                  setNewName(v)
+                  if (!newSlugTouched) setNewSlug(slugify(v))
+                }}
+                placeholder={t('newModal.namePlaceholder')}
+                data-testid="orgs-new-name"
+                className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-orange-500"
+                autoFocus
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs text-zinc-400">{t('newModal.slug')}</label>
+              <input
+                type="text"
+                value={newSlug}
+                onChange={(e) => {
+                  setNewSlug(e.target.value)
+                  setNewSlugTouched(true)
+                }}
+                placeholder={t('newModal.slugPlaceholder')}
+                data-testid="orgs-new-slug"
+                className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-1 focus:ring-orange-500"
+              />
+              <p className="text-[11px] text-zinc-500">{t('newModal.slugHint')}</p>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs text-zinc-400">{t('newModal.type')}</label>
+              <select
+                value={newType}
+                onChange={(e) => setNewType(e.target.value)}
+                data-testid="orgs-new-type"
+                className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-orange-500"
+              >
+                {ORG_TYPES.map((tt) => (
+                  <option key={tt} value={tt}>
+                    {tt}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs text-zinc-400">{t('newModal.billingEmail')}</label>
+              <input
+                type="email"
+                value={newBillingEmail}
+                onChange={(e) => setNewBillingEmail(e.target.value)}
+                placeholder={t('newModal.billingEmailPlaceholder')}
+                data-testid="orgs-new-billing-email"
+                className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-orange-500"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs text-zinc-400">{t('newModal.adminEmail')}</label>
+              <input
+                type="email"
+                value={newAdminEmail}
+                onChange={(e) => setNewAdminEmail(e.target.value)}
+                placeholder={t('newModal.adminEmailPlaceholder')}
+                data-testid="orgs-new-admin-email"
+                className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-orange-500"
+              />
+              <p className="text-[11px] text-zinc-500">{t('newModal.adminEmailHint')}</p>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowNewOrg(false)
+                }}
+                disabled={creatingOrg}
+                className="text-xs text-zinc-400 hover:text-zinc-200 px-3 py-2 disabled:opacity-50"
+              >
+                {t('newModal.cancel')}
+              </button>
+              <button
+                type="button"
+                onClick={handleCreateOrg}
+                disabled={creatingOrg || !newName.trim() || !newSlug.trim()}
+                data-testid="orgs-new-submit"
+                className="text-sm bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white font-medium px-4 py-2 rounded-lg transition-colors"
+              >
+                {creatingOrg ? t('newModal.creating') : t('newModal.create')}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
