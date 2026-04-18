@@ -76,8 +76,12 @@ export async function loginAndNavigate(
   )
 }
 
-/** Dev admin credentials -- seeded with role=admin on every cold boot */
+/** Admin credentials for E2E tests.
+ * - Local dev: dev@sovereignhealth.io / SovereignDev1 (bootstrap migration)
+ * - Staging:   demo@sovereignhealth.io / SovereignDemo1 (seed migration)
+ * Override via E2E_ADMIN_EMAIL / E2E_ADMIN_PASSWORD env vars.
+ */
 export const DEMO_ADMIN = {
-  email: 'dev@sovereignhealth.io',
-  password: 'SovereignDev1',
+  email: process.env.E2E_ADMIN_EMAIL || 'dev@sovereignhealth.io',
+  password: process.env.E2E_ADMIN_PASSWORD || 'SovereignDev1',
 }
