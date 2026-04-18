@@ -49,3 +49,4 @@ tsconfig.tsbuildinfo
 
 # Tracker sync logs (per-run output)
 docs/tracker/sync/logs/
+.claude/worktrees/
