@@ -49,13 +49,14 @@ export function classifyApiError(code: string | undefined, message: string): Api
 
 // Runtime API URL detection:
 // - .onion domains: same origin (nginx proxy)
-// - *.brickos.io domains: same origin (nginx path-mount /api/ -> backend)
+// - *.brickos.io / *.sovereignhealth.io: same origin (nginx path-mount blocks)
 // - default: build-time NEXT_PUBLIC_API_URL
 const API_BASE = (() => {
   if (typeof window === 'undefined') return APP_CONFIG.apiUrl
   const host = window.location.hostname
   if (host.endsWith('.onion')) return ''
-  if (host.endsWith('.brickos.io')) return '' // same-origin API via nginx /api/ path mount (#526)
+  if (host.endsWith('.brickos.io')) return ''
+  if (host.endsWith('.sovereignhealth.io')) return ''
   return APP_CONFIG.apiUrl
 })()
 
