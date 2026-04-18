@@ -134,14 +134,51 @@ cp "${TEMPLATE_DIR}/init-dev-db.sql" "${APP_DIR}/init-dev-db.sql"
 envsubst < "${TEMPLATE_DIR}/docker-compose.dev.yml.tmpl" > "${APP_DIR}/docker-compose.dev.yml"
 
 # -- Step 5: Create empty directories + placeholders -----------------------
-echo "[5/7] Creating placeholder directories..."
+echo "[5/8] Creating placeholder directories..."
 mkdir -p "${APP_DIR}/api/migrations"
 touch "${APP_DIR}/api/migrations/.gitkeep"
 mkdir -p "${APP_DIR}/frontend/public"
 touch "${APP_DIR}/frontend/public/.gitkeep"
 
-# -- Step 6: Workspace registration check -----------------------------------
-echo "[6/7] Checking workspace registration..."
+# -- Step 6: Release notes scaffold -----------------------------------------
+# The .github/workflows/release.yml workflow triggers on tag push `{app}/v*`
+# and reads docs/releases/{app}/{version}/RELEASE_{version}.md. Create the
+# app folder so future releases have a home.
+echo "[6/8] Creating release notes scaffold..."
+RELEASE_NOTES_DIR="${REPO_ROOT}/docs/releases/${APP_NAME}"
+mkdir -p "${RELEASE_NOTES_DIR}"
+if [[ ! -f "${RELEASE_NOTES_DIR}/README.md" ]]; then
+    cat > "${RELEASE_NOTES_DIR}/README.md" <<EOF
+# ${APP_TITLE} — Release Notes
+
+Per-version release notes for \`${APP_NAME}\`.
+
+## Tag convention
+
+\`\`\`
+git tag -a ${APP_NAME}/vX.Y.Z -m "${APP_TITLE} vX.Y.Z"
+git push origin ${APP_NAME}/vX.Y.Z
+\`\`\`
+
+## Notes convention
+
+\`\`\`
+docs/releases/${APP_NAME}/vX.Y.Z/RELEASE_vX.Y.Z.md
+\`\`\`
+
+Pushing a matching tag triggers \`.github/workflows/release.yml\`, which reads
+the notes file and publishes a GitHub Release. If the notes file is missing,
+the workflow fails. Create the file and commit it before tagging.
+
+See \`docs/releases/RELEASE_TEMPLATE.md\` for the full release workflow.
+EOF
+    echo "  Created ${RELEASE_NOTES_DIR}/README.md"
+else
+    echo "  ${RELEASE_NOTES_DIR}/README.md already exists, skipping"
+fi
+
+# -- Step 7: Workspace registration check -----------------------------------
+echo "[7/8] Checking workspace registration..."
 if grep -q "apps/${PILLAR}/${APP_NAME}/api" "${REPO_ROOT}/Cargo.toml"; then
     echo "  Already registered in workspace Cargo.toml"
 else
@@ -150,8 +187,8 @@ else
     echo ""
 fi
 
-# -- Step 7: Post-generation verification -----------------------------------
-echo "[7/7] Verifying generated code..."
+# -- Step 8: Post-generation verification -----------------------------------
+echo "[8/8] Verifying generated code..."
 
 # Auto-format Rust code to match cargo fmt output
 if cargo fmt -p "${CRATE_NAME}" 2>/dev/null; then

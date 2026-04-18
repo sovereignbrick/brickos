@@ -1,0 +1,113 @@
+name: Release
+
+# Creates a GitHub Release when an app-scoped version tag is pushed.
+#
+# Tag convention: {app-name}/v{MAJOR}.{MINOR}.{PATCH}[-PRERELEASE]
+#   examples: sovereign-health/v0.41.0, sovereign-link/v0.3.0, brickos-platform/v0.2.0-rc1
+#
+# Release notes convention: docs/releases/{app-name}/{version}/RELEASE_{version}.md
+#
+# See docs/releases/RELEASE_TEMPLATE.md for the full release workflow.
+
+on:
+  push:
+    tags:
+      - '*/v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Parse tag
+        id: parse
+        run: |
+          set -euo pipefail
+          TAG="${GITHUB_REF_NAME}"
+          APP="${TAG%%/*}"
+          VERSION="${TAG#*/}"
+
+          if [[ ! "$VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?$ ]]; then
+            echo "ERROR: Tag '$TAG' does not match convention {app}/v{MAJOR}.{MINOR}.{PATCH}[-PRERELEASE]"
+            exit 1
+          fi
+
+          # Human-readable title: short words (<=3 chars) uppercased, with
+          # brand overrides for slugs that don't fit the algorithmic rule.
+          #   sovereign-health -> Sovereign Health
+          #   sovereign-crm    -> Sovereign CRM
+          #   brickos-platform -> BrickOS Platform   (brand override)
+          case "$APP" in
+            brickos)          TITLE="BrickOS" ;;
+            brickos-platform) TITLE="BrickOS Platform" ;;
+            *)
+              TITLE=$(echo "$APP" | awk '{
+                n = split($0, words, "-")
+                out = ""
+                for (i = 1; i <= n; i++) {
+                  w = words[i]
+                  if (length(w) <= 3) {
+                    out = out (i>1 ? " " : "") toupper(w)
+                  } else {
+                    out = out (i>1 ? " " : "") toupper(substr(w,1,1)) tolower(substr(w,2))
+                  }
+                }
+                print out
+              }')
+              ;;
+          esac
+
+          PRERELEASE=false
+          [[ "$VERSION" == *-* ]] && PRERELEASE=true
+
+          NOTES_PATH="docs/releases/${APP}/${VERSION}/RELEASE_${VERSION}.md"
+
+          {
+            echo "app=$APP"
+            echo "version=$VERSION"
+            echo "title=$TITLE $VERSION"
+            echo "prerelease=$PRERELEASE"
+            echo "notes_path=$NOTES_PATH"
+          } >> "$GITHUB_OUTPUT"
+
+          echo "Parsed tag '$TAG':"
+          echo "  app         = $APP"
+          echo "  version     = $VERSION"
+          echo "  title       = $TITLE $VERSION"
+          echo "  prerelease  = $PRERELEASE"
+          echo "  notes_path  = $NOTES_PATH"
+
+      - name: Verify release notes exist
+        run: |
+          set -euo pipefail
+          NOTES="${{ steps.parse.outputs.notes_path }}"
+          if [[ ! -f "$NOTES" ]]; then
+            echo "ERROR: Release notes not found at $NOTES"
+            echo ""
+            echo "Convention: docs/releases/{app}/{version}/RELEASE_{version}.md"
+            echo "Create the file, commit, then re-tag (or push a new tag)."
+            exit 1
+          fi
+          echo "Found release notes ($(wc -l < "$NOTES") lines). Preview:"
+          head -20 "$NOTES"
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          ARGS=(
+            "${GITHUB_REF_NAME}"
+            --title "${{ steps.parse.outputs.title }}"
+            --notes-file "${{ steps.parse.outputs.notes_path }}"
+            --verify-tag
+          )
+          [[ "${{ steps.parse.outputs.prerelease }}" == "true" ]] && ARGS+=(--prerelease)
+
+          gh release create "${ARGS[@]}"
