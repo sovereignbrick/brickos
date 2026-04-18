@@ -508,8 +508,14 @@ mod tests {
         // sees the user's actual 4.7 mg/dL, rejects it as physiologically
         // implausible for mg/dL, AND suggests "did you mean 4.7 mmol/L?".
         let err = validate_marker_value("glucose", 4.7, Some("mg/dL")).unwrap_err();
-        assert!(err.contains("4.7"), "error should reference user's value: {err}");
-        assert!(err.contains("mg/dL"), "error should reference user's unit: {err}");
+        assert!(
+            err.contains("4.7"),
+            "error should reference user's value: {err}"
+        );
+        assert!(
+            err.contains("mg/dL"),
+            "error should reference user's unit: {err}"
+        );
         assert!(err.contains("mmol/L"), "error should suggest mmol/L: {err}");
     }
 

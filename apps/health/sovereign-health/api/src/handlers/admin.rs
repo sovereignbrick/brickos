@@ -249,7 +249,9 @@ pub async fn list_users(
         let count_sql: String = if has_real_org_filter {
             "SELECT COUNT(*) FROM users u INNER JOIN org_members om ON om.user_id = u.id AND om.org_id = $1::uuid WHERE u.is_deleted = false".to_string()
         } else {
-            format!("SELECT COUNT(*) FROM users u WHERE u.is_deleted = false {individual_user_clause}")
+            format!(
+                "SELECT COUNT(*) FROM users u WHERE u.is_deleted = false {individual_user_clause}"
+            )
         };
         let total: i64 = if has_real_org_filter {
             sqlx::query_scalar(&count_sql)
