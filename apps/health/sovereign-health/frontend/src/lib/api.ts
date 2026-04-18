@@ -48,15 +48,17 @@ export function classifyApiError(code: string | undefined, message: string): Api
 }
 
 // Runtime API URL detection:
-// - .onion domains: same origin (nginx proxy)
-// - *.brickos.io / *.sovereignhealth.io: same origin (nginx path-mount blocks)
+// - .onion domains: same origin (nginx proxy for all routes)
+// - *.brickos.io: same origin (nginx path-mount /api/,/auth/,/admin/ + catch-all)
+// - *.sovereignhealth.io: legacy API subdomain (not all routes are under /api/)
 // - default: build-time NEXT_PUBLIC_API_URL
 const API_BASE = (() => {
   if (typeof window === 'undefined') return APP_CONFIG.apiUrl
   const host = window.location.hostname
   if (host.endsWith('.onion')) return ''
   if (host.endsWith('.brickos.io')) return ''
-  if (host.endsWith('.sovereignhealth.io')) return ''
+  if (host === 'demo.sovereignhealth.io') return 'https://api-demo.sovereignhealth.io'
+  if (host === 'app.sovereignhealth.io') return 'https://api.sovereignhealth.io'
   return APP_CONFIG.apiUrl
 })()
 
