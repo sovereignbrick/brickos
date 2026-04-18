@@ -8,7 +8,7 @@
 #
 # Supports two tag conventions:
 #   1. {app}/vX.Y.Z         -> docs/releases/{app}/vX.Y.Z/RELEASE_vX.Y.Z.md
-#   2. vX.Y.Z (legacy SHI)  -> docs/releases/shi/vX.Y.Z/RELEASE_vX.Y.Z.md
+#   2. vX.Y.Z (legacy SHI)  -> docs/releases/sovereign-health/vX.Y.Z/RELEASE_vX.Y.Z.md
 #
 # Usage:
 #   bash ops/backfill-github-releases.sh           # dry run
@@ -57,10 +57,10 @@ resolve_tag() {
         version="${tag#*/}"
         notes="docs/releases/${app}/${version}/RELEASE_${version}.md"
     elif [[ "$tag" =~ ^v[0-9] ]]; then
-        # Legacy SHI unprefixed tag
+        # Legacy SHI unprefixed tag -- folder renamed from shi/ to sovereign-health/
         app="sovereign-health"
         version="$tag"
-        notes="docs/releases/shi/${version}/RELEASE_${version}.md"
+        notes="docs/releases/sovereign-health/${version}/RELEASE_${version}.md"
     else
         return 1
     fi
