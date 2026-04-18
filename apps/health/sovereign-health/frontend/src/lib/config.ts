@@ -10,7 +10,7 @@ export const APP_CONFIG = {
 
   // URLs
   apiUrl: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080',
-  appUrl: process.env.NEXT_PUBLIC_APP_URL || 'https://app.sovereignhealth.io',
+  appUrl: process.env.NEXT_PUBLIC_APP_URL || 'https://app.brickos.io',
   websiteUrl: process.env.NEXT_PUBLIC_WEBSITE_URL || 'https://sovereignhealth.io',
   demoHostname: process.env.NEXT_PUBLIC_DEMO_HOSTNAME || 'demo.sovereignhealth.io',
   githubUrl: process.env.NEXT_PUBLIC_GITHUB_URL || 'https://github.com/sovereignbrick/brickos',

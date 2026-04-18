@@ -16,7 +16,8 @@ services:
       REDIS_URL: redis://redis:6379
       JWT_SECRET: ${JWT_SECRET}
       RUST_LOG: warn
-      FRONTEND_URL: https://app.sovereignhealth.io
+      FRONTEND_URL: https://app.brickos.io
+      CORS_ORIGINS: https://app.brickos.io,https://app.sovereignhealth.io
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
       ENCRYPTION_KEY: ${ENCRYPTION_KEY}
       MAILGUN_API_KEY: ${MAILGUN_API_KEY}
@@ -60,7 +61,7 @@ services:
     ports:
       - "127.0.0.1:3000:3000"
     environment:
-      NEXT_PUBLIC_API_URL: https://api.sovereignhealth.io
+      NEXT_PUBLIC_API_URL: /api
       NEXT_PUBLIC_APP_NAME: Sovereign Health Intelligence
     restart: unless-stopped
 

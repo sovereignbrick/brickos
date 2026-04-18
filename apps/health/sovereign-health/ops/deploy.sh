@@ -54,17 +54,18 @@ BACKEND_IMAGE="sovereignbrick/shi-api"
 FRONTEND_IMAGE="sovereignbrick/shi-web"
 POSTGRES_IMAGE="sovereign-health-postgres"
 
-# API URLs: Baked into frontend at build time (NEXT_PUBLIC_* vars).
-# These CANNOT be changed after the Docker image is built.
-API_URL_PROD="https://api.sovereignhealth.io"
-API_URL_STAGING="https://api-demo.sovereignhealth.io"
+# API URLs: Sprint 043 #526 -- path-mount is canonical (same-origin).
+# Frontend builds with NEXT_PUBLIC_API_URL=/api (relative).
+API_URL_PROD="/api"
+API_URL_STAGING="/api"
 
 # Verification URLs: Checked after deploy to confirm everything works.
-VERIFY_API_PROD="https://api.sovereignhealth.io/health"
-VERIFY_APP_PROD="https://app.sovereignhealth.io/"
+# Sprint 043 #526: canonical URLs are now on brickos.io.
+VERIFY_API_PROD="https://app.brickos.io/api/v1/health"
+VERIFY_APP_PROD="https://app.brickos.io/"
 VERIFY_WEB_PROD="https://sovereignhealth.io/"
-VERIFY_API_STAGING="https://api-demo.sovereignhealth.io/health"
-VERIFY_APP_STAGING="https://demo.sovereignhealth.io/"
+VERIFY_API_STAGING="https://demo.brickos.io/api/v1/health"
+VERIFY_APP_STAGING="https://demo.brickos.io/"
 VERIFY_WEB_STAGING="https://www-demo.sovereignhealth.io/"
 
 # Basic auth credentials for staging verification.
@@ -220,13 +221,13 @@ report_print() {
     # Show URLs for the deployed environment.
     if [ "$env" = "staging" ]; then
         echo "  Staging URLs:"
-        echo "    App:     https://demo.sovereignhealth.io/"
-        echo "    API:     https://api-demo.sovereignhealth.io/health"
+        echo "    App:     https://demo.brickos.io/"
+        echo "    API:     https://demo.brickos.io/api/v1/health"
         echo "    Website: https://www-demo.sovereignhealth.io/"
     elif [ "$env" = "production" ]; then
         echo "  Production URLs:"
-        echo "    App:     https://app.sovereignhealth.io/"
-        echo "    API:     https://api.sovereignhealth.io/health"
+        echo "    App:     https://app.brickos.io/"
+        echo "    API:     https://app.brickos.io/api/v1/health"
         echo "    Website: https://sovereignhealth.io/"
     fi
 
@@ -802,8 +803,8 @@ deploy_website() {
 
     # Bake staging API URL into the website build
     if [ "$env" = "staging" ]; then
-        NEXT_PUBLIC_API_URL="https://api-demo.sovereignhealth.io" \
-        NEXT_PUBLIC_APP_URL="https://demo.sovereignhealth.io" \
+        NEXT_PUBLIC_API_URL="/api" \
+        NEXT_PUBLIC_APP_URL="https://demo.brickos.io" \
         pnpm build
     else
         pnpm build
@@ -1182,7 +1183,7 @@ done
 case "$ENV" in
 
     # ── Staging deploy ────────────────────────────────────────────────────
-    # Deploys the 'develop' branch to demo.sovereignhealth.io.
+    # Deploys the 'develop' branch to demo.brickos.io.
     # No confirmation needed -- staging is safe to deploy anytime.
     staging)
         preflight
@@ -1203,7 +1204,7 @@ case "$ENV" in
         ;;
 
     # ── Production deploy ─────────────────────────────────────────────────
-    # Deploys the 'main' branch to app.sovereignhealth.io.
+    # Deploys the 'main' branch to app.brickos.io.
     # Requires --confirm flag to prevent accidental production deploys.
     production)
         if [ "$CONFIRM" != "--confirm" ]; then
@@ -1213,7 +1214,7 @@ case "$ENV" in
             echo "  Usage: bash ops/deploy.sh production --confirm"
             echo "  Usage: bash ops/deploy.sh production backend --confirm"
             echo ""
-            echo "  This deploys to LIVE PRODUCTION (app.sovereignhealth.io)."
+            echo "  This deploys to LIVE PRODUCTION (app.brickos.io)."
             echo "  Make sure you have tested on staging first."
             echo ""
             exit 1
@@ -1282,7 +1283,7 @@ case "$ENV" in
         echo "Usage: bash ops/deploy.sh <environment> [component] [--confirm]"
         echo ""
         echo "Environments:"
-        echo "  staging              Deploy develop branch to demo.sovereignhealth.io"
+        echo "  staging              Deploy develop branch to demo.brickos.io"
         echo "  production           Deploy main branch to app.sovereignhealth.io (needs --confirm)"
         echo ""
         echo "Components (optional, defaults to 'all'):"

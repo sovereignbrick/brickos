@@ -116,12 +116,21 @@ pub async fn chat(
     // 4. Build health context
     let health_context = build_health_context(pool.get_ref(), auth.user_id, enc.get_ref()).await?;
 
-    // 5. Call Claude
+    // 5. Resolve AI model from app_settings (operator-configurable)
+    let model = crate::handlers::admin_settings::get_setting_string(
+        pool.get_ref(),
+        "dr_alex_app_model",
+        "claude-sonnet-4-5-20250514",
+    )
+    .await;
+
+    // 6. Call Claude
     let claude_resp = match call_claude(
         &config.anthropic_api_key,
         &health_context,
         &question,
         history,
+        &model,
     )
     .await
     {

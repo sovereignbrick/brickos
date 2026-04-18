@@ -28,9 +28,9 @@ services:
       REDIS_URL: redis://redis:6379
       JWT_SECRET: ${JWT_SECRET_STAGING}
       RUST_LOG: info
-      FRONTEND_URL: https://demo.sovereignhealth.io
+      FRONTEND_URL: https://demo.brickos.io
       WEBSITE_URL: https://www-demo.sovereignhealth.io
-      CORS_ORIGINS: https://demo.sovereignhealth.io,https://www-demo.sovereignhealth.io
+      CORS_ORIGINS: https://demo.brickos.io,https://demo.sovereignhealth.io,https://www-demo.sovereignhealth.io
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
       ENCRYPTION_KEY: ${ENCRYPTION_KEY_STAGING}
       MAILGUN_API_KEY: ${MAILGUN_API_KEY:-}
@@ -70,15 +70,15 @@ services:
     restart: unless-stopped
 
   # ── Frontend App ──────────────────────────────────────────────────────────
-  # Built with NEXT_PUBLIC_API_URL=https://api-demo.sovereignhealth.io
-  # and NEXT_PUBLIC_ENVIRONMENT=staging (shows STAGING ribbon in UI).
+  # Sprint 043 #526: API via same-origin path mount on demo.brickos.io/api/
+  # NEXT_PUBLIC_ENVIRONMENT=staging shows STAGING ribbon in UI.
   frontend:
     image: sovereignbrick/shi-web:staging  # was: sovereign-health-frontend (ADR-042)
     container_name: sh-staging-frontend
     ports:
       - "127.0.0.1:3001:3000"
     environment:
-      NEXT_PUBLIC_API_URL: https://api-demo.sovereignhealth.io
+      NEXT_PUBLIC_API_URL: /api
       NEXT_PUBLIC_APP_NAME: Sovereign Health Intelligence
       NEXT_PUBLIC_ENVIRONMENT: staging
     restart: unless-stopped

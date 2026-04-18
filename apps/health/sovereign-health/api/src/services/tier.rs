@@ -253,134 +253,14 @@ pub async fn get_user_tier(pool: &PgPool, user_id: Uuid) -> Result<TierLimits, A
     })
 }
 
-/// Check a boolean feature flag against the user's effective tier.
-///
-/// Sprint 040 #467 part 3: 3-state evaluation controlled by env vars:
-///
-/// 1. **Default**: legacy path -- read license_tiers boolean columns via
-///    get_user_tier() and match against the feature_name. This is the
-///    behavior that's been in place since sprint 011 and is unchanged.
-///
-/// 2. **`LICENSING_SHADOW_MODE=1`**: legacy path runs AND brickos.tier_features
-///    path runs, results compared, divergence logged via tracing::error
-///    with structured fields. The LEGACY result is returned (no behavior
-///    change). Used to validate parity on staging before flipping the
-///    canonical path. Per design 022 §13.5 M2.
-///
-/// 3. **`LICENSING_USE_NEW_PATH=1`**: brickos.tier_features path is canonical.
-///    The legacy path is bypassed. After zero divergences in shadow mode
-///    over a full smoke cycle, set this to flip. The legacy match-arm code
-///    can then be deleted in a follow-up cleanup.
-///
-/// Both new-path env vars are off by default, so the existing behavior
-/// is preserved for SHI's current callers without any change.
-pub async fn check_feature(
-    pool: &PgPool,
-    user_id: Uuid,
-    feature_name: &str,
-) -> Result<(), AppError> {
-    let shadow_mode = std::env::var("LICENSING_SHADOW_MODE")
-        .map(|v| v == "1" || v.eq_ignore_ascii_case("true"))
-        .unwrap_or(false);
-    let use_new_path = std::env::var("LICENSING_USE_NEW_PATH")
-        .map(|v| v == "1" || v.eq_ignore_ascii_case("true"))
-        .unwrap_or(false);
-
-    // ── Legacy path: read license_tiers boolean columns ────────────────
-    let tier = get_user_tier(pool, user_id).await?;
-    let legacy_allowed = match feature_name {
-        "csv_export" => tier.csv_export,
-        "json_export" => tier.json_export,
-        "custom_thresholds" => tier.custom_thresholds,
-        "lifestyle_presets" => tier.lifestyle_presets,
-        "protocol_comparison" => tier.protocol_comparison,
-        "body_composition" => tier.body_composition,
-        "supplement_marker_impact" => tier.supplement_marker_impact,
-        "ai_dashboard_insights" => tier.ai_dashboard_insights,
-        "cohort_comparison" => tier.cohort_comparison,
-        "mfa_totp" => tier.mfa_totp,
-        "api_access" => tier.api_access,
-        _ => true,
-    };
-
-    // ── New path: query brickos.tier_features ──────────────────────────
-    // Only run when shadow mode or canonical flip is enabled, to keep
-    // the default request path identical to pre-#467 behavior.
-    let new_allowed = if shadow_mode || use_new_path {
-        Some(check_feature_via_brickos_tier_features(pool, &tier.tier_slug, feature_name).await?)
-    } else {
-        None
-    };
-
-    // ── Shadow comparison + divergence logging ─────────────────────────
-    if shadow_mode {
-        if let Some(new) = new_allowed {
-            if new != legacy_allowed {
-                tracing::error!(
-                    user_id = %user_id,
-                    feature = %feature_name,
-                    tier = %tier.tier_slug,
-                    legacy = legacy_allowed,
-                    new = new,
-                    "LICENSING DIVERGENCE: legacy and brickos.tier_features disagree"
-                );
-            }
-        }
-    }
-
-    // ── Choose canonical result ────────────────────────────────────────
-    let allowed = if use_new_path {
-        new_allowed.unwrap_or(legacy_allowed)
-    } else {
-        legacy_allowed
-    };
-
-    if allowed {
-        Ok(())
-    } else {
-        let required = required_tier_for_feature(feature_name);
-        let msg = upgrade_message(feature_name, &required);
-        Err(AppError::UpgradeRequired(Box::new(
-            TierError::upgrade_required(feature_name, &tier.tier_slug, &required, &msg),
-        )))
-    }
-}
-
-/// Read a single (tier_slug, feature_slug) row from brickos.tier_features.
-///
-/// Sprint 040 #467 part 3 -- the new canonical source for boolean feature
-/// gates. Maps the legacy short feature name (csv_export) to its namespaced
-/// slug (shi.csv_export) via the licensing_facade module, then queries the
-/// tier_features row.
-///
-/// Unknown legacy feature names return Ok(true) -- matching the legacy
-/// match-arm fallthrough behavior so the migration is bug-for-bug compatible.
-async fn check_feature_via_brickos_tier_features(
-    pool: &PgPool,
-    tier_slug: &str,
-    legacy_feature: &str,
-) -> Result<bool, AppError> {
-    let Some(namespaced) = crate::services::licensing_facade::legacy_to_namespaced(legacy_feature)
-    else {
-        // Unknown legacy feature -- legacy path returns true, mirror it
-        return Ok(true);
-    };
-
-    // Note: unqualified `tier_features` resolves to `brickos.tier_features`
-    // via the platform pool's search_path (set when migration 001 moved
-    // brickos tables out of public).
-    let row: Option<(bool,)> = sqlx::query_as(
-        "SELECT included FROM brickos.tier_features
-         WHERE tier_slug = $1 AND feature_slug = $2",
-    )
-    .bind(tier_slug)
-    .bind(namespaced)
-    .fetch_optional(pool)
-    .await?;
-
-    // No row = feature not in canonical seed for this tier = denied
-    Ok(row.map(|r| r.0).unwrap_or(false))
-}
+// NOTE: The old `check_feature` (Sprint 040 #467 shadow refactor) and
+// `check_feature_via_brickos_tier_features` were removed in Sprint 043
+// Phase A. They had zero callers -- the live feature gating path is
+// `check_tier_feature` (below at line ~1168) which queries
+// public.product_features + public.tier_features via `load_tier_features`.
+//
+// See #539 for the planned migration of `load_tier_features` to query
+// brickos.tier_features instead.
 
 /// Check and return per-agent chat quota
 pub async fn check_chat_quota(
@@ -895,23 +775,6 @@ fn next_month_reset() -> String {
         (now.year(), now.month() + 1)
     };
     format!("{}-{:02}-01T00:00:00Z", y, m)
-}
-
-fn required_tier_for_feature(feature: &str) -> String {
-    match feature {
-        "csv_export"
-        | "json_export"
-        | "custom_thresholds"
-        | "lifestyle_presets"
-        | "protocol_comparison"
-        | "body_composition"
-        | "supplement_marker_impact"
-        | "mfa_totp" => "focus".to_string(),
-        "ai_dashboard_insights" => "insight".to_string(),
-        "cohort_comparison" => "clarity".to_string(),
-        "api_access" | "self_hosted_hybrid" => "horizon".to_string(),
-        _ => "focus".to_string(),
-    }
 }
 
 fn required_tier_for_agent(agent_type: &str) -> String {

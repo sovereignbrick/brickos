@@ -1,6 +1,6 @@
 import { APIRequestContext } from '@playwright/test'
 
-const API = process.env.E2E_API_URL || 'https://api.sovereignhealth.io'
+const API = process.env.E2E_API_URL || 'https://app.brickos.io/api'
 
 export interface TestUser {
   email: string
@@ -76,8 +76,8 @@ export async function loginAndNavigate(
   )
 }
 
-/** Staging demo admin credentials */
+/** Dev admin credentials -- seeded with role=admin on every cold boot */
 export const DEMO_ADMIN = {
-  email: 'demo@sovereignhealth.io',
-  password: 'SovereignDemo1',
+  email: 'dev@sovereignhealth.io',
+  password: 'SovereignDev1',
 }

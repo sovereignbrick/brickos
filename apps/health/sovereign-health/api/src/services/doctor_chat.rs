@@ -822,6 +822,7 @@ pub async fn call_claude(
     health_context: &str,
     question: &str,
     history: Vec<AnthropicMessage>,
+    model: &str,
 ) -> Result<ClaudeResponse, AppError> {
     if api_key.is_empty() {
         return Err(AppError::MissingApiKey);
@@ -842,7 +843,7 @@ pub async fn call_claude(
     });
 
     let req_body = AnthropicRequest {
-        model: "claude-opus-4-6".to_string(),
+        model: model.to_string(),
         max_tokens: 1200,
         system: SYSTEM_PROMPT.to_string(),
         messages,
@@ -931,7 +932,7 @@ pub async fn call_claude(
         total_tokens,
         input_tokens,
         output_tokens,
-        model: "claude-opus-4-6".to_string(),
+        model: model.to_string(),
     })
 }
 
@@ -1121,6 +1122,7 @@ pub async fn call_claude_vision(
     import_type: &str,
     category: Option<&str>,
     language: Option<&str>,
+    model: &str,
 ) -> Result<ClaudeResponse, AppError> {
     if api_key.is_empty() {
         return Err(AppError::MissingApiKey);
@@ -1164,11 +1166,11 @@ pub async fn call_claude_vision(
         }
     ]);
 
-    // Use tool_use for structured extraction (images only, not PDFs — PDFs with tool_choice can timeout)
+    // Use tool_use for structured extraction (images only, not PDFs -- PDFs with tool_choice can timeout)
     let use_tool = import_type != "med_import" && media_type != "application/pdf";
 
     let mut req_body = serde_json::json!({
-        "model": "claude-sonnet-4-20250514",
+        "model": model,
         "max_tokens": 16384,
         "system": system_prompt,
         "messages": [{
@@ -1278,7 +1280,7 @@ pub async fn call_claude_vision(
         total_tokens,
         input_tokens,
         output_tokens,
-        model: "claude-sonnet-4-20250514".to_string(),
+        model: model.to_string(),
     })
 }
 
@@ -1288,6 +1290,7 @@ pub async fn call_claude_vision_multi(
     import_type: &str,
     category: Option<&str>,
     language: Option<&str>,
+    model: &str,
 ) -> Result<ClaudeResponse, AppError> {
     if api_key.is_empty() {
         return Err(AppError::MissingApiKey);
@@ -1335,7 +1338,7 @@ pub async fn call_claude_vision_multi(
     let use_tool = import_type != "med_import";
 
     let mut req_body = serde_json::json!({
-        "model": "claude-sonnet-4-20250514",
+        "model": model,
         "max_tokens": 16384,
         "system": system_prompt,
         "messages": [{
@@ -1441,7 +1444,7 @@ pub async fn call_claude_vision_multi(
         total_tokens,
         input_tokens,
         output_tokens,
-        model: "claude-sonnet-4-20250514".to_string(),
+        model: model.to_string(),
     })
 }
 
@@ -1453,13 +1456,14 @@ pub async fn call_claude_csv_extraction(
     api_key: &str,
     system_prompt: &str,
     user_text: &str,
+    model: &str,
 ) -> Result<ClaudeResponse, AppError> {
     if api_key.is_empty() {
         return Err(AppError::MissingApiKey);
     }
 
     let req_body = serde_json::json!({
-        "model": "claude-sonnet-4-20250514",
+        "model": model,
         "max_tokens": 8192,
         "system": system_prompt,
         "messages": [{
@@ -1554,7 +1558,7 @@ pub async fn call_claude_csv_extraction(
         total_tokens,
         input_tokens,
         output_tokens,
-        model: "claude-sonnet-4-20250514".to_string(),
+        model: model.to_string(),
     })
 }
 
@@ -1568,6 +1572,7 @@ pub async fn classify_document(
     api_key: &str,
     file_base64: &str,
     media_type: &str,
+    model: &str,
 ) -> (String, String) {
     if api_key.is_empty() {
         return ("general_health".to_string(), "en".to_string());
@@ -1600,7 +1605,7 @@ pub async fn classify_document(
     });
 
     let req_body = serde_json::json!({
-        "model": "claude-sonnet-4-20250514",
+        "model": model,
         "max_tokens": 200,
         "system": "Classify this health document. Look at the layout, letterhead, labels, and content to determine the category and language.",
         "tools": [classify_tool],
@@ -1696,6 +1701,7 @@ pub async fn suggest_marker_matches(
     api_key: &str,
     unmatched: &[(String, f64, String)],  // (name, value, unit)
     available_slugs: &[(String, String)], // (slug, display_name)
+    model: &str,
 ) -> Vec<(String, Option<String>, f64)> {
     if api_key.is_empty() || unmatched.is_empty() {
         return Vec::new();
@@ -1738,7 +1744,7 @@ pub async fn suggest_marker_matches(
     });
 
     let req_body = serde_json::json!({
-        "model": "claude-sonnet-4-20250514",
+        "model": model,
         "max_tokens": 1024,
         "system": format!(
             "You are a health marker matching assistant. For each unmatched marker, suggest the best match from our system markers, or null if it's not a trackable biomarker (e.g., culture tests, pathogen screens).\n\nAvailable markers: {}",

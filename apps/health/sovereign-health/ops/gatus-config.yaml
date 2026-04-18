@@ -14,7 +14,7 @@ endpoints:
   # ── Production ──
   - name: "API (Production)"
     group: "Production"
-    url: "https://api.sovereignhealth.io/health?deep=1"
+    url: "https://app.brickos.io/api/v1/health?deep=1"
     interval: 60s
     conditions:
       - "[STATUS] == 200"
@@ -29,9 +29,16 @@ endpoints:
         send-on-resolved: true
         description: "Production API"
 
+  - name: "API Legacy (Production)"
+    group: "Production"
+    url: "https://api.sovereignhealth.io/health"
+    interval: 300s
+    conditions:
+      - "[STATUS] == 200"
+
   - name: "App (Production)"
     group: "Production"
-    url: "https://app.sovereignhealth.io/"
+    url: "https://app.brickos.io/"
     interval: 60s
     conditions:
       - "[STATUS] == 200"
@@ -41,6 +48,13 @@ endpoints:
         send-on-resolved: true
       - type: telegram
         send-on-resolved: true
+
+  - name: "App Legacy (Production)"
+    group: "Production"
+    url: "https://app.sovereignhealth.io/"
+    interval: 300s
+    conditions:
+      - "[STATUS] == 200"
 
   - name: "Website"
     group: "Production"
@@ -52,7 +66,7 @@ endpoints:
   # ── Staging ──
   - name: "API (Staging)"
     group: "Staging"
-    url: "https://api-demo.sovereignhealth.io/health"
+    url: "https://demo.brickos.io/api/v1/health"
     interval: 300s
     conditions:
       - "[STATUS] < 500"
@@ -63,7 +77,7 @@ endpoints:
 
   - name: "App (Staging)"
     group: "Staging"
-    url: "https://demo.sovereignhealth.io/"
+    url: "https://demo.brickos.io/"
     interval: 300s
     conditions:
       - "[STATUS] < 500"
@@ -77,9 +91,9 @@ endpoints:
       - "[STATUS] == 200"
 
   # ── TLS Certificate Expiry ──
-  - name: "TLS: api.sovereignhealth.io"
+  - name: "TLS: app.brickos.io"
     group: "Infrastructure"
-    url: "https://api.sovereignhealth.io/health"
+    url: "https://app.brickos.io/api/v1/health"
     interval: 21600s
     conditions:
       - "[CERTIFICATE_EXPIRATION] > 7d"

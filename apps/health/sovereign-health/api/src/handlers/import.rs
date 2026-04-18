@@ -49,6 +49,14 @@ pub async fn upload(
     };
     tier::check_ai_credits(pool.get_ref(), auth.user_id, quota_type).await?;
 
+    // Resolve AI model from app_settings (operator-configurable)
+    let import_model = crate::handlers::admin_settings::get_setting_string(
+        pool.get_ref(),
+        "dr_alex_import_model",
+        "claude-sonnet-4-20250514",
+    )
+    .await;
+
     // GDPR audit: log PDF import access
     crate::services::access_log::log_self_access(
         pool.get_ref(),
@@ -188,6 +196,7 @@ pub async fn upload(
                 &config.anthropic_api_key,
                 &file_base64,
                 &files[0].content_type,
+                &import_model,
             )
             .await
         }
@@ -215,6 +224,7 @@ pub async fn upload(
             &import_type,
             Some(&detected_category),
             Some(&detected_language),
+            &import_model,
         )
         .await
     } else {
@@ -231,6 +241,7 @@ pub async fn upload(
             &import_type,
             Some(&detected_category),
             Some(&detected_language),
+            &import_model,
         )
         .await
     };
@@ -506,6 +517,7 @@ pub async fn upload(
                             &config.anthropic_api_key,
                             &unmatched_items,
                             &available,
+                            &import_model,
                         )
                         .await;
 
@@ -1149,6 +1161,14 @@ pub async fn upload_medication(
     // Check tier quota for medication import
     tier::check_ai_credits(pool.get_ref(), auth.user_id, "med_import").await?;
 
+    // Resolve AI model from app_settings
+    let import_model = crate::handlers::admin_settings::get_setting_string(
+        pool.get_ref(),
+        "dr_alex_import_model",
+        "claude-sonnet-4-20250514",
+    )
+    .await;
+
     // GDPR audit: log medication import access
     crate::services::access_log::log_self_access(
         pool.get_ref(),
@@ -1266,6 +1286,7 @@ pub async fn upload_medication(
             "med_import",
             None,
             None,
+            &import_model,
         )
         .await
     } else {
@@ -1282,6 +1303,7 @@ pub async fn upload_medication(
             "med_import",
             None,
             None,
+            &import_model,
         )
         .await
     };
@@ -1642,6 +1664,14 @@ pub async fn upload_measurements(
 ) -> Result<HttpResponse, AppError> {
     tier::check_ai_credits(pool.get_ref(), auth.user_id, "measurement_import").await?;
 
+    // Resolve AI model from app_settings
+    let import_model = crate::handlers::admin_settings::get_setting_string(
+        pool.get_ref(),
+        "dr_alex_import_model",
+        "claude-sonnet-4-20250514",
+    )
+    .await;
+
     // GDPR audit: log measurement import access
     crate::services::access_log::log_self_access(
         pool.get_ref(),
@@ -1860,10 +1890,11 @@ pub async fn upload_measurements(
             &config.anthropic_api_key,
             MEASUREMENT_EXTRACTION_PROMPT,
             &user_message,
+            &import_model,
         )
         .await
     } else {
-        // Image upload — use vision API with measurement-specific prompt
+        // Image upload -- use vision API with measurement-specific prompt
         let system_and_context = format!(
             "{}\n\n{}\n\nReturn ONLY valid JSON with the structure specified.",
             MEASUREMENT_IMAGE_PROMPT, user_context
@@ -1879,6 +1910,7 @@ pub async fn upload_measurements(
                 &file_base64,
                 &ct,
                 &system_and_context,
+                &import_model,
             )
             .await
         } else {
@@ -1893,6 +1925,7 @@ pub async fn upload_measurements(
                 &config.anthropic_api_key,
                 &file_data,
                 &system_and_context,
+                &import_model,
             )
             .await
         }
@@ -3177,9 +3210,10 @@ async fn call_claude_vision_for_measurements(
     file_base64: &str,
     media_type: &str,
     system_prompt: &str,
+    model: &str,
 ) -> Result<crate::services::doctor_chat::ClaudeResponse, AppError> {
     let req_body = serde_json::json!({
-        "model": "claude-sonnet-4-20250514",
+        "model": model,
         "max_tokens": 8192,
         "system": system_prompt,
         "messages": [{
@@ -3284,7 +3318,7 @@ async fn call_claude_vision_for_measurements(
         total_tokens,
         input_tokens,
         output_tokens,
-        model: "claude-sonnet-4-20250514".to_string(),
+        model: model.to_string(),
     })
 }
 
@@ -3292,6 +3326,7 @@ async fn call_claude_vision_multi_for_measurements(
     api_key: &str,
     files: &[(String, String)],
     system_prompt: &str,
+    model: &str,
 ) -> Result<crate::services::doctor_chat::ClaudeResponse, AppError> {
     let mut content_blocks: Vec<serde_json::Value> = Vec::new();
     for (file_base64, media_type) in files {
@@ -3310,7 +3345,7 @@ async fn call_claude_vision_multi_for_measurements(
     }));
 
     let req_body = serde_json::json!({
-        "model": "claude-sonnet-4-20250514",
+        "model": model,
         "max_tokens": 8192,
         "system": system_prompt,
         "messages": [{
@@ -3400,7 +3435,7 @@ async fn call_claude_vision_multi_for_measurements(
         total_tokens,
         input_tokens,
         output_tokens,
-        model: "claude-sonnet-4-20250514".to_string(),
+        model: model.to_string(),
     })
 }
 
