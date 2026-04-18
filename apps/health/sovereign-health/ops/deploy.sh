@@ -27,7 +27,7 @@ trap '_exit_code=$?; if [ $_exit_code -ne 0 ]; then notify "Deploy FAILED (${ENV
 # ══════════════════════════════════════════════════════════════════════════════
 
 # Version: Update this before each release. Used in Docker image tags.
-VERSION="0.41.0"
+VERSION="0.42.0"
 
 # Local project root: BrickOS monorepo.
 PROJECT_ROOT="/home/dev-comp/Projects/brickos"
