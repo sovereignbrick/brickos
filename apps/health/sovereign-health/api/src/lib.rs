@@ -35,7 +35,7 @@ pub mod payments;
 pub mod services;
 pub mod templates;
 
-pub const VERSION: &str = "0.41.0";
+pub const VERSION: &str = "0.42.0";
 pub const SERVICE_NAME: &str = "sovereign-health-backend";
 
 /// Platform database pool (brickos DB -- users, orgs, billing, service accounts).
