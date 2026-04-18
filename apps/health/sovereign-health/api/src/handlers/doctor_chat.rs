@@ -120,7 +120,7 @@ pub async fn chat(
     let model = crate::handlers::admin_settings::get_setting_string(
         pool.get_ref(),
         "dr_alex_app_model",
-        "claude-sonnet-4-5-20250514",
+        "claude-sonnet-4-20250514",
     )
     .await;
 
