@@ -15,9 +15,21 @@
       "slug": "proof-of-blood-intro",
       "hashtags": ["proofofblood", "sovereignty", "health", "bitcoin", "nostr", "opensource"],
       "contentFile": "notes/01_proof_of_blood.txt",
+      "image": {
+        "url": "https://sovereignhealth.io/og/proof-of-blood.png",
+        "alt": "Proof of Blood banner",
+        "dim": "1200x630",
+        "mimeType": "image/png"
+      },
       "companion": {
         "kind": 1,
-        "content": "New long-form note: Proof of Blood. Bitcoin introduced Proof of Work. Health needs the same paradigm. Your biomarkers are your verifiable proof of health. #proofofblood #sovereignty #health"
+        "content": "New long-form note: Proof of Blood. Bitcoin introduced Proof of Work. Health needs the same paradigm. Your biomarkers are your verifiable proof of health. #proofofblood #sovereignty #health",
+        "image": {
+          "url": "https://sovereignhealth.io/og/proof-of-blood.png",
+          "alt": "Proof of Blood banner",
+          "dim": "1200x630",
+          "mimeType": "image/png"
+        }
       }
     },
     {

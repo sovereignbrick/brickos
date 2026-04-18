@@ -9,6 +9,9 @@
 import type { AppConfig } from "./config.js";
 
 const URL_REGEX = /https?:\/\/[^\s<>"')\]]+/g;
+// Skip media URLs -- shortening them hides the file extension from NOSTR clients,
+// which rely on it to decide whether to inline-render as image/video/audio.
+const MEDIA_EXT_REGEX = /\.(jpe?g|png|gif|webp|avif|svg|bmp|ico|mp4|webm|mov|mp3|wav|m4a|ogg|opus|flac)(\?.*)?$/i;
 const TIMEOUT_MS = 5000;
 
 // In-memory cache to avoid duplicate API calls for the same URL
@@ -47,6 +50,9 @@ export async function shortenUrls(
   for (const url of unique) {
     // Skip URLs that are already shortened (brickos.io/r/)
     if (url.includes("brickos.io/r/")) continue;
+
+    // Skip media URLs -- clients need the extension to render inline
+    if (MEDIA_EXT_REGEX.test(url)) continue;
 
     // Check cache first
     if (cache.has(url)) {

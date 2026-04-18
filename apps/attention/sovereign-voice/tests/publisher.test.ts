@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { buildLongFormTags } from "../src/publisher.js";
+import { buildLongFormTags, buildImetaTag } from "../src/publisher.js";
 
 describe("buildLongFormTags", () => {
   it("returns correct d-tag, title, summary, hashtags, and published_at", () => {
@@ -94,5 +94,29 @@ describe("buildLongFormTags", () => {
     assert.equal(options.kind, 1);
     assert.equal(options.content, content);
     assert.deepEqual(options.tags, [["t", "nostr"]]);
+  });
+});
+
+describe("buildImetaTag (NIP-92 -- fixes image-not-rendering bug)", () => {
+  it("emits url + known metadata fields in the NIP-92 space-separated format", () => {
+    const tag = buildImetaTag({
+      url: "https://cdn.example.com/chart.png",
+      mimeType: "image/png",
+      dim: "1200x630",
+      alt: "BTC price chart",
+      sha256: "deadbeef",
+    });
+
+    assert.equal(tag[0], "imeta");
+    assert.ok(tag.includes("url https://cdn.example.com/chart.png"));
+    assert.ok(tag.includes("m image/png"));
+    assert.ok(tag.includes("dim 1200x630"));
+    assert.ok(tag.includes("alt BTC price chart"));
+    assert.ok(tag.includes("x deadbeef"));
+  });
+
+  it("omits optional fields when not provided", () => {
+    const tag = buildImetaTag({ url: "https://example.com/a.jpg" });
+    assert.deepEqual(tag, ["imeta", "url https://example.com/a.jpg"]);
   });
 });

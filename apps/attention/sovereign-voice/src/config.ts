@@ -6,9 +6,18 @@ import { resolve } from "node:path";
 // Types
 // ---------------------------------------------------------------------------
 
+export interface NoteImage {
+  url: string;          // direct URL to hosted image (must end in known extension for clients to inline-render)
+  alt?: string;         // alt text for accessibility (NIP-92)
+  dim?: string;         // "WIDTHxHEIGHT", e.g. "1200x630" (NIP-92)
+  mimeType?: string;    // "image/jpeg", "image/png", etc.
+  sha256?: string;      // hex-encoded SHA-256 of the image bytes (NIP-92 "x" tag)
+}
+
 export interface CompanionNote {
   kind: 1;
   content: string;
+  image?: NoteImage;
 }
 
 export interface ScheduledNote {
@@ -21,6 +30,7 @@ export interface ScheduledNote {
   slug?: string;
   summary?: string;
   hashtags?: string[];
+  image?: NoteImage;
   companion?: CompanionNote;
 }
 

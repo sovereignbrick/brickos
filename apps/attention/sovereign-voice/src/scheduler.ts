@@ -94,6 +94,7 @@ async function publishNote(
     content,
     kind: note.kind,
     tags,
+    image: note.image,
   });
 
   markPublished(state, note.id, result.eventId);
@@ -113,6 +114,7 @@ async function publishNote(
         content: note.companion.content,
         kind: 1,
         tags: companionTags,
+        image: note.companion.image,
       });
 
       markPublished(state, companionId, companionResult.eventId);
