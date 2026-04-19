@@ -18,6 +18,38 @@ use crate::{
     services::tier,
 };
 
+/// Sprint 044 #554: resolve AI model with org override.
+/// Checks org branding JSONB for `ai_model_override` first,
+/// falls back to system default from app_settings.
+async fn resolve_ai_model(
+    pool: &PgPool,
+    org_id: Option<Uuid>,
+    setting_key: &str,
+    default: &str,
+) -> String {
+    // Check org override first
+    if let Some(oid) = org_id {
+        let override_model: Option<String> = sqlx::query_scalar(
+            r#"SELECT branding->>'ai_model_override'
+               FROM organizations
+               WHERE id = $1 AND branding->>'ai_model_override' IS NOT NULL
+                 AND branding->>'ai_model_override' != ''"#,
+        )
+        .bind(oid)
+        .fetch_optional(pool)
+        .await
+        .ok()
+        .flatten();
+
+        if let Some(model) = override_model {
+            return model;
+        }
+    }
+
+    // Fall back to system default
+    crate::handlers::admin_settings::get_setting_string(pool, setting_key, default).await
+}
+
 // ── POST /doctor-chat ─────────────────────────────────────────────────────────
 
 pub async fn chat(
@@ -116,9 +148,10 @@ pub async fn chat(
     // 4. Build health context
     let health_context = build_health_context(pool.get_ref(), auth.user_id, enc.get_ref()).await?;
 
-    // 5. Resolve AI model from app_settings (operator-configurable)
-    let model = crate::handlers::admin_settings::get_setting_string(
+    // 5. Resolve AI model (org override -> system default)
+    let model = resolve_ai_model(
         pool.get_ref(),
+        auth.org_id,
         "dr_alex_app_model",
         "claude-sonnet-4-20250514",
     )

@@ -42,6 +42,7 @@ pub mod newsletter;
 pub mod org_branding;
 pub mod payment_gateways;
 pub mod payments;
+pub mod practitioner;
 pub mod promotions;
 pub mod public_chat;
 pub mod push;

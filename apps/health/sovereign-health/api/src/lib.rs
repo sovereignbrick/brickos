@@ -492,6 +492,18 @@ pub fn configure_routes(cfg: &mut actix_web::web::ServiceConfig) {
                 actix_web::web::put().to(handlers::license::downgrade),
             ),
     )
+    // Sprint 044 #553: practitioner dashboard (org members + read-only health data)
+    .service(
+        actix_web::web::scope("/practitioner")
+            .route(
+                "/members",
+                actix_web::web::get().to(handlers::practitioner::list_members),
+            )
+            .route(
+                "/members/{user_id}/summary",
+                actix_web::web::get().to(handlers::practitioner::member_summary),
+            ),
+    )
     .service(
         actix_web::web::scope("/doctor-chat")
             .route("", actix_web::web::post().to(handlers::doctor_chat::chat))
