@@ -50,17 +50,26 @@ where
     forward_ready!(service);
 
     fn call(&self, req: ServiceRequest) -> Self::Future {
-        // Try to extract user ID from JWT (if present)
+        // Try to extract user ID and org ID from JWT (if present)
         let user_id = extract_user_id_from_request(&req);
+        let org_id = extract_org_id_from_request(&req);
         let pool = req.app_data::<web::Data<PgPool>>().cloned();
 
         let fut = self.service.call(req);
 
         Box::pin(async move {
             // Set RLS context if we have both a user ID and a pool
-            if let (Some(uid), Some(pool)) = (user_id, pool) {
+            if let (Some(uid), Some(ref pool)) = (user_id, &pool) {
                 let _ = sqlx::query("SELECT set_config('app.current_user_id', $1, false)")
                     .bind(uid.to_string())
+                    .execute(pool.get_ref())
+                    .await;
+            }
+
+            // Sprint 044 #552: set org_id for org-scoped RLS policies
+            if let (Some(oid), Some(ref pool)) = (org_id, &pool) {
+                let _ = sqlx::query("SELECT set_config('app.current_org_id', $1, false)")
+                    .bind(oid.to_string())
                     .execute(pool.get_ref())
                     .await;
             }
@@ -70,21 +79,32 @@ where
     }
 }
 
-/// Extract user ID from Authorization header without failing the request.
-/// Returns None if no valid JWT is present (public endpoints).
-fn extract_user_id_from_request(req: &ServiceRequest) -> Option<uuid::Uuid> {
+/// Extract claims from JWT without failing the request.
+fn extract_claims_from_request(
+    req: &ServiceRequest,
+) -> Option<brickos_auth::jwt::Claims> {
     let config = req.app_data::<web::Data<Config>>()?;
-
     let auth_header = req.headers().get("Authorization")?.to_str().ok()?;
-
     let token = auth_header.strip_prefix("Bearer ")?;
-
-    let claims = verify_jwt_with_fallback(
+    verify_jwt_with_fallback(
         token,
         &config.jwt_secret,
         config.jwt_secret_previous.as_deref(),
     )
-    .ok()?;
+    .ok()
+}
 
+/// Extract user ID from JWT claims.
+fn extract_user_id_from_request(req: &ServiceRequest) -> Option<uuid::Uuid> {
+    let claims = extract_claims_from_request(req)?;
     uuid::Uuid::parse_str(&claims.sub).ok()
+}
+
+/// Sprint 044 #552: Extract org_id from JWT claims for RLS.
+fn extract_org_id_from_request(req: &ServiceRequest) -> Option<uuid::Uuid> {
+    let claims = extract_claims_from_request(req)?;
+    claims
+        .org_id
+        .as_deref()
+        .and_then(|s| uuid::Uuid::parse_str(s).ok())
 }

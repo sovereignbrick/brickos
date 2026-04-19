@@ -1,6 +1,7 @@
 // Sovereign Health Intelligence -- AGPL-3.0 -- https://sovereignhealth.io/
 
 use std::collections::HashMap;
+use serde_json::Value;
 
 // ---------------------------------------------------------------------------
 // Simple {{var}} template engine
@@ -57,7 +58,7 @@ const HTML_WRAPPER_START: &str = r#"<!DOCTYPE html>
 
 <!-- Logo -->
 <div style="text-align: center; padding: 24px 0 16px;">
-  <img src="https://sovereignhealth.io/logo.png" alt="Sovereign Health" width="180" style="max-width: 180px; height: auto;" />
+  <img src="{{org_logo_url}}" alt="{{org_name}}" width="180" style="max-width: 180px; height: auto;" />
 </div>
 
 <!-- Card -->
@@ -69,9 +70,9 @@ const HTML_WRAPPER_END: &str = r#"
 
 <!-- Footer -->
 <div class="email-footer" style="text-align: center; padding: 24px 0; font-size: 13px; color: #666666; line-height: 1.5;">
-  <p style="margin: 0;">Sovereign Health Intelligence</p>
-  <p style="margin: 4px 0 0;"><a href="https://sovereignhealth.io" style="color: #666666; text-decoration: none;">sovereignhealth.io</a></p>
-  <p style="margin: 12px 0 0; font-size: 11px; color: #999999;">&copy; 2026 Sovereign Health Intelligence. All rights reserved.</p>
+  <p style="margin: 0;">{{org_name}}</p>
+  <p style="margin: 4px 0 0;"><a href="{{org_website}}" style="color: #666666; text-decoration: none;">{{org_website_label}}</a></p>
+  <p style="margin: 12px 0 0; font-size: 11px; color: #999999;">&copy; 2026 {{org_name}}. All rights reserved.</p>
   <p style="margin: 4px 0 0; font-size: 11px;">
     <a href="https://sovereignhealth.io/terms" style="color: #999999; text-decoration: none;">Terms</a> &nbsp;|&nbsp;
     <a href="https://sovereignhealth.io/privacy" style="color: #999999; text-decoration: none;">Privacy</a> &nbsp;|&nbsp;
@@ -122,7 +123,7 @@ const HTML_WRAPPER_START_DE: &str = r#"<!DOCTYPE html>
 
 <!-- Logo -->
 <div style="text-align: center; padding: 24px 0 16px;">
-  <img src="https://sovereignhealth.io/logo.png" alt="Sovereign Health" width="180" style="max-width: 180px; height: auto;" />
+  <img src="{{org_logo_url}}" alt="{{org_name}}" width="180" style="max-width: 180px; height: auto;" />
 </div>
 
 <!-- Card -->
@@ -134,9 +135,9 @@ const HTML_WRAPPER_END_DE: &str = r#"
 
 <!-- Footer -->
 <div class="email-footer" style="text-align: center; padding: 24px 0; font-size: 13px; color: #666666; line-height: 1.5;">
-  <p style="margin: 0;">Sovereign Health Intelligence</p>
-  <p style="margin: 4px 0 0;"><a href="https://sovereignhealth.io" style="color: #666666; text-decoration: none;">sovereignhealth.io</a></p>
-  <p style="margin: 12px 0 0; font-size: 11px; color: #999999;">&copy; 2026 Sovereign Health Intelligence. Alle Rechte vorbehalten.</p>
+  <p style="margin: 0;">{{org_name}}</p>
+  <p style="margin: 4px 0 0;"><a href="{{org_website}}" style="color: #666666; text-decoration: none;">{{org_website_label}}</a></p>
+  <p style="margin: 12px 0 0; font-size: 11px; color: #999999;">&copy; 2026 {{org_name}}. Alle Rechte vorbehalten.</p>
   <p style="margin: 4px 0 0; font-size: 11px;">
     <a href="https://sovereignhealth.io/terms" style="color: #999999; text-decoration: none;">Nutzungsbedingungen</a> &nbsp;|&nbsp;
     <a href="https://sovereignhealth.io/privacy" style="color: #999999; text-decoration: none;">Datenschutz</a> &nbsp;|&nbsp;
@@ -154,6 +155,46 @@ const HTML_WRAPPER_END_DE: &str = r#"
 
 fn wrap_html_de(body: &str) -> String {
     format!("{}{}{}", HTML_WRAPPER_START_DE, body, HTML_WRAPPER_END_DE)
+}
+
+// ---------------------------------------------------------------------------
+// Sprint 044 #551: org email branding variables
+// ---------------------------------------------------------------------------
+
+/// Default SHI branding for emails (no org context).
+pub fn default_email_vars() -> HashMap<&'static str, String> {
+    let mut vars = HashMap::new();
+    vars.insert("org_logo_url", "https://sovereignhealth.io/logo.png".to_string());
+    vars.insert("org_name", "Sovereign Health Intelligence".to_string());
+    vars.insert("org_website", "https://sovereignhealth.io".to_string());
+    vars.insert("org_website_label", "sovereignhealth.io".to_string());
+    vars
+}
+
+/// Build email template vars from org branding JSONB.
+/// Falls back to SHI defaults for missing fields.
+pub fn org_email_vars(branding: Option<&Value>, org_name: Option<&str>, org_slug: Option<&str>) -> HashMap<&'static str, String> {
+    let mut vars = default_email_vars();
+
+    if let Some(name) = org_name {
+        vars.insert("org_name", name.to_string());
+    }
+
+    if let Some(slug) = org_slug {
+        let website = format!("https://{}.brickos.io", slug);
+        vars.insert("org_website", website.clone());
+        vars.insert("org_website_label", format!("{}.brickos.io", slug));
+    }
+
+    if let Some(branding) = branding {
+        if let Some(logo) = branding.get("logo_url").and_then(|v| v.as_str()) {
+            if !logo.is_empty() {
+                vars.insert("org_logo_url", logo.to_string());
+            }
+        }
+    }
+
+    vars
 }
 
 // ---------------------------------------------------------------------------
@@ -984,7 +1025,15 @@ pub fn render_template_localized(
     vars: &HashMap<&str, String>,
     lang: &str,
 ) -> (String, String, String) {
-    let mut vars = vars.clone();
+    // Sprint 044 #551: merge default org email vars (SHI branding) as fallback.
+    // Callers can override with org-specific vars via org_email_vars().
+    let mut vars = {
+        let mut base = default_email_vars();
+        for (k, v) in vars {
+            base.insert(k, v.clone());
+        }
+        base
+    };
     let unsub_url = vars.get("unsubscribe_url").cloned().unwrap_or_default();
     let unsub_label = if lang == "de" {
         "Abmelden"
