@@ -129,10 +129,20 @@ export function useOrg(): OrgState {
 
 // ── Utility ──────────────────────────────────────────────────────────────────
 
-/** Get the org logo URL (prefers base64, falls back to URL). */
+/** Get the org logo URL (prefers base64, falls back to URL).
+ *
+ * #557: logo_base64 is uploaded via FileReader.readAsDataURL() which
+ * already produces a full `data:image/png;base64,...` URI, and the
+ * backend stores and returns it as-is. Earlier callers here also
+ * accepted raw base64, so we normalize both shapes: if the value
+ * already starts with `data:` use it directly, otherwise treat it as
+ * raw base64 and wrap it.
+ */
 export function getOrgLogo(branding: OrgBranding): string | null {
   if (branding.logo_base64) {
-    return `data:image/png;base64,${branding.logo_base64}`
+    return branding.logo_base64.startsWith('data:')
+      ? branding.logo_base64
+      : `data:image/png;base64,${branding.logo_base64}`
   }
   return branding.logo_url || null
 }
