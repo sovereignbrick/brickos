@@ -16,6 +16,7 @@ use crate::{
     error::AppError,
     middleware::auth::AuthenticatedUser,
     models::user::{LoginRequest, RefreshRequest, SignupRequest, User, UserResponse},
+    middleware::org_resolver::OrgCache,
     services::auth::{
         create_jwt, generate_refresh_token, generate_verification_token, hash_password,
         hash_refresh_token, validate_email, validate_password, verify_password,
@@ -984,6 +985,7 @@ pub async fn login(
     platform_pool: web::Data<PlatformPool>,
     config: web::Data<Config>,
     rate_limiters: web::Data<AuthRateLimiters>,
+    org_cache: web::Data<OrgCache>,
     body: web::Json<LoginRequest>,
 ) -> Result<HttpResponse, AppError> {
     // Rate limit by IP
@@ -1061,11 +1063,48 @@ pub async fn login(
         })));
     }
 
+    // Sprint 044 #546: resolve org context from request domain
+    let org_ctx = crate::middleware::org_resolver::resolve_org_for_request(
+        &req,
+        pool.get_ref(),
+        org_cache.get_ref(),
+    )
+    .await;
+
+    // If org context, verify membership
+    let (org_id_claim, org_role_claim) = if let Some(ref org) = org_ctx {
+        let member_role: Option<String> = sqlx::query_scalar(
+            "SELECT role FROM org_members WHERE org_id = $1 AND user_id = $2",
+        )
+        .bind(org.org_id)
+        .bind(user.id)
+        .fetch_optional(pool.get_ref())
+        .await?;
+
+        match member_role {
+            Some(role) => (Some(org.org_id.to_string()), Some(role)),
+            None if user.role == "admin" => {
+                // Platform admins can access any org
+                (Some(org.org_id.to_string()), Some("org_owner".to_string()))
+            }
+            None => {
+                return Ok(HttpResponse::Forbidden().json(json!({
+                    "data": null,
+                    "error": { "code": "NOT_ORG_MEMBER", "message": "You are not a member of this organization." }
+                })));
+            }
+        }
+    } else {
+        (None, None)
+    };
+
     // Generate tokens
-    let token = create_jwt(
+    let token = brickos_auth::jwt::create_jwt_with_org(
         &user.id.to_string(),
         &user.role,
         &user.tier,
+        org_id_claim.as_deref(),
+        org_role_claim.as_deref(),
         &config.jwt_secret,
         config.jwt_expiry_secs,
     )?;

@@ -666,8 +666,23 @@ sync_compose_files() {
         "${ops_dir}/docker-compose.staging.yml" \
         "${VPS}:${VPS_BASE}/"
 
-    log "Compose files synced to VPS"
-    report_add "OK" "Compose files synced to VPS"
+    # Sprint 044 #544: sync nginx configs for white-label wildcard support
+    local nginx_brickos="${PROJECT_ROOT}/apps/platform/brickos-website/ops/nginx-brickos-app.conf"
+    local nginx_shi="${APP_ROOT}/ops/nginx-sovereignhealth.conf"
+    if [ -f "$nginx_brickos" ]; then
+        scp -o ServerAliveInterval=10 "$nginx_brickos" "${VPS}:/etc/nginx/sites-available/brickos-app.conf"
+        log "Nginx brickos config synced"
+    fi
+    if [ -f "$nginx_shi" ]; then
+        scp -o ServerAliveInterval=10 "$nginx_shi" "${VPS}:/etc/nginx/sites-available/sovereignhealth.conf"
+        log "Nginx sovereignhealth config synced"
+    fi
+
+    # Reload nginx if configs changed (test first)
+    ssh $VPS "nginx -t 2>&1 && nginx -s reload" 2>/dev/null || warn "nginx reload failed -- check config"
+
+    log "Compose + nginx files synced to VPS"
+    report_add "OK" "Compose + nginx files synced to VPS"
 }
 
 # ══════════════════════════════════════════════════════════════════════════════

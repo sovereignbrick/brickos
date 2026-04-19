@@ -401,7 +401,11 @@ async fn main() -> std::io::Result<()> {
             .app_data(payment_router_data.clone())
             .app_data(notifier_data.clone())
             .app_data(licensing_provider.clone())
-            .app_data(web::Data::new(PlatformPool(platform_pool.clone())));
+            .app_data(web::Data::new(PlatformPool(platform_pool.clone())))
+            // Sprint 044 #545: org resolution cache for white-label subdomains
+            .app_data(web::Data::new(
+                sovereign_health_backend::middleware::org_resolver::OrgCache::new(),
+            ));
 
         // Sovereign Link decoupled: runs as independent sli-api service (design 018)
 

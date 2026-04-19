@@ -2,4 +2,5 @@
 
 pub mod auth;
 pub mod cache;
+pub mod org_resolver;
 pub mod rls;

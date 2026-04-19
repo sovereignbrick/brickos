@@ -117,6 +117,11 @@ pub fn configure_routes(cfg: &mut actix_web::web::ServiceConfig) {
         "/api/v1/health/metrics",
         actix_web::web::get().to(handlers::health::metrics),
     )
+    // Sprint 044 #547: public branding endpoint (no auth required)
+    .route(
+        "/api/v1/org/branding",
+        actix_web::web::get().to(handlers::org_branding::get_branding),
+    )
     .route(
         "/early-access",
         actix_web::web::post().to(handlers::early_access::submit),

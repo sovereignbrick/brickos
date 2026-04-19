@@ -39,6 +39,7 @@ pub mod measurements;
 pub mod medications;
 pub mod mfa;
 pub mod newsletter;
+pub mod org_branding;
 pub mod payment_gateways;
 pub mod payments;
 pub mod promotions;
