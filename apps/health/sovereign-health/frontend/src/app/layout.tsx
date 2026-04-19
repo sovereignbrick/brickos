@@ -42,6 +42,7 @@ import { OfflineBanner } from '@/components/offline-banner'
 import { GraceBanner } from '@/components/grace-banner'
 import { SyncProvider } from '@/lib/sync-context'
 import { PushProvider } from '@/lib/push-context'
+import { OrgContextProvider } from '@/lib/org-context'
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -115,6 +116,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <a href="#main-content" className="skip-to-content">Skip to content</a>
         <NextIntlClientProvider locale={locale} messages={messages}>
           <ThemeProvider>
+            <OrgContextProvider>
             <AuthProvider>
               <InstallProvider>
               <OfflineProvider>
@@ -144,6 +146,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               </OfflineProvider>
               </InstallProvider>
             </AuthProvider>
+            </OrgContextProvider>
           </ThemeProvider>
         </NextIntlClientProvider>
       </body>

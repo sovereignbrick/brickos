@@ -11,6 +11,7 @@ import { useState, useEffect, useRef, Suspense } from 'react'
 import { useTranslations } from 'next-intl'
 import Image from 'next/image'
 import { useBrand } from '@/lib/brand'
+import { useOrg, getOrgLogo } from '@/lib/org-context'
 
 function MfaVerifyForm({
   mfaToken,
@@ -148,7 +149,15 @@ function LoginContent() {
   const [resendEmail, setResendEmail] = useState('')
   const [registrationEnabled, setRegistrationEnabled] = useState(false)
   const { brand, mounted } = useBrand()
+  const org = useOrg()
   const [mfaToken, setMfaToken] = useState<string | null>(null)
+
+  // Sprint 044 #549: org branding overrides default brand
+  const orgLogo = org.isOrg ? getOrgLogo(org.branding) : null
+  const displayName = org.isOrg ? org.orgName : brand.appName
+  const displaySubtitle = org.isOrg
+    ? `Sign in to ${org.orgName}`
+    : brand.subtitle
 
   const { register, handleSubmit, watch, formState: { errors, isSubmitting } } = useForm<LoginInput>({
     resolver: standardSchemaResolver(loginSchema),
@@ -268,9 +277,13 @@ function LoginContent() {
     <main className="min-h-screen flex items-center justify-center p-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8 flex flex-col items-center gap-3">
-          <Image src="/logo.png" alt="Sovereign Health Intelligence" width={64} height={64} className="rounded-lg" />
-          <h1 className="text-2xl font-bold">{brand.appName}</h1>
-          <p className="text-muted-foreground text-sm">{brand.subtitle}</p>
+          {orgLogo ? (
+            <Image src={orgLogo} alt={displayName} width={64} height={64} className="rounded-lg object-contain" unoptimized />
+          ) : (
+            <Image src="/logo.png" alt={displayName} width={64} height={64} className="rounded-lg" />
+          )}
+          <h1 className="text-2xl font-bold">{displayName}</h1>
+          <p className="text-muted-foreground text-sm">{displaySubtitle}</p>
         </div>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div>
@@ -321,7 +334,7 @@ function LoginContent() {
           </div>
         )}
 
-        {brand.showRegister && (registrationEnabled ? (
+        {!org.isOrg && brand.showRegister && (registrationEnabled ? (
           <p className="text-center text-sm text-muted-foreground mt-6">
             <Link href="/signup" className="text-blue-400 hover:text-blue-300">
               {t('noAccount')}
@@ -335,7 +348,7 @@ function LoginContent() {
           </p>
         ))}
 
-        {brand.showDemo && (
+        {!org.isOrg && brand.showDemo && (
           <div className="mt-6 rounded-xl border border-border bg-muted/50 p-4 text-center">
             <p className="text-sm text-muted-foreground mb-2">
               {t('demoExplore')}
