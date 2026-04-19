@@ -40,6 +40,7 @@ pub mod medications;
 pub mod mfa;
 pub mod newsletter;
 pub mod org_branding;
+pub mod org_settings;
 pub mod payment_gateways;
 pub mod payments;
 pub mod practitioner;

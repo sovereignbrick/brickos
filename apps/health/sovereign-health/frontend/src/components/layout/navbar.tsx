@@ -491,7 +491,7 @@ export function Navbar() {
             ) : (
               <Image src="/logo.png" alt="SHI" width={28} height={28} className="rounded-sm" priority />
             )}
-            <span className="text-xs sm:text-sm whitespace-nowrap">{org.isOrg ? org.orgName : APP_NAME}</span>
+            <span className="text-xs sm:text-sm whitespace-nowrap">{org.isOrg ? (org.branding.app_name || org.orgName) : APP_NAME}</span>
           </Link>
           <div className="flex items-center gap-2">
             {languageSelector}
@@ -512,7 +512,7 @@ export function Navbar() {
             ) : (
               <Image src="/logo.png" alt="SHI" width={28} height={28} className="rounded-sm" priority />
             )}
-            <span className="text-xs sm:text-sm whitespace-nowrap">{org.isOrg ? org.orgName : APP_NAME}</span>
+            <span className="text-xs sm:text-sm whitespace-nowrap">{org.isOrg ? (org.branding.app_name || org.orgName) : APP_NAME}</span>
           </Link>
           <div className="flex items-center gap-2">
             {languageSelector}

@@ -21,6 +21,7 @@ export interface OrgBranding {
   logo_url?: string | null
   logo_base64?: string | null
   footer_text?: string | null
+  app_name?: string | null
   role_labels?: Record<string, string>
 }
 

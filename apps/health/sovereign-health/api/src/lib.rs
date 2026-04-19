@@ -492,6 +492,33 @@ pub fn configure_routes(cfg: &mut actix_web::web::ServiceConfig) {
                 actix_web::web::put().to(handlers::license::downgrade),
             ),
     )
+    // Sprint 044: org owner self-service settings
+    .service(
+        actix_web::web::scope("/org-settings")
+            // General
+            .route("/general", actix_web::web::get().to(handlers::org_settings::get_general))
+            .route("/general", actix_web::web::put().to(handlers::org_settings::update_general))
+            // Branding
+            .route("/branding", actix_web::web::get().to(handlers::org_settings::get_branding))
+            .route("/branding", actix_web::web::put().to(handlers::org_settings::update_branding))
+            // Members
+            .route("/members", actix_web::web::get().to(handlers::org_settings::list_members))
+            .route("/members", actix_web::web::post().to(handlers::org_settings::invite_member))
+            .route("/members/{user_id}/role", actix_web::web::put().to(handlers::org_settings::update_member_role))
+            .route("/members/{user_id}", actix_web::web::delete().to(handlers::org_settings::remove_member))
+            // Domains
+            .route("/domains", actix_web::web::get().to(handlers::org_settings::list_domains))
+            // Analytics
+            .route("/analytics", actix_web::web::get().to(handlers::org_settings::analytics))
+            // Apps
+            .route("/apps", actix_web::web::get().to(handlers::org_settings::list_apps))
+            .route("/apps/shi/ai", actix_web::web::get().to(handlers::org_settings::get_shi_ai_config))
+            .route("/apps/shi/ai", actix_web::web::put().to(handlers::org_settings::update_shi_ai_config))
+            .route("/apps/shi/email", actix_web::web::get().to(handlers::org_settings::get_shi_email_config))
+            .route("/apps/shi/email", actix_web::web::put().to(handlers::org_settings::update_shi_email_config))
+            // Billing
+            .route("/billing", actix_web::web::get().to(handlers::org_settings::get_billing)),
+    )
     // Sprint 044 #553: practitioner dashboard (org members + read-only health data)
     .service(
         actix_web::web::scope("/practitioner")
