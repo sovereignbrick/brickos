@@ -47,7 +47,12 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+/* Sprint 044 #550: org branding CSS custom properties.
+   Defaults match BrickOS theme. OrgContextProvider overrides
+   these at runtime via document.documentElement.style.setProperty(). */
 :root {
+  --brand-primary: #f97316;
+  --brand-accent: #0ea5e9;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -148,6 +153,13 @@
     }
   }
 }
+
+/* Sprint 044 #550: org branding utility classes */
+.brand-primary-bg { background-color: var(--brand-primary); }
+.brand-primary-text { color: var(--brand-primary); }
+.brand-accent-bg { background-color: var(--brand-accent); }
+.brand-accent-text { color: var(--brand-accent); }
+.brand-primary-border { border-color: var(--brand-primary); }
 
 /* Theme-aware select/option elements (browser defaults don't follow CSS variables) */
 .dark select, .dark select option {

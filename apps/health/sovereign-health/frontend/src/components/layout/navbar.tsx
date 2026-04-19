@@ -9,6 +9,7 @@ import { InfoBar } from '@/components/layout/info-bar'
 import { OrgSwitcher } from '@/components/org-switcher'
 import { useDemoHref } from '@/lib/use-demo-href'
 import { APP_NAME, IS_OSS } from '@/lib/mode'
+import { useOrg, getOrgLogo } from '@/lib/org-context'
 import { api } from '@/lib/api'
 import { useTranslations } from 'next-intl'
 import { useContent } from '@/lib/content-context'
@@ -374,6 +375,7 @@ export function Navbar() {
   const tCommon = useTranslations('common')
   const { locale: contentLocale, setLocale: setContentLocale } = useContent()
   const { theme, toggleTheme } = useTheme()
+  const org = useOrg()
   const [registrationEnabled, setRegistrationEnabled] = useState(false)
   const [langOpen, setLangOpen] = useState(false)
   const langRef = useRef<HTMLDivElement>(null)
@@ -484,8 +486,12 @@ export function Navbar() {
       <nav className="border-b bg-background/80 backdrop-blur">
         <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 font-bold tracking-tight">
-            <Image src="/logo.png" alt="SHI" width={28} height={28} className="rounded-sm" priority />
-            <span className="text-xs sm:text-sm whitespace-nowrap">{APP_NAME}</span>
+            {org.isOrg && getOrgLogo(org.branding) ? (
+              <Image src={getOrgLogo(org.branding)!} alt={org.orgName} width={28} height={28} className="rounded-sm object-contain" unoptimized priority />
+            ) : (
+              <Image src="/logo.png" alt="SHI" width={28} height={28} className="rounded-sm" priority />
+            )}
+            <span className="text-xs sm:text-sm whitespace-nowrap">{org.isOrg ? org.orgName : APP_NAME}</span>
           </Link>
           <div className="flex items-center gap-2">
             {languageSelector}
@@ -501,8 +507,12 @@ export function Navbar() {
       <nav className="border-b bg-background/80 backdrop-blur">
         <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 font-bold tracking-tight">
-            <Image src="/logo.png" alt="SHI" width={28} height={28} className="rounded-sm" priority />
-            <span className="text-xs sm:text-sm whitespace-nowrap">{APP_NAME}</span>
+            {org.isOrg && getOrgLogo(org.branding) ? (
+              <Image src={getOrgLogo(org.branding)!} alt={org.orgName} width={28} height={28} className="rounded-sm object-contain" unoptimized priority />
+            ) : (
+              <Image src="/logo.png" alt="SHI" width={28} height={28} className="rounded-sm" priority />
+            )}
+            <span className="text-xs sm:text-sm whitespace-nowrap">{org.isOrg ? org.orgName : APP_NAME}</span>
           </Link>
           <div className="flex items-center gap-2">
             {languageSelector}
