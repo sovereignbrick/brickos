@@ -43,6 +43,7 @@ import { GraceBanner } from '@/components/grace-banner'
 import { SyncProvider } from '@/lib/sync-context'
 import { PushProvider } from '@/lib/push-context'
 import { OrgContextProvider } from '@/lib/org-context'
+import { PlaneGate } from '@/components/plane-gate'
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -136,6 +137,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                     )}
                     <OnboardingTracker />
                     <ReferralTracker />
+                    <PlaneGate />
                     <div id="main-content">{children}</div>
                     <Toaster position="top-center" richColors offset="16px" duration={2500} visibleToasts={2} />
                   </DemoProfileProvider>

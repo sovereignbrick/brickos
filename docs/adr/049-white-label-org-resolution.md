@@ -1,8 +1,18 @@
 # ADR-049: White-Label Org Resolution Architecture
 
-**Date:** 2026-04-18
-**Status:** Accepted
-**Sprint:** 044
+**Date:** 2026-04-18 (original), amended 2026-04-19
+**Status:** Amended (see note below, Design 025 covers Sprint 045 changes)
+**Sprint:** 044 (original), 045 (amendment)
+
+## Amendment 2026-04-19 -- two-plane tenant model
+
+Sprint 045 (Design 025) splits each tenant across two planes:
+- `{slug}.brickos.io` = per-tenant admin plane (org admin UI)
+- `{slug}.sovereignhealth.io` = per-tenant end-user plane (SHI app)
+
+Both hostnames resolve to the **same OrgContext** via the middleware described below. The frontend decides which UI surface to render based on the hostname (plane detection in `src/lib/plane.ts`).
+
+The Domain Resolution list in §Decision is updated to match (see inline below).
 
 ## Context
 
@@ -14,17 +24,20 @@ org-aware JWTs -- all without requiring separate infrastructure per customer.
 
 ## Decision
 
-### Domain Resolution
+### Domain Resolution (amended 2026-04-19)
 
 A new actix-web middleware (`org_resolver.rs`) resolves the request's Host
 header to an org context on every request:
 
-1. `{slug}.brickos.io` -- lookup by `organizations.slug`
-2. Custom domain (e.g. `app.custom-clinic.com`) -- lookup by `domain_mappings.domain`
-3. Known platform domains (`app.brickos.io`, `demo.brickos.io`) -- no org context
-4. Legacy domains (`*.sovereignhealth.io`) -- no org context
+1. `{slug}.sovereignhealth.io` or `{slug}.demo.sovereignhealth.io` -- lookup by `organizations.slug` (end-user plane, Sprint 045)
+2. `{slug}.brickos.io` or `{slug}.demo.brickos.io` -- lookup by `organizations.slug` (admin plane, Sprint 044+045)
+3. Custom domain (e.g. `app.custom-clinic.com`) -- lookup by `domain_mappings.domain` (end-user plane by default)
+4. Known platform domains (`app.brickos.io`, `demo.brickos.io`, `app.sovereignhealth.io`, `api.sovereignhealth.io`, `sovereignhealth.io`, etc.) -- no org context
+5. Any remaining hostname not matching above -- no org context
 
 Results are cached in-memory with a 5-minute TTL to avoid per-request DB queries.
+
+**Plane decision is made in the FRONTEND, not the resolver.** The resolver returns the same OrgContext regardless of which plane subdomain was used; `src/lib/plane.ts` decides what UI to render.
 
 ### JWT Org Claims
 

@@ -1,13 +1,26 @@
 # 015 - BrickOS Unified App Routing
 
-**Status:** Draft
+**Status:** Amended (2026-04-19 by Design 025)
 **Author:** Helmut / Claude
-**Date:** 2026-04-07
-**Related:** 014-brickos-platform-gui, 005-platform-multi-tenant
+**Date:** 2026-04-07 (original), 2026-04-19 (plane-separation amendment)
+**Related:** 014-brickos-platform-gui, 005-platform-multi-tenant, 025-domain-realignment
 
 ---
 
-## 1. Vision
+## Amendment 2026-04-19 (supersedes §1 path-routing-only vision)
+
+Sprint 045 (Design 025) splits the domain matrix into two planes:
+
+- **brickos.io = admin plane.** Platform admin at `app.brickos.io/platform/*`. Per-tenant org admin at `{slug}.brickos.io/org/*`.
+- **sovereignhealth.io = SHI end-user plane.** Default SHI app at `app.sovereignhealth.io`. Per-tenant end-user app at `{slug}.sovereignhealth.io`.
+
+Path routing (`app.brickos.io/health/*`) described in the original §1 and §3 is **no longer canonical**. SHI lives on sovereignhealth.io; brickos.io is admin-only. See Design 025 for the full phased migration.
+
+The rest of this doc stays for historical context; sections about `app.brickos.io/health/` path routing are **not** current architecture.
+
+---
+
+## 1. Vision (original 2026-04-07, amended 2026-04-19)
 
 All BrickOS apps accessible under a single domain (`app.brickos.io`) with path-based routing. Each app retains its own domain for direct access, but the platform provides a unified entry point.
 
@@ -181,13 +194,16 @@ This way, logging in on `app.brickos.io/health/` makes the token available on `a
 | Domain | Purpose | Target |
 |--------|---------|--------|
 | brickos.io | Marketing website (static) | /opt/brickos/website |
-| app.brickos.io | Unified app entry point | nginx -> containers |
-| app.brickos.io/platform/ | Platform admin GUI | SHI frontend :3000 |
-| app.brickos.io/health/ | SHI health app | SHI frontend :3000 (rewrite) |
-| api.brickos.io | Unified API | SHI backend :8080 |
-| demo.brickos.io | Staging (basic auth) | SHI staging frontend :3001 |
-| app.sovereignhealth.io | SHI direct access (legacy) | SHI frontend :3000 |
-| api.sovereignhealth.io | SHI API direct (legacy) | SHI backend :8080 |
+| app.brickos.io | Platform admin GUI (`/platform/*`) + default login | SHI frontend :3000 + backend :8080 (same-origin) |
+| **`{slug}.brickos.io`** | **Per-tenant ORG ADMIN UI (`/org/*`), admin plane** (Sprint 045) | SHI frontend :3000 + backend :8080 |
+| api.brickos.io | Unified API (deprecated alias for path-mount) | SHI backend :8080 |
+| demo.brickos.io | Staging of app.brickos.io (basic auth) | SHI staging :3001 + :8081 |
+| `*.demo.brickos.io` | Staging of `{slug}.brickos.io` | SHI staging :3001 + :8081 |
+| sovereignhealth.io | Marketing website (static) | /opt/brickos/website |
+| app.sovereignhealth.io | SHI default landing, no-org fallback (same-origin after Sprint 045) | SHI frontend :3000 + backend :8080 |
+| **`{slug}.sovereignhealth.io`** | **Per-tenant SHI END-USER APP, end-user plane** (Sprint 045) | SHI frontend :3000 + backend :8080 |
+| api.sovereignhealth.io | SHI API direct (legacy, kept for BC) | SHI backend :8080 |
 | demo.sovereignhealth.io | SHI staging direct (legacy) | SHI staging :3001 |
+| `*.demo.sovereignhealth.io` | Staging of `{slug}.sovereignhealth.io` | SHI staging :3001 + :8081 |
 | brickos.io/r/{code} | Short link redirects | SHI backend :8080 |
-| status.sovereignhealth.io | Gatus monitoring | Gatus :8082 |
+| status.brickos.io | Gatus monitoring | Gatus :8082 |

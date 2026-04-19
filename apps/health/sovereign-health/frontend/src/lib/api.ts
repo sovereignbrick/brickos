@@ -49,16 +49,17 @@ export function classifyApiError(code: string | undefined, message: string): Api
 
 // Runtime API URL detection:
 // - .onion domains: same origin (nginx proxy for all routes)
-// - *.brickos.io: same origin (nginx path-mount /api/,/auth/,/admin/ + catch-all)
-// - *.sovereignhealth.io: legacy API subdomain (not all routes are under /api/)
+// - *.brickos.io: same origin (admin plane, same-origin path-mount)
+// - *.sovereignhealth.io: same origin after Sprint 045 #562 (end-user plane,
+//   app.sovereignhealth.io migrated to same-origin path-mount, wildcard org
+//   subdomains have it from the start)
 // - default: build-time NEXT_PUBLIC_API_URL
 const API_BASE = (() => {
   if (typeof window === 'undefined') return APP_CONFIG.apiUrl
   const host = window.location.hostname
   if (host.endsWith('.onion')) return ''
   if (host.endsWith('.brickos.io')) return ''
-  if (host === 'demo.sovereignhealth.io') return 'https://api-demo.sovereignhealth.io'
-  if (host === 'app.sovereignhealth.io') return 'https://api.sovereignhealth.io'
+  if (host.endsWith('.sovereignhealth.io')) return ''
   return APP_CONFIG.apiUrl
 })()
 
@@ -66,21 +67,33 @@ function getToken(): string | undefined {
   return Cookies.get('auth_token')
 }
 
+// Sprint 045 #564: scope the auth cookie to the tenant's parent domain so
+// sessions work across the platform's specific subdomains within a plane
+// (e.g. app.brickos.io <-> {slug}.brickos.io on the admin plane). The two
+// planes keep separate cookies by design -- an org admin signed in on
+// brickos.io still has to sign in again on sovereignhealth.io.
+function cookieDomainForHost(host: string): string | undefined {
+  if (host.endsWith('.brickos.io')) return '.brickos.io'
+  if (host.endsWith('.sovereignhealth.io')) return '.sovereignhealth.io'
+  return undefined
+}
+
 export function setToken(token: string): void {
-  const isBrickOS = typeof window !== 'undefined' && window.location.hostname.endsWith('.brickos.io')
+  const host = typeof window !== 'undefined' ? window.location.hostname : ''
+  const domain = cookieDomainForHost(host)
   Cookies.set('auth_token', token, {
     expires: APP_CONFIG.sessionTimeoutHours / 24,
     sameSite: 'lax',
     secure: window.location.protocol === 'https:',
     path: '/',
-    // Set domain to .brickos.io for cross-subdomain session sharing
-    ...(isBrickOS ? { domain: '.brickos.io' } : {}),
+    ...(domain ? { domain } : {}),
   })
 }
 
 export function clearToken(): void {
-  const isBrickOS = typeof window !== 'undefined' && window.location.hostname.endsWith('.brickos.io')
-  Cookies.remove('auth_token', { path: '/', ...(isBrickOS ? { domain: '.brickos.io' } : {}) })
+  const host = typeof window !== 'undefined' ? window.location.hostname : ''
+  const domain = cookieDomainForHost(host)
+  Cookies.remove('auth_token', { path: '/', ...(domain ? { domain } : {}) })
 }
 
 function getLocale(): string {

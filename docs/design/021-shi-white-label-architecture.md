@@ -1,9 +1,23 @@
 # 021 -- SHI White-Label Architecture: Multi-Tenant Branding for First Customer
 
-**Status:** Draft v1
+**Status:** Amended (2026-04-19 by Design 025)
 **Author:** Helmut / Claude
-**Date:** 2026-04-09
-**Related:** 010-multi-tenant-platform-offering, 014-brickos-platform-gui, 018-platform-service-elevation
+**Date:** 2026-04-09 (original), 2026-04-19 (two-plane amendment)
+**Related:** 010-multi-tenant-platform-offering, 014-brickos-platform-gui, 018-platform-service-elevation, 025-domain-realignment
+
+---
+
+## Amendment 2026-04-19 (two-plane tenant model, supersedes §5.1 and §10b)
+
+The white-label domain scheme in this doc used `{slug}.brickos.io` as the end-user subdomain. Design 025 splits each tenant across two planes:
+
+- **`{slug}.brickos.io`** = per-tenant **org admin UI** (branding, members, billing, domains).
+- **`{slug}.sovereignhealth.io`** = per-tenant **SHI end-user app** (login, dashboard, measurements, doctor-chat).
+- Custom domains (e.g. `health.acme.com`) resolve via `domain_mappings` and serve the **end-user plane** by default.
+
+Wherever this doc says `{slug}.brickos.io` in the context of patients or end users logging in, read it as `{slug}.sovereignhealth.io`. Org admin setup still happens on brickos.io (confirmed by §10b).
+
+See Design 025 Phases 1-7 for the migration plan.
 
 ---
 
