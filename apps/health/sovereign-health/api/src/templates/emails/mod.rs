@@ -1,7 +1,7 @@
 // Sovereign Health Intelligence -- AGPL-3.0 -- https://sovereignhealth.io/
 
-use std::collections::HashMap;
 use serde_json::Value;
+use std::collections::HashMap;
 
 // ---------------------------------------------------------------------------
 // Simple {{var}} template engine
@@ -164,7 +164,10 @@ fn wrap_html_de(body: &str) -> String {
 /// Default SHI branding for emails (no org context).
 pub fn default_email_vars() -> HashMap<&'static str, String> {
     let mut vars = HashMap::new();
-    vars.insert("org_logo_url", "https://sovereignhealth.io/logo.png".to_string());
+    vars.insert(
+        "org_logo_url",
+        "https://sovereignhealth.io/logo.png".to_string(),
+    );
     vars.insert("org_name", "Sovereign Health Intelligence".to_string());
     vars.insert("org_website", "https://sovereignhealth.io".to_string());
     vars.insert("org_website_label", "sovereignhealth.io".to_string());
@@ -173,7 +176,11 @@ pub fn default_email_vars() -> HashMap<&'static str, String> {
 
 /// Build email template vars from org branding JSONB.
 /// Falls back to SHI defaults for missing fields.
-pub fn org_email_vars(branding: Option<&Value>, org_name: Option<&str>, org_slug: Option<&str>) -> HashMap<&'static str, String> {
+pub fn org_email_vars(
+    branding: Option<&Value>,
+    org_name: Option<&str>,
+    org_slug: Option<&str>,
+) -> HashMap<&'static str, String> {
     let mut vars = default_email_vars();
 
     if let Some(name) = org_name {

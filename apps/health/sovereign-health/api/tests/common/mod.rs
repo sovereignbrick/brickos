@@ -12,6 +12,7 @@ use sovereign_health_backend::{
     config::Config,
     configure_routes,
     handlers::public_chat::*,
+    middleware::org_resolver::OrgCache,
     services::{encryption::Encryptor, rate_limit::AuthRateLimiters},
 };
 use sqlx::PgPool;
@@ -88,6 +89,7 @@ pub fn build_test_app(
         .app_data(web::Data::new(PublicChatRateLimiter::new()))
         .app_data(web::Data::new(DailyTokenTracker::new()))
         .app_data(web::Data::new(DailyIpMessageTracker::new()))
+        .app_data(web::Data::new(OrgCache::new()))
         .configure(configure_routes)
 }
 

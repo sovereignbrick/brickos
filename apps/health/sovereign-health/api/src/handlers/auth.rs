@@ -15,8 +15,8 @@ use crate::{
     config::Config,
     error::AppError,
     middleware::auth::AuthenticatedUser,
-    models::user::{LoginRequest, RefreshRequest, SignupRequest, User, UserResponse},
     middleware::org_resolver::OrgCache,
+    models::user::{LoginRequest, RefreshRequest, SignupRequest, User, UserResponse},
     services::auth::{
         create_jwt, generate_refresh_token, generate_verification_token, hash_password,
         hash_refresh_token, validate_email, validate_password, verify_password,
@@ -1073,13 +1073,12 @@ pub async fn login(
 
     // If org context, verify membership
     let (org_id_claim, org_role_claim) = if let Some(ref org) = org_ctx {
-        let member_role: Option<String> = sqlx::query_scalar(
-            "SELECT role FROM org_members WHERE org_id = $1 AND user_id = $2",
-        )
-        .bind(org.org_id)
-        .bind(user.id)
-        .fetch_optional(pool.get_ref())
-        .await?;
+        let member_role: Option<String> =
+            sqlx::query_scalar("SELECT role FROM org_members WHERE org_id = $1 AND user_id = $2")
+                .bind(org.org_id)
+                .bind(user.id)
+                .fetch_optional(pool.get_ref())
+                .await?;
 
         match member_role {
             Some(role) => (Some(org.org_id.to_string()), Some(role)),

@@ -133,9 +133,18 @@ fi
 
 # ── Frontend: Build Check ────────────────────────────────────────────────────
 
-if [ "$MODE" = "--ci" ]; then
-    log "=== Frontend Build ==="
-    run_test "next build" pnpm build
+log "=== Frontend Build ==="
+run_test "next build" pnpm build
+
+# ── Frontend: Playwright E2E (optional -- requires dev server on :3000) ─────
+
+if [ "$MODE" = "--ci" ] || [ "$MODE" = "--e2e" ]; then
+    log "=== Playwright E2E ==="
+    if curl -sf http://localhost:3000 >/dev/null 2>&1; then
+        E2E_BASE_URL=http://localhost:3000 run_test "playwright e2e" npx playwright test --reporter=line
+    else
+        skip_test "playwright e2e" "dev server not running on :3000"
+    fi
 fi
 
 # ── Report ───────────────────────────────────────────────────────────────────

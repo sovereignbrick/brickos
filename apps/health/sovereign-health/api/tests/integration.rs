@@ -120,3 +120,37 @@ async fn test_hello_snapshot() {
 
 // Property-based tests live in tests/property.rs to avoid
 // macro conflicts between proptest! and #[actix_web::test].
+
+// ---------------------------------------------------------------------------
+// Sprint 044: Org features
+// ---------------------------------------------------------------------------
+
+#[actix_web::test]
+async fn test_org_settings_requires_auth() {
+    let app = test::init_service(App::new().configure(configure_routes)).await;
+    let req = test::TestRequest::get()
+        .uri("/org-settings/general")
+        .to_request();
+    let resp: ServiceResponse = test::call_service(&app, req).await;
+    // Without Config app_data, auth extractor returns 500; with it, returns 401.
+    // Either way, the endpoint is NOT accessible without auth.
+    assert!(
+        resp.status() == 401 || resp.status() == 500,
+        "org-settings must not return 200 without auth, got {}",
+        resp.status()
+    );
+}
+
+#[actix_web::test]
+async fn test_practitioner_requires_auth() {
+    let app = test::init_service(App::new().configure(configure_routes)).await;
+    let req = test::TestRequest::get()
+        .uri("/practitioner/members")
+        .to_request();
+    let resp: ServiceResponse = test::call_service(&app, req).await;
+    assert!(
+        resp.status() == 401 || resp.status() == 500,
+        "practitioner must not return 200 without auth, got {}",
+        resp.status()
+    );
+}

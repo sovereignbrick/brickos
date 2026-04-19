@@ -80,9 +80,7 @@ where
 }
 
 /// Extract claims from JWT without failing the request.
-fn extract_claims_from_request(
-    req: &ServiceRequest,
-) -> Option<brickos_auth::jwt::Claims> {
+fn extract_claims_from_request(req: &ServiceRequest) -> Option<brickos_auth::jwt::Claims> {
     let config = req.app_data::<web::Data<Config>>()?;
     let auth_header = req.headers().get("Authorization")?.to_str().ok()?;
     let token = auth_header.strip_prefix("Bearer ")?;

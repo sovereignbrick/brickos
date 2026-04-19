@@ -4,10 +4,10 @@
 
 use crate::error::AppError;
 use crate::middleware::auth::AuthenticatedUser;
-use sqlx::PgPool;
 use actix_web::{web, HttpResponse};
 use serde::Deserialize;
 use serde_json::json;
+use sqlx::PgPool;
 
 #[derive(Deserialize)]
 pub struct AuditQuery {

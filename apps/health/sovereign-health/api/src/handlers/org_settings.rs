@@ -142,7 +142,9 @@ pub async fn update_branding(
     let org_id = require_org_owner(&auth)?;
 
     if !body.branding.is_object() {
-        return Err(AppError::Validation("branding must be a JSON object".into()));
+        return Err(AppError::Validation(
+            "branding must be a JSON object".into(),
+        ));
     }
 
     sqlx::query(
@@ -216,16 +218,14 @@ pub async fn invite_member(
     }
 
     // Find user by email
-    let user_id: Option<Uuid> = sqlx::query_scalar(
-        "SELECT id FROM users WHERE email = $1 AND is_deleted = false",
-    )
-    .bind(&body.email)
-    .fetch_optional(&platform_pool.0)
-    .await?;
+    let user_id: Option<Uuid> =
+        sqlx::query_scalar("SELECT id FROM users WHERE email = $1 AND is_deleted = false")
+            .bind(&body.email)
+            .fetch_optional(&platform_pool.0)
+            .await?;
 
-    let user_id = user_id.ok_or_else(|| {
-        AppError::Validation(format!("User with email {} not found", body.email))
-    })?;
+    let user_id = user_id
+        .ok_or_else(|| AppError::Validation(format!("User with email {} not found", body.email)))?;
 
     // Check not already a member
     let exists: bool = sqlx::query_scalar(
@@ -272,18 +272,19 @@ pub async fn update_member_role(
     let org_id = require_org_owner(&auth)?;
     let target_user_id = path.into_inner();
 
-    if !matches!(body.role.as_str(), "org_owner" | "practitioner" | "org_member") {
+    if !matches!(
+        body.role.as_str(),
+        "org_owner" | "practitioner" | "org_member"
+    ) {
         return Err(AppError::Validation("Invalid role".into()));
     }
 
-    let result = sqlx::query(
-        "UPDATE org_members SET role = $1 WHERE org_id = $2 AND user_id = $3",
-    )
-    .bind(&body.role)
-    .bind(org_id)
-    .bind(target_user_id)
-    .execute(pool.get_ref())
-    .await?;
+    let result = sqlx::query("UPDATE org_members SET role = $1 WHERE org_id = $2 AND user_id = $3")
+        .bind(&body.role)
+        .bind(org_id)
+        .bind(target_user_id)
+        .execute(pool.get_ref())
+        .await?;
 
     if result.rows_affected() == 0 {
         return Err(AppError::NotFound);
@@ -306,13 +307,11 @@ pub async fn remove_member(
         return Err(AppError::Validation("Cannot remove yourself".into()));
     }
 
-    let result = sqlx::query(
-        "DELETE FROM org_members WHERE org_id = $1 AND user_id = $2",
-    )
-    .bind(org_id)
-    .bind(target_user_id)
-    .execute(pool.get_ref())
-    .await?;
+    let result = sqlx::query("DELETE FROM org_members WHERE org_id = $1 AND user_id = $2")
+        .bind(org_id)
+        .bind(target_user_id)
+        .execute(pool.get_ref())
+        .await?;
 
     if result.rows_affected() == 0 {
         return Err(AppError::NotFound);
@@ -330,13 +329,11 @@ pub async fn list_domains(
 ) -> Result<HttpResponse, AppError> {
     let org_id = require_org_owner(&auth)?;
 
-    let slug: String = sqlx::query_scalar(
-        "SELECT slug FROM organizations WHERE id = $1",
-    )
-    .bind(org_id)
-    .fetch_one(pool.get_ref())
-    .await
-    .unwrap_or_default();
+    let slug: String = sqlx::query_scalar("SELECT slug FROM organizations WHERE id = $1")
+        .bind(org_id)
+        .fetch_one(pool.get_ref())
+        .await
+        .unwrap_or_default();
 
     let rows = sqlx::query(
         r#"SELECT id, domain, ssl_status, verified_at, created_at
@@ -378,13 +375,12 @@ pub async fn analytics(
 ) -> Result<HttpResponse, AppError> {
     let org_id = require_org_owner(&auth)?;
 
-    let member_count: i64 = sqlx::query_scalar(
-        "SELECT COUNT(*) FROM org_members WHERE org_id = $1",
-    )
-    .bind(org_id)
-    .fetch_one(pool.get_ref())
-    .await
-    .unwrap_or(0);
+    let member_count: i64 =
+        sqlx::query_scalar("SELECT COUNT(*) FROM org_members WHERE org_id = $1")
+            .bind(org_id)
+            .fetch_one(pool.get_ref())
+            .await
+            .unwrap_or(0);
 
     let active_7d: i64 = sqlx::query_scalar(
         r#"SELECT COUNT(DISTINCT om.user_id)
@@ -530,10 +526,7 @@ pub async fn update_shi_ai_config(
 ) -> Result<HttpResponse, AppError> {
     let org_id = require_org_owner(&auth)?;
 
-    let model_value = body
-        .ai_model_override
-        .as_deref()
-        .unwrap_or("");
+    let model_value = body.ai_model_override.as_deref().unwrap_or("");
 
     sqlx::query(
         "UPDATE organizations SET branding = jsonb_set(COALESCE(branding, '{}'::jsonb), '{ai_model_override}', to_jsonb($1::text)), updated_at = NOW() WHERE id = $2",
@@ -592,9 +585,15 @@ pub async fn update_shi_email_config(
 
     // Merge each field into branding JSONB
     let fields: Vec<(&str, &str)> = [
-        ("email_welcome_subject", body.email_welcome_subject.as_deref()),
+        (
+            "email_welcome_subject",
+            body.email_welcome_subject.as_deref(),
+        ),
         ("email_welcome_body", body.email_welcome_body.as_deref()),
-        ("email_verification_subject", body.email_verification_subject.as_deref()),
+        (
+            "email_verification_subject",
+            body.email_verification_subject.as_deref(),
+        ),
         ("email_reset_subject", body.email_reset_subject.as_deref()),
         ("footer_text", body.email_footer_text.as_deref()),
     ]
@@ -635,13 +634,12 @@ pub async fn get_billing(
     .fetch_optional(pool.get_ref())
     .await?;
 
-    let member_count: i64 = sqlx::query_scalar(
-        "SELECT COUNT(*) FROM org_members WHERE org_id = $1",
-    )
-    .bind(org_id)
-    .fetch_one(pool.get_ref())
-    .await
-    .unwrap_or(0);
+    let member_count: i64 =
+        sqlx::query_scalar("SELECT COUNT(*) FROM org_members WHERE org_id = $1")
+            .bind(org_id)
+            .fetch_one(pool.get_ref())
+            .await
+            .unwrap_or(0);
 
     Ok(HttpResponse::Ok().json(json!({
         "data": {

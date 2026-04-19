@@ -91,30 +91,26 @@ pub async fn member_summary(
     }
 
     // Fetch recent measurements summary
-    let measurement_count: i64 = sqlx::query_scalar(
-        "SELECT COUNT(*) FROM measurements WHERE user_id = $1",
-    )
-    .bind(target_user_id)
-    .fetch_one(pool.get_ref())
-    .await
-    .unwrap_or(0);
+    let measurement_count: i64 =
+        sqlx::query_scalar("SELECT COUNT(*) FROM measurements WHERE user_id = $1")
+            .bind(target_user_id)
+            .fetch_one(pool.get_ref())
+            .await
+            .unwrap_or(0);
 
-    let latest_measurement: Option<chrono::DateTime<chrono::Utc>> = sqlx::query_scalar(
-        "SELECT MAX(measured_at) FROM measurements WHERE user_id = $1",
-    )
-    .bind(target_user_id)
-    .fetch_one(pool.get_ref())
-    .await
-    .ok()
-    .flatten();
+    let latest_measurement: Option<chrono::DateTime<chrono::Utc>> =
+        sqlx::query_scalar("SELECT MAX(measured_at) FROM measurements WHERE user_id = $1")
+            .bind(target_user_id)
+            .fetch_one(pool.get_ref())
+            .await
+            .ok()
+            .flatten();
 
     // Get user profile
-    let user_row = sqlx::query(
-        "SELECT email, display_name, created_at FROM users WHERE id = $1",
-    )
-    .bind(target_user_id)
-    .fetch_optional(pool.get_ref())
-    .await?;
+    let user_row = sqlx::query("SELECT email, display_name, created_at FROM users WHERE id = $1")
+        .bind(target_user_id)
+        .fetch_optional(pool.get_ref())
+        .await?;
 
     let profile = user_row.map(|r| {
         json!({
