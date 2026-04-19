@@ -8,6 +8,9 @@ node_modules/
 out/
 .turbo/
 
+# Playwright auth state
+e2e/.auth/
+
 # Environment
 .env
 .env.local

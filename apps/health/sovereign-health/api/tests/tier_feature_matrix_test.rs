@@ -184,7 +184,7 @@ async fn tier_feature_matrix_55_combinations() {
         for feature in FEATURES {
             total += 1;
             let expected = expected_allowed(tier, feature);
-            let result = tier::check_feature(&pool, user_id, feature).await;
+            let result = tier::check_tier_feature(&pool, user_id, feature).await;
             let actual_allowed = match &result {
                 Ok(()) => true,
                 Err(AppError::UpgradeRequired(_)) => false,

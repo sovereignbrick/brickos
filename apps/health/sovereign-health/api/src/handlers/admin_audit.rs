@@ -4,7 +4,7 @@
 
 use crate::error::AppError;
 use crate::middleware::auth::AuthenticatedUser;
-use crate::PlatformPool;
+use sqlx::PgPool;
 use actix_web::{web, HttpResponse};
 use serde::Deserialize;
 use serde_json::json;
@@ -30,7 +30,7 @@ pub struct PurgeQuery {
 
 /// GET /admin/audit/access-logs
 pub async fn access_logs(
-    platform_pool: web::Data<PlatformPool>,
+    pool: web::Data<PgPool>,
     auth: AuthenticatedUser,
     query: web::Query<AuditQuery>,
 ) -> Result<HttpResponse, AppError> {
@@ -84,7 +84,7 @@ pub async fn access_logs(
     .bind(query.to.as_deref().unwrap_or(""))
     .bind(query.app_key.as_deref().unwrap_or(""))
     .bind(query.org_id.as_deref().unwrap_or(""))
-    .fetch_all(&platform_pool.0)
+    .fetch_all(pool.get_ref())
     .await?;
 
     let total: i64 = rows
@@ -114,7 +114,7 @@ pub async fn access_logs(
 
 /// GET /admin/audit/events
 pub async fn event_logs(
-    platform_pool: web::Data<PlatformPool>,
+    pool: web::Data<PgPool>,
     auth: AuthenticatedUser,
     query: web::Query<AuditQuery>,
 ) -> Result<HttpResponse, AppError> {
@@ -166,7 +166,7 @@ pub async fn event_logs(
     .bind(query.to.as_deref().unwrap_or(""))
     .bind(query.app_key.as_deref().unwrap_or(""))
     .bind(query.org_id.as_deref().unwrap_or(""))
-    .fetch_all(&platform_pool.0)
+    .fetch_all(pool.get_ref())
     .await?;
 
     let total: i64 = rows
@@ -198,7 +198,7 @@ pub async fn event_logs(
 
 /// GET /admin/audit/stats
 pub async fn audit_stats(
-    platform_pool: web::Data<PlatformPool>,
+    pool: web::Data<PgPool>,
     auth: AuthenticatedUser,
 ) -> Result<HttpResponse, AppError> {
     if auth.role != "admin" {
@@ -206,30 +206,30 @@ pub async fn audit_stats(
     }
 
     let access_count: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM data_access_log")
-        .fetch_one(&platform_pool.0)
+        .fetch_one(pool.get_ref())
         .await
         .unwrap_or(0);
     let event_count: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM audit_log")
-        .fetch_one(&platform_pool.0)
+        .fetch_one(pool.get_ref())
         .await
         .unwrap_or(0);
 
     let access_oldest: Option<chrono::DateTime<chrono::Utc>> =
         sqlx::query_scalar("SELECT MIN(created_at) FROM data_access_log")
-            .fetch_one(&platform_pool.0)
+            .fetch_one(pool.get_ref())
             .await
             .ok()
             .flatten();
 
     let event_oldest: Option<chrono::DateTime<chrono::Utc>> =
         sqlx::query_scalar("SELECT MIN(created_at) FROM audit_log")
-            .fetch_one(&platform_pool.0)
+            .fetch_one(pool.get_ref())
             .await
             .ok()
             .flatten();
 
     let retention_days = crate::handlers::admin_settings::get_setting_i64(
-        &platform_pool.0,
+        pool.get_ref(),
         "audit_retention_days",
         90,
     )
@@ -249,7 +249,7 @@ pub async fn audit_stats(
 
 /// DELETE /admin/audit/purge
 pub async fn purge_logs(
-    platform_pool: web::Data<PlatformPool>,
+    pool: web::Data<PgPool>,
     auth: AuthenticatedUser,
     query: web::Query<PurgeQuery>,
 ) -> Result<HttpResponse, AppError> {
@@ -262,19 +262,19 @@ pub async fn purge_logs(
 
     let access_deleted: u64 = sqlx::query("DELETE FROM data_access_log WHERE created_at < $1")
         .bind(cutoff)
-        .execute(&platform_pool.0)
+        .execute(pool.get_ref())
         .await?
         .rows_affected();
 
     let events_deleted: u64 = sqlx::query("DELETE FROM audit_log WHERE created_at < $1")
         .bind(cutoff)
-        .execute(&platform_pool.0)
+        .execute(pool.get_ref())
         .await?
         .rows_affected();
 
     // Log the purge action itself
     crate::services::audit::log(
-        &platform_pool.0,
+        pool.get_ref(),
         Some(auth.user_id),
         "audit_purge",
         Some("audit_log"),
@@ -298,7 +298,7 @@ pub async fn purge_logs(
 // ---------------------------------------------------------------------------
 
 pub async fn db_audit_logs(
-    platform_pool: web::Data<PlatformPool>,
+    pool: web::Data<PgPool>,
     _admin: AuthenticatedUser,
     query: web::Query<AuditQuery>,
 ) -> Result<HttpResponse, AppError> {
@@ -378,8 +378,8 @@ pub async fn db_audit_logs(
         data_q = data_q.bind(from.clone());
     }
 
-    let total: i64 = count_q.fetch_one(&platform_pool.0).await.unwrap_or(0);
-    let rows = data_q.fetch_all(&platform_pool.0).await?;
+    let total: i64 = count_q.fetch_one(pool.get_ref()).await.unwrap_or(0);
+    let rows = data_q.fetch_all(pool.get_ref()).await?;
 
     let entries: Vec<serde_json::Value> = rows
         .iter()
@@ -423,7 +423,7 @@ pub struct PgAuditQuery {
 }
 
 pub async fn pgaudit_events(
-    platform_pool: web::Data<PlatformPool>,
+    pool: web::Data<PgPool>,
     auth: AuthenticatedUser,
     query: web::Query<PgAuditQuery>,
 ) -> Result<HttpResponse, AppError> {
@@ -505,8 +505,8 @@ pub async fn pgaudit_events(
         data_q = data_q.bind(class.clone());
     }
 
-    let total: i64 = count_q.fetch_one(&platform_pool.0).await.unwrap_or(0);
-    let rows = data_q.fetch_all(&platform_pool.0).await?;
+    let total: i64 = count_q.fetch_one(pool.get_ref()).await.unwrap_or(0);
+    let rows = data_q.fetch_all(pool.get_ref()).await?;
 
     let entries: Vec<serde_json::Value> = rows
         .iter()

@@ -31,17 +31,8 @@ pub struct TierLimits {
     pub max_calculated_markers: Option<i32>,
     pub max_templates: Option<i32>,
     pub max_medications: Option<i32>,
-    pub csv_export: bool,
-    pub json_export: bool,
-    pub custom_thresholds: bool,
-    pub lifestyle_presets: bool,
-    pub protocol_comparison: bool,
-    pub body_composition: bool,
-    pub supplement_marker_impact: bool,
-    pub ai_dashboard_insights: bool,
-    pub cohort_comparison: bool,
-    pub mfa_totp: bool,
-    pub api_access: bool,
+    // Sprint 044 #490 item 3: boolean feature fields removed.
+    // Feature gating is now via check_tier_feature() -> brickos.tier_features.
     // Per-agent chat limits
     pub chat_general_monthly: Option<i32>,
     pub chat_trends_monthly: Option<i32>,
@@ -138,10 +129,6 @@ pub async fn get_user_tier(pool: &PgPool, user_id: Uuid) -> Result<TierLimits, A
         r#"SELECT lt.slug, lt.name,
             lt.max_markers, lt.max_history_days, lt.max_calculated_markers,
             lt.max_templates, lt.max_medications,
-            lt.csv_export, lt.json_export, lt.custom_thresholds,
-            lt.lifestyle_presets, lt.protocol_comparison, lt.body_composition,
-            lt.supplement_marker_impact, lt.ai_dashboard_insights,
-            lt.cohort_comparison, lt.mfa_totp, lt.api_access,
             lt.chat_general_monthly, lt.chat_trends_monthly, lt.chat_labs_monthly,
             lt.chat_diet_monthly, lt.chat_supplements_monthly, lt.chat_protocols_monthly,
             lt.chat_lab_import_monthly, lt.chat_med_import_monthly,
@@ -222,17 +209,6 @@ pub async fn get_user_tier(pool: &PgPool, user_id: Uuid) -> Result<TierLimits, A
         max_calculated_markers: row.try_get("max_calculated_markers").ok().flatten(),
         max_templates: row.try_get("max_templates").ok().flatten(),
         max_medications: row.try_get("max_medications").ok().flatten(),
-        csv_export: row.try_get("csv_export").unwrap_or(false),
-        json_export: row.try_get("json_export").unwrap_or(false),
-        custom_thresholds: row.try_get("custom_thresholds").unwrap_or(false),
-        lifestyle_presets: row.try_get("lifestyle_presets").unwrap_or(false),
-        protocol_comparison: row.try_get("protocol_comparison").unwrap_or(false),
-        body_composition: row.try_get("body_composition").unwrap_or(false),
-        supplement_marker_impact: row.try_get("supplement_marker_impact").unwrap_or(false),
-        ai_dashboard_insights: row.try_get("ai_dashboard_insights").unwrap_or(false),
-        cohort_comparison: row.try_get("cohort_comparison").unwrap_or(false),
-        mfa_totp: row.try_get("mfa_totp").unwrap_or(false),
-        api_access: row.try_get("api_access").unwrap_or(false),
         chat_general_monthly: row.try_get("chat_general_monthly").ok().flatten(),
         chat_trends_monthly: row.try_get("chat_trends_monthly").ok().flatten(),
         chat_labs_monthly: row.try_get("chat_labs_monthly").ok().flatten(),
@@ -255,12 +231,9 @@ pub async fn get_user_tier(pool: &PgPool, user_id: Uuid) -> Result<TierLimits, A
 
 // NOTE: The old `check_feature` (Sprint 040 #467 shadow refactor) and
 // `check_feature_via_brickos_tier_features` were removed in Sprint 043
-// Phase A. They had zero callers -- the live feature gating path is
-// `check_tier_feature` (below at line ~1168) which queries
-// public.product_features + public.tier_features via `load_tier_features`.
-//
-// See #539 for the planned migration of `load_tier_features` to query
-// brickos.tier_features instead.
+// Phase A. The live feature gating path is `check_tier_feature` ->
+// `load_user_features` -> `load_tier_features`, which now queries
+// `brickos.tier_features` (Sprint 044 #539).
 
 /// Check and return per-agent chat quota
 pub async fn check_chat_quota(
@@ -639,10 +612,6 @@ async fn get_tier_by_slug(pool: &PgPool, slug: &str) -> Result<Option<TierLimits
         r#"SELECT slug, name,
             max_markers, max_history_days, max_calculated_markers,
             max_templates, max_medications,
-            csv_export, json_export, custom_thresholds,
-            lifestyle_presets, protocol_comparison, body_composition,
-            supplement_marker_impact, ai_dashboard_insights,
-            cohort_comparison, mfa_totp, api_access,
             chat_general_monthly, chat_trends_monthly, chat_labs_monthly,
             chat_diet_monthly, chat_supplements_monthly, chat_protocols_monthly,
             chat_lab_import_monthly, chat_med_import_monthly,
@@ -662,17 +631,6 @@ async fn get_tier_by_slug(pool: &PgPool, slug: &str) -> Result<Option<TierLimits
         max_calculated_markers: r.try_get("max_calculated_markers").ok().flatten(),
         max_templates: r.try_get("max_templates").ok().flatten(),
         max_medications: r.try_get("max_medications").ok().flatten(),
-        csv_export: r.try_get("csv_export").unwrap_or(false),
-        json_export: r.try_get("json_export").unwrap_or(false),
-        custom_thresholds: r.try_get("custom_thresholds").unwrap_or(false),
-        lifestyle_presets: r.try_get("lifestyle_presets").unwrap_or(false),
-        protocol_comparison: r.try_get("protocol_comparison").unwrap_or(false),
-        body_composition: r.try_get("body_composition").unwrap_or(false),
-        supplement_marker_impact: r.try_get("supplement_marker_impact").unwrap_or(false),
-        ai_dashboard_insights: r.try_get("ai_dashboard_insights").unwrap_or(false),
-        cohort_comparison: r.try_get("cohort_comparison").unwrap_or(false),
-        mfa_totp: r.try_get("mfa_totp").unwrap_or(false),
-        api_access: r.try_get("api_access").unwrap_or(false),
         chat_general_monthly: r.try_get("chat_general_monthly").ok().flatten(),
         chat_trends_monthly: r.try_get("chat_trends_monthly").ok().flatten(),
         chat_labs_monthly: r.try_get("chat_labs_monthly").ok().flatten(),
@@ -840,17 +798,6 @@ fn unlimited_tier(slug: &str) -> TierLimits {
         max_calculated_markers: None,
         max_templates: None,
         max_medications: None,
-        csv_export: true,
-        json_export: true,
-        custom_thresholds: true,
-        lifestyle_presets: true,
-        protocol_comparison: true,
-        body_composition: true,
-        supplement_marker_impact: true,
-        ai_dashboard_insights: is_admin,
-        cohort_comparison: is_admin,
-        mfa_totp: true,
-        api_access: true,
         chat_general_monthly: None,
         chat_trends_monthly: None,
         chat_labs_monthly: None,
@@ -922,11 +869,13 @@ pub async fn load_tier_features(
         });
     }
 
+    // Sprint 044 #539: query brickos.tier_features (canonical SSoT) instead of
+    // the legacy public.product_features JOIN public.tier_features.
+    // Strip 'shi.' prefix so downstream callers keep using short keys (e.g. "csv_export").
     let rows = sqlx::query(
-        r#"SELECT pf.feature_key, tf.included, tf.limit_value
-           FROM tier_features tf
-           JOIN product_features pf ON pf.id = tf.feature_id
-           WHERE tf.tier_key = $1 AND pf.status IN ('active', 'coming_soon')"#,
+        r#"SELECT feature_slug, included, limit_value
+           FROM brickos.tier_features
+           WHERE tier_slug = $1 AND feature_slug LIKE 'shi.%'"#,
     )
     .bind(tier_slug)
     .fetch_all(pool)
@@ -934,9 +883,14 @@ pub async fn load_tier_features(
 
     let mut features = std::collections::HashMap::new();
     for row in rows {
-        let key: String = row.try_get("feature_key").unwrap_or_default();
+        let slug: String = row.try_get("feature_slug").unwrap_or_default();
+        let key = slug.strip_prefix("shi.").unwrap_or(&slug).to_string();
         let included: bool = row.try_get("included").unwrap_or(false);
-        let limit_value: Option<i32> = row.try_get("limit_value").ok().flatten();
+        let limit_value: Option<i32> = row
+            .try_get::<Option<i64>, _>("limit_value")
+            .ok()
+            .flatten()
+            .map(|v| v as i32);
         features.insert(
             key,
             TierFeatureEntry {
@@ -1079,16 +1033,17 @@ pub async fn check_tier_limit(
 }
 
 /// Find the lowest tier that includes a feature (dynamic, no hardcoded mapping).
+/// Sprint 044 #539: queries brickos.tier_features with shi. prefix.
 async fn find_required_tier(pool: &PgPool, feature_key: &str) -> Result<String, AppError> {
+    let namespaced = format!("shi.{}", feature_key);
     let slug: Option<String> = sqlx::query_scalar(
-        r#"SELECT tf.tier_key
-           FROM tier_features tf
-           JOIN product_features pf ON pf.id = tf.feature_id
-           WHERE pf.feature_key = $1 AND tf.included = true
-           ORDER BY array_position(ARRAY['glimpse','focus','insight','clarity','horizon'], tf.tier_key)
+        r#"SELECT tier_slug
+           FROM brickos.tier_features
+           WHERE feature_slug = $1 AND included = true
+           ORDER BY array_position(ARRAY['glimpse','focus','insight','clarity','horizon'], tier_slug)
            LIMIT 1"#,
     )
-    .bind(feature_key)
+    .bind(&namespaced)
     .fetch_optional(pool)
     .await?;
 
@@ -1325,17 +1280,6 @@ fn default_glimpse_tier() -> TierLimits {
         max_calculated_markers: Some(1),
         max_templates: Some(1),
         max_medications: Some(2),
-        csv_export: false,
-        json_export: false,
-        custom_thresholds: false,
-        lifestyle_presets: false,
-        protocol_comparison: false,
-        body_composition: false,
-        supplement_marker_impact: false,
-        ai_dashboard_insights: false,
-        cohort_comparison: false,
-        mfa_totp: false,
-        api_access: false,
         chat_general_monthly: Some(1),
         chat_trends_monthly: Some(0),
         chat_labs_monthly: Some(0),

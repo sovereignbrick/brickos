@@ -587,14 +587,97 @@ git_promote() {
     info "  3. Push:   bash ops/deploy.sh git"
 }
 
+# ── Transfer Docker image via chunked scp ────────────────────────────────────
+# Sprint 044 #540: Replaces `docker save | ssh docker load` which breaks on
+# images >100MB due to SSH pipe instability (3 failed production deploys in
+# Sprint 043). Uses file-based transfer with gzip + split + scp.
+#
+# Usage: transfer_image <image:tag>
+#   Example: transfer_image sovereignbrick/shi-api:latest
+
+transfer_image() {
+    local full_image="$1"
+    local safe_name
+    safe_name=$(echo "$full_image" | tr '/:' '_')
+    local tmp_local="/tmp/shi-deploy-${safe_name}"
+    local tmp_remote="/tmp/shi-deploy-${safe_name}"
+    local archive="${tmp_local}.tar.gz"
+    local chunk_prefix="${tmp_local}_chunk_"
+    local chunk_size="50m"  # 50MB chunks
+
+    # Save and compress
+    log "Saving ${full_image} to ${archive}..."
+    docker save "$full_image" | gzip > "$archive"
+    local archive_size
+    archive_size=$(du -m "$archive" | cut -f1)
+    log "Archive size: ${archive_size}MB"
+
+    if [ "$archive_size" -gt 100 ]; then
+        # Chunked transfer for large images
+        log "Splitting into ${chunk_size} chunks..."
+        split -b "$chunk_size" -d "$archive" "$chunk_prefix"
+        local chunk_count
+        chunk_count=$(ls "${chunk_prefix}"* 2>/dev/null | wc -l)
+        log "Transferring ${chunk_count} chunks to VPS..."
+
+        local i=0
+        for chunk in "${chunk_prefix}"*; do
+            i=$((i + 1))
+            log "  Chunk ${i}/${chunk_count}: $(basename "$chunk") ($(du -m "$chunk" | cut -f1)MB)"
+            scp -o ServerAliveInterval=10 -o ServerAliveCountMax=3 "$chunk" "${VPS}:${chunk}" || {
+                warn "Chunk transfer failed, retrying..."
+                scp -o ServerAliveInterval=10 -o ServerAliveCountMax=3 "$chunk" "${VPS}:${chunk}" || fail "Chunk transfer failed after retry: $(basename "$chunk")"
+            }
+        done
+
+        # Reassemble and load on VPS
+        log "Reassembling and loading on VPS..."
+        ssh $VPS "cat ${chunk_prefix}* > ${archive} && gunzip -c ${archive} | docker load && rm -f ${chunk_prefix}* ${archive}"
+    else
+        # Direct transfer for smaller images
+        log "Transferring ${archive_size}MB to VPS..."
+        scp -o ServerAliveInterval=10 -o ServerAliveCountMax=3 "$archive" "${VPS}:${archive}" || {
+            warn "Transfer failed, retrying..."
+            scp -o ServerAliveInterval=10 -o ServerAliveCountMax=3 "$archive" "${VPS}:${archive}" || fail "Transfer failed after retry"
+        }
+
+        log "Loading image on VPS..."
+        ssh $VPS "gunzip -c ${archive} | docker load && rm -f ${archive}"
+    fi
+
+    # Clean up local temp files
+    rm -f "$archive" "${chunk_prefix}"* 2>/dev/null || true
+    log "Image transferred: ${full_image}"
+}
+
+# ── Sync compose files to VPS ────────────────────────────────────────────────
+# Sprint 044 #541: Ensures VPS compose files always match the repo. Without
+# this, image name changes in compose files don't take effect until manually
+# copied, causing silent deploy failures (Sprint 043 incident).
+#
+# Syncs: docker-compose.{prod,staging}.yml to /opt/sovereign-health/
+
+sync_compose_files() {
+    local ops_dir="${APP_ROOT}/ops"
+    log "Syncing compose files to VPS..."
+
+    scp -o ServerAliveInterval=10 \
+        "${ops_dir}/docker-compose.prod.yml" \
+        "${ops_dir}/docker-compose.staging.yml" \
+        "${VPS}:${VPS_BASE}/"
+
+    log "Compose files synced to VPS"
+    report_add "OK" "Compose files synced to VPS"
+}
+
 # ══════════════════════════════════════════════════════════════════════════════
 # BUILD & DEPLOY FUNCTIONS
 # ══════════════════════════════════════════════════════════════════════════════
 
 # ── Backend ──────────────────────────────────────────────────────────────────
 # Builds the Rust backend Docker image locally, transfers it to VPS via
-# 'docker save | ssh docker load' (no registry needed), then restarts
-# the container on the VPS.
+# chunked scp (#540), syncs compose files (#541), then restarts the
+# container on the VPS.
 
 deploy_backend() {
     local env="$1"  # "staging" or "production"
@@ -630,10 +713,14 @@ deploy_backend() {
     fi
     docker build $cache_flag -f apps/health/sovereign-health/api/Dockerfile -t "${BACKEND_IMAGE}:${image_tag}" .
 
-    log "Transferring backend to VPS..."
-    docker save "${BACKEND_IMAGE}:${image_tag}" | ssh $VPS "docker load"
+    # Remove old image on VPS before loading new one (prevents stale cached layers)
+    ssh $VPS "docker rmi -f ${BACKEND_IMAGE}:${image_tag} 2>/dev/null || true"
 
+    transfer_image "${BACKEND_IMAGE}:${image_tag}"
     verify_image_loaded "$BACKEND_IMAGE" "$image_tag"
+
+    # Sync compose files so VPS image names match what we just built
+    sync_compose_files
 
     # Backup staging DB before restart (migrations run on startup)
     if [ "$env" = "staging" ]; then
@@ -683,7 +770,7 @@ REPAIR_EOF
     docker image prune -f >/dev/null 2>&1 || true
 
     log "Backend ($env) deployed."
-    report_add "OK" "Backend built, transferred, restarted ($env, tag: $image_tag)"
+    report_add "OK" "Backend built, chunked-scp transferred, restarted ($env, tag: $image_tag)"
     notify "Backend deployed to ${env}" "v${VERSION} — container recreated at $(date -u '+%H:%M UTC')" 2 "info" "rocket,${env}"
 }
 
@@ -732,10 +819,14 @@ deploy_frontend() {
         -f apps/health/sovereign-health/frontend/Dockerfile \
         -t "${FRONTEND_IMAGE}:${image_tag}" .
 
-    log "Transferring frontend to VPS..."
-    docker save "${FRONTEND_IMAGE}:${image_tag}" | ssh $VPS "docker load"
+    # Remove old image on VPS before loading new one
+    ssh $VPS "docker rmi -f ${FRONTEND_IMAGE}:${image_tag} 2>/dev/null || true"
 
+    transfer_image "${FRONTEND_IMAGE}:${image_tag}"
     verify_image_loaded "$FRONTEND_IMAGE" "$image_tag"
+
+    # Sync compose files so VPS image names match
+    sync_compose_files
 
     log "Restarting frontend ($env) on VPS..."
     if [ "$env" = "staging" ]; then
@@ -748,7 +839,7 @@ deploy_frontend() {
     docker image prune -f >/dev/null 2>&1 || true
 
     log "Frontend ($env) deployed."
-    report_add "OK" "Frontend built, transferred, restarted ($env, API: $api_url)"
+    report_add "OK" "Frontend built, chunked-scp transferred, restarted ($env, API: $api_url)"
     notify "Frontend deployed to ${env}" "v${VERSION} — API: ${api_url}" 2 "info" "rocket,${env}"
 }
 
@@ -766,8 +857,10 @@ deploy_postgres() {
     cd "$APP_ROOT/ops"
     docker build -f postgres/Dockerfile -t "${POSTGRES_IMAGE}:latest" postgres/
 
-    log "Transferring postgres image to VPS..."
-    docker save "${POSTGRES_IMAGE}:latest" | ssh $VPS "docker load"
+    # Remove old image on VPS before loading new one
+    ssh $VPS "docker rmi -f ${POSTGRES_IMAGE}:latest 2>/dev/null || true"
+
+    transfer_image "${POSTGRES_IMAGE}:latest"
 
     log "Pruning local Docker build cache..."
     docker builder prune -f --filter "until=24h" >/dev/null 2>&1 || true
