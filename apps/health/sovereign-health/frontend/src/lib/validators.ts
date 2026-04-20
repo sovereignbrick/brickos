@@ -1,5 +1,14 @@
 import { z } from 'zod'
 
+// Sprint 047 #584: disable zod v4's JIT object-schema compilation. The JIT
+// path uses `new Function(...)` to build fast parsers, which trips our
+// `script-src 'self' 'unsafe-inline'` CSP. Zod gracefully falls back to
+// the interpreted parser when the eval is blocked, but the browser still
+// logs a CSP violation on every page that imports a schema (login,
+// doctor-chat). jitless keeps the fallback path and silences the warning
+// at a minor parse-time cost. See zod $ZodConfig.jitless docstring.
+z.config({ jitless: true })
+
 export const signupSchema = z.object({
   email: z.string().email('Invalid email address'),
   password: z
