@@ -113,10 +113,23 @@ function SettingsContent() {
   const pathname = usePathname()
   const tabParam = searchParams.get('tab')
 
-  // Sprint 042 user feedback: keep the production default landing tab
-  // ("Health profile") so existing bookmarks land where they always did.
-  const defaultTab: Tab = 'Health profile'
-  const resolvedTab: Tab = TAB_SLUGS[tabParam ?? ''] ?? defaultTab
+  // Sprint 046 hotfix 2026-04-20 (round 7): default tab depends on plane.
+  // End-user plane: "Health profile" (Sprint 042 default -- existing
+  // bookmarks still land where they always did).
+  // Admin plane: "Account" -- the SHI extension tabs are hidden from the
+  // tab bar, but the previously-default "Health profile" tab was still
+  // being RENDERED via resolvedTab, so users on brickos.io/settings saw a
+  // mismatched tab bar (Account/Security/Privacy) sitting above a
+  // Health-profile form with Gender / Height / Waist / Diet Protocol etc.
+  //
+  // Also: if ?tab=<slug> resolves to a tab that the current plane hides,
+  // snap back to the plane's default so we never render hidden content.
+  const currentPlaneEarly = getPlane(typeof window !== 'undefined' ? window.location.hostname : '')
+  const defaultTab: Tab = currentPlaneEarly === 'admin' ? 'Account' : 'Health profile'
+  const requestedTab: Tab = TAB_SLUGS[tabParam ?? ''] ?? defaultTab
+  const resolvedTab: Tab = currentPlaneEarly === 'admin' && !(MASTER_TABS as readonly Tab[]).includes(requestedTab)
+    ? 'Account'
+    : requestedTab
   const tab: Tab = resolvedTab
 
   const setTab = useCallback((t: Tab) => {

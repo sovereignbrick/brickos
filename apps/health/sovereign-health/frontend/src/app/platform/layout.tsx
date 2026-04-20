@@ -583,14 +583,20 @@ export default function PlatformLayout({ children }: { children: React.ReactNode
 
         {/* Main content */}
         <div className="flex-1 min-w-0 overflow-x-hidden flex flex-col">
-          {/* Top header with app switcher + user profile */}
+          {/* Top header with app switcher + user profile.
+              Sprint 046 hotfix 2026-04-20 (round 7): removed the legacy
+              "Health" link to /sovereignhealth/ -- that path is from
+              Design 015's path-mount era and no longer exists. The
+              profile dropdown already has "Open Sovereign Health \u2197"
+              as the canonical cross-plane jump. Multi-app URL routing
+              (#577 / Design 027) will replace this header app switcher
+              with a proper per-app tab list. */}
           <header className="h-14 border-b border-zinc-800 flex items-center justify-between px-4 sm:px-6 shrink-0">
             <nav className="flex items-center gap-1">
               {[
                 { label: 'Platform', href: '/platform', active: pathname.startsWith('/platform') && !pathname.startsWith('/platform/apps') },
-                { label: 'Health', href: '/sovereignhealth/', active: false },
                 { label: 'Links', href: '/platform/links', active: pathname === '/platform/links' },
-                { label: 'Voice', href: '/platform/apps', active: false },
+                { label: 'Apps', href: '/platform/apps', active: pathname === '/platform/apps' },
               ].map(app => (
                 <Link
                   key={app.label}

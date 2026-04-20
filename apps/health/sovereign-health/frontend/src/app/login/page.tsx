@@ -288,12 +288,15 @@ function LoginContent() {
           {orgLogo ? (
             <Image src={orgLogo} alt={displayName} width={64} height={64} className="rounded-lg object-contain" unoptimized />
           ) : (
-            // Sprint 046 #11 hotfix: use the BrickOS cube as the default
-            // login logo on brickos.io subdomains; keep /logo.png (SHI) on
-            // sovereignhealth.io and elsewhere.
+            // Sprint 046 #11 hotfix (round 7): use the existing useBrand()
+            // hook -- it reads the brand_context cookie set by middleware
+            // so the BrickOS cube appears on brickos.io hosts without an
+            // SSR/CSR hydration mismatch. A raw `typeof window` check fails
+            // because Next.js renders SSR with no window, producing /logo.png,
+            // then the client keeps that value across hydration.
             <Image
-              src={typeof window !== 'undefined' && window.location.hostname.endsWith('.brickos.io') ? '/brickos-cube.png' : '/logo.png'}
-              alt={displayName}
+              src={brand.logo}
+              alt={brand.logoAlt}
               width={64}
               height={64}
               className="rounded-lg"
