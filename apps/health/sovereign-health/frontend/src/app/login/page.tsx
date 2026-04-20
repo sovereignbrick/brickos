@@ -12,6 +12,7 @@ import { useTranslations } from 'next-intl'
 import Image from 'next/image'
 import { useBrand } from '@/lib/brand'
 import { useOrg, getOrgLogo } from '@/lib/org-context'
+import { getPlane } from '@/lib/plane'
 
 function MfaVerifyForm({
   mfaToken,
@@ -208,6 +209,13 @@ function LoginContent() {
         }
       }
     } catch {}
+    // Sprint 045 #564: default landing depends on plane. End users land on
+    // /dashboard (SHI app); org admins on {slug}.brickos.io land on /org.
+    // PlaneGate would otherwise bounce /dashboard off the admin plane.
+    if (typeof window !== 'undefined') {
+      const plane = getPlane(window.location.hostname)
+      if (plane === 'admin') return '/org'
+    }
     return '/dashboard'
   }
 
