@@ -1,7 +1,7 @@
 ---
 number: 584
 title: "bug: CSP violation 'unsafe-eval' from chunked JS on /login and /doctor-chat"
-milestone: "Sprint 046 -- Unified Admin Home"
+milestone: "Sprint 047 -- Multi-App URL Routing + Stability"
 labels: [bug, csp, security, p2]
 created: 2026-04-20
 priority: P2

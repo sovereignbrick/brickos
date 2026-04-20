@@ -1,7 +1,7 @@
 ---
 number: 569
 title: "ops: rotate certbot-sovereignhealth-dns01 API token (pasted in chat)"
-milestone: "Sprint 045 -- Domain Realignment"
+milestone: "Sprint 047 -- Multi-App URL Routing + Stability"
 labels: [ops, security, p1]
 created: 2026-04-19
 priority: P1

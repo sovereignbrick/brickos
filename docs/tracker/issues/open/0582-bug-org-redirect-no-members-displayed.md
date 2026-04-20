@@ -1,7 +1,7 @@
 ---
 number: 582
 title: "bug: /org -> /platform/org redirect works but landing page shows 0 members"
-milestone: "Sprint 046 -- Unified Admin Home"
+milestone: "Sprint 047 -- Multi-App URL Routing + Stability"
 labels: [bug, frontend, p1]
 created: 2026-04-20
 priority: P1

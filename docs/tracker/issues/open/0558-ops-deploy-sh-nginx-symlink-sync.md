@@ -1,7 +1,7 @@
 ---
 number: 558
 title: "ops: deploy.sh nginx sync is a silent no-op (sites-enabled is a stale copy)"
-milestone: "Sprint 044 -- White-Label Go-Live"
+milestone: "Sprint 047 -- Multi-App URL Routing + Stability"
 labels: [ops, deploy, p1, bug]
 created: 2026-04-19
 priority: P1

@@ -1,7 +1,7 @@
 ---
 number: 578
 title: "test: e2e fixture -- a test-clinic member user so authed Sprint 046 tests run"
-milestone: "Sprint 046 -- Unified Admin Home"
+milestone: "Sprint 047 -- Multi-App URL Routing + Stability"
 labels: [test, e2e, p2]
 created: 2026-04-20
 priority: P2

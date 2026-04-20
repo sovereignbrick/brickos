@@ -1,7 +1,7 @@
 ---
 number: 583
 title: "feat: multi-language email templates per org"
-milestone: "Sprint 048+ -- Backlog"
+milestone: "Sprint 047 -- Multi-App URL Routing + Stability"
 labels: [feat, backend, frontend, i18n, p2]
 created: 2026-04-20
 priority: P2
