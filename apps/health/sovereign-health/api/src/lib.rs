@@ -38,6 +38,15 @@ pub mod templates;
 pub const VERSION: &str = "0.43.0";
 pub const SERVICE_NAME: &str = "sovereign-health-backend";
 
+/// Sprint 047 #586: unique per-build identifier stamped by the Dockerfile at
+/// image build time via `ARG BUILD_ID`. Defaults to "dev" for local builds
+/// without the arg. Exposed via `/health` so the frontend can detect stale
+/// cached bundles and prompt a refresh.
+pub const BUILD_ID: &str = match option_env!("BUILD_ID") {
+    Some(s) => s,
+    None => "dev",
+};
+
 /// Platform database pool (brickos DB -- users, orgs, billing, service accounts).
 /// Distinguished from the app pool (health DB) via newtype pattern.
 #[derive(Clone)]
@@ -48,6 +57,9 @@ pub struct HealthResponse {
     pub status: String,
     pub service: String,
     pub version: String,
+    /// Sprint 047 #586: unique per-build id. Frontend compares against the
+    /// baked-in NEXT_PUBLIC_BUILD_ID and shows a refresh banner on mismatch.
+    pub build: String,
     pub timestamp: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub mode: Option<String>,

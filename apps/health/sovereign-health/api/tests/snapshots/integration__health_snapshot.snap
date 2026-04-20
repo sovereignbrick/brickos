@@ -12,7 +12,8 @@ expression: body
     "provider": "Anthropic",
     "purpose": "Health data analysis and personalized insights"
   },
+  "build": "dev",
   "service": "sovereign-health-backend",
   "status": "ok",
-  "version": "0.42.0"
+  "version": "0.43.0"
 }

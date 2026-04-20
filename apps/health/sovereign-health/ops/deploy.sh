@@ -732,7 +732,15 @@ deploy_backend() {
     if [ "$env" = "production" ]; then
         cache_flag="--no-cache"
     fi
-    docker build $cache_flag -f apps/health/sovereign-health/api/Dockerfile -t "${BACKEND_IMAGE}:${image_tag}" .
+    # Sprint 047 #586: stamp the image with a short git SHA. Backend exposes
+    # this as `build` on /health; the frontend bakes the same SHA into
+    # NEXT_PUBLIC_BUILD_ID and shows a refresh banner on mismatch.
+    local build_sha
+    build_sha=$(git -C "$PROJECT_ROOT" rev-parse --short HEAD 2>/dev/null || echo "unknown")
+    docker build $cache_flag \
+        --build-arg BUILD_ID="$build_sha" \
+        -f apps/health/sovereign-health/api/Dockerfile \
+        -t "${BACKEND_IMAGE}:${image_tag}" .
 
     # Remove old image on VPS before loading new one (prevents stale cached layers)
     ssh $VPS "docker rmi -f ${BACKEND_IMAGE}:${image_tag} 2>/dev/null || true"
@@ -833,9 +841,15 @@ deploy_frontend() {
         demo_host_arg="--build-arg NEXT_PUBLIC_DEMO_HOSTNAME=public-demo.sovereignhealth.io"
     fi
 
+    # Sprint 047 #586: bake the same short git SHA into the client bundle
+    # so the refresh-banner poll can compare NEXT_PUBLIC_BUILD_ID against
+    # /health's `build`.
+    local build_sha
+    build_sha=$(git -C "$PROJECT_ROOT" rev-parse --short HEAD 2>/dev/null || echo "unknown")
     docker build \
         --build-arg NEXT_PUBLIC_API_URL="$api_url" \
         --build-arg NEXT_PUBLIC_ENVIRONMENT="$env" \
+        --build-arg NEXT_PUBLIC_BUILD_ID="$build_sha" \
         $demo_host_arg \
         -f apps/health/sovereign-health/frontend/Dockerfile \
         -t "${FRONTEND_IMAGE}:${image_tag}" .

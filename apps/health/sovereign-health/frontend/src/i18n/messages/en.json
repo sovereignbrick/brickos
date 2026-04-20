@@ -1675,6 +1675,10 @@
     "drAlex": "Dr. Alex AI chat",
     "labImport": "Lab result import"
   },
+  "refresh": {
+    "message": "A newer version of the app is available.",
+    "action": "Reload now"
+  },
   "graceBanner": {
     "title": "Your subscription failed",
     "messageDays": "You have {days} days until you are downgraded to Glimpse.",

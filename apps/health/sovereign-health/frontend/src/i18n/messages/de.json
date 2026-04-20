@@ -1675,6 +1675,10 @@
     "drAlex": "Dr. Alex KI-Chat",
     "labImport": "Laborbefund-Import"
   },
+  "refresh": {
+    "message": "Eine neuere Version der App ist verfügbar.",
+    "action": "Jetzt neu laden"
+  },
   "graceBanner": {
     "title": "Ihre Zahlung ist fehlgeschlagen",
     "messageDays": "Sie haben noch {days} Tage, bevor Sie auf Glimpse herabgestuft werden.",

@@ -59,6 +59,12 @@ COPY apps/data/sovereign-crm/api ./apps/data/sovereign-crm/api
 # Stub fuzz target
 RUN mkdir -p apps/health/sovereign-health/api/fuzz/fuzz_targets \
     && echo 'fn main(){}' > apps/health/sovereign-health/api/fuzz/fuzz_targets/fuzz_health.rs
+# Sprint 047 #586: stamp the build with a short git SHA so the frontend can
+# detect stale cached bundles. deploy.sh passes --build-arg BUILD_ID=$(git
+# rev-parse --short HEAD); local builds without the arg fall through to the
+# "dev" default in lib.rs via option_env!.
+ARG BUILD_ID
+ENV BUILD_ID=${BUILD_ID}
 RUN cargo build --release -p sovereign-health-backend
 
 # ── Runtime stage ────────────────────────────────────────────────────────────

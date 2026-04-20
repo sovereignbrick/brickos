@@ -7,7 +7,7 @@ use sqlx::PgPool;
 use crate::config::Config;
 use crate::{
     AiSystemInfo, HealthCheckResult, HealthChecks, HealthResponse, HelloResponse, PlatformPool,
-    SERVICE_NAME, VERSION,
+    BUILD_ID, SERVICE_NAME, VERSION,
 };
 
 fn ai_system_info() -> AiSystemInfo {
@@ -69,6 +69,7 @@ pub async fn health(
             status: overall_status.to_string(),
             service: SERVICE_NAME.to_string(),
             version: VERSION.to_string(),
+            build: BUILD_ID.to_string(),
             timestamp: Utc::now().to_rfc3339(),
             mode,
             checks: Some(HealthChecks {
@@ -88,6 +89,7 @@ pub async fn health(
             status: "ok".to_string(),
             service: SERVICE_NAME.to_string(),
             version: VERSION.to_string(),
+            build: BUILD_ID.to_string(),
             timestamp: Utc::now().to_rfc3339(),
             mode,
             checks: None,

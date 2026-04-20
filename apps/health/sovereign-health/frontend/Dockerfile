@@ -29,9 +29,15 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ARG NEXT_PUBLIC_API_URL=https://api.sovereignhealth.io
 ARG NEXT_PUBLIC_APP_NAME=Sovereign Health Intelligence
 ARG NEXT_PUBLIC_DEMO_HOSTNAME=demo.sovereignhealth.io
+# Sprint 047 #586: build-id baked into the client bundle so it can be
+# compared against /health's `build` at runtime. deploy.sh passes the same
+# short git SHA for frontend + backend; a mismatch means the user is on a
+# cached bundle and we surface a refresh banner.
+ARG NEXT_PUBLIC_BUILD_ID=dev
 ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
 ENV NEXT_PUBLIC_APP_NAME=${NEXT_PUBLIC_APP_NAME}
 ENV NEXT_PUBLIC_DEMO_HOSTNAME=${NEXT_PUBLIC_DEMO_HOSTNAME}
+ENV NEXT_PUBLIC_BUILD_ID=${NEXT_PUBLIC_BUILD_ID}
 RUN pnpm build
 
 # ── Runtime stage ──────────────────────────────────────────────────────────────

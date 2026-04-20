@@ -40,6 +40,7 @@ import { InstallProvider } from '@/lib/install-context'
 import { OfflineProvider } from '@/lib/offline-context'
 import { OfflineBanner } from '@/components/offline-banner'
 import { GraceBanner } from '@/components/grace-banner'
+import { RefreshBanner } from '@/components/refresh-banner'
 import { SyncProvider } from '@/lib/sync-context'
 import { PushProvider } from '@/lib/push-context'
 import { OrgContextProvider } from '@/lib/org-context'
@@ -154,6 +155,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 <Suspense>
                   <DemoProfileProvider>
                     <OfflineBanner />
+                    <RefreshBanner />
                     <GraceBanner />
                     {process.env.NEXT_PUBLIC_ENVIRONMENT === 'staging' && (
                       <div className="fixed top-0 left-0 z-[9999] pointer-events-none">
