@@ -1,0 +1,3 @@
+
+# Playwright storage state (session cookies) -- machine-local, per #542
+.auth/
