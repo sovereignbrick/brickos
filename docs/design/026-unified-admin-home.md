@@ -98,11 +98,13 @@ The same `/platform` route tree on both planes, with sidebar items gated by role
 │  ORGANIZATION                                │  ← was /org/*
 │   ⚞  General                                 │  → /platform/org/general
 │   ❀  Branding                                │  → /platform/org/branding
-│   ☺  Members                                 │  → /platform/org/members
 │   ☁  Domains                                 │  → /platform/org/domains
 │   ❤  Affiliate                               │  → /platform/org/affiliate
 │   ⚬  Billing                                 │  → /platform/org/billing
 │   ≡  Analytics                               │  → /platform/org/analytics
+│                                              │
+│  PEOPLE                                      │  ← unified members list
+│   ☺  Members                                 │  → /platform/members (orgFilter locked)
 │                                              │
 │  APPS                                        │  ← installed for this org
 │   ▦  App Overview                            │  → /platform/apps
@@ -142,7 +144,7 @@ And what a **platform admin** sees on `app.brickos.io/platform`:
 │   ↑  Deploy                                  │
 │                                              │
 │  ORGANIZATION  (scoped to filter)            │  ← when orgFilter != "all"
-│   ⚞ General / ❀ Branding / ☺ Members         │
+│   ⚞ General / ❀ Branding                     │
 │   ☁ Domains / ⚬ Billing / ≡ Analytics        │
 │                                              │
 │  APPS  (scoped to appFilter)                 │
@@ -251,8 +253,10 @@ This also lets the app appear / disappear in the nav when an org toggles the app
 ## Resolved decisions (2026-04-20)
 
 1. **`/admin` BC**: hard-remove, no redirect window. No users, no bookmarks to preserve.
-2. **Platform admin on org subdomain**: sees the PLATFORM section with a persistent top banner: "Viewing as platform admin on {OrgName}'s subdomain." Dismissable per session.
-3. **App entitlements**: show app sub-section if the app is *available* for install, even if not yet enabled. Greyed-out state with "Enable" CTA. Drives upsell + discoverability.
+2. **Platform admin on org subdomain**: sees the PLATFORM section with a persistent **branded** top banner:
+   `"BrickOS admin · scope: {OrgName}     [← Back to all orgs]"`
+   The link returns to `app.brickos.io/platform` (resetting orgFilter). Dismissable per session but reappears on the next visit.
+3. **App entitlements**: all registered apps are VISIBLE in the APPS section. Licensing (install) is controlled by BrickOS platform admin via `brickos-licensing`, not by the org admin. Unlicensed apps render greyed-out with a "Licensed by BrickOS" tag (no self-serve Enable button). Licensed apps are interactive. Rationale: licensing is a commercial decision, not a feature flag the org can toggle.
 4. **App naming**: user-facing labels use "Sovereign Health", "Sovereign Link", "Sovereign Voice", etc. -- NOT "SHI" abbreviation. Internal package/crate names stay as today (`sovereign-health-backend`, `shi-web` Docker tag, etc.).
 5. **Mobile + PWA**: the unified `/platform` layout MUST work on narrow viewports and inside the installed PWA. Existing `/platform` mobile sheet is the starting point; extend to cover nested APPS sub-sections (collapse on tap, restore on re-visit).
 6. **Shared SSO across planes**: **deferred to Sprint 047+**. Two-session default (cookies scoped per plane) ships in Sprint 046. See "Cross-plane SSO tradeoffs" below. A dedicated issue tracks the future decision gate.

@@ -63,27 +63,29 @@ Internal symbols + package names (`sovereign-health-backend`, `shi-web` Docker t
 
 `platform/layout.tsx`:
 - Import the registry
-- In `buildNavItems()`, after ORGANIZATION section, iterate the registry
-- For each app:
-  - If `visibleWhen === 'installed'`: only render if the org has the app entitlement
-  - If `visibleWhen === 'available'`: render greyed-out with "Enable" CTA that links to a future "Install app" flow (stub `/platform/org/apps/enable?app={appKey}` for now -- 404 is fine)
-- Role gates from the item's `roles: []` already handled
+- In `buildNavItems()`, after ORGANIZATION + PEOPLE sections, iterate the registry
+- For each registered app, ALWAYS render the app's sub-section (all apps are "available" per decision 2026-04-20)
+- Interactive vs greyed-out depends on the org's licensing entitlement:
+  - **Licensed** -> items render normally, links active
+  - **Not licensed** -> items render greyed + non-clickable, with a "Licensed by BrickOS" tag next to the app label. NO "Enable" button -- licensing is a commercial decision controlled by BrickOS platform admin via `brickos-licensing`, not self-serve.
+- Role gates from the item's `roles: []` still apply on top (e.g. a platform-admin-only item stays hidden from org_owners)
 
 ### 5. Entitlement lookup
 
 Add `useOrgEntitlements()` hook that reads from `/api/v1/org/entitlements` (or extends the existing branding call). Returns a `Set<appKey>`. Cache + refresh on org switch.
 
-If the backend doesn't have an entitlements endpoint yet, emit a minimal one that returns the org's currently active app-license slugs.
+If the backend doesn't have an entitlements endpoint yet, emit a minimal one that returns the org's currently active app-license slugs from `brickos-licensing`. This is the authoritative source -- the frontend must NOT have a secondary "installed flag".
 
 ## Acceptance
 
-- Adding a new app = one new file under `src/lib/admin-nav/apps/` + optional entitlement flag on the backend. No platform layout edits.
+- Adding a new app = one new file under `src/lib/admin-nav/apps/`. No platform layout edits.
 - Org owner on `{slug}.brickos.io/platform` sees:
-  - ORGANIZATION section (from #570)
-  - APPS section:
-    - Sovereign Health (installed; sub-items expanded)
-    - Sovereign Link (available, greyed + Enable)
-    - Sovereign Voice (available, greyed + Enable)
-- Platform admin on `app.brickos.io/platform` sees the same APPS section + PLATFORM section
-- No occurrence of "SHI" in the admin nav user-facing strings (grep the locale files)
+  - ORGANIZATION + PEOPLE sections (from #570)
+  - APPS section listing ALL registered apps:
+    - Sovereign Health (licensed; items active)
+    - Sovereign Link (not licensed; items greyed; "Licensed by BrickOS" tag)
+    - Sovereign Voice (not licensed; items greyed; "Licensed by BrickOS" tag)
+- Platform admin on `app.brickos.io/platform` sees the same APPS section + PLATFORM section; on an org subdomain, also sees the branded "BrickOS admin · scope: {OrgName}" banner
+- No occurrence of "SHI" in the admin nav user-facing strings (grep locale files)
 - Entitlement hook returns a valid set for `test-clinic` on staging
+- A user without a valid role for any item in an app's sub-section doesn't see that app's sub-section at all
