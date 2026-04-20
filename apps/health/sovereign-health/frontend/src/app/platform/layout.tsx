@@ -29,14 +29,19 @@ interface NavItem {
 
 function buildNavItems(t: (key: string) => string): NavItem[] {
   const p = (ctx: AdminContextType) => ctx.isPlatform
-  // Sprint 046 hotfix: include isPlatform in the "o" predicate so platform
-  // admins viewing an org subdomain still see the ORGANIZATION + PEOPLE nav
-  // sections. Without this a platform_admin visiting {slug}.brickos.io/platform
-  // saw nothing under those headings.
+  // Sprint 046 hotfix 2026-04-20: org-scoped predicate for ORGANIZATION +
+  // PEOPLE + APPS sections. Any org role (or platform admin) sees these.
   const o = (ctx: AdminContextType) => ctx.isPlatform || ctx.isOrgOwner || ctx.isTechAdmin || ctx.isCommercialAdmin
-  const tech = (ctx: AdminContextType) => ctx.isPlatform || ctx.isOrgOwner || ctx.isTechAdmin
-  const comm = (ctx: AdminContextType) => ctx.isPlatform || ctx.isOrgOwner || ctx.isCommercialAdmin
-  const any = (ctx: AdminContextType) => ctx.isPlatform || ctx.isOrgOwner || ctx.isTechAdmin || ctx.isCommercialAdmin
+  // PLATFORM-WIDE items (CONTENT / OPS / SECURITY / COMMERCE / platform LINKS)
+  // must be gated on isPlatform only. Previously these used `tech`, `comm`,
+  // `any` predicates that included isOrgOwner, which leaked platform-wide
+  // nav into the org_owner view on {slug}.brickos.io/platform.
+  // Org-level tech / commercial admin roles don't currently have
+  // platform-wide visibility -- if per-org tech/commercial views are added
+  // later, re-introduce narrower predicates then.
+  const tech = p
+  const comm = p
+  const any = p
 
   return [
     // Overview
@@ -603,6 +608,25 @@ export default function PlatformLayout({ children }: { children: React.ReactNode
               <UserProfileMenu user={user} />
             </div>
           </header>
+
+          {/* Sprint 046 #14 hotfix: platform-admin scope banner. Visible
+              only when a platform_admin is viewing an org subdomain.
+              Org admins never see this (they have no "all orgs" concept). */}
+          {ctx.isPlatform && ctx.orgName && (
+            <div className="bg-orange-500/10 border-b border-orange-500/20 px-4 sm:px-6 py-2 flex items-center justify-between gap-3 text-sm">
+              <div className="text-orange-300 truncate">
+                <span className="font-semibold">BrickOS admin</span>
+                <span className="text-orange-400/70 mx-2">·</span>
+                <span className="text-orange-200">scope: {ctx.orgName}</span>
+              </div>
+              <a
+                href="https://demo.brickos.io/platform"
+                className="text-orange-300 hover:text-orange-200 underline decoration-dotted underline-offset-2 shrink-0"
+              >
+                {'\u2190'} Back to all orgs
+              </a>
+            </div>
+          )}
 
           <main className="flex-1 overflow-y-auto">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">

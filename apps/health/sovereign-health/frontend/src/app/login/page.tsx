@@ -288,7 +288,16 @@ function LoginContent() {
           {orgLogo ? (
             <Image src={orgLogo} alt={displayName} width={64} height={64} className="rounded-lg object-contain" unoptimized />
           ) : (
-            <Image src="/logo.png" alt={displayName} width={64} height={64} className="rounded-lg" />
+            // Sprint 046 #11 hotfix: use the BrickOS cube as the default
+            // login logo on brickos.io subdomains; keep /logo.png (SHI) on
+            // sovereignhealth.io and elsewhere.
+            <Image
+              src={typeof window !== 'undefined' && window.location.hostname.endsWith('.brickos.io') ? '/brickos-cube.png' : '/logo.png'}
+              alt={displayName}
+              width={64}
+              height={64}
+              className="rounded-lg"
+            />
           )}
           <h1 className="text-2xl font-bold">{displayName}</h1>
           <p className="text-muted-foreground text-sm">{displaySubtitle}</p>
