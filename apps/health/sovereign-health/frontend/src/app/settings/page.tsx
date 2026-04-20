@@ -236,11 +236,14 @@ function SettingsContent() {
         <div className="max-w-4xl mx-auto px-4 pt-6 pb-12 w-full">
         {/* ── brickos master tabs ─────────────────────────────────────── */}
         {tab === 'Account' && (
-          // Sprint 042 #528 brickos master template default: the Account
-          // tab embeds Notifications and Billing as inline sections
-          // (matching the pre-Sprint-040 production layout). Apps that
-          // want their own dedicated Notifications/Billing tabs can
-          // override the embed; the default is "fold them into Account".
+          // Sprint 042 #528: brickos master Account tab embeds Notifications
+          // and (on end-user plane) Billing/License as inline sections.
+          //
+          // Sprint 046 #581 hotfix 2026-04-20: LicenseTab shows the
+          // Sovereign Health license tier, which is app-specific data that
+          // doesn't belong on the brickos.io admin-plane Account tab.
+          // Hidden when currentPlane === 'admin'; end-user plane still
+          // renders it inline.
           <div className="space-y-8">
             <AccountTab
               profile={settings.profile}
@@ -251,8 +254,12 @@ function SettingsContent() {
               showSaved={showSaved}
             />
             <NotificationsTab />
-            <hr className="border-border" />
-            <LicenseTab />
+            {currentPlane !== 'admin' && (
+              <>
+                <hr className="border-border" />
+                <LicenseTab />
+              </>
+            )}
           </div>
         )}
         {tab === 'Security' && <SecurityTab />}
