@@ -32,6 +32,12 @@ VERSION="0.43.0"
 # Local project root: BrickOS monorepo.
 PROJECT_ROOT="/home/dev-comp/Projects/brickos"
 
+# Sprint 047 #586 #589: short git SHA of HEAD. Stamped into backend and
+# frontend images as BUILD_ID / NEXT_PUBLIC_BUILD_ID, then asserted by
+# verify() against /health's `build` so we catch a deploy that appears to
+# succeed but actually reused a cached image.
+BUILD_SHA="$(git -C "$PROJECT_ROOT" rev-parse --short HEAD 2>/dev/null || echo "unknown")"
+
 # App root: Where the Sovereign Health app lives within the monorepo.
 APP_ROOT="${PROJECT_ROOT}/apps/health/sovereign-health"
 
@@ -734,11 +740,11 @@ deploy_backend() {
     fi
     # Sprint 047 #586: stamp the image with a short git SHA. Backend exposes
     # this as `build` on /health; the frontend bakes the same SHA into
-    # NEXT_PUBLIC_BUILD_ID and shows a refresh banner on mismatch.
-    local build_sha
-    build_sha=$(git -C "$PROJECT_ROOT" rev-parse --short HEAD 2>/dev/null || echo "unknown")
+    # NEXT_PUBLIC_BUILD_ID and shows a refresh banner on mismatch. #589
+    # then re-reads /health after restart to confirm the new image is
+    # actually serving (catches cached-image deploys).
     docker build $cache_flag \
-        --build-arg BUILD_ID="$build_sha" \
+        --build-arg BUILD_ID="$BUILD_SHA" \
         -f apps/health/sovereign-health/api/Dockerfile \
         -t "${BACKEND_IMAGE}:${image_tag}" .
 
@@ -844,12 +850,10 @@ deploy_frontend() {
     # Sprint 047 #586: bake the same short git SHA into the client bundle
     # so the refresh-banner poll can compare NEXT_PUBLIC_BUILD_ID against
     # /health's `build`.
-    local build_sha
-    build_sha=$(git -C "$PROJECT_ROOT" rev-parse --short HEAD 2>/dev/null || echo "unknown")
     docker build \
         --build-arg NEXT_PUBLIC_API_URL="$api_url" \
         --build-arg NEXT_PUBLIC_ENVIRONMENT="$env" \
-        --build-arg NEXT_PUBLIC_BUILD_ID="$build_sha" \
+        --build-arg NEXT_PUBLIC_BUILD_ID="$BUILD_SHA" \
         $demo_host_arg \
         -f apps/health/sovereign-health/frontend/Dockerfile \
         -t "${FRONTEND_IMAGE}:${image_tag}" .
@@ -1136,11 +1140,13 @@ verify() {
 
     log "Verification ($env):"
 
-    # Check API and extract version number.
-    local api_version
-    api_version=$(curl -sf --max-time 10 $auth_flag "$api_url" 2>/dev/null | grep -o '"version":"[^"]*"' | cut -d'"' -f4)
+    # Check API and extract version + build id in one call.
+    local health_body api_version api_build
+    health_body=$(curl -sf --max-time 10 $auth_flag "$api_url" 2>/dev/null || true)
+    api_version=$(echo "$health_body" | grep -o '"version":"[^"]*"' | cut -d'"' -f4)
+    api_build=$(echo "$health_body" | grep -o '"build":"[^"]*"' | cut -d'"' -f4)
     if [ -n "$api_version" ]; then
-        echo -e "  ${GREEN}200${NC}  API     $api_url  (v${api_version})"
+        echo -e "  ${GREEN}200${NC}  API     $api_url  (v${api_version} build=${api_build:-?})"
     else
         echo -e "  ${RED}ERR${NC}  API     $api_url"
         all_ok=false
@@ -1148,6 +1154,29 @@ verify() {
 
     check_url "App    " "$app_url"
     check_url "Web    " "$web_url"
+
+    # Sprint 047 #589: rc-smoke. Hit a couple of critical routes on top of
+    # the root-page check above, so a broken login page / broken API route
+    # fails the deploy here rather than during the first user session.
+    local login_url="${app_url%/}/login"
+    local hello_url="${app_url%/}/api/v1/hello"
+    check_url "Login  " "$login_url"
+    check_url "Hello  " "$hello_url"
+
+    # Sprint 047 #589: build-id assertion. The frontend/backend were just
+    # built with BUILD_ID=$BUILD_SHA. If /health's `build` doesn't match,
+    # the deploy served a cached image -- fail loudly so we don't mark
+    # the deploy OK when users are still on stale JS. "dev" means the
+    # deployed image was built outside deploy.sh (local or manual).
+    if [ -n "$api_build" ] && [ "$api_build" != "dev" ] && [ "$BUILD_SHA" != "unknown" ]; then
+        if [ "$api_build" = "$BUILD_SHA" ]; then
+            report_add "OK" "Build-id assertion passed: $api_build"
+        else
+            warn "BUILD-ID MISMATCH: deployed=$api_build expected=$BUILD_SHA"
+            report_add "FAIL" "Build-id mismatch: API reports '$api_build' but deploy built '$BUILD_SHA' -- image cache?"
+            all_ok=false
+        fi
+    fi
 
     # Sprint 042 #538: assert /sw.js is served with Cache-Control: no-cache.
     # Without this, the service worker caches old JS for up to 4 hours and
