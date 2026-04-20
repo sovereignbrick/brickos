@@ -1,9 +1,13 @@
 # Design 025 -- Domain Realignment: SHI White-Label on sovereignhealth.io
 
-**Status:** Draft
+**Status:** Accepted (URL prefixes updated -- see Design 027)
 **Date:** 2026-04-19
 **Supersedes:** Parts of Design 015 (§domain matrix) and Design 021 (§10b, §15.4)
-**Related:** ADR-049 (white-label org resolution)
+**Superseded by (partial):** Design 027 -- SHI end-user routes moved from
+root paths (`/dashboard`, `/measurements`, ...) to `/sovereign-health/*`
+on brickos.io. The branded sovereignhealth.io domain keeps the clean root
+URLs via nginx internal rewrite (Sprint 047 #577 Phase C).
+**Related:** ADR-049 (white-label org resolution), Design 027 (multi-app URL routing)
 **Sprint:** 045 (Domain Realignment)
 
 ## The rule

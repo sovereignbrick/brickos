@@ -1,9 +1,15 @@
 # Design 026 -- Unified Admin Home: Merge `/org` into `/platform`
 
-**Status:** Draft
+**Status:** Accepted (URL prefixes updated -- see Design 027)
 **Date:** 2026-04-20
-**Related:** 014-brickos-platform-gui, 015-brickos-unified-app-routing (amended), 025-domain-realignment, ADR-049
+**Related:** 014-brickos-platform-gui, 015-brickos-unified-app-routing (amended), 025-domain-realignment, 027-multi-app-url-routing, ADR-049
 **Sprint:** 046 (Unified Admin)
+
+**Note on URLs:** references to `/dashboard` as the post-login end-user
+landing were migrated in Sprint 047 #577. The cross-plane "Open Sovereign
+Health ->" link now points at `/sovereign-health/dashboard` on brickos.io
+(or `/dashboard` on sovereignhealth.io, where an nginx rewrite keeps the
+URL clean). See Design 027 for the full URL-prefix scheme.
 
 ## Problem
 

@@ -1,9 +1,23 @@
 # Design 027 -- Multi-App URL Routing Under brickos.io
 
-**Status:** Draft
+**Status:** Accepted 2026-04-20 -- shipped in Sprint 047 #577 (phases A/B/C/D)
 **Date:** 2026-04-20
 **Related:** 015 (Unified App Routing), 025 (Domain Realignment), 026 (Unified Admin Home)
 **Sprint:** 047 (Multi-App URL Routing)
+
+## Decisions ratified at Sprint 047 kickoff
+
+Three open questions resolved before implementation (all options A per
+pro/con review on 2026-04-20):
+
+1. **Tenant root `/` on `{slug}.brickos.io`** -> redirects to `/platform`
+   (admin plane default). Launcher grid deferred until app #2 ships.
+2. **`/settings` split** -> BrickOS account tabs at `/settings`, SHI
+   extension tabs at `/sovereign-health/settings`. Notifications, billing,
+   locale stay master-level; health profile / thresholds / markers go
+   under the app prefix.
+3. **Session cookies** -> keep per-plane cookies, no app-level claim.
+   URL is the app signal; no server-side context needed yet.
 
 ## Problem
 
