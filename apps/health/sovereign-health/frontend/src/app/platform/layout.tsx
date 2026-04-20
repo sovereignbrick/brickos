@@ -9,6 +9,8 @@ import { AdminContext } from './admin-context'
 import type { AdminContextType } from './admin-context'
 import { PlatformFilterProvider, usePlatformFilter } from './platform-context'
 import { OrgSwitcher } from '@/components/org-switcher'
+import { ADMIN_NAV_REGISTRY, type AdminNavRole } from '@/lib/admin-nav'
+import { useOrgEntitlements } from '@/lib/use-org-entitlements'
 
 // ---------------------------------------------------------------------------
 // Navigation
@@ -234,6 +236,115 @@ function UserProfileMenu({ user }: { user: { email: string; display_name: string
   )
 }
 
+/** Role mapping from AdminContextType flags to AdminNavRole codes. */
+function activeRoles(ctx: AdminContextType): AdminNavRole[] {
+  const roles: AdminNavRole[] = []
+  if (ctx.isPlatform) roles.push('platform_admin')
+  if (ctx.isOrgOwner) roles.push('org_owner')
+  if (ctx.isTechAdmin) roles.push('tech_admin')
+  if (ctx.isCommercialAdmin) roles.push('commercial_admin')
+  if (roles.length === 0) roles.push('member')
+  return roles
+}
+
+/** Sprint 046 #571 -- APPS section fed by the admin-nav registry.
+ *
+ * Each registered app is always rendered. `licensed` controls whether
+ * its sub-items are interactive (links) or greyed labels tagged with
+ * "Licensed by BrickOS". Items further filter by role.
+ */
+function AppsNavSection({
+  ctx,
+  pathname,
+  collapsed,
+}: {
+  ctx: AdminContextType
+  pathname: string
+  collapsed: boolean
+}) {
+  const { licensed, loading } = useOrgEntitlements()
+  const roles = activeRoles(ctx)
+
+  return (
+    <div>
+      {!collapsed && (
+        <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-500 px-4 pt-4 pb-1">
+          APPS
+        </p>
+      )}
+      {ADMIN_NAV_REGISTRY.map(app => {
+        const isLicensed = licensed.has(app.appKey)
+        const visibleItems = app.orgSettings.filter(item =>
+          item.roles.some(r => roles.includes(r)),
+        )
+        return (
+          <div key={app.appKey} className="mb-1">
+            {!collapsed && (
+              <div className="flex items-center justify-between gap-2 px-4 pt-2 pb-1">
+                <span
+                  className={`text-xs font-medium truncate ${
+                    isLicensed ? 'text-zinc-300' : 'text-zinc-600'
+                  }`}
+                >
+                  {app.label}
+                </span>
+                {!isLicensed && !loading && (
+                  <span
+                    className="text-[9px] uppercase tracking-wider text-zinc-600 border border-zinc-800 rounded px-1 py-0.5 shrink-0"
+                    title="Contact BrickOS to license this app"
+                  >
+                    Licensed by BrickOS
+                  </span>
+                )}
+              </div>
+            )}
+            {visibleItems.map(item => {
+              const isActive =
+                isLicensed && (pathname === item.href || pathname.startsWith(`${item.href}/`))
+              const baseClassName = `
+                flex items-center gap-3 mx-2 px-3 py-2 rounded-lg text-sm transition-colors
+                ${!isLicensed
+                  ? 'text-zinc-600 cursor-not-allowed opacity-60'
+                  : isActive
+                    ? 'text-zinc-50 bg-zinc-800'
+                    : 'text-zinc-400 hover:text-zinc-50 hover:bg-zinc-800/50'}
+              `
+              const content = (
+                <>
+                  <span className="text-base shrink-0">{item.icon ?? '\u2022'}</span>
+                  {!collapsed && <span className="truncate">{item.label}</span>}
+                </>
+              )
+              const title = collapsed ? `${app.label}: ${item.label}` : undefined
+              return isLicensed ? (
+                <Link
+                  key={item.key}
+                  href={item.href}
+                  data-nav-item={item.label.toLowerCase()}
+                  title={title}
+                  className={baseClassName}
+                >
+                  {content}
+                </Link>
+              ) : (
+                <div
+                  key={item.key}
+                  data-nav-item={item.label.toLowerCase()}
+                  title={title}
+                  className={baseClassName}
+                  aria-disabled="true"
+                >
+                  {content}
+                </div>
+              )
+            })}
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
 export default function PlatformLayout({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth()
   const router = useRouter()
@@ -389,6 +500,15 @@ export default function PlatformLayout({ children }: { children: React.ReactNode
                 })}
               </div>
             ))}
+
+            {/* Sprint 046 #571: APPS section rendered from admin-nav registry.
+                Licensed apps interactive; unlicensed greyed + "Licensed by
+                BrickOS" tag (no self-serve Enable per Design 026). */}
+            <AppsNavSection
+              ctx={ctx}
+              pathname={pathname}
+              collapsed={collapsed}
+            />
           </nav>
 
           {/* Expand button when collapsed */}

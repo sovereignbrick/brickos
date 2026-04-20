@@ -45,7 +45,7 @@ export default function OrgAppsPage() {
             </div>
             {app.enabled ? (
               <div className="space-y-2 mt-3">
-                {app.key === 'shi' && (
+                {app.key === 'sovereign-health' && (
                   <>
                     <Link href="/platform/org/apps/shi/email" className="block text-sm text-blue-400 hover:underline">
                       Email Templates
@@ -55,13 +55,13 @@ export default function OrgAppsPage() {
                     </Link>
                   </>
                 )}
-                {app.key === 'link' && (
+                {(app.key === 'sovereign-link' || app.key === 'sovereign-voice') && (
                   <p className="text-xs text-muted-foreground">Settings coming soon</p>
                 )}
               </div>
             ) : (
               <p className="text-xs text-muted-foreground mt-2">
-                Contact support to enable this app for your organization.
+                Licensed by BrickOS. Contact support to enable this app for your organization.
               </p>
             )}
           </div>

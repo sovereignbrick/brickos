@@ -459,21 +459,32 @@ pub async fn list_apps(
     .await
     .unwrap_or(false);
 
+    // Sprint 046 #571: app_key matches the canonical value stored in
+    // short_links.app_key / brickos.org_apps.app_key (Sprint 041 #537
+    // comment in platform/layout.tsx). User-facing names use the full
+    // "Sovereign X" form -- never abbreviations (per Design 026).
     Ok(HttpResponse::Ok().json(json!({
         "data": [
             {
-                "key": "shi",
-                "name": "Sovereign Health Intelligence",
+                "key": "sovereign-health",
+                "name": "Sovereign Health",
                 "enabled": true,
                 "has_data": has_shi,
-                "settings_path": "/org/apps/shi",
+                "settings_path": "/platform/org/apps/shi",
             },
             {
-                "key": "link",
+                "key": "sovereign-link",
                 "name": "Sovereign Link",
                 "enabled": false,
                 "has_data": false,
-                "settings_path": "/org/apps/link",
+                "settings_path": "/platform/org/apps/link",
+            },
+            {
+                "key": "sovereign-voice",
+                "name": "Sovereign Voice",
+                "enabled": false,
+                "has_data": false,
+                "settings_path": "/platform/org/apps/voice",
             },
         ],
         "error": null
