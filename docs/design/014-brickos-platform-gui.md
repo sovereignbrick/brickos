@@ -1,9 +1,20 @@
 # 014 - BrickOS Platform GUI
 
-**Status:** Draft v3
+**Status:** Amended (2026-04-20 by Design 026)
 **Author:** Helmut / Claude
-**Date:** 2026-04-07
-**Related:** 005-platform-multi-tenant, 006-platform-schema-elevation, 010-multi-tenant-platform-offering
+**Date:** 2026-04-07 (original), 2026-04-20 (unified-admin-home amendment)
+**Related:** 005, 006, 010, 025 (domain realignment), 026 (unified admin home)
+
+---
+
+## Amendment 2026-04-20
+
+The unified admin home is now `/platform` per **Design 026**. The old
+parallel admin surfaces (`/admin` and `/org/*`) are gone -- folded into
+a single role- + plane- + context-aware sidebar under `/platform/*`.
+Each BrickOS app contributes its org-scoped settings via the declarative
+registry at `src/lib/admin-nav/apps/{appKey}.ts`. See Design 026 for the
+full IA + migration plan.
 
 ---
 
