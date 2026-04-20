@@ -46,6 +46,19 @@ const nextConfig: NextConfig = {
         destination: "/platform/org/:path*",
         permanent: true,
       },
+      // Sprint 046 #572: /admin hard-removed; legacy route redirects to the
+      // unified /platform admin home. No users / no bookmarks to preserve,
+      // so 308 permanent.
+      {
+        source: "/admin",
+        destination: "/platform",
+        permanent: true,
+      },
+      {
+        source: "/admin/:path*",
+        destination: "/platform",
+        permanent: true,
+      },
     ];
   },
 };

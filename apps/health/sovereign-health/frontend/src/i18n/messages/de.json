@@ -1552,27 +1552,7 @@
     "publishConfirm": "Die öffentliche Website wird neu erstellt und bereitgestellt. Fortfahren?",
     "publishDuration": "Abgeschlossen in {seconds}s",
     "publishSuccess": "Website erfolgreich veröffentlicht",
-    "publishFailed": "Website-Veröffentlichung fehlgeschlagen",
-    "tabs": {
-      "dashboard": "Dashboard",
-      "users": "Benutzer",
-      "settings": "Admin-Einstellungen",
-      "payments": "Zahlungen",
-      "promotions": "Aktionscodes",
-      "affiliates": "Partnerprogramm",
-      "links": "Kurzlinks",
-      "revenue": "Umsatz-Simulator",
-      "contentApp": "App-Inhalte",
-      "contentWeb": "Web-Inhalte",
-      "contentStrings": "Textbausteine",
-      "newsletter": "Newsletter",
-      "aiUsage": "KI-Nutzung",
-      "auditLogs": "Audit-Protokolle",
-      "metrics": "API-Monitoring",
-      "contact": "Kontakt",
-      "earlyAccess": "Frühzugang",
-      "website": "Website"
-    }
+    "publishFailed": "Website-Veröffentlichung fehlgeschlagen"
   },
   "usage": {
     "title": "Dein Verbrauch",

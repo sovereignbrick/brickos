@@ -1552,27 +1552,7 @@
     "publishConfirm": "This will rebuild and deploy the public website. Continue?",
     "publishDuration": "Completed in {seconds}s",
     "publishSuccess": "Website published successfully",
-    "publishFailed": "Website publish failed",
-    "tabs": {
-      "dashboard": "Dashboard",
-      "users": "Users",
-      "settings": "Admin Settings",
-      "payments": "Payments",
-      "promotions": "Promotions",
-      "affiliates": "Affiliates",
-      "links": "Short Links",
-      "revenue": "Revenue Simulator",
-      "contentApp": "Content App",
-      "contentWeb": "Content Web",
-      "contentStrings": "Content Strings",
-      "newsletter": "Newsletter",
-      "aiUsage": "AI Usage",
-      "auditLogs": "Audit Logs",
-      "metrics": "API Monitoring",
-      "contact": "Contact",
-      "earlyAccess": "Early Access",
-      "website": "Website"
-    }
+    "publishFailed": "Website publish failed"
   },
   "usage": {
     "title": "Your Usage",
