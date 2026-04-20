@@ -1174,15 +1174,28 @@ verify() {
     # the deploy served a cached image -- fail loudly so we don't mark
     # the deploy OK when users are still on stale JS. "dev" means the
     # deployed image was built outside deploy.sh (local or manual).
-    if [ -n "$api_build" ] && [ "$api_build" != "dev" ] && [ "$BUILD_SHA" != "unknown" ]; then
-        if [ "$api_build" = "$BUILD_SHA" ]; then
-            report_add "OK" "Build-id assertion passed: $api_build"
-        else
-            warn "BUILD-ID MISMATCH: deployed=$api_build expected=$BUILD_SHA"
-            report_add "FAIL" "Build-id mismatch: API reports '$api_build' but deploy built '$BUILD_SHA' -- image cache?"
-            all_ok=false
-        fi
-    fi
+    # Sprint 047 #589 follow-up: only assert build-id when the backend was
+    # part of THIS deploy run. For frontend-only or website-only deploys
+    # the backend image wasn't touched, so `/health.build` correctly
+    # reports the previous SHA; flagging that as FAIL is a false alarm.
+    case "${COMPONENT:-all}" in
+        all|backend)
+            if [ -n "$api_build" ] && [ "$api_build" != "dev" ] && [ "$BUILD_SHA" != "unknown" ]; then
+                if [ "$api_build" = "$BUILD_SHA" ]; then
+                    report_add "OK" "Build-id assertion passed: $api_build"
+                else
+                    warn "BUILD-ID MISMATCH: deployed=$api_build expected=$BUILD_SHA"
+                    report_add "FAIL" "Build-id mismatch: API reports '$api_build' but deploy built '$BUILD_SHA' -- image cache?"
+                    all_ok=false
+                fi
+            fi
+            ;;
+        *)
+            if [ -n "$api_build" ]; then
+                report_add "INFO" "Backend build-id: $api_build (not asserted -- $COMPONENT-only deploy)"
+            fi
+            ;;
+    esac
 
     # Sprint 042 #538: assert /sw.js is served with Cache-Control: no-cache.
     # Without this, the service worker caches old JS for up to 4 hours and
