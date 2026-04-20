@@ -214,7 +214,7 @@ function LoginContent() {
     // PlaneGate would otherwise bounce /dashboard off the admin plane.
     if (typeof window !== 'undefined') {
       const plane = getPlane(window.location.hostname)
-      if (plane === 'admin') return '/org'
+      if (plane === 'admin') return '/platform/org'
     }
     return '/dashboard'
   }

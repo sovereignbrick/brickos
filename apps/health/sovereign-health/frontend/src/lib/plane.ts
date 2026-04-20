@@ -16,8 +16,13 @@ export function getPlane(host: string): Plane {
   return 'unknown'
 }
 
-/** Routes that MUST render on the admin plane (brickos.io). */
-const ADMIN_ONLY_PREFIXES = ['/org', '/platform', '/admin']
+/** Routes that MUST render on the admin plane (brickos.io).
+ *
+ * Sprint 046 #570: /org/* folded into /platform/org/*, so the single
+ * /platform prefix now gates all admin surfaces. /admin is pending
+ * removal in #572 but kept here in the meantime so the redirect can fire.
+ */
+const ADMIN_ONLY_PREFIXES = ['/platform', '/admin']
 
 /** Routes that MUST render on the end-user plane (sovereignhealth.io). */
 const END_USER_ONLY_PREFIXES = [

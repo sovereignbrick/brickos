@@ -31,8 +31,10 @@ describe('getPlane', () => {
 
 describe('isAdminOnlyPath / isEndUserOnlyPath', () => {
   it('admin-only paths', () => {
-    expect(isAdminOnlyPath('/org')).toBe(true)
-    expect(isAdminOnlyPath('/org/branding')).toBe(true)
+    // Sprint 046 #570: /org/* folded into /platform/org/*
+    expect(isAdminOnlyPath('/platform')).toBe(true)
+    expect(isAdminOnlyPath('/platform/org')).toBe(true)
+    expect(isAdminOnlyPath('/platform/org/branding')).toBe(true)
     expect(isAdminOnlyPath('/platform/orgs')).toBe(true)
     expect(isAdminOnlyPath('/admin')).toBe(true)
     expect(isAdminOnlyPath('/dashboard')).toBe(false)
@@ -44,7 +46,7 @@ describe('isAdminOnlyPath / isEndUserOnlyPath', () => {
     expect(isEndUserOnlyPath('/measurements/new')).toBe(true)
     expect(isEndUserOnlyPath('/doctor-chat/abc-123')).toBe(true)
     expect(isEndUserOnlyPath('/settings')).toBe(true)
-    expect(isEndUserOnlyPath('/org')).toBe(false)
+    expect(isEndUserOnlyPath('/platform/org')).toBe(false)
     expect(isEndUserOnlyPath('/login')).toBe(false)
   })
 
@@ -91,10 +93,10 @@ describe('planeRedirectTarget', () => {
   it('redirects end-user-plane host visiting admin path to admin plane', () => {
     const target = planeRedirectTarget(
       'end-user',
-      '/org/branding',
+      '/platform/org/branding',
       'test-clinic.sovereignhealth.io',
     )
-    expect(target).toBe('https://test-clinic.brickos.io/org/branding')
+    expect(target).toBe('https://test-clinic.brickos.io/platform/org/branding')
   })
 
   it('does not redirect shared paths', () => {
@@ -103,7 +105,7 @@ describe('planeRedirectTarget', () => {
   })
 
   it('does not redirect on matching plane', () => {
-    expect(planeRedirectTarget('admin', '/org', 'test-clinic.brickos.io')).toBeNull()
+    expect(planeRedirectTarget('admin', '/platform/org', 'test-clinic.brickos.io')).toBeNull()
     expect(planeRedirectTarget('end-user', '/dashboard', 'test-clinic.sovereignhealth.io')).toBeNull()
   })
 

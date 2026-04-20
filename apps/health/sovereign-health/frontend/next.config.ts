@@ -35,6 +35,17 @@ const nextConfig: NextConfig = {
         destination: "https://sovereignhealth.io/pricing",
         permanent: true,
       },
+      // Sprint 046 #570: /org/* folded into /platform/org/*
+      {
+        source: "/org",
+        destination: "/platform/org",
+        permanent: true,
+      },
+      {
+        source: "/org/:path*",
+        destination: "/platform/org/:path*",
+        permanent: true,
+      },
     ];
   },
 };

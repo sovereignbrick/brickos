@@ -47,10 +47,10 @@ export default function OrgAppsPage() {
               <div className="space-y-2 mt-3">
                 {app.key === 'shi' && (
                   <>
-                    <Link href="/org/apps/shi/email" className="block text-sm text-blue-400 hover:underline">
+                    <Link href="/platform/org/apps/shi/email" className="block text-sm text-blue-400 hover:underline">
                       Email Templates
                     </Link>
-                    <Link href="/org/apps/shi/ai" className="block text-sm text-blue-400 hover:underline">
+                    <Link href="/platform/org/apps/shi/ai" className="block text-sm text-blue-400 hover:underline">
                       AI Configuration
                     </Link>
                   </>

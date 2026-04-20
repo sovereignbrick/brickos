@@ -1802,7 +1802,10 @@
       "branding": "Branding",
       "domains": "Domains",
       "licensing": "Licensing",
-      "features": "Features"
+      "features": "Features",
+      "orgOverview": "Overview",
+      "general": "General",
+      "affiliate": "Affiliate"
     },
     "orgSwitcher": {
       "label": "Org",

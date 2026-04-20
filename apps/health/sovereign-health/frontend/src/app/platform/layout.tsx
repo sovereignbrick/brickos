@@ -34,21 +34,32 @@ function buildNavItems(t: (key: string) => string): NavItem[] {
     // Overview
     { key: 'home', label: t('home'), href: '/platform', icon: '\u2302', section: 'OVERVIEW', visible: () => true },
 
-    // Manage
+    // Organization (Sprint 046 #570: folded from old /org/*)
+    { key: 'org-overview', label: t('orgOverview'), href: '/platform/org', icon: '\u2616', section: 'ORGANIZATION', visible: o },
+    { key: 'org-general', label: t('general'), href: '/platform/org/general', icon: '\u2699', section: 'ORGANIZATION', visible: o },
+    { key: 'org-branding', label: t('branding'), href: '/platform/org/branding', icon: '\u2740', section: 'ORGANIZATION', visible: o },
+    { key: 'org-domains', label: t('domains'), href: '/platform/org/domains', icon: '\u2601', section: 'ORGANIZATION', visible: o },
+    { key: 'org-analytics', label: t('analytics'), href: '/platform/org/analytics', icon: '\u2261', section: 'ORGANIZATION', visible: o },
+    { key: 'org-affiliate', label: t('affiliate'), href: '/platform/org/affiliate', icon: '\u2764', section: 'ORGANIZATION', visible: o },
+    { key: 'org-billing', label: t('billing'), href: '/platform/org/billing', icon: '\u2637', section: 'ORGANIZATION', visible: o },
+
+    // People (Sprint 046 #570: unified members list, orgFilter scopes it)
+    { key: 'members', label: t('members'), href: '/platform/members', icon: '\u263A', section: 'PEOPLE', visible: (ctx) => ctx.isPlatform || ctx.isOrgOwner || ctx.isTechAdmin || ctx.isCommercialAdmin },
+
+    // Manage (platform-only now; org-level items moved to ORGANIZATION)
     { key: 'apps', label: t('apps'), href: '/platform/apps', icon: '\u25A6', section: 'MANAGE', visible: () => true },
     { key: 'orgs', label: t('organizations'), href: '/platform/orgs', icon: '\u2616', section: 'MANAGE', visible: p },
-    { key: 'users', label: t('users'), href: '/platform/users', icon: '\u263A', section: 'MANAGE', visible: p },
-    { key: 'members', label: t('members'), href: '/platform/members', icon: '\u2639', section: 'MANAGE', visible: (ctx) => ctx.isPlatform || ctx.isOrgOwner || ctx.isTechAdmin || ctx.isCommercialAdmin },
+    { key: 'users', label: t('users'), href: '/platform/users', icon: '\u2639', section: 'MANAGE', visible: p },
 
-    // Commerce
-    { key: 'billing', label: t('billing'), href: '/platform/billing', icon: '\u2637', section: 'COMMERCE', visible: comm },
-    { key: 'affiliates', label: t('affiliates'), href: '/platform/affiliates', icon: '\u2764', section: 'COMMERCE', visible: comm },
+    // Commerce (platform-wide; org-specific billing/affiliate live in ORGANIZATION)
+    { key: 'platform-billing', label: t('billing'), href: '/platform/billing', icon: '\u2637', section: 'COMMERCE', visible: p },
+    { key: 'platform-affiliates', label: t('affiliates'), href: '/platform/affiliates', icon: '\u2764', section: 'COMMERCE', visible: p },
     { key: 'promotions', label: t('promotions'), href: '/platform/promotions', icon: '\u2606', section: 'COMMERCE', visible: p },
     { key: 'revenue', label: t('revenue'), href: '/platform/revenue', icon: '\u2696', section: 'COMMERCE', visible: p },
 
     // Links
     { key: 'links', label: t('links'), href: '/platform/links', icon: '\u2197', section: 'LINKS', visible: any },
-    { key: 'analytics', label: t('analytics'), href: '/platform/analytics', icon: '\u2261', section: 'LINKS', visible: any },
+    { key: 'platform-analytics', label: t('analytics'), href: '/platform/analytics', icon: '\u2261', section: 'LINKS', visible: any },
 
     // Content
     { key: 'content-app', label: t('contentApp'), href: '/platform/content/app', icon: '\u270E', section: 'CONTENT', visible: p },
@@ -77,10 +88,8 @@ function buildNavItems(t: (key: string) => string): NavItem[] {
     { key: 'audit', label: t('audit'), href: '/platform/audit', icon: '\u2610', section: 'SECURITY', visible: tech },
     { key: 'compliance', label: t('compliance'), href: '/platform/compliance', icon: '\u2611', section: 'SECURITY', visible: p },
 
-    // Settings
+    // Settings (platform-wide only now; org branding/domains moved to ORGANIZATION)
     { key: 'settings', label: t('settings'), href: '/platform/settings', icon: '\u2638', section: 'SETTINGS', visible: p },
-    { key: 'branding', label: t('branding'), href: '/platform/branding', icon: '\u2740', section: 'SETTINGS', visible: (ctx) => ctx.isPlatform || ctx.isOrgOwner || ctx.isTechAdmin },
-    { key: 'domains', label: t('domains'), href: '/platform/domains', icon: '\u2601', section: 'SETTINGS', visible: (ctx) => ctx.isPlatform || ctx.isOrgOwner || ctx.isTechAdmin },
     { key: 'licensing', label: t('licensing'), href: '/platform/licensing', icon: '\u2694', section: 'SETTINGS', visible: p },
     { key: 'features', label: t('features'), href: '/platform/features', icon: '\u269B', section: 'SETTINGS', visible: p },
   ]
