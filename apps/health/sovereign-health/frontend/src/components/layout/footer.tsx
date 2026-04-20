@@ -8,7 +8,12 @@ import { useTranslations } from 'next-intl'
 function useApiVersion() {
   const [version, setVersion] = useState<string | null>(null)
   useEffect(() => {
-    fetch(`${APP_CONFIG.apiUrl}/health`)
+    // Sprint 046 hotfix 2026-04-20: backend health is at /health (root),
+    // not /api/health. APP_CONFIG.apiUrl was `/api` on staging builds,
+    // so `${apiUrl}/health` produced a 404. Hit the root path same-origin
+    // -- works on *.brickos.io + *.sovereignhealth.io wildcards via the
+    // nginx backend regex.
+    fetch('/health')
       .then(r => r.json())
       .then(d => { if (d.version) setVersion(d.version) })
       .catch(() => {})

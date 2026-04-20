@@ -28,7 +28,11 @@ export function InfoBar() {
     const stored = sessionStorage.getItem('sh_infobar_dismissed')
     if (stored) { setDismissed(true); return }
 
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/config/infobar?target=app`)
+    // Sprint 046 hotfix 2026-04-20: NEXT_PUBLIC_API_URL is `/api` on
+    // staging builds, so `${apiUrl}/api/config/infobar` produced a
+    // double-prefixed `/api/api/config/infobar` -> 404. Backend route
+    // is `/api/config/infobar` (lib.rs:168); hit same-origin.
+    fetch('/api/config/infobar?target=app')
       .then(r => r.json())
       .then(res => {
         if (res.data?.enabled && res.data?.message) setData(res.data)
