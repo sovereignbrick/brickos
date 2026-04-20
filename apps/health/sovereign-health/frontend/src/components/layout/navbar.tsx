@@ -17,6 +17,7 @@ import { useTheme } from '@/lib/theme-context'
 import { locales, localeNames, type Locale } from '@/i18n/config'
 import { Search } from 'lucide-react'
 import dynamic from 'next/dynamic'
+import { getPlane, swapPlaneHost } from '@/lib/plane'
 
 const SearchOverlay = dynamic(
   () => import('@/components/search/search-overlay').then(m => ({ default: m.SearchOverlay })),
@@ -39,6 +40,68 @@ const DEMO_NAV: NavItem[] = [
   { href: '/measurements', labelKey: 'history' },
   { href: '/trends', labelKey: 'trends' },
 ]
+
+/** Sprint 046 #573 -- cross-plane entry in the profile dropdown.
+ *
+ * Renders one of two labels depending on the current hostname's plane:
+ *   - end-user plane: "Admin" (admins only) -> admin plane /platform
+ *   - admin plane:    "Open Sovereign Health" -> end-user plane /dashboard
+ *
+ * Only shows on org subdomains where we can swap `{slug}.<parent>`. On
+ * platform landings (app.brickos.io / app.sovereignhealth.io) or unknown
+ * hosts (custom domains, localhost) the entry is hidden.
+ *
+ * Opens in a new tab because cookies are scoped per parent domain; the
+ * current session stays intact.
+ */
+function CrossPlaneMenuItem({
+  user,
+  onClick,
+}: {
+  user: { role?: string } | null
+  onClick: () => void
+}) {
+  const t = useTranslations('nav')
+  const [href, setHref] = useState<string | null>(null)
+  const [label, setLabel] = useState<string>('')
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const host = window.location.hostname
+    const plane = getPlane(host)
+    if (plane === 'unknown') return
+
+    if (plane === 'end-user') {
+      // Admin-only link on the end-user plane.
+      if (user?.role !== 'admin') return
+      const swapped = swapPlaneHost(host, 'admin')
+      if (!swapped) return
+      setHref(`https://${swapped}/platform`)
+      setLabel(t('admin'))
+      return
+    }
+
+    // Admin plane -> always offer the jump to the end-user app.
+    const swapped = swapPlaneHost(host, 'end-user')
+    if (!swapped) return
+    setHref(`https://${swapped}/dashboard`)
+    setLabel(t('openSovereignHealth'))
+  }, [user?.role, t])
+
+  if (!href) return null
+
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      onClick={onClick}
+      className="block w-full text-left px-3 py-2 text-sm text-amber-400 hover:bg-accent hover:text-amber-300 transition-colors"
+    >
+      {label} {'\u2197'}
+    </a>
+  )
+}
 
 function UserMenu({ user, logout }: { user: { email: string; display_name: string | null; tier?: string; role?: string } | null; logout: () => void }) {
   const [open, setOpen] = useState(false)
@@ -103,15 +166,13 @@ function UserMenu({ user, logout }: { user: { email: string; display_name: strin
           >
             {t('affiliate')}
           </Link>
-          {user?.role === 'admin' && (
-            <Link
-              href="/admin"
-              onClick={() => setOpen(false)}
-              className="block w-full text-left px-3 py-2 text-sm text-amber-400 hover:bg-accent hover:text-amber-300 transition-colors"
-            >
-              {t('admin')}
-            </Link>
-          )}
+          {/* Sprint 046 #573 -- cross-plane profile entries.
+              - End-user plane: "Admin" -> opens admin plane (brickos.io) /platform in new tab.
+              - Admin plane: "Open Sovereign Health" -> opens end-user plane
+                (sovereignhealth.io) /dashboard in new tab.
+              Cookies are per-plane by design (Design 025), so cross-plane
+              navigation opens a new tab to preserve the current session. */}
+          <CrossPlaneMenuItem user={user} onClick={() => setOpen(false)} />
           <button
             onClick={toggleTheme}
             className="w-full text-left px-3 py-2 text-sm text-muted-foreground hover:bg-accent hover:text-foreground transition-colors flex items-center gap-2"

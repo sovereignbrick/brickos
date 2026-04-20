@@ -158,7 +158,8 @@
     "openNavMenu": "Navigationsmenü öffnen",
     "navMenuLabel": "Navigationsmenü",
     "closeNavMenu": "Navigationsmenü schließen",
-    "search": "Suchen"
+    "search": "Suchen",
+    "openSovereignHealth": "Sovereign Health öffnen"
   },
   "footer": {
     "copyright": "Alle Rechte vorbehalten.",

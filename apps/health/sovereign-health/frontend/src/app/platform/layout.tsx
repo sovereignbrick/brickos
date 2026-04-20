@@ -11,6 +11,7 @@ import { PlatformFilterProvider, usePlatformFilter } from './platform-context'
 import { OrgSwitcher } from '@/components/org-switcher'
 import { ADMIN_NAV_REGISTRY, type AdminNavRole } from '@/lib/admin-nav'
 import { useOrgEntitlements } from '@/lib/use-org-entitlements'
+import { getPlane, swapPlaneHost } from '@/lib/plane'
 
 // ---------------------------------------------------------------------------
 // Navigation
@@ -223,6 +224,11 @@ function UserProfileMenu({ user }: { user: { email: string; display_name: string
             >
               Settings
             </Link>
+            {/* Sprint 046 #573 -- cross-plane entry on admin plane sidebar.
+                Visible on org subdomains where we can swap {slug}.brickos.io
+                to {slug}.sovereignhealth.io. Opens in a new tab because the
+                cookie is scoped per parent domain (Design 025). */}
+            <AdminPlaneCrossLink onClick={() => setOpen(false)} />
             <button
               onClick={handleLogout}
               className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-400 hover:bg-zinc-800 transition-colors text-left"
@@ -233,6 +239,39 @@ function UserProfileMenu({ user }: { user: { email: string; display_name: string
         </>
       )}
     </div>
+  )
+}
+
+/** Sprint 046 #573 -- "Open Sovereign Health" in the admin plane profile menu.
+ *
+ * Only renders on org subdomains where the parent can be swapped from
+ * brickos.io to sovereignhealth.io. Hidden on app.brickos.io and unknown
+ * hosts. Uses a fresh tab since cookies are scoped per plane.
+ */
+function AdminPlaneCrossLink({ onClick }: { onClick: () => void }) {
+  const [href, setHref] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const host = window.location.hostname
+    if (getPlane(host) !== 'admin') return
+    const swapped = swapPlaneHost(host, 'end-user')
+    if (!swapped) return
+    setHref(`https://${swapped}/dashboard`)
+  }, [])
+
+  if (!href) return null
+
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      onClick={onClick}
+      className="flex items-center gap-2 px-3 py-2 text-sm text-zinc-300 hover:bg-zinc-800 transition-colors"
+    >
+      Open Sovereign Health {'\u2197'}
+    </a>
   )
 }
 
