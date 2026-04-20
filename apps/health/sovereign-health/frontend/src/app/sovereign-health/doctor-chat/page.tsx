@@ -30,7 +30,7 @@ export default function DoctorChatPage() {
         <main className="max-w-2xl mx-auto px-4 py-20 text-center">
           <div className="mb-4 text-left">
             <Breadcrumb items={[
-              { label: tNav('overview'), href: '/dashboard' },
+              { label: tNav('overview'), href: '/sovereign-health/dashboard' },
               { label: tNav('doctorChat') },
             ]} />
           </div>

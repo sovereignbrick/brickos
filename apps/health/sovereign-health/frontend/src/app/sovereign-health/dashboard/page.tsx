@@ -17,13 +17,13 @@ import { useTranslations } from 'next-intl'
 function useCarouselCards(): CarouselCard[] {
   const t = useTranslations('dashboard.carousel')
   return [
-    { icon: '💬', title: t('askDoctor'), description: t('askDoctorDesc'), link: '/doctor-chat' },
-    { icon: '📊', title: t('exploreTrends'), description: t('exploreTrendsDesc'), link: '/trends' },
-    { icon: '➕', title: t('addMeasurement'), description: t('addMeasurementDesc'), link: '/measurements/new' },
-    { icon: '🔬', title: t('healthZones'), description: t('healthZonesDesc'), link: '/zones/energy_metabolic' },
-    { icon: '💡', title: t('didYouKnow'), description: t('didYouKnowDesc'), link: '/markers/iron' },
-    { icon: '🎯', title: t('whatIsApoB'), description: t('whatIsApoBDesc'), link: '/markers/apob' },
-    { icon: '⚡', title: t('gkiRatio'), description: t('gkiRatioDesc'), link: '/markers/gki' },
+    { icon: '💬', title: t('askDoctor'), description: t('askDoctorDesc'), link: '/sovereign-health/doctor-chat' },
+    { icon: '📊', title: t('exploreTrends'), description: t('exploreTrendsDesc'), link: '/sovereign-health/trends' },
+    { icon: '➕', title: t('addMeasurement'), description: t('addMeasurementDesc'), link: '/sovereign-health/measurements/new' },
+    { icon: '🔬', title: t('healthZones'), description: t('healthZonesDesc'), link: '/sovereign-health/zones/energy_metabolic' },
+    { icon: '💡', title: t('didYouKnow'), description: t('didYouKnowDesc'), link: '/sovereign-health/markers/iron' },
+    { icon: '🎯', title: t('whatIsApoB'), description: t('whatIsApoBDesc'), link: '/sovereign-health/markers/apob' },
+    { icon: '⚡', title: t('gkiRatio'), description: t('gkiRatioDesc'), link: '/sovereign-health/markers/gki' },
     { icon: '🛡️', title: t('privacyFirst'), description: t('privacyFirstDesc'), link: 'https://sovereignhealth.io/privacy/' },
   ]
 }
@@ -80,7 +80,7 @@ export default function DashboardPage() {
           </div>
           {!isDemo && (
             <Link
-              href="/measurements/new"
+              href="/sovereign-health/measurements/new"
               className="bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
             >
               {t('addButton')}
@@ -150,7 +150,7 @@ export default function DashboardPage() {
           <div className="rounded-2xl border border-dashed p-12 text-center mt-8">
             <p className="text-muted-foreground text-sm mb-4">{tCommon('noMeasurements')}</p>
             <Link
-              href="/measurements/new"
+              href="/sovereign-health/measurements/new"
               className="bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium px-5 py-2.5 rounded-lg transition-colors inline-block"
             >
               {t('recordFirst')}

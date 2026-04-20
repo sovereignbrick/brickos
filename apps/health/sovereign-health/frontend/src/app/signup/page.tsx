@@ -199,7 +199,7 @@ function SignupContent() {
             }
           }
         } catch {}
-        router.replace('/dashboard')
+        router.replace('/sovereign-health/dashboard')
       } else if (res.data.mfa_required) {
         router.push('/login')
       }
@@ -320,7 +320,7 @@ function SignupContent() {
               {ts('exploreDemo')}
             </p>
             <Link
-              href="/dashboard"
+              href="/sovereign-health/dashboard"
               className="text-sm text-blue-400 hover:text-blue-300 font-medium"
             >
               {t('viewDemo')}

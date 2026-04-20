@@ -422,7 +422,7 @@ export default function PlatformLayout({ children }: { children: React.ReactNode
       router.push('/login?return=/platform')
     } else if (!loading && user && user.role !== 'admin' && !org.orgId && !org.loading) {
       // No platform role AND no org membership => kick to end-user app
-      router.push('/dashboard')
+      router.push('/sovereign-health/dashboard')
     }
   }, [loading, user, org.orgId, org.loading, router])
 

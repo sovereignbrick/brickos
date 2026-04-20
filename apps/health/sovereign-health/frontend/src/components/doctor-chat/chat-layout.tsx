@@ -73,7 +73,7 @@ export function ChatLayout({ conversationId, initialPrompt }: ChatLayoutProps) {
       })
       .catch(() => {
         // Conversation not found, redirect to landing
-        router.replace('/doctor-chat')
+        router.replace('/sovereign-health/doctor-chat')
       })
   }, [conversationId, router])
 
@@ -121,7 +121,7 @@ export function ChatLayout({ conversationId, initialPrompt }: ChatLayoutProps) {
 
       // Update URL to conversation-specific route
       if (!activeConversationId) {
-        router.replace(`/doctor-chat/${data.conversation_id}`)
+        router.replace(`/sovereign-health/doctor-chat/${data.conversation_id}`)
       }
 
       if (quota) {
@@ -163,7 +163,7 @@ export function ChatLayout({ conversationId, initialPrompt }: ChatLayoutProps) {
       const conv = conversations.find(c => c.id === id)
       setActiveAgentType(conv?.agent_type ?? null)
       // Update URL
-      router.push(`/doctor-chat/${id}`)
+      router.push(`/sovereign-health/doctor-chat/${id}`)
     } catch (err) {
       toast.error(err instanceof Error ? err.message : tChat('failedLoadConversation'))
     }
@@ -230,7 +230,7 @@ export function ChatLayout({ conversationId, initialPrompt }: ChatLayoutProps) {
       toast.success(res.data.message, {
         action: {
           label: tChat('viewMeasurements'),
-          onClick: () => window.location.href = '/measurements',
+          onClick: () => window.location.href = '/sovereign-health/measurements',
         },
       })
       setImportSession(null)
@@ -281,7 +281,7 @@ export function ChatLayout({ conversationId, initialPrompt }: ChatLayoutProps) {
       toast.success(res.data.message, {
         action: {
           label: tChat('viewMeasurements'),
-          onClick: () => window.location.href = '/measurements',
+          onClick: () => window.location.href = '/sovereign-health/measurements',
         },
       })
       setMeasurementImportSession(null)
@@ -315,7 +315,7 @@ export function ChatLayout({ conversationId, initialPrompt }: ChatLayoutProps) {
     setSidebarOpen(false)
     setChatError(null)
     setLastQuestion(null)
-    router.push('/doctor-chat')
+    router.push('/sovereign-health/doctor-chat')
   }
 
   return (

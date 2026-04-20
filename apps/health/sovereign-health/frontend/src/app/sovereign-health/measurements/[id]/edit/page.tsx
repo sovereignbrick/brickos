@@ -162,7 +162,7 @@ export default function EditMeasurementPage() {
       <Navbar />
       <main className="max-w-2xl mx-auto px-4 py-8">
         <p className="text-muted-foreground">{t('measurementNotFound')}</p>
-        <Link href="/measurements" className="text-blue-400 hover:text-blue-300 text-sm mt-2 inline-block">
+        <Link href="/sovereign-health/measurements" className="text-blue-400 hover:text-blue-300 text-sm mt-2 inline-block">
           {t('backToHistory')}
         </Link>
       </main>
@@ -180,8 +180,8 @@ export default function EditMeasurementPage() {
       <main className="max-w-3xl mx-auto px-4 py-6 pb-8">
         <div className="mb-4">
           <Breadcrumb items={[
-            { label: tNav('overview'), href: '/dashboard' },
-            { label: tNav('history'), href: '/measurements' },
+            { label: tNav('overview'), href: '/sovereign-health/dashboard' },
+            { label: tNav('history'), href: '/sovereign-health/measurements' },
             { label: t('editMarkerTitle', { marker: markerName }) },
           ]} />
         </div>

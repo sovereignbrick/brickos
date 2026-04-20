@@ -415,7 +415,7 @@ export function TrendChart({
           )}
           {activePoint.markerSlug && (
             <Link
-              href={`/markers/${activePoint.markerSlug}`}
+              href={`/sovereign-health/markers/${activePoint.markerSlug}`}
               className="text-xs text-blue-400 hover:text-blue-300 mt-2 inline-block"
             >
               {t('viewDetails')} →

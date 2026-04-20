@@ -161,7 +161,7 @@ function SettingsContent() {
       router.push(`/login?return=${encodeURIComponent(returnUrl)}`)
       return
     }
-    if (isDemoOnly) { router.push('/dashboard'); return }
+    if (isDemoOnly) { router.push('/sovereign-health/dashboard'); return }
     api.settings.get()
       .then(res => setSettings(res.data))
       .catch(e => setError(e.message))
@@ -193,7 +193,7 @@ function SettingsContent() {
       <div className="max-w-4xl mx-auto w-full px-4 pt-6 pb-0">
         <div className="mb-4">
           <Breadcrumb items={[
-            { label: tNav('overview'), href: '/dashboard' },
+            { label: tNav('overview'), href: '/sovereign-health/dashboard' },
             { label: t('title') },
           ]} />
         </div>

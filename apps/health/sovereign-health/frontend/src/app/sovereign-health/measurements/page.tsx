@@ -133,7 +133,7 @@ function MeasurementsContent() {
     if (selectedDiets.length > 0) urlParams.set('diet_protocol', selectedDiets.join(','))
     if (selectedFastings.length > 0) urlParams.set('fasting_protocol', selectedFastings.join(','))
     const qs = urlParams.toString()
-    router.replace(`/measurements${qs ? '?' + qs : ''}`, { scroll: false })
+    router.replace(`/sovereign-health/measurements${qs ? '?' + qs : ''}`, { scroll: false })
   }, [fromDate, toDate, selectedMarkers, selectedDevices, selectedLabs, selectedProtocol, selectedDiets, selectedFastings, router])
 
   // Fetch measurements
@@ -247,7 +247,7 @@ function MeasurementsContent() {
       <main className="max-w-5xl mx-auto px-4 py-6 pb-8">
         <div className="mb-4">
           <Breadcrumb items={[
-            { label: tNav('overview'), href: '/dashboard' },
+            { label: tNav('overview'), href: '/sovereign-health/dashboard' },
             { label: t('breadcrumbHistory') },
           ]} />
         </div>
@@ -256,13 +256,13 @@ function MeasurementsContent() {
           {!isDemo && (
             <div className="flex items-center gap-2">
               <Link
-                href="/measurements/imports"
+                href="/sovereign-health/measurements/imports"
                 className="border border-border text-muted-foreground hover:text-foreground text-sm font-medium px-3 py-2 rounded-lg transition-colors whitespace-nowrap"
               >
                 {tImport('historyTitle')}
               </Link>
               <Link
-                href="/measurements/new"
+                href="/sovereign-health/measurements/new"
                 className="bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors whitespace-nowrap"
               >
                 {tNav('addMeasurement')}
@@ -399,7 +399,7 @@ function MeasurementsContent() {
               </button>
             ) : !isDemo ? (
               <Link
-                href="/measurements/new"
+                href="/sovereign-health/measurements/new"
                 className="bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium px-5 py-2.5 rounded-lg transition-colors inline-block"
               >
                 {t('recordMeasurement')}
@@ -494,7 +494,7 @@ function MeasurementsContent() {
                   </div>
                 ) : (
                   <Link
-                    href={`/measurements/${m.id}`}
+                    href={`/sovereign-health/measurements/${m.id}`}
                     className="rounded-xl border p-3 flex items-center justify-between hover:bg-accent transition-colors block"
                   >
                     <div className="flex-1 min-w-0">

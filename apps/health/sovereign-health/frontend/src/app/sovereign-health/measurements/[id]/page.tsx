@@ -62,7 +62,7 @@ export default function MeasurementDetailPage() {
       <Navbar />
       <main className="max-w-2xl mx-auto px-4 py-8">
         <p className="text-muted-foreground">Measurement not found.</p>
-        <Link href="/measurements" className="text-blue-400 hover:text-blue-300 text-sm mt-2 inline-block">
+        <Link href="/sovereign-health/measurements" className="text-blue-400 hover:text-blue-300 text-sm mt-2 inline-block">
           ← Back to history
         </Link>
       </main>
@@ -92,8 +92,8 @@ export default function MeasurementDetailPage() {
       <main className="max-w-2xl mx-auto px-4 py-6 pb-8">
         <div className="mb-6">
           <Breadcrumb items={[
-            { label: 'Overview', href: '/dashboard' },
-            { label: 'History', href: '/measurements' },
+            { label: 'Overview', href: '/sovereign-health/dashboard' },
+            { label: 'History', href: '/sovereign-health/measurements' },
             { label: `${measurement.marker_name}  - ${formatDate(measurement.timestamp, user?.country_code)}` },
           ]} />
         </div>
@@ -125,7 +125,7 @@ export default function MeasurementDetailPage() {
 
         <div className="flex gap-3">
           <Link
-            href={`/measurements/${id}/edit`}
+            href={`/sovereign-health/measurements/${id}/edit`}
             className="flex-1 text-center bg-blue-600 hover:bg-blue-500 text-white rounded-xl py-2.5 text-sm font-medium transition-colors"
           >
             Edit measurement

@@ -60,8 +60,8 @@ export default function ImportHistoryPage() {
       <main className="max-w-3xl mx-auto px-4 py-6 pb-8">
         <div className="mb-6">
           <Breadcrumb items={[
-            { label: tNav('overview'), href: '/dashboard' },
-            { label: tNav('history'), href: '/measurements' },
+            { label: tNav('overview'), href: '/sovereign-health/dashboard' },
+            { label: tNav('history'), href: '/sovereign-health/measurements' },
             { label: tImport('historyTitle') },
           ]} />
         </div>

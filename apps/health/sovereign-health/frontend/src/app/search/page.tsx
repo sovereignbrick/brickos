@@ -340,7 +340,7 @@ export default function SearchPage() {
             <Search className="w-8 h-8 text-muted-foreground mx-auto mb-3" />
             <p className="text-sm text-muted-foreground mb-4">{t('placeholder')}</p>
             <a
-              href="/dashboard"
+              href="/sovereign-health/dashboard"
               className="inline-flex text-sm text-blue-400 hover:text-blue-300 transition-colors"
             >
               &larr; {t('backToDashboard')}

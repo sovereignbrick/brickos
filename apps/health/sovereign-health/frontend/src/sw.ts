@@ -35,7 +35,7 @@ const apiCacheRules: RuntimeCaching[] = [
   },
   // Dashboard — network-first, fallback to stale cache
   {
-    matcher: ({ url }) => url.pathname.includes("/dashboard"),
+    matcher: ({ url }) => url.pathname.includes("/sovereign-health/dashboard"),
     handler: new NetworkFirst({
       cacheName: "api-dashboard",
       plugins: [new ExpirationPlugin({ maxEntries: 5, maxAgeSeconds: 600 })],
@@ -43,7 +43,7 @@ const apiCacheRules: RuntimeCaching[] = [
   },
   // Measurements — network-first, fallback to stale cache
   {
-    matcher: ({ url }) => url.pathname.includes("/measurements"),
+    matcher: ({ url }) => url.pathname.includes("/sovereign-health/measurements"),
     handler: new NetworkFirst({
       cacheName: "api-measurements",
       plugins: [new ExpirationPlugin({ maxEntries: 20, maxAgeSeconds: 600 })],
@@ -51,7 +51,7 @@ const apiCacheRules: RuntimeCaching[] = [
   },
   // Markers (user) — network-first
   {
-    matcher: ({ url }) => url.pathname.includes("/markers/") && !url.pathname.startsWith("/v1/content/"),
+    matcher: ({ url }) => url.pathname.includes("/sovereign-health/markers/") && !url.pathname.startsWith("/v1/content/"),
     handler: new NetworkFirst({
       cacheName: "api-markers",
       plugins: [new ExpirationPlugin({ maxEntries: 100, maxAgeSeconds: 600 })],
@@ -59,7 +59,7 @@ const apiCacheRules: RuntimeCaching[] = [
   },
   // Zones — cache-first (stable data)
   {
-    matcher: ({ url }) => url.pathname.includes("/zones/"),
+    matcher: ({ url }) => url.pathname.includes("/sovereign-health/zones/"),
     handler: new CacheFirst({
       cacheName: "api-zones",
       plugins: [new ExpirationPlugin({ maxEntries: 20, maxAgeSeconds: 3600 })],
@@ -109,7 +109,7 @@ self.addEventListener("push", (event: PushEvent) => {
         body: data.body || "",
         icon: "/android-chrome-192x192.png",
         badge: "/favicon-32x32.png",
-        data: { url: data.url || "/dashboard" },
+        data: { url: data.url || "/sovereign-health/dashboard" },
       })
     );
   } catch {
@@ -119,7 +119,7 @@ self.addEventListener("push", (event: PushEvent) => {
 
 self.addEventListener("notificationclick", (event: NotificationEvent) => {
   event.notification.close();
-  const url = event.notification.data?.url || "/dashboard";
+  const url = event.notification.data?.url || "/sovereign-health/dashboard";
   event.waitUntil(
     self.clients.matchAll({ type: "window" }).then((clientList) => {
       for (const client of clientList) {

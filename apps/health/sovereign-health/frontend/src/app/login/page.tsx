@@ -216,7 +216,7 @@ function LoginContent() {
       const plane = getPlane(window.location.hostname)
       if (plane === 'admin') return '/platform/org'
     }
-    return '/dashboard'
+    return '/sovereign-health/dashboard'
   }
 
   const handleMfaSuccess = (data: { user: import('@/lib/types').User; token: string; refresh_token: string }) => {
@@ -374,7 +374,7 @@ function LoginContent() {
               {t('demoExplore')}
             </p>
             <Link
-              href="/dashboard"
+              href="/sovereign-health/dashboard"
               className="text-sm text-blue-400 hover:text-blue-300 font-medium"
             >
               {t('viewDemo')}

@@ -60,7 +60,7 @@ export default function ZoneDetailPage() {
       <Navbar />
       <main className="max-w-2xl mx-auto px-4 py-8">
         <p className="text-muted-foreground">{tZones('zoneNotFound')}</p>
-        <Link href="/dashboard" className="text-blue-400 hover:text-blue-300 text-sm mt-2 inline-block">
+        <Link href="/sovereign-health/dashboard" className="text-blue-400 hover:text-blue-300 text-sm mt-2 inline-block">
           ← {tNav('overview')}
         </Link>
       </main>
@@ -86,7 +86,7 @@ export default function ZoneDetailPage() {
       <main className="max-w-3xl mx-auto px-4 py-6 pb-8">
         <div className="mb-6">
           <Breadcrumb items={[
-            { label: tNav('overview'), href: '/dashboard' },
+            { label: tNav('overview'), href: '/sovereign-health/dashboard' },
             { label: zone.zone_name },
           ]} />
         </div>
@@ -138,7 +138,7 @@ export default function ZoneDetailPage() {
             <p className="text-muted-foreground text-sm">{tZones('noBiomarkersYet')}</p>
             {!isDemo && (
               <Link
-                href="/measurements/new"
+                href="/sovereign-health/measurements/new"
                 className="bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors inline-block mt-4"
               >
                 {tZones('addMeasurement')}
@@ -168,7 +168,7 @@ export default function ZoneDetailPage() {
               return (
                 <Link
                   key={`${marker.marker_slug}-${index}`}
-                  href={demoHref(`/markers/${marker.marker_slug}`)}
+                  href={demoHref(`/sovereign-health/markers/${marker.marker_slug}`)}
                   className={`rounded-xl border p-4 flex items-center justify-between hover:border-border hover:bg-muted/50 hover:scale-[1.01] transition-all duration-150 block ${!hasData ? 'opacity-60' : ''}`}
                 >
                   <div className="min-w-0">
@@ -216,7 +216,7 @@ export default function ZoneDetailPage() {
         {!isDemo && (
           <div className="mt-6 text-center">
             <Link
-              href="/measurements/new"
+              href="/sovereign-health/measurements/new"
               className="bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium px-5 py-2.5 rounded-lg transition-colors inline-block"
             >
               {tZones('addMeasurementButton')}

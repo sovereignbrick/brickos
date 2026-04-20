@@ -292,7 +292,7 @@ export default function TrendsPage() {
       <main className="max-w-3xl mx-auto px-4 py-6 pb-8">
         <div className="mb-4">
           <Breadcrumb items={[
-            { label: tNav('overview'), href: '/dashboard' },
+            { label: tNav('overview'), href: '/sovereign-health/dashboard' },
             { label: tNav('trends') },
           ]} />
         </div>

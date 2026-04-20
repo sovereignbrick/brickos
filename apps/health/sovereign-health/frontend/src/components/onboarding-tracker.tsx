@@ -26,12 +26,14 @@ export function OnboardingTracker() {
     } catch { return }
 
     const manualMappings: Record<string, string> = {
-      '/trends': 'trends',
-      '/doctor-chat': 'doctor',
+      '/sovereign-health/trends': 'trends',
+      '/sovereign-health/doctor-chat': 'doctor',
     }
 
     // Check zone/marker detail pages
-    const isMarkerPage = pathname.startsWith('/markers/') || pathname.startsWith('/zones/')
+    const isMarkerPage =
+      pathname.startsWith('/sovereign-health/markers/') ||
+      pathname.startsWith('/sovereign-health/zones/')
     let matchedKey = manualMappings[pathname] || (isMarkerPage ? 'marker' : null)
 
     // /settings tab tracking

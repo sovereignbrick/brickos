@@ -27,18 +27,18 @@ const SearchOverlay = dynamic(
 type NavItem = { href: string; labelKey: string }
 
 const NAV: NavItem[] = [
-  { href: '/dashboard', labelKey: 'overview' },
-  { href: '/doctor-chat', labelKey: 'doctorChat' },
-  { href: '/measurements/new', labelKey: 'addMeasurement' },
-  { href: '/measurements', labelKey: 'history' },
-  { href: '/trends', labelKey: 'trends' },
+  { href: '/sovereign-health/dashboard', labelKey: 'overview' },
+  { href: '/sovereign-health/doctor-chat', labelKey: 'doctorChat' },
+  { href: '/sovereign-health/measurements/new', labelKey: 'addMeasurement' },
+  { href: '/sovereign-health/measurements', labelKey: 'history' },
+  { href: '/sovereign-health/trends', labelKey: 'trends' },
 ]
 
 const DEMO_NAV: NavItem[] = [
-  { href: '/dashboard', labelKey: 'overview' },
-  { href: '/doctor-chat', labelKey: 'doctorChat' },
-  { href: '/measurements', labelKey: 'history' },
-  { href: '/trends', labelKey: 'trends' },
+  { href: '/sovereign-health/dashboard', labelKey: 'overview' },
+  { href: '/sovereign-health/doctor-chat', labelKey: 'doctorChat' },
+  { href: '/sovereign-health/measurements', labelKey: 'history' },
+  { href: '/sovereign-health/trends', labelKey: 'trends' },
 ]
 
 /** Sprint 046 #573 -- cross-plane entry in the profile dropdown.
@@ -84,7 +84,7 @@ function CrossPlaneMenuItem({
     // Admin plane -> always offer the jump to the end-user app.
     const swapped = swapPlaneHost(host, 'end-user')
     if (!swapped) return
-    setHref(`https://${swapped}/dashboard`)
+    setHref(`https://${swapped}/sovereign-health/dashboard`)
     setLabel(t('openSovereignHealth'))
   }, [user?.role, t])
 
@@ -604,7 +604,7 @@ export function Navbar() {
       <InfoBar />
       <nav className="border-b bg-background/80 backdrop-blur">
         <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
-        <Link href={isDemo ? demoHref('/dashboard') : '/dashboard'} className="flex items-center gap-2 font-bold text-sm tracking-tight">
+        <Link href={isDemo ? demoHref('/sovereign-health/dashboard') : '/sovereign-health/dashboard'} className="flex items-center gap-2 font-bold text-sm tracking-tight">
           <Image src="/logo.png" alt="SHI" width={28} height={28} className="rounded-sm" priority />
           <span className="text-xs sm:text-sm whitespace-nowrap">{APP_NAME}</span>
         </Link>

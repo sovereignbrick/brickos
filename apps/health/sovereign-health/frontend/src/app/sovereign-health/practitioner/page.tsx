@@ -53,7 +53,7 @@ export default function PractitionerPage() {
   useEffect(() => {
     if (authLoading) return
     if (!user) {
-      router.push('/login?return=/practitioner')
+      router.push('/login?return=/sovereign-health/practitioner')
       return
     }
     if (!org.isOrg) {

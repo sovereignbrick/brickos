@@ -486,7 +486,7 @@ export default function MarkerDetailPage() {
         <Navbar />
         <main className="max-w-2xl mx-auto px-4 py-8">
           <p className="text-muted-foreground">{error ?? t('biomarkerNotFound')}</p>
-          <Link href="/dashboard" className="text-blue-400 hover:text-blue-300 text-sm mt-2 inline-block">{tCommon('back')}</Link>
+          <Link href="/sovereign-health/dashboard" className="text-blue-400 hover:text-blue-300 text-sm mt-2 inline-block">{tCommon('back')}</Link>
         </main>
       </div>
     )
@@ -506,8 +506,8 @@ export default function MarkerDetailPage() {
 
         {/* Breadcrumb */}
         <Breadcrumb items={[
-          { label: tNav('overview'), href: '/dashboard' },
-          ...(marker.zones[0] ? [{ label: `${marker.zones[0].icon} ${marker.zones[0].name}`, href: `/zones/${marker.zones[0].slug}` }] : []),
+          { label: tNav('overview'), href: '/sovereign-health/dashboard' },
+          ...(marker.zones[0] ? [{ label: `${marker.zones[0].icon} ${marker.zones[0].name}`, href: `/sovereign-health/zones/${marker.zones[0].slug}` }] : []),
           { label: marker.name },
         ]} />
 
@@ -539,7 +539,7 @@ export default function MarkerDetailPage() {
               {marker.zones.map(z => (
                 <Link
                   key={z.slug}
-                  href={demoHref(`/zones/${z.slug}`)}
+                  href={demoHref(`/sovereign-health/zones/${z.slug}`)}
                   className="text-xs border border-border bg-muted/50 hover:bg-accent transition-colors px-2 py-0.5 rounded-full"
                 >
                   {z.icon} {z.name}
@@ -577,7 +577,7 @@ export default function MarkerDetailPage() {
                               if (match) {
                                 return (
                                   <span key={match[2]}>
-                                    <Link href={demoHref(`/markers/${match[2]}`)} className="text-blue-400 hover:text-blue-300 transition-colors">
+                                    <Link href={demoHref(`/sovereign-health/markers/${match[2]}`)} className="text-blue-400 hover:text-blue-300 transition-colors">
                                       {match[1]}
                                     </Link>
                                     {i < arr.length - 1 ? ` ${t('and')} ` : ''}
@@ -696,7 +696,7 @@ export default function MarkerDetailPage() {
                   key={m.id}
                   data={m}
                   countryCode={user?.country_code}
-                  onEdit={!isDemo ? (mid) => router.push(`/measurements/${mid}/edit`) : undefined}
+                  onEdit={!isDemo ? (mid) => router.push(`/sovereign-health/measurements/${mid}/edit`) : undefined}
                   onDelete={!isDemo ? handleDelete : undefined}
                 >
                   <div className="py-3 flex items-center justify-between gap-3 cursor-pointer hover:bg-white/[0.03] -mx-2 px-2 rounded-lg transition-colors">
@@ -735,7 +735,7 @@ export default function MarkerDetailPage() {
                     {!isDemo && (
                       <div className="flex items-center gap-1 ml-1 shrink-0">
                         <button
-                          onClick={(e) => { e.stopPropagation(); router.push(`/measurements/${m.id}/edit`) }}
+                          onClick={(e) => { e.stopPropagation(); router.push(`/sovereign-health/measurements/${m.id}/edit`) }}
                           className="p-1 text-muted-foreground hover:text-foreground transition-colors"
                           title={tCommon('edit')}
                         >

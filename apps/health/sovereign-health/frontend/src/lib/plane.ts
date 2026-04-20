@@ -30,15 +30,15 @@ const ADMIN_ONLY_PREFIXES = ['/platform', '/admin']
  * filters its tab list by plane instead (admin plane shows account/security/
  * data-privacy; end-user plane shows those PLUS the SHI extension tabs
  * -- health profile, devices, thresholds, medications).
+ *
+ * Sprint 047 #577 Phase A: all SHI end-user routes now live under the single
+ * `/sovereign-health/` prefix (/sovereign-health/dashboard, /sovereign-health/
+ * measurements, /sovereign-health/markers, /sovereign-health/trends,
+ * /sovereign-health/zones, /sovereign-health/doctor-chat,
+ * /sovereign-health/practitioner). The seven separate entries collapse to one.
  */
 const END_USER_ONLY_PREFIXES = [
-  '/dashboard',
-  '/measurements',
-  '/markers',
-  '/trends',
-  '/zones',
-  '/doctor-chat',
-  '/practitioner',
+  '/sovereign-health',
   '/billing',
   '/donate',
   '/checkout',

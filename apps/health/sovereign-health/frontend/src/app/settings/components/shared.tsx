@@ -196,7 +196,7 @@ export function MarkerInfoButton({ marker }: { marker: MarkerWithZone }) {
   return (
     <div className="relative inline-flex" ref={ref} onMouseEnter={onEnter} onMouseLeave={onLeave}>
       <Link
-        href={`/markers/${marker.marker_slug}`}
+        href={`/sovereign-health/markers/${marker.marker_slug}`}
         className="text-blue-500 dark:text-blue-400/60 hover:text-blue-600 dark:hover:text-blue-400 transition-colors shrink-0"
         onClick={e => e.stopPropagation()}
       >

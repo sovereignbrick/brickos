@@ -751,7 +751,7 @@ export default function NewMeasurementPage() {
         }
         toast.success(t('saved'))
       }
-      router.push('/dashboard')
+      router.push('/sovereign-health/dashboard')
     } catch (err) {
       toast.error(err instanceof Error ? err.message : tCommon('saveFailed'))
     } finally {
@@ -842,7 +842,7 @@ export default function NewMeasurementPage() {
       <main className="max-w-3xl mx-auto px-4 py-6 pb-8">
         <div className="mb-4">
           <Breadcrumb items={[
-            { label: tNav('overview'), href: '/dashboard' },
+            { label: tNav('overview'), href: '/sovereign-health/dashboard' },
             { label: t('title') },
           ]} />
         </div>

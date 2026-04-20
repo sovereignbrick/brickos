@@ -37,14 +37,15 @@ describe('isAdminOnlyPath / isEndUserOnlyPath', () => {
     expect(isAdminOnlyPath('/platform/org/branding')).toBe(true)
     expect(isAdminOnlyPath('/platform/orgs')).toBe(true)
     expect(isAdminOnlyPath('/admin')).toBe(true)
-    expect(isAdminOnlyPath('/dashboard')).toBe(false)
+    expect(isAdminOnlyPath('/sovereign-health/dashboard')).toBe(false)
     expect(isAdminOnlyPath('/login')).toBe(false)
   })
 
   it('end-user-only paths', () => {
-    expect(isEndUserOnlyPath('/dashboard')).toBe(true)
-    expect(isEndUserOnlyPath('/measurements/new')).toBe(true)
-    expect(isEndUserOnlyPath('/doctor-chat/abc-123')).toBe(true)
+    // Sprint 047 #577 Phase A: SHI routes live under /sovereign-health/.
+    expect(isEndUserOnlyPath('/sovereign-health/dashboard')).toBe(true)
+    expect(isEndUserOnlyPath('/sovereign-health/measurements/new')).toBe(true)
+    expect(isEndUserOnlyPath('/sovereign-health/doctor-chat/abc-123')).toBe(true)
     // Sprint 046 hotfix 2026-04-20: /settings renders on BOTH planes and
     // filters its own tab list by plane -- so it is not end-user-only anymore.
     expect(isEndUserOnlyPath('/settings')).toBe(false)
@@ -86,10 +87,10 @@ describe('planeRedirectTarget', () => {
   it('redirects admin-plane host visiting end-user path to end-user plane', () => {
     const target = planeRedirectTarget(
       'admin',
-      '/dashboard',
+      '/sovereign-health/dashboard',
       'test-clinic.brickos.io',
     )
-    expect(target).toBe('https://test-clinic.sovereignhealth.io/dashboard')
+    expect(target).toBe('https://test-clinic.sovereignhealth.io/sovereign-health/dashboard')
   })
 
   it('redirects end-user-plane host visiting admin path to admin plane', () => {
@@ -108,19 +109,19 @@ describe('planeRedirectTarget', () => {
 
   it('does not redirect on matching plane', () => {
     expect(planeRedirectTarget('admin', '/platform/org', 'test-clinic.brickos.io')).toBeNull()
-    expect(planeRedirectTarget('end-user', '/dashboard', 'test-clinic.sovereignhealth.io')).toBeNull()
+    expect(planeRedirectTarget('end-user', '/sovereign-health/dashboard', 'test-clinic.sovereignhealth.io')).toBeNull()
   })
 
   it('does not redirect custom domains', () => {
-    expect(planeRedirectTarget('unknown', '/dashboard', 'health.acme.com')).toBeNull()
+    expect(planeRedirectTarget('unknown', '/sovereign-health/dashboard', 'health.acme.com')).toBeNull()
   })
 
   it('preserves staging subdomain level', () => {
     const target = planeRedirectTarget(
       'admin',
-      '/dashboard',
+      '/sovereign-health/dashboard',
       'test-clinic.demo.brickos.io',
     )
-    expect(target).toBe('https://test-clinic.demo.sovereignhealth.io/dashboard')
+    expect(target).toBe('https://test-clinic.demo.sovereignhealth.io/sovereign-health/dashboard')
   })
 })
