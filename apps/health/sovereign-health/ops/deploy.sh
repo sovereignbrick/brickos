@@ -667,15 +667,21 @@ sync_compose_files() {
         "${VPS}:${VPS_BASE}/"
 
     # Sprint 044 #544: sync nginx configs for white-label wildcard support
+    # Sprint 047 #558: ensure sites-enabled is a SYMLINK to sites-available, not
+    # a plain file copy. Without this, the scp writes a fresh sites-available
+    # but nginx reads from a stale sites-enabled copy -> silent no-op deploys
+    # of nginx changes. The idempotent block below is safe to re-run.
     local nginx_brickos="${PROJECT_ROOT}/apps/platform/brickos-website/ops/nginx-brickos-app.conf"
     local nginx_shi="${APP_ROOT}/ops/nginx-sovereignhealth.conf"
     if [ -f "$nginx_brickos" ]; then
         scp -o ServerAliveInterval=10 "$nginx_brickos" "${VPS}:/etc/nginx/sites-available/brickos-app.conf"
         log "Nginx brickos config synced"
+        ssh $VPS "[ -L /etc/nginx/sites-enabled/brickos-app.conf ] || { rm -f /etc/nginx/sites-enabled/brickos-app.conf && ln -s /etc/nginx/sites-available/brickos-app.conf /etc/nginx/sites-enabled/brickos-app.conf; }" 2>/dev/null || warn "brickos-app symlink fix failed"
     fi
     if [ -f "$nginx_shi" ]; then
         scp -o ServerAliveInterval=10 "$nginx_shi" "${VPS}:/etc/nginx/sites-available/sovereignhealth.conf"
         log "Nginx sovereignhealth config synced"
+        ssh $VPS "[ -L /etc/nginx/sites-enabled/sovereignhealth.conf ] || { rm -f /etc/nginx/sites-enabled/sovereignhealth.conf /etc/nginx/sites-enabled/sovereignhealth.io && ln -s /etc/nginx/sites-available/sovereignhealth.conf /etc/nginx/sites-enabled/sovereignhealth.conf; }" 2>/dev/null || warn "sovereignhealth symlink fix failed"
     fi
 
     # Reload nginx if configs changed (test first)
