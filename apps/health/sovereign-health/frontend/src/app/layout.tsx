@@ -54,46 +54,73 @@ export const viewport: Viewport = {
 
 const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://app.sovereignhealth.io'
 
-export const metadata: Metadata = {
-  metadataBase: new URL(SITE_URL),
-  title: {
-    default: APP_NAME,
-    template: '%s | Sovereign Health',
-  },
-  description: 'Privacy-first metabolic health tracking. Monitor biomarkers, track trends, and optimize your health with protocol-aware reference ranges.',
-  keywords: ['health tracking', 'biomarkers', 'metabolic health', 'blood work', 'health optimization', 'glucose', 'ketones', 'cholesterol', 'privacy-first'],
-  manifest: '/manifest.json',
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: 'black-translucent',
-    title: 'Sovereign Health',
-  },
-  icons: {
-    icon: [
-      { url: '/favicon.ico', sizes: '32x32 16x16' },
-      { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
-      { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
-    ],
-    apple: '/apple-touch-icon.png',
-  },
-  openGraph: {
-    type: 'website',
-    siteName: APP_NAME,
-    title: APP_NAME,
-    description: 'Privacy-first metabolic health tracking. Monitor biomarkers, track trends, and optimize your health.',
-    url: SITE_URL,
-    images: [{ url: '/og-image.png', width: 1200, height: 627, alt: 'Sovereign Health Intelligence — Privacy-first metabolic health tracking' }],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: APP_NAME,
-    description: 'Privacy-first metabolic health tracking. Monitor biomarkers, track trends, and optimize your health.',
-    images: ['/og-image.png'],
-  },
-  other: {
-    'robots': 'noai, noimageai',
-    'rights': `(c) ${APP_NAME}. All rights reserved.`,
-  },
+// Sprint 046 hotfix 2026-04-20 (post-v0.43.0-ship): `generateMetadata`
+// reads the request host so tab title + favicon adapt per plane.
+// On `*.brickos.io` -> "BrickOS Platform" + cube favicon.
+// On `*.sovereignhealth.io` (default) -> APP_NAME + SHI favicon.
+// Before this, every page on brickos.io still showed "X | Sovereign Health"
+// and the SHI favicon, because `metadata` was a static object evaluated
+// at build time.
+export async function generateMetadata(): Promise<Metadata> {
+  const { headers } = await import('next/headers')
+  const h = await headers()
+  const host = (h.get('host') || '').toLowerCase()
+  const isBrickOS = host.endsWith('.brickos.io') || host === 'brickos.io'
+
+  const brandName = isBrickOS ? 'BrickOS Platform' : APP_NAME
+  const brandTemplate = isBrickOS ? '%s | BrickOS' : '%s | Sovereign Health'
+  const brandDescription = isBrickOS
+    ? 'BrickOS -- build, operate, and own your apps. Platform admin and org management.'
+    : 'Privacy-first metabolic health tracking. Monitor biomarkers, track trends, and optimize your health with protocol-aware reference ranges.'
+
+  const brandIcons = isBrickOS
+    ? {
+        icon: [{ url: '/brickos-favicon-32.png', sizes: '32x32', type: 'image/png' }],
+        apple: '/brickos-favicon-32.png',
+      }
+    : {
+        icon: [
+          { url: '/favicon.ico', sizes: '32x32 16x16' },
+          { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+          { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+        ],
+        apple: '/apple-touch-icon.png',
+      }
+
+  return {
+    metadataBase: new URL(SITE_URL),
+    title: {
+      default: brandName,
+      template: brandTemplate,
+    },
+    description: brandDescription,
+    keywords: ['health tracking', 'biomarkers', 'metabolic health', 'blood work', 'health optimization', 'glucose', 'ketones', 'cholesterol', 'privacy-first'],
+    manifest: '/manifest.json',
+    appleWebApp: {
+      capable: true,
+      statusBarStyle: 'black-translucent',
+      title: brandName,
+    },
+    icons: brandIcons,
+    openGraph: {
+      type: 'website',
+      siteName: brandName,
+      title: brandName,
+      description: brandDescription,
+      url: SITE_URL,
+      images: [{ url: '/og-image.png', width: 1200, height: 627, alt: `${brandName} -- Privacy-first metabolic health tracking` }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: brandName,
+      description: brandDescription,
+      images: ['/og-image.png'],
+    },
+    other: {
+      'robots': 'noai, noimageai',
+      'rights': `(c) ${brandName}. All rights reserved.`,
+    },
+  }
 }
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
