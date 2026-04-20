@@ -12,14 +12,34 @@ interface EmailConfig {
   email_footer_text: string | null
 }
 
+interface EmailConfigResponse {
+  locales?: Record<string, EmailConfig>
+  supported_locales?: string[]
+  // Legacy flat fields (EN) for backward compat
+  email_welcome_subject?: string | null
+  email_welcome_body?: string | null
+  email_verification_subject?: string | null
+  email_reset_subject?: string | null
+  email_footer_text?: string | null
+}
+
+const EMPTY: EmailConfig = {
+  email_welcome_subject: null,
+  email_welcome_body: null,
+  email_verification_subject: null,
+  email_reset_subject: null,
+  email_footer_text: null,
+}
+
+const LOCALE_LABELS: Record<string, string> = { en: 'English', de: 'Deutsch' }
+
 export default function ShiEmailPage() {
-  const [config, setConfig] = useState<EmailConfig>({
-    email_welcome_subject: null,
-    email_welcome_body: null,
-    email_verification_subject: null,
-    email_reset_subject: null,
-    email_footer_text: null,
-  })
+  // Sprint 047 #583: per-locale draft state. Keeping all locales hydrated
+  // in memory means switching tabs is instant and unsaved edits persist
+  // across tab changes until the user hits Save.
+  const [configs, setConfigs] = useState<Record<string, EmailConfig>>({ en: EMPTY })
+  const [supportedLocales, setSupportedLocales] = useState<string[]>(['en', 'de'])
+  const [activeLocale, setActiveLocale] = useState<string>('en')
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
@@ -28,9 +48,41 @@ export default function ShiEmailPage() {
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     })
       .then(r => r.json())
-      .then(j => setConfig(j.data || config))
+      .then((j: { data?: EmailConfigResponse }) => {
+        const data = j.data
+        if (!data) return
+        if (data.supported_locales && data.supported_locales.length) {
+          setSupportedLocales(data.supported_locales)
+        }
+        if (data.locales) {
+          setConfigs(prev => ({ ...prev, ...data.locales }))
+        } else {
+          // Legacy response shape -- use flat fields as EN.
+          setConfigs({
+            en: {
+              email_welcome_subject: data.email_welcome_subject ?? null,
+              email_welcome_body: data.email_welcome_body ?? null,
+              email_verification_subject: data.email_verification_subject ?? null,
+              email_reset_subject: data.email_reset_subject ?? null,
+              email_footer_text: data.email_footer_text ?? null,
+            },
+          })
+        }
+      })
       .catch(() => {})
   }, [])
+
+  const config = configs[activeLocale] ?? EMPTY
+
+  const update = (key: keyof EmailConfig, value: string) => {
+    setConfigs(prev => ({
+      ...prev,
+      [activeLocale]: {
+        ...(prev[activeLocale] ?? EMPTY),
+        [key]: value || null,
+      },
+    }))
+  }
 
   async function save() {
     setSaving(true)
@@ -42,10 +94,10 @@ export default function ShiEmailPage() {
           'Content-Type': 'application/json',
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
-        body: JSON.stringify(config),
+        body: JSON.stringify({ ...config, locale: activeLocale }),
       })
       if (!res.ok) throw new Error('Failed to save')
-      toast.success('Email settings saved')
+      toast.success(`Email settings saved (${LOCALE_LABELS[activeLocale] ?? activeLocale})`)
     } catch {
       toast.error('Failed to save')
     } finally {
@@ -53,17 +105,41 @@ export default function ShiEmailPage() {
     }
   }
 
-  const update = (key: keyof EmailConfig, value: string) =>
-    setConfig(prev => ({ ...prev, [key]: value || null }))
-
   return (
     <div className="space-y-6">
       <div>
         <h2 className="text-lg font-semibold">SHI -- Email Templates</h2>
         <p className="text-sm text-muted-foreground mt-1">
           Customize the email messages sent to your organization's members.
-          Leave empty to use the default text.
+          Leave empty to use the default text. Each locale is saved
+          independently; emails sent to a user fall back to English when
+          their locale has no custom copy.
         </p>
+      </div>
+
+      {/* Sprint 047 #583: locale tabs. En is the primary; de is optional.
+          Tab content is retained in memory so an admin can draft both
+          locales before saving. */}
+      <div role="tablist" aria-label="Email template locale" className="flex gap-1 border-b border-white/10">
+        {supportedLocales.map(loc => {
+          const isActive = loc === activeLocale
+          return (
+            <button
+              key={loc}
+              role="tab"
+              aria-selected={isActive}
+              onClick={() => setActiveLocale(loc)}
+              className={[
+                'px-4 py-2 text-sm font-medium rounded-t-lg transition-colors',
+                isActive
+                  ? 'bg-white/10 text-white border-b-2 border-white -mb-px'
+                  : 'text-muted-foreground hover:text-white',
+              ].join(' ')}
+            >
+              {LOCALE_LABELS[loc] ?? loc.toUpperCase()}
+            </button>
+          )
+        })}
       </div>
 
       <div className="space-y-4 max-w-lg">
@@ -129,7 +205,7 @@ export default function ShiEmailPage() {
           disabled={saving}
           className="brand-primary-bg text-white px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 disabled:opacity-50"
         >
-          {saving ? 'Saving...' : 'Save Email Settings'}
+          {saving ? 'Saving...' : `Save ${LOCALE_LABELS[activeLocale] ?? activeLocale} Templates`}
         </button>
       </div>
     </div>

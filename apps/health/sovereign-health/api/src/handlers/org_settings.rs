@@ -550,7 +550,24 @@ pub async fn update_shi_ai_config(
     Ok(HttpResponse::Ok().json(json!({ "data": { "updated": true }, "error": null })))
 }
 
-/// GET /org-settings/apps/shi/email -- email customization for this org
+/// Sprint 047 #583: locales supported by per-org email templates. EN is
+/// stored under the base keys (email_welcome_subject, ...); every other
+/// locale is suffixed (_de, _fr, ...). Keeping EN at the base means
+/// existing rows in organizations.branding keep working without a
+/// migration.
+const SUPPORTED_EMAIL_LOCALES: &[&str] = &["en", "de"];
+
+fn email_branding_key(base: &str, locale: &str) -> String {
+    if locale == "en" {
+        base.to_string()
+    } else {
+        format!("{base}_{locale}")
+    }
+}
+
+/// GET /org-settings/apps/shi/email -- email customization for this org.
+/// Returns one object per supported locale so the frontend can switch
+/// tabs without re-fetching.
 pub async fn get_shi_email_config(
     pool: web::Data<PgPool>,
     auth: AuthenticatedUser,
@@ -565,6 +582,30 @@ pub async fn get_shi_email_config(
     .await
     .unwrap_or(json!({}));
 
+    // Sprint 047 #583: per-locale payload. `locales.en` is always present
+    // (may be empty); `locales.de` etc. only populated if the org has set
+    // DE copy. The legacy flat keys stay in the response for backward
+    // compatibility with clients that haven't been updated.
+    let mut locales = serde_json::Map::new();
+    for loc in SUPPORTED_EMAIL_LOCALES {
+        let mut obj = serde_json::Map::new();
+        for (base, key_alias) in [
+            ("email_welcome_subject", "email_welcome_subject"),
+            ("email_welcome_body", "email_welcome_body"),
+            ("email_verification_subject", "email_verification_subject"),
+            ("email_reset_subject", "email_reset_subject"),
+            // Footer legacy key is "footer_text" not "email_footer_text".
+            ("footer_text", "email_footer_text"),
+        ] {
+            let k = email_branding_key(base, loc);
+            obj.insert(
+                key_alias.to_string(),
+                branding.get(&k).cloned().unwrap_or(Value::Null),
+            );
+        }
+        locales.insert(loc.to_string(), Value::Object(obj));
+    }
+
     Ok(HttpResponse::Ok().json(json!({
         "data": {
             "email_welcome_subject": branding.get("email_welcome_subject").and_then(|v| v.as_str()),
@@ -572,6 +613,8 @@ pub async fn get_shi_email_config(
             "email_verification_subject": branding.get("email_verification_subject").and_then(|v| v.as_str()),
             "email_reset_subject": branding.get("email_reset_subject").and_then(|v| v.as_str()),
             "email_footer_text": branding.get("footer_text").and_then(|v| v.as_str()),
+            "locales": locales,
+            "supported_locales": SUPPORTED_EMAIL_LOCALES,
         },
         "error": null
     })))
@@ -584,6 +627,11 @@ pub struct UpdateEmailConfigRequest {
     pub email_verification_subject: Option<String>,
     pub email_reset_subject: Option<String>,
     pub email_footer_text: Option<String>,
+    /// Sprint 047 #583: when omitted, defaults to "en" (writes the legacy
+    /// flat keys). "de" writes email_welcome_subject_de etc. Unsupported
+    /// locales are rejected.
+    #[serde(default)]
+    pub locale: Option<String>,
 }
 
 /// PUT /org-settings/apps/shi/email
@@ -594,8 +642,16 @@ pub async fn update_shi_email_config(
 ) -> Result<HttpResponse, AppError> {
     let org_id = require_org_owner(&auth)?;
 
-    // Merge each field into branding JSONB
-    let fields: Vec<(&str, &str)> = [
+    let locale = body.locale.as_deref().unwrap_or("en");
+    if !SUPPORTED_EMAIL_LOCALES.contains(&locale) {
+        return Err(AppError::Validation(format!(
+            "unsupported locale '{locale}' -- allowed: {:?}",
+            SUPPORTED_EMAIL_LOCALES
+        )));
+    }
+
+    // Merge each field into branding JSONB under the locale-scoped key.
+    let fields: Vec<(String, &str)> = [
         (
             "email_welcome_subject",
             body.email_welcome_subject.as_deref(),
@@ -609,7 +665,7 @@ pub async fn update_shi_email_config(
         ("footer_text", body.email_footer_text.as_deref()),
     ]
     .iter()
-    .filter_map(|(k, v)| v.map(|val| (*k, val)))
+    .filter_map(|(base, v)| v.map(|val| (email_branding_key(base, locale), val)))
     .collect();
 
     for (key, value) in fields {
@@ -623,7 +679,8 @@ pub async fn update_shi_email_config(
         .await?;
     }
 
-    Ok(HttpResponse::Ok().json(json!({ "data": { "updated": true }, "error": null })))
+    Ok(HttpResponse::Ok()
+        .json(json!({ "data": { "updated": true, "locale": locale }, "error": null })))
 }
 
 // ── Billing (read-only) ──────────────────────────────────────────────────────
