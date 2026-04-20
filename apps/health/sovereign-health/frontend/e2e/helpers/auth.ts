@@ -44,6 +44,10 @@ export function authHeaders(user: TestUser): Record<string, string> {
 
 /**
  * Login via the UI (fills login form and submits).
+ *
+ * Sprint 046 #570: post-login landing depends on plane. End-user plane
+ * lands on /dashboard; admin plane lands on /platform/org. The helper
+ * waits for EITHER so it works against both BASE_URLs.
  */
 export async function loginViaUI(
   page: import('@playwright/test').Page,
@@ -54,7 +58,13 @@ export async function loginViaUI(
   await page.fill('input[type="email"]', email)
   await page.fill('input[type="password"]', password)
   await page.click('button:has-text("Sign in")')
-  await page.waitForURL('**/dashboard', { timeout: 15000 })
+  await page.waitForURL(
+    url => {
+      const p = typeof url === 'string' ? url : url.pathname
+      return p.includes('/dashboard') || p.includes('/platform')
+    },
+    { timeout: 15000 },
+  )
 }
 
 /**

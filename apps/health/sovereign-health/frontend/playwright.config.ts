@@ -38,5 +38,16 @@ export default defineConfig({
       },
       dependencies: ['setup'],
     },
+    // Sprint 046 #577 fixture gap: DEMO_ADMIN (dev@sovereignhealth.io) is
+    // not a member of test-clinic, so running the full 'chromium' project
+    // against an org subdomain fails at auth.setup. This project skips
+    // setup and is intended for redirect/status-code regression tests that
+    // don't need an authed user. Track the member-fixture gap separately.
+    {
+      name: 'unauth',
+      use: {
+        browserName: 'chromium',
+      },
+    },
   ],
 })
