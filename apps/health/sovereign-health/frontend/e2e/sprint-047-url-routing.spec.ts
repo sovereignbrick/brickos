@@ -106,7 +106,19 @@ test.describe('Sprint 047 -- branded domain keeps legacy URL clean', () => {
 })
 
 test.describe('Sprint 047 -- build-id health contract (#586)', () => {
-  test('/health returns non-empty build field', async ({ request }) => {
+  test('/health returns non-empty build field', async ({ request, baseURL }) => {
+    // demo.sovereignhealth.io is the one staging host that does NOT
+    // path-mount the backend (it uses api-demo.sovereignhealth.io
+    // instead, Sprint 045 decision). GET /health there would 200 with
+    // a frontend HTML payload, which isn't what this test is asserting.
+    // All brickos.io subdomains AND *.sovereignhealth.io wildcard hosts
+    // do path-mount, so the test is meaningful on every host we care
+    // about for Sprint 047 RC.
+    const host = baseURL ? new URL(baseURL).hostname : ''
+    test.skip(
+      host === 'demo.sovereignhealth.io',
+      'demo.sovereignhealth.io lacks path-mounted /health; use api-demo.sovereignhealth.io',
+    )
     const res = await request.get('/health')
     expect(res.ok()).toBeTruthy()
     const body = await res.json()
