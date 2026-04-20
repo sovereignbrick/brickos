@@ -14,6 +14,17 @@ Both hostnames resolve to the **same OrgContext** via the middleware described b
 
 The Domain Resolution list in §Decision is updated to match (see inline below).
 
+## Amendment 2026-04-20 -- unified admin home
+
+Sprint 046 (Design 026) consolidates the admin plane's UI tree:
+- `/org/*` folded into `/platform/org/*` (redirects in `next.config.ts`)
+- `/admin/*` hard-removed; 308 redirects to `/platform`
+- Role- + plane-aware sidebar at `/platform/layout.tsx`
+- Declarative APPS registry at `src/lib/admin-nav/` so new BrickOS apps
+  can plug in their org-scoped settings without touching platform code
+- Scope banner when a `platform_admin` views an org subdomain's
+  `/platform` tree
+
 ## Context
 
 BrickOS needs to support white-label deployments where a clinic operator's
