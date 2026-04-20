@@ -248,14 +248,30 @@ This also lets the app appear / disappear in the nav when an org toggles the app
 - Adding a new app registration file shows its sub-section in the APPS nav without other code changes.
 - Profile menu on end-user plane shows "Admin" link (admins only) that opens the admin plane home in a new tab.
 
-## Open questions
+## Resolved decisions (2026-04-20)
 
-1. **Backwards compat for `/admin` bookmarks**: is 301 permanent redirect OK, or keep 302 for a window?
-2. **Platform admin on an org subdomain**: if a `platform_admin` visits `{slug}.brickos.io/platform`, do they see the PLATFORM section (yes, they can always platform-admin) or is it hidden (no, they shouldn't manage global BrickOS from an org subdomain)? Recommend show but with a banner "viewing as platform admin on Test Clinic's subdomain".
-3. **App entitlements**: the APPS section depends on "which apps does this org have installed?" -- that's a `brickos-licensing` entitlement lookup today. Decide whether to show the app sub-section if the app is *available* but not installed (grayed out + "Enable") or only if installed.
+1. **`/admin` BC**: hard-remove, no redirect window. No users, no bookmarks to preserve.
+2. **Platform admin on org subdomain**: sees the PLATFORM section with a persistent top banner: "Viewing as platform admin on {OrgName}'s subdomain." Dismissable per session.
+3. **App entitlements**: show app sub-section if the app is *available* for install, even if not yet enabled. Greyed-out state with "Enable" CTA. Drives upsell + discoverability.
+4. **App naming**: user-facing labels use "Sovereign Health", "Sovereign Link", "Sovereign Voice", etc. -- NOT "SHI" abbreviation. Internal package/crate names stay as today (`sovereign-health-backend`, `shi-web` Docker tag, etc.).
+5. **Mobile + PWA**: the unified `/platform` layout MUST work on narrow viewports and inside the installed PWA. Existing `/platform` mobile sheet is the starting point; extend to cover nested APPS sub-sections (collapse on tap, restore on re-visit).
+6. **Shared SSO across planes**: **deferred to Sprint 047+**. Two-session default (cookies scoped per plane) ships in Sprint 046. See "Cross-plane SSO tradeoffs" below. A dedicated issue tracks the future decision gate.
+
+## Cross-plane SSO tradeoffs (for the record)
+
+**Keep two sessions (Sprint 046 default):**
+- Cookie scoping is automatic: `.brickos.io` cookies don't leak to `.sovereignhealth.io`. Zero extra code, zero extra attack surface.
+- XSS containment: a script injected into the SHI end-user app can't replay org-admin actions on the admin plane.
+- Matches GitHub / Stripe / bank patterns (separate session for admin / business / enterprise surfaces).
+
+**Shared SSO alternative (future):**
+- Implementation: login issues a short-lived cross-plane token -> redirect to `{slug}.sovereignhealth.io/auth/sso?t=...` -> exchanges for a `.sovereignhealth.io`-scoped cookie. ~1-2 days of work.
+- Wins: one login for users who are both org admins AND end users of their own app.
+- Costs: extra endpoint, CSRF + open-redirect surface, larger blast radius on compromise.
+
+**Decision rule for activating shared SSO later**: if org-admin telemetry shows >X% repeat logins per day between planes, revisit. Otherwise hold.
 
 ## Out of scope
 
-- Renaming `/platform` to `/admin` or similar (URL stability matters)
-- SSO / shared session between the two planes (intentionally two sessions per Design 025)
-- Mobile nav redesign (current vertical sidebar works; Phase A keeps the existing mobile sheet)
+- Renaming `/platform` to `/admin` (URL stability matters)
+- Mobile nav redesign beyond "make the existing /platform layout work cleanly" (no new IA)
