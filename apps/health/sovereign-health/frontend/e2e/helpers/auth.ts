@@ -86,7 +86,9 @@ export async function loginAndNavigate(
   )
 }
 
-/** Admin credentials for E2E tests.
+/** Platform admin credentials for E2E tests -- used when E2E_BASE_URL
+ * points at `app.brickos.io`, `demo.brickos.io`, or the default SHI
+ * platform host (no specific org scope).
  * - Local dev: dev@sovereignhealth.io / SovereignDev1 (bootstrap migration)
  * - Staging:   demo@sovereignhealth.io / SovereignDemo1 (seed migration)
  * Override via E2E_ADMIN_EMAIL / E2E_ADMIN_PASSWORD env vars.
@@ -94,4 +96,33 @@ export async function loginAndNavigate(
 export const DEMO_ADMIN = {
   email: process.env.E2E_ADMIN_EMAIL || 'dev@sovereignhealth.io',
   password: process.env.E2E_ADMIN_PASSWORD || 'SovereignDev1',
+}
+
+/** Sprint 047 #578: org_owner credential for the `test-clinic` org, used
+ * when E2E_BASE_URL points at `{slug}.brickos.io` / `{slug}.sovereignhealth.io`
+ * org subdomains. Sprint 044's login handler returns 403 for non-members
+ * on an org subdomain, so we need a real test-clinic member to exercise
+ * the authed tests.
+ *
+ * The test-clinic org was manually created on staging for Sprint 045 RC.
+ * `test-clinic-admin@clinic.com` is the canonical org_owner. For local
+ * dev, there's no default seed yet -- set E2E_TEST_CLINIC_EMAIL +
+ * E2E_TEST_CLINIC_PASSWORD to match your local test-clinic fixture.
+ */
+export const TEST_CLINIC_OWNER = {
+  email: process.env.E2E_TEST_CLINIC_EMAIL || 'test-clinic-admin@clinic.com',
+  password: process.env.E2E_TEST_CLINIC_PASSWORD || 'TestClinicAdmin1',
+}
+
+/** Pick the right credential based on the base URL's hostname.
+ * - org subdomain -> TEST_CLINIC_OWNER (must be a member of that org)
+ * - platform host / default -> DEMO_ADMIN
+ */
+export function pickCredentialForBaseURL(baseURL?: string): { email: string; password: string } {
+  const host = baseURL ? new URL(baseURL).hostname.toLowerCase() : ''
+  const isOrgSubdomain =
+    /^test-clinic\./.test(host) ||
+    (host.endsWith('.brickos.io') && !host.startsWith('app.') && !host.startsWith('demo.') && !host.startsWith('api')) ||
+    (host.endsWith('.sovereignhealth.io') && !host.startsWith('app.') && !host.startsWith('demo.') && !host.startsWith('api'))
+  return isOrgSubdomain ? TEST_CLINIC_OWNER : DEMO_ADMIN
 }
