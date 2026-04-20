@@ -45,7 +45,9 @@ describe('isAdminOnlyPath / isEndUserOnlyPath', () => {
     expect(isEndUserOnlyPath('/dashboard')).toBe(true)
     expect(isEndUserOnlyPath('/measurements/new')).toBe(true)
     expect(isEndUserOnlyPath('/doctor-chat/abc-123')).toBe(true)
-    expect(isEndUserOnlyPath('/settings')).toBe(true)
+    // Sprint 046 hotfix 2026-04-20: /settings renders on BOTH planes and
+    // filters its own tab list by plane -- so it is not end-user-only anymore.
+    expect(isEndUserOnlyPath('/settings')).toBe(false)
     expect(isEndUserOnlyPath('/platform/org')).toBe(false)
     expect(isEndUserOnlyPath('/login')).toBe(false)
   })

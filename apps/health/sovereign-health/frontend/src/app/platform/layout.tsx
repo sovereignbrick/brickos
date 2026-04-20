@@ -12,6 +12,7 @@ import { OrgSwitcher } from '@/components/org-switcher'
 import { ADMIN_NAV_REGISTRY, type AdminNavRole } from '@/lib/admin-nav'
 import { useOrgEntitlements } from '@/lib/use-org-entitlements'
 import { getPlane, swapPlaneHost } from '@/lib/plane'
+import { useOrg } from '@/lib/org-context'
 
 // ---------------------------------------------------------------------------
 // Navigation
@@ -28,7 +29,11 @@ interface NavItem {
 
 function buildNavItems(t: (key: string) => string): NavItem[] {
   const p = (ctx: AdminContextType) => ctx.isPlatform
-  const o = (ctx: AdminContextType) => ctx.isOrgOwner || ctx.isTechAdmin || ctx.isCommercialAdmin
+  // Sprint 046 hotfix: include isPlatform in the "o" predicate so platform
+  // admins viewing an org subdomain still see the ORGANIZATION + PEOPLE nav
+  // sections. Without this a platform_admin visiting {slug}.brickos.io/platform
+  // saw nothing under those headings.
+  const o = (ctx: AdminContextType) => ctx.isPlatform || ctx.isOrgOwner || ctx.isTechAdmin || ctx.isCommercialAdmin
   const tech = (ctx: AdminContextType) => ctx.isPlatform || ctx.isOrgOwner || ctx.isTechAdmin
   const comm = (ctx: AdminContextType) => ctx.isPlatform || ctx.isOrgOwner || ctx.isCommercialAdmin
   const any = (ctx: AdminContextType) => ctx.isPlatform || ctx.isOrgOwner || ctx.isTechAdmin || ctx.isCommercialAdmin
@@ -392,29 +397,29 @@ export default function PlatformLayout({ children }: { children: React.ReactNode
   const [collapsed, setCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
 
-  // Determine role context
+  // Sprint 046 hotfix: read org_id/org_role from JWT (Sprint 044 #546 added
+  // these claims). useOrg() already parses them -- we just consume the state.
+  const org = useOrg()
   const isPlatform = user?.role === 'admin'
-  // TODO: read org_id/org_role from JWT when org context is active
-  const orgId = null as string | null
-  const orgRole = null as string | null
-  const orgName = null as string | null
+  const orgRole = org.orgRole
 
   const ctx: AdminContextType = {
     isPlatform,
-    isOrgOwner: orgRole === 'owner',
+    isOrgOwner: orgRole === 'owner' || orgRole === 'org_owner',
     isTechAdmin: orgRole === 'tech_admin',
     isCommercialAdmin: orgRole === 'commercial_admin',
-    orgId,
-    orgName,
+    orgId: org.orgId,
+    orgName: org.isOrg ? org.orgName : null,
   }
 
   useEffect(() => {
     if (!loading && !user) {
       router.push('/login?return=/platform')
-    } else if (!loading && user && user.role !== 'admin' && !orgId) {
+    } else if (!loading && user && user.role !== 'admin' && !org.orgId && !org.loading) {
+      // No platform role AND no org membership => kick to end-user app
       router.push('/dashboard')
     }
-  }, [loading, user, orgId, router])
+  }, [loading, user, org.orgId, org.loading, router])
 
   useEffect(() => { setMobileOpen(false) }, [pathname])
 
@@ -430,7 +435,7 @@ export default function PlatformLayout({ children }: { children: React.ReactNode
     sections[item.section].push(item)
   }
 
-  const appTitle = orgName ? `BrickOS Platform - ${orgName}` : 'BrickOS Platform'
+  const appTitle = ctx.orgName ? `BrickOS Platform - ${ctx.orgName}` : 'BrickOS Platform'
 
   return (
     <AdminContext.Provider value={ctx}>

@@ -24,7 +24,13 @@ export function getPlane(host: string): Plane {
  */
 const ADMIN_ONLY_PREFIXES = ['/platform', '/admin']
 
-/** Routes that MUST render on the end-user plane (sovereignhealth.io). */
+/** Routes that MUST render on the end-user plane (sovereignhealth.io).
+ *
+ * Sprint 046 hotfix: /settings removed. The page renders on both planes and
+ * filters its tab list by plane instead (admin plane shows account/security/
+ * data-privacy; end-user plane shows those PLUS the SHI extension tabs
+ * -- health profile, devices, thresholds, medications).
+ */
 const END_USER_ONLY_PREFIXES = [
   '/dashboard',
   '/measurements',
@@ -33,7 +39,6 @@ const END_USER_ONLY_PREFIXES = [
   '/zones',
   '/doctor-chat',
   '/practitioner',
-  '/settings',
   '/billing',
   '/donate',
   '/checkout',

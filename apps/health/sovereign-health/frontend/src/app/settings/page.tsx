@@ -5,6 +5,7 @@ import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
 import { useTranslations } from 'next-intl'
 import { api } from '@/lib/api'
+import { getPlane } from '@/lib/plane'
 import { Footer } from '@/components/layout/footer'
 import type { UserSettings } from '@/lib/types'
 import { Breadcrumb } from '@/components/breadcrumb'
@@ -160,6 +161,12 @@ function SettingsContent() {
 
   const dietProtocol = settings.lifestyle_defaults.default_diet_protocol
 
+  // Sprint 046 hotfix: hide SHI extension tabs on the admin plane so a user
+  // visiting {slug}.brickos.io/settings sees only BrickOS account/security/
+  // privacy -- app-specific settings belong on sovereignhealth.io.
+  const currentPlane = getPlane(typeof window !== 'undefined' ? window.location.hostname : '')
+  const visibleTabs: readonly Tab[] = currentPlane === 'admin' ? MASTER_TABS : ALL_TABS
+
   return (
     <div className="flex flex-col h-[calc(100vh-56px)]">
       {/* Fixed header area — never scrolls */}
@@ -182,16 +189,13 @@ function SettingsContent() {
         </div>
 
         <div className="flex flex-wrap gap-0 mb-0 border-b border-border pb-0">
-          {/* Sprint 042 #528 Phase D: render order matches the
-              pre-Sprint-040 production layout (SHI tabs first, then
-              brickos master tabs), with the two new master tabs
-              (Billing, Notifications) appended at the end. The
-              architectural distinction (brickos master vs SHI
-              extension) lives in the source comments + the MASTER_TABS
-              and SHI_EXTENSION_TABS constants -- the visual order
-              follows the production convention so existing users see
-              their familiar layout. */}
-          {ALL_TABS.map(tb => {
+          {/* Sprint 042 #528 Phase D: SHI tabs first, then brickos master tabs.
+              Sprint 046 hotfix 2026-04-20: on the admin plane (brickos.io)
+              only the BrickOS master tabs render -- health-profile / devices
+              / thresholds / medications are app-specific and belong on
+              sovereignhealth.io. Plane detection is done at render time,
+              so no TAB_SLUGS change needed. */}
+          {visibleTabs.map(tb => {
             const tabLabelMap: Record<Tab, string> = {
               'Account': t('tabs.account'),
               'Security': t('tabs.security'),
