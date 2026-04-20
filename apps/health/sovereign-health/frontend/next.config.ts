@@ -59,6 +59,23 @@ const nextConfig: NextConfig = {
         destination: "/platform",
         permanent: true,
       },
+      // Sprint 047 #577: SHI end-user routes moved under /sovereign-health/*
+      // so each URL names the app it belongs to. 308 the old root paths to
+      // the new prefixed ones for a 90-day window; remove after audit.
+      { source: "/dashboard", destination: "/sovereign-health/dashboard", permanent: true },
+      { source: "/dashboard/:path*", destination: "/sovereign-health/dashboard/:path*", permanent: true },
+      { source: "/measurements", destination: "/sovereign-health/measurements", permanent: true },
+      { source: "/measurements/:path*", destination: "/sovereign-health/measurements/:path*", permanent: true },
+      { source: "/doctor-chat", destination: "/sovereign-health/doctor-chat", permanent: true },
+      { source: "/doctor-chat/:path*", destination: "/sovereign-health/doctor-chat/:path*", permanent: true },
+      { source: "/markers", destination: "/sovereign-health/markers", permanent: true },
+      { source: "/markers/:path*", destination: "/sovereign-health/markers/:path*", permanent: true },
+      { source: "/trends", destination: "/sovereign-health/trends", permanent: true },
+      { source: "/trends/:path*", destination: "/sovereign-health/trends/:path*", permanent: true },
+      { source: "/zones", destination: "/sovereign-health/zones", permanent: true },
+      { source: "/zones/:path*", destination: "/sovereign-health/zones/:path*", permanent: true },
+      { source: "/practitioner", destination: "/sovereign-health/practitioner", permanent: true },
+      { source: "/practitioner/:path*", destination: "/sovereign-health/practitioner/:path*", permanent: true },
     ];
   },
 };
