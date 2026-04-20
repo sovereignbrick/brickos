@@ -137,17 +137,23 @@ function SettingsContent() {
 
   useEffect(() => {
     if (authLoading) return
-    if (isDemo || isDemoOnly) { router.push('/dashboard'); return }
+    // Sprint 046 hotfix 2026-04-20: check auth BEFORE demo.
+    // Previously isDemo (= user===null || isDemoOnly) fired first, so an
+    // unauthenticated visit to /settings pushed to /dashboard, which on the
+    // admin plane cross-planes to sovereignhealth.io. Now unauthenticated
+    // users go to /login with a return URL; only post-auth "demoOnly" mode
+    // bounces to /dashboard.
     if (!user) {
       const returnUrl = `${window.location.pathname}${window.location.search}`
       router.push(`/login?return=${encodeURIComponent(returnUrl)}`)
       return
     }
+    if (isDemoOnly) { router.push('/dashboard'); return }
     api.settings.get()
       .then(res => setSettings(res.data))
       .catch(e => setError(e.message))
       .finally(() => setLoading(false))
-  }, [user, authLoading, router, isDemo, isDemoOnly])
+  }, [user, authLoading, router, isDemoOnly])
 
   const showSaved = useCallback(() => {
     setSaveStatus('saved')
