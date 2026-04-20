@@ -104,7 +104,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener('session-expired', handler)
   }, [handleSessionExpired])
 
-  const isDemo = !loading && (user === null || isDemoOnly)
+  // Sprint 047 RC fix 2026-04-20: demo mode is ONLY triggered on the
+  // dedicated public-demo hostname (NEXT_PUBLIC_DEMO_HOSTNAME -- staging
+  // uses public-demo.sovereignhealth.io, prod defaults to
+  // demo.sovereignhealth.io). Previously "user === null OR isDemoOnly"
+  // turned every unauthenticated visit on every host into a public
+  // demo session, which leaked demo data on staging (demo.sovereignhealth.io)
+  // and admin subdomains. Now: you see demo mode IFF you're on the
+  // demo host AND not signed in. Unauthed users elsewhere get redirected
+  // to /login by <AuthGate />.
+  const isDemo = !loading && isDemoOnly && user === null
 
   return (
     <AuthContext.Provider value={{ user, loading, isDemo, isDemoOnly, setUser: setUserWithTracking, refreshUser, logout, handleSessionExpired }}>
