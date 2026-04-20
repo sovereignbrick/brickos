@@ -4,10 +4,14 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { Navbar } from '@/components/layout/navbar'
 import { Footer } from '@/components/layout/footer'
 import { useTranslations } from 'next-intl'
-import { APP_CONFIG } from '@/lib/config'
 import { Copy, Check } from 'lucide-react'
 
-const API_BASE = APP_CONFIG.apiUrl
+// Sprint 046 hotfix 2026-04-20: use relative paths (same-origin) so
+// wildcard subdomains route correctly via nginx. APP_CONFIG.apiUrl is
+// "/api" on staging which produced /api/donate/invoice -> 404
+// (backend scope is /donate at root). Leaving const = '' keeps the
+// existing `${API_BASE}${path}` template strings working unchanged.
+const API_BASE = ''
 
 const PRESETS = [5, 10, 25, 50]
 

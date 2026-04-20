@@ -788,7 +788,12 @@ export const api = {
     get: () =>
       request<{ data: import('./types').LicenseInfo }>('/license'),
     tiers: () => {
-      const base = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
+      // Sprint 046 hotfix 2026-04-20: don't re-resolve the base here.
+      // NEXT_PUBLIC_API_URL is "/api" on staging -> `${base}/reports/...`
+      // produces /api/reports/... which the backend 404s (backend scope
+      // is at root). Reuse API_BASE (same-origin '' on brickos.io /
+      // sovereignhealth.io wildcards via runtime detection).
+      const base = API_BASE
       return fetch(`${base}/license/tiers`).then(r => r.json()) as Promise<{ data: import('./types').LicenseTier[] }>
     },
     downgrade: (targetTier: string, reason?: string) =>
@@ -799,7 +804,12 @@ export const api = {
   },
   reports: {
     healthPdf: (period: string, zones?: string[]) => {
-      const base = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
+      // Sprint 046 hotfix 2026-04-20: don't re-resolve the base here.
+      // NEXT_PUBLIC_API_URL is "/api" on staging -> `${base}/reports/...`
+      // produces /api/reports/... which the backend 404s (backend scope
+      // is at root). Reuse API_BASE (same-origin '' on brickos.io /
+      // sovereignhealth.io wildcards via runtime detection).
+      const base = API_BASE
       const token = document.cookie.match(/token=([^;]+)/)?.[1] || ''
       return fetch(`${base}/reports/health-pdf`, {
         method: 'POST',
@@ -812,7 +822,12 @@ export const api = {
     history: () =>
       request<{ data: Array<{ id: string; report_type: string; period: string; file_size_bytes: number | null; created_at: string }> }>('/reports/history'),
     exportJson: (opts?: { period?: string; markers?: string; protected?: boolean }) => {
-      const base = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
+      // Sprint 046 hotfix 2026-04-20: don't re-resolve the base here.
+      // NEXT_PUBLIC_API_URL is "/api" on staging -> `${base}/reports/...`
+      // produces /api/reports/... which the backend 404s (backend scope
+      // is at root). Reuse API_BASE (same-origin '' on brickos.io /
+      // sovereignhealth.io wildcards via runtime detection).
+      const base = API_BASE
       const token = document.cookie.match(/token=([^;]+)/)?.[1] || ''
       const params = new URLSearchParams()
       if (opts?.period) params.set('period', opts.period)
@@ -824,7 +839,12 @@ export const api = {
       })
     },
     exportCsv: (opts?: { period?: string; zones?: string; markers?: string; protected?: boolean }) => {
-      const base = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
+      // Sprint 046 hotfix 2026-04-20: don't re-resolve the base here.
+      // NEXT_PUBLIC_API_URL is "/api" on staging -> `${base}/reports/...`
+      // produces /api/reports/... which the backend 404s (backend scope
+      // is at root). Reuse API_BASE (same-origin '' on brickos.io /
+      // sovereignhealth.io wildcards via runtime detection).
+      const base = API_BASE
       const token = document.cookie.match(/token=([^;]+)/)?.[1] || ''
       const params = new URLSearchParams()
       if (opts?.period) params.set('period', opts.period)
