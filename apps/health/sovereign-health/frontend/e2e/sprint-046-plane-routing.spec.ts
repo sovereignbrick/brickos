@@ -83,6 +83,8 @@ test.describe('Sprint 046 -- /settings auth + plane handling', () => {
     await page.goto('/settings')
     await page.waitForURL(/\/login/, { timeout: 10000 })
     // Should have return param pointing at /settings, not be on /dashboard.
+    // (Assertion catches both legacy /dashboard and Sprint 047's
+    // /sovereign-health/dashboard -- substring match is intentional.)
     expect(page.url()).toContain('/login')
     expect(page.url()).toContain('return')
     expect(page.url()).toContain('settings')
@@ -101,13 +103,16 @@ test.describe('Sprint 046 -- /settings auth + plane handling', () => {
 })
 
 test.describe('Sprint 046 -- plane gate cross-plane redirects', () => {
-  test('/dashboard on admin plane redirects to end-user plane', async ({ page, baseURL }) => {
+  test('/sovereign-health/dashboard on admin plane redirects to end-user plane', async ({ page, baseURL }) => {
+    // Sprint 047 #577: dashboard lives at /sovereign-health/dashboard. Go
+    // direct to the new path so the 308 from next.config.ts doesn't
+    // confuse the plane-gate assertion.
     const endUserHost = swapPlane(baseURL, 'end-user')
-    await page.goto('/dashboard')
+    await page.goto('/sovereign-health/dashboard')
     // Plane gate uses window.location.replace in a client useEffect.
     // Wait for the redirect to fire.
     await page.waitForURL(new RegExp(endUserHost), { timeout: 10000 })
-    expect(page.url()).toMatch(/\/dashboard/)
+    expect(page.url()).toMatch(/\/(sovereign-health\/)?dashboard/)
   })
 
   test('/platform/org on end-user plane redirects to admin plane', async ({ page, baseURL }) => {

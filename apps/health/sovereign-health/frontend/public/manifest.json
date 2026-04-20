@@ -2,7 +2,7 @@
   "name": "Sovereign Health Intelligence",
   "short_name": "Sovereign Health",
   "description": "Privacy-first biomarker tracking. Your health data, your control.",
-  "start_url": "/dashboard",
+  "start_url": "/sovereign-health/dashboard",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait-primary",
@@ -21,24 +21,24 @@
     {
       "name": "Add Measurement",
       "short_name": "Add",
-      "url": "/measurements/new",
+      "url": "/sovereign-health/measurements/new",
       "icons": [{ "src": "/android-chrome-192x192.png", "sizes": "192x192" }]
     },
     {
       "name": "Dr. Alex Chat",
       "short_name": "Dr. Alex",
-      "url": "/chat",
+      "url": "/sovereign-health/doctor-chat",
       "icons": [{ "src": "/android-chrome-192x192.png", "sizes": "192x192" }]
     },
     {
       "name": "Dashboard",
       "short_name": "Dashboard",
-      "url": "/dashboard",
+      "url": "/sovereign-health/dashboard",
       "icons": [{ "src": "/android-chrome-192x192.png", "sizes": "192x192" }]
     }
   ],
   "share_target": {
-    "action": "/chat",
+    "action": "/sovereign-health/doctor-chat",
     "method": "POST",
     "enctype": "multipart/form-data",
     "params": {

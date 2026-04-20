@@ -35,11 +35,12 @@ test.describe('Sprint 046 RC -- link targets in shipped bundle', () => {
     const chunk = await chunkRes.text()
 
     // The AdminPlaneCrossLink component builds:
-    //   href = `https://${swapped}/dashboard`
+    //   href = `https://${swapped}/sovereign-health/dashboard`
     // where `swapped` comes from swapPlaneHost. After minification the
-    // strings we can still grep for:
+    // strings we can still grep for. Sprint 047 #577 moved /dashboard
+    // under /sovereign-health/.
     expect(chunk).toContain('Open Sovereign Health')
-    expect(chunk).toContain('/dashboard')
+    expect(chunk).toContain('/sovereign-health/dashboard')
     expect(chunk).toContain('_blank')
     // The old /sovereignhealth/ nav link must be gone (round 7 removed it).
     expect(chunk).not.toContain('/sovereignhealth/')
@@ -105,10 +106,11 @@ test.describe('Sprint 046 RC -- actual click behaviour via headless browser', ()
 
     // Look for the swapPlaneHost end-user branch in the chunk. The
     // AdminPlaneCrossLink does:
-    //   setHref(`https://${swapped}/dashboard`)
+    //   setHref(`https://${swapped}/sovereign-health/dashboard`)
     // After minification the template string literal `https://` + the
-    // `/dashboard` literal are preserved.
-    expect(chunk).toMatch(/https:\/\/\$\{[^}]+\}\/dashboard|https:\/\/"\+\w+\+"\/dashboard/)
+    // `/sovereign-health/dashboard` literal are preserved.
+    // Sprint 047 #577 moved /dashboard under /sovereign-health/.
+    expect(chunk).toMatch(/https:\/\/\$\{[^}]+\}\/sovereign-health\/dashboard|https:\/\/"\+\w+\+"\/sovereign-health\/dashboard/)
   })
 })
 
@@ -124,7 +126,10 @@ test.describe('Sprint 046 RC -- the round-7 fixes landed', () => {
   })
 
   test('RSC prefetch works end-to-end (round 5 nginx fix)', async ({ request }) => {
-    const res = await request.get('/measurements', {
+    // Sprint 047 #577: /measurements moved to /sovereign-health/measurements.
+    // Hit the new path directly (prefetching the new path is what the
+    // shipped app does in practice).
+    const res = await request.get('/sovereign-health/measurements', {
       headers: { 'Accept': '*/*', 'RSC': '1' },
     })
     // 200 text/x-component proves the nginx Accept+RSC rule sends this

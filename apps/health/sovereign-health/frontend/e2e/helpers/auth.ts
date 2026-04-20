@@ -81,7 +81,10 @@ export async function loginAndNavigate(
   await page.fill('input[type="password"]', password)
   await page.click('button:has-text("Sign in")')
   await page.waitForURL(
-    url => url.pathname.startsWith(returnUrl) || url.pathname === '/dashboard',
+    url =>
+      url.pathname.startsWith(returnUrl) ||
+      url.pathname === '/dashboard' ||
+      url.pathname === '/sovereign-health/dashboard',
     { timeout: 15000 },
   )
 }

@@ -35,7 +35,7 @@ test.describe('PWA', () => {
     const manifest = await res.json()
     expect(manifest.name).toBe('Sovereign Health Intelligence')
     expect(manifest.short_name).toBe('Sovereign Health Intelligence')
-    expect(manifest.start_url).toBe('/dashboard')
+    expect(manifest.start_url).toBe('/sovereign-health/dashboard')
     expect(manifest.display).toBe('standalone')
     expect(manifest.icons.length).toBeGreaterThanOrEqual(2)
   })
@@ -104,8 +104,10 @@ test.describe('Auth flow', () => {
     await page.fill('input[type="password"]', PASSWORD)
     await page.click('button:has-text("Sign in")')
 
-    // Should redirect to dashboard
-    await page.waitForURL('**/dashboard', { timeout: 15000 })
+    // Sprint 047 #577: dashboard lives at /sovereign-health/dashboard on
+    // brickos.io; sovereignhealth.io nginx rewrites internally so the
+    // URL bar stays /dashboard. Accept EITHER.
+    await page.waitForURL(/\/(sovereign-health\/)?dashboard(\?|$|#)/, { timeout: 15000 })
     await expect(page.locator('text=Health Overview')).toBeVisible({ timeout: 10000 })
   })
 
@@ -115,7 +117,7 @@ test.describe('Auth flow', () => {
     await page.fill('input[type="email"]', EMAIL)
     await page.fill('input[type="password"]', PASSWORD)
     await page.click('button:has-text("Sign in")')
-    await page.waitForURL('**/dashboard', { timeout: 15000 })
+    await page.waitForURL(/\/(sovereign-health\/)?dashboard(\?|$|#)/, { timeout: 15000 })
 
     // Dashboard: verify page loaded with user data
     await expect(page.getByText('Your Health Overview')).toBeVisible({ timeout: 10000 })
@@ -124,8 +126,8 @@ test.describe('Auth flow', () => {
     await page.goto('/settings')
     await expect(page.getByRole('button', { name: 'Profile', exact: true })).toBeVisible({ timeout: 10000 })
 
-    // Add measurement page
-    await page.goto('/measurements/new')
+    // Add measurement page (Sprint 047 #577: /measurements -> /sovereign-health/measurements)
+    await page.goto('/sovereign-health/measurements/new')
     await expect(page.getByText('Save', { exact: false })).toBeVisible({ timeout: 10000 })
   })
 })
@@ -134,12 +136,14 @@ test.describe('Auth flow', () => {
 
 test.describe('Demo mode', () => {
   test('demo dashboard loads with profile selector', async ({ page }) => {
-    await page.goto('/dashboard?demo=true')
+    // Sprint 047 #577: /dashboard -> /sovereign-health/dashboard
+    await page.goto('/sovereign-health/dashboard?demo=true')
     await expect(page.locator('text=Demo data')).toBeVisible({ timeout: 10000 })
   })
 
   test('demo zone detail loads', async ({ page }) => {
-    await page.goto('/zones/energy_metabolic?profile=optimized')
+    // Sprint 047 #577: /zones/* -> /sovereign-health/zones/*
+    await page.goto('/sovereign-health/zones/energy_metabolic?profile=optimized')
     await expect(page.getByRole('heading', { name: 'Energy & Metabolic' })).toBeVisible({ timeout: 10000 })
   })
 })
