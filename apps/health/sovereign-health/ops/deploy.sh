@@ -67,10 +67,13 @@ API_URL_STAGING="/api"
 
 # Verification URLs: Checked after deploy to confirm everything works.
 # Sprint 043 #526: canonical URLs are now on brickos.io.
-VERIFY_API_PROD="https://app.brickos.io/api/v1/health"
+# Sprint 047 #589 cleanup: backend serves the health contract at `/health`
+# (not `/api/v1/health` -- there is no v1 versioning prefix). With nginx
+# path-mount, `/health` is proxied to the backend on brickos.io subdomains.
+VERIFY_API_PROD="https://app.brickos.io/health"
 VERIFY_APP_PROD="https://app.brickos.io/"
 VERIFY_WEB_PROD="https://sovereignhealth.io/"
-VERIFY_API_STAGING="https://demo.brickos.io/api/v1/health"
+VERIFY_API_STAGING="https://demo.brickos.io/health"
 VERIFY_APP_STAGING="https://demo.brickos.io/"
 VERIFY_WEB_STAGING="https://www-demo.sovereignhealth.io/"
 
@@ -155,23 +158,26 @@ verify_image_loaded() {
     local image="$1"
     local tag="$2"
 
-    local local_size remote_size
-    local_size=$(docker inspect --format='{{.Size}}' "${image}:${tag}" 2>/dev/null)
+    # Sprint 047 #589 cleanup: check existence only. `docker inspect
+    # --format='{{.Size}}'` returns different byte counts on the builder
+    # vs the VPS even for the same source image -- docker save/load
+    # rematerialises layer metadata (different buildkit provenance,
+    # different gzip determinism), so a size-equality check produced
+    # false-alarm FAILs on every deploy. The definitive verification
+    # that the right binary is running happens in verify() where we
+    # assert /health's `build` == $BUILD_SHA.
+    local remote_size
     remote_size=$(ssh $VPS "docker inspect --format='{{.Size}}' '${image}:${tag}' 2>/dev/null")
 
     if [ -z "$remote_size" ]; then
         warn "Image not found on VPS: ${image}:${tag}"
         report_add "FAIL" "Image not found on VPS: ${image}:${tag}"
-    elif [ -n "$local_size" ] && [ "$local_size" = "$remote_size" ]; then
-        local size_mb=$(( local_size / 1048576 ))
-        log "Image verified on VPS: ${image}:${tag} (${size_mb}MB)"
-        report_add "OK" "Image verified: ${image}:${tag} (${size_mb}MB)"
-    else
-        local local_mb=$(( ${local_size:-0} / 1048576 ))
-        local remote_mb=$(( ${remote_size:-0} / 1048576 ))
-        warn "Image size differs: local=${local_mb}MB remote=${remote_mb}MB"
-        report_add "FAIL" "Image size mismatch: ${image}:${tag} local=${local_mb}MB remote=${remote_mb}MB"
+        return
     fi
+
+    local remote_mb=$(( ${remote_size:-0} / 1048576 ))
+    log "Image present on VPS: ${image}:${tag} (${remote_mb}MB)"
+    report_add "OK" "Image present on VPS: ${image}:${tag} (${remote_mb}MB)"
 }
 
 # ── Report tracking ──────────────────────────────────────────────────────────
