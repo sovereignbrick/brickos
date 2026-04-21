@@ -197,6 +197,13 @@ pub fn configure_routes(cfg: &mut actix_web::web::ServiceConfig) {
         "/auth/registration-status",
         actix_web::web::get().to(handlers::auth::registration_status),
     )
+    // Sprint 048 #048-30: public lookup of invite info for the signup
+    // page (prefills email + shows org name). No auth; the token is
+    // the secret.
+    .route(
+        "/signup/invite/{token}",
+        actix_web::web::get().to(handlers::org_invites::public_invite_info),
+    )
     // Sprint 048 #048-24: /auth/me + /auth/me/orgs are read-only and
     // need to be callable on every authed page render (+ now on every
     // impersonation swap verification). Not a credential-bruteable
@@ -544,6 +551,19 @@ pub fn configure_routes(cfg: &mut actix_web::web::ServiceConfig) {
             .route(
                 "/members/{user_id}",
                 actix_web::web::delete().to(handlers::org_settings::remove_member),
+            )
+            // Invites (Sprint 048 #048-30)
+            .route(
+                "/invites",
+                actix_web::web::get().to(handlers::org_invites::list_invites),
+            )
+            .route(
+                "/invites",
+                actix_web::web::post().to(handlers::org_invites::create_invite),
+            )
+            .route(
+                "/invites/{id}/cancel",
+                actix_web::web::post().to(handlers::org_invites::cancel_invite),
             )
             // Domains
             .route(
