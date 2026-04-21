@@ -383,6 +383,10 @@ async fn main() -> std::io::Result<()> {
         let mut app = App::new()
             .wrap(sentry_actix::Sentry::new())
             .wrap(cors)
+            // Sprint 048 #048-15 (Option C): reject impersonation
+            // requests on hard-excluded paths or mutating methods.
+            // Must run before routing so writes never reach handlers.
+            .wrap(sovereign_health_backend::middleware::impersonation::ImpersonationScopeGate)
             .wrap(sovereign_health_backend::middleware::cache::CacheMiddleware)
             .wrap(sovereign_health_backend::middleware::rls::RlsMiddleware)
             .app_data(json_cfg)
