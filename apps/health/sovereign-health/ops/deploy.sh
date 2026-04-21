@@ -1136,12 +1136,19 @@ verify() {
         local label="$1" url="$2"
         local status
         status=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 $auth_flag "$url" 2>/dev/null)
-        if [ "$status" = "200" ]; then
-            echo -e "  ${GREEN}$status${NC}  $label  $url"
-        else
-            echo -e "  ${RED}$status${NC}  $label  $url"
-            all_ok=false
-        fi
+        # Sprint 047 #589 follow-up: accept 2xx AND 3xx as healthy. The
+        # app root (app.brickos.io/) returns 302 -> /platform by design
+        # (nginx `location = / { return 302 /platform; }`), which was
+        # being falsely flagged as FAIL in every deploy report.
+        case "$status" in
+            2??|3??)
+                echo -e "  ${GREEN}$status${NC}  $label  $url"
+                ;;
+            *)
+                echo -e "  ${RED}$status${NC}  $label  $url"
+                all_ok=false
+                ;;
+        esac
     }
 
     log "Verification ($env):"
