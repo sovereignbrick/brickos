@@ -1718,6 +1718,15 @@
       "pending": "Ausstehend"
     }
   },
+  "consentPrompt": {
+    "title": "{orgName} möchte Zugriff auf Ihre Gesundheitsdaten",
+    "body": "{orgName} hat Sie zu Sovereign Health eingeladen. Wenn Sie Zugriff gewähren, können ihre Ärzte Ihre Biomarker, Messungen und Trends im Nur-Lesen-Modus einsehen. Sie können den Zugriff jederzeit unter Einstellungen → Organisationszugriff widerrufen.",
+    "bulletReadOnly": "Ärzte können Ihre Daten nur lesen, nicht bearbeiten.",
+    "bulletNoChat": "Ihr Dr. Alex-Chat bleibt privat.",
+    "bulletRevokable": "Jederzeit widerrufbar; beendet aktive Sitzungen sofort.",
+    "deny": "Jetzt nicht",
+    "grant": "Zugriff gewähren"
+  },
   "organizationAccess": {
     "title": "Organisationszugriff",
     "intro": "Ihre Gesundheitsdaten sind privat. Organisationen, denen Sie beigetreten sind, können nur Lesezugriff anfragen, damit ihre Ärzte Ihre Biomarker, Messungen und Trends überprüfen können. Sie können Ihre Daten nicht bearbeiten und haben keinen Einblick in Ihren Dr. Alex-Chat. Sie können den Zugriff jederzeit aktivieren oder deaktivieren.",

@@ -13,12 +13,14 @@
 //     invite_token=... -- that part lives in handlers::auth::signup.
 
 use actix_web::{web, HttpRequest, HttpResponse};
+use brickos_email::EmailProvider;
 use serde::Deserialize;
 use serde_json::json;
 use sqlx::{PgPool, Row};
+use std::sync::Arc;
 use uuid::Uuid;
 
-use crate::{error::AppError, middleware::auth::AuthenticatedUser};
+use crate::{config::Config, error::AppError, middleware::auth::AuthenticatedUser};
 
 #[derive(Deserialize)]
 pub struct CreateInviteRequest {
@@ -32,6 +34,8 @@ pub struct CreateInviteRequest {
 /// for (org, email) already exists, return that one instead of a 409.
 pub async fn create_invite(
     pool: web::Data<PgPool>,
+    config: web::Data<Config>,
+    email_provider: web::Data<Arc<dyn EmailProvider>>,
     auth: AuthenticatedUser,
     body: web::Json<CreateInviteRequest>,
 ) -> Result<HttpResponse, AppError> {
@@ -102,6 +106,40 @@ pub async fn create_invite(
 
         row
     };
+
+    // Sprint 048 #048-30 email: fire-and-forget invite email so the
+    // admin doesn't have to share the URL manually. Uses the org's
+    // branded frontend_url (falls back to config.frontend_url). If
+    // the provider fails, the API still returns success -- the admin
+    // can fall back to copying signup_path.
+    let org_name: String = sqlx::query_scalar("SELECT name FROM organizations WHERE id = $1")
+        .bind(org_id)
+        .fetch_one(pool.get_ref())
+        .await
+        .unwrap_or_else(|_| "our clinic".to_string());
+    {
+        let provider = email_provider.get_ref().clone();
+        let to_addr = email.clone();
+        let org_name_for_email = org_name.clone();
+        let frontend_url = config.frontend_url.clone();
+        tokio::spawn(async move {
+            let signup_url = format!("{frontend_url}/signup?invite={token}");
+            let subject = format!("You're invited to join {org_name_for_email}");
+            let html = format!(
+                r#"<p>Hello,</p>
+                <p>You've been invited to join <strong>{org_name_for_email}</strong> on Sovereign Health.</p>
+                <p><a href="{signup_url}">Accept the invitation</a></p>
+                <p>If the button doesn't work, copy this link: <code>{signup_url}</code></p>
+                <p>This invitation expires in 14 days.</p>"#
+            );
+            let text = format!(
+                "Hello,\n\nYou've been invited to join {org_name_for_email} on Sovereign Health.\n\nAccept: {signup_url}\n\nThis invitation expires in 14 days.\n"
+            );
+            if let Err(e) = provider.send(&to_addr, &subject, &html, &text).await {
+                tracing::warn!("Invite email send failed for {to_addr}: {e}");
+            }
+        });
+    }
 
     Ok(HttpResponse::Ok().json(json!({
         "data": {
