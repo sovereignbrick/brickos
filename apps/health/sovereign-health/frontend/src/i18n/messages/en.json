@@ -1708,7 +1708,14 @@
     "lastActive": "Last active",
     "failedToLoad": "Failed to load patients",
     "errorOrgRequired": "This page is only available in an organization context.",
-    "patient": "Patient"
+    "patient": "Patient",
+    "viewAs": "View as {name} (read-only) →",
+    "impersonateFailed": "Could not start impersonation ({code})."
+  },
+  "impersonation": {
+    "viewingAs": "Viewing as {name}",
+    "readOnly": "read-only",
+    "exit": "Exit"
   },
   "graceBanner": {
     "title": "Your subscription failed",

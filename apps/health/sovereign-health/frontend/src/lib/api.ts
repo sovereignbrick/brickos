@@ -119,6 +119,16 @@ async function request<T>(
   if (token) {
     headers['Authorization'] = `Bearer ${token}`
   }
+  // Sprint 048 #048-18: add the impersonation token on every authed
+  // call. Backend scope-gate middleware enforces read-only + hard-
+  // excluded paths when this header is present; see
+  // middleware/impersonation.rs.
+  const impersonationToken = typeof window !== 'undefined'
+    ? Cookies.get('impersonation_session')
+    : undefined
+  if (impersonationToken) {
+    headers['X-Impersonation-Token'] = impersonationToken
+  }
 
   let res: Response
   try {
