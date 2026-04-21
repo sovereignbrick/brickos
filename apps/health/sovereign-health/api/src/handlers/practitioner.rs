@@ -32,11 +32,21 @@ pub async fn list_members(
     // and 'consumer'; the invite handler uses 'org_member' but the DB
     // constraint rejects that value (tracked separately) -- filter on
     // what DB rows actually have, not what code writes.
+    //
+    // Sprint 048 #048-12: additionally join patient_consents so only
+    // patients who have ACTIVELY consented to share data with this org
+    // show up in the caseload. Revoked or pending consents -> hidden.
+    // ADR-051 requires consent-gated access to every patient record.
     let rows = sqlx::query(
         r#"SELECT om.user_id, u.email, u.display_name, om.role, om.joined_at,
-                  u.last_active_at
+                  u.last_active_at,
+                  pc.granted_at      AS consent_granted_at
            FROM org_members om
            JOIN users u ON u.id = om.user_id
+           JOIN patient_consents pc
+                ON pc.patient_user_id = om.user_id
+               AND pc.org_id          = om.org_id
+               AND pc.revoked_at IS NULL
            WHERE om.org_id = $1
              AND om.role IN ('member', 'consumer', 'org_member')
            ORDER BY u.display_name, u.email"#,
@@ -55,6 +65,7 @@ pub async fn list_members(
                 "role": r.try_get::<String, _>("role").unwrap_or_default(),
                 "joined_at": r.try_get::<chrono::DateTime<chrono::Utc>, _>("joined_at").ok(),
                 "last_active_at": r.try_get::<Option<chrono::DateTime<chrono::Utc>>, _>("last_active_at").ok().flatten(),
+                "consent_granted_at": r.try_get::<chrono::DateTime<chrono::Utc>, _>("consent_granted_at").ok(),
             })
         })
         .collect();
