@@ -597,7 +597,17 @@ export function Navbar() {
     )
   }
 
-  const navItems = isDemo ? DEMO_NAV : NAV
+  // Sprint 047 polish: show the "Patients" entry only to users who can
+  // access the practitioner caseload (org_owner, practitioner, or
+  // platform admin). Demo visitors never see it.
+  const canSeePractitioner =
+    !isDemo &&
+    org.isOrg &&
+    (org.orgRole === 'org_owner' || org.orgRole === 'practitioner' || user?.role === 'admin')
+  const baseNav = isDemo ? DEMO_NAV : NAV
+  const navItems = canSeePractitioner
+    ? [...baseNav, { href: '/sovereign-health/practitioner', labelKey: 'patients' }]
+    : baseNav
 
   return (
     <div className={`sticky top-0 z-50 transition-transform duration-300 sm:translate-y-0 ${headerVisible ? 'translate-y-0' : '-translate-y-full'}`}>
