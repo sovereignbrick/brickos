@@ -11,12 +11,16 @@ const POLL_INTERVAL_MS = 60_000
 // client bundle and surface a refresh prompt. Two independent signals
 // trigger the banner:
 //
-// 1. Build-ID poll (#586). Every 60s, fetch /health and compare its
-//    `build` (the short git SHA baked into the backend image at docker
-//    build time) against NEXT_PUBLIC_BUILD_ID baked into this bundle.
-//    Mismatch means the backend rolled forward while this tab kept a
-//    stale JS chunk. Ignores the "dev" fallback so local builds without
-//    the build-arg never flap.
+// 1. Build-ID poll (#586). Every 60s, fetch /app-build-id and compare
+//    its `build` (the short git SHA the CURRENT frontend container was
+//    built with) against NEXT_PUBLIC_BUILD_ID baked into this loaded
+//    bundle. Mismatch means a new frontend rolled out while this tab
+//    kept the old bundle in memory/SW cache.
+//
+//    Note: we intentionally don't poll the backend's /health here. That
+//    check compares client frontend to backend, which diverges any time
+//    frontend and backend deploy in separate cycles and produces
+//    false-positive "new version" banners that no reload can clear.
 //
 // 2. Service worker controllerchange (#588). When a new SW activates and
 //    takes control of the page, the event fires. That's the cleanest
@@ -37,7 +41,7 @@ export function RefreshBanner() {
 
     const check = async () => {
       try {
-        const res = await fetch('/health', { cache: 'no-store' })
+        const res = await fetch('/app-build-id', { cache: 'no-store' })
         if (!res.ok) return
         const body = await res.json()
         const serverBuild = typeof body?.build === 'string' ? body.build : null
