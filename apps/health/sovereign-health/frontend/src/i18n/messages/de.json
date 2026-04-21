@@ -1721,6 +1721,13 @@
       "pending": "Ausstehend"
     }
   },
+  "welcome": {
+    "title": "Willkommen bei Sovereign Health",
+    "intro": "Tragen Sie Ihren ersten Biomarker ein, chatten Sie mit Dr. Alex oder erkunden Sie Ihre Gesundheitszonen. Ihre Daten bleiben Ihre Daten.",
+    "ctaAddMeasurement": "Messung hinzufügen",
+    "ctaDoctorChat": "Dr. Alex fragen",
+    "dismiss": "Schließen"
+  },
   "consentPrompt": {
     "title": "{orgName} möchte Zugriff auf Ihre Gesundheitsdaten",
     "body": "{orgName} hat Sie zu Sovereign Health eingeladen. Wenn Sie Zugriff gewähren, können ihre Ärzte Ihre Biomarker, Messungen und Trends im Nur-Lesen-Modus einsehen. Sie können den Zugriff jederzeit unter Einstellungen → Organisationszugriff widerrufen.",
@@ -1761,7 +1768,13 @@
     "grantedToast": "Zugriff für {orgName} gewährt.",
     "revokedToast": "Zugriff für {orgName} widerrufen.",
     "saveFailed": "Konnte Zugriff nicht aktualisieren. Bitte erneut versuchen.",
-    "noOrgsFallback": "Sie sind noch kein Mitglied einer Organisation."
+    "noOrgsFallback": "Sie sind noch kein Mitglied einer Organisation.",
+    "revokeConfirmTitle": "Zugriff von {orgName} widerrufen?",
+    "revokeConfirmBody": "{orgName} kann Ihre Daten dann nicht mehr einsehen. Laufende Überprüfungssitzungen werden sofort getrennt.",
+    "revokeBulletSession": "Aktive Sitzungen enden innerhalb von Sekunden.",
+    "revokeBulletReversible": "Sie können den Zugriff jederzeit wieder gewähren.",
+    "revokeCancel": "Zugriff behalten",
+    "revokeConfirmButton": "Widerrufen"
   },
   "practitioner": {
     "title": "{orgName} -- Patienten",

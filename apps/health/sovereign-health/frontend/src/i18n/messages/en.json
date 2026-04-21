@@ -1721,6 +1721,13 @@
       "pending": "Pending"
     }
   },
+  "welcome": {
+    "title": "Welcome to Sovereign Health",
+    "intro": "Log your first biomarker, chat with Dr. Alex, or explore your health zones. Your data stays yours.",
+    "ctaAddMeasurement": "Add a measurement",
+    "ctaDoctorChat": "Ask Dr. Alex",
+    "dismiss": "Dismiss"
+  },
   "consentPrompt": {
     "title": "{orgName} would like access to your health records",
     "body": "{orgName} invited you to Sovereign Health. Granting access lets their practitioners review your biomarkers, measurements, and trends in read-only mode. You can revoke at any time from Settings → Organization access.",
@@ -1761,7 +1768,13 @@
     "grantedToast": "Access granted for {orgName}.",
     "revokedToast": "Access revoked for {orgName}.",
     "saveFailed": "Couldn't update access. Please try again.",
-    "noOrgsFallback": "You are not a member of any organization yet."
+    "noOrgsFallback": "You are not a member of any organization yet.",
+    "revokeConfirmTitle": "Revoke {orgName}'s access?",
+    "revokeConfirmBody": "{orgName} will no longer be able to view your records. Any practitioner currently reviewing your data will be disconnected immediately.",
+    "revokeBulletSession": "Active review sessions end within seconds.",
+    "revokeBulletReversible": "You can grant access again at any time.",
+    "revokeCancel": "Keep access",
+    "revokeConfirmButton": "Revoke"
   },
   "practitioner": {
     "title": "{orgName} -- Patients",
