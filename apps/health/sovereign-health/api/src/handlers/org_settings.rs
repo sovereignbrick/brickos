@@ -167,11 +167,23 @@ pub async fn list_members(
 ) -> Result<HttpResponse, AppError> {
     let org_id = require_org_owner(&auth)?;
 
+    // Sprint 048 #048-33: left-join patient_consents so the members
+    // list surfaces each row's current consent state. consent_state:
+    //   'granted' -- row exists, revoked_at IS NULL
+    //   'revoked' -- row exists, revoked_at NOT NULL
+    //   'pending' -- no row (patient never granted)
+    // consent state is orthogonal to role; org_owner + practitioner
+    // members show 'pending' because they don't need consent.
     let rows = sqlx::query(
         r#"SELECT om.id, om.user_id, om.role, om.joined_at,
-                  u.email, u.display_name, u.last_active_at
+                  u.email, u.display_name, u.last_active_at,
+                  pc.granted_at     AS consent_granted_at,
+                  pc.revoked_at     AS consent_revoked_at
            FROM org_members om
            JOIN users u ON u.id = om.user_id
+           LEFT JOIN patient_consents pc
+                  ON pc.patient_user_id = om.user_id
+                 AND pc.org_id          = om.org_id
            WHERE om.org_id = $1
            ORDER BY om.joined_at"#,
     )
@@ -182,6 +194,15 @@ pub async fn list_members(
     let members: Vec<Value> = rows
         .iter()
         .map(|r| {
+            let granted: Option<chrono::DateTime<chrono::Utc>> =
+                r.try_get("consent_granted_at").ok().flatten();
+            let revoked: Option<chrono::DateTime<chrono::Utc>> =
+                r.try_get("consent_revoked_at").ok().flatten();
+            let consent_state = match (granted, revoked) {
+                (Some(_), None) => "granted",
+                (Some(_), Some(_)) => "revoked",
+                _ => "pending",
+            };
             json!({
                 "id": r.try_get::<Uuid, _>("id").unwrap_or_default(),
                 "user_id": r.try_get::<Uuid, _>("user_id").unwrap_or_default(),
@@ -190,6 +211,9 @@ pub async fn list_members(
                 "role": r.try_get::<String, _>("role").unwrap_or_default(),
                 "joined_at": r.try_get::<chrono::DateTime<chrono::Utc>, _>("joined_at").ok(),
                 "last_active_at": r.try_get::<Option<chrono::DateTime<chrono::Utc>>, _>("last_active_at").ok().flatten(),
+                "consent_state": consent_state,
+                "consent_granted_at": granted,
+                "consent_revoked_at": revoked,
             })
         })
         .collect();
@@ -294,6 +318,16 @@ pub async fn update_member_role(
 }
 
 /// DELETE /org-settings/members/{user_id}
+///
+/// Sprint 048 #048-32: cascade cleanup. Removing a member also:
+///   - Revokes any patient_consents for (user, org) -- belt-and-
+///     suspenders: FK cascades would remove the rows too, but we set
+///     revoked_at first so the history is preserved if the consents
+///     are later re-enabled.
+///   - Ends any active impersonation_sessions where this user is the
+///     patient -- prevents a practitioner from continuing to view the
+///     patient's data after they've been removed.
+///   - Writes an audit_log row for the removal action.
 pub async fn remove_member(
     pool: web::Data<PgPool>,
     auth: AuthenticatedUser,
@@ -302,11 +336,44 @@ pub async fn remove_member(
     let org_id = require_org_owner(&auth)?;
     let target_user_id = path.into_inner();
 
-    // Cannot remove yourself
+    // Cannot remove yourself (avoids locking the org out).
     if target_user_id == auth.user_id {
         return Err(AppError::Validation("Cannot remove yourself".into()));
     }
 
+    // 1. Revoke any active consents for (target, org). Preserves history.
+    let _ = sqlx::query(
+        r#"
+        UPDATE patient_consents
+           SET revoked_at = NOW()
+         WHERE patient_user_id = $1
+           AND org_id          = $2
+           AND revoked_at IS NULL
+        "#,
+    )
+    .bind(target_user_id)
+    .bind(org_id)
+    .execute(pool.get_ref())
+    .await;
+
+    // 2. End any active impersonation sessions where this user is the
+    //    patient (regardless of which practitioner started them).
+    let _ = sqlx::query(
+        r#"
+        UPDATE impersonation_sessions
+           SET ended_at = NOW(),
+               end_reason = 'consent_revoked'
+         WHERE patient_id = $1
+           AND org_id     = $2
+           AND ended_at IS NULL
+        "#,
+    )
+    .bind(target_user_id)
+    .bind(org_id)
+    .execute(pool.get_ref())
+    .await;
+
+    // 3. Actually remove the membership row.
     let result = sqlx::query("DELETE FROM org_members WHERE org_id = $1 AND user_id = $2")
         .bind(org_id)
         .bind(target_user_id)
@@ -316,6 +383,20 @@ pub async fn remove_member(
     if result.rows_affected() == 0 {
         return Err(AppError::NotFound);
     }
+
+    // 4. Audit.
+    let _ = sqlx::query(
+        r#"
+        INSERT INTO audit_log
+            (user_id, org_id, action, resource_type, resource_id, app_key)
+        VALUES ($1, $2, 'org_member.removed', 'user', $3, 'shi')
+        "#,
+    )
+    .bind(auth.user_id)
+    .bind(org_id)
+    .bind(target_user_id)
+    .execute(pool.get_ref())
+    .await;
 
     Ok(HttpResponse::Ok().json(json!({ "data": { "removed": true }, "error": null })))
 }

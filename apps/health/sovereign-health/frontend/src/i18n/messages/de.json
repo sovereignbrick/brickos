@@ -1681,6 +1681,43 @@
     "message": "Eine neuere Version der App ist verfügbar.",
     "action": "Jetzt neu laden"
   },
+  "orgMembers": {
+    "title": "Mitglieder",
+    "countOne": "1 Mitglied",
+    "countOther": "{count} Mitglieder",
+    "inviteButton": "+ Einladen",
+    "inviteTitle": "Mitglied einladen",
+    "invitePlaceholder": "user@example.com",
+    "inviteSubmit": "Einladen",
+    "inviteHint": "Die E-Mail muss zu einem bestehenden Benutzerkonto passen. Einladung per E-Mail an neue Nutzer folgt im nächsten Update.",
+    "inviteSuccess": "Mitglied eingeladen.",
+    "inviteFailed": "Einladung fehlgeschlagen -- die E-Mail passt möglicherweise zu keinem registrierten Benutzer.",
+    "colUser": "Benutzer",
+    "colRole": "Rolle",
+    "colConsent": "Zustimmung",
+    "colLastActive": "Zuletzt aktiv",
+    "never": "nie",
+    "remove": "Entfernen",
+    "removeConfirm": "{name} aus dieser Organisation entfernen? Aktive Zustimmungen werden widerrufen und laufende Impersonation-Sitzungen sofort beendet.",
+    "removeSuccess": "Mitglied entfernt.",
+    "removeFailed": "Mitglied konnte nicht entfernt werden.",
+    "loadFailed": "Mitglieder konnten nicht geladen werden.",
+    "roleChanged": "Rolle geändert zu {role}.",
+    "roleChangeFailed": "Rolle konnte nicht geändert werden.",
+    "roles": {
+      "org_owner": "Organisationsinhaber",
+      "practitioner": "Arzt",
+      "org_member": "Patient",
+      "member": "Patient",
+      "consumer": "Patient",
+      "owner": "Inhaber (Legacy)"
+    },
+    "consent": {
+      "granted": "Gewährt",
+      "revoked": "Widerrufen",
+      "pending": "Ausstehend"
+    }
+  },
   "organizationAccess": {
     "title": "Organisationszugriff",
     "intro": "Ihre Gesundheitsdaten sind privat. Organisationen, denen Sie beigetreten sind, können nur Lesezugriff anfragen, damit ihre Ärzte Ihre Biomarker, Messungen und Trends überprüfen können. Sie können Ihre Daten nicht bearbeiten und haben keinen Einblick in Ihren Dr. Alex-Chat. Sie können den Zugriff jederzeit aktivieren oder deaktivieren.",
@@ -1828,7 +1865,8 @@
       "features": "Features",
       "orgOverview": "Überblick",
       "general": "Allgemein",
-      "affiliate": "Partnerprogramm"
+      "affiliate": "Partnerprogramm",
+      "orgMembers": "Mitglieder"
     },
     "orgSwitcher": {
       "label": "Org",

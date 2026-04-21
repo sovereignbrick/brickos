@@ -1681,6 +1681,43 @@
     "message": "A newer version of the app is available.",
     "action": "Reload now"
   },
+  "orgMembers": {
+    "title": "Members",
+    "countOne": "1 member",
+    "countOther": "{count} members",
+    "inviteButton": "+ Invite",
+    "inviteTitle": "Invite a member",
+    "invitePlaceholder": "user@example.com",
+    "inviteSubmit": "Invite",
+    "inviteHint": "The email must match an existing user account. Invite-by-email onboarding ships in the next update.",
+    "inviteSuccess": "Member invited.",
+    "inviteFailed": "Could not invite -- the email may not match a registered user.",
+    "colUser": "User",
+    "colRole": "Role",
+    "colConsent": "Consent",
+    "colLastActive": "Last active",
+    "never": "never",
+    "remove": "Remove",
+    "removeConfirm": "Remove {name} from this org? Active consents will be revoked and any live impersonation sessions end immediately.",
+    "removeSuccess": "Member removed.",
+    "removeFailed": "Could not remove member.",
+    "loadFailed": "Could not load members.",
+    "roleChanged": "Role set to {role}.",
+    "roleChangeFailed": "Could not change role.",
+    "roles": {
+      "org_owner": "Org owner",
+      "practitioner": "Practitioner",
+      "org_member": "Patient",
+      "member": "Patient",
+      "consumer": "Patient",
+      "owner": "Owner (legacy)"
+    },
+    "consent": {
+      "granted": "Granted",
+      "revoked": "Revoked",
+      "pending": "Pending"
+    }
+  },
   "organizationAccess": {
     "title": "Organization access",
     "intro": "Your health records are private. Orgs you join can request read-only access so their practitioners can review your biomarkers, measurements, and trends. They cannot edit your data or see your Dr. Alex chat history. You can toggle access at any time.",
@@ -1828,7 +1865,8 @@
       "features": "Features",
       "orgOverview": "Overview",
       "general": "General",
-      "affiliate": "Affiliate"
+      "affiliate": "Affiliate",
+      "orgMembers": "Members"
     },
     "orgSwitcher": {
       "label": "Org",
