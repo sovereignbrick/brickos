@@ -30,6 +30,7 @@ pub mod early_access;
 pub mod export;
 pub mod features;
 pub mod health;
+pub mod impersonation;
 pub mod import;
 pub mod influence_factors;
 pub mod knowledge;

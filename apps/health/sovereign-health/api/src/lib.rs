@@ -580,6 +580,7 @@ pub fn configure_routes(cfg: &mut actix_web::web::ServiceConfig) {
             ),
     )
     // Sprint 044 #553: practitioner dashboard (org members + read-only health data)
+    // Sprint 048 #048-14: impersonation start/exit endpoints (Design 028 / ADR-051)
     .service(
         actix_web::web::scope("/practitioner")
             .route(
@@ -589,6 +590,14 @@ pub fn configure_routes(cfg: &mut actix_web::web::ServiceConfig) {
             .route(
                 "/members/{user_id}/summary",
                 actix_web::web::get().to(handlers::practitioner::member_summary),
+            )
+            .route(
+                "/impersonate/start",
+                actix_web::web::post().to(handlers::impersonation::start),
+            )
+            .route(
+                "/impersonate/exit",
+                actix_web::web::post().to(handlers::impersonation::exit),
             ),
     )
     // Sprint 048 #048-11: patient-facing consent to share health data
