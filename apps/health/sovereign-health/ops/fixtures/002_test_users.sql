@@ -64,18 +64,40 @@ ON CONFLICT (email) DO UPDATE SET
     locale = EXCLUDED.locale;
 
 -- Wire users into the test-clinic org with the right roles.
+--
+-- Uses business-key lookup (email + slug) so the fixture works on any
+-- environment regardless of actual UUIDs. On localhost, the fresh-DB
+-- user/org UUIDs happen to match the fixture constants; on staging,
+-- the org existed before Sprint 048 with a random UUID and Anna/Bert
+-- already have their own UUIDs from a manual seed. Looking up by
+-- email/slug here decouples from either case.
 INSERT INTO org_members (id, user_id, org_id, role, joined_at)
-VALUES
-    (gen_random_uuid(), '00000000-0000-4002-b001-000000000001',
-     '00000000-0000-4001-a001-000000000001', 'org_owner', NOW() - INTERVAL '30 days'),
-    (gen_random_uuid(), '00000000-0000-4002-b002-000000000001',
-     '00000000-0000-4001-a001-000000000001', 'member', NOW() - INTERVAL '25 days'),
-    (gen_random_uuid(), '00000000-0000-4002-b002-000000000002',
-     '00000000-0000-4001-a001-000000000001', 'member', NOW() - INTERVAL '20 days'),
-    (gen_random_uuid(), '00000000-0000-4002-b002-000000000003',
-     '00000000-0000-4001-a001-000000000001', 'member', NOW() - INTERVAL '14 days'),
-    (gen_random_uuid(), '00000000-0000-4002-b002-000000000004',
-     '00000000-0000-4001-a001-000000000001', 'member', NOW() - INTERVAL '10 days'),
-    (gen_random_uuid(), '00000000-0000-4002-b002-000000000005',
-     '00000000-0000-4001-a001-000000000001', 'member', NOW() - INTERVAL '3 days')
+SELECT
+    gen_random_uuid(),
+    u.id,
+    o.id,
+    CASE u.email
+        WHEN 'test-clinic-admin@clinic.com' THEN 'org_owner'
+        ELSE 'member'
+    END,
+    CASE u.email
+        WHEN 'test-clinic-admin@clinic.com'     THEN NOW() - INTERVAL '30 days'
+        WHEN 'anna.meier@patients.clinic.com'   THEN NOW() - INTERVAL '25 days'
+        WHEN 'bert.schmidt@patients.clinic.com' THEN NOW() - INTERVAL '20 days'
+        WHEN 'carla.schulz@patients.clinic.com' THEN NOW() - INTERVAL '14 days'
+        WHEN 'dieter.koenig@patients.clinic.com' THEN NOW() - INTERVAL '10 days'
+        WHEN 'eva.lange@patients.clinic.com'    THEN NOW() - INTERVAL '3 days'
+        ELSE NOW()
+    END
+FROM users u
+CROSS JOIN organizations o
+WHERE o.slug = 'test-clinic'
+  AND u.email IN (
+      'test-clinic-admin@clinic.com',
+      'anna.meier@patients.clinic.com',
+      'bert.schmidt@patients.clinic.com',
+      'carla.schulz@patients.clinic.com',
+      'dieter.koenig@patients.clinic.com',
+      'eva.lange@patients.clinic.com'
+  )
 ON CONFLICT (user_id, org_id) DO NOTHING;

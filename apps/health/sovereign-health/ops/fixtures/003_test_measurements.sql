@@ -15,18 +15,24 @@
 --                                   we have per-risk demo data)
 --   Eva Lange        -> (no seed, sparse-data edge case)
 --
--- The re-seed is idempotent: it first deletes any existing
--- measurements for the target user_id, then inserts a fresh copy.
+-- Portable across environments: target user_ids are looked up by email,
+-- not hardcoded. The re-seed is idempotent: it first deletes any
+-- existing measurements for the target user_id, then inserts a fresh
+-- copy.
 
--- Re-seed switch: set to FALSE in production envs (unused outside
--- localhost, so the normal seed always runs).
 DO $$
 DECLARE
     optimized_id UUID;
     average_id UUID;
     at_risk_id UUID;
-    time_offset INTERVAL;
+
+    anna_id UUID;
+    bert_id UUID;
+    carla_id UUID;
+    dieter_id UUID;
+    eva_id UUID;
 BEGIN
+    -- Demo-profile users (sources of measurement history).
     SELECT id INTO optimized_id FROM users WHERE email = 'optimized@sovereignhealth.io';
     SELECT id INTO average_id   FROM users WHERE email = 'average@sovereignhealth.io';
     SELECT id INTO at_risk_id   FROM users WHERE email = 'atrisk@sovereignhealth.io';
@@ -36,60 +42,73 @@ BEGIN
         RETURN;
     END IF;
 
+    -- Fixture patients (targets for cloned measurements).
+    SELECT id INTO anna_id   FROM users WHERE email = 'anna.meier@patients.clinic.com';
+    SELECT id INTO bert_id   FROM users WHERE email = 'bert.schmidt@patients.clinic.com';
+    SELECT id INTO carla_id  FROM users WHERE email = 'carla.schulz@patients.clinic.com';
+    SELECT id INTO dieter_id FROM users WHERE email = 'dieter.koenig@patients.clinic.com';
+    SELECT id INTO eva_id    FROM users WHERE email = 'eva.lange@patients.clinic.com';
+
+    IF anna_id IS NULL OR bert_id IS NULL OR carla_id IS NULL
+       OR dieter_id IS NULL OR eva_id IS NULL THEN
+        RAISE NOTICE 'One or more fixture patients not found -- run 002_test_users.sql first.';
+        RETURN;
+    END IF;
+
     -- Anna Meier -> optimized
-    DELETE FROM measurements WHERE user_id = '00000000-0000-4002-b002-000000000001';
+    DELETE FROM measurements WHERE user_id = anna_id;
     INSERT INTO measurements (
         id, user_id, marker_id, device_id, timestamp,
-        value_canonical, unit_canonical, source_type
+        value_canonical, unit_canonical
     )
-    SELECT gen_random_uuid(), '00000000-0000-4002-b002-000000000001',
+    SELECT gen_random_uuid(), anna_id,
            marker_id, device_id, timestamp,
-           value_canonical, unit_canonical, source_type
+           value_canonical, unit_canonical
     FROM measurements WHERE user_id = optimized_id;
 
     -- Bert Schmidt -> average
-    DELETE FROM measurements WHERE user_id = '00000000-0000-4002-b002-000000000002';
+    DELETE FROM measurements WHERE user_id = bert_id;
     INSERT INTO measurements (
         id, user_id, marker_id, device_id, timestamp,
-        value_canonical, unit_canonical, source_type
+        value_canonical, unit_canonical
     )
-    SELECT gen_random_uuid(), '00000000-0000-4002-b002-000000000002',
+    SELECT gen_random_uuid(), bert_id,
            marker_id, device_id, timestamp,
-           value_canonical, unit_canonical, source_type
+           value_canonical, unit_canonical
     FROM measurements WHERE user_id = average_id;
 
     -- Carla Schulz -> at_risk
-    DELETE FROM measurements WHERE user_id = '00000000-0000-4002-b002-000000000003';
+    DELETE FROM measurements WHERE user_id = carla_id;
     INSERT INTO measurements (
         id, user_id, marker_id, device_id, timestamp,
-        value_canonical, unit_canonical, source_type
+        value_canonical, unit_canonical
     )
-    SELECT gen_random_uuid(), '00000000-0000-4002-b002-000000000003',
+    SELECT gen_random_uuid(), carla_id,
            marker_id, device_id, timestamp,
-           value_canonical, unit_canonical, source_type
+           value_canonical, unit_canonical
     FROM measurements WHERE user_id = at_risk_id;
 
     -- Dieter König -> average (placeholder; swap to cardio-risk seed once available)
-    DELETE FROM measurements WHERE user_id = '00000000-0000-4002-b002-000000000004';
+    DELETE FROM measurements WHERE user_id = dieter_id;
     INSERT INTO measurements (
         id, user_id, marker_id, device_id, timestamp,
-        value_canonical, unit_canonical, source_type
+        value_canonical, unit_canonical
     )
-    SELECT gen_random_uuid(), '00000000-0000-4002-b002-000000000004',
+    SELECT gen_random_uuid(), dieter_id,
            marker_id, device_id, timestamp,
-           value_canonical, unit_canonical, source_type
+           value_canonical, unit_canonical
     FROM measurements WHERE user_id = average_id;
 
     -- Eva Lange: sparse-data -- seed 3 individual measurements, 15+ days old.
-    DELETE FROM measurements WHERE user_id = '00000000-0000-4002-b002-000000000005';
+    DELETE FROM measurements WHERE user_id = eva_id;
     INSERT INTO measurements (
         id, user_id, marker_id, device_id, timestamp,
-        value_canonical, unit_canonical, source_type
+        value_canonical, unit_canonical
     )
-    SELECT gen_random_uuid(), '00000000-0000-4002-b002-000000000005',
+    SELECT gen_random_uuid(), eva_id,
            m.marker_id, m.device_id,
            NOW() - INTERVAL '15 days' - (row_number() OVER () - 1) * INTERVAL '7 days',
-           m.value_canonical, m.unit_canonical, m.source_type
+           m.value_canonical, m.unit_canonical
     FROM measurements m WHERE m.user_id = average_id
     LIMIT 3;
 
