@@ -74,6 +74,15 @@ const apiCacheRules: RuntimeCaching[] = [
       url.pathname.startsWith("/api/affiliate/"),
     handler: new NetworkOnly(),
   },
+  // Sprint 047 RC fix 2026-04-21: the refresh-banner build-id poll MUST
+  // bypass SW cache. Otherwise SW returns a stale build-id from a
+  // previous deploy, the loaded (fresh) bundle sees a phantom mismatch
+  // with its own NEXT_PUBLIC_BUILD_ID, and the banner fires on every
+  // tab open. Only a reload (which SW revalidates) clears it.
+  {
+    matcher: ({ url }) => url.pathname === "/app-build-id",
+    handler: new NetworkOnly(),
+  },
 ];
 
 const serwist = new Serwist({
