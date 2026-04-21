@@ -42,6 +42,7 @@ interface OrgDetail {
     lifecycle_status: 'active' | 'grace' | 'expired' | 'revoked' | 'no_license'
   }
   seats: { owners: number; practitioners: number; members: number; total: number }
+  consent?: { granted: number; revoked: number }
 }
 
 interface OrgMember {
@@ -430,6 +431,47 @@ export default function OrgDetailPage() {
                     max={org.license.max_members}
                   />
                 </div>
+                {/* Sprint 048 #048-51: patient consent breakdown. Only meaningful when
+                    the org has members at all -- otherwise the counters are always 0. */}
+                {org.seats.members > 0 && org.consent && (
+                  <div className="space-y-2 pt-2 border-t border-zinc-800/50">
+                    <p className="text-[10px] uppercase tracking-wider text-zinc-500">
+                      {t('consent')}
+                    </p>
+                    <div className="grid grid-cols-3 gap-2 text-xs">
+                      <div className="rounded-lg border border-zinc-800 bg-zinc-900/40 px-3 py-2">
+                        <div className="text-zinc-500">{t('consentGranted')}</div>
+                        <div
+                          className="font-mono text-base text-green-400"
+                          data-testid="consent-granted-count"
+                        >
+                          {org.consent.granted}
+                        </div>
+                      </div>
+                      <div className="rounded-lg border border-zinc-800 bg-zinc-900/40 px-3 py-2">
+                        <div className="text-zinc-500">{t('consentRevoked')}</div>
+                        <div
+                          className="font-mono text-base text-red-400"
+                          data-testid="consent-revoked-count"
+                        >
+                          {org.consent.revoked}
+                        </div>
+                      </div>
+                      <div className="rounded-lg border border-zinc-800 bg-zinc-900/40 px-3 py-2">
+                        <div className="text-zinc-500">{t('consentPending')}</div>
+                        <div
+                          className="font-mono text-base text-zinc-300"
+                          data-testid="consent-pending-count"
+                        >
+                          {Math.max(
+                            0,
+                            org.seats.members - org.consent.granted - org.consent.revoked,
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </>
             ) : (
               <p className="text-sm text-zinc-500">{t('noActiveLicense')}</p>

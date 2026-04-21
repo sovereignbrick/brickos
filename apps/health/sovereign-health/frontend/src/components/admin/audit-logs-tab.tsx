@@ -109,7 +109,24 @@ const COMMON_ACTIONS = [
   'logout',
   'invite',
   'revoke',
+  // Sprint 048 #048-52: exact action codes for practitioner impersonation.
+  // 'impersonation.read:*' is dynamic per-path so we skip it in the dropdown
+  // -- use the search box to filter on the prefix instead.
+  'impersonation.start',
+  'impersonation.exit',
+  'impersonation.blocked_write',
+  'impersonation.blocked_out_of_scope',
 ]
+
+// Sprint 048 #048-52: color-code impersonation events so they stand out in
+// the cross-org audit viewer. Everything else gets the neutral accent pill.
+function actionPillClasses(action: string): string {
+  if (action.startsWith('impersonation.blocked_')) return 'bg-red-600/20 text-red-400'
+  if (action === 'impersonation.start' || action === 'impersonation.exit')
+    return 'bg-blue-600/20 text-blue-400'
+  if (action.startsWith('impersonation.')) return 'bg-amber-600/20 text-amber-400'
+  return 'bg-accent text-foreground'
+}
 
 function formatTs(iso: string): string {
   try {
@@ -812,7 +829,9 @@ export function AuditLogsTab() {
                         </td>
                         <td className="px-4 py-2.5 text-foreground">{entry.user_email}</td>
                         <td className="px-4 py-2.5">
-                          <span className="inline-block px-2 py-0.5 rounded text-xs font-medium bg-accent text-foreground">
+                          <span
+                            className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${actionPillClasses(entry.action)}`}
+                          >
                             {entry.action}
                           </span>
                         </td>
