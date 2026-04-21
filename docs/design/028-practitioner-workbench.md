@@ -1,6 +1,6 @@
 # Design 028 -- Practitioner Impersonation (read-only patient view)
 
-**Status:** Draft v2 (2026-04-21 -- scope narrowed to impersonation-only per user decision)
+**Status:** Accepted 2026-04-21 (v3 -- open questions resolved, ready for Sprint 048 implementation)
 **Date:** 2026-04-21
 **Related:** Sprint 044 #553 (practitioner scaffold), Sprint 047 #577 (URL routing + polish)
 **Sprint:** 048 (proposed)
@@ -31,20 +31,26 @@ Three things, nothing more:
 2. **Preview a patient's basic profile** -- name, email, join date,
    last-active date, measurement count, latest measurement date.
 3. **Impersonate** -- open the patient's own SHI interface in
-   read-only mode. Dashboard, measurements, trends, markers, zones --
-   everything the patient sees, exactly as they see it. No edits, no
-   new measurements, no doctor-chat messages in the patient's name.
+   read-only mode. Specifically: biomarkers overview, the
+   measurement list, individual marker details, and trends charts.
+   **Doctor Chat is explicitly excluded** (see "Impersonation scope"
+   below).
 
 What is explicitly out of scope:
 
 - No practitioner notes / SOAP / anamnesis.
 - No separate clinical chart.
+- **No Dr. Alex chat access during impersonation.** Chat transcripts
+  are a private conversation between the patient and the AI, not a
+  clinical observation the practitioner should review.
 - No messaging UI (emails go through the existing per-org email
   templates at /platform/org/apps/shi/email; no in-app inbox).
 - No care plan / prescribed-markers feature.
 - No cohort grid / at-risk dashboards.
 - No lab-upload workflow beyond what the patient already has.
 - No practitioner-to-practitioner chat.
+- No time-limited consent grants. Grants are indefinite; the patient
+  revokes by toggling a button in their own profile.
 
 ## Layout
 
@@ -107,6 +113,25 @@ The preview section ("Recent markers") is populated from the same
 `/practitioner/members/{id}/summary` endpoint that's already in place
 (Sprint 044, fixed in Sprint 047 RC). No schema change required.
 
+## Impersonation scope
+
+During impersonation, the practitioner's client sends every request
+with the `X-Impersonation-Token` header. The middleware classifies the
+request into one of three buckets based on URL path:
+
+| Bucket | Paths | During impersonation |
+|---|---|---|
+| **Allowed (read)** | `/zones`, `/markers` + `/markers/*`, `/measurements` + `/measurements/{id}`, `/trends` + `/trends/*`, `/user-markers`, `/sync/changes`, `/v1/content/*` | Effective user swapped to patient. Data returned. Audit row written. |
+| **Blocked (write)** | any POST/PUT/PATCH/DELETE on the above read paths, plus `/measurements/new`, `/user-markers/*` writes, `/settings/*` writes | 403 with code `impersonation_readonly`. Audit row written for the blocked attempt. |
+| **Hard-excluded** | `/doctor-chat` and `/doctor-chat/*`, `/doctor-chat/quota`, any AI chat endpoint, `/billing/*`, `/license/*` | 403 with code `impersonation_out_of_scope` regardless of method. The UI hides the Doctor Chat nav entry and disables the `+ Add` / edit buttons. |
+
+The read bucket covers everything a practitioner legitimately needs to
+review biomarker state. The hard-excluded set protects patient-AI
+conversation privacy, billing PII, and licensing state that has no
+clinical relevance. Any new endpoint added to the SHI app must be
+categorised into one of the three buckets in its initial review --
+"unknown" defaults to hard-excluded.
+
 ## Impersonation semantics
 
 When the practitioner clicks **"View as Anna (read-only)"**:
@@ -148,28 +173,42 @@ Hard rules enforced server-side (never trusted to the client):
 
 ## Patient opt-in
 
-The patient controls access entirely. Two places to manage:
+The patient controls access entirely via a single toggle button on
+their profile. No scope pickers, no time-limited grants -- one switch
+per org, flipped on or off.
 
-### Settings tab (Sprint 046's `/settings` with plane-aware filtering)
+### Settings profile (Sprint 046's `/settings` with plane-aware filtering)
 
 Add one new tab **"Organization access"** to the end-user-plane tab
 list, visible only if the patient is an `org_member` of an org other
 than the default platform org. The tab has one row per org the
-patient is a member of:
+patient is a member of, each with a single toggle:
 
 ```
   Organization access
   --------------------------------------------------------------
   Your health records are private. Orgs you join can request
-  access so their practitioners can review your data and support
-  you. You can revoke access at any time.
+  read-only access so their practitioners can review your
+  biomarkers, measurements, and trends. They cannot edit your
+  data or see your Dr. Alex chat history. You can toggle access
+  at any time.
 
-  Test Clinic                                [✓] Granted on 4/19
-    anna.meier joined via invite · test-clinic.sovereignhealth.io
-    [ revoke access ]
+  Test Clinic                                      [ ●  ON ]
+    Joined 4/19 via invite · test-clinic.sovereignhealth.io
+    Access granted 4/19.
+
+  Other Clinic                                     [    OFF ]
+    Joined 4/20 via invite · other-clinic.sovereignhealth.io
+    Access has never been granted.
 
   (no other orgs)
 ```
+
+Flipping ON writes/updates a `patient_consents` row with
+`revoked_at = NULL` and `granted_at = NOW()`. Flipping OFF sets
+`revoked_at = NOW()` and invalidates any active impersonation token
+for that (patient, org) pair. Re-flipping ON later creates a new
+grant entry (audit history preserved).
 
 For a solo-platform user (only member of the default platform org),
 the whole tab is hidden. That keeps the existing minimal settings
@@ -187,15 +226,18 @@ login lands on `/settings/organization-access` with a one-time prompt:
   |                                                     |
   | This lets their practitioners view your biomarkers, |
   | trends, and measurement history in read-only mode.  |
-  | They cannot edit your data. You can revoke access   |
-  | at any time from Settings.                          |
+  | They cannot edit your data. You can toggle access   |
+  | off at any time from Settings.                      |
   |                                                     |
   |  [ Deny ]                       [ Grant access ]    |
   +-----------------------------------------------------+
 ```
 
 Skipping the prompt = deny. Closing the tab = deny. Explicit click =
-grant, persisted to `patient_consents`.
+grant, persisted to `patient_consents`. The invite email and this
+prompt are both rendered from the org's SHI email templates (Sprint
+047 #583), keeping the voice branded and consistent across the
+onboarding flow.
 
 ## Data model
 
@@ -298,20 +340,27 @@ Sprint 048 ships when:
   must make clear that the practitioner is viewing, not editing. The
   persistent banner + the 403 on writes satisfy this.
 
-## Open questions
+## Resolved decisions (2026-04-21)
 
-1. Should impersonation be **scope-granular** -- e.g. practitioner can
-   see measurements but NOT doctor-chat history? For the first
-   release: no, full read-only. Revisit if a practitioner or patient
-   requests scoping.
-2. Should there be a **time-limited grant** option ("grant for 30
-   days, then auto-revoke")? Defer. Start with indefinite grant +
-   one-click revoke.
-3. Should the practitioner's **own SHI data** (if they somehow have
-   any -- e.g. they're also a patient at their own clinic) be
-   hidden during impersonation? Yes, impersonation fully swaps user
-   context; the practitioner's own data is inaccessible while viewing
-   as a patient. Exit impersonation to see their own data.
-4. **Invite-reminder template**: does this go through the org's SHI
-   email templates (Sprint 047 #583) or a platform-level template?
-   Use org templates -- keeps branded voice consistent.
+The four open questions from v2 were resolved at the Sprint 048
+kickoff; the answers are inlined into the spec above. Recap:
+
+1. **Scope-granular impersonation** -- **YES, partially.** The allow-
+   list is biomarkers (zones/markers/user-markers), measurements,
+   measurement list, and trends. Doctor Chat is hard-excluded
+   (private patient-AI conversation). Billing and licensing are
+   hard-excluded (no clinical relevance). See "Impersonation scope"
+   table.
+2. **Time-limited grants** -- **DEFERRED.** Grants are indefinite.
+   The patient revokes at any time via a single toggle button on
+   their profile (`/settings/organization-access`). We may revisit
+   if a real clinic requests timed access.
+3. **Practitioner's own SHI data during impersonation** --
+   **FULLY SWAPPED.** The session user context is the patient's;
+   the practitioner's own records are inaccessible until they exit
+   the impersonation session. No edge-case accommodation for
+   practitioner-as-own-patient.
+4. **Invite / reminder template source** -- **ORG TEMPLATE.** Uses
+   the per-org SHI email templates shipped in Sprint 047 #583. Keeps
+   branded voice + localisation consistent with the rest of the
+   patient onboarding flow.
