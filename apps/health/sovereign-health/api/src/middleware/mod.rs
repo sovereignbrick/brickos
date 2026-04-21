@@ -2,5 +2,6 @@
 
 pub mod auth;
 pub mod cache;
+pub mod impersonation;
 pub mod org_resolver;
 pub mod rls;
