@@ -153,6 +153,118 @@ test.describe('Sprint 048 -- practitioner caseload consent filter', () => {
   })
 })
 
+test.describe('Sprint 048 -- invite-by-email flow (#048-30)', () => {
+  test.beforeEach(async ({ baseURL }) => {
+    const host = baseURL ? new URL(baseURL).hostname : ''
+    test.skip(host !== 'localhost' && host !== '127.0.0.1', 'localhost only')
+  })
+
+  test('create invite -> public lookup -> signup joins org', async ({ request, baseURL }) => {
+    const adminToken = (await getTokens(request, baseURL)).admin
+    const api = backendUrl(baseURL)
+    const uniqueEmail = `invite-e2e-${Date.now()}@clinic.com`
+
+    // Clean slate.
+    await request.post(`${api}/auth/login`, {
+      data: { email: 'x', password: 'x' }, // trigger rate limiter? no, just to check server is up
+    }).catch(() => null)
+
+    // 1. Admin creates the invite.
+    const createRes = await request.post(`${api}/org-settings/invites`, {
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${adminToken}`,
+        'X-Org-Domain': 'test-clinic.brickos.io',
+      },
+      data: { email: uniqueEmail, role: 'member' },
+    })
+    expect(createRes.ok()).toBeTruthy()
+    const { data: invite } = await createRes.json()
+    expect(invite.token).toMatch(/^[0-9a-f-]{36}$/)
+    expect(invite.signup_path).toBe(`/signup?invite=${invite.token}`)
+
+    // 2. Public lookup (no auth) returns enough info for the signup page.
+    const publicRes = await request.get(`${api}/signup/invite/${invite.token}`)
+    expect(publicRes.ok()).toBeTruthy()
+    const publicInfo = (await publicRes.json()).data
+    expect(publicInfo.email).toBe(uniqueEmail)
+    expect(publicInfo.org_name).toBe('Test Clinic')
+    expect(publicInfo.role).toBe('member')
+
+    // 3. Signup with the token.
+    const signupRes = await request.post(
+      `${api}/auth/signup?invite=${invite.token}`,
+      {
+        headers: { 'Content-Type': 'application/json' },
+        data: {
+          email: uniqueEmail,
+          password: 'TestPatient1',
+          display_name: 'E2E Test Invitee',
+          tos_accepted: true,
+        },
+      },
+    )
+    expect([200, 201].includes(signupRes.status())).toBeTruthy()
+
+    // 4. Second public lookup should 404 (invite accepted).
+    const lookupAfter = await request.get(`${api}/signup/invite/${invite.token}`)
+    expect(lookupAfter.status()).toBe(404)
+
+    // 5. Admin members list now shows the new user.
+    const membersRes = await request.get(`${api}/org-settings/members`, {
+      headers: {
+        Authorization: `Bearer ${adminToken}`,
+        'X-Org-Domain': 'test-clinic.brickos.io',
+      },
+    })
+    const { data: members } = await membersRes.json()
+    const invited = members.find((m: { email: string }) => m.email === uniqueEmail)
+    expect(invited).toBeDefined()
+    expect(invited.role).toBe('member')
+  })
+
+  test('public lookup with bogus token returns 404', async ({ request, baseURL }) => {
+    const api = backendUrl(baseURL)
+    const res = await request.get(`${api}/signup/invite/00000000-0000-0000-0000-000000000000`)
+    expect(res.status()).toBe(404)
+  })
+
+  test('admin can list + cancel pending invites', async ({ request, baseURL }) => {
+    const adminToken = (await getTokens(request, baseURL)).admin
+    const api = backendUrl(baseURL)
+    const uniqueEmail = `cancel-e2e-${Date.now()}@clinic.com`
+    const authed = {
+      Authorization: `Bearer ${adminToken}`,
+      'X-Org-Domain': 'test-clinic.brickos.io',
+    }
+
+    // Create.
+    const create = await request.post(`${api}/org-settings/invites`, {
+      headers: { ...authed, 'Content-Type': 'application/json' },
+      data: { email: uniqueEmail, role: 'practitioner' },
+    })
+    const { data: invite } = await create.json()
+
+    // List includes it.
+    const list1 = await (await request.get(`${api}/org-settings/invites`, { headers: authed })).json()
+    expect(list1.data.find((i: { email: string }) => i.email === uniqueEmail)).toBeDefined()
+
+    // Cancel.
+    const cancel = await request.post(`${api}/org-settings/invites/${invite.id}/cancel`, {
+      headers: authed,
+    })
+    expect(cancel.ok()).toBeTruthy()
+
+    // List no longer includes it.
+    const list2 = await (await request.get(`${api}/org-settings/invites`, { headers: authed })).json()
+    expect(list2.data.find((i: { email: string }) => i.email === uniqueEmail)).toBeUndefined()
+
+    // Public lookup now returns 404.
+    const publicAfter = await request.get(`${api}/signup/invite/${invite.token}`)
+    expect(publicAfter.status()).toBe(404)
+  })
+})
+
 test.describe('Sprint 048 -- impersonation session lifecycle', () => {
   test.beforeEach(async ({ baseURL }) => {
     const host = baseURL ? new URL(baseURL).hostname : ''

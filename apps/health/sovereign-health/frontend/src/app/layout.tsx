@@ -42,6 +42,7 @@ import { OfflineBanner } from '@/components/offline-banner'
 import { GraceBanner } from '@/components/grace-banner'
 import { RefreshBanner } from '@/components/refresh-banner'
 import { ImpersonationBanner } from '@/components/impersonation-banner'
+import { ConsentOnboardingPrompt } from '@/components/consent-onboarding-prompt'
 import { SyncProvider } from '@/lib/sync-context'
 import { PushProvider } from '@/lib/push-context'
 import { OrgContextProvider } from '@/lib/org-context'
@@ -159,6 +160,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                     <OfflineBanner />
                     <RefreshBanner />
                     <ImpersonationBanner />
+                    <ConsentOnboardingPrompt />
                     <GraceBanner />
                     {process.env.NEXT_PUBLIC_ENVIRONMENT === 'staging' && (
                       <div className="fixed top-0 left-0 z-[9999] pointer-events-none">
