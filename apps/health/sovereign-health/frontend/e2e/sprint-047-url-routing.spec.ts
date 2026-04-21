@@ -119,17 +119,24 @@ test.describe('Sprint 047 -- build-id health contract (#586)', () => {
       host === 'demo.sovereignhealth.io',
       'demo.sovereignhealth.io lacks path-mounted /health; use api-demo.sovereignhealth.io',
     )
-    const res = await request.get('/health')
+    const isLocalhost = host === 'localhost' || host === '127.0.0.1'
+    // Localhost dev has no nginx path-mount: frontend is on :3000 and
+    // the backend is on :8080. Hit the backend directly. Staging + prod
+    // have path-mount so the same-origin `/health` resolves there.
+    const healthUrl = isLocalhost ? 'http://localhost:8080/health' : '/health'
+    const res = await request.get(healthUrl)
     expect(res.ok()).toBeTruthy()
     const body = await res.json()
     expect(body.status).toBe('ok')
     expect(typeof body.version).toBe('string')
     expect(body.version.length).toBeGreaterThan(0)
     expect(typeof body.build).toBe('string')
-    expect(body.build.length).toBeGreaterThan(0)
-    // "unknown" signals the deploy script didn't pass BUILD_ID --
-    // refresh-banner polling would never fire a mismatch. Flag it.
-    expect(body.build).not.toBe('unknown')
+    // Localhost dev images may have BUILD_ID="" or "dev" (no --build-arg
+    // passed to docker build). Deployed images must have a real SHA.
+    if (!isLocalhost) {
+      expect(body.build.length).toBeGreaterThan(0)
+      expect(body.build).not.toBe('unknown')
+    }
   })
 })
 

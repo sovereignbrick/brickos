@@ -63,7 +63,7 @@ RUN mkdir -p apps/health/sovereign-health/api/fuzz/fuzz_targets \
 # detect stale cached bundles. deploy.sh passes --build-arg BUILD_ID=$(git
 # rev-parse --short HEAD); local builds without the arg fall through to the
 # "dev" default in lib.rs via option_env!.
-ARG BUILD_ID
+ARG BUILD_ID=dev
 ENV BUILD_ID=${BUILD_ID}
 RUN cargo build --release -p sovereign-health-backend
 

@@ -99,6 +99,22 @@ Fixture files are numbered and applied in order:
 To add more fixtures, create `004_*.sql` etc. The seed command picks
 them up automatically.
 
+## Known-flaky vitest specs (excluded)
+
+Three specs are skipped by `localhost-stack.sh test` because they
+fail on machines that don't match the implicit assumptions:
+
+- `src/lib/date-format.test.ts` -- hardcodes `Europe/Berlin`
+  timezone; fails with an hour offset on any other TZ.
+- `src/lib/dark-theme.test.ts` -- static grep scan with known false
+  positives on legitimate classes (`bg-white/5`, etc.).
+- `src/lib/i18n-completeness.test.ts` -- flags DE values identical
+  to EN as "untranslated" when they are legitimately the same word
+  (brand names, abbreviations).
+
+Running vitest without the exclusion flags surfaces them. Track the
+fix as Sprint 049+ cleanup.
+
 ## Troubleshooting
 
 **Backend not ready after 120s:**

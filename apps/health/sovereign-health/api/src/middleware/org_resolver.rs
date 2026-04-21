@@ -93,7 +93,6 @@ fn extract_slug_from_domain(domain: &str) -> Option<&str> {
         .or_else(|| domain.strip_suffix(".brickos.io"))
 }
 
-
 /// Known platform domains -- no org context.
 /// Covers both planes (brickos.io admin plane + sovereignhealth.io end-user plane).
 /// Specific hostnames listed here never resolve to an org even if a matching
