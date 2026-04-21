@@ -3,27 +3,51 @@ import { test, expect, type APIRequestContext } from '@playwright/test'
 /**
  * Sprint 048 end-to-end impersonation flow tests.
  *
- * Only runs against localhost (the fixture expects deterministic
- * patient user_ids seeded by ops/fixtures/002_test_users.sql). Against
- * staging / prod it self-skips.
+ * Runs against localhost and staging. IDs (TEST_CLINIC_ORG_ID, ANNA_ID)
+ * are looked up by business key (slug / email) at startup, so the spec
+ * is UUID-agnostic and works anywhere the fixtures are applied.
  *
- *   E2E_BASE_URL=http://localhost:3000 npx playwright test \
- *     sprint-048-impersonation --project=unauth --reporter=list
+ * Prereqs on the target environment:
+ *   - `ops/fixtures/001_test_clinic_org.sql` applied (creates
+ *     organizations.slug = 'test-clinic')
+ *   - `ops/fixtures/002_test_users.sql` applied (test-clinic-admin
+ *     and anna.meier users exist with fixture passwords)
+ *
+ *   Localhost:
+ *     E2E_BASE_URL=http://localhost:3000 pnpm exec playwright test \
+ *       sprint-048-impersonation --project=unauth --reporter=list
+ *
+ *   Staging:
+ *     E2E_BASE_URL=https://test-clinic.demo.brickos.io pnpm exec playwright test \
+ *       sprint-048-impersonation --project=unauth --reporter=list
  */
 
-const TEST_CLINIC_ORG_ID = '00000000-0000-4001-a001-000000000001'
-const ANNA_ID = '00000000-0000-4002-b002-000000000001'
-
 const ADMIN_EMAIL = 'test-clinic-admin@clinic.com'
-const ADMIN_PASSWORD = 'TestClinicAdmin1'
+const ADMIN_PASSWORD = process.env.E2E_TEST_CLINIC_PASSWORD || 'TestClinicAdmin1'
 const ANNA_EMAIL = 'anna.meier@patients.clinic.com'
-const ANNA_PASSWORD = 'TestPatient1'
+const ANNA_PASSWORD = process.env.E2E_TEST_PATIENT_PASSWORD || 'TestPatient1'
 
 function backendUrl(baseURL: string | undefined): string {
   if (!baseURL) return ''
   const host = new URL(baseURL).hostname
   if (host === 'localhost' || host === '127.0.0.1') return 'http://localhost:8080'
   return baseURL // path-mount on staging/prod
+}
+
+// The `X-Org-Domain` header the backend's org_resolver uses to scope
+// queries to test-clinic. On localhost this is the virtual subdomain
+// `test-clinic.brickos.io`; on staging the equivalent is
+// `test-clinic.demo.brickos.io`. Picked from baseURL so the same spec
+// works against either.
+function testClinicOrgDomain(baseURL: string | undefined): string {
+  if (!baseURL) return 'test-clinic.brickos.io'
+  const host = new URL(baseURL).hostname
+  if (host === 'localhost' || host === '127.0.0.1') return 'test-clinic.brickos.io'
+  // Staging: test-clinic.demo.brickos.io / test-clinic.demo.sovereignhealth.io / ...
+  // Use the baseURL hostname verbatim (spec is typically pointed at
+  // test-clinic.<something>).
+  if (host.startsWith('test-clinic.')) return host
+  return 'test-clinic.brickos.io'
 }
 
 async function login(
@@ -64,7 +88,7 @@ async function getTokens(
       baseURL,
       ADMIN_EMAIL,
       ADMIN_PASSWORD,
-      'test-clinic.brickos.io',
+      testClinicOrgDomain(baseURL),
     )
   }
   if (!cachedAnnaToken) {
@@ -73,28 +97,46 @@ async function getTokens(
   return { admin: cachedAdminToken, anna: cachedAnnaToken }
 }
 
-test.describe('Sprint 048 -- patient consent API', () => {
-  test.beforeEach(async ({ baseURL }) => {
-    const host = baseURL ? new URL(baseURL).hostname : ''
-    test.skip(
-      host !== 'localhost' && host !== '127.0.0.1',
-      'fixture-dependent; localhost only',
-    )
-  })
+// Resolves test-clinic org id + Anna's user id by business key. Same
+// spec works across environments where these UUIDs differ.
+let cachedIds: { orgId: string; annaId: string } | null = null
+async function getIds(
+  request: APIRequestContext,
+  baseURL: string | undefined,
+): Promise<{ orgId: string; annaId: string }> {
+  if (!cachedIds) {
+    const { anna } = await getTokens(request, baseURL)
+    const api = backendUrl(baseURL)
+    const headers = { Authorization: `Bearer ${anna}` }
+    const me = (await (await request.get(`${api}/auth/me`, { headers })).json()).data
+    const access = (await (await request.get(`${api}/user/organization-access`, { headers })).json()).data
+    const testClinic = access.find((o: { org_slug: string }) => o.org_slug === 'test-clinic')
+    if (!testClinic) {
+      throw new Error(
+        'test-clinic not present in Anna\'s organization-access list. ' +
+          'Apply ops/fixtures/001_test_clinic_org.sql and 002_test_users.sql first.',
+      )
+    }
+    cachedIds = { orgId: testClinic.org_id, annaId: me.id }
+  }
+  return cachedIds
+}
 
+test.describe('Sprint 048 -- patient consent API', () => {
   test('grant -> list shows is_granted=true, revoke -> false', async ({ request, baseURL }) => {
     const token = (await getTokens(request, baseURL)).anna
+    const { orgId } = await getIds(request, baseURL)
     const auth = { Authorization: `Bearer ${token}` }
     const api = backendUrl(baseURL)
 
     // Revoke first to normalise state.
-    await request.post(`${api}/user/organization-access/${TEST_CLINIC_ORG_ID}/revoke`, {
+    await request.post(`${api}/user/organization-access/${orgId}/revoke`, {
       headers: auth,
     })
 
     // Grant.
     const grantRes = await request.post(
-      `${api}/user/organization-access/${TEST_CLINIC_ORG_ID}/grant`,
+      `${api}/user/organization-access/${orgId}/grant`,
       { headers: auth },
     )
     expect(grantRes.ok()).toBeTruthy()
@@ -102,66 +144,59 @@ test.describe('Sprint 048 -- patient consent API', () => {
     // List.
     const listRes = await request.get(`${api}/user/organization-access`, { headers: auth })
     const list = (await listRes.json()).data
-    const testClinic = list.find((o: { org_id: string }) => o.org_id === TEST_CLINIC_ORG_ID)
+    const testClinic = list.find((o: { org_id: string }) => o.org_id === orgId)
     expect(testClinic?.is_granted).toBe(true)
     expect(testClinic?.granted_at).toBeTruthy()
 
     // Revoke.
-    await request.post(`${api}/user/organization-access/${TEST_CLINIC_ORG_ID}/revoke`, {
+    await request.post(`${api}/user/organization-access/${orgId}/revoke`, {
       headers: auth,
     })
     const list2 = (await (await request.get(`${api}/user/organization-access`, { headers: auth })).json()).data
-    const testClinic2 = list2.find((o: { org_id: string }) => o.org_id === TEST_CLINIC_ORG_ID)
+    const testClinic2 = list2.find((o: { org_id: string }) => o.org_id === orgId)
     expect(testClinic2?.is_granted).toBe(false)
   })
 })
 
 test.describe('Sprint 048 -- practitioner caseload consent filter', () => {
-  test.beforeEach(async ({ baseURL }) => {
-    const host = baseURL ? new URL(baseURL).hostname : ''
-    test.skip(host !== 'localhost' && host !== '127.0.0.1', 'localhost only')
-  })
-
   test('consent gates caseload visibility', async ({ request, baseURL }) => {
     const annaToken = (await getTokens(request, baseURL)).anna
     const adminToken = (await getTokens(request, baseURL)).admin
+    const { orgId, annaId } = await getIds(request, baseURL)
     const api = backendUrl(baseURL)
+    const orgDomain = testClinicOrgDomain(baseURL)
 
     // Revoke Anna's consent.
-    await request.post(`${api}/user/organization-access/${TEST_CLINIC_ORG_ID}/revoke`, {
+    await request.post(`${api}/user/organization-access/${orgId}/revoke`, {
       headers: { Authorization: `Bearer ${annaToken}` },
     })
 
     // Caseload should be empty.
     const caseloadRevoked = await (await request.get(`${api}/practitioner/members`, {
-      headers: { Authorization: `Bearer ${adminToken}`, 'X-Org-Domain': 'test-clinic.brickos.io' },
+      headers: { Authorization: `Bearer ${adminToken}`, 'X-Org-Domain': orgDomain },
     })).json()
-    expect(caseloadRevoked.data.find((m: { user_id: string }) => m.user_id === ANNA_ID)).toBeUndefined()
+    expect(caseloadRevoked.data.find((m: { user_id: string }) => m.user_id === annaId)).toBeUndefined()
 
     // Grant Anna's consent.
-    await request.post(`${api}/user/organization-access/${TEST_CLINIC_ORG_ID}/grant`, {
+    await request.post(`${api}/user/organization-access/${orgId}/grant`, {
       headers: { Authorization: `Bearer ${annaToken}` },
     })
 
     // Caseload should now include Anna.
     const caseloadGranted = await (await request.get(`${api}/practitioner/members`, {
-      headers: { Authorization: `Bearer ${adminToken}`, 'X-Org-Domain': 'test-clinic.brickos.io' },
+      headers: { Authorization: `Bearer ${adminToken}`, 'X-Org-Domain': orgDomain },
     })).json()
-    const anna = caseloadGranted.data.find((m: { user_id: string }) => m.user_id === ANNA_ID)
+    const anna = caseloadGranted.data.find((m: { user_id: string }) => m.user_id === annaId)
     expect(anna).toBeDefined()
     expect(anna.consent_granted_at).toBeTruthy()
   })
 })
 
 test.describe('Sprint 048 -- invite-by-email flow (#048-30)', () => {
-  test.beforeEach(async ({ baseURL }) => {
-    const host = baseURL ? new URL(baseURL).hostname : ''
-    test.skip(host !== 'localhost' && host !== '127.0.0.1', 'localhost only')
-  })
-
   test('create invite -> public lookup -> signup joins org', async ({ request, baseURL }) => {
     const adminToken = (await getTokens(request, baseURL)).admin
     const api = backendUrl(baseURL)
+    const orgDomain = testClinicOrgDomain(baseURL)
     const uniqueEmail = `invite-e2e-${Date.now()}@clinic.com`
 
     // Clean slate.
@@ -174,7 +209,7 @@ test.describe('Sprint 048 -- invite-by-email flow (#048-30)', () => {
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${adminToken}`,
-        'X-Org-Domain': 'test-clinic.brickos.io',
+        'X-Org-Domain': orgDomain,
       },
       data: { email: uniqueEmail, role: 'member' },
     })
@@ -214,7 +249,7 @@ test.describe('Sprint 048 -- invite-by-email flow (#048-30)', () => {
     const membersRes = await request.get(`${api}/org-settings/members`, {
       headers: {
         Authorization: `Bearer ${adminToken}`,
-        'X-Org-Domain': 'test-clinic.brickos.io',
+        'X-Org-Domain': orgDomain,
       },
     })
     const { data: members } = await membersRes.json()
@@ -235,7 +270,7 @@ test.describe('Sprint 048 -- invite-by-email flow (#048-30)', () => {
     const uniqueEmail = `cancel-e2e-${Date.now()}@clinic.com`
     const authed = {
       Authorization: `Bearer ${adminToken}`,
-      'X-Org-Domain': 'test-clinic.brickos.io',
+      'X-Org-Domain': testClinicOrgDomain(baseURL),
     }
 
     // Create.
@@ -266,17 +301,14 @@ test.describe('Sprint 048 -- invite-by-email flow (#048-30)', () => {
 })
 
 test.describe('Sprint 048 -- impersonation session lifecycle', () => {
-  test.beforeEach(async ({ baseURL }) => {
-    const host = baseURL ? new URL(baseURL).hostname : ''
-    test.skip(host !== 'localhost' && host !== '127.0.0.1', 'localhost only')
-  })
-
   test('start requires consent (404 when revoked, session id when granted)', async ({ request, baseURL }) => {
     const annaToken = (await getTokens(request, baseURL)).anna
     const adminToken = (await getTokens(request, baseURL)).admin
+    const { orgId, annaId } = await getIds(request, baseURL)
     const api = backendUrl(baseURL)
+    const orgDomain = testClinicOrgDomain(baseURL)
 
-    await request.post(`${api}/user/organization-access/${TEST_CLINIC_ORG_ID}/revoke`, {
+    await request.post(`${api}/user/organization-access/${orgId}/revoke`, {
       headers: { Authorization: `Bearer ${annaToken}` },
     })
 
@@ -285,45 +317,47 @@ test.describe('Sprint 048 -- impersonation session lifecycle', () => {
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${adminToken}`,
-        'X-Org-Domain': 'test-clinic.brickos.io',
+        'X-Org-Domain': orgDomain,
       },
-      data: { patient_user_id: ANNA_ID },
+      data: { patient_user_id: annaId },
     })
     expect(res404.status()).toBe(404)
 
     // With consent: 200 + session_id.
-    await request.post(`${api}/user/organization-access/${TEST_CLINIC_ORG_ID}/grant`, {
+    await request.post(`${api}/user/organization-access/${orgId}/grant`, {
       headers: { Authorization: `Bearer ${annaToken}` },
     })
     const res200 = await request.post(`${api}/practitioner/impersonate/start`, {
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${adminToken}`,
-        'X-Org-Domain': 'test-clinic.brickos.io',
+        'X-Org-Domain': orgDomain,
       },
-      data: { patient_user_id: ANNA_ID },
+      data: { patient_user_id: annaId },
     })
     expect(res200.ok()).toBeTruthy()
     const body = await res200.json()
     expect(body.data.session_id).toMatch(/^[0-9a-f-]{36}$/)
-    expect(body.data.patient_user_id).toBe(ANNA_ID)
+    expect(body.data.patient_user_id).toBe(annaId)
   })
 
   test('effective-user swap: /auth/me returns patient with valid token, practitioner without', async ({ request, baseURL }) => {
     const annaToken = (await getTokens(request, baseURL)).anna
     const adminToken = (await getTokens(request, baseURL)).admin
+    const { orgId, annaId } = await getIds(request, baseURL)
     const api = backendUrl(baseURL)
+    const orgDomain = testClinicOrgDomain(baseURL)
 
-    await request.post(`${api}/user/organization-access/${TEST_CLINIC_ORG_ID}/grant`, {
+    await request.post(`${api}/user/organization-access/${orgId}/grant`, {
       headers: { Authorization: `Bearer ${annaToken}` },
     })
     const start = await (await request.post(`${api}/practitioner/impersonate/start`, {
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${adminToken}`,
-        'X-Org-Domain': 'test-clinic.brickos.io',
+        'X-Org-Domain': orgDomain,
       },
-      data: { patient_user_id: ANNA_ID },
+      data: { patient_user_id: annaId },
     })).json()
     const session = start.data.session_id
 
@@ -338,24 +372,26 @@ test.describe('Sprint 048 -- impersonation session lifecycle', () => {
       headers: { Authorization: `Bearer ${adminToken}`, 'X-Impersonation-Token': session },
     })).json()
     expect(annaMe.data.email).toBe(ANNA_EMAIL)
-    expect(annaMe.data.id).toBe(ANNA_ID)
+    expect(annaMe.data.id).toBe(annaId)
   })
 
   test('scope gate: hard-excluded (doctor-chat) 403 + blocked write 403', async ({ request, baseURL }) => {
     const annaToken = (await getTokens(request, baseURL)).anna
     const adminToken = (await getTokens(request, baseURL)).admin
+    const { orgId, annaId } = await getIds(request, baseURL)
     const api = backendUrl(baseURL)
+    const orgDomain = testClinicOrgDomain(baseURL)
 
-    await request.post(`${api}/user/organization-access/${TEST_CLINIC_ORG_ID}/grant`, {
+    await request.post(`${api}/user/organization-access/${orgId}/grant`, {
       headers: { Authorization: `Bearer ${annaToken}` },
     })
     const start = await (await request.post(`${api}/practitioner/impersonate/start`, {
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${adminToken}`,
-        'X-Org-Domain': 'test-clinic.brickos.io',
+        'X-Org-Domain': orgDomain,
       },
-      data: { patient_user_id: ANNA_ID },
+      data: { patient_user_id: annaId },
     })).json()
     const session = start.data.session_id
     const authed = {
@@ -392,18 +428,20 @@ test.describe('Sprint 048 -- impersonation session lifecycle', () => {
   test('revoking consent mid-session kills the swap on next request', async ({ request, baseURL }) => {
     const annaToken = (await getTokens(request, baseURL)).anna
     const adminToken = (await getTokens(request, baseURL)).admin
+    const { orgId, annaId } = await getIds(request, baseURL)
     const api = backendUrl(baseURL)
+    const orgDomain = testClinicOrgDomain(baseURL)
 
-    await request.post(`${api}/user/organization-access/${TEST_CLINIC_ORG_ID}/grant`, {
+    await request.post(`${api}/user/organization-access/${orgId}/grant`, {
       headers: { Authorization: `Bearer ${annaToken}` },
     })
     const start = await (await request.post(`${api}/practitioner/impersonate/start`, {
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${adminToken}`,
-        'X-Org-Domain': 'test-clinic.brickos.io',
+        'X-Org-Domain': orgDomain,
       },
-      data: { patient_user_id: ANNA_ID },
+      data: { patient_user_id: annaId },
     })).json()
     const session = start.data.session_id
 
@@ -414,7 +452,7 @@ test.describe('Sprint 048 -- impersonation session lifecycle', () => {
     expect(before.data.email).toBe(ANNA_EMAIL)
 
     // Revoke.
-    await request.post(`${api}/user/organization-access/${TEST_CLINIC_ORG_ID}/revoke`, {
+    await request.post(`${api}/user/organization-access/${orgId}/revoke`, {
       headers: { Authorization: `Bearer ${annaToken}` },
     })
 
@@ -425,7 +463,7 @@ test.describe('Sprint 048 -- impersonation session lifecycle', () => {
     expect(after.data.email).toBe(ADMIN_EMAIL)
 
     // Clean up for next run.
-    await request.post(`${api}/user/organization-access/${TEST_CLINIC_ORG_ID}/grant`, {
+    await request.post(`${api}/user/organization-access/${orgId}/grant`, {
       headers: { Authorization: `Bearer ${annaToken}` },
     })
   })
@@ -433,18 +471,20 @@ test.describe('Sprint 048 -- impersonation session lifecycle', () => {
   test('exit ends the session: subsequent reads fall back', async ({ request, baseURL }) => {
     const annaToken = (await getTokens(request, baseURL)).anna
     const adminToken = (await getTokens(request, baseURL)).admin
+    const { orgId, annaId } = await getIds(request, baseURL)
     const api = backendUrl(baseURL)
+    const orgDomain = testClinicOrgDomain(baseURL)
 
-    await request.post(`${api}/user/organization-access/${TEST_CLINIC_ORG_ID}/grant`, {
+    await request.post(`${api}/user/organization-access/${orgId}/grant`, {
       headers: { Authorization: `Bearer ${annaToken}` },
     })
     const start = await (await request.post(`${api}/practitioner/impersonate/start`, {
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${adminToken}`,
-        'X-Org-Domain': 'test-clinic.brickos.io',
+        'X-Org-Domain': orgDomain,
       },
-      data: { patient_user_id: ANNA_ID },
+      data: { patient_user_id: annaId },
     })).json()
     const session = start.data.session_id
 
