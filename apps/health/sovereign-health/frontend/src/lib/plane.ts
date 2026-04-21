@@ -67,8 +67,22 @@ export function isEndUserOnlyPath(path: string): boolean {
  *
  *  Returns null if the host isn't recognisable (custom domains etc.),
  *  in which case the caller should not redirect.
+ *
+ *  Sprint 048 RC fix: `demo.brickos.io` (staging platform admin) and
+ *  `demo.sovereignhealth.io` (prod public anonymous demo) have no
+ *  legitimate cross-plane sibling. The naive .brickos.io <-> .sovereignhealth.io
+ *  swap would map them to each other, which crosses the staging/prod
+ *  boundary and lands the user on the wrong environment's cookie jar.
+ *  Both are explicitly excluded below -- the caller treats null as
+ *  "stay on the current host."
  */
 export function swapPlaneHost(host: string, target: Plane): string | null {
+  // Demo hosts are single-plane by design. No sibling exists on the
+  // other plane that shares the same environment (staging vs prod).
+  if (host === 'demo.brickos.io' || host === 'demo.sovereignhealth.io') {
+    return null
+  }
+
   if (target === 'admin') {
     if (host.endsWith('.demo.sovereignhealth.io')) {
       return host.replace(/\.demo\.sovereignhealth\.io$/, '.demo.brickos.io')

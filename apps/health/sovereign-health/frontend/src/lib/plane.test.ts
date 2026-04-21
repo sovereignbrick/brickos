@@ -81,6 +81,14 @@ describe('swapPlaneHost', () => {
     expect(swapPlaneHost('health.acme.com', 'admin')).toBeNull()
     expect(swapPlaneHost('localhost', 'end-user')).toBeNull()
   })
+
+  it('returns null for demo hosts (no cross-plane sibling)', () => {
+    // Sprint 048 RC fix: demo.brickos.io is the staging platform admin
+    // playground; demo.sovereignhealth.io is the prod public anonymous
+    // demo. A naive swap between them crosses the staging/prod boundary.
+    expect(swapPlaneHost('demo.brickos.io', 'end-user')).toBeNull()
+    expect(swapPlaneHost('demo.sovereignhealth.io', 'admin')).toBeNull()
+  })
 })
 
 describe('planeRedirectTarget', () => {
@@ -123,5 +131,16 @@ describe('planeRedirectTarget', () => {
       'test-clinic.demo.brickos.io',
     )
     expect(target).toBe('https://test-clinic.demo.sovereignhealth.io/sovereign-health/dashboard')
+  })
+
+  it('does not redirect demo.brickos.io to prod demo.sovereignhealth.io', () => {
+    // Sprint 048 RC fix: demo hosts have no cross-plane sibling; the
+    // redirect stays put instead of crossing staging/prod boundary.
+    expect(
+      planeRedirectTarget('admin', '/sovereign-health/dashboard', 'demo.brickos.io'),
+    ).toBeNull()
+    expect(
+      planeRedirectTarget('end-user', '/platform/org', 'demo.sovereignhealth.io'),
+    ).toBeNull()
   })
 })
