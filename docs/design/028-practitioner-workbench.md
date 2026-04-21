@@ -1,309 +1,317 @@
-# Design 028 -- Practitioner Workbench
+# Design 028 -- Practitioner Impersonation (read-only patient view)
 
-**Status:** Draft
+**Status:** Draft v2 (2026-04-21 -- scope narrowed to impersonation-only per user decision)
 **Date:** 2026-04-21
-**Related:** Sprint 044 #553 (practitioner dashboard scaffold), Sprint 047 #577 (URL routing + polish)
+**Related:** Sprint 044 #553 (practitioner scaffold), Sprint 047 #577 (URL routing + polish)
 **Sprint:** 048 (proposed)
 
-## Problem
+## The rule
 
-The Sprint 044 practitioner page (`/sovereign-health/practitioner`) is a
-two-pane caseload MVP: a list of org members on the left, a minimal
-health summary on the right (measurement count, latest date, last 10
-distinct markers). Sprint 047 polished it -- role-filter patients,
-translated strings, nav entry, column-name fix.
+A practitioner has **no separate clinical record store.** When a
+practitioner reviews a patient, they view the patient's own SHI data
+exactly as the patient sees it -- through a read-only impersonation
+session. Consent is granted by the patient from their own settings.
+There are no practitioner notes, no anamnesis questionnaires, no
+separate patient chart. The source of truth is the patient's own
+/sovereign-health/* records, read through a gate.
 
-It's not yet a workbench. A real clinician needs to do more than read a
-10-marker list: take anamnesis notes, track a care plan, message the
-patient, review labs longitudinally, occasionally see what the patient
-sees in their app. This doc specifies the full surface.
+This is a deliberate simplification of v1. A medical record store
+introduces auth, audit, retention, export, HL7/FHIR, GDPR subject-
+access, and versioning complexity that we do not have budget for and
+that a single-clinic pilot does not need. Impersonation gives the
+practitioner every view the patient has, without doubling the data
+plane.
 
-## Who uses it
+## What the practitioner can do
 
-Two roles access the workbench via `/sovereign-health/practitioner` on a
-tenant's `{slug}.sovereignhealth.io` subdomain:
+Three things, nothing more:
 
-| Org role | Caseload visible | Actions available |
-|---|---|---|
-| `practitioner` | Patients assigned to them (future: direct assignment) OR full patient list of the org (current) | Review + annotate + message |
-| `org_owner` | All patients in the org | Review + annotate + message + administrative (reassign patient, export record) |
+1. **See the caseload** -- the list of patients who have consented to
+   share their records with this org.
+2. **Preview a patient's basic profile** -- name, email, join date,
+   last-active date, measurement count, latest measurement date.
+3. **Impersonate** -- open the patient's own SHI interface in
+   read-only mode. Dashboard, measurements, trends, markers, zones --
+   everything the patient sees, exactly as they see it. No edits, no
+   new measurements, no doctor-chat messages in the patient's name.
 
-Patients (`member` role) never see this UI -- no Patients nav entry, and
-`/sovereign-health/practitioner` redirects them to `/sovereign-health/dashboard`.
+What is explicitly out of scope:
 
-## What a practitioner needs (feature set)
+- No practitioner notes / SOAP / anamnesis.
+- No separate clinical chart.
+- No messaging UI (emails go through the existing per-org email
+  templates at /platform/org/apps/shi/email; no in-app inbox).
+- No care plan / prescribed-markers feature.
+- No cohort grid / at-risk dashboards.
+- No lab-upload workflow beyond what the patient already has.
+- No practitioner-to-practitioner chat.
 
-Grouped by priority:
+## Layout
 
-### P0 -- Reliable baseline (ship in Sprint 048)
-
-1. **Patient overview** -- profile, active tier, date joined, last active, primary language.
-2. **Recent labs & markers** -- last N markers with values, units, trend arrow vs previous reading, status (green/orange/red) vs reference range. Clickable to marker detail.
-3. **Measurements timeline** -- scrollable table, filterable by marker, date range.
-4. **Notes pane** -- free-form practitioner notes per patient, private to the org's clinical team. Plain markdown, auto-saved, timestamped, attributed to the author.
-
-### P1 -- Clinical workflow (Sprint 049)
-
-5. **Structured anamnesis (intake)** -- questionnaire for the first patient meeting: chief complaint, history, allergies, meds, family history, lifestyle. Stored as a versioned JSON blob per patient.
-6. **Care plan** -- list of targets the practitioner wants the patient to track (e.g. "glucose fasting weekly", "ApoB quarterly"). Surfaces as reminders in the patient's SHI dashboard.
-7. **Patient message** -- composer that sends a templated email (using the org's SHI email templates from Sprint 047 #583) or an in-app note the patient sees on next visit.
-
-### P2 -- Advanced (Sprint 050+)
-
-8. **Labs management** -- practitioner uploads a lab PDF; extraction pipeline (#450 / licensing) runs; resulting markers attach to the patient's timeline with a "reviewed by practitioner" flag.
-9. **Impersonation (read-only)** -- for support/debugging, open the patient's dashboard in a locked-down view. Audit-logged; session-bound; no writes. UI clearly indicates "viewing as {patient}".
-10. **Care events** -- visit log (in-person, telehealth, async review) with duration + billable code for insurance workflows.
-11. **Cohort view** -- instead of one patient at a time, see a grid: "who's overdue for HbA1c?" "patients whose ApoB worsened 10%+ this quarter?"
-
-## Privacy, audit, consent
-
-Not negotiable for any of the above:
-
-- **Consent gate.** A patient must explicitly consent to share their health
-  data with the org's practitioner team. Consent is recorded in
-  `patient_consents(patient_user_id, org_id, granted_at, revoked_at,
-  scope)`. The practitioner endpoints must join on this table and return
-  empty/403 for patients who have not consented.
-- **Audit log.** Every practitioner view of patient data writes an
-  `audit_log` row: `action='practitioner.view_summary'`, `actor_user_id`,
-  `target_user_id`, `org_id`, `timestamp`, `ip`, `route`. Patients can
-  review their own audit log on a dedicated settings page.
-- **Impersonation separation.** The impersonation view is served from a
-  special session flag that disables all writes server-side. Leaving the
-  patient scope clears the flag. The URL bar always reads
-  `/sovereign-health/practitioner/{id}/impersonate` -- never the patient's
-  own `/dashboard`.
-- **Notes scope.** Practitioner notes are visible only to users with
-  `org_role in ('practitioner', 'org_owner')` of the same org. Never
-  visible to the patient themselves (they're a clinical record, not a
-  conversation).
-
-## UI -- three layout options
-
-The current page is Option B at minimum fidelity. Options A and C are
-alternative paths if we want a different mental model.
-
-### Option A -- Tabbed patient workbench (deep work on one patient)
-
-Each patient has its own URL: `/sovereign-health/practitioner/{patient_id}`.
-Tabs switch between Overview / Notes / Labs / Messages / Plan. The
-caseload list is a sidebar that collapses on small screens.
+Option B from design v1 -- master/detail. Caseload list on the left,
+patient preview + actions on the right. Ditches the tiled cohort grid
+(v1 Option C) and the deep tab workbench (v1 Option A).
 
 ```
-+------------------------------------------------------------------+
-| STAGING banner                               [ DA ▼ user menu ]  |
-+------------------------------------------------------------------+
-| SHI nav: Overview  Doctor Chat  + Add  History  Trends [Patients]|
-+------------------------------------------------------------------+
-|                                                                  |
-|  +--------+  +----------------------------------------------+    |
-|  | Case-  |  | Anna Meier                                   |    |
-|  | load   |  | anna.meier@patients.clinic.com · since 4/19  |    |
-|  |        |  | tier: glimpse · last active: 4/21            |    |
-|  | □Anna  |  +----------------------------------------------+    |
-|  |  Meier |  | [Overview] [Notes] [Labs] [Messages] [Plan]  |    |
-|  | □Bert  |  +----------------------------------------------+    |
-|  |  Schm. |  |                                              |    |
-|  |        |  |  HbA1c   5.4%   ↓0.2   [green]   3 days ago  |    |
-|  | [+inv] |  |  Glucose 92    ↑3     [orange]  3 days ago  |    |
-|  |        |  |  ApoB    78    ↓4     [green]   2 wks ago   |    |
-|  |        |  |  ...                                         |    |
-|  |        |  |                                              |    |
-|  |        |  |  Recent measurements           [see all →]   |    |
-|  |        |  |  ---------------------------------------     |    |
-|  |        |  |  4/18  HbA1c   5.4%                         |    |
-|  |        |  |  4/11  Glucose 92 mg/dL                     |    |
-|  |        |  |  ...                                         |    |
-|  +--------+  +----------------------------------------------+    |
-|                                                                  |
-+------------------------------------------------------------------+
++-----------------------------------------------------------------------+
+| STAGING banner                                     [TC ▼ user menu ]  |
++-----------------------------------------------------------------------+
+| SHI nav: Overview  Doctor Chat  + Add  History  Trends  [Patients]    |
++-----------------------------------------------------------------------+
+|                                                                       |
+|  Test Clinic -- Patients                                              |
+|  2 patients                                                           |
+|                                                                       |
+|  +----------------+  +----------------------------------------------+ |
+|  | 🔍 search...   |  |  Anna Meier                                  | |
+|  |                |  |  anna.meier@patients.clinic.com              | |
+|  | ● Anna Meier   |  |  Joined 4/19 · Last active 4/21              | |
+|  |   Patient      |  |                                              | |
+|  |   last: 4/21   |  |  Measurements     12                         | |
+|  |                |  |  Latest           4/18                       | |
+|  | ○ Bert Schmidt |  |  Primary language DE                         | |
+|  |   Patient      |  |                                              | |
+|  |   never active |  |  Recent markers                              | |
+|  |                |  |    HbA1c   5.4 %    green    3 days ago     | |
+|  | [+ invite]     |  |    Glucose 92  mg/dL orange  3 days ago     | |
+|  +----------------+  |    ApoB    78  mg/dL green   2 wks ago      | |
+|                      |                                              | |
+|                      |  ┌─────────────────────────────────────┐     | |
+|                      |  │  🔓 View as Anna (read-only) →      │     | |
+|                      |  └─────────────────────────────────────┘     | |
+|                      |                                              | |
+|                      |  ✓ Anna consented on 4/19.                   | |
+|                      |  [ revoke my access ]                        | |
+|                      +----------------------------------------------+ |
+|                                                                       |
++-----------------------------------------------------------------------+
 ```
 
-**Pros:** Each patient gets a stable URL (shareable, bookmarkable, can
-open two patients in two tabs). Tabs are deep-workable. Scales to P1/P2
-features cleanly (each tab is its own route segment).
-
-**Cons:** Switching patients requires going back to the caseload list
-(or collapsing/clicking sidebar). "What did I just write for Bert?"
-needs an extra click.
-
-### Option B -- Master-detail (current pattern, extended)
-
-Single URL `/sovereign-health/practitioner` with a caseload on the left
-and a detail pane on the right that shows the selected patient's tabs
-inline.
+When the selected patient has NOT consented:
 
 ```
-+------------------------------------------------------------------+
-| STAGING banner                               [ DA ▼ user menu ]  |
-+------------------------------------------------------------------+
-| SHI nav                                           [Patients]     |
-+------------------------------------------------------------------+
-|                                                                  |
-|  Test Clinic -- Patients                                         |
-|  2 patients                                                      |
-|                                                                  |
-|  +----------------+  +----------------------------------------+  |
-|  | 🔍 search...   |  |  ► Anna Meier · Overview               |  |
-|  |                |  |  ----------------------------------   |  |
-|  | ● Anna Meier   |  |  [Overview][Notes][Labs][Msg][Plan]   |  |
-|  |   Patient      |  |                                        |  |
-|  |   last: 4/21   |  |  HbA1c   5.4% ↓0.2  green              |  |
-|  |                |  |  Glucose 92    ↑3   orange             |  |
-|  | ○ Bert Schmidt |  |  ApoB    78    ↓4   green              |  |
-|  |   Patient      |  |                                        |  |
-|  |   never        |  |  Measurements (42) · latest 4/18       |  |
-|  |                |  |  [see all →]                           |  |
-|  | [+ invite]     |  |                                        |  |
-|  +----------------+  +----------------------------------------+  |
-|                                                                  |
-+------------------------------------------------------------------+
+|  +----------------+  +----------------------------------------------+ |
+|  | ○ Bert Schmidt |  |  Bert Schmidt                                | |
+|  |   Patient      |  |  bert.schmidt@patients.clinic.com            | |
+|  |   never active |  |  Joined 4/19 · Never active                  | |
+|  |                |  |                                              | |
+|  |                |  |  Bert has not granted this clinic access to  | |
+|  |                |  |  their health records. They can opt in from  | |
+|  |                |  |  Settings → Organization access.             | |
+|  |                |  |                                              | |
+|  |                |  |  [ 📩 Send opt-in reminder ] (1x per 24h)    | |
+|  |                |  +----------------------------------------------+ |
 ```
 
-**Pros:** No navigation penalty to switch patients -- click a name and
-the detail updates. Compact on a single screen. Matches the current
-implementation.
+The preview section ("Recent markers") is populated from the same
+`/practitioner/members/{id}/summary` endpoint that's already in place
+(Sprint 044, fixed in Sprint 047 RC). No schema change required.
 
-**Cons:** Can't share a URL to a specific patient without query params.
-Mobile becomes a stacked view (list → detail → back). Tabs inside the
-detail pane compete for horizontal space with the caseload list.
+## Impersonation semantics
 
-### Option C -- Cohort dashboard (grid)
+When the practitioner clicks **"View as Anna (read-only)"**:
 
-Grid of patient cards with headline metrics and quick actions. Click a
-card to drill into the patient's Option-A-style tabs.
+1. Frontend POSTs to `/practitioner/impersonate/start` with
+   `patient_user_id`. Backend returns a scoped session token.
+2. Frontend stores the token in a session cookie
+   `impersonation_token` (HttpOnly, SameSite=Lax, scoped to the org
+   subdomain, no expires = session cookie).
+3. Frontend redirects to `/sovereign-health/dashboard` (same path the
+   patient sees). On every authed XHR, the app client sends **two**
+   headers: the practitioner's regular `Authorization: Bearer <jwt>`
+   AND the `X-Impersonation-Token: <scoped>`.
+4. Backend middleware, when it sees both, swaps the effective user ID
+   to the patient's for read paths. Write paths (POST/PUT/PATCH/DELETE
+   on measurement/profile/preference endpoints) return 403 with code
+   `impersonation_readonly`.
+5. A persistent top banner says: `👁 Viewing as Anna Meier (read-only)
+   · Exit impersonation`. Clicking Exit clears the impersonation_token
+   cookie and returns to `/sovereign-health/practitioner/{id}`.
+6. Session is time-boxed: the scoped token expires after **30
+   minutes** of inactivity (no API request). The frontend refreshes
+   the token on each read; expiry shows a toast and clears the cookie.
+7. Every read during an impersonation session writes one audit_log
+   row: `actor_user_id = practitioner`, `target_user_id = patient`,
+   `action = 'impersonation.read:<endpoint>'`, plus a
+   `impersonation_session_id` (uuid) so we can correlate all reads in
+   one viewing.
+
+Hard rules enforced server-side (never trusted to the client):
+
+- Write endpoints 403 when X-Impersonation-Token is present.
+- The scoped token is tied to one (practitioner, patient, org) tuple
+  and cannot be reused for a different patient.
+- Revoking consent (patient-side) invalidates active impersonation
+  tokens immediately.
+- Practitioner role is re-checked on every call; downgrading role
+  mid-session drops subsequent reads.
+
+## Patient opt-in
+
+The patient controls access entirely. Two places to manage:
+
+### Settings tab (Sprint 046's `/settings` with plane-aware filtering)
+
+Add one new tab **"Organization access"** to the end-user-plane tab
+list, visible only if the patient is an `org_member` of an org other
+than the default platform org. The tab has one row per org the
+patient is a member of:
 
 ```
-+------------------------------------------------------------------+
-| STAGING banner                               [ DA ▼ user menu ]  |
-+------------------------------------------------------------------+
-| SHI nav                                           [Patients]     |
-+------------------------------------------------------------------+
-|                                                                  |
-|  Test Clinic · 2 patients · 1 needs review · 0 overdue           |
-|                                                                  |
-|  Filters: [all] [review] [overdue] [inactive 30d+]               |
-|                                                                  |
-|  +-----------------+  +-----------------+  +-----------------+   |
-|  | Anna Meier      |  | Bert Schmidt    |  | + invite        |   |
-|  |                 |  |                 |  |   patient       |   |
-|  | 42 measurements |  | 0 measurements  |  |                 |   |
-|  | latest 4/18     |  | never active    |  |                 |   |
-|  |                 |  |                 |  |                 |   |
-|  | HbA1c 5.4 green |  | -- no data --   |  +-----------------+   |
-|  | GLU   92 orange |  |                 |                        |
-|  | ApoB  78 green  |  |                 |                        |
-|  |                 |  |                 |                        |
-|  | [review] [msg]  |  | [invite prompt] |                        |
-|  +-----------------+  +-----------------+                        |
-|                                                                  |
-+------------------------------------------------------------------+
+  Organization access
+  --------------------------------------------------------------
+  Your health records are private. Orgs you join can request
+  access so their practitioners can review your data and support
+  you. You can revoke access at any time.
+
+  Test Clinic                                [✓] Granted on 4/19
+    anna.meier joined via invite · test-clinic.sovereignhealth.io
+    [ revoke access ]
+
+  (no other orgs)
 ```
 
-**Pros:** At-a-glance triage. "Who needs me today?" is visible without
-clicking. Great for a clinic with 20-200 patients.
+For a solo-platform user (only member of the default platform org),
+the whole tab is hidden. That keeps the existing minimal settings
+shape for 99 % of users.
 
-**Cons:** Over-designed for a 2-patient test clinic. The density of
-information per card is hard to get right -- too much and it's noisy,
-too little and it's useless.
+### Email / onboarding nudge
 
-## Recommendation
+When a patient is newly added to an org (invite accepted), their first
+login lands on `/settings/organization-access` with a one-time prompt:
 
-**Ship Option B + per-patient URL routing for P0 in Sprint 048.**
+```
+  +-----------------------------------------------------+
+  | Test Clinic would like access to your health        |
+  | records.                                            |
+  |                                                     |
+  | This lets their practitioners view your biomarkers, |
+  | trends, and measurement history in read-only mode.  |
+  | They cannot edit your data. You can revoke access   |
+  | at any time from Settings.                          |
+  |                                                     |
+  |  [ Deny ]                       [ Grant access ]    |
+  +-----------------------------------------------------+
+```
 
-Rationale:
-- Option B is already the shipped shape; extending it adds features
-  without a full rewrite.
-- Move from `/sovereign-health/practitioner` (list-only) to:
-  - `/sovereign-health/practitioner` -- caseload list + empty detail pane
-  - `/sovereign-health/practitioner/{patient_id}` -- caseload list + patient selected (Overview tab)
-  - `/sovereign-health/practitioner/{patient_id}/notes` etc. for each tab
-- A stable per-patient URL solves the "share a link to a patient" gap in
-  current Option B.
-- Mobile: collapse the caseload to a hamburger menu; main area is the
-  tab-based detail.
-- Option C (cohort dashboard) is a follow-up when an org has enough
-  patients (10+) to benefit from triage.
-- Option A pure (no list) is unlikely to fit most clinics that want to
-  flip through patients fast.
+Skipping the prompt = deny. Closing the tab = deny. Explicit click =
+grant, persisted to `patient_consents`.
 
-## P0 data model changes (Sprint 048 scaffold)
+## Data model
+
+One new table. Very small.
 
 ```sql
--- Practitioner notes (P0)
-CREATE TABLE IF NOT EXISTS practitioner_notes (
-    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    org_id          UUID NOT NULL REFERENCES organizations(id),
-    patient_user_id UUID NOT NULL REFERENCES users(id),
-    author_user_id  UUID NOT NULL REFERENCES users(id),
-    body_markdown   TEXT NOT NULL,
-    created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    deleted_at      TIMESTAMPTZ
-);
-CREATE INDEX IF NOT EXISTS practitioner_notes_patient_idx
-    ON practitioner_notes (patient_user_id, created_at DESC)
-    WHERE deleted_at IS NULL;
-
--- Patient consent gate (P0)
 CREATE TABLE IF NOT EXISTS patient_consents (
-    patient_user_id UUID NOT NULL REFERENCES users(id),
-    org_id          UUID NOT NULL REFERENCES organizations(id),
-    scope           TEXT NOT NULL,  -- 'read_measurements', 'read_notes', ...
+    patient_user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    org_id          UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
     granted_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     revoked_at      TIMESTAMPTZ,
-    PRIMARY KEY (patient_user_id, org_id, scope)
+    PRIMARY KEY (patient_user_id, org_id)
 );
 
--- Audit (already exists in platform schema; just need new action rows)
--- action = 'practitioner.view_summary' | 'practitioner.write_note' | ...
+CREATE INDEX IF NOT EXISTS patient_consents_org_active_idx
+    ON patient_consents (org_id)
+    WHERE revoked_at IS NULL;
 ```
 
-## P0 endpoint sketch (Sprint 048 scaffold)
+`audit_log` already exists; we only add new action codes:
+
+- `patient_consent.granted`
+- `patient_consent.revoked`
+- `impersonation.start`
+- `impersonation.exit`
+- `impersonation.read:<endpoint>`
+- `impersonation.write_blocked:<endpoint>`
+
+No practitioner-notes table. No SOAP. No anamnesis schema.
+
+## Endpoints
+
+### Practitioner-facing
 
 | Method | Path | Purpose |
 |---|---|---|
-| GET | /practitioner/members | Existing, filters to patients (Sprint 047) |
-| GET | /practitioner/members/{id}/summary | Existing, fixed in Sprint 047 RC |
-| GET | /practitioner/members/{id}/measurements?marker=&from=&to= | Paginated timeline |
-| GET | /practitioner/members/{id}/notes | List notes newest-first |
-| POST | /practitioner/members/{id}/notes | Create a note |
-| PATCH | /practitioner/notes/{note_id} | Edit (author only, within 24h) |
-| DELETE | /practitioner/notes/{note_id} | Soft-delete |
+| GET | /practitioner/members | Caseload. **Filtered by `patient_consents` -- only consenting patients are returned.** Non-consenting members still exist but are hidden from the practitioner; the org-admin "Members" view on brickos.io lists everyone. |
+| GET | /practitioner/members/{id}/summary | Already exists (Sprint 047 RC fix). Unchanged. |
+| POST | /practitioner/impersonate/start | Body: `{ patient_user_id }`. Returns `{ impersonation_token, session_id, expires_at }` if consent exists; 403 otherwise. |
+| POST | /practitioner/impersonate/exit | Invalidates the scoped token. |
+| POST | /practitioner/invite-reminder | Body: `{ patient_user_id }`. Sends the org's opt-in email template to the patient (uses Sprint 047 #583 per-locale template). Rate-limited to 1 per patient per 24h. |
 
-Every endpoint asserts patient-consent on entry. Every read writes one
-audit_log row.
+### Patient-facing
+
+| Method | Path | Purpose |
+|---|---|---|
+| GET | /user/organization-access | Returns `[{ org_id, org_name, granted_at, revoked_at }]` for every org the user is a member of. |
+| POST | /user/organization-access/{org_id}/grant | Grants consent (upsert; sets `revoked_at = NULL`). |
+| POST | /user/organization-access/{org_id}/revoke | Sets `revoked_at = NOW()`. Invalidates any active impersonation tokens on this patient for this org. |
+
+### Infrastructure (shared)
+
+Middleware that inspects `X-Impersonation-Token` on every request to
+`/sovereign-health/*` data endpoints:
+
+- If present: validate token, swap effective user ID, write audit row.
+- If present on a write endpoint: 403 `impersonation_readonly`, write
+  audit row anyway.
+- Token is validated against (practitioner_id, patient_id, org_id,
+  still-consenting). Any mismatch = 401, cookie cleared.
 
 ## Acceptance criteria
 
-Sprint 048 ships as "practitioner workbench P0" when:
+Sprint 048 ships when:
 
-- Per-patient URL works (refresh preserves selection).
-- Overview tab renders correctly with 0, 1, or many measurements.
-- Notes tab: create + list + edit (within 24h) + soft-delete works for
-  an authenticated practitioner; non-practitioners 403; patients can
-  never read notes.
-- Measurements tab: paginated, filterable by marker + date range.
-- Consent gate prevents data leak to an org that a patient hasn't
-  opted in to. (For Sprint 048, ship with a "legacy consent" flag
-  auto-true for existing patients of the two pilot orgs; new patient
-  onboarding adds an explicit consent step.)
-- Audit log shows one `practitioner.view_summary` row per patient
-  click.
-- EN + DE strings for every user-visible label.
+- Patient can grant + revoke consent to an org from
+  `/settings/organization-access`. Page hidden for solo users.
+- Practitioner caseload list filters out non-consenting patients.
+- Clicking "View as {patient}" starts a scoped session, redirects to
+  `/sovereign-health/dashboard`, and shows a persistent top banner
+  "Viewing as {name} -- read-only · Exit".
+- Every SHI page that the patient can see renders identically in
+  impersonation mode, with edit affordances hidden / buttons
+  disabled.
+- Every write attempt during impersonation 403s with a clear error
+  toast.
+- Exiting the banner drops the cookie and returns to
+  `/sovereign-health/practitioner/{id}`.
+- Revoking consent (patient-side) immediately kills any active
+  impersonation session for that patient+org.
+- Audit log records at least `impersonation.start`,
+  `impersonation.exit`, one `impersonation.read:...` per API call, and
+  `impersonation.write_blocked:...` per blocked write.
+- EN + DE strings for every user-visible label: caseload empty state,
+  consent prompt, revoke confirmation, impersonation banner, exit
+  button, "read-only" toast.
+
+## Privacy / compliance notes
+
+- **Legal basis**: patient consent + legitimate interest (healthcare
+  provider). Both recorded.
+- **GDPR subject access**: a patient requesting their audit log can
+  download every view the practitioner made. `/user/audit-log` already
+  exists from Sprint 026.
+- **Retention**: audit rows are immutable. `patient_consents` rows
+  stay after revoke (with `revoked_at` set) so the history of access
+  is preserved. Hard-deleting a patient (right to be forgotten)
+  cascades to consents.
+- **Jurisdictional**: for DE/EU deployments, impersonation UI strings
+  must make clear that the practitioner is viewing, not editing. The
+  persistent banner + the 403 on writes satisfy this.
 
 ## Open questions
 
-1. Patient assignment: today every practitioner sees every patient of
-   the org. Do we eventually want 1:N or N:N assignments
-   (practitioner_id <-> patient_id)? Probably yes for multi-practitioner
-   clinics -- defer until we have a 2+ practitioner customer.
-2. Note editing window: keep at 24h for accountability (medical record
-   culture), or make it unlimited with a full revision history? Defer
-   to clinical advisor input.
-3. Message UI: in-app (new /sovereign-health/messages inbox) or
-   email-only (using org templates)? Probably both eventually; start
-   with email-only (cheaper, no new UI).
-4. Impersonation (P2): legal/compliance review needed. Some
-   jurisdictions require explicit patient re-consent for every
-   impersonation session.
+1. Should impersonation be **scope-granular** -- e.g. practitioner can
+   see measurements but NOT doctor-chat history? For the first
+   release: no, full read-only. Revisit if a practitioner or patient
+   requests scoping.
+2. Should there be a **time-limited grant** option ("grant for 30
+   days, then auto-revoke")? Defer. Start with indefinite grant +
+   one-click revoke.
+3. Should the practitioner's **own SHI data** (if they somehow have
+   any -- e.g. they're also a patient at their own clinic) be
+   hidden during impersonation? Yes, impersonation fully swaps user
+   context; the practitioner's own data is inaccessible while viewing
+   as a patient. Exit impersonation to see their own data.
+4. **Invite-reminder template**: does this go through the org's SHI
+   email templates (Sprint 047 #583) or a platform-level template?
+   Use org templates -- keeps branded voice consistent.
