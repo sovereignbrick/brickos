@@ -35,7 +35,7 @@ pub mod payments;
 pub mod services;
 pub mod templates;
 
-pub const VERSION: &str = "0.44.0";
+pub const VERSION: &str = "0.45.0";
 pub const SERVICE_NAME: &str = "sovereign-health-backend";
 
 /// Sprint 047 #586: unique per-build identifier stamped by the Dockerfile at
@@ -589,6 +589,23 @@ pub fn configure_routes(cfg: &mut actix_web::web::ServiceConfig) {
             .route(
                 "/members/{user_id}/summary",
                 actix_web::web::get().to(handlers::practitioner::member_summary),
+            ),
+    )
+    // Sprint 048 #048-11: patient-facing consent to share health data
+    // with an org. Listed from /settings/organization-access.
+    .service(
+        actix_web::web::scope("/user/organization-access")
+            .route(
+                "",
+                actix_web::web::get().to(handlers::consent::list_consents),
+            )
+            .route(
+                "/{org_id}/grant",
+                actix_web::web::post().to(handlers::consent::grant_consent),
+            )
+            .route(
+                "/{org_id}/revoke",
+                actix_web::web::post().to(handlers::consent::revoke_consent),
             ),
     )
     .service(

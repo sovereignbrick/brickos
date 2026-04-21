@@ -18,6 +18,7 @@ pub mod auth;
 pub mod auth_nostr;
 pub mod billing;
 pub mod billing_btc;
+pub mod consent;
 pub mod contact;
 pub mod content;
 pub mod content_strings;
