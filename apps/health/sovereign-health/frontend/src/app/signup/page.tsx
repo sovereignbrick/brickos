@@ -222,6 +222,13 @@ function SignupContent() {
             }
           }
         } catch {}
+        // Sprint 048 #048-42: flag so the dashboard shows a one-time
+        // welcome banner pointing at Dr. Alex + measurements. If the
+        // signup was invite-driven, the ConsentOnboardingPrompt modal
+        // will also fire on first dashboard mount.
+        try {
+          window.localStorage.setItem('shi_welcome_pending', '1')
+        } catch {}
         router.replace('/sovereign-health/dashboard')
       } else if (res.data.mfa_required) {
         router.push('/login')

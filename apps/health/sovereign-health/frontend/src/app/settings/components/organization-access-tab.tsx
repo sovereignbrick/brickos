@@ -26,6 +26,8 @@ export function OrganizationAccessTab({ onLoaded }: Props) {
   const t = useTranslations('organizationAccess')
   const [entries, setEntries] = useState<OrganizationAccessEntry[] | null>(null)
   const [saving, setSaving] = useState<string | null>(null) // org_id while toggling
+  // Sprint 048 #048-44: revoke-confirm state. null = modal hidden.
+  const [revokeConfirm, setRevokeConfirm] = useState<OrganizationAccessEntry | null>(null)
 
   const fetchEntries = async () => {
     try {
@@ -49,21 +51,38 @@ export function OrganizationAccessTab({ onLoaded }: Props) {
   }, [])
 
   async function toggle(org: OrganizationAccessEntry) {
+    // Sprint 048 #048-44: flipping OFF goes through a confirm modal.
+    // Flipping ON is instant (no confirm -- the patient is granting).
+    if (org.is_granted) {
+      setRevokeConfirm(org)
+      return
+    }
+    await applyToggle(org, 'grant')
+  }
+
+  async function applyToggle(
+    org: OrganizationAccessEntry,
+    endpoint: 'grant' | 'revoke',
+  ) {
     setSaving(org.org_id)
     try {
       const token = Cookies.get('auth_token')
-      const endpoint = org.is_granted ? 'revoke' : 'grant'
       const res = await fetch(`/user/organization-access/${org.org_id}/${endpoint}`, {
         method: 'POST',
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       })
       if (!res.ok) throw new Error(`${res.status}`)
       await fetchEntries()
-      toast.success(org.is_granted ? t('revokedToast', { orgName: org.org_name }) : t('grantedToast', { orgName: org.org_name }))
+      toast.success(
+        endpoint === 'revoke'
+          ? t('revokedToast', { orgName: org.org_name })
+          : t('grantedToast', { orgName: org.org_name }),
+      )
     } catch {
       toast.error(t('saveFailed'))
     } finally {
       setSaving(null)
+      setRevokeConfirm(null)
     }
   }
 
@@ -147,6 +166,42 @@ export function OrganizationAccessTab({ onLoaded }: Props) {
           )
         })}
       </div>
+
+      {/* Sprint 048 #048-44: revoke confirmation modal. */}
+      {revokeConfirm && (
+        <div className="fixed inset-0 z-[9999] bg-black/70 flex items-center justify-center p-4">
+          <div className="bg-background border border-border rounded-lg shadow-xl max-w-md w-full p-6 space-y-4">
+            <h3 className="text-lg font-semibold">
+              {t('revokeConfirmTitle', { orgName: revokeConfirm.org_name })}
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              {t('revokeConfirmBody', { orgName: revokeConfirm.org_name })}
+            </p>
+            <ul className="text-xs text-muted-foreground list-disc list-inside space-y-1">
+              <li>{t('revokeBulletSession')}</li>
+              <li>{t('revokeBulletReversible')}</li>
+            </ul>
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setRevokeConfirm(null)}
+                disabled={saving !== null}
+                className="px-4 py-2 text-sm rounded-lg text-muted-foreground hover:text-foreground"
+              >
+                {t('revokeCancel')}
+              </button>
+              <button
+                type="button"
+                onClick={() => applyToggle(revokeConfirm, 'revoke')}
+                disabled={saving !== null}
+                className="bg-red-500/90 hover:bg-red-500 text-white px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-50"
+              >
+                {saving !== null ? '…' : t('revokeConfirmButton')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
