@@ -91,6 +91,13 @@ export function OrganizationAccessTab({ onLoaded }: Props) {
       <div>
         <h2 className="text-lg font-semibold">{t('title')}</h2>
         <p className="text-sm text-muted-foreground mt-2">{t('intro')}</p>
+        {/* Sprint 048 #048-43: link to the audit log so patients can
+            see every time a practitioner accessed their data. */}
+        <p className="text-xs text-muted-foreground mt-3">
+          <a href="/sovereign-health/data-access-log" className="underline hover:text-foreground">
+            {t('viewAccessLog')}
+          </a>
+        </p>
       </div>
 
       <div className="space-y-3">

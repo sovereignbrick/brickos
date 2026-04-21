@@ -640,6 +640,12 @@ pub fn configure_routes(cfg: &mut actix_web::web::ServiceConfig) {
                 actix_web::web::post().to(handlers::consent::revoke_consent),
             ),
     )
+    // Sprint 048 #048-43: patient-facing data-access audit log
+    // (GDPR Art. 15 right of access for practitioner reviews).
+    .route(
+        "/user/data-access-log",
+        actix_web::web::get().to(handlers::consent::data_access_log),
+    )
     .service(
         actix_web::web::scope("/doctor-chat")
             .route("", actix_web::web::post().to(handlers::doctor_chat::chat))

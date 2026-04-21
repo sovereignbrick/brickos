@@ -109,13 +109,31 @@ function SignupContent() {
     }
   }, [searchParams])
 
-  const { register, handleSubmit, watch, formState: { errors, isSubmitting } } = useForm<SignupInput>({
+  const { register, handleSubmit, watch, setValue, formState: { errors, isSubmitting } } = useForm<SignupInput>({
     resolver: standardSchemaResolver(signupSchema),
     defaultValues: {
       consent_newsletter: false,
       country: detectCountryFromLocale(),
     },
   })
+
+  // Sprint 048 #048-30/41: invite-token onboarding. When the URL has
+  // ?invite=TOKEN, fetch the invite info so we can prefill the email
+  // field and show a "joining {org_name}" banner. The form locks the
+  // email input so the signup email matches the invited one (the
+  // backend's accept_invite_on_signup requires this).
+  const inviteToken = searchParams.get('invite')
+  const [inviteInfo, setInviteInfo] = useState<{ email: string; role: string; org_name: string } | null>(null)
+  const [inviteError, setInviteError] = useState<string | null>(null)
+  useEffect(() => {
+    if (!inviteToken) return
+    api.auth.inviteInfo(inviteToken)
+      .then(res => {
+        setInviteInfo(res.data)
+        setValue('email', res.data.email)
+      })
+      .catch(() => setInviteError('invite_invalid'))
+  }, [inviteToken, setValue])
 
   const password = watch('password', '')
 
@@ -143,16 +161,21 @@ function SignupContent() {
 
   const onSubmit = async (data: SignupInput) => {
     try {
-      await api.auth.signup({
-        email: data.email.trim(),
-        password: data.password.trim(),
-        display_name: data.display_name || undefined,
-        tos_accepted: data.tos_accepted,
-        referred_by: referralCode.current || undefined,
-        locale: contentLocale,
-        consent_newsletter: data.consent_newsletter,
-        country: data.country || undefined,
-      })
+      await api.auth.signup(
+        {
+          email: data.email.trim(),
+          password: data.password.trim(),
+          display_name: data.display_name || undefined,
+          tos_accepted: data.tos_accepted,
+          referred_by: referralCode.current || undefined,
+          locale: contentLocale,
+          consent_newsletter: data.consent_newsletter,
+          country: data.country || undefined,
+        },
+        // Sprint 048: carry the invite token so the backend joins the
+        // new user to the org in the same request.
+        inviteToken ? { invite: inviteToken } : undefined,
+      )
       // Clear referral cookie after successful registration
       Cookies.remove('sh_ref')
       setSubmittedEmail(data.email)
@@ -382,6 +405,24 @@ function SignupContent() {
         <div className="text-center">
           {brandingHeader(ts('createAccount'))}
         </div>
+
+        {/* Sprint 048 #048-41: invite-token context banner. Shows the
+            org the patient is joining so they know what they're
+            signing up for. Locked email field below prevents the
+            patient from changing the email and landing outside the
+            invite scope. */}
+        {inviteInfo && (
+          <div className="mt-4 p-3 rounded-lg border border-blue-500/30 bg-blue-500/10 text-sm">
+            <p className="font-medium">{ts('inviteJoining', { orgName: inviteInfo.org_name })}</p>
+            <p className="text-xs text-muted-foreground mt-1">{ts('inviteEmailLocked')}</p>
+          </div>
+        )}
+        {inviteError && (
+          <div className="mt-4 p-3 rounded-lg border border-yellow-500/30 bg-yellow-500/10 text-xs">
+            {ts('inviteInvalid')}
+          </div>
+        )}
+
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div>
             <label htmlFor="signup-email" className="text-sm font-medium block mb-1.5">{tCommon('email')}</label>
@@ -389,7 +430,8 @@ function SignupContent() {
               id="signup-email"
               type="email"
               {...register('email')}
-              className="w-full bg-white/5 border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors"
+              readOnly={!!inviteInfo}
+              className={`w-full bg-white/5 border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors ${inviteInfo ? 'opacity-70 cursor-not-allowed' : ''}`}
               placeholder={t('emailPlaceholder')}
             />
             {errors.email && <p className="text-xs text-red-400 mt-1">{errors.email.message}</p>}

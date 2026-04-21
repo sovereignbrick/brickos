@@ -221,6 +221,9 @@
     },
     "signup": {
       "createAccount": "Erstelle dein Konto",
+      "inviteJoining": "Beitritt zu {orgName}",
+      "inviteEmailLocked": "Das E-Mail-Feld ist gesperrt, weil Ihre Einladung an diese Adresse gesendet wurde.",
+      "inviteInvalid": "Dieser Einladungslink ist abgelaufen, wurde storniert oder existiert nicht. Sie können trotzdem ein normales Konto erstellen, werden jedoch keiner Organisation automatisch beitreten.",
       "confirmPassword": "Passwort bestätigen",
       "confirmPasswordPlaceholder": "Passwort wiederholen",
       "displayName": "Anzeigename (optional)",
@@ -1727,9 +1730,27 @@
     "deny": "Jetzt nicht",
     "grant": "Zugriff gewähren"
   },
+  "dataAccessLog": {
+    "title": "Zugriffsprotokoll",
+    "intro": "Jedes Mal, wenn ein Arzt Ihre Gesundheitsdaten über eine gemeinsame Klinik einsieht, wird ein Eintrag hier aufgezeichnet. Dieses Protokoll ist Ihr Nachweis – niemand kann es bearbeiten.",
+    "colTime": "Wann",
+    "colAction": "Was",
+    "colActor": "Wer",
+    "colOrg": "Organisation",
+    "empty": "Niemand hat bisher auf Ihre Daten zugegriffen.",
+    "unknown": "unbekannt",
+    "action": {
+      "start": "Überprüfungssitzung gestartet",
+      "exit": "Überprüfungssitzung beendet",
+      "readPath": "Zugriff auf {path}"
+    },
+    "footer": "Zugriff jederzeit widerrufen unter",
+    "footerLink": "Organisationszugriff"
+  },
   "organizationAccess": {
     "title": "Organisationszugriff",
     "intro": "Ihre Gesundheitsdaten sind privat. Organisationen, denen Sie beigetreten sind, können nur Lesezugriff anfragen, damit ihre Ärzte Ihre Biomarker, Messungen und Trends überprüfen können. Sie können Ihre Daten nicht bearbeiten und haben keinen Einblick in Ihren Dr. Alex-Chat. Sie können den Zugriff jederzeit aktivieren oder deaktivieren.",
+    "viewAccessLog": "Vollständiges Zugriffsprotokoll ansehen →",
     "role": "Rolle: {role}",
     "joinedOn": "beigetreten am {date}",
     "grantedOn": "Zugriff gewährt am {date}.",

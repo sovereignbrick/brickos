@@ -242,9 +242,16 @@ export type { SearchResult, SearchResponse, SuggestResponse }
 
 export const api = {
   auth: {
-    signup: (body: { email: string; password: string; display_name?: string; tos_accepted: boolean; referred_by?: string; locale?: string; consent_newsletter?: boolean; consent_product_updates?: boolean; country?: string }) =>
+    signup: (body: { email: string; password: string; display_name?: string; tos_accepted: boolean; referred_by?: string; locale?: string; consent_newsletter?: boolean; consent_product_updates?: boolean; country?: string }, opts?: { invite?: string }) =>
       request<{ data: { message: string } | { user: import('./types').User; token: string; refresh_token: string } }>(
-        '/auth/signup', { method: 'POST', body: JSON.stringify(body) }
+        opts?.invite ? `/auth/signup?invite=${encodeURIComponent(opts.invite)}` : '/auth/signup',
+        { method: 'POST', body: JSON.stringify(body) }
+      ),
+    // Sprint 048 #048-30: public lookup of an invite token so the
+    // signup page can prefill the email + show "joining {org_name}".
+    inviteInfo: (token: string) =>
+      request<{ data: { email: string; role: string; org_name: string; org_slug: string; expires_at: string } }>(
+        `/signup/invite/${encodeURIComponent(token)}`
       ),
     login: (body: { email: string; password: string }) =>
       request<{ data: { user?: import('./types').User; token?: string; refresh_token?: string; mfa_required?: boolean; mfa_token?: string } }>(

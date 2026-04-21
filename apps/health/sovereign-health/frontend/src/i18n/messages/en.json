@@ -221,6 +221,9 @@
     },
     "signup": {
       "createAccount": "Create your account",
+      "inviteJoining": "Joining {orgName}",
+      "inviteEmailLocked": "The email field is locked because your invitation was sent to this address.",
+      "inviteInvalid": "This invitation link has expired, been cancelled, or doesn't exist. You can still create a regular account, but won't be auto-joined to any organization.",
       "confirmPassword": "Confirm Password",
       "confirmPasswordPlaceholder": "Repeat password",
       "displayName": "Display Name (optional)",
@@ -1727,9 +1730,27 @@
     "deny": "Not now",
     "grant": "Grant access"
   },
+  "dataAccessLog": {
+    "title": "Data access log",
+    "intro": "Every time a practitioner views your health records through a shared clinic, an entry is recorded here. This log is your record -- nobody can edit it.",
+    "colTime": "When",
+    "colAction": "What",
+    "colActor": "Who",
+    "colOrg": "Organization",
+    "empty": "Nobody has accessed your data yet.",
+    "unknown": "unknown",
+    "action": {
+      "start": "Started a review session",
+      "exit": "Ended a review session",
+      "readPath": "Read {path}"
+    },
+    "footer": "To revoke access at any time, go to",
+    "footerLink": "Organization access"
+  },
   "organizationAccess": {
     "title": "Organization access",
     "intro": "Your health records are private. Orgs you join can request read-only access so their practitioners can review your biomarkers, measurements, and trends. They cannot edit your data or see your Dr. Alex chat history. You can toggle access at any time.",
+    "viewAccessLog": "View full data access log →",
     "role": "Role: {role}",
     "joinedOn": "joined {date}",
     "grantedOn": "Access granted on {date}.",
