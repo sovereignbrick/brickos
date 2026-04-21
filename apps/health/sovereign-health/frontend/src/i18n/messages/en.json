@@ -790,7 +790,8 @@
       "security": "Security",
       "dataPrivacy": "Data & Privacy",
       "billing": "Billing",
-      "notifications": "Notifications"
+      "notifications": "Notifications",
+      "organizationAccess": "Organization access"
     },
     "profile": {
       "displayName": "Display Name",
@@ -1679,6 +1680,21 @@
   "refresh": {
     "message": "A newer version of the app is available.",
     "action": "Reload now"
+  },
+  "organizationAccess": {
+    "title": "Organization access",
+    "intro": "Your health records are private. Orgs you join can request read-only access so their practitioners can review your biomarkers, measurements, and trends. They cannot edit your data or see your Dr. Alex chat history. You can toggle access at any time.",
+    "role": "Role: {role}",
+    "joinedOn": "joined {date}",
+    "grantedOn": "Access granted on {date}.",
+    "revokedOn": "Access revoked on {date}.",
+    "neverGranted": "Access has never been granted.",
+    "toggleOn": "Revoke access",
+    "toggleOff": "Grant access",
+    "grantedToast": "Access granted for {orgName}.",
+    "revokedToast": "Access revoked for {orgName}.",
+    "saveFailed": "Couldn't update access. Please try again.",
+    "noOrgsFallback": "You are not a member of any organization yet."
   },
   "practitioner": {
     "title": "{orgName} -- Patients",

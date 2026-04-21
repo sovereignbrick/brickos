@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, Suspense } from 'react'
 import { useRouter, useSearchParams, usePathname } from 'next/navigation'
+import Cookies from 'js-cookie'
 import { useAuth } from '@/lib/auth-context'
 import { useTranslations } from 'next-intl'
 import { api } from '@/lib/api'
@@ -19,6 +20,7 @@ import { LicenseTab } from './components/license-tab'
 import { SecurityTab } from './components/security-tab'
 import { AccountTab } from './components/account-tab'
 import { NotificationsTab } from './components/notifications-tab'
+import { OrganizationAccessTab } from './components/organization-access-tab'
 
 // Sprint 042 #528 Phase D: settings tabs are split into two logical groups:
 //
@@ -54,6 +56,7 @@ const MASTER_TABS = [
   'Account',
   'Security',
   'Data & Privacy',
+  'Organization access',
 ] as const
 
 // Render order = pre-Sprint-040 production layout. SHI tabs first, then
@@ -68,6 +71,7 @@ const ALL_TABS = [
   'Account',
   'Security',
   'Data & Privacy',
+  'Organization access',
 ] as const
 type Tab = (typeof ALL_TABS)[number]
 
@@ -83,6 +87,7 @@ const TAB_SLUGS: Record<string, Tab> = {
   security: 'Security',
   privacy: 'Data & Privacy',
   data: 'Data & Privacy',
+  'organization-access': 'Organization access',
   // SHI extension tabs
   profile: 'Health profile',
   'health-profile': 'Health profile',
@@ -96,6 +101,7 @@ const TAB_TO_SLUG: Record<Tab, string> = {
   'Account': 'account',
   'Security': 'security',
   'Data & Privacy': 'privacy',
+  'Organization access': 'organization-access',
   // SHI
   'Health profile': 'health-profile',
   'Devices': 'devices',
@@ -184,7 +190,24 @@ function SettingsContent() {
   // visiting {slug}.brickos.io/settings sees only BrickOS account/security/
   // privacy -- app-specific settings belong on sovereignhealth.io.
   const currentPlane = getPlane(typeof window !== 'undefined' ? window.location.hostname : '')
-  const visibleTabs: readonly Tab[] = currentPlane === 'admin' ? MASTER_TABS : ALL_TABS
+  // Sprint 048 #048-17: Organization access tab visible only when the
+  // user is a member of at least one org. Probed once on mount so the
+  // tab appears/disappears immediately without needing a click.
+  const [hasOrgs, setHasOrgs] = useState<boolean | null>(null)
+  useEffect(() => {
+    if (!user) return
+    const token = Cookies.get('auth_token')
+    fetch('/user/organization-access', {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    })
+      .then(r => r.ok ? r.json() : { data: [] })
+      .then(j => setHasOrgs(Array.isArray(j?.data) && j.data.length > 0))
+      .catch(() => setHasOrgs(false))
+  }, [user])
+  const baseTabs: readonly Tab[] = currentPlane === 'admin' ? MASTER_TABS : ALL_TABS
+  const visibleTabs: readonly Tab[] = hasOrgs
+    ? baseTabs
+    : baseTabs.filter(t => t !== 'Organization access')
 
   return (
     <div className="flex flex-col h-[calc(100vh-56px)]">
@@ -223,6 +246,7 @@ function SettingsContent() {
               'Devices': t('tabs.devices'),
               'Thresholds': t('tabs.thresholds'),
               'Medications': t('tabs.medications'),
+              'Organization access': t('tabs.organizationAccess'),
             }
             const isMaster = (MASTER_TABS as readonly Tab[]).includes(tb)
             return (
@@ -277,6 +301,12 @@ function SettingsContent() {
         )}
         {tab === 'Security' && <SecurityTab />}
         {tab === 'Data & Privacy' && <DataPrivacyTab shareAnonymousData={settings.share_anonymous_data ?? false} onToggle={(v) => setSettings({ ...settings, share_anonymous_data: v })} />}
+        {/* Sprint 048 #048-17: Organization access tab is also rendered
+            at mount on every tab to keep the hasOrgs check up to date.
+            The tab button only shows when the list is non-empty. */}
+        {tab === 'Organization access' && (
+          <OrganizationAccessTab onLoaded={list => setHasOrgs(list.length > 0)} />
+        )}
 
         {/* ── SHI extension tabs ──────────────────────────────────────── */}
         {tab === 'Health profile' && (

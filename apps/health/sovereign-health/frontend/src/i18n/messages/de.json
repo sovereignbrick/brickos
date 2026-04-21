@@ -790,7 +790,8 @@
       "security": "Sicherheit",
       "dataPrivacy": "Daten & Datenschutz",
       "billing": "Abrechnung",
-      "notifications": "Benachrichtigungen"
+      "notifications": "Benachrichtigungen",
+      "organizationAccess": "Organisationszugriff"
     },
     "profile": {
       "displayName": "Anzeigename",
@@ -1679,6 +1680,21 @@
   "refresh": {
     "message": "Eine neuere Version der App ist verfügbar.",
     "action": "Jetzt neu laden"
+  },
+  "organizationAccess": {
+    "title": "Organisationszugriff",
+    "intro": "Ihre Gesundheitsdaten sind privat. Organisationen, denen Sie beigetreten sind, können nur Lesezugriff anfragen, damit ihre Ärzte Ihre Biomarker, Messungen und Trends überprüfen können. Sie können Ihre Daten nicht bearbeiten und haben keinen Einblick in Ihren Dr. Alex-Chat. Sie können den Zugriff jederzeit aktivieren oder deaktivieren.",
+    "role": "Rolle: {role}",
+    "joinedOn": "beigetreten am {date}",
+    "grantedOn": "Zugriff gewährt am {date}.",
+    "revokedOn": "Zugriff widerrufen am {date}.",
+    "neverGranted": "Zugriff wurde noch nie gewährt.",
+    "toggleOn": "Zugriff widerrufen",
+    "toggleOff": "Zugriff gewähren",
+    "grantedToast": "Zugriff für {orgName} gewährt.",
+    "revokedToast": "Zugriff für {orgName} widerrufen.",
+    "saveFailed": "Konnte Zugriff nicht aktualisieren. Bitte erneut versuchen.",
+    "noOrgsFallback": "Sie sind noch kein Mitglied einer Organisation."
   },
   "practitioner": {
     "title": "{orgName} -- Patienten",
