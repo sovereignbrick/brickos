@@ -152,6 +152,7 @@ cmd_test() {
     (cd "$APP_ROOT/frontend" && E2E_BASE_URL=http://localhost:3000 npx playwright test \
         sprint-047-url-routing \
         sprint-047-admin-coverage \
+        sprint-048-impersonation \
         health.spec \
         --project=unauth \
         --reporter=list) || { warn "Playwright had failures"; failed=1; }

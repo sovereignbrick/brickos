@@ -1,27 +1,25 @@
 // Sovereign Health Intelligence -- AGPL-3.0
 //
-// Sprint 048 #048-15 (Option C, minimum-viable): impersonation scope
-// gate. Runs on every request: if an `X-Impersonation-Token` header is
-// present, classify the request path + method against the scope table
-// (see handlers::impersonation::classify). Hard-excluded paths and
-// write attempts are rejected before the handler runs.
+// Sprint 048 #048-15 + #048-16: impersonation scope gate + block
+// audit. Runs on every request: if an `X-Impersonation-Token` header
+// is present, classify the request path + method against the scope
+// table (see handlers::impersonation::classify). Hard-excluded paths
+// and write attempts are rejected with 403 before the handler runs,
+// AND a fire-and-forget audit_log row is written.
 //
-// What this middleware DOES NOT do yet (Sprint 049 #048-13 Part B):
-//   - Validate the token against the impersonation_sessions table
-//   - Swap the effective user context to the patient
-//   - Bump last_seen_at
-//   - Write audit rows
-//
-// Intentionally sync: no DB lookups, no async. Purely header + path +
-// method. The token presence alone is the signal; full validation
-// ships with the user-swap work.
+// Token validation + effective-user swap + bumping last_seen_at +
+// per-read audit rows live in the AuthenticatedUser extractor
+// (middleware/auth.rs). The scope-gate middleware intentionally runs
+// BEFORE that extractor so writes / out-of-scope calls are rejected
+// without the extractor's async DB cost.
 
 use actix_web::{
     body::EitherBody,
     dev::{Service, ServiceRequest, ServiceResponse, Transform},
-    HttpResponse,
+    web, HttpResponse,
 };
 use futures_util::future::{ready, LocalBoxFuture, Ready};
+use sqlx::PgPool;
 use std::rc::Rc;
 
 use crate::handlers::impersonation::{classify, ImpersonationScope};
@@ -79,8 +77,25 @@ where
         let method = req.method().clone();
         let scope = classify(&path, &method);
 
+        // Capture token + pool for audit before moving req.
+        let token_value = req
+            .headers()
+            .get("X-Impersonation-Token")
+            .and_then(|v| v.to_str().ok())
+            .map(|s| s.to_string());
+        let pool = req
+            .app_data::<web::Data<PgPool>>()
+            .map(|p| p.get_ref().clone());
+
         match scope {
             ImpersonationScope::HardExcluded => {
+                audit_block(
+                    pool.clone(),
+                    "impersonation.blocked_out_of_scope",
+                    &path,
+                    method.as_str(),
+                    token_value.as_deref(),
+                );
                 let (req, _pl) = req.into_parts();
                 let body = serde_json::json!({
                     "data": null,
@@ -93,6 +108,13 @@ where
                 Box::pin(async move { Ok(ServiceResponse::new(req, response)) })
             }
             ImpersonationScope::BlockedWrite => {
+                audit_block(
+                    pool.clone(),
+                    "impersonation.blocked_write",
+                    &path,
+                    method.as_str(),
+                    token_value.as_deref(),
+                );
                 let (req, _pl) = req.into_parts();
                 let body = serde_json::json!({
                     "data": null,
@@ -113,4 +135,40 @@ where
             }
         }
     }
+}
+
+/// Sprint 048 #048-16: fire-and-forget audit row for a blocked
+/// impersonation request. Actor id is NOT resolved here (middleware
+/// runs before JWT extraction); metadata captures what we have (path,
+/// method, token prefix) so it can be correlated with the
+/// impersonation.start row via session id later.
+fn audit_block(
+    pool: Option<PgPool>,
+    action: &'static str,
+    path: &str,
+    method: &str,
+    token: Option<&str>,
+) {
+    let Some(pool) = pool else { return };
+    let path = path.to_string();
+    let method = method.to_string();
+    let token_prefix = token
+        .map(|t| t.chars().take(8).collect::<String>())
+        .unwrap_or_default();
+    tokio::spawn(async move {
+        let _ = sqlx::query(
+            r#"
+            INSERT INTO audit_log (action, metadata, app_key)
+            VALUES ($1, $2, 'shi')
+            "#,
+        )
+        .bind(action)
+        .bind(serde_json::json!({
+            "path": path,
+            "method": method,
+            "token_prefix": token_prefix,
+        }))
+        .execute(&pool)
+        .await;
+    });
 }
