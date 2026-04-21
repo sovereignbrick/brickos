@@ -13,6 +13,8 @@ import Cookies from 'js-cookie'
 import { useRouter } from 'next/navigation'
 import { Navbar } from '@/components/layout/navbar'
 import { useTranslations } from 'next-intl'
+import { setImpersonationSession } from '@/lib/impersonation'
+import { toast } from '@/lib/toast'
 
 interface OrgMember {
   user_id: string
@@ -91,6 +93,38 @@ export default function PractitionerPage() {
       setSelectedMember(json.data)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load member data')
+    }
+  }
+
+  // Sprint 048 #048-18: start an impersonation session and redirect
+  // the practitioner into the patient's SHI interface. Backend
+  // validates consent + role + membership.
+  async function impersonate(member: OrgMember) {
+    try {
+      const token = Cookies.get('auth_token')
+      const res = await fetch('/practitioner/impersonate/start', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ patient_user_id: member.user_id }),
+      })
+      if (!res.ok) {
+        const body = await res.json().catch(() => null)
+        const code = body?.error?.code ?? 'unknown'
+        throw new Error(code)
+      }
+      const json = await res.json()
+      setImpersonationSession(json.data.session_id, {
+        user_id: member.user_id,
+        name: member.display_name || member.email,
+        email: member.email,
+      })
+      router.push('/sovereign-health/dashboard')
+    } catch (err) {
+      const code = err instanceof Error ? err.message : 'unknown'
+      toast.error(t('impersonateFailed', { code }))
     }
   }
 
@@ -210,6 +244,21 @@ export default function PractitionerPage() {
                       </div>
                     </div>
                   )}
+
+                  {/* Sprint 048 #048-18: one-click impersonation. */}
+                  {(() => {
+                    const target = members.find(m => m.user_id === selectedMember.user_id)
+                    if (!target) return null
+                    return (
+                      <button
+                        type="button"
+                        onClick={() => impersonate(target)}
+                        className="w-full mt-2 py-2 px-4 rounded-lg bg-[var(--brand-primary)] text-white text-sm font-medium hover:opacity-90 transition-opacity"
+                      >
+                        {t('viewAs', { name: target.display_name || target.email })}
+                      </button>
+                    )
+                  })()}
                 </div>
               ) : (
                 <div className="border rounded-lg p-8 text-center text-muted-foreground">

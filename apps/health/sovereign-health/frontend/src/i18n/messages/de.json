@@ -1708,7 +1708,14 @@
     "lastActive": "Zuletzt aktiv",
     "failedToLoad": "Patienten konnten nicht geladen werden",
     "errorOrgRequired": "Diese Seite ist nur im Organisationskontext verfügbar.",
-    "patient": "Patient"
+    "patient": "Patient",
+    "viewAs": "Als {name} ansehen (nur Lesen) →",
+    "impersonateFailed": "Konnte Impersonation nicht starten ({code})."
+  },
+  "impersonation": {
+    "viewingAs": "Angemeldet als {name}",
+    "readOnly": "nur Lesen",
+    "exit": "Beenden"
   },
   "graceBanner": {
     "title": "Ihre Zahlung ist fehlgeschlagen",
