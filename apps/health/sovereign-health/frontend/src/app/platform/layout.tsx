@@ -55,6 +55,8 @@ function buildNavItems(t: (key: string) => string): NavItem[] {
     { key: 'org-analytics', label: t('analytics'), href: '/platform/org/analytics', icon: '\u2261', section: 'ORGANIZATION', visible: o },
     { key: 'org-affiliate', label: t('affiliate'), href: '/platform/org/affiliate', icon: '\u2764', section: 'ORGANIZATION', visible: o },
     { key: 'org-billing', label: t('billing'), href: '/platform/org/billing', icon: '\u2637', section: 'ORGANIZATION', visible: o },
+    // Sprint 048 #048-30..33: org-scoped members management.
+    { key: 'org-members', label: t('orgMembers'), href: '/platform/org/members', icon: '\u263A', section: 'ORGANIZATION', visible: o },
 
     // People (Sprint 046 #570: unified members list, orgFilter scopes it)
     { key: 'members', label: t('members'), href: '/platform/members', icon: '\u263A', section: 'PEOPLE', visible: (ctx) => ctx.isPlatform || ctx.isOrgOwner || ctx.isTechAdmin || ctx.isCommercialAdmin },
