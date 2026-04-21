@@ -1795,7 +1795,10 @@
   "impersonation": {
     "viewingAs": "Viewing as {name}",
     "readOnly": "read-only",
-    "exit": "Exit"
+    "exit": "Exit",
+    "blockedDoctorChatTitle": "Not available during impersonation",
+    "blockedDoctorChatBody": "Dr. Alex chat is private to the patient. Exit the read-only session to use your own chat.",
+    "backToCaseload": "Back to caseload"
   },
   "graceBanner": {
     "title": "Your subscription failed",
