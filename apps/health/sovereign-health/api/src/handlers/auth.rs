@@ -145,6 +145,19 @@ pub async fn registration_status(
 // POST /auth/signup (Task 1)
 // ---------------------------------------------------------------------------
 
+/// Sprint 048 #048-30: extract the `invite` query param from a raw
+/// query string without pulling in the `url` crate. Returns the raw
+/// value (not URL-decoded; the caller does Uuid::parse_str which
+/// doesn't need decoding for a hex-with-dashes token).
+fn parse_invite_query(query: &str) -> Option<String> {
+    for pair in query.split('&') {
+        if let Some(v) = pair.strip_prefix("invite=") {
+            return Some(v.to_string());
+        }
+    }
+    None
+}
+
 #[allow(clippy::too_many_arguments)]
 pub async fn signup(
     req: HttpRequest,
@@ -456,6 +469,21 @@ pub async fn signup(
             });
         }
 
+        // Sprint 048 #048-30: if the signup URL carried ?invite=TOKEN,
+        // auto-join the org + accept the invite. Mismatched / expired
+        // tokens silently no-op so the user still gets the account.
+        if let Some(token_str) = parse_invite_query(req.query_string()) {
+            if let Ok(invite_token) = uuid::Uuid::parse_str(&token_str) {
+                let _ = crate::handlers::org_invites::accept_invite_on_signup(
+                    pool.get_ref(),
+                    invite_token,
+                    user_id,
+                    &email,
+                )
+                .await;
+            }
+        }
+
         let user_response = UserResponse::from(user);
 
         return Ok(HttpResponse::Created().json(json!({
@@ -528,6 +556,22 @@ pub async fn signup(
             body.referred_by.as_deref().unwrap_or("direct")
         ),
     );
+
+    // Sprint 048 #048-30: invite acceptance on the verify-email flow.
+    // Run BEFORE the user has verified so the org join is ready the
+    // moment they confirm. If the token is stale or mismatched, it's a
+    // silent no-op (user still gets the account).
+    if let Some(token_str) = parse_invite_query(req.query_string()) {
+        if let Ok(invite_token) = uuid::Uuid::parse_str(&token_str) {
+            let _ = crate::handlers::org_invites::accept_invite_on_signup(
+                pool.get_ref(),
+                invite_token,
+                user_id,
+                &email,
+            )
+            .await;
+        }
+    }
 
     Ok(HttpResponse::Created().json(json!({
         "data": { "message": "Check your email to verify your account." },
