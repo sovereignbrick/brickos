@@ -3,7 +3,15 @@
 import { useState, useEffect, useCallback } from 'react'
 import Cookies from 'js-cookie'
 
-const API = process.env.NEXT_PUBLIC_API_URL || ''
+// Sprint 048 RC fix: runtime host detection avoids double `/api` prefix on brickos.io.
+const API = (() => {
+  if (typeof window === 'undefined') return process.env.NEXT_PUBLIC_API_URL || ''
+  const host = window.location.hostname
+  if (host.endsWith('.brickos.io')) return ''
+  if (host.endsWith('.sovereignhealth.io')) return ''
+  if (host.endsWith('.onion')) return ''
+  return process.env.NEXT_PUBLIC_API_URL || ''
+})()
 
 interface ContactEntry {
   id: string

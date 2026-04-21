@@ -48,7 +48,17 @@ type DateRange = 'today' | '7d' | '30d' | '90d' | 'all'
 // Helpers
 // ---------------------------------------------------------------------------
 
-const API = process.env.NEXT_PUBLIC_API_URL || ''
+// Sprint 048 RC fix: on brickos.io / sovereignhealth.io the API is path-mounted
+// same-origin, so API must be empty. The older env-var default (`/api`) double-
+// prefixed on staging and 404'd every audit call. Matches api.ts's runtime check.
+const API = (() => {
+  if (typeof window === 'undefined') return process.env.NEXT_PUBLIC_API_URL || ''
+  const host = window.location.hostname
+  if (host.endsWith('.brickos.io')) return ''
+  if (host.endsWith('.sovereignhealth.io')) return ''
+  if (host.endsWith('.onion')) return ''
+  return process.env.NEXT_PUBLIC_API_URL || ''
+})()
 const PER_PAGE = 25
 const RETENTION_DAYS = 90
 
