@@ -118,6 +118,59 @@ pub async fn grant_consent(
     })))
 }
 
+/// GET /user/data-access-log
+///
+/// Sprint 048 #048-43: patient-facing audit trail. Returns every
+/// impersonation event where this user was the target (resource_id =
+/// auth.user_id). Satisfies GDPR Art. 15 "right of access" for the
+/// practitioner-review surface. Includes start/exit/read rows; blocked
+/// attempts are not shown because blocked rows don't carry a resource_id
+/// (middleware-level pre-auth logging).
+pub async fn data_access_log(
+    pool: web::Data<PgPool>,
+    auth: AuthenticatedUser,
+) -> Result<HttpResponse, AppError> {
+    // Fetch up to 500 most-recent rows where the authenticated user is
+    // the TARGET (resource_id) of an impersonation action. Practitioner
+    // (user_id) is who performed the action.
+    let rows = sqlx::query(
+        r#"
+        SELECT a.id, a.action, a.user_id AS actor_id, a.org_id,
+               a.metadata, a.created_at,
+               u.email AS actor_email, u.display_name AS actor_name,
+               o.name AS org_name
+          FROM audit_log a
+          LEFT JOIN users u ON u.id = a.user_id
+          LEFT JOIN organizations o ON o.id = a.org_id
+         WHERE a.resource_id = $1
+           AND a.action LIKE 'impersonation.%'
+         ORDER BY a.created_at DESC
+         LIMIT 500
+        "#,
+    )
+    .bind(auth.principal_id())
+    .fetch_all(pool.get_ref())
+    .await?;
+
+    let items: Vec<serde_json::Value> = rows
+        .iter()
+        .map(|r| {
+            json!({
+                "id": r.try_get::<Uuid, _>("id").unwrap_or_default(),
+                "action": r.try_get::<String, _>("action").unwrap_or_default(),
+                "actor_id": r.try_get::<Option<Uuid>, _>("actor_id").ok().flatten(),
+                "actor_email": r.try_get::<Option<String>, _>("actor_email").ok().flatten(),
+                "actor_name": r.try_get::<Option<String>, _>("actor_name").ok().flatten(),
+                "org_name": r.try_get::<Option<String>, _>("org_name").ok().flatten(),
+                "metadata": r.try_get::<Option<serde_json::Value>, _>("metadata").ok().flatten(),
+                "created_at": r.try_get::<chrono::DateTime<chrono::Utc>, _>("created_at").ok(),
+            })
+        })
+        .collect();
+
+    Ok(HttpResponse::Ok().json(json!({ "data": items, "error": null })))
+}
+
 /// POST /user/organization-access/{org_id}/revoke
 ///
 /// Sets revoked_at = NOW(). Immediately invalidates any active
