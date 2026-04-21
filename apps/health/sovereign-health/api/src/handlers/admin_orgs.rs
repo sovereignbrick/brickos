@@ -223,7 +223,26 @@ pub async fn get_organization(
                   COUNT(DISTINCT om.user_id) FILTER (WHERE om.role = 'org_owner') AS owners_count,
                   COUNT(DISTINCT om.user_id) FILTER (WHERE om.role = 'practitioner') AS practitioners_count,
                   COUNT(DISTINCT om.user_id) FILTER (WHERE om.role = 'member') AS members_count,
-                  COUNT(DISTINCT om.user_id) AS total_count
+                  COUNT(DISTINCT om.user_id) AS total_count,
+                  -- Sprint 048 #048-51: consent breakdown across patient-role members only.
+                  COUNT(DISTINCT om.user_id) FILTER (
+                      WHERE om.role = 'member'
+                        AND EXISTS (
+                            SELECT 1 FROM patient_consents pc
+                             WHERE pc.patient_user_id = om.user_id
+                               AND pc.org_id = o.id
+                               AND pc.revoked_at IS NULL
+                        )
+                  ) AS consent_granted_count,
+                  COUNT(DISTINCT om.user_id) FILTER (
+                      WHERE om.role = 'member'
+                        AND EXISTS (
+                            SELECT 1 FROM patient_consents pc
+                             WHERE pc.patient_user_id = om.user_id
+                               AND pc.org_id = o.id
+                               AND pc.revoked_at IS NOT NULL
+                        )
+                  ) AS consent_revoked_count
            FROM organizations o
            LEFT JOIN active_lic al ON al.org_id = o.id
            LEFT JOIN org_members om ON om.org_id = o.id
@@ -284,6 +303,10 @@ pub async fn get_organization(
             "practitioners": row.try_get::<i64, _>("practitioners_count").unwrap_or(0),
             "members": row.try_get::<i64, _>("members_count").unwrap_or(0),
             "total": row.try_get::<i64, _>("total_count").unwrap_or(0),
+        },
+        "consent": {
+            "granted": row.try_get::<i64, _>("consent_granted_count").unwrap_or(0),
+            "revoked": row.try_get::<i64, _>("consent_revoked_count").unwrap_or(0),
         }
     });
 
