@@ -1,6 +1,6 @@
 # Sovereign Health v0.45.0 Release Notes
 
-**Release date:** 2026-04-20
+**Release date:** 2026-04-20 (develop) / RC 2026-04-21
 **Sprint:** 048 (White-Label Completion + Practitioner Workbench)
 **Git:** develop → main at tag `v0.45.0`
 
@@ -151,6 +151,17 @@
   'serial' })` avoid the login rate-limit. `/auth/me` moved out
   of governor scope (see backend notes) was the other half of
   that fix.
+
+### Nginx (RC finding)
+
+- Added `user` and `signup` to the backend-proxy location regex in
+  both `nginx-sovereignhealth.conf` and `nginx-brickos-app.conf` so
+  new Sprint 048 routes (`/user/organization-access/*`,
+  `/user/data-access-log`, `/signup/invite/{token}`) reach the
+  backend. Previously they fell through to the Next.js frontend,
+  returning the app shell HTML instead of JSON. The staging RC run
+  of `sprint-048-impersonation.spec.ts` surfaced this via a JSON
+  parse failure on `<!DOCTYPE "...`.
 
 ### ops / dev loop
 
