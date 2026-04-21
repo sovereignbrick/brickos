@@ -98,7 +98,11 @@ pub async fn member_summary(
         return Err(AppError::NotFound);
     }
 
-    // Fetch recent measurements summary
+    // Fetch recent measurements summary. Sprint 047 RC fix: the
+    // measurements schema uses `timestamp`, `value_canonical`,
+    // `unit_canonical`; markers uses `marker_name`. The original Sprint
+    // 044 handler hardcoded `measured_at`, `value`, `unit`, `mk.name`
+    // which no longer exist and produced a 500 on every patient click.
     let measurement_count: i64 =
         sqlx::query_scalar("SELECT COUNT(*) FROM measurements WHERE user_id = $1")
             .bind(target_user_id)
@@ -107,7 +111,7 @@ pub async fn member_summary(
             .unwrap_or(0);
 
     let latest_measurement: Option<chrono::DateTime<chrono::Utc>> =
-        sqlx::query_scalar("SELECT MAX(measured_at) FROM measurements WHERE user_id = $1")
+        sqlx::query_scalar("SELECT MAX(timestamp) FROM measurements WHERE user_id = $1")
             .bind(target_user_id)
             .fetch_one(pool.get_ref())
             .await
@@ -128,14 +132,18 @@ pub async fn member_summary(
         })
     });
 
-    // Get recent marker values (last 5 distinct markers)
+    // Get recent marker values (last 10 distinct markers, newest per marker)
     let recent_markers = sqlx::query(
-        r#"SELECT DISTINCT ON (m.marker_id) m.marker_id, mk.name as marker_name,
-                  m.value, m.unit, m.measured_at
+        r#"SELECT DISTINCT ON (m.marker_id)
+                  m.marker_id,
+                  mk.marker_name                AS marker_name,
+                  m.value_canonical             AS value,
+                  m.unit_canonical              AS unit,
+                  m.timestamp                   AS measured_at
            FROM measurements m
            JOIN markers mk ON mk.id = m.marker_id
            WHERE m.user_id = $1
-           ORDER BY m.marker_id, m.measured_at DESC
+           ORDER BY m.marker_id, m.timestamp DESC
            LIMIT 10"#,
     )
     .bind(target_user_id)
@@ -145,9 +153,14 @@ pub async fn member_summary(
     let markers: Vec<serde_json::Value> = recent_markers
         .iter()
         .map(|r| {
+            // value_canonical is TEXT in the schema (values can be free-form
+            // like "120/80" for blood pressure or "<5.0" below detection).
+            // Return as string; frontend renders verbatim.
+            let value_str = r.try_get::<String, _>("value").unwrap_or_default();
+            let value_num: f64 = value_str.parse().unwrap_or(0.0);
             json!({
                 "marker_name": r.try_get::<String, _>("marker_name").unwrap_or_default(),
-                "value": r.try_get::<f64, _>("value").unwrap_or(0.0),
+                "value": value_num,
                 "unit": r.try_get::<Option<String>, _>("unit").ok().flatten(),
                 "measured_at": r.try_get::<chrono::DateTime<chrono::Utc>, _>("measured_at").ok(),
             })
