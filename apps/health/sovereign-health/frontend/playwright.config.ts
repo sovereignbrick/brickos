@@ -2,8 +2,12 @@ import { defineConfig } from '@playwright/test'
 
 const BASE_URL = process.env.E2E_BASE_URL || 'https://app.sovereignhealth.io'
 const isStaging = BASE_URL.includes('demo.brickos.io') || BASE_URL.includes('demo.sovereignhealth.io')
+const isLocalhost = BASE_URL.startsWith('http://localhost') || BASE_URL.startsWith('http://127.0.0.1')
 
-const httpCredentials = isStaging ? {
+// Sprint 048 #048-04: basic auth only on staging. Localhost + production
+// are open (no staging gate). Keeps the same credentials file usable for
+// both localhost and remote runs without leaking.
+const httpCredentials = isStaging && !isLocalhost ? {
   username: 'helmut',
   password: 'JM8Lv97Ax3LiRDLMgYfXdw==',
 } : undefined
