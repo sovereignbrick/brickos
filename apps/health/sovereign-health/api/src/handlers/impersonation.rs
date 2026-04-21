@@ -102,6 +102,21 @@ pub async fn start(
     .fetch_one(pool.get_ref())
     .await?;
 
+    // Audit: impersonation session started (#048-16).
+    let _ = sqlx::query(
+        r#"
+        INSERT INTO audit_log
+            (user_id, org_id, action, resource_type, resource_id, metadata, app_key)
+        VALUES ($1, $2, 'impersonation.start', 'user', $3, $4, 'shi')
+        "#,
+    )
+    .bind(auth.user_id)
+    .bind(org_id)
+    .bind(patient_id)
+    .bind(serde_json::json!({ "session_id": session_id }))
+    .execute(pool.get_ref())
+    .await;
+
     let expires_at = Utc::now() + chrono::Duration::minutes(IMPERSONATION_IDLE_TIMEOUT_MINUTES);
 
     Ok(HttpResponse::Ok().json(serde_json::json!({
@@ -126,7 +141,8 @@ pub async fn exit(
     body: web::Json<ExitImpersonationRequest>,
 ) -> Result<HttpResponse, AppError> {
     // End the session (idempotent -- sets ended_at only if NULL).
-    sqlx::query(
+    // RETURNING captures org + patient for the audit row below.
+    let ended: Option<(Uuid, Uuid)> = sqlx::query_as(
         r#"
         UPDATE impersonation_sessions
            SET ended_at   = NOW(),
@@ -134,12 +150,30 @@ pub async fn exit(
          WHERE id              = $1
            AND practitioner_id = $2
            AND ended_at IS NULL
+        RETURNING patient_id, org_id
         "#,
     )
     .bind(body.session_id)
-    .bind(auth.user_id)
-    .execute(pool.get_ref())
+    .bind(auth.principal_id())
+    .fetch_optional(pool.get_ref())
     .await?;
+
+    if let Some((patient_id, org_id)) = ended {
+        // Audit: impersonation session ended by the practitioner (#048-16).
+        let _ = sqlx::query(
+            r#"
+            INSERT INTO audit_log
+                (user_id, org_id, action, resource_type, resource_id, metadata, app_key)
+            VALUES ($1, $2, 'impersonation.exit', 'user', $3, $4, 'shi')
+            "#,
+        )
+        .bind(auth.principal_id())
+        .bind(org_id)
+        .bind(patient_id)
+        .bind(serde_json::json!({ "session_id": body.session_id }))
+        .execute(pool.get_ref())
+        .await;
+    }
 
     Ok(HttpResponse::Ok().json(serde_json::json!({
         "data": { "session_id": body.session_id, "ended": true },

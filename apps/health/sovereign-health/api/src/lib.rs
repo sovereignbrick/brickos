@@ -197,6 +197,15 @@ pub fn configure_routes(cfg: &mut actix_web::web::ServiceConfig) {
         "/auth/registration-status",
         actix_web::web::get().to(handlers::auth::registration_status),
     )
+    // Sprint 048 #048-24: /auth/me + /auth/me/orgs are read-only and
+    // need to be callable on every authed page render (+ now on every
+    // impersonation swap verification). Not a credential-bruteable
+    // endpoint, so bypass the auth governor.
+    .route("/auth/me", actix_web::web::get().to(handlers::auth::me))
+    .route(
+        "/auth/me/orgs",
+        actix_web::web::get().to(handlers::auth::list_my_orgs),
+    )
     .service(
         actix_web::web::scope("/auth")
             .wrap(Governor::new(&auth_governor))
@@ -225,12 +234,6 @@ pub fn configure_routes(cfg: &mut actix_web::web::ServiceConfig) {
             .route(
                 "/refresh",
                 actix_web::web::post().to(handlers::auth::refresh),
-            )
-            .route("/me", actix_web::web::get().to(handlers::auth::me))
-            // Sprint 040 #484 -- multi-org switcher
-            .route(
-                "/me/orgs",
-                actix_web::web::get().to(handlers::auth::list_my_orgs),
             )
             .route(
                 "/unsubscribe",

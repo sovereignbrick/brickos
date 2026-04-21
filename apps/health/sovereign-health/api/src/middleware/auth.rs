@@ -80,12 +80,40 @@ impl FromRequest for AuthenticatedUser {
                 .and_then(|s| Uuid::parse_str(s).ok());
             if let Some(session_id) = token_str {
                 if let Some(pool) = req.app_data::<web::Data<PgPool>>() {
-                    if let Some(patient_id) =
+                    if let Some((patient_id, org_id)) =
                         resolve_impersonation(pool.get_ref(), session_id, user.user_id).await
                     {
-                        user.original_user_id = Some(user.user_id);
+                        let practitioner_id = user.user_id;
+                        let path = req.path().to_string();
+                        user.original_user_id = Some(practitioner_id);
                         user.user_id = patient_id;
                         user.impersonating_session_id = Some(session_id);
+
+                        // Sprint 048 #048-16: fire-and-forget audit row
+                        // per successful impersonation read. Latency
+                        // stays zero; any insert failure is swallowed
+                        // (audit is best-effort, not a blocker).
+                        let pool = pool.get_ref().clone();
+                        tokio::spawn(async move {
+                            let _ = sqlx::query(
+                                r#"
+                                INSERT INTO audit_log
+                                    (user_id, org_id, action, resource_type, resource_id,
+                                     metadata, app_key)
+                                VALUES ($1, $2, $3, 'user', $4, $5, 'shi')
+                                "#,
+                            )
+                            .bind(practitioner_id)
+                            .bind(org_id)
+                            .bind(format!("impersonation.read:{path}"))
+                            .bind(patient_id)
+                            .bind(serde_json::json!({
+                                "session_id": session_id,
+                                "path": path,
+                            }))
+                            .execute(&pool)
+                            .await;
+                        });
                     }
                 }
             }
@@ -95,10 +123,11 @@ impl FromRequest for AuthenticatedUser {
     }
 }
 
-/// Return Some(patient_id) if the impersonation session is valid right
-/// now for this practitioner. Validity = ended_at IS NULL AND within
-/// the 30-min sliding idle window AND the patient's consent to the
-/// session's org is still active AND the caller matches practitioner_id.
+/// Return Some((patient_id, org_id)) if the impersonation session is
+/// valid right now for this practitioner. Validity = ended_at IS NULL
+/// AND within the 30-min sliding idle window AND the patient's consent
+/// to the session's org is still active AND the caller matches
+/// practitioner_id.
 ///
 /// Side effect on hit: bumps last_seen_at = NOW() so the next request
 /// extends the window.
@@ -106,10 +135,10 @@ async fn resolve_impersonation(
     pool: &PgPool,
     session_id: Uuid,
     practitioner_id: Uuid,
-) -> Option<Uuid> {
+) -> Option<(Uuid, Uuid)> {
     use crate::handlers::impersonation::IMPERSONATION_IDLE_TIMEOUT_MINUTES;
 
-    let row: Option<(Uuid, Uuid)> = sqlx::query_as(
+    sqlx::query_as(
         r#"
         UPDATE impersonation_sessions s
            SET last_seen_at = NOW()
@@ -130,9 +159,7 @@ async fn resolve_impersonation(
     .fetch_optional(pool)
     .await
     .ok()
-    .flatten();
-
-    row.map(|(patient_id, _org_id)| patient_id)
+    .flatten()
 }
 
 /// Extractor that requires admin role.
