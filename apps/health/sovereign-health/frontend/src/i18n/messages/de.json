@@ -1679,6 +1679,20 @@
     "message": "Eine neuere Version der App ist verfügbar.",
     "action": "Jetzt neu laden"
   },
+  "practitioner": {
+    "title": "{orgName} -- Patienten",
+    "patientCountOne": "1 Patient",
+    "patientCountOther": "{count} Patienten",
+    "noPatients": "Noch keine Patienten. Laden Sie Organisationsmitglieder mit der Rolle Patient über die Organisationsverwaltung ein.",
+    "selectPatient": "Wählen Sie einen Patienten aus, um seine Gesundheitsübersicht anzuzeigen.",
+    "recentMarkers": "Aktuelle Marker",
+    "measurements": "Messungen",
+    "latestLabel": "zuletzt",
+    "lastActive": "Zuletzt aktiv",
+    "failedToLoad": "Patienten konnten nicht geladen werden",
+    "errorOrgRequired": "Diese Seite ist nur im Organisationskontext verfügbar.",
+    "patient": "Patient"
+  },
   "graceBanner": {
     "title": "Ihre Zahlung ist fehlgeschlagen",
     "messageDays": "Sie haben noch {days} Tage, bevor Sie auf Glimpse herabgestuft werden.",

@@ -1679,6 +1679,20 @@
     "message": "A newer version of the app is available.",
     "action": "Reload now"
   },
+  "practitioner": {
+    "title": "{orgName} -- Patients",
+    "patientCountOne": "1 patient",
+    "patientCountOther": "{count} patients",
+    "noPatients": "No patients yet. Invite org members with the patient role from the org admin panel.",
+    "selectPatient": "Select a patient to view their health summary.",
+    "recentMarkers": "Recent markers",
+    "measurements": "measurements",
+    "latestLabel": "latest",
+    "lastActive": "Last active",
+    "failedToLoad": "Failed to load patients",
+    "errorOrgRequired": "This page is only available in an organization context.",
+    "patient": "Patient"
+  },
   "graceBanner": {
     "title": "Your subscription failed",
     "messageDays": "You have {days} days until you are downgraded to Glimpse.",

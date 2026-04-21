@@ -25,12 +25,20 @@ pub async fn list_members(
         return Err(AppError::Forbidden);
     }
 
+    // Sprint 047 polish: the practitioner caseload is for PATIENTS, not
+    // fellow clinicians/admins. org_owner + practitioner entries belong in
+    // the org-admin members view at /platform/org/members on brickos.io.
+    // Patient-facing roles in the current check constraint are 'member'
+    // and 'consumer'; the invite handler uses 'org_member' but the DB
+    // constraint rejects that value (tracked separately) -- filter on
+    // what DB rows actually have, not what code writes.
     let rows = sqlx::query(
         r#"SELECT om.user_id, u.email, u.display_name, om.role, om.joined_at,
                   u.last_active_at
            FROM org_members om
            JOIN users u ON u.id = om.user_id
            WHERE om.org_id = $1
+             AND om.role IN ('member', 'consumer', 'org_member')
            ORDER BY u.display_name, u.email"#,
     )
     .bind(org_id)
