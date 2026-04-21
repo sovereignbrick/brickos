@@ -50,7 +50,12 @@ export function ImpersonationBanner() {
   }
 
   return (
-    <div className="bg-amber-600/95 text-black text-xs font-medium px-4 py-1.5 flex items-center justify-center gap-3">
+    // Sprint 048 RC: `sticky top-0 z-[60]` keeps the banner visible on
+    // pages that use `h-screen` / `overflow-hidden` containers (Doctor
+    // Chat's ChatLayout is the canonical example). Without sticky, the
+    // banner sat above the page's own viewport-sized wrapper and got
+    // clipped on navigation. z-60 beats Navbar's sticky z-50.
+    <div className="sticky top-0 z-[60] bg-amber-600/95 text-black text-xs font-medium px-4 py-1.5 flex items-center justify-center gap-3">
       <Eye className="h-3.5 w-3.5" aria-hidden />
       <span>
         {t('viewingAs', { name: session.patient.name || session.patient.email })}

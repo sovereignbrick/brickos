@@ -1,8 +1,10 @@
 'use client'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { useAuth } from '@/lib/auth-context'
+import { isImpersonating } from '@/lib/impersonation'
 import dynamic from 'next/dynamic'
 
 const ChatLayout = dynamic(
@@ -20,8 +22,47 @@ export default function DoctorChatPage() {
   const t = useTranslations('doctorChat')
   const tNav = useTranslations('nav')
   const tCommon = useTranslations('common')
+  const tImp = useTranslations('impersonation')
+  // Sprint 048 RC: Doctor Chat is in HARD_EXCLUDED_PREFIXES (see
+  // handlers/impersonation.rs). Every API call would 403 and the
+  // ChatLayout would render empty. Short-circuit here with a friendly
+  // blocking state so the practitioner sees WHY they can't reach it.
+  // Checked in an effect so SSR and the client agree on the first
+  // paint (isImpersonating reads document.cookie).
+  const [impersonating, setImpersonating] = useState(false)
+  useEffect(() => {
+    setImpersonating(isImpersonating())
+  }, [])
 
   if (loading) return <div className="min-h-screen" suppressHydrationWarning>{tCommon('loading')}</div>
+
+  if (impersonating) {
+    return (
+      <div className="min-h-screen">
+        <Navbar />
+        <main className="max-w-2xl mx-auto px-4 py-20 text-center">
+          <div className="mb-4 text-left">
+            <Breadcrumb items={[
+              { label: tNav('overview'), href: '/sovereign-health/dashboard' },
+              { label: tNav('doctorChat') },
+            ]} />
+          </div>
+          <div className="text-5xl mb-6">🔒</div>
+          <h1 className="text-2xl font-bold mb-3">{tImp('blockedDoctorChatTitle')}</h1>
+          <p className="text-muted-foreground mb-8 max-w-md mx-auto">
+            {tImp('blockedDoctorChatBody')}
+          </p>
+          <Link
+            href="/sovereign-health/practitioner"
+            className="bg-amber-600 hover:bg-amber-500 text-black font-medium px-6 py-3 rounded-xl transition-colors inline-block"
+          >
+            {tImp('backToCaseload')}
+          </Link>
+        </main>
+        <Footer />
+      </div>
+    )
+  }
 
   if (isDemo) {
     return (

@@ -36,6 +36,12 @@ export function classifyApiError(code: string | undefined, message: string): Api
     if (known.includes(code as ApiErrorCode)) return code as ApiErrorCode
     if (code === 'service_unavailable') return 'service_overloaded'
     if (code === 'internal_error') return 'upstream_error'
+    // Sprint 048 RC: impersonation scope-gate 403s. Backend messages
+    // contain the word "session", which would otherwise fall through to
+    // the message classifier and be misrouted to 'session_expired'.
+    if (code === 'impersonation_out_of_scope' || code === 'impersonation_readonly') {
+      return 'forbidden'
+    }
   }
   // Fallback: classify from message text
   const msg = message.toLowerCase()

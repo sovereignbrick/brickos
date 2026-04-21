@@ -1795,7 +1795,10 @@
   "impersonation": {
     "viewingAs": "Angemeldet als {name}",
     "readOnly": "nur Lesen",
-    "exit": "Beenden"
+    "exit": "Beenden",
+    "blockedDoctorChatTitle": "Während Einsicht nicht verfügbar",
+    "blockedDoctorChatBody": "Der Chat mit Dr. Alex ist privat für den Patienten. Beenden Sie die Lesesitzung, um Ihren eigenen Chat zu nutzen.",
+    "backToCaseload": "Zurück zur Patientenliste"
   },
   "graceBanner": {
     "title": "Ihre Zahlung ist fehlgeschlagen",

@@ -153,6 +153,20 @@ function SettingsContent() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle')
+  // Sprint 048 #048-17: Organization access tab visible only when the
+  // user is a member of at least one org. Declared here (before any
+  // early returns) so the hook count is stable across renders.
+  const [hasOrgs, setHasOrgs] = useState<boolean | null>(null)
+  useEffect(() => {
+    if (!user) return
+    const token = Cookies.get('auth_token')
+    fetch('/user/organization-access', {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    })
+      .then(r => r.ok ? r.json() : { data: [] })
+      .then(j => setHasOrgs(Array.isArray(j?.data) && j.data.length > 0))
+      .catch(() => setHasOrgs(false))
+  }, [user])
 
   useEffect(() => {
     if (authLoading) return
@@ -190,20 +204,6 @@ function SettingsContent() {
   // visiting {slug}.brickos.io/settings sees only BrickOS account/security/
   // privacy -- app-specific settings belong on sovereignhealth.io.
   const currentPlane = getPlane(typeof window !== 'undefined' ? window.location.hostname : '')
-  // Sprint 048 #048-17: Organization access tab visible only when the
-  // user is a member of at least one org. Probed once on mount so the
-  // tab appears/disappears immediately without needing a click.
-  const [hasOrgs, setHasOrgs] = useState<boolean | null>(null)
-  useEffect(() => {
-    if (!user) return
-    const token = Cookies.get('auth_token')
-    fetch('/user/organization-access', {
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
-    })
-      .then(r => r.ok ? r.json() : { data: [] })
-      .then(j => setHasOrgs(Array.isArray(j?.data) && j.data.length > 0))
-      .catch(() => setHasOrgs(false))
-  }, [user])
   const baseTabs: readonly Tab[] = currentPlane === 'admin' ? MASTER_TABS : ALL_TABS
   const visibleTabs: readonly Tab[] = hasOrgs
     ? baseTabs
