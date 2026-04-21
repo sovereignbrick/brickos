@@ -1,7 +1,9 @@
 // Sovereign Health Intelligence -- AGPL-3.0 -- https://sovereignhealth.io/
 
 use actix_web::{web, FromRequest, HttpRequest};
-use std::future::{ready, Ready};
+use sqlx::PgPool;
+use std::future::{ready, Future, Ready};
+use std::pin::Pin;
 use uuid::Uuid;
 
 use crate::{
@@ -9,11 +11,33 @@ use crate::{
 };
 
 pub struct AuthenticatedUser {
+    /// Effective user_id for the request. For non-impersonation requests
+    /// this equals the JWT `sub`. During a valid practitioner
+    /// impersonation session, `user_id` is the PATIENT's id so handlers
+    /// that filter data by `user_id` return the patient's records.
     pub user_id: Uuid,
     pub role: String,
     pub tier: String,
     pub org_id: Option<Uuid>,
     pub org_role: Option<String>,
+    /// Sprint 048 #048-13 Part B: when `impersonating_session_id` is
+    /// Some, `original_user_id` holds the practitioner's real id. Used
+    /// by audit logging so actions are attributed to the practitioner,
+    /// not the swapped-in patient.
+    pub original_user_id: Option<Uuid>,
+    pub impersonating_session_id: Option<Uuid>,
+}
+
+impl AuthenticatedUser {
+    /// The id of the actually-authenticated principal (the practitioner
+    /// during impersonation; otherwise identical to user_id).
+    pub fn principal_id(&self) -> Uuid {
+        self.original_user_id.unwrap_or(self.user_id)
+    }
+
+    pub fn is_impersonating(&self) -> bool {
+        self.impersonating_session_id.is_some()
+    }
 }
 
 impl AuthenticatedUser {
@@ -36,12 +60,79 @@ impl AuthenticatedUser {
 
 impl FromRequest for AuthenticatedUser {
     type Error = AppError;
-    type Future = Ready<Result<Self, Self::Error>>;
+    type Future = Pin<Box<dyn Future<Output = Result<Self, Self::Error>>>>;
 
     fn from_request(req: &HttpRequest, _payload: &mut actix_web::dev::Payload) -> Self::Future {
-        let result = extract_user(req);
-        ready(result)
+        // Sprint 048 #048-13 Part B: when X-Impersonation-Token is present
+        // and resolves to a valid session, swap the effective user_id to
+        // the patient. Any validation miss (expired, ended, consent
+        // revoked, wrong practitioner) falls back to the practitioner's
+        // own user_id (no impersonation), NOT an error -- that way a stale
+        // cookie doesn't 401 the whole request tree.
+        let req = req.clone();
+        Box::pin(async move {
+            let mut user = extract_user(&req)?;
+
+            let token_str = req
+                .headers()
+                .get("X-Impersonation-Token")
+                .and_then(|v| v.to_str().ok())
+                .and_then(|s| Uuid::parse_str(s).ok());
+            if let Some(session_id) = token_str {
+                if let Some(pool) = req.app_data::<web::Data<PgPool>>() {
+                    if let Some(patient_id) =
+                        resolve_impersonation(pool.get_ref(), session_id, user.user_id).await
+                    {
+                        user.original_user_id = Some(user.user_id);
+                        user.user_id = patient_id;
+                        user.impersonating_session_id = Some(session_id);
+                    }
+                }
+            }
+
+            Ok(user)
+        })
     }
+}
+
+/// Return Some(patient_id) if the impersonation session is valid right
+/// now for this practitioner. Validity = ended_at IS NULL AND within
+/// the 30-min sliding idle window AND the patient's consent to the
+/// session's org is still active AND the caller matches practitioner_id.
+///
+/// Side effect on hit: bumps last_seen_at = NOW() so the next request
+/// extends the window.
+async fn resolve_impersonation(
+    pool: &PgPool,
+    session_id: Uuid,
+    practitioner_id: Uuid,
+) -> Option<Uuid> {
+    use crate::handlers::impersonation::IMPERSONATION_IDLE_TIMEOUT_MINUTES;
+
+    let row: Option<(Uuid, Uuid)> = sqlx::query_as(
+        r#"
+        UPDATE impersonation_sessions s
+           SET last_seen_at = NOW()
+          FROM patient_consents c
+         WHERE s.id              = $1
+           AND s.practitioner_id = $2
+           AND s.ended_at IS NULL
+           AND s.last_seen_at > NOW() - ($3 || ' minutes')::interval
+           AND c.patient_user_id = s.patient_id
+           AND c.org_id          = s.org_id
+           AND c.revoked_at IS NULL
+        RETURNING s.patient_id, s.org_id
+        "#,
+    )
+    .bind(session_id)
+    .bind(practitioner_id)
+    .bind(IMPERSONATION_IDLE_TIMEOUT_MINUTES.to_string())
+    .fetch_optional(pool)
+    .await
+    .ok()
+    .flatten();
+
+    row.map(|(patient_id, _org_id)| patient_id)
 }
 
 /// Extractor that requires admin role.
@@ -122,6 +213,8 @@ fn extract_user(req: &HttpRequest) -> Result<AuthenticatedUser, AppError> {
         tier: claims.tier,
         org_id,
         org_role: claims.org_role,
+        original_user_id: None,
+        impersonating_session_id: None,
     })
 }
 
