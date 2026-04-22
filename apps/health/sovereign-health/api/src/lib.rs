@@ -117,6 +117,27 @@ pub fn configure_routes(cfg: &mut actix_web::web::ServiceConfig) {
         .finish()
         .expect("invalid governor config");
 
+    // Sprint 049 #049-10 (Design 029 v0.3): /demo/* is publicly
+    // reachable from eval.sovereignhealth.io without auth, so it needs
+    // its own rate limit to prevent scraping abuse. 60 req/min per IP
+    // (1/sec with a 60-request burst bucket) is well above legitimate
+    // demo browsing (~5-10 req/min per page) but catches scrapers.
+    let demo_governor = GovernorConfigBuilder::default()
+        .seconds_per_request(
+            std::env::var("DEMO_GOVERNOR_SECONDS_PER_REQUEST")
+                .ok()
+                .and_then(|v| v.parse().ok())
+                .unwrap_or(1u64),
+        )
+        .burst_size(
+            std::env::var("DEMO_GOVERNOR_BURST_SIZE")
+                .ok()
+                .and_then(|v| v.parse().ok())
+                .unwrap_or(60u32),
+        )
+        .finish()
+        .expect("invalid demo governor config");
+
     cfg.route(
         "/health",
         actix_web::web::get().to(handlers::health::health),
@@ -837,7 +858,11 @@ pub fn configure_routes(cfg: &mut actix_web::web::ServiceConfig) {
             ),
     )
     .service(
+        // Sprint 049 #049-10: rate-limit /demo/* to prevent scraping abuse
+        // on eval.sovereignhealth.io. 60 req/min/IP default; tunable via
+        // DEMO_GOVERNOR_{SECONDS_PER_REQUEST,BURST_SIZE} env vars.
         actix_web::web::scope("/demo")
+            .wrap(Governor::new(&demo_governor))
             .route(
                 "/zones",
                 actix_web::web::get().to(handlers::demo::demo_zones),
