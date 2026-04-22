@@ -30,6 +30,11 @@ pub struct SignupRequest {
     pub locale: Option<String>,
     pub consent_newsletter: Option<bool>,
     pub country: Option<String>,
+    // Sprint 049 #049-18 (Design 029 v0.3 §15 Q4): origin of registration.
+    // Frontend reads the `?from=...` query from /signup and forwards it.
+    // Expected values: `demo-optimized`, `demo-average`, `demo-at_risk`,
+    // or None. Persisted once to `users.signup_source`; never updated.
+    pub signup_source: Option<String>,
 }
 
 /// API request for user login.

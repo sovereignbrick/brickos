@@ -273,9 +273,20 @@ pub async fn signup(
         .unwrap_or("en")
         .to_string();
 
+    // Sprint 049 #049-18: validate and normalize signup_source. Accept
+    // only the documented demo-* profile prefixes; silently drop
+    // anything else so a bad actor can't write arbitrary strings into
+    // the column via the signup API.
+    let allowed_sources = ["demo-optimized", "demo-average", "demo-at_risk"];
+    let signup_source: Option<String> = body
+        .signup_source
+        .as_deref()
+        .filter(|s| allowed_sources.contains(s))
+        .map(String::from);
+
     // INSERT user with email_verified based on mode
     let insert_result = sqlx::query(
-        "INSERT INTO users (email, password_hash, display_name, email_verified, email_verified_at, locale) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id",
+        "INSERT INTO users (email, password_hash, display_name, email_verified, email_verified_at, locale, signup_source) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id",
     )
     .bind(&email)
     .bind(&password_hash)
@@ -283,6 +294,7 @@ pub async fn signup(
     .bind(is_oss) // OSS: verified immediately; SaaS: false
     .bind(if is_oss { Some(Utc::now()) } else { None })
     .bind(&user_locale)
+    .bind(&signup_source)
     .fetch_one(&platform_pool.0)
     .await;
 

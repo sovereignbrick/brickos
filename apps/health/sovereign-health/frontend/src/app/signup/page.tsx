@@ -123,6 +123,10 @@ function SignupContent() {
   // email input so the signup email matches the invited one (the
   // backend's accept_invite_on_signup requires this).
   const inviteToken = searchParams.get('invite')
+  // Sprint 049 #049-18: eval conversion banner includes `?from=demo-<profile>`
+  // on its cross-plane signup link. Forward it to the backend as
+  // signup_source; backend validates against a closed allowlist.
+  const signupSource = searchParams.get('from')
   const [inviteInfo, setInviteInfo] = useState<{ email: string; role: string; org_name: string } | null>(null)
   const [inviteError, setInviteError] = useState<string | null>(null)
   useEffect(() => {
@@ -171,6 +175,7 @@ function SignupContent() {
           locale: contentLocale,
           consent_newsletter: data.consent_newsletter,
           country: data.country || undefined,
+          signup_source: signupSource || undefined,
         },
         // Sprint 048: carry the invite token so the backend joins the
         // new user to the org in the same request.

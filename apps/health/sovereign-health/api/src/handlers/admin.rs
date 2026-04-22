@@ -205,7 +205,8 @@ pub async fn list_users(
                       (SELECT COUNT(*) FROM measurements m WHERE m.user_id = u.id AND m.is_deleted = false) as measurement_count,
                       u.affiliate_code,
                       u.referred_by,
-                      (SELECT u2.email FROM users u2 WHERE u2.affiliate_code = u.referred_by LIMIT 1) as referrer_email
+                      (SELECT u2.email FROM users u2 WHERE u2.affiliate_code = u.referred_by LIMIT 1) as referrer_email,
+                      u.signup_source
                FROM users u
                {org_join}
                LEFT JOIN user_licenses ul ON ul.user_id = u.id
@@ -276,7 +277,8 @@ pub async fn list_users(
                       (SELECT COUNT(*) FROM measurements m WHERE m.user_id = u.id AND m.is_deleted = false) as measurement_count,
                       u.affiliate_code,
                       u.referred_by,
-                      (SELECT u2.email FROM users u2 WHERE u2.affiliate_code = u.referred_by LIMIT 1) as referrer_email
+                      (SELECT u2.email FROM users u2 WHERE u2.affiliate_code = u.referred_by LIMIT 1) as referrer_email,
+                      u.signup_source
                FROM users u
                {org_join}
                LEFT JOIN user_licenses ul ON ul.user_id = u.id
@@ -330,6 +332,7 @@ pub async fn list_users(
                 "affiliate_code": r.try_get::<Option<String>, _>("affiliate_code").ok().flatten(),
                 "referred_by": r.try_get::<Option<String>, _>("referred_by").ok().flatten(),
                 "referrer_email": r.try_get::<Option<String>, _>("referrer_email").ok().flatten(),
+                "signup_source": r.try_get::<Option<String>, _>("signup_source").ok().flatten(),
                 "acquisition_channel": if r.try_get::<Option<String>, _>("referred_by").ok().flatten().is_some() { "affiliate" } else { "direct" },
             })
         })
