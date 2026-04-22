@@ -155,9 +155,85 @@ Five phases landed; three follow-ups carry to Sprint 049.
   org admins a one-click "email all pending patients" button
   (#048-34).
 
+## RC day-2 reflection (2026-04-21 / 2026-04-22)
+
+The initial "11/11 localhost + 17/17 platform smoke" gave a false
+sense of completeness. A ~30-minute manual walk-through on staging
+surfaced 8 distinct bugs (see RELEASE_NOTES "RC findings"):
+
+- 1 backend migration (schema-unaware hardcoded `public.`)
+- 1 nginx regex (new routes weren't in the allow-list)
+- 1 React hooks violation (hook after early return)
+- 1 UX (empty Doctor Chat page during impersonation)
+- 1 layout (banner clipped by `h-screen`)
+- 2 front-end fetch infrastructure (misclassify codes, hand-rolled
+  fetch helpers with wrong base URL)
+- 1 cross-plane swap across staging/prod boundary
+- 1 conditional rendering (consent cards nested inside license
+  check)
+
+### What this tells us
+
+1. **Automated + platform smoke is floor, not ceiling.** The
+   Playwright suite asserted API shape and state transitions but
+   never rendered a page or clicked a link. Every bug above except
+   the migration one was invisible to those layers.
+
+2. **Manual testing against staging is non-optional.** The
+   refactored spec passing on localhost AND on staging proved the
+   happy-path API flows. It didn't prove the UI renders correctly.
+   Both layers are needed.
+
+3. **Hand-rolled patterns drift from the canonical one.** The
+   AuditLogsTab / ContactTab fetch helper predates `api.ts`'s
+   runtime-aware `API_BASE`, never got updated, and shipped a 404
+   on staging for months unnoticed (pre-Sprint-048 bug; Sprint 048
+   RC testing exposed it). Rule: a second copy of a fetch helper
+   is a code smell; refactor toward the shared one.
+
+4. **Demo host edge cases bite cross-environment.** The plane-swap
+   logic assumed every `.brickos.io` has a `.sovereignhealth.io`
+   twin in the same environment. `demo.*` breaks that
+   symmetry (staging platform vs prod public demo share no
+   environment boundary). Add null-returns for single-plane hosts,
+   document the asymmetry, and cover with unit tests.
+
+5. **RC2 round turnaround matters.** Each staging fix → deploy
+   → retest cycle took ~6-8 minutes. Over 8 iterations that was
+   ~1 hour of wall time. Future sprints should batch small
+   frontend-only fixes into a single redeploy when possible.
+
+6. **Service worker caching defeats naive hard-refresh.** During
+   RC, "hard refresh" wasn't enough — the SW kept serving the
+   broken bundle. Guide testers to **Application > Clear site
+   data** explicitly. Consider shortening SW cache TTL on admin
+   routes (they change per release, users accept reload cost).
+
+7. **RC checklists should explicitly list the URL + the user for
+   each step.** My first checklist used unqualified paths like
+   "/platform/audit" which the user couldn't copy-paste. Second
+   version listed absolute URLs + credentials in a table -- every
+   subsequent step was faster.
+
+### Process improvements to adopt immediately
+
+- Every new sprint adds backend routes? Check the nginx location
+  regex in both configs BEFORE deploy. Grep: `git diff
+  'apps/health/sovereign-health/ops/nginx-sovereignhealth.conf'
+  'apps/platform/brickos-website/ops/nginx-brickos-app.conf'`.
+- Every new sprint uses fixture UUIDs? Write fixtures with
+  business-key lookups from the start (CROSS JOIN on
+  email/slug), not hardcoded UUIDs.
+- Every new React component with state + early return? Put the
+  hooks at the top of the component, above any `if (condition)
+  return ...` guard.
+- A new "demo" or "app" or subdomain-scoped special host added?
+  Update `swapPlaneHost` to either pair or null-return it, with
+  a unit test.
+
 ## By the numbers
 
-- **Commits on develop since v0.44.0:** 16
+- **Commits on develop since v0.44.0:** 24 (16 feature + 7 RC fix + 1 release-notes doc)
 - **New migrations:** 4
 - **New backend handlers:** 4 files
   (`consent.rs`, `impersonation.rs`, `org_invites.rs`,
@@ -168,13 +244,19 @@ Five phases landed; three follow-ups carry to Sprint 049.
 - **New frontend components:** 3 (welcome banner, consent
   onboarding prompt, impersonation banner)
 - **New Playwright specs:** 11 (`sprint-048-impersonation.spec.ts`)
-- **New ADRs:** 1 (ADR-052 effective-user swap; ADR-051 covered
-  the decision in Sprint 047)
-- **Sprint days spent:** 1 calendar day
-- **RC hotfixes on staging:** 0 (not yet promoted; localhost
-  caught the issues first)
+- **New ADRs:** 2 (ADR-052 effective-user swap, ADR-053 shared
+  API base URL helper)
+- **New memory lessons:** 5 (hooks ordering, shared API helpers,
+  demo host plane boundary, nginx regex per sprint, manual RC
+  surfaces real bugs)
+- **Sprint days spent:** 2 calendar days (1 feature, 1 RC + fix)
+- **Staging deploys:** 7 (1 initial + 6 RC fix redeploys)
+- **Production deploys:** 1 (planned)
+- **RC bugs caught + fixed pre-prod:** 9 (8 discovered in RC,
+  1 discovered by Sprint 048 spec refactor)
+- **Production bugs escaped:** target 0 (tbd by prod deploy)
 
 ## Sign-off
 
-Feature work complete on develop. RC + promote → main +
-production deploy as `v0.45.0` pending.
+Feature work + RC fixes complete on develop. Promote → main +
+production deploy as `v0.45.0` proceeding 2026-04-22.

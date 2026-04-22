@@ -174,6 +174,72 @@
 - Three pre-existing vitest specs excluded from the local run
   (documented in the runbook).
 
+## RC findings (fixed before production)
+
+A two-round staging RC on 2026-04-21 / 2026-04-22 surfaced 8 issues.
+All fixed on develop and validated by the 11-spec Sprint 048
+Playwright suite (green on localhost + staging) plus platform smoke
+(17/17) before promote:
+
+1. **Migration 20260421000001 targeted `public.org_members::regclass`**
+   but on ADR-035-era deployments that table lives in `brickos`. Fix
+   uses `to_regclass` to detect the schema; no-ops if neither exists.
+   *Commit 8ae3038.*
+
+2. **nginx location regex missed new Sprint 048 routes** (`/user/*`,
+   `/signup/invite/*`). All requests fell through to the Next.js
+   frontend and returned the app shell HTML. Added `user` and
+   `signup` to the allow-list in both `nginx-sovereignhealth.conf`
+   and `nginx-brickos-app.conf`. *Commit 08a0e9e.*
+
+3. **`/settings` → Organization access tab crashed with "unexpected
+   error"** -- the Sprint 048 `useState(hasOrgs)` + `useEffect` for
+   the org-access probe were declared after an `if (!settings)
+   return null` early return. Hook count changed across renders,
+   React threw. Hooks moved above the early returns. *Commit
+   32d88c1.*
+
+4. **Doctor Chat during impersonation rendered an empty page** --
+   ChatLayout silently swallowed every 403 from the scope gate.
+   Added a friendly blocking state ("Not available during
+   impersonation / Back to caseload") that short-circuits the mount.
+   *Commit 32d88c1.*
+
+5. **Impersonation banner disappeared under Doctor Chat's `h-screen`
+   container.** Banner is now `sticky top-0 z-[60]` so it overlays
+   any page-level viewport wrapper. *Commit 32d88c1.*
+
+6. **`classifyApiError` misrouted `impersonation_out_of_scope` /
+   `impersonation_readonly` as `session_expired`** because the
+   backend messages contained the word "session" and fell through
+   to the message-matching fallback. Added explicit code -> code
+   mappings. *Commit 32d88c1.*
+
+7. **AuditLogsTab + ContactTab hand-rolled their own fetch helper**
+   that read `process.env.NEXT_PUBLIC_API_URL` directly (bakes `/api`
+   into the bundle on staging), producing `/api/admin/audit/events`
+   -- which no nginx rule or backend route matches -> 404 across all
+   three audit sub-tabs. Both components now use the same runtime
+   host detection as `lib/api.ts`. *Commit fc7235f.*
+
+8. **Cross-plane swap crossed the staging/prod boundary.**
+   `swapPlaneHost('demo.brickos.io', 'end-user')` mapped to
+   `demo.sovereignhealth.io` (prod), stranding staging users on a
+   host where their cookie doesn't exist. Both `demo.brickos.io`
+   (staging platform admin) and `demo.sovereignhealth.io` (prod
+   public anonymous demo) are now explicit null-returns in the
+   swap. *Commit 3af3c28.*
+
+9. **Consent cards rendered only when the org had an active
+   license.** The three-card breakdown was nested inside the
+   `license.tier_slug ? ...` branch, so no-license pilot orgs
+   (staging test-clinic) never saw the counters. Moved outside the
+   license conditional; still gated on `seats.members > 0`. *Commit
+   04786a6.*
+
+See `docs/releases/sovereign-health/v0.45.0/RETRO.md` for the
+lessons distilled from each finding.
+
 ## Upgrade notes
 
 - **Schema:** four new migrations. All additive. No backfill required.
