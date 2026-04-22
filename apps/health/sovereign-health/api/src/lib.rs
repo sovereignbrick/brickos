@@ -35,7 +35,7 @@ pub mod payments;
 pub mod services;
 pub mod templates;
 
-pub const VERSION: &str = "0.45.0";
+pub const VERSION: &str = "0.46.0";
 pub const SERVICE_NAME: &str = "sovereign-health-backend";
 
 /// Sprint 047 #586: unique per-build identifier stamped by the Dockerfile at
