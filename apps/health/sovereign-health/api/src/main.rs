@@ -227,6 +227,25 @@ async fn main() -> std::io::Result<()> {
         });
     }
 
+    // Sprint 049 #049-21: invite reminder cron (daily). Sends a single
+    // reminder email for pending org_invites that are 3+ days old.
+    {
+        let pool_clone = pool.clone();
+        let email_clone = email_provider.clone();
+        let frontend_url = config.frontend_url.clone();
+        tokio::spawn(async move {
+            loop {
+                sovereign_health_backend::services::lifecycle_jobs::invite_reminder_cron(
+                    &pool_clone,
+                    email_clone.clone(),
+                    &frontend_url,
+                )
+                .await;
+                tokio::time::sleep(std::time::Duration::from_secs(24 * 60 * 60)).await;
+            }
+        });
+    }
+
     let rate_limiters = web::Data::new(
         sovereign_health_backend::services::rate_limit::AuthRateLimiters::from_config(&config),
     );

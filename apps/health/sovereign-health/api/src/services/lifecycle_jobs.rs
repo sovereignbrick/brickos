@@ -324,3 +324,77 @@ pub async fn org_termination_grace_cron(
 
     tracing::info!("org_termination_grace_cron done");
 }
+
+/// Sprint 049 #049-21 (Sprint 048 #048-22): daily invite reminder.
+///
+/// Finds org_invites created >= 3 days ago that are still pending
+/// (accepted_at IS NULL AND cancelled_at IS NULL AND expires_at >
+/// NOW()) and have not yet been reminded (reminder_sent_at IS NULL).
+/// Sends a single reminder email with the original invite link, then
+/// stamps `reminder_sent_at` so the cron skips them on future runs.
+///
+/// Idempotent. Per-invite errors are logged and don't abort the batch.
+pub async fn invite_reminder_cron(
+    pool: &PgPool,
+    email: Arc<dyn EmailProvider>,
+    frontend_url: &str,
+) {
+    tracing::info!("invite_reminder_cron starting");
+
+    let rows = sqlx::query(
+        r#"SELECT i.id, i.email, i.token, i.org_id, o.name AS org_name
+             FROM org_invites i
+             JOIN organizations o ON o.id = i.org_id
+            WHERE i.accepted_at IS NULL
+              AND i.cancelled_at IS NULL
+              AND i.expires_at > NOW()
+              AND i.reminder_sent_at IS NULL
+              AND i.created_at <= NOW() - INTERVAL '3 days'
+            LIMIT 500"#,
+    )
+    .fetch_all(pool)
+    .await;
+
+    match rows {
+        Ok(rows) => {
+            tracing::info!(count = rows.len(), "invite reminders to send");
+            for row in rows {
+                let invite_id: uuid::Uuid = row.try_get("id").unwrap_or_default();
+                let to_addr: String = row.try_get("email").unwrap_or_default();
+                let token: uuid::Uuid = row.try_get("token").unwrap_or_default();
+                let org_name: String = row.try_get("org_name").unwrap_or_else(|_| "our clinic".to_string());
+
+                let signup_url = format!("{frontend_url}/signup?invite={token}");
+                let subject = format!("Reminder: you're invited to join {org_name}");
+                let html = format!(
+                    r#"<p>Hello,</p>
+                    <p>Just a reminder that you've been invited to join <strong>{org_name}</strong> on Sovereign Health.</p>
+                    <p><a href="{signup_url}">Accept the invitation</a></p>
+                    <p>If the button doesn't work, copy this link: <code>{signup_url}</code></p>
+                    <p>This invitation expires soon.</p>"#
+                );
+                let text = format!(
+                    "Hello,\n\nJust a reminder that you've been invited to join {org_name} on Sovereign Health.\n\nAccept: {signup_url}\n\nThis invitation expires soon.\n"
+                );
+
+                match email.send(&to_addr, &subject, &html, &text).await {
+                    Ok(_) => {
+                        let _ = sqlx::query(
+                            "UPDATE org_invites SET reminder_sent_at = NOW() WHERE id = $1",
+                        )
+                        .bind(invite_id)
+                        .execute(pool)
+                        .await;
+                        tracing::info!(%to_addr, %invite_id, "invite reminder sent");
+                    }
+                    Err(e) => {
+                        tracing::warn!(%to_addr, %invite_id, error = ?e, "invite reminder send failed");
+                    }
+                }
+            }
+        }
+        Err(e) => tracing::warn!(error = ?e, "invite reminder query failed"),
+    }
+
+    tracing::info!("invite_reminder_cron done");
+}

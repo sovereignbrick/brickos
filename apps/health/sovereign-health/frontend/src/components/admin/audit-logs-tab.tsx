@@ -3,6 +3,8 @@
 import { useState, useEffect, useCallback, Fragment } from 'react'
 import Cookies from 'js-cookie'
 import { usePlatformFilter } from '@/app/platform/platform-context'
+// Sprint 049 #049-24 (ADR-053): use the shared API base helper.
+import { API_BASE as API } from '@/lib/api'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -48,17 +50,7 @@ type DateRange = 'today' | '7d' | '30d' | '90d' | 'all'
 // Helpers
 // ---------------------------------------------------------------------------
 
-// Sprint 048 RC fix: on brickos.io / sovereignhealth.io the API is path-mounted
-// same-origin, so API must be empty. The older env-var default (`/api`) double-
-// prefixed on staging and 404'd every audit call. Matches api.ts's runtime check.
-const API = (() => {
-  if (typeof window === 'undefined') return process.env.NEXT_PUBLIC_API_URL || ''
-  const host = window.location.hostname
-  if (host.endsWith('.brickos.io')) return ''
-  if (host.endsWith('.sovereignhealth.io')) return ''
-  if (host.endsWith('.onion')) return ''
-  return process.env.NEXT_PUBLIC_API_URL || ''
-})()
+// (API now imported at top from @/lib/api -- Sprint 049 #049-24.)
 const PER_PAGE = 25
 const RETENTION_DAYS = 90
 

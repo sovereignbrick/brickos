@@ -53,21 +53,29 @@ export function classifyApiError(code: string | undefined, message: string): Api
   return 'unknown'
 }
 
-// Runtime API URL detection:
+// Runtime API URL detection (Sprint 049 #049-24 / ADR-053):
 // - .onion domains: same origin (nginx proxy for all routes)
 // - *.brickos.io: same origin (admin plane, same-origin path-mount)
-// - *.sovereignhealth.io: same origin after Sprint 045 #562 (end-user plane,
-//   app.sovereignhealth.io migrated to same-origin path-mount, wildcard org
-//   subdomains have it from the start)
-// - default: build-time NEXT_PUBLIC_API_URL
-const API_BASE = (() => {
+// - *.sovereignhealth.io: same origin (end-user + eval plane)
+// - default: build-time NEXT_PUBLIC_API_URL (localhost dev, docker build)
+//
+// This is the ONLY place the app resolves the API base URL at runtime.
+// Other components import `API_BASE` or `resolveApiBase()` instead of
+// reading `process.env.NEXT_PUBLIC_API_URL` directly. Reading env at
+// module scope bakes the Docker-build-time `/api` into every bundle,
+// which is wrong on brickos.io + sovereignhealth.io hosts that serve
+// the API same-origin via nginx. The AuditLogsTab + ContactTab bug
+// in Sprint 048 RC was a direct consequence of bypassing this helper.
+export function resolveApiBase(): string {
   if (typeof window === 'undefined') return APP_CONFIG.apiUrl
   const host = window.location.hostname
   if (host.endsWith('.onion')) return ''
   if (host.endsWith('.brickos.io')) return ''
   if (host.endsWith('.sovereignhealth.io')) return ''
   return APP_CONFIG.apiUrl
-})()
+}
+
+export const API_BASE = resolveApiBase()
 
 function getToken(): string | undefined {
   // Sprint 049 #049-05 (Design 029 §8.4): eval.sovereignhealth.io shares

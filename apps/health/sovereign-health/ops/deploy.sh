@@ -380,6 +380,50 @@ preflight() {
     fi
     log "Version consistency: v${VERSION}"
 
+    # Sprint 049 #049-26 (Design 029 / memory: nginx_regex_per_sprint):
+    # verify every top-level backend route prefix is in the nginx
+    # location regex. Prevents the Sprint 048 gap where `/user/*` and
+    # `/signup/*` handlers shipped without matching nginx proxy rules
+    # and fell through to the Next.js frontend in production.
+    local api_routes_file="${APP_ROOT}/api/src/lib.rs"
+    local nginx_shi="${APP_ROOT}/ops/nginx-sovereignhealth.conf"
+    local nginx_brickos="${PROJECT_ROOT}/apps/platform/brickos-website/ops/nginx-brickos-app.conf"
+    if [ -f "$api_routes_file" ] && [ -f "$nginx_shi" ]; then
+        # Extract top-level prefixes from `.route("/foo/..", ...)` and
+        # `.service(scope("/bar"))` lines. Small allowlist covers the
+        # shapes actix-web uses in lib.rs.
+        local prefixes
+        prefixes=$(grep -oE '\.route\("/[^"/]+' "$api_routes_file" | sed 's|.*"/|/|' | sort -u ; \
+                   grep -oE 'scope\("/[^"]+' "$api_routes_file" | sed 's|scope("/||' | cut -d/ -f1 | sed 's|^|/|' | sort -u)
+        prefixes=$(echo "$prefixes" | sort -u)
+        # Skip these: root dispatch, internal/static, intentionally missing.
+        local skip_list=" / /_ /robots.txt /favicon.ico /sitemap.xml /__fe_navigate /.well-known "
+        local missing=""
+        while IFS= read -r p; do
+            [ -z "$p" ] && continue
+            # Strip leading slash for regex matching.
+            local bare="${p#/}"
+            [ -z "$bare" ] && continue
+            # Known skips.
+            case " $skip_list " in *" $p "*) continue ;; esac
+            # Regex check against the first server block (all blocks share
+            # the same regex; matching one is sufficient).
+            if ! grep -qE "^\s*location ~ \^/\([^)]*\b${bare}\b" "$nginx_shi"; then
+                missing="${missing}${bare} "
+            fi
+        done <<< "$prefixes"
+        if [ -n "$missing" ]; then
+            warn "Backend prefix(es) NOT in nginx allow-list: ${missing}"
+            warn "  Add to both files + redeploy so /${missing% } routes reach the backend:"
+            warn "    - ${nginx_shi##*/}"
+            warn "    - ${nginx_brickos##*/}"
+            # Non-blocking for now; escalate to fail once the noise
+            # is proven clean across a few sprints.
+        else
+            log "Nginx allow-list covers all backend route prefixes"
+        fi
+    fi
+
     # Migration stability: Warn if any migration file was modified after initial commit.
     # Modified migrations are silently skipped by SQLx, breaking all subsequent migrations.
     local modified_migrations

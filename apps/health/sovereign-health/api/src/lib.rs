@@ -586,6 +586,13 @@ pub fn configure_routes(cfg: &mut actix_web::web::ServiceConfig) {
                 "/invites/{id}/cancel",
                 actix_web::web::post().to(handlers::org_invites::cancel_invite),
             )
+            // Sprint 049 #049-22 (Sprint 048 #048-34): org admin triggers
+            // a one-click email to every patient-role member who has no
+            // active patient_consents row yet.
+            .route(
+                "/consent-reminders",
+                actix_web::web::post().to(handlers::consent::bulk_consent_reminder),
+            )
             // Domains
             .route(
                 "/domains",

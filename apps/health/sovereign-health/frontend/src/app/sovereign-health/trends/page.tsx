@@ -2,7 +2,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { useTranslations } from 'next-intl'
 import { useAuth } from '@/lib/auth-context'
-import { api } from '@/lib/api'
+import { api, API_BASE } from '@/lib/api'
 import { TrendData, MarkerDetail, MarkerDef } from '@/lib/types'
 import { Navbar } from '@/components/layout/navbar'
 import { Footer } from '@/components/layout/footer'
@@ -178,7 +178,7 @@ export default function TrendsPage() {
     const fetchMarkers = async () => {
       try {
         const res = isDemo
-          ? await (fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/demo/measurements?per_page=1000&profile=${profile}`).then(r => r.json()) as Promise<{ data: { marker_slug: string; marker_name: string }[] }>)
+          ? await (fetch(`${API_BASE}/demo/measurements?per_page=1000&profile=${profile}`).then(r => r.json()) as Promise<{ data: { marker_slug: string; marker_name: string }[] }>)
           : await api.markers.list()
 
         if (isDemo) {
