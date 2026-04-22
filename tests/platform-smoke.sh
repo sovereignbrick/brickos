@@ -160,6 +160,40 @@ else
   skip "Authenticated endpoint (no token)"
 fi
 
+# ── 5b. SHI /demo/* read (Sprint 050 #050-B6) ────────────────────────────
+
+section "5b. SHI /demo/zones (anonymous read)"
+
+DEMO_STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 \
+  -u "$BASIC_AUTH" "$API_URL/demo/zones?profile=optimized" 2>/dev/null || echo "000")
+if [ "$DEMO_STATUS" = "200" ]; then
+  pass "/demo/zones reachable anonymously (HTTP $DEMO_STATUS)"
+elif [ "$DEMO_STATUS" = "429" ]; then
+  pass "/demo/zones rate-limited (governor active -- still healthy)"
+else
+  fail "/demo/zones returns HTTP $DEMO_STATUS (expected 200 or 429)"
+fi
+
+# ── 5c. SHI /signup endpoint reachable (Sprint 050 #050-B6) ──────────────
+
+section "5c. SHI /signup endpoint"
+
+# POST with empty body -> expect 400 (validation) -- confirms the endpoint
+# is wired and serving. A 500 would mean the endpoint is broken; a 404
+# would mean the route is missing from nginx/backend.
+SIGNUP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 \
+  -X POST -H "Content-Type: application/json" -d '{}' \
+  -u "$BASIC_AUTH" "$API_URL/auth/signup" 2>/dev/null || echo "000")
+if [ "$SIGNUP_STATUS" = "400" ] || [ "$SIGNUP_STATUS" = "422" ]; then
+  pass "/auth/signup validation-rejects empty body (HTTP $SIGNUP_STATUS)"
+elif [ "$SIGNUP_STATUS" = "403" ]; then
+  pass "/auth/signup gate closed (registration disabled; still healthy)"
+elif [ "$SIGNUP_STATUS" = "429" ]; then
+  pass "/auth/signup rate-limited (governor active -- still healthy)"
+else
+  fail "/auth/signup returns HTTP $SIGNUP_STATUS (expected 400/422/403/429)"
+fi
+
 # ── 6. Sovereign Voice systemd Active ────────────────────────────────────
 
 section "6. Sovereign Voice"
