@@ -108,7 +108,7 @@ export default function ShiEmailPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-lg font-semibold">SHI -- Email Templates</h2>
+        <h2 className="text-lg font-semibold">Sovereign Health Intelligence -- Email Templates</h2>
         <p className="text-sm text-muted-foreground mt-1">
           Customize the email messages sent to your organization's members.
           Leave empty to use the default text. Each locale is saved

@@ -31,7 +31,7 @@ If a fixture login returns 401 with a "invalid credentials" JSON body, the fixtu
 
 | # | URL | Action | Expected |
 |---|---|---|---|
-| 1.1 | https://demo.brickos.io/api/v1/health | GET (browser or curl) | `{"status":"ok", "version":"0.48.0", ...}` -- must show `0.48.0` |
+| 1.1 | https://demo.brickos.io/health | use `curl` (NOT browser -- Sprint 047 nginx rewrites `Accept: text/html` requests to the frontend, so the browser sees a login page, not JSON). `curl -s https://demo.brickos.io/health \| jq .version` | returns `"0.48.0"` -- confirms backend is the v0.48.0 build |
 | 1.2 | https://demo.brickos.io/ | open in incognito | redirects to `/login`, no console errors |
 | 1.3 | https://www-demo.sovereignhealth.io/ | open | marketing site loads, hero renders, no 500 |
 | 1.4 | https://eval.sovereignhealth.io/ | open (NO basic auth here -- public) | 3-profile picker loads; pick any -> dashboard renders with zones; "Sign up" + "Sign in" buttons visible at bottom banner |
@@ -48,12 +48,12 @@ Login: https://demo.brickos.io/login -- `demo@sovereignhealth.io` / `SovereignDe
 | # | URL (after login) | Action | Expected |
 |---|---|---|---|
 | 2.1 | `/platform` | land here after login | sidebar shows APPS section with SHI + Sovereign Link + whatever else is registered; no red error banner |
-| 2.2 | `/platform/organizations` | open | list shows `test-clinic`, `sovereign-health`, and the `demo` org; no 500 |
-| 2.3 | `/platform/organizations` -> click on `test-clinic` | open detail | page shows `seats` + `consent` sections with `granted` / `revoked` counts (Sprint 048 feature still present) |
+| 2.2 | `/platform/orgs` | open | list shows `test-clinic`, `sovereign-health`, and the `demo` org; no 500 |
+| 2.3 | `/platform/orgs` -> click on `test-clinic` (lands on `/platform/orgs/{id}`) | open detail | page shows `seats` + `consent` sections with `granted` / `revoked` counts (Sprint 048 feature still present) |
 | 2.4 | `/platform/users` | open | user list paginates, search works |
-| 2.5 | `/platform/audit-log` | open | rows visible, filter by org works, no 404 on API call (Sprint 048 RC regression check) |
-| 2.6 | `/platform/org/emails` | open | email template preview renders; verify the SHI logo IMAGE appears in the preview (not a broken-image icon). This is the exact case our fixed unit test was asserting. |
-| 2.7 | navigate to `/sovereign-link/dashboard` | | Sovereign Link app dashboard loads; no regression from v0.46.0 |
+| 2.5 | `/platform/audit` | open | rows visible, filter by org works, no 404 on API call (Sprint 048 RC regression check) |
+| 2.6 | `/platform/org/apps/shi/email` | open | email template preview renders; verify the SHI logo IMAGE appears in the preview (not a broken-image icon). This is the exact case our fixed unit test was asserting. |
+| 2.7 | `/platform/apps` | open | app registry lists SHI + Sovereign Link + any others; no 500 (Sovereign Link has its own frontend; this page just confirms it's registered) |
 
 **Key regression to check:** #2.5 audit-log 404 was a Sprint 048 RC bug; confirm it still works post-v0.48.0.
 
@@ -69,10 +69,10 @@ Login: https://test-clinic.demo.brickos.io/login -- `test-clinic-admin@clinic.co
 | 3.2 | `/settings` | open | profile tab selected by default; click thru Security, Billing, Integrations, Data tabs -- no crash (Sprint 048 #527 hook-order regression check) |
 | 3.3 | `/platform/org/general` | open | org name + slug + settings editable; save -> success toast |
 | 3.4 | `/platform/org/members` | open | roster lists at least 2 users (admin + practitioner + patient); each row shows `role` and `consent_state` columns |
-| 3.5 | `/platform/org/members` -> "Send reminders to pending patients" | click the bulk reminder button if present; otherwise skip | either 200 toast "Sent N reminders" OR "No pending invites" OR the button isn't wired yet (still backend-only, OK either way) |
-| 3.6 | `/platform/org/invites` | open | pending invites list; "Resend" button on each row |
+| 3.5 | `/platform/org/members` -> click "Send reminders to pending patients" (button near top of the table) | trigger the bulk reminder | toast appears: either "Sent N reminders" or "No pending invites" or confirm dialog + success. The button shows a count of pending members. No 500. |
+| 3.6 | `/platform/org/members` with `consent_state = pending` filter | look for pending rows | rows with pending consent state are visually distinct; each has a "Resend invite" or similar per-row action (invites are folded into the members page in this build -- no separate `/invites` route) |
 | 3.7 | `/platform/org/branding` | open | logo/color form; submit unchanged -> no error |
-| 3.8 | `/platform/org/emails` | open | per-org email templates editor; locale switcher works (EN / DE) |
+| 3.8 | `/platform/org/apps/shi/email` | open | per-org email templates editor; locale switcher works (EN / DE); heading reads "Sovereign Health Intelligence -- Email Templates" (we fixed the old "SHI" abbreviation in this release) |
 | 3.9 | `/platform/org/domains` | open | custom domain list loads with shape `{id, domain, verified_at}` per row |
 
 **Key regression to check:** #3.2 settings hook-order crash was Sprint 048 #527 and the most common regression source.
@@ -89,7 +89,7 @@ Login: https://test-clinic.demo.brickos.io/login -- `test-clinic-practitioner@cl
 | 4.2 | click on Anna Meier | open patient detail | patient profile + recent measurements visible |
 | 4.3 | click "View as patient" / impersonation button | start impersonation | redirects to patient's dashboard; yellow "Impersonating Anna Meier" banner sticks at top; dashboard shows Anna's data |
 | 4.4 | click "Exit impersonation" | | returns to practitioner view; banner disappears |
-| 4.5 | `/data-access-log` (or the in-app audit view) | open | recent rows show the impersonation-start event with `actor_user_id` = practitioner (NOT patient) |
+| 4.5 | `/sovereign-health/data-access-log` | open | recent rows show the impersonation-start event with `actor_user_id` = practitioner (NOT patient) |
 
 ---
 
@@ -102,9 +102,9 @@ Login: https://test-clinic.demo.brickos.io/login -- `anna.meier@patients.clinic.
 | 5.1 | `/sovereign-health/dashboard` | land here | zones render (possibly empty state OK); no console errors |
 | 5.2 | `/sovereign-health/measurements` | open | measurement list (possibly empty); "Add measurement" button works |
 | 5.3 | `/sovereign-health/measurements/new` | fill form + submit | measurement saved; redirects back to list |
-| 5.4 | `/settings` | open | profile editable; doesn't crash |
-| 5.5 | `/data-access-log` or consent page | open | recent rows include the admin/practitioner impersonation if you did Layer 4 |
-| 5.6 | `/sovereign-health/consents` | open | consent toggles for practitioner/admin visible |
+| 5.4 | `/settings` | open | profile editable; doesn't crash (hook-order regression check) |
+| 5.5 | `/sovereign-health/data-access-log` | open | recent rows include the admin/practitioner impersonation if you did Layer 4 |
+| 5.6 | `/settings` -> click the "Organization Access" tab | open | consent toggles for practitioner/admin visible here (consents UI lives under /settings in this build -- there is no standalone /sovereign-health/consents page) |
 
 ---
 
@@ -152,9 +152,9 @@ For each of the below, use Chrome devtools -> toggle device toolbar -> "iPhone 1
 
 | # | URL | Action | Expected |
 |---|---|---|---|
-| 9.1 | https://test-clinic.demo.brickos.io/login?lang=de | open | login form labels in German (e.g. "Anmelden" not "Sign in"); no `{{`...`}}` raw keys anywhere |
-| 9.2 | switch to DE in navbar language picker (if present) | | page content swaps to German; no untranslated `.` fragments (e.g. `organizationAccess.title`) |
-| 9.3 | open `/settings` with DE locale | | consent toggles labelled in German; proper umlauts (ü, ö, ä) render not as `ue`/`oe`/`ae` |
+| 9.1 | after login, click the "EN v" dropdown in the top-right of the navbar | switch to DE | page content swaps to German; no `{{`...`}}` raw keys; no untranslated dotted fragments (e.g. `organizationAccess.title`) leaking through |
+| 9.2 | with DE selected, open `/sovereign-health/dashboard` | | zones + CTAs in German; proper umlauts (ü, ö, ä) render, not as `ue`/`oe`/`ae` |
+| 9.3 | with DE selected, open `/settings` -> Organization Access tab | | consent toggles labelled in German; submit labels in German |
 
 ---
 
