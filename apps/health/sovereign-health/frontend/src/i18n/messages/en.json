@@ -1800,6 +1800,20 @@
     "blockedDoctorChatBody": "Dr. Alex chat is private to the patient. Exit the read-only session to use your own chat.",
     "backToCaseload": "Back to caseload"
   },
+  "demoSurface": {
+    "banner": {
+      "title": "Demo Data",
+      "subtitle": "Sign up free to save your own measurements.",
+      "signUp": "Sign up",
+      "login": "Log in"
+    },
+    "badge": "Demo Data",
+    "landing": {
+      "heading": "Try Sovereign Health Intelligence",
+      "subheading": "Pick a profile to explore real data.",
+      "loginLink": "Already have an account? Log in"
+    }
+  },
   "graceBanner": {
     "title": "Your subscription failed",
     "messageDays": "You have {days} days until you are downgraded to Glimpse.",
