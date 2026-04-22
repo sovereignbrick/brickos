@@ -36,6 +36,14 @@ c) Redirect `/platform/org/*` to `/platform/orgs` (the org picker) when the reso
 4. Open the top-right "All Orgs" dropdown and pick `test-clinic`
 5. Observe the table now loads correctly
 
+## Related variant: /platform/members (PEOPLE section)
+
+Same root cause for the twin route `/platform/members` (under PEOPLE in the sidebar):
+- On the test-clinic.demo.brickos.io host, the page renders with the table shell but "selectedOrg" state starts empty and `fetchMembers` gates on `if (!selectedOrg) return`. Result: empty table.
+- Fix options: auto-pre-select the current org resolved from the hostname, OR merge this page with `/platform/org/members`.
+
+Found during Sprint 050 RC layer 3.4/3.5 by helmut.
+
 ## Notes
 
 - Not a v0.48.0 regression -- the behavior predates Sprint 050 and was just unmasked by a thorough RC walk-through.

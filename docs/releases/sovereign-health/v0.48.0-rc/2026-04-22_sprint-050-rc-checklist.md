@@ -91,7 +91,7 @@ Same host as Layer 3: https://test-clinic.demo.brickos.io/login (log out of the 
 | 4.2 | click on Anna Meier | open patient detail | patient profile + recent measurements visible |
 | 4.3 | click "View as patient" / impersonation button | start impersonation | redirects to patient's dashboard; yellow "Impersonating Anna Meier" banner sticks at top; dashboard shows Anna's data |
 | 4.4 | click "Exit impersonation" | | returns to practitioner view; banner disappears |
-| 4.5 | `/sovereign-health/data-access-log` | open | recent rows show the impersonation-start event with `actor_user_id` = practitioner (NOT patient) |
+| 4.5 | skip -- `/sovereign-health/data-access-log` is patient-facing ("who accessed MY data"). The impersonation event from 4.3 is verified in Layer 5.5 when logged in as Anna. | -- | -- |
 
 ---
 
