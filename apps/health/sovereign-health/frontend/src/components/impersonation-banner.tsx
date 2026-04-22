@@ -10,20 +10,27 @@ import {
   getImpersonationSession,
   type ImpersonationSession,
 } from '@/lib/impersonation'
+import { useAuth } from '@/lib/auth-context'
 
 export function ImpersonationBanner() {
   const t = useTranslations('impersonation')
   const router = useRouter()
+  const { isEvalHost } = useAuth()
   const [session, setSession] = useState<ImpersonationSession | null>(null)
 
   useEffect(() => {
+    // Sprint 049 #049-07: on eval.sovereignhealth.io the
+    // .sovereignhealth.io cookie jar can leak an impersonation_session
+    // from a sibling host. Eval is always anonymous demo mode -- never
+    // render the impersonation banner there.
+    if (isEvalHost) return
     setSession(getImpersonationSession())
     // Re-read whenever the cookie changes (e.g. other tabs).
     const id = window.setInterval(() => {
       setSession(getImpersonationSession())
     }, 2000)
     return () => window.clearInterval(id)
-  }, [])
+  }, [isEvalHost])
 
   if (!session) return null
 

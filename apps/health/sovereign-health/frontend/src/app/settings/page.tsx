@@ -181,7 +181,11 @@ function SettingsContent() {
       router.push(`/login?return=${encodeURIComponent(returnUrl)}`)
       return
     }
-    if (isDemoOnly) { router.push('/sovereign-health/dashboard'); return }
+    // Sprint 049 #049-07: demo + eval hosts have no settings to configure;
+    // redirect to dashboard. (Previously only isDemoOnly was checked, which
+    // let eval.sovereignhealth.io visitors hit the settings page and fail
+    // with an auth error.)
+    if (isDemo) { router.push('/sovereign-health/dashboard'); return }
     api.settings.get()
       .then(res => setSettings(res.data))
       .catch(e => setError(e.message))
