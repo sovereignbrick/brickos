@@ -61,7 +61,9 @@ Login: https://demo.brickos.io/login -- `demo@sovereignhealth.io` / `SovereignDe
 
 ## Layer 3 -- org owner (test-clinic-admin@clinic.com)
 
-Login: https://test-clinic.demo.brickos.io/login -- `test-clinic-admin@clinic.com` / `TestClinicAdmin1`
+**IMPORTANT:** before starting Layer 3, **log out** from demo.brickos.io and open a fresh private/incognito window. The hostname carries the org context for all `/platform/org/*` routes; staying on `demo.brickos.io` will make every members/domains/etc. page show "Could not load ..." because the backend has no org to scope to.
+
+Login: https://test-clinic.demo.brickos.io/login (note: different host than Layer 2) -- `test-clinic-admin@clinic.com` / `TestClinicAdmin1`
 
 | # | URL (after login) | Action | Expected |
 |---|---|---|---|
@@ -81,7 +83,7 @@ Login: https://test-clinic.demo.brickos.io/login -- `test-clinic-admin@clinic.co
 
 ## Layer 4 -- practitioner (test-clinic-practitioner@clinic.com)
 
-Login: https://test-clinic.demo.brickos.io/login -- `test-clinic-practitioner@clinic.com` / `TestClinicPract1`
+Same host as Layer 3: https://test-clinic.demo.brickos.io/login (log out of the org-admin first). Log in as `test-clinic-practitioner@clinic.com` / `TestClinicPract1`
 
 | # | URL | Action | Expected |
 |---|---|---|---|
@@ -95,7 +97,7 @@ Login: https://test-clinic.demo.brickos.io/login -- `test-clinic-practitioner@cl
 
 ## Layer 5 -- patient (anna.meier@patients.clinic.com)
 
-Login: https://test-clinic.demo.brickos.io/login -- `anna.meier@patients.clinic.com` / `TestPatient1`
+Same host as Layer 3+4: https://test-clinic.demo.brickos.io/login (log out of the practitioner first). Log in as `anna.meier@patients.clinic.com` / `TestPatient1`. On this host a patient will typically see the end-user nav (Dashboard / Measurements / Trends / Doctor Chat); the locale picker lives top-right.
 
 | # | URL | Action | Expected |
 |---|---|---|---|
