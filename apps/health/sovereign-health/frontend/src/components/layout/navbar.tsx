@@ -428,7 +428,7 @@ function MobileMenu({
 }
 
 export function Navbar() {
-  const { user, loading, logout, isDemo, isDemoOnly } = useAuth()
+  const { user, loading, logout, isDemo, isDemoOnly, isEvalHost } = useAuth()
   const pathname = usePathname()
   const demoHref = useDemoHref()
   const router = useRouter()
@@ -647,7 +647,13 @@ export function Navbar() {
           </button>
           {languageSelector}
           {isDemo ? (
-            isDemoOnly ? (
+            // Sprint 049 #049-07: on eval.* the <EvalConversionBanner> is
+            // the conversion CTA (cross-plane to app.*). Avoid a same-origin
+            // /login button in the nav because it would land the user on
+            // eval's login page, where the cookie-set works but eval itself
+            // ignores the cookie -- confusing UX. Render the empty spacer
+            // on eval too.
+            isDemoOnly || isEvalHost ? (
               <div className="hidden sm:block w-8" />
             ) : (
               <Link
