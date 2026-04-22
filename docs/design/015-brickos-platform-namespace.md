@@ -1,16 +1,55 @@
 ---
 title: 015 -- BrickOS Platform Namespace
-status: draft (Sprint 043 Phase C decides)
-sprint: 043
-related: [#526, sprint-041, sprint-042, ADR-048]
+status: shipped (incrementally across Sprints 043-047; final shape below)
+sprint: 043-047
+related: [#526, sprint-041, sprint-042, sprint-043, sprint-045, sprint-047, ADR-048, design-025, design-026, design-027]
 ---
 
 # Design 015 -- BrickOS Platform Namespace
 
-> **Status:** DRAFT. Sprint 043 Phase C resolves the four decision points
-> below and flips this to "shipped". Until then this document captures the
-> recommended options for each decision so the operator can sign off in
-> one review pass.
+> **Status:** SHIPPED. Sprint 051 2026-04-23 final audit: the namespace
+> consolidation originally scoped here was delivered incrementally:
+>
+> - **Design 025** (domain realignment, Sprint 045) -- chose
+>   `sovereignhealth.io` as end-user plane and `brickos.io` as admin plane
+>   (the "two-plane architecture"). Supersedes the D3 wildcard decision
+>   originally proposed here.
+> - **Design 026** (unified admin home, Sprint 046) -- chose
+>   `app.brickos.io/platform/*` as the canonical admin URL. Resolves D1
+>   as "path mount, not subdomain" for the admin surface.
+> - **Design 027** (multi-app URL routing, Sprint 047) -- chose
+>   `/sovereign-health/*`, `/sovereign-link/*` as per-app URL prefixes
+>   sharing one app domain + one JWT.
+> - **Design 029** (anonymous demo surface, Sprint 049) -- added
+>   `eval.sovereignhealth.io` as the third plane (single-plane, public,
+>   read-only demo).
+>
+> The four decision points from this doc resolve as:
+>
+> - **D1 (API subdomain vs path mount):** BOTH exist, path mount is
+>   canonical for authed same-origin requests (`app.brickos.io/api/*`,
+>   `demo.brickos.io/api/*`). Subdomains (`api.brickos.io`,
+>   `api-demo.brickos.io`, legacy `api.sovereignhealth.io`) kept alive
+>   for backward compat + public smoke probes.
+> - **D2 (staging prefix):** `demo.` chosen. `staging.` dropped.
+> - **D3 (sovereignhealth.io treatment):** separate consumer-plane
+>   hostname, NOT a proxy. Runs its own Next.js build with the SHI
+>   brand-context cookie. Users can auth on either plane; JWT is
+>   scoped per-plane (no shared cookie across the eTLD+1 boundary).
+> - **D4 (JWT cookie scope):** per-plane. Cross-plane navigation re-
+>   resolves auth via the unified backend.
+>
+> Status verified 2026-04-23 via live curl against production:
+> `brickos.io`, `app.brickos.io`, `api.brickos.io/health`,
+> `demo.brickos.io`, `api.sovereignhealth.io/health`,
+> `api-demo.sovereignhealth.io/health`, `sovereignhealth.io`,
+> `app.sovereignhealth.io`, `demo.sovereignhealth.io` all returning
+> expected codes. `eval.sovereignhealth.io` added in Sprint 049.
+>
+> The original draft below is preserved for historical context. The
+> operating memory is `reference_brickos_domains.md`.
+
+## Original draft (Sprint 043 -- preserved for history)
 
 ## Problem
 
