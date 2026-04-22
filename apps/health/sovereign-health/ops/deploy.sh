@@ -1297,6 +1297,45 @@ verify() {
     else
         log "Platform smoke test skipped (--no-smoke flag)"
     fi
+
+    # Sprint 049 #049-15 (Design 029 v0.3): eval-smoke runs the Playwright
+    # suite against eval.sovereignhealth.io so every prod deploy gets a
+    # real-data render check. Production-only -- no staging equivalent.
+    # Non-blocking: deploy is still considered successful if eval-smoke
+    # fails, but an ntfy alert fires so oncall can investigate.
+    if [ "$env" = "production" ] && [ "${NO_EVAL_SMOKE:-0}" != "1" ]; then
+        eval_smoke
+    fi
+}
+
+# ── Eval smoke (prod only) ───────────────────────────────────────────────────
+# Runs eval-smoke.spec.ts against https://eval.sovereignhealth.io. The eval
+# host serves real production data via /demo/* (read-only) so this is safe
+# to hit repeatedly and gives honest post-deploy signal.
+eval_smoke() {
+    local frontend_dir="${APP_ROOT}/frontend"
+    if [ ! -d "$frontend_dir" ]; then
+        log "eval-smoke skipped (frontend dir not found: $frontend_dir)"
+        return 0
+    fi
+
+    echo ""
+    log "Running eval-smoke against https://eval.sovereignhealth.io ..."
+    local smoke_output
+    # shellcheck disable=SC2030
+    if smoke_output=$(cd "$frontend_dir" && \
+        E2E_BASE_URL=https://eval.sovereignhealth.io \
+        pnpm exec playwright test eval-smoke.spec.ts --project=unauth --reporter=list 2>&1); then
+        log "eval-smoke passed"
+        report_add "OK" "Eval smoke test passed"
+    else
+        warn "eval-smoke had failures (non-blocking)"
+        report_add "WARN" "Eval smoke had failures"
+        echo "$smoke_output" | tail -30
+        notify "Eval smoke failed after prod deploy v${VERSION}" \
+               "Playwright against eval.sovereignhealth.io reported failures. Check the deploy log." \
+               3 "errors" "warning,eval-smoke"
+    fi
 }
 
 # ── VPS status ───────────────────────────────────────────────────────────────
