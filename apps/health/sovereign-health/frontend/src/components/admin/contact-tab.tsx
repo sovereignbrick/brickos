@@ -3,15 +3,8 @@
 import { useState, useEffect, useCallback } from 'react'
 import Cookies from 'js-cookie'
 
-// Sprint 048 RC fix: runtime host detection avoids double `/api` prefix on brickos.io.
-const API = (() => {
-  if (typeof window === 'undefined') return process.env.NEXT_PUBLIC_API_URL || ''
-  const host = window.location.hostname
-  if (host.endsWith('.brickos.io')) return ''
-  if (host.endsWith('.sovereignhealth.io')) return ''
-  if (host.endsWith('.onion')) return ''
-  return process.env.NEXT_PUBLIC_API_URL || ''
-})()
+// Sprint 049 #049-24 (ADR-053): use the shared API base helper.
+import { API_BASE as API } from '@/lib/api'
 
 interface ContactEntry {
   id: string

@@ -1,0 +1,123 @@
+{
+  "__comment": "Sprint 049 #049-31: audit_log row count growth + retention/size monitoring. Sprint 048 impersonation writes 1 row per read -- projections on real clinic usage may have been conservative. Alert at 80% of 90-day retention window estimate.",
+  "title": "SHI audit log growth",
+  "uid": "sprint-049-audit-log-growth",
+  "tags": ["shi", "sprint-049", "audit"],
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "5m",
+  "time": { "from": "now-7d", "to": "now" },
+  "panels": [
+    {
+      "id": 1,
+      "type": "timeseries",
+      "title": "audit_log rows per hour (last 7 days)",
+      "datasource": { "type": "postgres", "uid": "postgres-prod" },
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 0 },
+      "targets": [
+        {
+          "refId": "A",
+          "format": "time_series",
+          "rawSql": "SELECT date_trunc('hour', created_at) AS time, COUNT(*) AS rows FROM audit_log WHERE created_at > NOW() - INTERVAL '7 days' GROUP BY 1 ORDER BY 1"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "short" } }
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Total rows (all time)",
+      "datasource": { "type": "postgres", "uid": "postgres-prod" },
+      "gridPos": { "h": 6, "w": 6, "x": 0, "y": 10 },
+      "targets": [
+        {
+          "refId": "A",
+          "format": "table",
+          "rawSql": "SELECT COUNT(*) AS total FROM audit_log"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "short" } }
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Rows added last 24h",
+      "datasource": { "type": "postgres", "uid": "postgres-prod" },
+      "gridPos": { "h": 6, "w": 6, "x": 6, "y": 10 },
+      "targets": [
+        {
+          "refId": "A",
+          "format": "table",
+          "rawSql": "SELECT COUNT(*) AS rows_24h FROM audit_log WHERE created_at > NOW() - INTERVAL '24 hours'"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "short" } }
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Days since first row",
+      "datasource": { "type": "postgres", "uid": "postgres-prod" },
+      "gridPos": { "h": 6, "w": 6, "x": 12, "y": 10 },
+      "targets": [
+        {
+          "refId": "A",
+          "format": "table",
+          "rawSql": "SELECT EXTRACT(DAY FROM NOW() - MIN(created_at)) AS days FROM audit_log"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "d" } }
+    },
+    {
+      "id": 5,
+      "type": "stat",
+      "title": "Approx table size (MB)",
+      "datasource": { "type": "postgres", "uid": "postgres-prod" },
+      "gridPos": { "h": 6, "w": 6, "x": 18, "y": 10 },
+      "targets": [
+        {
+          "refId": "A",
+          "format": "table",
+          "rawSql": "SELECT pg_total_relation_size('audit_log') / 1024.0 / 1024.0 AS mb"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "decmbytes",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 512 },
+              { "color": "red", "value": 2048 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "Impersonation action breakdown (last 7d)",
+      "description": "What's driving the audit_log volume. If impersonation.read:* dominates, the 30-min session limit is doing what it should; if impersonation.blocked_* dominates, a practitioner is running into the scope gate repeatedly.",
+      "datasource": { "type": "postgres", "uid": "postgres-prod" },
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 16 },
+      "targets": [
+        {
+          "refId": "A",
+          "format": "time_series",
+          "rawSql": "SELECT date_trunc('hour', created_at) AS time, action, COUNT(*) AS rows FROM audit_log WHERE action LIKE 'impersonation.%' AND created_at > NOW() - INTERVAL '7 days' GROUP BY 1, 2 ORDER BY 1"
+        }
+      ]
+    }
+  ],
+  "__runbook": [
+    "1. Import into Grafana as a new dashboard.",
+    "2. Retention: audit_log is retained 90 days by default (see admin_settings table).",
+    "3. Alerts to configure on top of this dashboard:",
+    "   - Size panel > 2GB -> warn (raises question of retention shortening OR partitioning).",
+    "   - Rows/24h > 10x the 7-day median -> investigate (scraping? runaway impersonation session?).",
+    "   - impersonation.blocked_write/out_of_scope > 100/day for any single user -> signal that the UX is confusing them."
+  ]
+}

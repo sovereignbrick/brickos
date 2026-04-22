@@ -1,0 +1,95 @@
+{
+  "__comment": "Sprint 049 #049-30 (ADR-052 follow-up): panel tracks the latency of the impersonation_sessions UPDATE that runs on every authed request from a practitioner. If p50 climbs above 5ms sustained, we should consider the 5-second in-memory cache described in ADR-052. Import into Grafana via Dashboard -> Import -> paste this JSON.",
+  "__datasource": "postgres-prod (adjust UID to match your datasource)",
+  "title": "SHI impersonation UPDATE latency",
+  "uid": "sprint-049-impersonation-latency",
+  "tags": ["shi", "sprint-049", "adr-052"],
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "1m",
+  "time": { "from": "now-6h", "to": "now" },
+  "panels": [
+    {
+      "id": 1,
+      "type": "timeseries",
+      "title": "p50 / p95 UPDATE latency (ms)",
+      "description": "Latency of the resolve_impersonation UPDATE (auth middleware hot path). Enable auto_explain in Postgres OR use pg_stat_statements, whichever is available. Query below uses pg_stat_statements.",
+      "datasource": { "type": "postgres", "uid": "postgres-prod" },
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 0 },
+      "targets": [
+        {
+          "refId": "A",
+          "format": "time_series",
+          "rawSql": "SELECT now() AS time, (total_exec_time / NULLIF(calls, 0)) AS avg_ms, (stddev_exec_time) AS stddev_ms, calls FROM pg_stat_statements WHERE query LIKE '%UPDATE impersonation_sessions%' ORDER BY 1 DESC LIMIT 1"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "ms" },
+        "overrides": []
+      }
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Rolling window: p95 last 1h",
+      "description": "If this stays > 5ms for 15+ min, consider the ADR-052 cache.",
+      "datasource": { "type": "postgres", "uid": "postgres-prod" },
+      "gridPos": { "h": 6, "w": 8, "x": 0, "y": 10 },
+      "targets": [
+        {
+          "refId": "A",
+          "format": "table",
+          "rawSql": "SELECT (mean_exec_time + 2 * stddev_exec_time) AS p95_ms FROM pg_stat_statements WHERE query LIKE '%UPDATE impersonation_sessions%'"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 5 },
+              { "color": "red", "value": 25 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Active impersonation sessions (now)",
+      "datasource": { "type": "postgres", "uid": "postgres-prod" },
+      "gridPos": { "h": 6, "w": 8, "x": 8, "y": 10 },
+      "targets": [
+        {
+          "refId": "A",
+          "format": "table",
+          "rawSql": "SELECT COUNT(*) AS active FROM impersonation_sessions WHERE ended_at IS NULL AND last_seen_at > NOW() - INTERVAL '30 minutes'"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Sessions ended last 24h",
+      "datasource": { "type": "postgres", "uid": "postgres-prod" },
+      "gridPos": { "h": 6, "w": 8, "x": 16, "y": 10 },
+      "targets": [
+        {
+          "refId": "A",
+          "format": "table",
+          "rawSql": "SELECT COUNT(*) AS ended_24h FROM impersonation_sessions WHERE ended_at > NOW() - INTERVAL '24 hours'"
+        }
+      ]
+    }
+  ],
+  "__runbook": [
+    "1. Import this JSON into Grafana: Dashboard -> Import -> paste -> pick your Postgres datasource -> Import.",
+    "2. If pg_stat_statements isn't enabled: ALTER SYSTEM SET shared_preload_libraries = 'pg_stat_statements'; restart Postgres; CREATE EXTENSION pg_stat_statements;",
+    "3. If p95 > 5ms for 15+ consecutive minutes, escalate per ADR-052: consider the 5-second in-memory cache on the impersonation UPDATE path.",
+    "4. If active sessions > 50 simultaneously, validate the backend is coping -- cache becomes higher priority."
+  ]
+}

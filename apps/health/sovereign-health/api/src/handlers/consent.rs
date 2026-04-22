@@ -206,3 +206,98 @@ pub async fn revoke_consent(
         "error": null
     })))
 }
+
+// ── Sprint 049 #049-22 (Sprint 048 carry-over #048-34) ───────────────────
+// Bulk consent reminder email for an org's pending patients.
+//
+// An org admin clicks "Email all pending patients" in the members page.
+// The backend enumerates org members without a granted consent row and
+// sends each a reminder email with the /settings/organization-access
+// deep link. Rate-limited by the governor scope on /org-settings/*.
+
+use brickos_email::EmailProvider;
+use std::sync::Arc;
+
+/// POST /org-settings/consent-reminders
+///
+/// Requires org_owner or practitioner role. Returns the number of
+/// reminders dispatched. No body needed; the caller's auth determines
+/// the org scope via X-Org-Domain / AuthenticatedUser.
+pub async fn bulk_consent_reminder(
+    pool: web::Data<PgPool>,
+    email_provider: web::Data<Arc<dyn EmailProvider>>,
+    config: web::Data<crate::config::Config>,
+    auth: AuthenticatedUser,
+) -> Result<HttpResponse, AppError> {
+    let org_id = auth.org_id.ok_or(AppError::Forbidden)?;
+    let org_role = auth.org_role.as_deref().unwrap_or("");
+    if !matches!(org_role, "org_owner" | "practitioner") && auth.role != "admin" {
+        return Err(AppError::Forbidden);
+    }
+
+    // Pending = org_members with role='member' AND no live consent row.
+    let rows = sqlx::query(
+        r#"
+        SELECT u.id AS user_id, u.email, u.display_name, o.name AS org_name
+          FROM org_members om
+          JOIN users u ON u.id = om.user_id
+          JOIN organizations o ON o.id = om.org_id
+         WHERE om.org_id = $1
+           AND om.role = 'member'
+           AND NOT EXISTS (
+               SELECT 1 FROM patient_consents pc
+                WHERE pc.patient_user_id = u.id
+                  AND pc.org_id = om.org_id
+                  AND pc.revoked_at IS NULL
+           )
+         LIMIT 500
+        "#,
+    )
+    .bind(org_id)
+    .fetch_all(pool.get_ref())
+    .await?;
+
+    let total = rows.len();
+    let frontend_url = config.frontend_url.clone();
+    let provider = email_provider.get_ref().clone();
+
+    let mut sent = 0usize;
+    for row in rows {
+        let to_addr: String = row.try_get("email").unwrap_or_default();
+        let org_name: String = row.try_get("org_name").unwrap_or_else(|_| "your clinic".to_string());
+        let settings_url = format!("{frontend_url}/settings?tab=organization-access");
+
+        let subject = format!("Reminder: {org_name} needs your consent");
+        let html = format!(
+            r#"<p>Hello,</p>
+            <p>{org_name} can only view your health data once you grant consent. You can enable or disable access at any time from your Settings.</p>
+            <p><a href="{settings_url}">Open consent settings</a></p>"#
+        );
+        let text = format!(
+            "Hello,\n\n{org_name} can only view your health data once you grant consent. Manage it here: {settings_url}\n"
+        );
+
+        if provider.send(&to_addr, &subject, &html, &text).await.is_ok() {
+            sent += 1;
+        }
+    }
+
+    // Audit the bulk action (fire-and-forget).
+    let actor_id = auth.principal_id();
+    let pool_inner = pool.get_ref().clone();
+    tokio::spawn(async move {
+        let _ = sqlx::query(
+            "INSERT INTO audit_log (user_id, org_id, action, resource_type, metadata, app_key) VALUES ($1, $2, 'org_consent.bulk_reminder', 'org', $3, 'shi')",
+        )
+        .bind(actor_id)
+        .bind(org_id)
+        .bind(serde_json::json!({ "total": total, "sent": sent }))
+        .execute(&pool_inner)
+        .await;
+    });
+
+    Ok(HttpResponse::Ok().json(json!({
+        "data": { "org_id": org_id, "total": total, "sent": sent },
+        "error": null
+    })))
+}
