@@ -70,6 +70,15 @@ const API_BASE = (() => {
 })()
 
 function getToken(): string | undefined {
+  // Sprint 049 #049-05 (Design 029 §8.4): eval.sovereignhealth.io shares
+  // the .sovereignhealth.io parent domain with app.* and {slug}.*. A
+  // user who authed on app.sovereignhealth.io will have an auth_token
+  // cookie visible to eval.* too. We explicitly ignore it so the eval
+  // surface stays strictly unauth + read-only regardless of cookie
+  // state carried over from a sibling host.
+  if (typeof window !== 'undefined' && window.location.hostname === APP_CONFIG.evalHost) {
+    return undefined
+  }
   return Cookies.get('auth_token')
 }
 
@@ -129,7 +138,13 @@ async function request<T>(
   // call. Backend scope-gate middleware enforces read-only + hard-
   // excluded paths when this header is present; see
   // middleware/impersonation.rs.
-  const impersonationToken = typeof window !== 'undefined'
+  //
+  // Sprint 049 #049-05: also ignore on eval.sovereignhealth.io -- cookie
+  // leakage from sibling .sovereignhealth.io hosts would give an unauth
+  // eval visitor an impersonation session. Eval is strictly unauth.
+  const isEvalHost = typeof window !== 'undefined'
+    && window.location.hostname === APP_CONFIG.evalHost
+  const impersonationToken = typeof window !== 'undefined' && !isEvalHost
     ? Cookies.get('impersonation_session')
     : undefined
   if (impersonationToken) {

@@ -29,20 +29,21 @@ function isPublicPath(pathname: string): boolean {
 
 export function AuthGate() {
   const pathname = usePathname()
-  const { user, loading, isDemoOnly } = useAuth()
+  const { user, loading, isDemoOnly, isEvalHost } = useAuth()
   const router = useRouter()
 
   useEffect(() => {
     if (loading) return
     if (user) return
-    // public-demo host: unauthed is fine (the whole site is demo mode).
-    if (isDemoOnly) return
+    // Public demo hosts: unauthed is fine (the whole site is demo mode).
+    // Sprint 049 #049-04: `isEvalHost` added for eval.sovereignhealth.io.
+    if (isDemoOnly || isEvalHost) return
     const path = pathname ?? '/'
     if (isPublicPath(path)) return
-    // Not authed, not on the demo host, not on a public path -> /login.
+    // Not authed, not on a demo host, not on a public path -> /login.
     const returnUrl = encodeURIComponent(path)
     router.replace(`/login?return=${returnUrl}`)
-  }, [loading, user, isDemoOnly, pathname, router])
+  }, [loading, user, isDemoOnly, isEvalHost, pathname, router])
 
   return null
 }

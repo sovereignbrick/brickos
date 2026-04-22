@@ -79,7 +79,16 @@ export function isEndUserOnlyPath(path: string): boolean {
 export function swapPlaneHost(host: string, target: Plane): string | null {
   // Demo hosts are single-plane by design. No sibling exists on the
   // other plane that shares the same environment (staging vs prod).
-  if (host === 'demo.brickos.io' || host === 'demo.sovereignhealth.io') {
+  //
+  // Sprint 049 #049-08 (Design 029 v0.3): eval.sovereignhealth.io is
+  // a single-plane anonymous-demo surface. No admin-plane counterpart
+  // exists. Sign-up from eval uses a hardcoded cross-plane link to
+  // app.sovereignhealth.io/signup, not via this function.
+  if (
+    host === 'demo.brickos.io' ||
+    host === 'demo.sovereignhealth.io' ||
+    host === 'eval.sovereignhealth.io'
+  ) {
     return null
   }
 

@@ -13,6 +13,10 @@ export const APP_CONFIG = {
   appUrl: process.env.NEXT_PUBLIC_APP_URL || 'https://app.brickos.io',
   websiteUrl: process.env.NEXT_PUBLIC_WEBSITE_URL || 'https://sovereignhealth.io',
   demoHostname: process.env.NEXT_PUBLIC_DEMO_HOSTNAME || 'demo.sovereignhealth.io',
+  // Sprint 049 #049-03 (Design 029 v0.3): dedicated public anonymous demo
+  // surface. Unauth visitors here see the 3 risk-profile picker + read-only
+  // app. Separate from demo.sovereignhealth.io (staging RC Basic-auth host).
+  evalHost: process.env.NEXT_PUBLIC_EVAL_HOST || 'eval.sovereignhealth.io',
   githubUrl: process.env.NEXT_PUBLIC_GITHUB_URL || 'https://github.com/sovereignbrick/brickos',
 
   // Session

@@ -1800,6 +1800,20 @@
     "blockedDoctorChatBody": "Der Chat mit Dr. Alex ist privat für den Patienten. Beenden Sie die Lesesitzung, um Ihren eigenen Chat zu nutzen.",
     "backToCaseload": "Zurück zur Patientenliste"
   },
+  "demoSurface": {
+    "banner": {
+      "title": "Demodaten",
+      "subtitle": "Kostenlos registrieren, um eigene Messungen zu speichern.",
+      "signUp": "Registrieren",
+      "login": "Anmelden"
+    },
+    "badge": "Demodaten",
+    "landing": {
+      "heading": "Testen Sie Sovereign Health Intelligence",
+      "subheading": "Wählen Sie ein Profil, um echte Daten zu erkunden.",
+      "loginLink": "Schon registriert? Anmelden"
+    }
+  },
   "graceBanner": {
     "title": "Ihre Zahlung ist fehlgeschlagen",
     "messageDays": "Sie haben noch {days} Tage, bevor Sie auf Glimpse herabgestuft werden.",

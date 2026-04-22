@@ -11,11 +11,20 @@ function checkDemoOnly(): boolean {
   return window.location.hostname === APP_CONFIG.demoHostname
 }
 
+// Sprint 049 #049-03 (Design 029 v0.3): the dedicated public-demo host.
+// Unauth visitors here see the 3-profile picker + read-only app.
+// Distinct from `demoHostname` which remained a staging RC host.
+function checkEvalHost(): boolean {
+  if (typeof window === 'undefined') return false
+  return window.location.hostname === APP_CONFIG.evalHost
+}
+
 interface AuthContextType {
   user: User | null
   loading: boolean
   isDemo: boolean
   isDemoOnly: boolean
+  isEvalHost: boolean
   setUser: (user: User | null) => void
   refreshUser: () => void
   logout: () => void
@@ -27,6 +36,7 @@ const AuthContext = createContext<AuthContextType>({
   loading: true,
   isDemo: false,
   isDemoOnly: false,
+  isEvalHost: false,
   setUser: () => {},
   refreshUser: () => {},
   logout: () => {},
@@ -37,6 +47,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const [isDemoOnly] = useState(checkDemoOnly)
+  const [isEvalHost] = useState(checkEvalHost)
   // Grace period after login to suppress spurious session-expired events
   // that fire before the new token is fully established across API calls.
   const loginTimestamp = useRef<number>(0)
@@ -49,15 +60,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const refreshUser = useCallback(() => {
-    if (isDemoOnly || !Cookies.get('auth_token')) return
+    // Skip auth fetch on demo hosts (legacy demo.* and new eval.*).
+    if (isDemoOnly || isEvalHost || !Cookies.get('auth_token')) return
     api.auth.me()
       .then(res => setUserWithTracking(res.data))
       .catch(() => {})
-  }, [isDemoOnly, setUserWithTracking])
+  }, [isDemoOnly, isEvalHost, setUserWithTracking])
 
   useEffect(() => {
-    // On demo.sovereignhealth.io or when no token exists, skip auth
-    if (isDemoOnly || !Cookies.get('auth_token')) {
+    // On public demo hosts or when no token exists, skip auth.
+    if (isDemoOnly || isEvalHost || !Cookies.get('auth_token')) {
       setLoading(false)
       return
     }
@@ -65,7 +77,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .then(res => setUserWithTracking(res.data))
       .catch(() => setUser(null))
       .finally(() => setLoading(false))
-  }, [isDemoOnly, setUserWithTracking])
+  }, [isDemoOnly, isEvalHost, setUserWithTracking])
 
   // Re-fetch user profile on window focus to pick up tier/license changes
   const lastRefresh = useRef(Date.now())
@@ -104,19 +116,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener('session-expired', handler)
   }, [handleSessionExpired])
 
-  // Sprint 047 RC fix 2026-04-20: demo mode is ONLY triggered on the
-  // dedicated public-demo hostname (NEXT_PUBLIC_DEMO_HOSTNAME -- staging
-  // uses public-demo.sovereignhealth.io, prod defaults to
-  // demo.sovereignhealth.io). Previously "user === null OR isDemoOnly"
-  // turned every unauthenticated visit on every host into a public
-  // demo session, which leaked demo data on staging (demo.sovereignhealth.io)
-  // and admin subdomains. Now: you see demo mode IFF you're on the
-  // demo host AND not signed in. Unauthed users elsewhere get redirected
-  // to /login by <AuthGate />.
-  const isDemo = !loading && isDemoOnly && user === null
+  // Sprint 049 (Design 029 v0.3): demo mode is active on either
+  // isDemoOnly (legacy `demoHostname`, may be sunset) OR isEvalHost
+  // (new `eval.sovereignhealth.io`), AND the visitor is not signed in.
+  // On `isEvalHost` we never set an auth cookie, so `user` stays null
+  // and demo mode stays active throughout the session.
+  //
+  // Everywhere else (authed app, org subdomains, admin plane),
+  // <AuthGate> redirects unauthed visitors to /login, so `isDemo` is
+  // false there -- even for unauth visits.
+  const isDemo = !loading && (isDemoOnly || isEvalHost) && user === null
 
   return (
-    <AuthContext.Provider value={{ user, loading, isDemo, isDemoOnly, setUser: setUserWithTracking, refreshUser, logout, handleSessionExpired }}>
+    <AuthContext.Provider value={{ user, loading, isDemo, isDemoOnly, isEvalHost, setUser: setUserWithTracking, refreshUser, logout, handleSessionExpired }}>
       {children}
     </AuthContext.Provider>
   )

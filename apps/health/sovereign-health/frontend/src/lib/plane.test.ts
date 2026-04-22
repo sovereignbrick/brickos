@@ -89,6 +89,14 @@ describe('swapPlaneHost', () => {
     expect(swapPlaneHost('demo.brickos.io', 'end-user')).toBeNull()
     expect(swapPlaneHost('demo.sovereignhealth.io', 'admin')).toBeNull()
   })
+
+  it('returns null for eval.sovereignhealth.io (single-plane anonymous demo)', () => {
+    // Sprint 049 #049-08 (Design 029 v0.3): eval.* is the anonymous demo
+    // surface; no admin-plane sibling. Sign-up from eval uses a
+    // hardcoded cross-plane link, not this function.
+    expect(swapPlaneHost('eval.sovereignhealth.io', 'admin')).toBeNull()
+    expect(swapPlaneHost('eval.sovereignhealth.io', 'end-user')).toBeNull()
+  })
 })
 
 describe('planeRedirectTarget', () => {
