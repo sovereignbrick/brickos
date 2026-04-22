@@ -154,3 +154,54 @@ async fn test_practitioner_requires_auth() {
         resp.status()
     );
 }
+
+// Sprint 049 #049-12 (Design 029 v0.3): /demo/* is publicly reachable
+// from eval.sovereignhealth.io without auth. Write verbs (POST, PUT,
+// DELETE, PATCH) must never be registered under this prefix -- an
+// unauth visitor could mutate demo data otherwise. Runtime assertion:
+// each write verb on known /demo/* paths must return 404 or 405, NEVER
+// 200/201/204.
+#[actix_web::test]
+async fn test_demo_namespace_has_no_write_handlers() {
+    let app = test::init_service(App::new().configure(configure_routes)).await;
+
+    // Exhaustive list of write verbs actix-web can route.
+    let write_verbs = [
+        ("POST", "/demo/zones"),
+        ("POST", "/demo/measurements"),
+        ("POST", "/demo/markers/iron"),
+        ("POST", "/demo/trends/glucose"),
+        ("PUT", "/demo/zones"),
+        ("PUT", "/demo/measurements"),
+        ("DELETE", "/demo/zones"),
+        ("DELETE", "/demo/measurements"),
+        ("DELETE", "/demo/markers/iron"),
+        ("PATCH", "/demo/zones"),
+        ("PATCH", "/demo/measurements"),
+    ];
+
+    // Governor rate-limit needs a peer IP; provide a loopback so the
+    // request even reaches routing. (Without this the governor returns
+    // 500 "Could not extract peer IP address" and the test spuriously
+    // fails.)
+    let peer = "127.0.0.1:12345".parse().unwrap();
+
+    for (method, path) in write_verbs {
+        let req = match method {
+            "POST" => test::TestRequest::post().uri(path).peer_addr(peer).to_request(),
+            "PUT" => test::TestRequest::put().uri(path).peer_addr(peer).to_request(),
+            "DELETE" => test::TestRequest::delete().uri(path).peer_addr(peer).to_request(),
+            "PATCH" => test::TestRequest::patch().uri(path).peer_addr(peer).to_request(),
+            _ => unreachable!(),
+        };
+        let resp: ServiceResponse = test::call_service(&app, req).await;
+        let status = resp.status().as_u16();
+        assert!(
+            status == 404 || status == 405,
+            "{} {} registered a handler (returned {}); /demo/* MUST be read-only.",
+            method,
+            path,
+            status
+        );
+    }
+}
