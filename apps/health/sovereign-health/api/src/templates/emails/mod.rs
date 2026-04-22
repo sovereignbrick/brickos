@@ -1570,12 +1570,16 @@ mod tests {
     #[test]
     fn test_logo_present() {
         let tmpl = verification();
-        let mut vars = HashMap::new();
+        // Sprint 044 #551: the SHI wrapper uses {{org_logo_url}} +
+        // {{org_name}}; include the default SHI branding vars so the
+        // wrapped HTML has a real logo URL rather than an unsubstituted
+        // placeholder.
+        let mut vars = default_email_vars();
         vars.insert("verification_url", "https://example.com/verify".to_string());
         vars.insert("subject", "Verify".to_string());
         let (_, html, _) = render_template(&tmpl, &vars);
         assert!(html.contains("logo.png"));
-        assert!(html.contains("alt=\"Sovereign Health\""));
+        assert!(html.contains("alt=\"Sovereign Health Intelligence\""));
     }
 
     #[test]

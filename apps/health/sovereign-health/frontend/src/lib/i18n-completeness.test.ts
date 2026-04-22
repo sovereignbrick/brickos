@@ -155,3 +155,61 @@ describe('i18n: structure depth matches', () => {
     expect(enSections).toEqual(deSections)
   })
 })
+
+// Sprint 050 #050-B2: pin the Sprint 048+049 keys so a future refactor
+// doesn't silently drop them. These keys are user-visible and critical
+// to the eval + consent + bulk-reminder flows; losing them = silent
+// UX regression with no test signal.
+describe('i18n: Sprint 048+049 keys present in both locales', () => {
+  const criticalKeys = [
+    // Sprint 048 #048-17 consent
+    'organizationAccess.title',
+    'organizationAccess.intro',
+    'organizationAccess.toggleOn',
+    'organizationAccess.toggleOff',
+    'organizationAccess.revokeConfirmTitle',
+    'organizationAccess.revokeConfirmButton',
+    // Sprint 048 impersonation
+    'impersonation.viewingAs',
+    'impersonation.readOnly',
+    'impersonation.exit',
+    'impersonation.blockedDoctorChatTitle',
+    'impersonation.blockedDoctorChatBody',
+    'impersonation.backToCaseload',
+    // Sprint 048 data access log
+    'dataAccessLog.title',
+    'dataAccessLog.intro',
+    'dataAccessLog.empty',
+    // Sprint 048 consent dashboard
+    'platform.orgDetail.consent',
+    'platform.orgDetail.consentGranted',
+    'platform.orgDetail.consentRevoked',
+    'platform.orgDetail.consentPending',
+    // Sprint 049 demo surface
+    'demoSurface.banner.title',
+    'demoSurface.banner.subtitle',
+    'demoSurface.banner.signUp',
+    'demoSurface.banner.login',
+    'demoSurface.badge',
+    'demoSurface.landing.heading',
+    'demoSurface.landing.subheading',
+    // Sprint 049 bulk consent reminder
+    'orgMembers.bulkReminderButton',
+    'orgMembers.bulkReminderConfirm',
+    'orgMembers.bulkReminderSent',
+    'orgMembers.bulkReminderFailed',
+  ]
+
+  for (const key of criticalKeys) {
+    test(`${key} exists in en`, () => {
+      const v = getAtPath(en as NestedObject, key)
+      expect(v, `missing en key: ${key}`).toBeDefined()
+      expect(typeof v).toBe('string')
+    })
+    test(`${key} exists in de`, () => {
+      const v = getAtPath(de as NestedObject, key)
+      expect(v, `missing de key: ${key}`).toBeDefined()
+      expect(typeof v).toBe('string')
+    })
+  }
+})

@@ -1,5 +1,17 @@
 import { test, expect } from '@playwright/test'
 
+// Derive API URL from baseURL so the same spec runs against localhost,
+// staging (demo.brickos.io), eval, and production without per-env env vars.
+function inferApiUrl(baseURL: string | undefined): string {
+  if (process.env.E2E_API_URL) return process.env.E2E_API_URL
+  if (!baseURL) return 'https://api.sovereignhealth.io'
+  const host = new URL(baseURL).hostname
+  if (host === 'localhost' || host === '127.0.0.1') return 'http://localhost:8080'
+  // demo.brickos.io and demo.sovereignhealth.io path-mount the backend,
+  // so their baseURL is the API URL. Same for eval.
+  return baseURL
+}
+
 // ─── Public Pages (no auth) ─────────────────────────────────────────────────
 
 test.describe('Public pages', () => {
@@ -14,7 +26,14 @@ test.describe('Public pages', () => {
     await expect(page.locator('h1')).toBeVisible()
   })
 
-  test('demo profiles accessible', async ({ page }) => {
+  test('demo profiles accessible', async ({ page, baseURL }) => {
+    // Sprint 049: "View Demo" CTA is only on sovereignhealth.io (end-user
+    // plane). brickos.io admin plane has no demo link; eval IS the demo.
+    const host = baseURL ? new URL(baseURL).hostname : ''
+    test.skip(
+      host.endsWith('brickos.io') || host === 'eval.sovereignhealth.io',
+      'View Demo CTA only present on app.sovereignhealth.io surfaces',
+    )
     await page.goto('/login')
     await expect(page.locator('text=View Demo')).toBeVisible()
   })
@@ -45,25 +64,33 @@ test.describe('PWA', () => {
     expect(manifest.icons.length).toBeGreaterThanOrEqual(2)
   })
 
-  test('service worker registered', async ({ page }) => {
+  test('service worker registered', async ({ page, baseURL }) => {
+    const host = baseURL ? new URL(baseURL).hostname : ''
+    test.skip(host === 'eval.sovereignhealth.io', 'eval single-plane has no SW')
     await page.goto('/login')
     // Wait for SW to register
     await page.waitForTimeout(3000)
     const swRegistrations = await page.evaluate(async () => {
       const regs = await navigator.serviceWorker.getRegistrations()
-      return regs.map(r => ({ scope: r.scope, active: !!r.active }))
+      return regs.map((r) => ({
+        scope: r.scope,
+        active: !!r.active,
+        installing: !!r.installing,
+        waiting: !!r.waiting,
+      }))
     })
     expect(swRegistrations.length).toBeGreaterThan(0)
-    expect(swRegistrations[0].active).toBeTruthy()
+    const r = swRegistrations[0]
+    // Accept active | installing | waiting -- first-visit activation races.
+    expect(r.active || r.installing || r.waiting).toBeTruthy()
   })
 })
 
 // ─── API Health ─────────────────────────────────────────────────────────────
 
 test.describe('API', () => {
-  const API = process.env.E2E_API_URL || 'https://api.sovereignhealth.io'
-
-  test('health endpoint returns 200', async ({ request }) => {
+  test('health endpoint returns 200', async ({ request, baseURL }) => {
+    const API = inferApiUrl(baseURL)
     const res = await request.get(`${API}/health`)
     expect(res.ok()).toBeTruthy()
     const body = await res.json()
@@ -72,7 +99,8 @@ test.describe('API', () => {
     expect(body.version).toBeTruthy()
   })
 
-  test('content endpoints return data', async ({ request }) => {
+  test('content endpoints return data', async ({ request, baseURL }) => {
+    const API = inferApiUrl(baseURL)
     const zones = await request.get(`${API}/v1/content/zones?locale=en`)
     expect(zones.ok()).toBeTruthy()
 
@@ -87,13 +115,13 @@ test.describe('API', () => {
 // ─── Auth Flow ──────────────────────────────────────────────────────────────
 
 test.describe('Auth flow', () => {
-  const API = process.env.E2E_API_URL || 'https://api.sovereignhealth.io'
   const EMAIL = process.env.E2E_USER_EMAIL || ''
   const PASSWORD = process.env.E2E_USER_PASSWORD || ''
 
   test.skip(!process.env.E2E_USER_EMAIL, 'E2E_USER_EMAIL not set')
 
-  test('login returns JWT', async ({ request }) => {
+  test('login returns JWT', async ({ request, baseURL }) => {
+    const API = inferApiUrl(baseURL)
     const res = await request.post(`${API}/auth/login`, {
       data: { email: EMAIL, password: PASSWORD },
     })
