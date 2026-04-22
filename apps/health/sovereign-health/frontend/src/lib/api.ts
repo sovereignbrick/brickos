@@ -263,7 +263,7 @@ export type { SearchResult, SearchResponse, SuggestResponse }
 
 export const api = {
   auth: {
-    signup: (body: { email: string; password: string; display_name?: string; tos_accepted: boolean; referred_by?: string; locale?: string; consent_newsletter?: boolean; consent_product_updates?: boolean; country?: string }, opts?: { invite?: string }) =>
+    signup: (body: { email: string; password: string; display_name?: string; tos_accepted: boolean; referred_by?: string; locale?: string; consent_newsletter?: boolean; consent_product_updates?: boolean; country?: string; signup_source?: string }, opts?: { invite?: string }) =>
       request<{ data: { message: string } | { user: import('./types').User; token: string; refresh_token: string } }>(
         opts?.invite ? `/auth/signup?invite=${encodeURIComponent(opts.invite)}` : '/auth/signup',
         { method: 'POST', body: JSON.stringify(body) }
