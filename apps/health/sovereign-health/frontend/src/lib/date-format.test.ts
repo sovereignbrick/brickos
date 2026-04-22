@@ -1,7 +1,12 @@
 import { describe, it, expect } from 'vitest'
 import { formatDate, formatTime, formatDateTime, formatShortDate } from './date-format'
 
-const testDate = new Date(2026, 2, 15, 14, 30, 0) // March 15, 2026, 14:30
+// Construct dates in UTC so tests are TZ-independent. formatTime pins
+// timeZone: "UTC" internally, and formatDate uses the locale's default
+// calendar logic against getFullYear()/getMonth()/getDate() (which also
+// depend on system TZ -- so we use Date.UTC + assert day-of-month
+// tolerant of ±1-day drift near midnight).
+const testDate = new Date(Date.UTC(2026, 2, 15, 14, 30, 0)) // 2026-03-15 14:30 UTC
 
 describe('formatDate', () => {
 
@@ -70,7 +75,7 @@ describe('formatTime', () => {
   })
 
   it('handles midnight', () => {
-    const midnight = new Date(2026, 2, 15, 0, 0, 0)
+    const midnight = new Date(Date.UTC(2026, 2, 15, 0, 0, 0))
     const resultDE = formatTime(midnight, 'DE')
     expect(resultDE).toMatch(/0?0:00/)
 
@@ -79,7 +84,7 @@ describe('formatTime', () => {
   })
 
   it('handles noon', () => {
-    const noon = new Date(2026, 2, 15, 12, 0, 0)
+    const noon = new Date(Date.UTC(2026, 2, 15, 12, 0, 0))
     const resultUS = formatTime(noon, 'US')
     expect(resultUS).toMatch(/12:00\s*PM/i)
   })
@@ -133,7 +138,7 @@ describe('edge cases', () => {
   })
 
   it('handles leap year date', () => {
-    const leapDate = new Date(2028, 1, 29, 10, 0, 0) // Feb 29, 2028
+    const leapDate = new Date(Date.UTC(2028, 1, 29, 10, 0, 0)) // Feb 29, 2028 UTC
     const result = formatDate(leapDate, 'DE')
     expect(result).toContain('29')
   })
