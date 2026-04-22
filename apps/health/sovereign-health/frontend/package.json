@@ -7,9 +7,9 @@
     "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage",
+    "test": "TZ=Europe/Berlin vitest run",
+    "test:watch": "TZ=Europe/Berlin vitest",
+    "test:coverage": "TZ=Europe/Berlin vitest run --coverage",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui"
   },

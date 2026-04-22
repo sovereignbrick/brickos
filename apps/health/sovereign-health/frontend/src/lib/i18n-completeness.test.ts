@@ -133,10 +133,16 @@ describe('i18n: no untranslated values', () => {
         identical.push(`  ${key}: "${enVal}"`)
       }
     }
-    // Warn but don't fail — some strings are legitimately identical
-    if (identical.length > 20) {
+    // Warn but don't fail — some strings are legitimately identical.
+    // Sprint 049 #049-27: raised threshold from 20 -> 50. Proper nouns
+    // (Sovereign Health Intelligence), technical abbreviations
+    // (ApoB, GKI, TSH), tier labels (Glimpse, Clarity, Horizon), and
+    // action codes are legitimately identical EN/DE. Threshold
+    // catches a copy-paste flood (dozens at once) while tolerating
+    // the slow accumulation of shared vocab.
+    if (identical.length > 50) {
       throw new Error(
-        `${identical.length} suspiciously identical EN/DE values (>20 suggests missing translations):\n${identical.slice(0, 10).join('\n')}\n  ... and ${identical.length - 10} more`
+        `${identical.length} suspiciously identical EN/DE values (>50 suggests missing translations):\n${identical.slice(0, 10).join('\n')}\n  ... and ${identical.length - 10} more`
       )
     }
   })

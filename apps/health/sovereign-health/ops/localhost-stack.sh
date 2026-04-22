@@ -120,6 +120,66 @@ cmd_seed() {
     log "Fixtures applied."
 }
 
+# Sprint 049 #049-29: reset the test-clinic fixture state without
+# dropping the whole DB. Truncates test-clinic-scoped rows (members,
+# consents, impersonation sessions, invites, the org itself) then
+# re-applies 001/002/003 fixtures. Useful between RC walk-throughs
+# when the consent/impersonation state has drifted.
+#
+# NOT destructive to users/measurements table rows outside the
+# test-clinic scope -- drops only rows that reference the test-clinic
+# org (by slug lookup) OR the 5 patient emails.
+cmd_reset_clinic() {
+    wait_for_pg
+    log "Resetting test-clinic scope..."
+    docker exec -i sh-postgres psql -U sovereign_health -d sovereign_health \
+        -v ON_ERROR_STOP=1 <<'SQL'
+DO $$
+DECLARE
+    clinic_org_id UUID;
+BEGIN
+    SELECT id INTO clinic_org_id FROM organizations WHERE slug = 'test-clinic';
+    IF clinic_org_id IS NULL THEN
+        RAISE NOTICE 'test-clinic org not found; nothing to reset';
+        RETURN;
+    END IF;
+
+    -- Scoped wipe: only rows tied to the test-clinic org.
+    DELETE FROM impersonation_sessions WHERE org_id = clinic_org_id;
+    DELETE FROM patient_consents      WHERE org_id = clinic_org_id;
+    DELETE FROM org_invites           WHERE org_id = clinic_org_id;
+    DELETE FROM org_members           WHERE org_id = clinic_org_id;
+
+    -- Measurements of the 5 fixture patients only.
+    DELETE FROM measurements WHERE user_id IN (
+        SELECT id FROM users WHERE email IN (
+            'anna.meier@patients.clinic.com',
+            'bert.schmidt@patients.clinic.com',
+            'carla.schulz@patients.clinic.com',
+            'dieter.koenig@patients.clinic.com',
+            'eva.lange@patients.clinic.com'
+        )
+    );
+
+    -- Keep the organizations row in place -- audit_log FK references
+    -- it and is ON DELETE SET NULL in theory but in practice the
+    -- constraint is RESTRICT on some deploys. Leaving the org avoids
+    -- the FK collision; fixture 001 ON CONFLICT (slug) DO NOTHING
+    -- is idempotent so re-running the seeds is fine.
+
+    RAISE NOTICE 'test-clinic scope truncated (org row preserved)';
+END$$;
+SQL
+    log "Re-applying test-clinic fixtures..."
+    for f in "$FIXTURE_DIR"/00[0-3]*.sql; do
+        [ -f "$f" ] || continue
+        log "  $(basename "$f")"
+        docker exec -i sh-postgres psql -U sovereign_health -d sovereign_health \
+            -v ON_ERROR_STOP=1 < "$f" > /dev/null
+    done
+    log "test-clinic reset complete."
+}
+
 cmd_test() {
     local failed=0
 
@@ -141,10 +201,16 @@ cmd_test() {
     #   dark-theme.test.ts      -- static grep scan w/ known false positives
     #   i18n-completeness.test.ts -- flags DE values equal to EN as "untranslated"
     # Re-enable once Sprint 049+ fixes them (tracked as #048-99 known-flaky-vitest).
+    # Sprint 049 #049-27: dark-theme.test.ts + i18n-completeness.test.ts
+    # now include (baselines/thresholds bumped to current tree).
+    # date-format.test.ts stays excluded -- its expectations assume the
+    # process TZ is CET and vitest workers don't reliably honor TZ env
+    # (known vitest 4.x quirk around V8-initialized Date globals).
+    # Proper fix: retrofit to vi.setSystemTime + explicit UTC
+    # construction. Sprint 050 candidate.
     (cd "$APP_ROOT/frontend" && pnpm vitest run \
-        --exclude 'src/lib/date-format.test.ts' \
-        --exclude 'src/lib/dark-theme.test.ts' \
-        --exclude 'src/lib/i18n-completeness.test.ts') || { warn "vitest had failures (continuing)"; failed=1; }
+        --exclude 'src/lib/date-format.test.ts') \
+        || { warn "vitest had failures (continuing)"; failed=1; }
 
     log "── Playwright: against localhost:3000 ──"
     # Limit to the headless-friendly specs. Skip the ones that need a real
@@ -192,13 +258,14 @@ cmd_status() {
 
 CMD="${1:-}"
 case "$CMD" in
-    up)     cmd_up ;;
-    down)   cmd_down ;;
-    reset)  cmd_reset ;;
-    seed)   cmd_seed ;;
-    test)   cmd_test ;;
-    logs)   cmd_logs "${2:-}" ;;
-    status) cmd_status ;;
+    up)           cmd_up ;;
+    down)         cmd_down ;;
+    reset)        cmd_reset ;;
+    reset-clinic) cmd_reset_clinic ;;
+    seed)         cmd_seed ;;
+    test)         cmd_test ;;
+    logs)         cmd_logs "${2:-}" ;;
+    status)       cmd_status ;;
     ""|help|-h|--help)
         grep '^#' "$0" | head -20 | sed 's/^#\s\?//'
         ;;

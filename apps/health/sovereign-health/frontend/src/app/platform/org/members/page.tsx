@@ -28,6 +28,8 @@ export default function OrgMembersPage() {
   const [inviteOpen, setInviteOpen] = useState(false)
   const [inviteEmail, setInviteEmail] = useState('')
   const [inviteRole, setInviteRole] = useState<RoleOption>('org_member')
+  // Sprint 049 #049-22 (Sprint 048 #048-34): bulk consent reminder.
+  const [bulkBusy, setBulkBusy] = useState(false)
 
   async function fetchMembers() {
     try {
@@ -138,13 +140,46 @@ export default function OrgMembersPage() {
               : t('countOther', { count: members.length })}
           </p>
         </div>
-        <button
-          type="button"
-          onClick={() => setInviteOpen(o => !o)}
-          className="brand-primary-bg text-white px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90"
-        >
-          {t('inviteButton')}
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={async () => {
+              const pending = members.filter(m => m.role === 'org_member' && m.consent_state === 'pending').length
+              if (pending === 0) {
+                toast.info(t('bulkReminderNone'))
+                return
+              }
+              if (!confirm(t('bulkReminderConfirm', { count: pending }))) return
+              setBulkBusy(true)
+              try {
+                const token = Cookies.get('auth_token')
+                const res = await fetch('/org-settings/consent-reminders', {
+                  method: 'POST',
+                  headers: token ? { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' } : { 'Content-Type': 'application/json' },
+                })
+                if (!res.ok) throw new Error(`${res.status}`)
+                const json = await res.json()
+                toast.success(t('bulkReminderSent', { sent: json.data?.sent ?? 0, total: json.data?.total ?? 0 }))
+              } catch {
+                toast.error(t('bulkReminderFailed'))
+              } finally {
+                setBulkBusy(false)
+              }
+            }}
+            disabled={bulkBusy || members.filter(m => m.role === 'org_member' && m.consent_state === 'pending').length === 0}
+            className="text-sm border border-border px-3 py-2 rounded-lg hover:bg-accent disabled:opacity-50"
+            title={t('bulkReminderTooltip')}
+          >
+            {bulkBusy ? t('bulkReminderBusy') : t('bulkReminderButton')}
+          </button>
+          <button
+            type="button"
+            onClick={() => setInviteOpen(o => !o)}
+            className="brand-primary-bg text-white px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90"
+          >
+            {t('inviteButton')}
+          </button>
+        </div>
       </div>
 
       {inviteOpen && (
