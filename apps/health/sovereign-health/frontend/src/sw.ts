@@ -74,15 +74,14 @@ const apiCacheRules: RuntimeCaching[] = [
       url.pathname.startsWith("/api/affiliate/"),
     handler: new NetworkOnly(),
   },
-  // Sprint 047 RC fix 2026-04-21: the refresh-banner build-id poll MUST
-  // bypass SW cache. Otherwise SW returns a stale build-id from a
-  // previous deploy, the loaded (fresh) bundle sees a phantom mismatch
-  // with its own NEXT_PUBLIC_BUILD_ID, and the banner fires on every
-  // tab open. Only a reload (which SW revalidates) clears it.
-  {
-    matcher: ({ url }) => url.pathname === "/app-build-id",
-    handler: new NetworkOnly(),
-  },
+  // Sprint 051 #0588: /app-build-id does NOT need a SW route. The
+  // previous NetworkOnly entry (Sprint 047 RC fix) had no cache to
+  // bypass and only produced workbox-internal "Uncaught (in promise)
+  // no-response" console noise when the network intercepted the request
+  // (offline, Cloudflare 5xx, etc). Letting the browser fetch directly
+  // matches the refresh-banner's try/catch semantics cleanly: failed
+  // fetch -> refresh-banner swallows -> banner stays quiet -> no poll
+  // spam in DevTools.
 ];
 
 const serwist = new Serwist({

@@ -64,7 +64,16 @@ export function RefreshBanner() {
 
   useEffect(() => {
     if (typeof navigator === 'undefined' || !navigator.serviceWorker) return
-    const onControllerChange = () => setStale(true)
+    // Sprint 051 #0588: the controllerchange event fires on first-ever SW
+    // install in a fresh session (page had no controller -> SW activates
+    // -> becomes controller). That is NOT a "newer version" scenario; it
+    // is normal first-visit SW registration. Capture whether a controller
+    // existed BEFORE the listener attached; only flag stale on true
+    // swaps.
+    const hadController = !!navigator.serviceWorker.controller
+    const onControllerChange = () => {
+      if (hadController) setStale(true)
+    }
     navigator.serviceWorker.addEventListener('controllerchange', onControllerChange)
     return () => {
       navigator.serviceWorker.removeEventListener('controllerchange', onControllerChange)
