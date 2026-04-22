@@ -13,6 +13,7 @@ import Image from 'next/image'
 import { useBrand } from '@/lib/brand'
 import { useOrg, getOrgLogo } from '@/lib/org-context'
 import { getPlane } from '@/lib/plane'
+import { APP_CONFIG } from '@/lib/config'
 
 function MfaVerifyForm({
   mfaToken,
@@ -373,12 +374,17 @@ function LoginContent() {
             <p className="text-sm text-muted-foreground mb-2">
               {t('demoExplore')}
             </p>
-            <Link
-              href="/sovereign-health/dashboard"
+            {/* Sprint 051 hotfix: was Link href="/sovereign-health/dashboard"
+                which is auth-gated; unauthed visitors bounced back to
+                /login in an infinite loop. Demo surface lives on a
+                dedicated host per Design 029 -- cross-plane <a> avoids
+                the auth gate entirely. */}
+            <a
+              href={`https://${APP_CONFIG.evalHost}/`}
               className="text-sm text-blue-400 hover:text-blue-300 font-medium"
             >
               {t('viewDemo')}
-            </Link>
+            </a>
           </div>
         )}
       </div>
