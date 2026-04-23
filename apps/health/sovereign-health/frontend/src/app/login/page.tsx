@@ -229,20 +229,21 @@ function LoginContent() {
     } catch {}
     // Sprint 045 #564: default landing depends on plane. End users land on
     // /dashboard (SHI app); org admins on {slug}.brickos.io land on /org.
-    // Sprint 051 #0594 follow-up: a PATIENT (org_member / consumer /
-    // member) who lands on the admin plane login should NOT end up on
-    // /platform/org -- that's an admin surface. Cross-plane to the end-
-    // user equivalent of the same org subdomain.
+    // Sprint 051 #0594 follow-up: patients (org_member / consumer /
+    // member) who land on the admin plane login should NOT end up on
+    // /platform/org -- that's an admin surface. Route them to the SHI
+    // end-user path SAME-PLANE (admin plane serves /sovereign-health/*
+    // too per Design 027), because cross-planing to sovereignhealth.io
+    // would lose the auth cookie we just set on brickos.io and bounce
+    // them back to login. Cross-plane SSO is a separate design issue
+    // (Sprint 052+).
     if (typeof window !== 'undefined') {
       const host = window.location.hostname
       const plane = getPlane(host)
       const orgRole = token ? extractOrgRole(token) : null
       const isPatient = orgRole === 'org_member' || orgRole === 'member' || orgRole === 'consumer'
       if (plane === 'admin' && isPatient) {
-        const swapped = swapPlaneHost(host, 'end-user')
-        if (swapped) {
-          return `https://${swapped}/sovereign-health/dashboard`
-        }
+        return '/sovereign-health/dashboard'
       }
       if (plane === 'admin') return '/platform/org'
     }
