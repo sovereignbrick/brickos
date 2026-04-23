@@ -180,11 +180,27 @@ async fn compute_zone_calc_counts(
     .bind(user_id)
     .fetch_all(pool)
     .await?;
+    // Sprint 051 #0594 follow-up: measurements may be stored either as
+    // plaintext f64 strings (production demo seed) or AES-encrypted
+    // `v1:...` blobs (staging, same column but the migration ran through
+    // the encryption pipeline). Decrypt the `v1:` branch before parsing
+    // so calc formulas see real numbers on both environments. Without
+    // this the parse silently fails and every calc marker returns None.
     let mut values_map: std::collections::HashMap<String, f64> = std::collections::HashMap::new();
     for row in &input_rows {
         let slug: String = row.try_get("marker_slug").unwrap_or_default();
         let val_str: String = row.try_get("value_canonical").unwrap_or_default();
-        if let Ok(v) = val_str.parse::<f64>() {
+        let v = if val_str.starts_with("v1:") {
+            let decrypted = enc.decrypt_f64(&val_str);
+            if decrypted.is_finite() && decrypted != 0.0 {
+                Some(decrypted)
+            } else {
+                None
+            }
+        } else {
+            val_str.parse::<f64>().ok()
+        };
+        if let Some(v) = v {
             values_map.insert(slug, v);
         }
     }

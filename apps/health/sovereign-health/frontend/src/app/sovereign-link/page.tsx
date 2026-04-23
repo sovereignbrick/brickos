@@ -112,6 +112,10 @@ export default function SovereignLinkHome() {
               {t('subtitle', { orgName: org.orgName ?? '' })}
             </p>
           </div>
+          {/* Sprint 051 #0587: creation requires platform admin; org-scoped
+              endpoint deferred to Sprint 052. Keep the button visible so
+              the surface is discoverable but send to the read-only info
+              page explaining the current limitation. */}
           <Link
             href="/sovereign-link/new"
             className="bg-[var(--brand-primary)] text-white text-sm font-medium px-4 py-2 rounded-lg hover:opacity-90 transition-opacity"
@@ -123,12 +127,7 @@ export default function SovereignLinkHome() {
         {links.length === 0 ? (
           <div className="border rounded-lg p-8 text-center text-muted-foreground">
             <p>{t('empty')}</p>
-            <Link
-              href="/sovereign-link/new"
-              className="inline-block mt-4 text-sm text-blue-400 hover:underline"
-            >
-              {t('createFirst')}
-            </Link>
+            <p className="text-xs mt-3 text-muted-foreground/70">{t('createContactAdmin')}</p>
           </div>
         ) : (
           <div className="border rounded-lg overflow-hidden">
