@@ -72,6 +72,13 @@ export function resolveApiBase(): string {
   if (host.endsWith('.onion')) return ''
   if (host.endsWith('.brickos.io')) return ''
   if (host.endsWith('.sovereignhealth.io')) return ''
+  // Self-hosted / local dev: backend listens on :8080 on the same host.
+  // Baked NEXT_PUBLIC_API_URL is a prod URL (api.sovereignhealth.io) that
+  // the self-host image inherits; overriding here keeps one image usable
+  // for both cases.
+  if (host === 'localhost' || host === '127.0.0.1') {
+    return `${window.location.protocol}//${host}:8080`
+  }
   return APP_CONFIG.apiUrl
 }
 
