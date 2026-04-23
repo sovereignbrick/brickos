@@ -156,7 +156,7 @@ generate_secrets() {
     local db_password jwt_secret encryption_key
     db_password=$(openssl rand -base64 32 | tr -d '+/=' | head -c 32)
     jwt_secret=$(openssl rand -base64 48 | tr -d '+/=' | head -c 48)
-    encryption_key=$(openssl rand -base64 32)
+    encryption_key=$(openssl rand -hex 32)
 
     cp "$ENV_TEMPLATE" "$ENV_FILE"
     sed -i "s|^DB_PASSWORD=.*|DB_PASSWORD=$db_password|" "$ENV_FILE"
