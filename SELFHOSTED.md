@@ -11,15 +11,12 @@ Run the full Sovereign Health app on your own Linux box. Everything stays local:
 ## Quick start
 
 ```bash
-# 1. Install Docker + Docker Compose plugin (skip if already present)
-sudo apt update && sudo apt install -y docker.io docker-compose-plugin
-sudo usermod -aG docker $USER && newgrp docker   # use Docker without sudo
-
-# 2. Clone + install
 git clone https://github.com/sovereignbrick/brickos.git
 cd brickos
 ./sh-install.sh
 ```
+
+That's it. If Docker isn't installed yet, the script detects that and offers to install it for you (uses the official `get.docker.com` script; requires sudo). Decline if you prefer to install Docker yourself -- the script prints the exact `apt` / `dnf` commands for your distro.
 
 After ~2 minutes:
 

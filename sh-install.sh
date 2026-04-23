@@ -56,20 +56,88 @@ for arg in "$@"; do
 done
 
 # -----------------------------------------------------------------------------
+# Offer to install Docker via the official get.docker.com script.
+# Called when prereq check finds Docker missing. User must consent; we
+# never install without an explicit yes.
+# -----------------------------------------------------------------------------
+offer_docker_install() {
+    echo
+    warn "Docker is not installed."
+    echo
+    echo "Sovereign Health needs Docker + Docker Compose plugin to run."
+    echo "I can install both for you using the official Docker setup script."
+    echo "This requires sudo (you'll be prompted for your password)."
+    echo
+    echo "Manual alternative (if you prefer):"
+    echo "  # Ubuntu / Pop!_OS / Debian:"
+    echo "  sudo apt update && sudo apt install -y docker.io docker-compose-plugin"
+    echo "  sudo usermod -aG docker \$USER && newgrp docker"
+    echo "  # Fedora:"
+    echo "  sudo dnf install -y docker docker-compose-plugin"
+    echo "  sudo systemctl enable --now docker"
+    echo "  sudo usermod -aG docker \$USER && newgrp docker"
+    echo
+    read -r -p "Install Docker automatically now? [y/N] " answer
+    case "$answer" in
+        [yY]|[yY][eE][sS])
+            log "Installing Docker via get.docker.com..."
+            if ! curl -fsSL https://get.docker.com | sudo sh; then
+                fail "Docker install failed. Review the output above and try the manual steps."
+            fi
+            log "Enabling Docker service..."
+            sudo systemctl enable --now docker
+            log "Adding $USER to the docker group..."
+            sudo usermod -aG docker "$USER"
+            echo
+            warn "Your user was added to the 'docker' group, but group membership"
+            warn "only takes effect on the NEXT login. Two options:"
+            warn "  1) Log out and log back in, then re-run:  ./sh-install.sh"
+            warn "  2) Or run:  newgrp docker   followed by:  ./sh-install.sh"
+            echo
+            exit 0
+            ;;
+        *)
+            fail "Aborted. Install Docker manually (see above), then re-run this script."
+            ;;
+    esac
+}
+
+# -----------------------------------------------------------------------------
 # Check prereqs: Docker + Docker Compose plugin.
 # -----------------------------------------------------------------------------
 check_prereqs() {
     log "Checking prerequisites..."
+
+    # Docker binary missing -- offer to install it.
     if ! command -v docker >/dev/null 2>&1; then
-        fail "Docker not installed. Install:  curl -fsSL https://get.docker.com | sudo sh"
+        offer_docker_install
     fi
+
+    # Compose plugin missing -- print clear install instruction.
     if ! docker compose version >/dev/null 2>&1; then
-        fail "Docker Compose plugin not installed. On Ubuntu/Pop!_OS:  sudo apt install docker-compose-plugin"
+        echo
+        warn "Docker is installed but the Compose plugin is missing."
+        echo "Install it:"
+        echo "  # Ubuntu / Pop!_OS / Debian:"
+        echo "  sudo apt install -y docker-compose-plugin"
+        echo "  # Fedora:"
+        echo "  sudo dnf install -y docker-compose-plugin"
+        fail "After installing, re-run:  ./sh-install.sh"
     fi
+
+    # Daemon not reachable -- likely not started, or user not in docker group.
     if ! docker info >/dev/null 2>&1; then
-        fail "Docker daemon not reachable. Try:  sudo systemctl start docker  (or add your user to the 'docker' group and re-login)"
+        echo
+        warn "Docker daemon not reachable. Likely causes + fixes:"
+        echo "  1) Daemon not started:  sudo systemctl start docker"
+        echo "  2) Your user lacks docker-group membership. Run:"
+        echo "        sudo usermod -aG docker \$USER && newgrp docker"
+        echo "     (or log out + back in), then re-run this script."
+        fail "Docker daemon check failed."
     fi
+
     [ -f "$COMPOSE_FILE" ] || fail "Compose file missing: $COMPOSE_FILE -- are you running this from the repo root?"
+    log "Prerequisites OK."
 }
 
 # -----------------------------------------------------------------------------
