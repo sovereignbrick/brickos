@@ -1,0 +1,61 @@
+# Sovereign Health -- optional local AI overlay for self-hosted mode.
+# AGPL-3.0 -- https://github.com/sovereignbrick/brickos
+#
+# Sprint 052 #052-32: bundles an Ollama container alongside the main
+# stack so a self-hosted user can run a local LLM for AI-assisted
+# features (lab import parsing, chat) without sending anything to a
+# cloud provider. The backend talks to Ollama over HTTP at
+# ollama:11434 (from the compose network) or from the host via
+# http://localhost:11434.
+#
+# Usage (via installer):  ./sh-install.sh --with-ai
+# Usage (direct):         docker compose \
+#                           --env-file /etc/sovereign-health/.env \
+#                           -f docker-compose.selfhosted.yml \
+#                           -f docker-compose.selfhosted-ai.yml \
+#                           up -d
+#
+# Notes:
+#  - Default model is llama3.1:8b (~4.7 GB download on first pull).
+#    Change via OLLAMA_MODEL env in /etc/sovereign-health/.env.
+#  - First startup pulls the model -- expect 5-10 min of download
+#    before Dr. Alex chat is usable.
+#  - GPU acceleration requires nvidia-container-toolkit on the host;
+#    CPU-only inference works but is slow on small machines. Consider
+#    a smaller model (llama3.2:3b, phi3:mini) if CPU-bound.
+#
+# Sprint 052 scope is the overlay + plumbing. The full prompt adapter
+# that wires Dr. Alex to Ollama (currently Anthropic-only) is tracked
+# for Sprint 053 -- see docs/sprint-planning/sprints/sprint-052.md
+# §Phase-D notes.
+
+services:
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "127.0.0.1:11434:11434"
+    volumes:
+      - shi-ollama-models:/root/.ollama
+    environment:
+      OLLAMA_HOST: "0.0.0.0:11434"
+    restart: unless-stopped
+    # Pull the configured model on startup. ollama pull is idempotent;
+    # if the model is already present it returns quickly.
+    entrypoint: >
+      sh -c "ollama serve &
+             sleep 3 &&
+             ollama pull ${OLLAMA_MODEL:-llama3.1:8b} || true &&
+             wait"
+
+  # Wire the backend to reach Ollama by default. Users can override
+  # OLLAMA_URL in /etc/sovereign-health/.env if they want to point at
+  # a different (e.g. host-installed) Ollama instance.
+  backend:
+    environment:
+      OLLAMA_URL: ${OLLAMA_URL:-http://ollama:11434}
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-llama3.1:8b}
+    depends_on:
+      - ollama
+
+volumes:
+  shi-ollama-models:
