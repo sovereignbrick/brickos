@@ -164,8 +164,9 @@ echo "$HEALTH_JSON" | jq -e '.status == "ok"' >/dev/null || fail "/health status
 log "  status=ok"
 
 log "Asserting frontend serves HTML..."
-FRONT_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "http://localhost:$SMOKE_FRONTEND_PORT/")
-[ "$FRONT_STATUS" = "200" ] || fail "Frontend returned $FRONT_STATUS (expected 200)"
+# Follow redirects: middleware.ts may 307 root to /login or /sovereign-health/*.
+FRONT_STATUS=$(curl -sL -o /dev/null -w "%{http_code}" "http://localhost:$SMOKE_FRONTEND_PORT/")
+[ "$FRONT_STATUS" = "200" ] || fail "Frontend returned $FRONT_STATUS after redirect-follow (expected 200)"
 log "  frontend HTTP $FRONT_STATUS"
 
 # ── Signup flow (OSS auto-verify) ──────────────────────────────────────

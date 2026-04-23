@@ -320,9 +320,15 @@ pub async fn signup(
     // leaks admin promotion.
     if is_oss {
         // The just-inserted user defaults to role='user', so admin_count
-        // here reflects prior admins only.
+        // here reflects prior admins only. Exclude the dev-seed admin
+        // (migrations/...bootstrap_brickos_schema_for_dev.sql) which
+        // always exists on fresh OSS installs and would otherwise
+        // mask the bootstrap -- see Sprint 053 smoke finding.
         let admin_count: i64 = sqlx::query_scalar(
-            "SELECT COUNT(*) FROM users WHERE role = 'admin' AND is_deleted = false",
+            "SELECT COUNT(*) FROM users \
+             WHERE role = 'admin' \
+             AND is_deleted = false \
+             AND email != 'dev@sovereignhealth.io'",
         )
         .fetch_one(&platform_pool.0)
         .await
