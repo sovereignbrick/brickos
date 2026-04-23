@@ -165,7 +165,7 @@ function SignupContent() {
 
   const onSubmit = async (data: SignupInput) => {
     try {
-      await api.auth.signup(
+      const res = await api.auth.signup(
         {
           email: data.email.trim(),
           password: data.password.trim(),
@@ -183,6 +183,15 @@ function SignupContent() {
       )
       // Clear referral cookie after successful registration
       Cookies.remove('sh_ref')
+      // Sprint 053 Phase C: in OSS mode the backend auto-verifies and
+      // returns a token directly. Skip the verify-email screen and go
+      // straight to the dashboard.
+      if ('token' in res.data && res.data.token) {
+        setToken(res.data.token)
+        setUser(res.data.user)
+        router.replace('/sovereign-health/dashboard')
+        return
+      }
       setSubmittedEmail(data.email)
       setSubmittedPassword(data.password)
       setSubmitted(true)
@@ -226,13 +235,6 @@ function SignupContent() {
               return
             }
           }
-        } catch {}
-        // Sprint 048 #048-42: flag so the dashboard shows a one-time
-        // welcome banner pointing at Dr. Alex + measurements. If the
-        // signup was invite-driven, the ConsentOnboardingPrompt modal
-        // will also fire on first dashboard mount.
-        try {
-          window.localStorage.setItem('shi_welcome_pending', '1')
         } catch {}
         router.replace('/sovereign-health/dashboard')
       } else if (res.data.mfa_required) {

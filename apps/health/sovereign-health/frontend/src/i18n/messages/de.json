@@ -1766,13 +1766,6 @@
       "pending": "Ausstehend"
     }
   },
-  "welcome": {
-    "title": "Willkommen bei Sovereign Health",
-    "intro": "Tragen Sie Ihren ersten Biomarker ein, chatten Sie mit Dr. Alex oder erkunden Sie Ihre Gesundheitszonen. Ihre Daten bleiben Ihre Daten.",
-    "ctaAddMeasurement": "Messung hinzufügen",
-    "ctaDoctorChat": "Dr. Alex fragen",
-    "dismiss": "Schließen"
-  },
   "consentPrompt": {
     "title": "{orgName} möchte Zugriff auf Ihre Gesundheitsdaten",
     "body": "{orgName} hat Sie zu Sovereign Health eingeladen. Wenn Sie Zugriff gewähren, können ihre Ärzte Ihre Biomarker, Messungen und Trends im Nur-Lesen-Modus einsehen. Sie können den Zugriff jederzeit unter Einstellungen → Organisationszugriff widerrufen.",

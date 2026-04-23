@@ -12,7 +12,6 @@ import { useContent } from '@/lib/content-context'
 import { InfoCarousel, CarouselCard } from '@/components/info-carousel'
 import { UsageWidget } from '@/components/usage-widget'
 import { OnboardingChecklist } from '@/components/onboarding-checklist'
-import { WelcomeBanner } from '@/components/welcome-banner'
 import { useTranslations } from 'next-intl'
 
 function useCarouselCards(): CarouselCard[] {
@@ -70,8 +69,6 @@ export default function DashboardPage() {
     <div className="min-h-screen">
       <Navbar />
       <main id="main-content" className="max-w-5xl mx-auto px-4 py-8 pb-8">
-        {/* Sprint 048 #048-42: one-time welcome banner after signup. */}
-        <WelcomeBanner />
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-xl font-bold">{t('title')}</h1>

@@ -1766,13 +1766,6 @@
       "pending": "Pending"
     }
   },
-  "welcome": {
-    "title": "Welcome to Sovereign Health",
-    "intro": "Log your first biomarker, chat with Dr. Alex, or explore your health zones. Your data stays yours.",
-    "ctaAddMeasurement": "Add a measurement",
-    "ctaDoctorChat": "Ask Dr. Alex",
-    "dismiss": "Dismiss"
-  },
   "consentPrompt": {
     "title": "{orgName} would like access to your health records",
     "body": "{orgName} invited you to Sovereign Health. Granting access lets their practitioners review your biomarkers, measurements, and trends in read-only mode. You can revoke at any time from Settings → Organization access.",
