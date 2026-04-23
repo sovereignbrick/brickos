@@ -596,12 +596,24 @@ pub async fn demo_zone_detail(
     .fetch_all(pool.get_ref())
     .await?;
 
+    // Sprint 051 #0594 follow-up: value_canonical may be plaintext
+    // (prod demo seed) or AES-encrypted `v1:...` (staging, same column
+    // routed through the encryption pipeline). Decrypt if prefixed.
     let mut values_map: std::collections::HashMap<String, f64> = std::collections::HashMap::new();
     for row in &input_rows {
         let slug: String = row.try_get("marker_slug").unwrap_or_default();
-        // Demo measurements are stored as plaintext numbers (not encrypted)
         let val_str: String = row.try_get("value_canonical").unwrap_or_default();
-        if let Ok(v) = val_str.parse::<f64>() {
+        let v = if val_str.starts_with("v1:") {
+            let d = enc.decrypt_f64(&val_str);
+            if d.is_finite() && d != 0.0 {
+                Some(d)
+            } else {
+                None
+            }
+        } else {
+            val_str.parse::<f64>().ok()
+        };
+        if let Some(v) = v {
             values_map.insert(slug, v);
         }
     }
