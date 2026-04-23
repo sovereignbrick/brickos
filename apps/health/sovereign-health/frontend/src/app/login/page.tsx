@@ -12,7 +12,7 @@ import { useTranslations } from 'next-intl'
 import Image from 'next/image'
 import { useBrand } from '@/lib/brand'
 import { useOrg, getOrgLogo } from '@/lib/org-context'
-import { getPlane } from '@/lib/plane'
+import { getPlane, swapPlaneHost } from '@/lib/plane'
 import { APP_CONFIG } from '@/lib/config'
 
 function MfaVerifyForm({
@@ -193,7 +193,24 @@ function LoginContent() {
     localStorage.setItem('sh_has_logged_in', '1')
   }
 
-  const getReturnUrl = () => {
+  /**
+   * Decode the org_role claim out of a freshly-minted JWT so the post-
+   * login landing can route patients to the end-user plane (instead of
+   * landing them on /platform/org admin UI they have no business on).
+   * Sprint 051 #0594 follow-up. Pure-function, no throws.
+   */
+  const extractOrgRole = (token: string): string | null => {
+    try {
+      const parts = token.split('.')
+      if (parts.length !== 3) return null
+      const payload = JSON.parse(atob(parts[1]))
+      return typeof payload.org_role === 'string' ? payload.org_role : null
+    } catch {
+      return null
+    }
+  }
+
+  const getReturnUrl = (token?: string) => {
     const returnParam = searchParams.get('return')
     if (returnParam && returnParam.startsWith('/') && !returnParam.startsWith('//')) {
       return returnParam
@@ -212,9 +229,21 @@ function LoginContent() {
     } catch {}
     // Sprint 045 #564: default landing depends on plane. End users land on
     // /dashboard (SHI app); org admins on {slug}.brickos.io land on /org.
-    // PlaneGate would otherwise bounce /dashboard off the admin plane.
+    // Sprint 051 #0594 follow-up: a PATIENT (org_member / consumer /
+    // member) who lands on the admin plane login should NOT end up on
+    // /platform/org -- that's an admin surface. Cross-plane to the end-
+    // user equivalent of the same org subdomain.
     if (typeof window !== 'undefined') {
-      const plane = getPlane(window.location.hostname)
+      const host = window.location.hostname
+      const plane = getPlane(host)
+      const orgRole = token ? extractOrgRole(token) : null
+      const isPatient = orgRole === 'org_member' || orgRole === 'member' || orgRole === 'consumer'
+      if (plane === 'admin' && isPatient) {
+        const swapped = swapPlaneHost(host, 'end-user')
+        if (swapped) {
+          return `https://${swapped}/sovereign-health/dashboard`
+        }
+      }
       if (plane === 'admin') return '/platform/org'
     }
     return '/sovereign-health/dashboard'
@@ -224,7 +253,19 @@ function LoginContent() {
     setToken(data.token)
     setUser(data.user)
     showWelcome(data.user.display_name)
-    router.push(getReturnUrl())
+    navigateTo(getReturnUrl(data.token))
+  }
+
+  // Sprint 051 #0594 follow-up: getReturnUrl may now return a
+  // cross-plane absolute URL (https://...sovereignhealth.io/...). Next
+  // router.push rejects absolute URLs on different origins; fall back
+  // to window.location for those.
+  const navigateTo = (url: string) => {
+    if (/^https?:\/\//i.test(url)) {
+      window.location.href = url
+    } else {
+      router.push(url)
+    }
   }
 
   const onSubmit = async (data: LoginInput) => {
@@ -238,7 +279,7 @@ function LoginContent() {
         setToken(res.data.token)
         setUser(res.data.user)
         showWelcome(res.data.user.display_name)
-        router.push(getReturnUrl())
+        navigateTo(getReturnUrl(res.data.token))
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Login failed'
