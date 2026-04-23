@@ -66,6 +66,23 @@
 
 ---
 
+## Try it local (Sovereign Health)
+
+Run the health-tracking app on your own Linux box in 2 minutes:
+
+```bash
+git clone https://github.com/sovereignbrick/brickos.git
+cd brickos
+./sh-install.sh
+# open http://localhost:3000
+```
+
+The first account you create is promoted to admin. Your data stays on your machine.
+Works on Pop!_OS / Ubuntu 22.04+ / Debian 12+ / Fedora 38+ with Docker.
+Full docs: [SELFHOSTED.md](SELFHOSTED.md).
+
+---
+
 ## What is BrickOS?
 
 BrickOS is a modular platform for building sovereign applications -- software where users own their data and choose where it runs. Cloud SaaS with a self-hosted escape hatch: every app can run on your own hardware via Docker, StartOS, or Tor.

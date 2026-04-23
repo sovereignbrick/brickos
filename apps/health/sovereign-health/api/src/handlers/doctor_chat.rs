@@ -59,6 +59,20 @@ pub async fn chat(
     body: web::Json<ChatRequest>,
     enc: web::Data<crate::services::encryption::Encryptor>,
 ) -> Result<HttpResponse, AppError> {
+    // Sprint 052 #052-03: fail fast with a structured code when no AI
+    // provider is configured. Self-hosted installs without an
+    // ANTHROPIC_API_KEY (and no Ollama wired in) can't serve chat;
+    // returning AI_UNCONFIGURED lets the frontend render a helpful
+    // "Configure AI provider" UI instead of the generic 500.
+    if config.anthropic_api_key.is_empty() {
+        return Ok(HttpResponse::ServiceUnavailable().json(serde_json::json!({
+            "error": {
+                "code": "AI_UNCONFIGURED",
+                "message": "AI provider is not configured. Set ANTHROPIC_API_KEY or switch AI_PROVIDER to ollama in your environment."
+            }
+        })));
+    }
+
     let question = body.question.trim().to_string();
     if question.is_empty() {
         return Err(AppError::Validation("question is required".to_string()));

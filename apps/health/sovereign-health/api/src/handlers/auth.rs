@@ -312,6 +312,42 @@ pub async fn signup(
         }
     };
 
+    // Sprint 052 #052-22: first-run admin bootstrap.
+    // In OSS / self-hosted mode, the first signup on a fresh install is
+    // automatically promoted to admin so the operator isn't stranded
+    // without a way to reach /platform/*. Subsequent signups get the
+    // default 'user' role. Guarded on `is_oss` so managed-cloud never
+    // leaks admin promotion.
+    if is_oss {
+        // The just-inserted user defaults to role='user', so admin_count
+        // here reflects prior admins only.
+        let admin_count: i64 = sqlx::query_scalar(
+            "SELECT COUNT(*) FROM users WHERE role = 'admin' AND is_deleted = false",
+        )
+        .fetch_one(&platform_pool.0)
+        .await
+        .unwrap_or(1); // on error assume admins exist -- safer than falsely promoting
+
+        if admin_count == 0 {
+            // No admin exists yet -- this self-host install is brand new.
+            // Promote the first signup to admin so the operator can reach
+            // /platform/* without needing DB access.
+            if let Err(e) = sqlx::query("UPDATE users SET role = 'admin' WHERE id = $1")
+                .bind(user_id)
+                .execute(&platform_pool.0)
+                .await
+            {
+                tracing::warn!("First-run admin promotion failed: {:?}", e);
+            } else {
+                tracing::info!(
+                    "OSS first-run bootstrap: promoted user {} ({}) to admin",
+                    user_id,
+                    email
+                );
+            }
+        }
+    }
+
     // Generate affiliate code for new user
     match crate::handlers::affiliate::generate_affiliate_code(&platform_pool.0).await {
         Ok(code) => {
