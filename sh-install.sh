@@ -49,7 +49,7 @@ for arg in "$@"; do
         --uninstall) MODE="uninstall" ;;
         --upgrade) MODE="upgrade" ;;
         --help|-h)
-            sed -n '/^# Usage:/,/^# Data/p' "$0" | sed 's/^# *//'
+            sed -n '/^#  Usage:/,/^#  Data/p' "$0" | sed 's/^# *//'
             exit 0
             ;;
     esac
