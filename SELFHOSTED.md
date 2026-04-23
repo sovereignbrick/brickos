@@ -32,6 +32,8 @@ After ~2 minutes:
 
 Open http://localhost:3000, click **Create account**, sign up with any email + password. You're now the admin of your own instance.
 
+> **Email address can be fake.** Self-host mode has no outbound email -- signup is auto-verified internally, so ignore the "verification email sent" message on the confirmation screen and just log in with the credentials you entered. Password reset is also disabled (no email = no reset link); to recover a forgotten password, edit the DB directly or re-run `./sh-install.sh --uninstall` + wipe `shi-pgdata`.
+
 ---
 
 ## What you get
