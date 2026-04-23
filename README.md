@@ -240,9 +240,10 @@ brickos/
 │   └── tokens/                      @brickos/tokens design tokens
 │
 └── docs/                            Platform documentation
-    ├── design/                      Numbered design documents (001-004)
-    ├── tracker/                     Local-first issue tracker
-    └── screenshots/                 App screenshots + demo GIF
+    ├── design/                      Numbered design documents
+    ├── deployment/                  Deployment guides
+    ├── ops/                         User-facing operator docs
+    └── security/                    Security policy, CVE disclosure
 ```
 
 ## Tech Stack
