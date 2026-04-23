@@ -71,6 +71,9 @@
 Run the health-tracking app on your own Linux box in 2 minutes:
 
 ```bash
+# Prereq: Docker + Docker Compose plugin. If missing, the installer
+# will offer to set them up for you (requires sudo).
+
 git clone https://github.com/sovereignbrick/brickos.git
 cd brickos
 ./sh-install.sh
@@ -78,7 +81,7 @@ cd brickos
 ```
 
 The first account you create is promoted to admin. Your data stays on your machine.
-Works on Pop!_OS / Ubuntu 22.04+ / Debian 12+ / Fedora 38+ with Docker.
+Works on Pop!_OS / Ubuntu 22.04+ / Debian 12+ / Fedora 38+.
 Full docs: [SELFHOSTED.md](SELFHOSTED.md).
 
 ---
