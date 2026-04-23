@@ -1,3 +1,33 @@
+```
+// ============================================================================
+//                          SOVEREIGN HEALTH
+//
+//                  BLOOD . BIOMARKERS . INSIGHT
+//
+//   Your body generates data every moment.
+//   Labs, clinics, and wearables capture it --
+//   then lock it behind portals and APIs you don't control.
+//
+//   Sovereign Health turns that signal into something you own.
+//
+//   Blood panels become trends.
+//   Reference ranges become personal thresholds.
+//   PDF lab reports become structured measurements.
+//
+//   Field-level encryption at rest.
+//   PostgreSQL in a Docker volume under your desk.
+//   Export anytime, in any format.
+//
+//   You are not your insurance record.
+//   You are not your Epic patient ID.
+//   You are the person these values measure.
+//
+//   Log your panels. Watch your trends. Own your data.
+//
+//   https://brickos.io/
+// ============================================================================
+```
+
 # Sovereign Health Intelligence
 
 <p align="center">

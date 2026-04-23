@@ -1,3 +1,31 @@
+```
+// ============================================================================
+//                          SOVEREIGN LINK
+//
+//                    SHORTEN . ROUTE . OWN
+//
+//   Every shared link is an invitation to be tracked.
+//   Every shortener surveils your clicks.
+//   Every redirect passes through someone else's logs.
+//
+//   Sovereign Link flips it.
+//
+//   Your short links live on your domain.
+//   Your clicks leave no third-party trail.
+//   Your auth is your own NOSTR key.
+//
+//   Self-host the binary. Route via your own DNS.
+//   Log only what you need. Delete anytime.
+//
+//   Links are addresses.
+//   Addresses should not be surveillance.
+//
+//   Your domain. Your redirect. Your clicks.
+//
+//   https://brickos.io/
+// ============================================================================
+```
+
 # Sovereign Link
 
 Self-hosted URL shortener with NOSTR login. Privacy-first, open source.

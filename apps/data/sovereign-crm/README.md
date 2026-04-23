@@ -1,3 +1,30 @@
+```
+// ============================================================================
+//                           SOVEREIGN CRM
+//
+//                     SCAN . LINK . ENCRYPT
+//
+//   A conference badge. A business card.
+//   A QR code on a sticker at a meetup.
+//
+//   Snap. Recognize. Record.
+//
+//   Sovereign CRM reads the card, extracts the fields,
+//   and drops the contact into an encrypted record --
+//   linked to the event, the moment, the context you met.
+//
+//   No cloud vendor learns who you meet.
+//   No enrichment service resells your relationship graph.
+//
+//   Per-field E2E encryption. Zero third-party sharing.
+//   A camera, a key, and a graph of people you trust.
+//
+//   Your network. Your notes. Your encryption key.
+//
+//   https://brickos.io/
+// ============================================================================
+```
+
 # Sovereign CRM
 
 Privacy-first CRM with an AI-powered camera-to-CRM pipeline. Snap a photo of a business card or conference badge, and Sovereign CRM extracts the contact, creates the record, and links it to the event -- all with per-field E2E encryption and zero third-party data sharing.
