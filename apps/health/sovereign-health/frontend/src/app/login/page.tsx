@@ -12,7 +12,8 @@ import { useTranslations } from 'next-intl'
 import Image from 'next/image'
 import { useBrand } from '@/lib/brand'
 import { useOrg, getOrgLogo } from '@/lib/org-context'
-import { getPlane } from '@/lib/plane'
+import { getPlane, swapPlaneHost } from '@/lib/plane'
+import { APP_CONFIG } from '@/lib/config'
 
 function MfaVerifyForm({
   mfaToken,
@@ -192,7 +193,24 @@ function LoginContent() {
     localStorage.setItem('sh_has_logged_in', '1')
   }
 
-  const getReturnUrl = () => {
+  /**
+   * Decode the org_role claim out of a freshly-minted JWT so the post-
+   * login landing can route patients to the end-user plane (instead of
+   * landing them on /platform/org admin UI they have no business on).
+   * Sprint 051 #0594 follow-up. Pure-function, no throws.
+   */
+  const extractOrgRole = (token: string): string | null => {
+    try {
+      const parts = token.split('.')
+      if (parts.length !== 3) return null
+      const payload = JSON.parse(atob(parts[1]))
+      return typeof payload.org_role === 'string' ? payload.org_role : null
+    } catch {
+      return null
+    }
+  }
+
+  const getReturnUrl = (token?: string) => {
     const returnParam = searchParams.get('return')
     if (returnParam && returnParam.startsWith('/') && !returnParam.startsWith('//')) {
       return returnParam
@@ -211,9 +229,22 @@ function LoginContent() {
     } catch {}
     // Sprint 045 #564: default landing depends on plane. End users land on
     // /dashboard (SHI app); org admins on {slug}.brickos.io land on /org.
-    // PlaneGate would otherwise bounce /dashboard off the admin plane.
+    // Sprint 051 #0594 follow-up: patients (org_member / consumer /
+    // member) who land on the admin plane login should NOT end up on
+    // /platform/org -- that's an admin surface. Route them to the SHI
+    // end-user path SAME-PLANE (admin plane serves /sovereign-health/*
+    // too per Design 027), because cross-planing to sovereignhealth.io
+    // would lose the auth cookie we just set on brickos.io and bounce
+    // them back to login. Cross-plane SSO is a separate design issue
+    // (Sprint 052+).
     if (typeof window !== 'undefined') {
-      const plane = getPlane(window.location.hostname)
+      const host = window.location.hostname
+      const plane = getPlane(host)
+      const orgRole = token ? extractOrgRole(token) : null
+      const isPatient = orgRole === 'org_member' || orgRole === 'member' || orgRole === 'consumer'
+      if (plane === 'admin' && isPatient) {
+        return '/sovereign-health/dashboard'
+      }
       if (plane === 'admin') return '/platform/org'
     }
     return '/sovereign-health/dashboard'
@@ -223,7 +254,19 @@ function LoginContent() {
     setToken(data.token)
     setUser(data.user)
     showWelcome(data.user.display_name)
-    router.push(getReturnUrl())
+    navigateTo(getReturnUrl(data.token))
+  }
+
+  // Sprint 051 #0594 follow-up: getReturnUrl may now return a
+  // cross-plane absolute URL (https://...sovereignhealth.io/...). Next
+  // router.push rejects absolute URLs on different origins; fall back
+  // to window.location for those.
+  const navigateTo = (url: string) => {
+    if (/^https?:\/\//i.test(url)) {
+      window.location.href = url
+    } else {
+      router.push(url)
+    }
   }
 
   const onSubmit = async (data: LoginInput) => {
@@ -237,7 +280,7 @@ function LoginContent() {
         setToken(res.data.token)
         setUser(res.data.user)
         showWelcome(res.data.user.display_name)
-        router.push(getReturnUrl())
+        navigateTo(getReturnUrl(res.data.token))
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Login failed'
@@ -373,12 +416,17 @@ function LoginContent() {
             <p className="text-sm text-muted-foreground mb-2">
               {t('demoExplore')}
             </p>
-            <Link
-              href="/sovereign-health/dashboard"
+            {/* Sprint 051 hotfix: was Link href="/sovereign-health/dashboard"
+                which is auth-gated; unauthed visitors bounced back to
+                /login in an infinite loop. Demo surface lives on a
+                dedicated host per Design 029 -- cross-plane <a> avoids
+                the auth gate entirely. */}
+            <a
+              href={`https://${APP_CONFIG.evalHost}/`}
               className="text-sm text-blue-400 hover:text-blue-300 font-medium"
             >
               {t('viewDemo')}
-            </Link>
+            </a>
           </div>
         )}
       </div>

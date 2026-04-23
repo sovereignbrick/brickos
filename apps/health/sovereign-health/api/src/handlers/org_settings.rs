@@ -456,51 +456,76 @@ pub async fn analytics(
 ) -> Result<HttpResponse, AppError> {
     let org_id = require_org_owner(&auth)?;
 
-    let member_count: i64 =
-        sqlx::query_scalar("SELECT COUNT(*) FROM org_members WHERE org_id = $1")
+    // Sprint 051 #0582: pick the org_members table that has rows for this
+    // org. Localhost dev still writes to public.org_members; staging +
+    // prod migrated to brickos.org_members (Sprint 041 #463). Bare
+    // `FROM org_members` resolved to public.org_members via search_path
+    // even on staging, where it's empty post-migration -> "0 members".
+    // Same problem also affects the JOINs below, so probe once up front.
+    let brickos_members: i64 =
+        sqlx::query_scalar("SELECT COUNT(*) FROM brickos.org_members WHERE org_id = $1")
             .bind(org_id)
             .fetch_one(pool.get_ref())
             .await
             .unwrap_or(0);
+    let use_brickos = brickos_members > 0;
+    let members_table = if use_brickos {
+        "brickos.org_members"
+    } else {
+        "public.org_members"
+    };
+    let users_table = if use_brickos {
+        "brickos.users"
+    } else {
+        "public.users"
+    };
 
-    let active_7d: i64 = sqlx::query_scalar(
+    let member_count: i64 = sqlx::query_scalar(&format!(
+        "SELECT COUNT(*) FROM {members_table} WHERE org_id = $1"
+    ))
+    .bind(org_id)
+    .fetch_one(pool.get_ref())
+    .await
+    .unwrap_or(0);
+
+    let active_7d: i64 = sqlx::query_scalar(&format!(
         r#"SELECT COUNT(DISTINCT om.user_id)
-           FROM org_members om
-           JOIN users u ON u.id = om.user_id
+           FROM {members_table} om
+           JOIN {users_table} u ON u.id = om.user_id
            WHERE om.org_id = $1 AND u.last_active_at > NOW() - INTERVAL '7 days'"#,
-    )
+    ))
     .bind(org_id)
     .fetch_one(pool.get_ref())
     .await
     .unwrap_or(0);
 
-    let measurement_count: i64 = sqlx::query_scalar(
+    let measurement_count: i64 = sqlx::query_scalar(&format!(
         r#"SELECT COUNT(*)
            FROM measurements m
-           JOIN org_members om ON om.user_id = m.user_id AND om.org_id = $1"#,
-    )
+           JOIN {members_table} om ON om.user_id = m.user_id AND om.org_id = $1"#,
+    ))
     .bind(org_id)
     .fetch_one(pool.get_ref())
     .await
     .unwrap_or(0);
 
-    let measurements_7d: i64 = sqlx::query_scalar(
+    let measurements_7d: i64 = sqlx::query_scalar(&format!(
         r#"SELECT COUNT(*)
            FROM measurements m
-           JOIN org_members om ON om.user_id = m.user_id AND om.org_id = $1
+           JOIN {members_table} om ON om.user_id = m.user_id AND om.org_id = $1
            WHERE m.measured_at > NOW() - INTERVAL '7 days'"#,
-    )
+    ))
     .bind(org_id)
     .fetch_one(pool.get_ref())
     .await
     .unwrap_or(0);
 
-    let ai_chats_30d: i64 = sqlx::query_scalar(
+    let ai_chats_30d: i64 = sqlx::query_scalar(&format!(
         r#"SELECT COUNT(*)
            FROM conversations c
-           JOIN org_members om ON om.user_id = c.user_id AND om.org_id = $1
+           JOIN {members_table} om ON om.user_id = c.user_id AND om.org_id = $1
            WHERE c.created_at > NOW() - INTERVAL '30 days'"#,
-    )
+    ))
     .bind(org_id)
     .fetch_one(pool.get_ref())
     .await

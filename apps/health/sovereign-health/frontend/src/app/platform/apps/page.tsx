@@ -34,9 +34,13 @@ const APPS: AppInfo[] = [
     pillar: 'Technology',
     description: 'URL shortener, QR codes, click analytics, affiliate tracking',
     status: 'live',
+    // Sprint 051 #0594 follow-up: "Redirects" used to point at a hard-
+    // coded brickos.io/r/shDEMO2026 short-link demo. For org owners on
+    // staging this bounced through prod and landed on the SHI login
+    // wall. Replace with the in-app Sovereign Link landing.
     links: [
-      { label: 'Redirects', href: 'https://brickos.io/r/shDEMO2026' },
-      { label: 'QR', href: 'https://brickos.io/r/shDEMO2026.qr' },
+      { label: 'Manage links', href: '/sovereign-link' },
+      { label: 'Analytics', href: '/sovereign-link/analytics' },
     ],
   },
   {

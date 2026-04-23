@@ -32,6 +32,12 @@ function buildNavItems(t: (key: string) => string): NavItem[] {
   // Sprint 046 hotfix 2026-04-20: org-scoped predicate for ORGANIZATION +
   // PEOPLE + APPS sections. Any org role (or platform admin) sees these.
   const o = (ctx: AdminContextType) => ctx.isPlatform || ctx.isOrgOwner || ctx.isTechAdmin || ctx.isCommercialAdmin
+  // Sprint 051 #0590: ORGANIZATION-section items only make sense when the
+  // hostname carries an org slug (e.g. test-clinic.demo.brickos.io). On
+  // the aggregate platform plane (demo.brickos.io) there's no org to
+  // scope to, so the queries return 0/error and the UX looks broken.
+  // Require both a valid admin role AND a specific org context.
+  const orgScoped = (ctx: AdminContextType) => o(ctx) && ctx.isOrg
   // PLATFORM-WIDE items (CONTENT / OPS / SECURITY / COMMERCE / platform LINKS)
   // must be gated on isPlatform only. Previously these used `tech`, `comm`,
   // `any` predicates that included isOrgOwner, which leaked platform-wide
@@ -48,15 +54,15 @@ function buildNavItems(t: (key: string) => string): NavItem[] {
     { key: 'home', label: t('home'), href: '/platform', icon: '\u2302', section: 'OVERVIEW', visible: () => true },
 
     // Organization (Sprint 046 #570: folded from old /org/*)
-    { key: 'org-overview', label: t('orgOverview'), href: '/platform/org', icon: '\u2616', section: 'ORGANIZATION', visible: o },
-    { key: 'org-general', label: t('general'), href: '/platform/org/general', icon: '\u2699', section: 'ORGANIZATION', visible: o },
-    { key: 'org-branding', label: t('branding'), href: '/platform/org/branding', icon: '\u2740', section: 'ORGANIZATION', visible: o },
-    { key: 'org-domains', label: t('domains'), href: '/platform/org/domains', icon: '\u2601', section: 'ORGANIZATION', visible: o },
-    { key: 'org-analytics', label: t('analytics'), href: '/platform/org/analytics', icon: '\u2261', section: 'ORGANIZATION', visible: o },
-    { key: 'org-affiliate', label: t('affiliate'), href: '/platform/org/affiliate', icon: '\u2764', section: 'ORGANIZATION', visible: o },
-    { key: 'org-billing', label: t('billing'), href: '/platform/org/billing', icon: '\u2637', section: 'ORGANIZATION', visible: o },
+    { key: 'org-overview', label: t('orgOverview'), href: '/platform/org', icon: '\u2616', section: 'ORGANIZATION', visible: orgScoped },
+    { key: 'org-general', label: t('general'), href: '/platform/org/general', icon: '\u2699', section: 'ORGANIZATION', visible: orgScoped },
+    { key: 'org-branding', label: t('branding'), href: '/platform/org/branding', icon: '\u2740', section: 'ORGANIZATION', visible: orgScoped },
+    { key: 'org-domains', label: t('domains'), href: '/platform/org/domains', icon: '\u2601', section: 'ORGANIZATION', visible: orgScoped },
+    { key: 'org-analytics', label: t('analytics'), href: '/platform/org/analytics', icon: '\u2261', section: 'ORGANIZATION', visible: orgScoped },
+    { key: 'org-affiliate', label: t('affiliate'), href: '/platform/org/affiliate', icon: '\u2764', section: 'ORGANIZATION', visible: orgScoped },
+    { key: 'org-billing', label: t('billing'), href: '/platform/org/billing', icon: '\u2637', section: 'ORGANIZATION', visible: orgScoped },
     // Sprint 048 #048-30..33: org-scoped members management.
-    { key: 'org-members', label: t('orgMembers'), href: '/platform/org/members', icon: '\u263A', section: 'ORGANIZATION', visible: o },
+    { key: 'org-members', label: t('orgMembers'), href: '/platform/org/members', icon: '\u263A', section: 'ORGANIZATION', visible: orgScoped },
 
     // People (Sprint 046 #570: unified members list, orgFilter scopes it)
     { key: 'members', label: t('members'), href: '/platform/members', icon: '\u263A', section: 'PEOPLE', visible: (ctx) => ctx.isPlatform || ctx.isOrgOwner || ctx.isTechAdmin || ctx.isCommercialAdmin },
@@ -415,6 +421,7 @@ export default function PlatformLayout({ children }: { children: React.ReactNode
     isOrgOwner: orgRole === 'owner' || orgRole === 'org_owner',
     isTechAdmin: orgRole === 'tech_admin',
     isCommercialAdmin: orgRole === 'commercial_admin',
+    isOrg: org.isOrg,
     orgId: org.orgId,
     orgName: org.isOrg ? org.orgName : null,
   }

@@ -647,13 +647,22 @@ export function Navbar() {
           </button>
           {languageSelector}
           {isDemo ? (
-            // Sprint 049 #049-07: on eval.* the <EvalConversionBanner> is
-            // the conversion CTA (cross-plane to app.*). Avoid a same-origin
-            // /login button in the nav because it would land the user on
-            // eval's login page, where the cookie-set works but eval itself
-            // ignores the cookie -- confusing UX. Render the empty spacer
-            // on eval too.
-            isDemoOnly || isEvalHost ? (
+            // Sprint 051 #0594 follow-up: on eval.* render a Login button
+            // that cross-planes to app.sovereignhealth.io/login. The
+            // Sprint 049 concern (cookies set on eval, eval ignores them)
+            // is avoided by sending the user directly to the app plane
+            // where the cookie will be honoured. The EvalConversionBanner
+            // at the bottom is still the primary conversion CTA; the
+            // navbar entry is for users who already know they have an
+            // account and just want to sign in.
+            isEvalHost ? (
+              <a
+                href="https://app.sovereignhealth.io/login"
+                className="hidden sm:inline-flex text-xs bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-lg transition-colors"
+              >
+                {t('login')}
+              </a>
+            ) : isDemoOnly ? (
               <div className="hidden sm:block w-8" />
             ) : (
               <Link

@@ -23,8 +23,19 @@ export function DataPrivacyTab({ shareAnonymousData, onToggle }: { shareAnonymou
   const [consentNewsletter, setConsentNewsletter] = useState(false)
   const [consentPartner, setConsentPartner] = useState(false)
   const [consentLoading, setConsentLoading] = useState(false)
-  // Access log state
-  const [accessLog, setAccessLog] = useState<Array<{ accessed_by: string; action: string; resource: string; created_at: string }>>([])
+  // Access log state. Sprint 051 #0592: shape now matches the Sprint 048
+  // /user/data-access-log endpoint (impersonation events).
+  const [accessLog, setAccessLog] = useState<
+    Array<{
+      id: string
+      action: string
+      actor_id: string | null
+      actor_email: string | null
+      actor_name: string | null
+      org_name: string | null
+      created_at: string
+    }>
+  >([])
   const [accessLogLoaded, setAccessLogLoaded] = useState(false)
 
   useEffect(() => {
@@ -261,11 +272,23 @@ export function DataPrivacyTab({ shareAnonymousData, onToggle }: { shareAnonymou
         </div>
       </div>
 
-      {/* Data Access Log */}
+      {/* Data Access Log -- Sprint 051 #0592: shows last 5 impersonation
+          events from /user/data-access-log (Sprint 048 endpoint) with a
+          "See all" link to the full page. Previously hit the stale
+          Sprint 026 endpoint and always showed "No data access recorded
+          yet." even when the patient HAD been accessed. */}
       <div className="border border-border rounded-lg p-6 space-y-3">
-        <div>
-          <h3 className="font-medium">{t('accessLogTitle')}</h3>
-          <p className="text-sm text-muted-foreground mt-1">{t('accessLogDesc')}</p>
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h3 className="font-medium">{t('accessLogTitle')}</h3>
+            <p className="text-sm text-muted-foreground mt-1">{t('accessLogDesc')}</p>
+          </div>
+          <a
+            href="/sovereign-health/data-access-log"
+            className="shrink-0 text-sm text-blue-400 hover:text-blue-300 hover:underline whitespace-nowrap"
+          >
+            {t('accessLogSeeAll')}
+          </a>
         </div>
         {accessLogLoaded && accessLog.length === 0 && (
           <p className="text-sm text-muted-foreground italic">{t('accessLogEmpty')}</p>
@@ -276,15 +299,22 @@ export function DataPrivacyTab({ shareAnonymousData, onToggle }: { shareAnonymou
               <thead>
                 <tr className="text-xs text-muted-foreground border-b border-border">
                   <th className="text-left py-1.5">{t('accessLogAction')}</th>
-                  <th className="text-left py-1.5">{t('accessLogResource')}</th>
+                  <th className="text-left py-1.5">{t('accessLogActor')}</th>
                   <th className="text-left py-1.5">{t('accessLogDate')}</th>
                 </tr>
               </thead>
               <tbody>
-                {accessLog.map((entry, i) => (
-                  <tr key={i} className="border-b border-border/50">
-                    <td className="py-1.5 text-foreground">{t.has(`action_${entry.action}`) ? t(`action_${entry.action}`) : entry.action}</td>
-                    <td className="py-1.5 text-muted-foreground">{t.has(`resource_${entry.resource}`) ? t(`resource_${entry.resource}`) : entry.resource}</td>
+                {accessLog.slice(0, 5).map((entry) => (
+                  <tr key={entry.id} className="border-b border-border/50">
+                    <td className="py-1.5 text-foreground">
+                      {t.has(`action_${entry.action}`) ? t(`action_${entry.action}`) : entry.action}
+                    </td>
+                    <td className="py-1.5 text-muted-foreground">
+                      {entry.actor_name || entry.actor_email || '\u2014'}
+                      {entry.org_name ? (
+                        <span className="text-xs text-muted-foreground/60 ml-1">({entry.org_name})</span>
+                      ) : null}
+                    </td>
                     <td className="py-1.5 text-muted-foreground whitespace-nowrap">
                       {new Date(entry.created_at).toLocaleDateString(undefined, { day: '2-digit', month: '2-digit', year: 'numeric' })}
                       {' '}

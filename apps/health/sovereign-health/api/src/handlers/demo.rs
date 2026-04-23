@@ -77,7 +77,7 @@ fn extract_locale(req: &HttpRequest, query_locale: Option<&str>) -> String {
 pub async fn demo_zones(
     pool: web::Data<PgPool>,
     platform_pool: web::Data<PlatformPool>,
-    _enc: web::Data<crate::services::encryption::Encryptor>,
+    enc: web::Data<crate::services::encryption::Encryptor>,
     req: HttpRequest,
     query: web::Query<ProfileQuery>,
 ) -> Result<HttpResponse, AppError> {
@@ -113,26 +113,152 @@ pub async fn demo_zones(
     .fetch_all(pool.get_ref())
     .await?;
 
+    // Sprint 051 #0593: the LEFT JOIN above only hits the `markers` table,
+    // so calculated markers (GKI, Dr Boz Ratio, HOMA-IR, BMI, ...) never
+    // count toward markers_with_data even when their inputs are present
+    // in the demo seed. demo_zone_detail computes them correctly; this
+    // summary view was under-reporting.
+    //
+    // Fix: compute all calc marker values once for the demo user, then
+    // aggregate per zone so markers_with_data reflects the actual count
+    // a user sees when they drill in.
+    let calc_counts = compute_zone_calc_counts(pool.get_ref(), &platform_pool, &enc, user_id)
+        .await
+        .unwrap_or_default();
+
     use sqlx::Row;
     let zones: Vec<ZoneSummary> = rows
         .iter()
-        .map(|row| ZoneSummary {
-            zone_slug: row.try_get("zone_slug").unwrap_or_default(),
-            zone_name: row.try_get("zone_name").unwrap_or_default(),
-            zone_icon: row.try_get("zone_icon").unwrap_or_default(),
-            zone_color: row.try_get("zone_color").unwrap_or_default(),
-            display_order: row.try_get("display_order").unwrap_or_default(),
-            marker_count: row.try_get("marker_count").unwrap_or_default(),
-            markers_with_data: row.try_get("markers_with_data").unwrap_or_default(),
-            status_summary: StatusSummary {
-                green: row.try_get("green_count").unwrap_or_default(),
-                orange: row.try_get("orange_count").unwrap_or_default(),
-                red: row.try_get("red_count").unwrap_or_default(),
-            },
+        .map(|row| {
+            let zone_slug: String = row.try_get("zone_slug").unwrap_or_default();
+            let base_with_data: i64 = row.try_get("markers_with_data").unwrap_or_default();
+            let base_marker_count: i64 = row.try_get("marker_count").unwrap_or_default();
+            let calc_with_data = calc_counts.get(&zone_slug).copied().unwrap_or(0);
+            ZoneSummary {
+                zone_slug: zone_slug.clone(),
+                zone_name: row.try_get("zone_name").unwrap_or_default(),
+                zone_icon: row.try_get("zone_icon").unwrap_or_default(),
+                zone_color: row.try_get("zone_color").unwrap_or_default(),
+                display_order: row.try_get("display_order").unwrap_or_default(),
+                marker_count: base_marker_count,
+                markers_with_data: base_with_data + calc_with_data,
+                status_summary: StatusSummary {
+                    green: row.try_get("green_count").unwrap_or_default(),
+                    orange: row.try_get("orange_count").unwrap_or_default(),
+                    red: row.try_get("red_count").unwrap_or_default(),
+                },
+            }
         })
         .collect();
 
     Ok(HttpResponse::Ok().json(json!({ "data": zones, "error": null })))
+}
+
+/// Sprint 051 #0593: compute, per zone, the count of calculated markers
+/// whose formula produces a Some(value) for this demo user. Used only
+/// by the zone-summary endpoint so calc markers contribute to the
+/// "markers with data" card count the same way standard markers do.
+async fn compute_zone_calc_counts(
+    pool: &PgPool,
+    platform_pool: &PlatformPool,
+    enc: &crate::services::encryption::Encryptor,
+    user_id: Uuid,
+) -> Result<std::collections::HashMap<String, i64>, AppError> {
+    use sqlx::Row;
+
+    // 1. Gather all input measurement values (same pattern as
+    //    demo_zone_detail) so the formulas can resolve.
+    let input_rows = sqlx::query(
+        r#"SELECT DISTINCT ON (m.marker_slug)
+               m.marker_slug, ms.value_canonical
+           FROM measurements ms
+           JOIN markers m ON m.id = ms.marker_id
+           WHERE ms.user_id = $1
+             AND ms.is_deleted = false
+           ORDER BY m.marker_slug, ms.timestamp DESC"#,
+    )
+    .bind(user_id)
+    .fetch_all(pool)
+    .await?;
+    // Sprint 051 #0594 follow-up: measurements may be stored either as
+    // plaintext f64 strings (production demo seed) or AES-encrypted
+    // `v1:...` blobs (staging, same column but the migration ran through
+    // the encryption pipeline). Decrypt the `v1:` branch before parsing
+    // so calc formulas see real numbers on both environments. Without
+    // this the parse silently fails and every calc marker returns None.
+    let mut values_map: std::collections::HashMap<String, f64> = std::collections::HashMap::new();
+    for row in &input_rows {
+        let slug: String = row.try_get("marker_slug").unwrap_or_default();
+        let val_str: String = row.try_get("value_canonical").unwrap_or_default();
+        let v = if val_str.starts_with("v1:") {
+            let decrypted = enc.decrypt_f64(&val_str);
+            if decrypted.is_finite() && decrypted != 0.0 {
+                Some(decrypted)
+            } else {
+                None
+            }
+        } else {
+            val_str.parse::<f64>().ok()
+        };
+        if let Some(v) = v {
+            values_map.insert(slug, v);
+        }
+    }
+
+    // 2. Height (for BMI / WHtR) -- encrypted on the platform pool.
+    let height_cm: Option<f64> = {
+        let row = sqlx::query("SELECT height_cm FROM user_profile WHERE user_id = $1")
+            .bind(user_id)
+            .fetch_optional(&platform_pool.0)
+            .await?;
+        row.and_then(|r| r.try_get::<Option<String>, _>("height_cm").ok().flatten())
+            .map(|v| {
+                if v.starts_with("v1:") {
+                    enc.decrypt_f64(&v)
+                } else {
+                    v.parse::<f64>().unwrap_or(0.0)
+                }
+            })
+            .filter(|v| *v > 0.0)
+    };
+
+    // 3. Run the production formula pipeline; result is a Vec<(cm_id,
+    //    value, status)>. Only rows with a numeric value make the cut.
+    let computed = crate::services::calculated::compute_calculated_markers(
+        pool,
+        user_id,
+        &values_map,
+        height_cm,
+        "standard",
+        None,
+        None,
+        Utc::now(),
+    )
+    .await
+    .unwrap_or_default();
+    let computed_ids: std::collections::HashSet<Uuid> =
+        computed.into_iter().map(|(id, _, _)| id).collect();
+
+    // 4. Map back to (zone_slug, calc_marker_id) so we can count per zone.
+    let zone_calc_rows = sqlx::query(
+        r#"SELECT zm.zone_slug, cm.id AS cm_id
+           FROM zone_markers zm
+           JOIN calculated_markers cm ON cm.marker_slug = zm.marker_slug
+           WHERE zm.marker_type = 'calculated'"#,
+    )
+    .fetch_all(pool)
+    .await?;
+
+    let mut per_zone: std::collections::HashMap<String, i64> = std::collections::HashMap::new();
+    for row in &zone_calc_rows {
+        let zone: String = row.try_get("zone_slug").unwrap_or_default();
+        let cm_id: Uuid = row.try_get("cm_id").unwrap_or_default();
+        if computed_ids.contains(&cm_id) {
+            *per_zone.entry(zone).or_insert(0) += 1;
+        }
+    }
+
+    Ok(per_zone)
 }
 
 pub async fn demo_measurements(
@@ -470,12 +596,24 @@ pub async fn demo_zone_detail(
     .fetch_all(pool.get_ref())
     .await?;
 
+    // Sprint 051 #0594 follow-up: value_canonical may be plaintext
+    // (prod demo seed) or AES-encrypted `v1:...` (staging, same column
+    // routed through the encryption pipeline). Decrypt if prefixed.
     let mut values_map: std::collections::HashMap<String, f64> = std::collections::HashMap::new();
     for row in &input_rows {
         let slug: String = row.try_get("marker_slug").unwrap_or_default();
-        // Demo measurements are stored as plaintext numbers (not encrypted)
         let val_str: String = row.try_get("value_canonical").unwrap_or_default();
-        if let Ok(v) = val_str.parse::<f64>() {
+        let v = if val_str.starts_with("v1:") {
+            let d = enc.decrypt_f64(&val_str);
+            if d.is_finite() && d != 0.0 {
+                Some(d)
+            } else {
+                None
+            }
+        } else {
+            val_str.parse::<f64>().ok()
+        };
+        if let Some(v) = v {
             values_map.insert(slug, v);
         }
     }

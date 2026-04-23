@@ -558,10 +558,24 @@ export const api = {
       request<{ data: { updated: boolean } }>(
         '/settings/consent', { method: 'PUT', body: JSON.stringify(body) }
       ),
+    // Sprint 051 #0592: Privacy tab "Data Access Log" card was querying
+    // the Sprint 026 /settings/access-log endpoint (generic user-settings
+    // audit), which never saw the Sprint 048 practitioner-impersonation
+    // events. Swapped to /user/data-access-log so the card reflects the
+    // same data as /sovereign-health/data-access-log. GDPR Art. 15
+    // transparency: patient must see who actually accessed their data.
     getAccessLog: () =>
-      request<{ data: Array<{ accessed_by: string; action: string; resource: string; created_at: string }> }>(
-        '/settings/access-log'
-      ),
+      request<{
+        data: Array<{
+          id: string
+          action: string
+          actor_id: string | null
+          actor_email: string | null
+          actor_name: string | null
+          org_name: string | null
+          created_at: string
+        }>
+      }>('/user/data-access-log'),
   },
   templates: {
     list: () =>

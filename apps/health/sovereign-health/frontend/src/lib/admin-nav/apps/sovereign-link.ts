@@ -1,8 +1,8 @@
 import type { AppNavContribution } from '../types'
 
-// Sprint 046 #571 stub. Sub-items are placeholders until Sovereign Link
-// builds out per-org settings. The app still appears in the sidebar --
-// licensed vs greyed is decided by the org's entitlements.
+// Sprint 046 #571 stub, Sprint 051 #0587 end-user pages wired.
+// /sovereign-link is the org-member landing; /platform/links stays for
+// platform-admin-wide link management.
 export const SOVEREIGN_LINK: AppNavContribution = {
   appKey: 'sovereign-link',
   label: 'Sovereign Link',
@@ -11,8 +11,15 @@ export const SOVEREIGN_LINK: AppNavContribution = {
     {
       key: 'overview',
       label: 'Overview',
-      href: '/platform/links',
+      href: '/sovereign-link',
       icon: '\u2197',
+      roles: ['org_owner', 'tech_admin', 'commercial_admin', 'platform_admin'],
+    },
+    {
+      key: 'analytics',
+      label: 'Analytics',
+      href: '/sovereign-link/analytics',
+      icon: '\u2261',
       roles: ['org_owner', 'tech_admin', 'commercial_admin', 'platform_admin'],
     },
   ],
