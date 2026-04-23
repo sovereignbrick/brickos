@@ -936,6 +936,128 @@ pub async fn call_claude(
     })
 }
 
+// ── Ollama chat dispatch (Sprint 053 Phase G) ─────────────────────────────────
+//
+// Thin client for Ollama's /api/chat endpoint. Used when config.ai_provider ==
+// "ollama" (self-hosted path with local LLM). Mirrors call_claude's signature +
+// return shape so the handler can swap without restructuring caller code.
+//
+// Intentionally small: no tool use, no vision, no streaming. Dr. Alex chat only.
+// Vision / extraction still route through call_claude_vision* via Anthropic.
+
+#[derive(Debug, Serialize)]
+struct OllamaRequest {
+    model: String,
+    messages: Vec<AnthropicMessage>,
+    stream: bool,
+    options: OllamaOptions,
+}
+
+#[derive(Debug, Serialize)]
+struct OllamaOptions {
+    num_predict: u32,
+    temperature: f32,
+}
+
+#[derive(Debug, Deserialize)]
+struct OllamaResponse {
+    message: OllamaMessage,
+    #[serde(default)]
+    prompt_eval_count: u32,
+    #[serde(default)]
+    eval_count: u32,
+}
+
+#[derive(Debug, Deserialize)]
+struct OllamaMessage {
+    content: String,
+}
+
+pub async fn call_ollama(
+    base_url: &str,
+    model: &str,
+    health_context: &str,
+    question: &str,
+    history: Vec<AnthropicMessage>,
+) -> Result<ClaudeResponse, AppError> {
+    if base_url.is_empty() {
+        return Err(AppError::MissingApiKey);
+    }
+
+    let sanitized_question = sanitize_ai_input(question);
+    let user_content = format!(
+        "<health_context>\n{}\n</health_context>\n\nQuestion: {}",
+        health_context, sanitized_question
+    );
+
+    // Ollama takes the system prompt as a message with role=system (unlike
+    // Anthropic which has a top-level `system` field). Prepend it.
+    let mut messages = Vec::with_capacity(history.len() + 2);
+    messages.push(AnthropicMessage {
+        role: "system".to_string(),
+        content: SYSTEM_PROMPT.to_string(),
+    });
+    messages.extend(history);
+    messages.push(AnthropicMessage {
+        role: "user".to_string(),
+        content: user_content,
+    });
+
+    let req_body = OllamaRequest {
+        model: model.to_string(),
+        messages,
+        stream: false,
+        options: OllamaOptions {
+            num_predict: 1200,
+            temperature: 0.7,
+        },
+    };
+
+    let url = format!("{}/api/chat", base_url.trim_end_matches('/'));
+    let client = reqwest::Client::builder()
+        .timeout(std::time::Duration::from_secs(120))
+        .build()
+        .unwrap_or_else(|_| reqwest::Client::new());
+
+    let resp = client
+        .post(&url)
+        .json(&req_body)
+        .send()
+        .await
+        .map_err(|e| {
+            tracing::error!("Ollama chat request failed: {:?}", e);
+            AppError::UpstreamError
+        })?;
+
+    let status = resp.status();
+    if !status.is_success() {
+        let body = resp.text().await.unwrap_or_default();
+        tracing::error!("Ollama API error {}: {}", status, body);
+        if status.as_u16() == 503 {
+            return Err(AppError::ServiceOverloaded);
+        }
+        return Err(AppError::UpstreamError);
+    }
+
+    let parsed: OllamaResponse = resp.json().await.map_err(|e| {
+        tracing::error!("Failed to parse Ollama response: {:?}", e);
+        AppError::UpstreamError
+    })?;
+
+    let input_tokens = Some(parsed.prompt_eval_count as i32);
+    let output_tokens = Some(parsed.eval_count as i32);
+    let total_tokens = Some((parsed.prompt_eval_count + parsed.eval_count) as i32);
+
+    Ok(ClaudeResponse {
+        text: parsed.message.content,
+        tool_input: None,
+        total_tokens,
+        input_tokens,
+        output_tokens,
+        model: model.to_string(),
+    })
+}
+
 // ── Vision API for lab report extraction ─────────────────────────────────────
 
 const EXTRACTION_SYSTEM_PROMPT: &str = r#"You are a health data extractor. Extract all health markers and their values from this image. The source can be a lab report, smart scale app screenshot, blood glucose meter, or any health measurement display.

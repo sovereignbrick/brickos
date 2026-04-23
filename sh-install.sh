@@ -231,14 +231,38 @@ uninstall() {
 }
 
 # -----------------------------------------------------------------------------
-# Upgrade: pull latest + restart.
+# Pre-upgrade DB dump. Pg_dump goes to $ENV_DIR so it shares permissions
+# + location with the .env file. Failure to dump aborts the upgrade --
+# we refuse to touch container images without a rollback point.
+# -----------------------------------------------------------------------------
+backup_db_preupgrade() {
+    local db_container
+    db_container=$(docker compose -p "$PROJECT_NAME" --env-file "$ENV_FILE" -f "$COMPOSE_FILE" ps -q db 2>/dev/null)
+    if [ -z "$db_container" ]; then
+        warn "DB container not running -- skipping pre-upgrade dump (first upgrade after install?)."
+        return 0
+    fi
+    local dump_file="$ENV_DIR/backup-preupgrade-$(date +%Y%m%d-%H%M%S).sql"
+    log "Dumping DB to $dump_file before upgrade..."
+    if ! sudo docker exec "$db_container" pg_dump -U sovereign_health sovereign_health > "/tmp/sh-preupgrade-$$.sql" 2>/dev/null; then
+        fail "pg_dump failed. Aborting upgrade -- no rollback point."
+    fi
+    sudo mv "/tmp/sh-preupgrade-$$.sql" "$dump_file"
+    sudo chmod 600 "$dump_file"
+    log "Backup OK. To roll back: docker exec -i \$(docker compose -p $PROJECT_NAME ps -q db) psql -U sovereign_health sovereign_health < $dump_file"
+}
+
+# -----------------------------------------------------------------------------
+# Upgrade: dump DB, pull latest, restart. Dump first so a bad migration
+# can be rolled back without data loss.
 # -----------------------------------------------------------------------------
 upgrade() {
+    backup_db_preupgrade
     log "Pulling latest images..."
     docker compose -p "$PROJECT_NAME" --env-file "$ENV_FILE" -f "$COMPOSE_FILE" pull
     log "Restarting stack..."
     docker compose -p "$PROJECT_NAME" --env-file "$ENV_FILE" -f "$COMPOSE_FILE" up -d
-    log "Upgrade complete."
+    log "Upgrade complete. Pre-upgrade dump kept in $ENV_DIR/backup-preupgrade-*.sql."
 }
 
 # -----------------------------------------------------------------------------

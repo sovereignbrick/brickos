@@ -362,7 +362,9 @@ pub async fn invite_reminder_cron(
                 let invite_id: uuid::Uuid = row.try_get("id").unwrap_or_default();
                 let to_addr: String = row.try_get("email").unwrap_or_default();
                 let token: uuid::Uuid = row.try_get("token").unwrap_or_default();
-                let org_name: String = row.try_get("org_name").unwrap_or_else(|_| "our clinic".to_string());
+                let org_name: String = row
+                    .try_get("org_name")
+                    .unwrap_or_else(|_| "our clinic".to_string());
 
                 let signup_url = format!("{frontend_url}/signup?invite={token}");
                 let subject = format!("Reminder: you're invited to join {org_name}");

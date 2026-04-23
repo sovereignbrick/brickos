@@ -188,10 +188,22 @@ async fn test_demo_namespace_has_no_write_handlers() {
 
     for (method, path) in write_verbs {
         let req = match method {
-            "POST" => test::TestRequest::post().uri(path).peer_addr(peer).to_request(),
-            "PUT" => test::TestRequest::put().uri(path).peer_addr(peer).to_request(),
-            "DELETE" => test::TestRequest::delete().uri(path).peer_addr(peer).to_request(),
-            "PATCH" => test::TestRequest::patch().uri(path).peer_addr(peer).to_request(),
+            "POST" => test::TestRequest::post()
+                .uri(path)
+                .peer_addr(peer)
+                .to_request(),
+            "PUT" => test::TestRequest::put()
+                .uri(path)
+                .peer_addr(peer)
+                .to_request(),
+            "DELETE" => test::TestRequest::delete()
+                .uri(path)
+                .peer_addr(peer)
+                .to_request(),
+            "PATCH" => test::TestRequest::patch()
+                .uri(path)
+                .peer_addr(peer)
+                .to_request(),
             _ => unreachable!(),
         };
         let resp: ServiceResponse = test::call_service(&app, req).await;
