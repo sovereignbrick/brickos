@@ -1,87 +1,36 @@
 # BrickOS Platform Documentation
 
-Central documentation for the BrickOS platform. Platform-level docs live here, while app-specific docs remain in their respective `apps/` directories.
+Public documentation for the BrickOS platform: user-facing design, operator runbooks, security policy, deployment guides.
 
 ## Structure
 
 ```
 docs/
-|-- design/              # Platform design specifications
-|-- adr/                 # Architecture Decision Records (platform-wide)
-|-- sprint-planning/     # Sprint planning, sprints, and retrospectives
-|-- releases/            # Release notes and templates
-|   |-- shi/             # Sovereign Health release notes
-|   |-- sovereign-link/  # Sovereign Link release notes
-|-- security/            # Security policies and incident response
-|-- reports/             # Project reports and summaries
-|-- compliance/          # Compliance documentation
-|-- strategy/            # Platform strategy docs
-|-- templates/           # Document templates
-|-- tracker/             # Tracking docs
-|-- screenshots/         # Platform screenshots
+├── design/         Numbered design docs (001-...). Public architecture.
+├── deployment/     Deploy playbooks, environment setup, release flow.
+├── ops/            Operator-facing guides (config, scaling, observability).
+├── security/       Security policy, CVE disclosure, threat model.
+└── README.md       This file.
 ```
 
-## Design Documents
+## What's not here
 
-| # | Document | Description |
-|---|----------|-------------|
-| 001 | [Sovereign Stack Vision](design/001-sovereign-stack-vision.md) | Overall platform vision |
-| 002 | [Nostr/Bitchat Integration](design/002-nostr-bitchat-integration.md) | Nostr and Bitchat integration design |
-| 003 | [Sovereign Identity Roadmap](design/003-sovereign-identity-roadmap.md) | Identity and authentication roadmap |
-| 004 | [Cashu/Tollgate/Zapstore](design/004-cashu-tollgate-zapstore.md) | Payment and distribution integration |
-| 005 | [Platform Multi-Tenant](design/005-platform-multi-tenant.md) | Multi-tenant specification |
-| 006 | [Platform Schema Elevation](design/006-platform-schema-elevation.md) | Schema elevation to platform level |
-| 007 | [Sovereign Voice](design/007-sovereign-voice.md) | Sovereign Voice app specification |
-| 008 | [Enterprise SSO](design/008-enterprise-sso.md) | Enterprise single sign-on |
-| 009 | [Affiliate Hierarchy](design/009-affiliate-hierarchy.md) | Affiliate tracking and hierarchy |
-| 010 | [Multi-Tenant Platform Offering](design/010-multi-tenant-platform-offering.md) | Platform-as-a-service offering |
-| 011 | [Deployment Architecture](design/011-deployment-architecture-scaling.md) | Deployment and scaling architecture |
-| 012 | [URL Shortener Service](design/012-url-shortener-service.md) | Sovereign Link URL shortener |
+Internal planning artifacts (sprint plans, tracker issues, ADRs, weekly reports, retros, strategy notes, compliance workpapers, hotfix runbooks, per-app project files) live in a separate private companion repo: **`sovereignbrick/brickos-internal`**. Split on 2026-04-23 (Sprint 053 Phase A) to keep the public AGPL repo focused on code + user docs. Commit history for moved files is preserved in the private repo.
 
-## Architecture Decision Records
+If you're a contributor and need access to planning docs, ask a maintainer.
 
-Platform-wide ADRs in `adr/`. These cover technology choices, infrastructure, security, billing, and DevOps decisions that affect all BrickOS apps.
+## Per-app docs
 
-Key ADRs:
-- 001 - Rust/Actix backend
-- 002 - SQLx (no ORM)
-- 003 - PostgreSQL with pgaudit and RLS
-- 004 - Field-level encryption
-- 005 - Rustls (no OpenSSL)
-- 007 - Dual-mode SaaS/self-hosted
-- 008 - Local CI/CD (no external services)
-- 009 - Docker-only development
-- 010 - Monorepo structure
-- 012 - Dual payment (Stripe + Strike)
-- 016 - GDPR privacy architecture
-- 022 - Tier features (database-driven)
-- 024 - Cache middleware (layered)
-- 025 - Unified AI credit pool
-- 026 - PostgreSQL full-text search
-- 030 - Affiliate hierarchical tracking
-- 031 - Organizations multi-tenant
-- 032 - GitLab backup mirror
-- 034 - Staging Docker cache, production no-cache
+App-specific docs remain in their respective `apps/<pillar>/<app>/docs/` directories:
 
-App-specific ADRs remain in their respective app directories (e.g., SHI frontend, health-specific, AI assistant decisions).
+- `apps/health/sovereign-health/docs/src/` — Sovereign Health mdBook source
+- `apps/health/sovereign-health/docs/testing/` — acceptance test specs
+- `apps/technology/sovereign-link/docs/` — Sovereign Link design + self-hosting guide
 
-## Sprint Planning
+## Top-level docs
 
-- [Sprint Planning Guide](sprint-planning/SPRINT_PLANNING.md) - Process and workflow
-- [GitHub Project Setup](sprint-planning/GITHUB_PROJECT_SETUP.md) - Project board configuration
-- `sprint-planning/sprints/` - Individual sprint plans (001-028)
-- `sprint-planning/retrospectives/` - Sprint retrospectives
-
-## Releases
-
-- [Release Template](releases/RELEASE_TEMPLATE.md) - Template for release notes
-- `releases/shi/` - Sovereign Health releases (v0.20.0 through v0.32.0)
-- `releases/sovereign-link/` - Sovereign Link releases
-
-## Security
-
-- [Incident Response](security/incident-response.md) - Incident response procedure
-
-## Reports
-
-Project reports and summaries covering architecture, value propositions, and weekly status.
+- [`README.md`](../README.md) — project overview, quick start
+- [`SELFHOSTED.md`](../SELFHOSTED.md) — self-hosted install guide (the user landing doc)
+- [`CLAUDE.md`](../CLAUDE.md) — project conventions for Claude Code sessions
+- [`CHANGELOG.md`](../CHANGELOG.md) — release log (when present)
+- [`LICENSE`](../LICENSE) — AGPL-3.0

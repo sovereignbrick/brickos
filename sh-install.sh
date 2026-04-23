@@ -205,6 +205,7 @@ print_banner() {
     echo "    Open:  http://localhost:3000"
     echo
     echo "  The first account you create will be promoted to admin."
+    echo "  Email can be fake -- no outbound mail, signup auto-verifies."
     echo "  Data lives in Docker volumes; config at $ENV_FILE."
     echo
     echo "  Helpful commands:"
