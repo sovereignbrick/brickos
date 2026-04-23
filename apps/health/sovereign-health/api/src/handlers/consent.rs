@@ -264,7 +264,9 @@ pub async fn bulk_consent_reminder(
     let mut sent = 0usize;
     for row in rows {
         let to_addr: String = row.try_get("email").unwrap_or_default();
-        let org_name: String = row.try_get("org_name").unwrap_or_else(|_| "your clinic".to_string());
+        let org_name: String = row
+            .try_get("org_name")
+            .unwrap_or_else(|_| "your clinic".to_string());
         let settings_url = format!("{frontend_url}/settings?tab=organization-access");
 
         let subject = format!("Reminder: {org_name} needs your consent");
@@ -277,7 +279,11 @@ pub async fn bulk_consent_reminder(
             "Hello,\n\n{org_name} can only view your health data once you grant consent. Manage it here: {settings_url}\n"
         );
 
-        if provider.send(&to_addr, &subject, &html, &text).await.is_ok() {
+        if provider
+            .send(&to_addr, &subject, &html, &text)
+            .await
+            .is_ok()
+        {
             sent += 1;
         }
     }

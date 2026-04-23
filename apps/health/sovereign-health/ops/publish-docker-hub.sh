@@ -1,30 +1,39 @@
 #!/bin/bash
 # Sovereign Health Intelligence -- AGPL-3.0
 #
-# Sprint 052 #052-10 (closes #0344): publish release images to Docker
-# Hub so self-hosted users can `docker pull` instead of building from
-# source. Companion to deploy.sh -- deploy.sh ships to our VPS; this
-# script ships to the world.
+# Publish release images to Docker Hub so self-hosted users can
+# `docker pull` instead of building from source. Companion to
+# deploy.sh -- deploy.sh ships to our VPS; this script ships to the
+# world.
 #
 # Usage:
 #   bash ops/publish-docker-hub.sh <version>
-#     version: the semver to publish. Tags pushed: vX.Y.Z and `latest`.
-#     Example: bash ops/publish-docker-hub.sh 0.49.0
+#     version: the semver to publish. Tags pushed: X.Y.Z and `latest`.
+#     Example: bash ops/publish-docker-hub.sh 1.0.1
+#
+# Flags:
+#   --amd64-only           Build only linux/amd64 (default is multi-arch).
+#                          Use when buildx/qemu isn't available.
+#   --no-postgres          Skip the postgres image push (use upstream).
 #
 # Prereqs:
 #   - Logged in to Docker Hub (`docker login`) as a user with push perms
 #     on the sovereignbrick/* namespace.
-#   - Images already built by deploy.sh. This script re-tags + pushes.
+#   - Must be run from the repo root (needs access to apps/health/...
+#     and packages/ for frontend workspace resolution).
+#   - For multi-arch: `docker buildx` with a builder that supports both
+#     linux/amd64 and linux/arm64 (default docker-container driver +
+#     qemu-user-static on the host).
 #
-# Multi-arch: today the images are linux/amd64 only. ARM64 (Apple
-# Silicon / Raspberry Pi) builds are a Sprint 053+ item -- tracked in
-# 052-11. When implemented, add a `--multiarch` flag that runs
-# `docker buildx build --platform linux/amd64,linux/arm64 --push`.
+# Multi-arch (Sprint 053 Phase F): images are built for linux/amd64 +
+# linux/arm64 so Apple Silicon, Raspberry Pi 4/5, and AWS Graviton
+# users can `docker pull` without emulation.
 
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 APP_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../../../.." && pwd)"
 
 BACKEND_IMAGE="sovereignbrick/shi-api"
 FRONTEND_IMAGE="sovereignbrick/shi-web"
@@ -33,66 +42,113 @@ POSTGRES_IMAGE="sovereignbrick/shi-postgres"
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
+CYAN='\033[0;36m'
 NC='\033[0m'
 
 log()  { echo -e "${GREEN}[PUBLISH]${NC} $1"; }
 warn() { echo -e "${YELLOW}[WARN]${NC} $1"; }
 fail() { echo -e "${RED}[FAIL]${NC} $1"; exit 1; }
+info() { echo -e "${CYAN}[INFO]${NC} $1"; }
 
-VERSION="${1:-}"
-[ -n "$VERSION" ] || fail "Usage: $0 <version>   (e.g. $0 0.49.0)"
+# ── Argument parsing. ───────────────────────────────────────────────────
+VERSION=""
+PLATFORMS="linux/amd64,linux/arm64"
+SKIP_POSTGRES="0"
+for arg in "$@"; do
+    case "$arg" in
+        --amd64-only) PLATFORMS="linux/amd64" ;;
+        --no-postgres) SKIP_POSTGRES="1" ;;
+        --help|-h)
+            sed -n '/^# Usage:/,/^$/p' "$0" | sed 's/^# *//'
+            exit 0
+            ;;
+        -*)
+            fail "Unknown flag: $arg"
+            ;;
+        *)
+            [ -z "$VERSION" ] && VERSION="$arg" || fail "Too many positional args"
+            ;;
+    esac
+done
 
-# ── Strip any leading 'v' so both '0.49.0' and 'v0.49.0' work. ──────────
+[ -n "$VERSION" ] || fail "Usage: $0 <version> [--amd64-only] [--no-postgres]"
 VERSION="${VERSION#v}"
 if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?$ ]]; then
-    fail "Version '$VERSION' doesn't look like semver (e.g. 0.49.0 or 1.0.0-rc1)"
+    fail "Version '$VERSION' doesn't look like semver"
 fi
 
-# ── Pre-flight: Docker Hub credentials + image presence. ────────────────
+# ── Pre-flight. ─────────────────────────────────────────────────────────
 log "Pre-flight checks..."
 
 if ! docker info 2>/dev/null | grep -q "Username:"; then
     fail "Not logged in to Docker Hub. Run: docker login"
 fi
 
-# Verify the images we want to tag exist locally.
-for img in "$BACKEND_IMAGE:latest" "$FRONTEND_IMAGE:latest"; do
-    if ! docker image inspect "$img" >/dev/null 2>&1; then
-        fail "Local image missing: $img. Run deploy.sh production first (or build manually)."
+# buildx is bundled in modern Docker but verify + ensure a builder exists
+# with the requested platforms.
+docker buildx version >/dev/null 2>&1 || fail "docker buildx not available"
+
+if [ "$PLATFORMS" != "linux/amd64" ]; then
+    if ! docker buildx inspect default 2>/dev/null | grep -q "linux/arm64"; then
+        warn "Default builder doesn't advertise linux/arm64 support."
+        warn "Setting up a fresh buildx builder with qemu..."
+        docker run --rm --privileged multiarch/qemu-user-static --reset -p yes >/dev/null 2>&1 || \
+            warn "qemu-user-static setup may have failed; continuing anyway"
+        docker buildx create --name shi-multiarch --use --bootstrap 2>/dev/null || \
+            docker buildx use shi-multiarch
     fi
-done
-
-log "Publishing version $VERSION to Docker Hub..."
-
-# ── Tag + push backend. ─────────────────────────────────────────────────
-log "Backend: tagging $BACKEND_IMAGE:$VERSION + :latest"
-docker tag "$BACKEND_IMAGE:latest" "$BACKEND_IMAGE:$VERSION"
-docker push "$BACKEND_IMAGE:$VERSION"
-docker push "$BACKEND_IMAGE:latest"
-
-# ── Tag + push frontend. ────────────────────────────────────────────────
-log "Frontend: tagging $FRONTEND_IMAGE:$VERSION + :latest"
-docker tag "$FRONTEND_IMAGE:latest" "$FRONTEND_IMAGE:$VERSION"
-docker push "$FRONTEND_IMAGE:$VERSION"
-docker push "$FRONTEND_IMAGE:latest"
-
-# ── Postgres image (pgaudit-enabled custom build). ──────────────────────
-# deploy.sh builds this from ops/postgres/Dockerfile. We tag it and push
-# so self-host users don't have to rebuild (and don't silently downgrade
-# to vanilla postgres without pgaudit).
-if docker image inspect "$POSTGRES_IMAGE:latest" >/dev/null 2>&1; then
-    log "Postgres: tagging $POSTGRES_IMAGE:$VERSION + :latest"
-    docker tag "$POSTGRES_IMAGE:latest" "$POSTGRES_IMAGE:$VERSION"
-    docker push "$POSTGRES_IMAGE:$VERSION"
-    docker push "$POSTGRES_IMAGE:latest"
-else
-    warn "$POSTGRES_IMAGE:latest not present locally; skipping."
-    warn "Build it first: (cd $APP_ROOT/ops/postgres && docker build -t $POSTGRES_IMAGE:latest .)"
 fi
 
+log "Publishing version $VERSION to Docker Hub (platforms: $PLATFORMS)..."
+
+# ── Backend (Rust workspace build). ─────────────────────────────────────
+log "Backend: buildx --push -> $BACKEND_IMAGE:$VERSION + :latest"
+docker buildx build \
+    --platform "$PLATFORMS" \
+    -f "$APP_ROOT/api/Dockerfile" \
+    -t "$BACKEND_IMAGE:$VERSION" \
+    -t "$BACKEND_IMAGE:latest" \
+    --push \
+    "$REPO_ROOT"
+
+# ── Frontend (Next.js). ─────────────────────────────────────────────────
+# NEXT_PUBLIC_API_URL left as the prod URL; resolveApiBase() in lib/api.ts
+# overrides to http://localhost:8080 at runtime when host is localhost
+# (Sprint 053 fix).
+log "Frontend: buildx --push -> $FRONTEND_IMAGE:$VERSION + :latest"
+docker buildx build \
+    --platform "$PLATFORMS" \
+    --build-arg NEXT_PUBLIC_API_URL="https://api.sovereignhealth.io" \
+    --build-arg NEXT_PUBLIC_BUILD_ID="selfhosted-$VERSION" \
+    -f "$APP_ROOT/frontend/Dockerfile" \
+    -t "$FRONTEND_IMAGE:$VERSION" \
+    -t "$FRONTEND_IMAGE:latest" \
+    --push \
+    "$REPO_ROOT"
+
+# ── Postgres (pgaudit-enabled custom build). ────────────────────────────
+# Extends upstream postgres:16 which is already multi-arch, so buildx
+# inherits. Skippable via --no-postgres if the upstream is fine.
+if [ "$SKIP_POSTGRES" = "1" ]; then
+    warn "Skipping postgres image per --no-postgres flag."
+else
+    log "Postgres: buildx --push -> $POSTGRES_IMAGE:$VERSION + :latest"
+    docker buildx build \
+        --platform "$PLATFORMS" \
+        -f "$APP_ROOT/ops/postgres/Dockerfile" \
+        -t "$POSTGRES_IMAGE:$VERSION" \
+        -t "$POSTGRES_IMAGE:latest" \
+        --push \
+        "$APP_ROOT/ops/postgres"
+fi
+
+log ""
 log "Published:"
 log "  docker pull $BACKEND_IMAGE:$VERSION"
 log "  docker pull $FRONTEND_IMAGE:$VERSION"
-log "  docker pull $POSTGRES_IMAGE:$VERSION"
+[ "$SKIP_POSTGRES" = "0" ] && log "  docker pull $POSTGRES_IMAGE:$VERSION"
 log ""
-log "Self-hosted users can now: bash sh-install.sh"
+log "Platforms: $PLATFORMS"
+log ""
+log "Smoke test against the published tag:"
+log "  bash ops/docker-hub-smoke.sh $VERSION"

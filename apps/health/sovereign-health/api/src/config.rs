@@ -81,6 +81,15 @@ pub struct Config {
     pub anthropic_api_url: String,
     pub anthropic_api_version: String,
 
+    // AI provider routing (Sprint 053 Phase G)
+    // "anthropic" (default), "ollama", or "none". Controls which
+    // backend serves Dr. Alex chat. Vision / lab-PDF extraction
+    // always goes through Anthropic today -- Ollama vision is a
+    // future sprint.
+    pub ai_provider: String,
+    pub ollama_url: String,
+    pub ollama_model: String,
+
     // Push notifications (VAPID)
     pub vapid_public_key: Option<String>,
     pub vapid_private_key: Option<String>,
@@ -188,6 +197,10 @@ impl Config {
             anthropic_api_url: env_or("ANTHROPIC_API_URL", "https://api.anthropic.com/v1/messages"),
             anthropic_api_version: env_or("ANTHROPIC_API_VERSION", "2023-06-01"),
 
+            ai_provider: env_or("AI_PROVIDER", if is_oss { "none" } else { "anthropic" }),
+            ollama_url: env_or("OLLAMA_URL", "http://ollama:11434"),
+            ollama_model: env_or("OLLAMA_MODEL", "llama3.1:8b"),
+
             // Push notifications
             vapid_public_key: std::env::var("VAPID_PUBLIC_KEY").ok(),
             vapid_private_key: std::env::var("VAPID_PRIVATE_KEY").ok(),
@@ -252,6 +265,9 @@ impl Config {
             grace_period_days: 7,
             anthropic_api_url: "https://api.anthropic.com".into(),
             anthropic_api_version: "2023-06-01".into(),
+            ai_provider: "anthropic".into(),
+            ollama_url: "http://localhost:11434".into(),
+            ollama_model: "llama3.1:8b".into(),
             vapid_public_key: None,
             vapid_private_key: None,
             deploy_environment: "test".to_string(),

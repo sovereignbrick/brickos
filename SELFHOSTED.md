@@ -106,7 +106,7 @@ Key settings you might touch:
 ## Managing your install
 
 ```bash
-./sh-install.sh --upgrade     # pull latest images + restart
+./sh-install.sh --upgrade     # pg_dump DB, pull latest images, restart
 ./sh-install.sh --uninstall   # stop + remove containers (data volumes preserved)
 
 # Manual compose commands
@@ -149,6 +149,29 @@ cat sovereign-health-20260423.sql | docker exec -i sovereign-health-db-1 \
 # Restart backend
 docker compose -p sovereign-health start backend
 ```
+
+### Rollback a bad upgrade
+
+`./sh-install.sh --upgrade` always takes a `pg_dump` first (since v1.1.0), stored at `/etc/sovereign-health/backup-preupgrade-YYYYMMDD-HHMMSS.sql`. If the new images misbehave:
+
+```bash
+# Stop the new backend
+docker compose -p sovereign-health stop backend
+
+# Restore the pre-upgrade dump
+sudo cat /etc/sovereign-health/backup-preupgrade-20260423-143022.sql | \
+  docker exec -i $(docker compose -p sovereign-health ps -q db) \
+  psql -U sovereign_health sovereign_health
+
+# Pin the old image tag you want (check Docker Hub for available tags)
+# Edit /etc/sovereign-health/.env:
+#   SHI_VERSION=1.0.1        # or whichever version worked
+# Then recreate:
+docker compose -p sovereign-health --env-file /etc/sovereign-health/.env \
+  -f apps/health/sovereign-health/ops/docker-compose.selfhosted.yml up -d --force-recreate
+```
+
+Old dumps aren't auto-cleaned -- delete them manually when you've confirmed the upgrade is stable.
 
 ---
 

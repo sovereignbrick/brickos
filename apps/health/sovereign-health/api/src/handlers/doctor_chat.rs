@@ -14,7 +14,7 @@ use crate::{
         ChatRequest, ChatResponse, ConversationDetail, ConversationSummaryWithAgent, Message,
         PaginationQuery, QuotaResponse, RateRequest, RateResponse,
     },
-    services::doctor_chat::{build_health_context, call_claude, AnthropicMessage},
+    services::doctor_chat::{build_health_context, call_claude, call_ollama, AnthropicMessage},
     services::tier,
 };
 
@@ -59,12 +59,16 @@ pub async fn chat(
     body: web::Json<ChatRequest>,
     enc: web::Data<crate::services::encryption::Encryptor>,
 ) -> Result<HttpResponse, AppError> {
-    // Sprint 052 #052-03: fail fast with a structured code when no AI
-    // provider is configured. Self-hosted installs without an
-    // ANTHROPIC_API_KEY (and no Ollama wired in) can't serve chat;
-    // returning AI_UNCONFIGURED lets the frontend render a helpful
-    // "Configure AI provider" UI instead of the generic 500.
-    if config.anthropic_api_key.is_empty() {
+    // Sprint 052 #052-03 + Sprint 053 Phase G: fail fast with a structured
+    // code when the configured AI provider is unreachable. ai_provider is
+    // "anthropic" (default for hosted), "ollama" (local LLM), or "none".
+    let ai_unconfigured = match config.ai_provider.as_str() {
+        "none" => true,
+        "anthropic" => config.anthropic_api_key.is_empty(),
+        "ollama" => config.ollama_url.is_empty(),
+        _ => true,
+    };
+    if ai_unconfigured {
         return Ok(HttpResponse::ServiceUnavailable().json(serde_json::json!({
             "error": {
                 "code": "AI_UNCONFIGURED",
@@ -171,16 +175,26 @@ pub async fn chat(
     )
     .await;
 
-    // 6. Call Claude
-    let claude_resp = match call_claude(
-        &config.anthropic_api_key,
-        &health_context,
-        &question,
-        history,
-        &model,
-    )
-    .await
-    {
+    // 6. Call AI provider (Sprint 053 Phase G: Anthropic or Ollama)
+    let claude_resp = match if config.ai_provider == "ollama" {
+        call_ollama(
+            &config.ollama_url,
+            &config.ollama_model,
+            &health_context,
+            &question,
+            history,
+        )
+        .await
+    } else {
+        call_claude(
+            &config.anthropic_api_key,
+            &health_context,
+            &question,
+            history,
+            &model,
+        )
+        .await
+    } {
         Ok(resp) => resp,
         Err(e) => {
             crate::services::audit::log(
