@@ -77,6 +77,22 @@ From `sprint-052.md`, 7 phases, ~6.2 days estimate:
 - **Time spent:** ~1 working session (~3-4 hours active work)
 - **Lines of code / docs added:** ~1,100
 
+## What bit us post-release (hotfixed as v1.0.1)
+
+Two latent bugs escaped both Playwright smoke + local maintainer testing and surfaced within hours on the first real Pop!_OS fresh-install:
+
+1. **`ENCRYPTION_KEY` generated as base64, decoded as hex.** `brickos-crypto::Encryptor::new` calls `hex::decode(key).expect(...)` and requires exactly 64 hex chars (32 bytes). `sh-install.sh` used `openssl rand -base64 32` which produced a string with `+/=` chars that panic the backend on every startup. Health check then hit the 120s timeout and the installer reported failure. **Fix:** `openssl rand -hex 32`. **Why it escaped:** the smoke spec hit `/health` on a backend built against the maintainer's already-initialized DB; a fresh-DB init path was never in the golden path.
+
+2. **Frontend hard-coded to `api.sovereignhealth.io` on localhost.** The Docker Hub `shi-web` image bakes `NEXT_PUBLIC_API_URL` at `docker build` time. Self-host users on `localhost:3000` inherited the prod URL, every fetch returned an HTML error page, and every response parse exploded with "unexpected character line 1 column 1" on signup. **Fix:** extend `resolveApiBase()` in `lib/api.ts` to route localhost/127.0.0.1 to `http://host:8080` at runtime. Keeps one image for prod + self-host. **Why it escaped:** Playwright smoke ran against a dev server with the correct build-arg; never against the pulled Docker Hub image on localhost.
+
+3. **Signup UX suggests waiting for an email that never arrives.** Backend auto-verifies in OSS mode and login works immediately, but the signup screen still shows "check your email to verify" which is the SaaS copy. **Partial fix:** added a `> Email can be fake` callout in SELFHOSTED.md quick-start + sh-install.sh banner. **Proper fix (Sprint 053):** suppress the verify screen entirely when `NEXT_PUBLIC_MODE=oss` and redirect straight to dashboard.
+
+### Lessons → Sprint 053+
+
+- Fresh-install smoke must pull the published Docker Hub image and start from an empty volume, not the maintainer's warm one. Playwright alone isn't enough; need an end-to-end `docker-hub-smoke.sh` that does the full `./sh-install.sh` on a scratch box (LXC, Vagrant, or spare VM).
+- Secret-generator format must match consumer format — `grep` all `decode(...KEY)` call sites when writing any `generate_secrets()` function (memorialized as `feedback_encryption_key_hex_not_base64.md`).
+- `NEXT_PUBLIC_*` baked-at-build-time behavior needs an explicit "host detection at runtime" pattern anywhere the image is shared between prod and self-host (memorialized as an extension of `feedback_shared_api_base_helper.md`).
+
 ## Sign-off
 
-`selfhosted/v1.0.0` tagged pending Phase G release script execution. `sh-install.sh` is repo-root; SELFHOSTED.md is the user's landing doc. README.md prominently advertises the local-first install. Next sprint (053) picks up the deferred Ollama adapter + multi-arch + polish items.
+`selfhosted/v1.0.0` shipped 2026-04-23 morning; two hotfixes shipped same day as `selfhosted/v1.0.1`. `sh-install.sh` is repo-root; SELFHOSTED.md is the user's landing doc. README.md prominently advertises the local-first install. Next sprint (053) picks up the deferred Ollama adapter + multi-arch + polish items + repo internal-vs-public split + OSS signup UX cleanup + dashboard welcome banner removal.
