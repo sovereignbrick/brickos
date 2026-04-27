@@ -18,5 +18,5 @@ tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
 sha2 = "0.10"
 hex = "0.4"
-rand = "0.9"
+rand = "0.8"
 dotenvy = "0.15"
