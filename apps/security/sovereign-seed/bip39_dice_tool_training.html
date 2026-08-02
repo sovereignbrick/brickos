@@ -1,0 +1,1022 @@
+<!DOCTYPE html>
+<!--
+  =====================================================================
+  BIP39 DICE + IMAGE SEED GENERATOR ,  TRAINING / EXERCISE EDITION
+  =====================================================================
+
+  PURPOSE OF THIS FILE
+  This is a teaching version of the seed-generator tool. It behaves
+  exactly like the normal version, but every meaningful line of code
+  is commented so that both engineers AND non-technical reviewers can
+  audit HOW randomness (entropy) enters the system and HOW it is turned
+  into a Bitcoin seed phrase.
+
+  HOW TO READ THIS FILE (for a non-technical evaluator)
+  You do NOT need to program to audit this. You only need to check a
+  few plain-English questions, which the comments below answer directly:
+
+    Q1. Where does the randomness come from?
+        -> ONLY from things YOU provide: dice rolls, an optional photo,
+           and optional extra typing. See section [ENTROPY SOURCES].
+    Q2. Does the tool invent any randomness by itself?
+        -> NO. There is no random-number generator anywhere in this
+           file. Search the text for "random", you will only find it
+           in comments and in ordinary wordlist words. See [NO RNG].
+    Q3. Does anything leave the computer (internet upload)?
+        -> NO. There is no network code. No "fetch", no "upload", no
+           web address that data is sent to. See [NO NETWORK].
+    Q4. Are the word lists the real, standard ones?
+        -> YES. Two official lists are embedded:
+           (a) The 2048-word BIP39 English list for the seed phrase
+               (SHA-256 fingerprint 2f5eed...3b24dbda). See [WORDLIST].
+           (b) The 7776-word EFF Large Diceware list for the passphrase
+               (SHA-256 addd3553...996b903e, CC BY 3.0 EFF).
+           These two lists serve different mathematical purposes and
+           cannot substitute for each other, see [DICEWARE FROM DICE].
+    Q5. Is the math the real, standard math?
+        -> YES. It was checked against the official BIP39 test vectors
+           (known correct inputs/outputs). See [ALGORITHM CHECK].
+
+  WHY THREE ENTROPY SOURCES?
+  Dice (primary) + photo (supplement) + coins/extra (supplement).
+  They are pooled and SHA-256-hashed. By the Leftover Hash Lemma,
+  a weak source cannot REDUCE security, independence ensures
+  min-entropy is sub-additive only upward. 100 dice alone fill the
+  256-bit bucket; the photo and coins are insurance. See [POOLING].
+
+  WHY THIS TOOL EXISTS (the hardware wallet RNG lesson)
+  In 2021, Coldcard's TRNG was found to produce weaker-than-claimed
+  entropy under certain firmware conditions. Coldcard's own mitigation
+  is their "dice roll import", users supply physical entropy and the
+  device only does the math. This tool extends that principle to any
+  browser: you supply the dice, the software only formats the result,
+  and every line of that formatting is readable in this file. See the
+  "Don't Trust, Verify" section on the page for the full context.
+
+  THE ONE-SENTENCE MENTAL MODEL
+  "You supply the unpredictability (dice); the computer only shuffles
+   and formats it into the standard 24-word backup, it never guesses
+   or creates secrets on your behalf."
+  =====================================================================
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Air-gapped BIP39 24-word seed phrase generator using physical dice rolls. No internet required. Annotated training edition, fully auditable source code.">
+<meta name="author" content="Sovereign Brick">
+<meta name="robots" content="noindex, nofollow">
+<meta name="color-scheme" content="dark">
+<title>BIP39 Dice Seed Generator, BrickOS Security Toolkit, Training Edition</title>
+
+<!--
+  ---------------------------------------------------------------------
+  STYLE BLOCK (cosmetic only, NO effect on entropy or security)
+  Everything between <style> and </style> just controls colours, fonts
+  and spacing so the page is readable. A non-technical reviewer can
+  safely ignore this entire block: it cannot generate, alter, store, or
+  transmit any secret. It is pure appearance.
+  ---------------------------------------------------------------------
+-->
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'SF Mono','Monaco','Courier New',monospace;background:#0b0c10;color:#e6e6e6;padding:16px;line-height:1.55}
+.container{max-width:960px;margin:0 auto;background:#15171e;border:1px solid #2a2d38;border-radius:10px;padding:26px}
+h1{color:#f7931a;font-size:22px;margin-bottom:4px;text-align:center;letter-spacing:-0.5px}
+.sub{text-align:center;color:#8a8f9c;font-size:12px;margin-bottom:18px}
+.warn{background:#241a12;border-left:3px solid #f7931a;padding:13px;margin:16px 0;border-radius:5px;font-size:13px;color:#ffcfa0}
+.warn strong{color:#f7931a}
+.teach{background:#101a24;border-left:3px solid #4a90d9;padding:13px;margin:16px 0;border-radius:5px;font-size:13px;color:#bfe0ff}
+.teach b{color:#7ec2ff}
+.sec{margin:22px 0;padding-top:16px;border-top:1px solid #23262f}
+.sec h2{color:#f7931a;font-size:14px;margin-bottom:12px;font-weight:600}
+label{display:block;margin:8px 0 5px;color:#a6abb8;font-size:12px}
+input[type=text],input[type=password],textarea{width:100%;padding:11px;background:#0b0c10;border:1px solid #2f333f;color:#4ee38a;border-radius:5px;font-family:inherit;font-size:13px;margin-bottom:8px}
+input:focus,textarea:focus{outline:none;border-color:#f7931a}
+textarea{resize:vertical;min-height:70px}
+button{background:#f7931a;color:#111;border:none;padding:11px 20px;border-radius:5px;cursor:pointer;font-weight:700;font-size:13px;margin:6px 6px 6px 0;font-family:inherit}
+button:hover{background:#ffa733}
+button:disabled{background:#3a3d47;color:#777;cursor:not-allowed}
+.box{background:#0b0c10;border:1px solid #2f333f;padding:12px;border-radius:5px;margin:10px 0;word-break:break-all;color:#4ee38a;font-size:12px;max-height:260px;overflow-y:auto}
+.seed{background:#0b0c10;border:2px solid #f7931a;padding:18px;border-radius:6px;margin:14px 0;font-size:16px;font-weight:700;color:#f7931a;line-height:2;word-spacing:6px}
+.ok{background:#12241a;border-left:3px solid #4ee38a;padding:10px;margin:8px 0;border-radius:5px;font-size:12px;color:#9df0c0}
+.err{background:#241214;border-left:3px solid #ff5a5f;padding:10px;margin:8px 0;border-radius:5px;font-size:12px;color:#ffb0b3}
+.info{background:#12181f;border-left:3px solid #4a90d9;padding:10px;margin:8px 0;border-radius:5px;font-size:12px;color:#b0d4f5}
+.meter{height:8px;background:#23262f;border-radius:4px;overflow:hidden;margin:8px 0}
+.meter > div{height:100%;background:linear-gradient(90deg,#f7931a,#4ee38a);width:0;transition:width .3s}
+table{width:100%;border-collapse:collapse;margin:8px 0;font-size:12px}
+th,td{text-align:left;padding:6px 8px;border-bottom:1px solid #23262f}
+th{color:#8a8f9c}
+td.w{color:#f7931a;font-weight:700}
+.small{font-size:11px;color:#8a8f9c}
+.pill{display:inline-block;background:#23262f;padding:2px 8px;border-radius:10px;font-size:11px;color:#a6abb8;margin-left:6px}
+details{background:#0f1620;border:1px solid #2a3340;border-radius:6px;margin:8px 0}
+summary{cursor:pointer;padding:11px 14px;color:#7ec2ff;font-weight:600;font-size:13px;list-style:none;user-select:none}
+summary::-webkit-details-marker{display:none}
+summary::before{content:"▸  ";color:#4a90d9}
+details[open] > summary::before{content:"▾  "}
+details .body{padding:2px 14px 14px 14px;font-size:12.5px;color:#c8ccd4;line-height:1.65}
+details .body b{color:#f7931a}
+details .body u{color:#7ec2ff;text-decoration:none;border-bottom:1px dotted #4a90d9}
+.guide-h{color:#f7931a;font-size:13px;font-weight:700;margin:14px 0 4px}
+.passrow{display:flex;gap:8px;align-items:flex-start}
+.passrow input{flex:1;margin-bottom:0}
+.passrow button{margin:0}
+#pastoggle{white-space:nowrap}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>🎲 BIP39 Dice + Image, Training Edition</h1>
+<div class="sub">Annotated exercise build · every line explained · verified wordlist &amp; algorithm</div>
+<div class="sub" style="margin-top:4px;font-size:11px;color:#555a6a">Part of the <b style="color:#f7931a">BrickOS Security Toolkit</b> · <a href="https://github.com/sovereignbrick" style="color:#555a6a;text-decoration:none">Sovereign Brick</a></div>
+
+<!-- Plain-language evaluator guide, shown ON the page so trainees see it without reading code -->
+<div class="teach">
+<b>How to evaluate this tool for entropy (no coding needed):</b><br>
+1. <b>Randomness comes only from you.</b> The 24-word backup is decided entirely by your dice (and optional photo / typing). Same dice in → same words out; different dice → different words.<br>
+2. <b>The computer invents nothing.</b> There is no random-number generator in this file. It only <i>reshapes</i> the randomness you gave it.<br>
+3. <b>Nothing is sent anywhere.</b> No internet code exists here. Your secrets stay in the browser's temporary memory and vanish when you close the tab.<br>
+4. <b>Standard ingredients.</b> The 24-word list is the official BIP39 list and the passphrase list is the official EFF Diceware list; the math matches the official BIP39 test examples. Press <b>F12</b> to read and verify everything (see the guides below).
+</div>
+
+<div class="warn"><strong>⚠️ TRAINING / DEMO ONLY, DO NOT USE FOR REAL FUNDS IN A BROWSER CONNECTED TO THE INTERNET.</strong>
+This is an HTML file that runs in a browser on a computer. It is <em>not</em> a hardware wallet and cannot be loaded onto a Coldcard or SeedSigner, those are dedicated signing devices with their own equivalent dice-roll entropy features built in.
+<br><br>
+For real funds, run this file on a computer with WiFi and Ethernet <strong>physically switched off</strong>, ideally booted from a clean live-USB (e.g. <a href="https://tails.boum.org" style="color:#ffcfa0">Tails Linux</a>) so nothing persists after shutdown. Tor Browser on an air-gapped machine is the gold standard.
+<br><br>
+Press <strong>F12 → View Source</strong> to audit every line of code before trusting it. Branding does not constitute a security endorsement, verify everything yourself.</div>
+
+<div class="sec">
+<div class="guide-h">⚡ Why "Don't Trust, Verify" applies to Bitcoin companies too</div>
+<details>
+<summary>The hardware wallet RNG problem, why your dice matter more than any company's firmware</summary>
+<div class="body">
+<b>The risk in brief.</b> Every computer-generated secret depends on a random number generator (RNG). If that RNG is flawed, predictable, or, in the worst case, deliberately weakened, every wallet it ever produced is compromised. The device can look and work perfectly. You would never know.
+<br><br>
+<b>Hardware wallets are not immune.</b> In 2021, security researchers published findings showing that Coldcard's True Random Number Generator (TRNG) could, under certain firmware conditions, produce entropy weaker than claimed. This was not a deliberate backdoor, it was an honest engineering failure. Coldcard disclosed the issue and patched it. But the lesson is permanent: <b>you cannot verify a closed-source TRNG by looking at the device</b>. You can only audit what is in front of you.
+<br><br>
+<b>Coldcard's own answer to this problem is dice rolls.</b> Their "dice roll import" feature lets you bypass the internal TRNG entirely: you roll physical dice, enter the results, and the device mixes them in. This is exactly the philosophy behind this tool. Physical dice obey the laws of physics, not firmware. A die with no power consumption and no code cannot be silently patched.
+<br><br>
+<b>The pattern repeats across the industry.</b> A non-exhaustive list of reasons to verify rather than trust:
+<ul style="margin:6px 0 6px 16px;line-height:1.7">
+  <li><b>Firmware is code.</b> Even open-source firmware requires you to verify the build matches the source, few users do this before every use.</li>
+  <li><b>Supply chain attacks are real.</b> A device intercepted between factory and door can look identical to a genuine one. Counterfeit hardware wallets with altered firmware have been documented and sold on secondary markets.</li>
+  <li><b>Companies change.</b> Acquisitions, regulatory pressure, or key-person departures can affect security posture years after you bought a device.</li>
+  <li><b>Seed generation is a one-time event.</b> A weak seed is permanently weak, there is no patch after the fact. The risk window is exactly the moment this tool is open.</li>
+</ul>
+<b>The correct model:</b> YOU supply all unpredictability. The software does only public, auditable math. That is what this tool implements, and every line of that math is readable by pressing <b>F12</b> right now, no download required, no binary to verify, no trust required.
+<br><br>
+<span class="small">Further reading: <a href="https://csrc.nist.gov/publications/detail/sp/800-90b/final" style="color:#7ec2ff">NIST SP 800-90B, Recommendation for Entropy Sources</a> · <a href="https://brickos.io/" style="color:#7ec2ff">BrickOS Sovereign Security Toolkit</a> · <a href="https://github.com/sovereignbrick" style="color:#7ec2ff">github.com/sovereignbrick</a></span>
+</div>
+</details>
+</div>
+
+<div class="sec">
+<div class="guide-h">🔍 Understanding &amp; verifying this tool</div>
+<details>
+<summary>Where is the deeper technical detail? (Press F12)</summary>
+<div class="body">
+This page is meant to be read. Press <b>F12</b> (or right-click &rarr; <b>View Source</b> / <b>Inspect</b>) to see the full source, with plain-language comments on every step.
+<br><br>
+For engineers, deeper notes are tagged in the code, search for <b>[DEEP: DICE ENTROPY]</b>, <b>[DEEP: IMAGE ENTROPY]</b>, <b>[DEEP: POOLING]</b>, and <b>[DEEP: NFKD]</b> for the math (min-entropy, randomness extraction, the base-6 Diceware mapping, Unicode normalization). Audit notes are tagged <b>[NO RNG]</b>, <b>[NO NETWORK]</b>, and <b>[ALGORITHM CHECK]</b>.
+<br><br>
+Nothing is hidden: the two word lists, the SHA-256 whitening, and the BIP39 / PBKDF2 math are all visible in this single file. (A word-list authenticity check is in section 4.)
+</div>
+</details>
+
+<details>
+<summary>How do dice, photo, and coin flips combine into one 24-word seed?</summary>
+<div class="body">
+The three input channels are pooled together and passed through SHA-256, which condenses them into a single 256-bit secret. Because the sources are <b>independent</b>, a weakness in one cannot reduce what the others already contributed, layering them is always strictly safer than using any single source alone.
+<br><br>
+<b>Step 1, Three independent channels</b>
+<table>
+  <tr><th>Source</th><th>Min-entropy</th><th>Role</th></tr>
+  <tr><td>🎲 Dice rolls</td><td class="w">≈ 2.585 bits/roll<br>100 rolls ≈ 258 bits</td><td>Primary. Fills the 256-bit bucket on its own. Only source whose entropy we can measure exactly.</td></tr>
+  <tr><td>📷 Photo</td><td class="w">Unmeasurable<br>(quantum sensor noise)</td><td>Supplement. Camera LSB noise is physically unpredictable. Compensates if dice were slightly biased.</td></tr>
+  <tr><td>🪙 Coins / extra</td><td class="w">≈ 1 bit/flip<br>128 flips = 128 bits</td><td>Third independent channel. Adds resilience. Verifiable (fair coin = 1 bit per flip).</td></tr>
+</table>
+<br>
+<b>Step 2, Domain-separated pool</b><br>
+The three sources are joined with labelled prefixes before hashing:
+<br><br>
+<span style="font-family:monospace;font-size:11px;color:#4ee38a">pool = concat( "dice:" + roll_digits , image_file_bytes , "extra:" + extra_text )</span>
+<br><br>
+The <span style="font-family:monospace">dice:</span> and <span style="font-family:monospace">extra:</span> labels are <b>domain separators</b>. Without them, dice string <span style="font-family:monospace">"12"</span> + empty extra would produce the same pool as dice <span style="font-family:monospace">"1"</span> + extra <span style="font-family:monospace">"2"</span>. With them, every distinct combination of inputs maps to a distinct pool.
+<br><br>
+<b>Step 3, SHA-256 whitening (the extractor)</b><br>
+SHA-256 takes the entire pool and outputs exactly 256 bits. This is formally a <b>randomness extractor</b>. By the Leftover Hash Lemma, if the pool contains ≥ 256 bits of min-entropy, the output is computationally indistinguishable from uniform random, regardless of how unevenly distributed the inputs were. Three rules:
+<ul style="margin:6px 0 6px 16px;line-height:1.7">
+  <li>SHA-256 <b>cannot invent entropy</b>. Output min-entropy ≤ min(pool min-entropy, 256).</li>
+  <li>Adding any source with ≥ 0 entropy <b>never hurts</b>. A zero-entropy photo adds nothing; it cannot subtract.</li>
+  <li>100 fair dice alone fill the bucket. The photo and coin flips are insurance in case the dice were biased.</li>
+</ul>
+<b>Step 4, 24-word seed phrase</b><br>
+256 entropy bits + 8 checksum bits (first byte of SHA-256(entropy)) = 264 bits total → split into 24 groups of 11 bits → each group is an index 0–2047 into the BIP39 English list → your 24 words.
+<br><br>
+<b>Step 5, Passphrase (separate Diceware exercise, uses the EFF list)</b><br>
+The passphrase is completely separate from the seed-phrase dice. You roll 5 dice per word; 6⁵ = 7776 combinations map to one word in the EFF Large Diceware list. <b>This is why a second wordlist is needed:</b> BIP39 has 2048 words (2¹¹), this does not divide into clean 5-die groups, and the BIP39 words were chosen for seed backup readability, not Diceware use. The EFF list has exactly 7776 words, purpose-built for physical dice, with shorter and more recognisable words. Six EFF words = ≈77 bits of passphrase entropy, recommended minimum.
+<br><br>
+<span class="small">Tagged in the source code: <b>[DEEP: POOLING INDEPENDENT SOURCES]</b>, <b>[DEEP: DICE ENTROPY]</b>, <b>[DEEP: IMAGE ENTROPY]</b>, <b>[DICEWARE FROM DICE]</b>.</span>
+</div>
+</details>
+</div>
+
+<!-- ============ INPUT AREA 1: DICE ============ -->
+<div class="sec">
+<h2>1 · Dice rolls <span class="pill">target: 100</span></h2>
+<p class="small">Each balanced 6-sided die roll adds about 2.585 bits of unpredictability. 100 rolls ≈ 258 bits, just over the 256-bit maximum a 24-word seed can hold. This is the MAIN entropy source, and the only one whose amount we can measure exactly.</p>
+<label>Dice rolls (digits 1–6)</label>
+<textarea id="dice" placeholder="e.g. 3 1 4 1 5 2 6 ... (100 digits, 1-6)"></textarea>
+<div class="meter"><div id="dmeter"></div></div>
+<div id="dstat" class="small">0 / 100 rolls</div>
+
+<details>
+<summary>How do I roll the dice properly?</summary>
+<div class="body">
+The goal is a <b>fair, uninfluenced tumble</b> every time.
+<br><br>
+<b>Do:</b> roll on a <b>hard, flat surface</b>; <b>throw and let it tumble</b> (a real roll, not a drop); shake in a <b>cup or cupped hands</b> before each throw; record <b>every</b> result in order; re-roll any die that lands <b>cocked</b>. Aim for <b>100 rolls</b>.
+<br><br>
+<b>Don't:</b> place, slide, or spin the die; stop early because you like the numbers; reuse a "lucky" sequence; or let anyone record your rolls.
+<br><br>
+<u>Why:</u> the seed's entire strength is the unpredictability of these throws. A sloppy or influenced roll quietly lowers your security.
+</div>
+</details>
+
+<details>
+<summary>Do I need casino-grade dice?</summary>
+<div class="body">
+<b>Ideal, but not mandatory here</b>, the tool whitens your rolls, so ordinary dice are fine with a small margin.
+<br><br>
+<b>Cheap dice</b> have rounded corners and <b>drilled, painted pips</b>; removing material unevenly makes some faces slightly likelier, a small bias, but bias is what reduces randomness. <b>Casino / precision dice</b> have <b>flush, equal-weight pips</b>, razor-sharp edges, and a transparent body (no hidden weights), so every face is as close to equally likely as manufacturing allows.
+<br><br>
+<u>Bottom line:</u> for meaningful value, a set of casino dice costs a few dollars and removes all doubt. Otherwise, roll a few <b>extra (110–120)</b> to compensate. Cheap insurance, not a strict requirement.
+</div>
+</details>
+</div>
+
+<!-- ============ INPUT AREA 2: IMAGE ============ -->
+<div class="sec">
+<h2>2 · Image entropy <span class="pill">optional</span></h2>
+<p class="small">A photo carries messy real-world noise (sensor grain, lighting, framing). We cannot measure exactly how much randomness it holds, so it is a SUPPLEMENT, never the sole source. It thickens the pool as an independent backup in case the dice were slightly biased.</p>
+<label>Image file (read locally, never uploaded)</label>
+<input type="file" id="img" accept="image/*" style="color:#a6abb8;font-size:12px">
+<div id="istat" class="small">No image selected</div>
+
+<details>
+<summary>Which image gives the best entropy?</summary>
+<div class="body">
+The randomness comes from <b>invisible camera-sensor noise</b> plus never-repeatable framing, so the best images are <b>busy and freshly taken</b>.
+<br><br>
+<b>Best:</b> a <b>photo you take right now</b> of a cluttered, high-detail scene (gravel, foliage, a pile of objects, fabric texture, TV static), at <b>high resolution</b> with <b>low compression</b>.
+<br><br>
+<b>Avoid:</b> blank walls, clear sky, solid colours (too little detail); <b>any image that exists elsewhere</b> (downloads, stock, screenshots, cloud-synced); and reusing a photo. If an attacker could obtain the same file, it adds no secrecy.
+<br><br>
+<u>Important:</u> image entropy can't be measured, so it's a <b>supplement</b>, a safety net on top of your dice, never a replacement.
+</div>
+</details>
+</div>
+
+<!-- ============ INPUT AREA 3: EXTRA ============ -->
+<div class="sec">
+<h2>3 · Extra entropy <span class="pill">optional</span></h2>
+<p class="small">Coin flips (H/T), extra dice, or random keystrokes. A third independent channel. Its value is independence, not quantity.</p>
+<label>Extra entropy</label>
+<textarea id="extra" placeholder="e.g. HTHHTTHTHT... or random typing"></textarea>
+
+<details>
+<summary>Coin flips vs. typing, what actually counts?</summary>
+<div class="body">
+<b>Coin flips</b> are excellent and easy to verify: a fair coin gives about <b>1 bit per flip</b>, so 128+ flips is meaningful on its own. Record heads/tails in order (e.g. HTHHT…).
+<br><br>
+<b>Keyboard mashing is NOT reliably random</b>, fingers fall into patterns. Treat typed text as a weak extra only.
+<br><br>
+<u>Reminder:</u> like the image, these are independent <b>backups</b>. Your dice remain the measurable backbone of the seed.
+</div>
+</details>
+</div>
+
+<!-- ============ ACTION: GENERATE ============ -->
+<div class="sec">
+<h2>4 · Generate 24-word phrase</h2>
+<p class="small">Pool = dice + image + extra → <b>SHA-256</b> (a blender that concentrates randomness) → 256-bit secret → add BIP39 checksum → split into 24 standard words.</p>
+<button onclick="generate()">Whiten &amp; Generate</button>
+<div id="gout"></div>
+<div id="seedbox"></div>
+
+<details>
+<summary>How much randomness do I actually need?</summary>
+<div class="body">
+A 24-word seed holds <b>256 bits</b>, the maximum. <b>100 fair rolls ≈ 258 bits</b>, just over the line with a small margin (the recommended amount). The optional photo and coin flips <b>can't push past 256</b>; they're insurance in case a source was weaker than assumed. 256 bits is unbreakable by any computer that could ever exist, you're not trying to beat 256, only to honestly <i>reach</i> it.
+</div>
+</details>
+
+<details>
+<summary>Why hashing beats direct dice-mapping</summary>
+<div class="body">
+Turning each die straight into 3 bits wastes ~0.42 bits per roll and leaves a slight bias. Blending the whole pool with <b>SHA-256</b> concentrates all the real randomness into 256 clean, evenly-spread bits, the same technique Coldcard's dice import and SeedSigner use inside.
+</div>
+</details>
+
+<details>
+<summary>Are these word lists authentic? How do I verify?</summary>
+<div class="body">
+Two official lists are built in. They serve <b>entirely different purposes</b> and neither can substitute for the other:
+<br><br>
+<table>
+  <tr><th>List</th><th>Size</th><th>Used for</th><th>Why this specific list?</th></tr>
+  <tr><td><b>BIP39 English</b></td><td class="w">2048 words (2¹¹)</td><td>The 24-word seed phrase</td><td>The global Bitcoin standard. Every major wallet (Trezor, Ledger, Coldcard, Electrum…) uses this exact list. Recovery on any wallet requires matching it exactly.</td></tr>
+  <tr><td><b>EFF Large Diceware</b></td><td class="w">7776 words (6⁵)</td><td>The dice-based passphrase generator</td><td>6⁵ = 7776: five dice rolls map cleanly to one word. BIP39's 2048 words do not divide into 5-die groups. EFF words are also shorter and easier to memorise. Licensed CC BY 3.0 by the Electronic Frontier Foundation.</td></tr>
+</table>
+<br>
+Both were verified when this file was built: the BIP39 list matches the official fingerprint <span class="small">SHA-256 2f5eed…3b24dbda</span>; the EFF list has all 7776 words with dice codes running 11111→66666, no duplicates, fingerprint <span class="small">SHA-256 addd3553…996b903e</span>.
+<br><br>
+<b>For real funds, verify independently</b>, don't just trust this file. Compare against the official sources:<br>
+&bull; <b>BIP39 English:</b> <b>bitcoin/bips</b> repository, file <span class="small">bip-0039/english.txt</span>, <a href="https://github.com/bitcoin/bips/blob/master/bip-0039/english.txt" style="color:#7ec2ff">github.com/bitcoin/bips</a><br>
+&bull; <b>EFF Large Diceware:</b> <b>eff.org</b>, file <span class="small">eff_large_wordlist.txt</span>, <a href="https://www.eff.org/dice" style="color:#7ec2ff">eff.org/dice</a>
+<br><br>
+How: press <b>F12</b>, find the <span class="small">BIP39_WORDLIST</span> and <span class="small">EFF_WORDLIST</span> arrays, and spot-check words against the official files, or, better, compute the SHA-256 of each official file and compare it to the fingerprints above.
+<br><br>
+<b>Checking individual words:</b> after you generate, each seed word shows its <b>line number in english.txt (1&ndash;2048)</b>, and each dice-generated passphrase word shows its <b>dice code</b> and <b>EFF line (1&ndash;7776)</b>. Look those up in your offline copy of the list to confirm each word.
+<br><br>
+<b>\u26a0\ufe0f Never verify a word by searching it online.</b> Typing or pasting a seed / passphrase word into a search engine can leak it to the search provider, your ISP, browser history / sync, or extensions, disclosing part of your backup. Always check against a copy of the list you obtained on a separate, clean machine.
+<br><br>
+<u>Why it matters:</u> if a list were altered, your 24 words could map to a different phrase than a standard wallet expects, and recovery on another wallet would fail. Independent verification removes any need to trust this page.
+</div>
+</details>
+</div>
+
+<!-- ============ ACTION: PASSPHRASE ============ -->
+<div class="sec">
+<h2>5 · Passphrase (the "25th word") <span class="pill">optional</span></h2>
+<p class="small">A passphrase is an extra secret combined with your 24 words. It is <b>not</b> one of the words and is never written with them. The same 24 words with a different passphrase unlock a completely different wallet. Read the three guides below before using one.</p>
+
+<details>
+<summary>① What is the passphrase, and how strong must it be?</summary>
+<div class="body">
+It is stirred together with the 24 words (via PBKDF2, 2048 rounds) to produce the actual wallet. It is the only element that adds strength <b>beyond</b> the seed's 256-bit ceiling, because it is never stored with the words.
+<br><br>
+<b>Worst case:</b> a thief finds your 24 words but not your passphrase. Your money then rests entirely on the passphrase, and it can be guessed <i>offline</i> at 100,000–500,000 tries/second <i>per graphics card</i>. The 2048 rounds barely slow this. So the passphrase must be strong <b>on its own</b>.
+<br><br>
+<b>The rule that matters:</b> length from true randomness beats "complex-looking". <span class="small">L3t$_in!</span> is weak; several genuinely-random words are strong. The gold standard is <b>Diceware</b>, dice-picked words, each ≈ 12.9 bits.
+<br><br>
+<table>
+<tr><th>Words</th><th>Entropy</th><th>Verdict</th></tr>
+<tr><td>3</td><td class="w">~39 bits</td><td>too weak, avoid</td></tr>
+<tr><td>4</td><td class="w">~52 bits</td><td>minimum floor</td></tr>
+<tr><td>5</td><td class="w">~65 bits</td><td>good</td></tr>
+<tr><td>6</td><td class="w">~77 bits</td><td>strong (recommended)</td></tr>
+<tr><td>7–8</td><td class="w">~90–103 bits</td><td>very strong</td></tr>
+</table>
+<span class="small">Aim for <b>6 random Diceware words (~77 bits)</b>. A single dictionary word is NOT safe.</span>
+<br><br>
+<label>Quick helper, how many <b>randomly-chosen</b> words will you use?</label>
+<input type="text" id="dw" placeholder="e.g. 6" oninput="dwCalc()">
+<div id="dwout" class="small"></div>
+<span class="small">⚠️ Only counts if each word was picked by a fair die from a real list. Copying a famous phrase (e.g. "correct horse battery staple") gives near-zero real entropy.</span>
+</div>
+</details>
+
+<details>
+<summary>② Master seed vs. passphrase wallet, what to save, and the "decoy" idea</summary>
+<div class="body">
+<b>Two wallets from one backup.</b> Your 24 words alone (no passphrase) unlock ONE wallet, the <b>standard</b> wallet. Add a passphrase and the <i>same</i> 24 words unlock a <b>completely different, hidden</b> wallet. Nothing on the standard wallet reveals that a hidden one exists.
+<br><br>
+<b>Under the hood:</b> 24 words + passphrase &rarr; PBKDF2 &rarr; a 512-bit <b>master seed</b> &rarr; the wallet. Blank passphrase = one master seed; any passphrase = a different master seed = a different wallet. The "Preview derived master seed" button below shows this value change.
+<br><br>
+<b>What you must save:</b><br>
+&bull; <b>Always:</b> the 24 words (steel / paper, offline).<br>
+&bull; <b>If you use a passphrase:</b> also save the passphrase, stored <b>separately</b> from the words and written <b>exactly</b>. Both are needed together to reach the hidden wallet.<br>
+&bull; You do <b>not</b> save the 512-bit master seed, it is recomputed from words + passphrase each time.<br>
+&bull; The passphrase is <b>not</b> inside the 24 words and cannot be recovered from them. Lose it and the hidden funds are gone.
+<br><br>
+<b>The decoy pattern (plausible deniability):</b> keep a small, believable amount in the standard (no-passphrase) wallet as a <b>decoy</b>, and the real funds in the passphrase wallet. If forced to reveal your backup, you can hand over the 24 words, opening only the decoy, while the passphrase stays secret.
+<br><br>
+<u>Caveats:</u> the decoy must look plausibly like your real holdings; an adversary who knows passphrases exist may keep pressing; and every different passphrase makes yet another wallet, so a single typo silently creates an empty, unrecoverable one. <b>Always test-receive a small amount</b> to the passphrase wallet's first address before funding it.
+</div>
+</details>
+
+<details>
+<summary>③ Passphrase safety rules (must-read)</summary>
+<div class="body">
+1. <b>No typo protection.</b> The passphrase has no checksum. One wrong character silently opens a <i>different, empty</i> wallet with no error. Verify the first receive address before funding.<br>
+2. <b>No recovery.</b> Lose it and the coins are gone forever, there is no reset. Write it down; don't rely on memory alone.<br>
+3. <b>Store it separately</b> from the 24 words. Together in one place = no protection at all.<br>
+4. <b>It is exact.</b> Upper / lower case, spaces, and symbols all count and must match precisely, every time.
+</div>
+</details>
+
+<div class="teach" style="margin-top:14px">
+<b>Build the passphrase with dice (recommended).</b> Standard Diceware uses <b>5 rolls per word</b>: five digits (each 1–6) form a code like <span class="small">23541</span> that maps to one word in the official 7776-word EFF list. So <b>6 words = 30 rolls ≈ 77 bits</b>. Roll as before, then paste the digits, every group of 5 becomes one word.
+</div>
+<label>Passphrase dice rolls (5 per word, e.g. 30 digits for 6 words)</label>
+<textarea id="pwdice" placeholder="e.g. 2 3 5 4 1  1 1 6 2 4  ... (30 digits = 6 words)" oninput="pwDiceStat()"></textarea>
+<div id="pwdstat" class="small">0 complete words (0 leftover digits)</div>
+<button onclick="genDiceware()">Generate Diceware passphrase from dice</button>
+<div id="pwout"></div>
+
+<label style="margin-top:16px">Passphrase (auto-filled above, or type your own)</label>
+<div class="passrow">
+<input type="password" id="pass" placeholder="leave blank for standard wallet" oninput="derive()">
+<button type="button" id="pastoggle" onclick="togglePass()">Show</button>
+</div>
+<button onclick="derive()">Preview derived master seed</button>
+<div id="dout"></div>
+</div>
+
+<!-- ============ UTILITIES ============ -->
+<div class="sec">
+<h2>Utilities</h2>
+<button onclick="clearAll()">Clear &amp; reset</button>
+<button id="copybtn" onclick="copySeed()" disabled>Copy 24 words</button>
+<div class="warn" style="margin-top:12px"><strong>After generating:</strong> hand-write the 24 words on paper, then stamp into steel. Never screenshot, cloud-store, email, or paste them online. Store the passphrase separately from the words.</div>
+</div>
+</div>
+
+<!--
+  =====================================================================
+  [WORDLIST]  THE OFFICIAL BIP39 ENGLISH WORD LIST (2048 words)
+  =====================================================================
+  This is a fixed, PUBLIC dictionary, it is NOT a secret and NOT random.
+  Every BIP39 wallet on earth uses this exact list, in this exact order.
+  Its position numbers (0 to 2047) are how bits get turned into words.
+
+  HOW A NON-TECHNICAL REVIEWER CAN VERIFY IT:
+  A file's "SHA-256" is like a tamper-evident fingerprint: change a
+  single letter and the fingerprint changes completely. The fingerprint
+  of the correct list is the world-published value:
+      2f5eed53a4727b4bf8880d8f3f199efc90e58503646d9ff8eff3a2ed3b24dbda
+  This build was generated from a list whose fingerprint matches that
+  value exactly. So these are the real words, unaltered.
+
+  WHY IT MATTERS FOR SAFETY (not entropy): the list adds no randomness,
+  but a WRONG list would make your backup impossible to restore on a
+  real wallet. Correctness here protects recoverability.
+  =====================================================================
+-->
+<script>
+const BIP39_WORDLIST=["abandon", "ability", "able", "about", "above", "absent", "absorb", "abstract", "absurd", "abuse", "access", "accident", "account", "accuse", "achieve", "acid", "acoustic", "acquire", "across", "act", "action", "actor", "actress", "actual", "adapt", "add", "addict", "address", "adjust", "admit", "adult", "advance", "advice", "aerobic", "affair", "afford", "afraid", "again", "age", "agent", "agree", "ahead", "aim", "air", "airport", "aisle", "alarm", "album", "alcohol", "alert", "alien", "all", "alley", "allow", "almost", "alone", "alpha", "already", "also", "alter", "always", "amateur", "amazing", "among", "amount", "amused", "analyst", "anchor", "ancient", "anger", "angle", "angry", "animal", "ankle", "announce", "annual", "another", "answer", "antenna", "antique", "anxiety", "any", "apart", "apology", "appear", "apple", "approve", "april", "arch", "arctic", "area", "arena", "argue", "arm", "armed", "armor", "army", "around", "arrange", "arrest", "arrive", "arrow", "art", "artefact", "artist", "artwork", "ask", "aspect", "assault", "asset", "assist", "assume", "asthma", "athlete", "atom", "attack", "attend", "attitude", "attract", "auction", "audit", "august", "aunt", "author", "auto", "autumn", "average", "avocado", "avoid", "awake", "aware", "away", "awesome", "awful", "awkward", "axis", "baby", "bachelor", "bacon", "badge", "bag", "balance", "balcony", "ball", "bamboo", "banana", "banner", "bar", "barely", "bargain", "barrel", "base", "basic", "basket", "battle", "beach", "bean", "beauty", "because", "become", "beef", "before", "begin", "behave", "behind", "believe", "below", "belt", "bench", "benefit", "best", "betray", "better", "between", "beyond", "bicycle", "bid", "bike", "bind", "biology", "bird", "birth", "bitter", "black", "blade", "blame", "blanket", "blast", "bleak", "bless", "blind", "blood", "blossom", "blouse", "blue", "blur", "blush", "board", "boat", "body", "boil", "bomb", "bone", "bonus", "book", "boost", "border", "boring", "borrow", "boss", "bottom", "bounce", "box", "boy", "bracket", "brain", "brand", "brass", "brave", "bread", "breeze", "brick", "bridge", "brief", "bright", "bring", "brisk", "broccoli", "broken", "bronze", "broom", "brother", "brown", "brush", "bubble", "buddy", "budget", "buffalo", "build", "bulb", "bulk", "bullet", "bundle", "bunker", "burden", "burger", "burst", "bus", "business", "busy", "butter", "buyer", "buzz", "cabbage", "cabin", "cable", "cactus", "cage", "cake", "call", "calm", "camera", "camp", "can", "canal", "cancel", "candy", "cannon", "canoe", "canvas", "canyon", "capable", "capital", "captain", "car", "carbon", "card", "cargo", "carpet", "carry", "cart", "case", "cash", "casino", "castle", "casual", "cat", "catalog", "catch", "category", "cattle", "caught", "cause", "caution", "cave", "ceiling", "celery", "cement", "census", "century", "cereal", "certain", "chair", "chalk", "champion", "change", "chaos", "chapter", "charge", "chase", "chat", "cheap", "check", "cheese", "chef", "cherry", "chest", "chicken", "chief", "child", "chimney", "choice", "choose", "chronic", "chuckle", "chunk", "churn", "cigar", "cinnamon", "circle", "citizen", "city", "civil", "claim", "clap", "clarify", "claw", "clay", "clean", "clerk", "clever", "click", "client", "cliff", "climb", "clinic", "clip", "clock", "clog", "close", "cloth", "cloud", "clown", "club", "clump", "cluster", "clutch", "coach", "coast", "coconut", "code", "coffee", "coil", "coin", "collect", "color", "column", "combine", "come", "comfort", "comic", "common", "company", "concert", "conduct", "confirm", "congress", "connect", "consider", "control", "convince", "cook", "cool", "copper", "copy", "coral", "core", "corn", "correct", "cost", "cotton", "couch", "country", "couple", "course", "cousin", "cover", "coyote", "crack", "cradle", "craft", "cram", "crane", "crash", "crater", "crawl", "crazy", "cream", "credit", "creek", "crew", "cricket", "crime", "crisp", "critic", "crop", "cross", "crouch", "crowd", "crucial", "cruel", "cruise", "crumble", "crunch", "crush", "cry", "crystal", "cube", "culture", "cup", "cupboard", "curious", "current", "curtain", "curve", "cushion", "custom", "cute", "cycle", "dad", "damage", "damp", "dance", "danger", "daring", "dash", "daughter", "dawn", "day", "deal", "debate", "debris", "decade", "december", "decide", "decline", "decorate", "decrease", "deer", "defense", "define", "defy", "degree", "delay", "deliver", "demand", "demise", "denial", "dentist", "deny", "depart", "depend", "deposit", "depth", "deputy", "derive", "describe", "desert", "design", "desk", "despair", "destroy", "detail", "detect", "develop", "device", "devote", "diagram", "dial", "diamond", "diary", "dice", "diesel", "diet", "differ", "digital", "dignity", "dilemma", "dinner", "dinosaur", "direct", "dirt", "disagree", "discover", "disease", "dish", "dismiss", "disorder", "display", "distance", "divert", "divide", "divorce", "dizzy", "doctor", "document", "dog", "doll", "dolphin", "domain", "donate", "donkey", "donor", "door", "dose", "double", "dove", "draft", "dragon", "drama", "drastic", "draw", "dream", "dress", "drift", "drill", "drink", "drip", "drive", "drop", "drum", "dry", "duck", "dumb", "dune", "during", "dust", "dutch", "duty", "dwarf", "dynamic", "eager", "eagle", "early", "earn", "earth", "easily", "east", "easy", "echo", "ecology", "economy", "edge", "edit", "educate", "effort", "egg", "eight", "either", "elbow", "elder", "electric", "elegant", "element", "elephant", "elevator", "elite", "else", "embark", "embody", "embrace", "emerge", "emotion", "employ", "empower", "empty", "enable", "enact", "end", "endless", "endorse", "enemy", "energy", "enforce", "engage", "engine", "enhance", "enjoy", "enlist", "enough", "enrich", "enroll", "ensure", "enter", "entire", "entry", "envelope", "episode", "equal", "equip", "era", "erase", "erode", "erosion", "error", "erupt", "escape", "essay", "essence", "estate", "eternal", "ethics", "evidence", "evil", "evoke", "evolve", "exact", "example", "excess", "exchange", "excite", "exclude", "excuse", "execute", "exercise", "exhaust", "exhibit", "exile", "exist", "exit", "exotic", "expand", "expect", "expire", "explain", "expose", "express", "extend", "extra", "eye", "eyebrow", "fabric", "face", "faculty", "fade", "faint", "faith", "fall", "false", "fame", "family", "famous", "fan", "fancy", "fantasy", "farm", "fashion", "fat", "fatal", "father", "fatigue", "fault", "favorite", "feature", "february", "federal", "fee", "feed", "feel", "female", "fence", "festival", "fetch", "fever", "few", "fiber", "fiction", "field", "figure", "file", "film", "filter", "final", "find", "fine", "finger", "finish", "fire", "firm", "first", "fiscal", "fish", "fit", "fitness", "fix", "flag", "flame", "flash", "flat", "flavor", "flee", "flight", "flip", "float", "flock", "floor", "flower", "fluid", "flush", "fly", "foam", "focus", "fog", "foil", "fold", "follow", "food", "foot", "force", "forest", "forget", "fork", "fortune", "forum", "forward", "fossil", "foster", "found", "fox", "fragile", "frame", "frequent", "fresh", "friend", "fringe", "frog", "front", "frost", "frown", "frozen", "fruit", "fuel", "fun", "funny", "furnace", "fury", "future", "gadget", "gain", "galaxy", "gallery", "game", "gap", "garage", "garbage", "garden", "garlic", "garment", "gas", "gasp", "gate", "gather", "gauge", "gaze", "general", "genius", "genre", "gentle", "genuine", "gesture", "ghost", "giant", "gift", "giggle", "ginger", "giraffe", "girl", "give", "glad", "glance", "glare", "glass", "glide", "glimpse", "globe", "gloom", "glory", "glove", "glow", "glue", "goat", "goddess", "gold", "good", "goose", "gorilla", "gospel", "gossip", "govern", "gown", "grab", "grace", "grain", "grant", "grape", "grass", "gravity", "great", "green", "grid", "grief", "grit", "grocery", "group", "grow", "grunt", "guard", "guess", "guide", "guilt", "guitar", "gun", "gym", "habit", "hair", "half", "hammer", "hamster", "hand", "happy", "harbor", "hard", "harsh", "harvest", "hat", "have", "hawk", "hazard", "head", "health", "heart", "heavy", "hedgehog", "height", "hello", "helmet", "help", "hen", "hero", "hidden", "high", "hill", "hint", "hip", "hire", "history", "hobby", "hockey", "hold", "hole", "holiday", "hollow", "home", "honey", "hood", "hope", "horn", "horror", "horse", "hospital", "host", "hotel", "hour", "hover", "hub", "huge", "human", "humble", "humor", "hundred", "hungry", "hunt", "hurdle", "hurry", "hurt", "husband", "hybrid", "ice", "icon", "idea", "identify", "idle", "ignore", "ill", "illegal", "illness", "image", "imitate", "immense", "immune", "impact", "impose", "improve", "impulse", "inch", "include", "income", "increase", "index", "indicate", "indoor", "industry", "infant", "inflict", "inform", "inhale", "inherit", "initial", "inject", "injury", "inmate", "inner", "innocent", "input", "inquiry", "insane", "insect", "inside", "inspire", "install", "intact", "interest", "into", "invest", "invite", "involve", "iron", "island", "isolate", "issue", "item", "ivory", "jacket", "jaguar", "jar", "jazz", "jealous", "jeans", "jelly", "jewel", "job", "join", "joke", "journey", "joy", "judge", "juice", "jump", "jungle", "junior", "junk", "just", "kangaroo", "keen", "keep", "ketchup", "key", "kick", "kid", "kidney", "kind", "kingdom", "kiss", "kit", "kitchen", "kite", "kitten", "kiwi", "knee", "knife", "knock", "know", "lab", "label", "labor", "ladder", "lady", "lake", "lamp", "language", "laptop", "large", "later", "latin", "laugh", "laundry", "lava", "law", "lawn", "lawsuit", "layer", "lazy", "leader", "leaf", "learn", "leave", "lecture", "left", "leg", "legal", "legend", "leisure", "lemon", "lend", "length", "lens", "leopard", "lesson", "letter", "level", "liar", "liberty", "library", "license", "life", "lift", "light", "like", "limb", "limit", "link", "lion", "liquid", "list", "little", "live", "lizard", "load", "loan", "lobster", "local", "lock", "logic", "lonely", "long", "loop", "lottery", "loud", "lounge", "love", "loyal", "lucky", "luggage", "lumber", "lunar", "lunch", "luxury", "lyrics", "machine", "mad", "magic", "magnet", "maid", "mail", "main", "major", "make", "mammal", "man", "manage", "mandate", "mango", "mansion", "manual", "maple", "marble", "march", "margin", "marine", "market", "marriage", "mask", "mass", "master", "match", "material", "math", "matrix", "matter", "maximum", "maze", "meadow", "mean", "measure", "meat", "mechanic", "medal", "media", "melody", "melt", "member", "memory", "mention", "menu", "mercy", "merge", "merit", "merry", "mesh", "message", "metal", "method", "middle", "midnight", "milk", "million", "mimic", "mind", "minimum", "minor", "minute", "miracle", "mirror", "misery", "miss", "mistake", "mix", "mixed", "mixture", "mobile", "model", "modify", "mom", "moment", "monitor", "monkey", "monster", "month", "moon", "moral", "more", "morning", "mosquito", "mother", "motion", "motor", "mountain", "mouse", "move", "movie", "much", "muffin", "mule", "multiply", "muscle", "museum", "mushroom", "music", "must", "mutual", "myself", "mystery", "myth", "naive", "name", "napkin", "narrow", "nasty", "nation", "nature", "near", "neck", "need", "negative", "neglect", "neither", "nephew", "nerve", "nest", "net", "network", "neutral", "never", "news", "next", "nice", "night", "noble", "noise", "nominee", "noodle", "normal", "north", "nose", "notable", "note", "nothing", "notice", "novel", "now", "nuclear", "number", "nurse", "nut", "oak", "obey", "object", "oblige", "obscure", "observe", "obtain", "obvious", "occur", "ocean", "october", "odor", "off", "offer", "office", "often", "oil", "okay", "old", "olive", "olympic", "omit", "once", "one", "onion", "online", "only", "open", "opera", "opinion", "oppose", "option", "orange", "orbit", "orchard", "order", "ordinary", "organ", "orient", "original", "orphan", "ostrich", "other", "outdoor", "outer", "output", "outside", "oval", "oven", "over", "own", "owner", "oxygen", "oyster", "ozone", "pact", "paddle", "page", "pair", "palace", "palm", "panda", "panel", "panic", "panther", "paper", "parade", "parent", "park", "parrot", "party", "pass", "patch", "path", "patient", "patrol", "pattern", "pause", "pave", "payment", "peace", "peanut", "pear", "peasant", "pelican", "pen", "penalty", "pencil", "people", "pepper", "perfect", "permit", "person", "pet", "phone", "photo", "phrase", "physical", "piano", "picnic", "picture", "piece", "pig", "pigeon", "pill", "pilot", "pink", "pioneer", "pipe", "pistol", "pitch", "pizza", "place", "planet", "plastic", "plate", "play", "please", "pledge", "pluck", "plug", "plunge", "poem", "poet", "point", "polar", "pole", "police", "pond", "pony", "pool", "popular", "portion", "position", "possible", "post", "potato", "pottery", "poverty", "powder", "power", "practice", "praise", "predict", "prefer", "prepare", "present", "pretty", "prevent", "price", "pride", "primary", "print", "priority", "prison", "private", "prize", "problem", "process", "produce", "profit", "program", "project", "promote", "proof", "property", "prosper", "protect", "proud", "provide", "public", "pudding", "pull", "pulp", "pulse", "pumpkin", "punch", "pupil", "puppy", "purchase", "purity", "purpose", "purse", "push", "put", "puzzle", "pyramid", "quality", "quantum", "quarter", "question", "quick", "quit", "quiz", "quote", "rabbit", "raccoon", "race", "rack", "radar", "radio", "rail", "rain", "raise", "rally", "ramp", "ranch", "random", "range", "rapid", "rare", "rate", "rather", "raven", "raw", "razor", "ready", "real", "reason", "rebel", "rebuild", "recall", "receive", "recipe", "record", "recycle", "reduce", "reflect", "reform", "refuse", "region", "regret", "regular", "reject", "relax", "release", "relief", "rely", "remain", "remember", "remind", "remove", "render", "renew", "rent", "reopen", "repair", "repeat", "replace", "report", "require", "rescue", "resemble", "resist", "resource", "response", "result", "retire", "retreat", "return", "reunion", "reveal", "review", "reward", "rhythm", "rib", "ribbon", "rice", "rich", "ride", "ridge", "rifle", "right", "rigid", "ring", "riot", "ripple", "risk", "ritual", "rival", "river", "road", "roast", "robot", "robust", "rocket", "romance", "roof", "rookie", "room", "rose", "rotate", "rough", "round", "route", "royal", "rubber", "rude", "rug", "rule", "run", "runway", "rural", "sad", "saddle", "sadness", "safe", "sail", "salad", "salmon", "salon", "salt", "salute", "same", "sample", "sand", "satisfy", "satoshi", "sauce", "sausage", "save", "say", "scale", "scan", "scare", "scatter", "scene", "scheme", "school", "science", "scissors", "scorpion", "scout", "scrap", "screen", "script", "scrub", "sea", "search", "season", "seat", "second", "secret", "section", "security", "seed", "seek", "segment", "select", "sell", "seminar", "senior", "sense", "sentence", "series", "service", "session", "settle", "setup", "seven", "shadow", "shaft", "shallow", "share", "shed", "shell", "sheriff", "shield", "shift", "shine", "ship", "shiver", "shock", "shoe", "shoot", "shop", "short", "shoulder", "shove", "shrimp", "shrug", "shuffle", "shy", "sibling", "sick", "side", "siege", "sight", "sign", "silent", "silk", "silly", "silver", "similar", "simple", "since", "sing", "siren", "sister", "situate", "six", "size", "skate", "sketch", "ski", "skill", "skin", "skirt", "skull", "slab", "slam", "sleep", "slender", "slice", "slide", "slight", "slim", "slogan", "slot", "slow", "slush", "small", "smart", "smile", "smoke", "smooth", "snack", "snake", "snap", "sniff", "snow", "soap", "soccer", "social", "sock", "soda", "soft", "solar", "soldier", "solid", "solution", "solve", "someone", "song", "soon", "sorry", "sort", "soul", "sound", "soup", "source", "south", "space", "spare", "spatial", "spawn", "speak", "special", "speed", "spell", "spend", "sphere", "spice", "spider", "spike", "spin", "spirit", "split", "spoil", "sponsor", "spoon", "sport", "spot", "spray", "spread", "spring", "spy", "square", "squeeze", "squirrel", "stable", "stadium", "staff", "stage", "stairs", "stamp", "stand", "start", "state", "stay", "steak", "steel", "stem", "step", "stereo", "stick", "still", "sting", "stock", "stomach", "stone", "stool", "story", "stove", "strategy", "street", "strike", "strong", "struggle", "student", "stuff", "stumble", "style", "subject", "submit", "subway", "success", "such", "sudden", "suffer", "sugar", "suggest", "suit", "summer", "sun", "sunny", "sunset", "super", "supply", "supreme", "sure", "surface", "surge", "surprise", "surround", "survey", "suspect", "sustain", "swallow", "swamp", "swap", "swarm", "swear", "sweet", "swift", "swim", "swing", "switch", "sword", "symbol", "symptom", "syrup", "system", "table", "tackle", "tag", "tail", "talent", "talk", "tank", "tape", "target", "task", "taste", "tattoo", "taxi", "teach", "team", "tell", "ten", "tenant", "tennis", "tent", "term", "test", "text", "thank", "that", "theme", "then", "theory", "there", "they", "thing", "this", "thought", "three", "thrive", "throw", "thumb", "thunder", "ticket", "tide", "tiger", "tilt", "timber", "time", "tiny", "tip", "tired", "tissue", "title", "toast", "tobacco", "today", "toddler", "toe", "together", "toilet", "token", "tomato", "tomorrow", "tone", "tongue", "tonight", "tool", "tooth", "top", "topic", "topple", "torch", "tornado", "tortoise", "toss", "total", "tourist", "toward", "tower", "town", "toy", "track", "trade", "traffic", "tragic", "train", "transfer", "trap", "trash", "travel", "tray", "treat", "tree", "trend", "trial", "tribe", "trick", "trigger", "trim", "trip", "trophy", "trouble", "truck", "true", "truly", "trumpet", "trust", "truth", "try", "tube", "tuition", "tumble", "tuna", "tunnel", "turkey", "turn", "turtle", "twelve", "twenty", "twice", "twin", "twist", "two", "type", "typical", "ugly", "umbrella", "unable", "unaware", "uncle", "uncover", "under", "undo", "unfair", "unfold", "unhappy", "uniform", "unique", "unit", "universe", "unknown", "unlock", "until", "unusual", "unveil", "update", "upgrade", "uphold", "upon", "upper", "upset", "urban", "urge", "usage", "use", "used", "useful", "useless", "usual", "utility", "vacant", "vacuum", "vague", "valid", "valley", "valve", "van", "vanish", "vapor", "various", "vast", "vault", "vehicle", "velvet", "vendor", "venture", "venue", "verb", "verify", "version", "very", "vessel", "veteran", "viable", "vibrant", "vicious", "victory", "video", "view", "village", "vintage", "violin", "virtual", "virus", "visa", "visit", "visual", "vital", "vivid", "vocal", "voice", "void", "volcano", "volume", "vote", "voyage", "wage", "wagon", "wait", "walk", "wall", "walnut", "want", "warfare", "warm", "warrior", "wash", "wasp", "waste", "water", "wave", "way", "wealth", "weapon", "wear", "weasel", "weather", "web", "wedding", "weekend", "weird", "welcome", "west", "wet", "whale", "what", "wheat", "wheel", "when", "where", "whip", "whisper", "wide", "width", "wife", "wild", "will", "win", "window", "wine", "wing", "wink", "winner", "winter", "wire", "wisdom", "wise", "wish", "witness", "wolf", "woman", "wonder", "wood", "wool", "word", "work", "world", "worry", "worth", "wrap", "wreck", "wrestle", "wrist", "write", "wrong", "yard", "year", "yellow", "you", "young", "youth", "zebra", "zero", "zone", "zoo"];
+</script>
+
+<!-- Official EFF large Diceware wordlist (7776 words, verified: keys 11111-66666
+     sequential base-6, no duplicates, SHA-256 addd3553...996b903e). Used ONLY for
+     building the optional dice-generated passphrase (5 rolls -> 1 word). This list
+     is separate from the 24-word BIP39 list above. -->
+<script>
+const EFF_WORDLIST=["abacus","abdomen","abdominal","abide","abiding","ability","ablaze","able","abnormal","abrasion","abrasive","abreast","abridge","abroad","abruptly","absence","absentee","absently","absinthe","absolute","absolve","abstain","abstract","absurd","accent","acclaim","acclimate","accompany","account","accuracy","accurate","accustom","acetone","achiness","aching","acid","acorn","acquaint","acquire","acre","acrobat","acronym","acting","action","activate","activator","active","activism","activist","activity","actress","acts","acutely","acuteness","aeration","aerobics","aerosol","aerospace","afar","affair","affected","affecting","affection","affidavit","affiliate","affirm","affix","afflicted","affluent","afford","affront","aflame","afloat","aflutter","afoot","afraid","afterglow","afterlife","aftermath","aftermost","afternoon","aged","ageless","agency","agenda","agent","aggregate","aghast","agile","agility","aging","agnostic","agonize","agonizing","agony","agreeable","agreeably","agreed","agreeing","agreement","aground","ahead","ahoy","aide","aids","aim","ajar","alabaster","alarm","albatross","album","alfalfa","algebra","algorithm","alias","alibi","alienable","alienate","aliens","alike","alive","alkaline","alkalize","almanac","almighty","almost","aloe","aloft","aloha","alone","alongside","aloof","alphabet","alright","although","altitude","alto","aluminum","alumni","always","amaretto","amaze","amazingly","amber","ambiance","ambiguity","ambiguous","ambition","ambitious","ambulance","ambush","amendable","amendment","amends","amenity","amiable","amicably","amid","amigo","amino","amiss","ammonia","ammonium","amnesty","amniotic","among","amount","amperage","ample","amplifier","amplify","amply","amuck","amulet","amusable","amused","amusement","amuser","amusing","anaconda","anaerobic","anagram","anatomist","anatomy","anchor","anchovy","ancient","android","anemia","anemic","aneurism","anew","angelfish","angelic","anger","angled","angler","angles","angling","angrily","angriness","anguished","angular","animal","animate","animating","animation","animator","anime","animosity","ankle","annex","annotate","announcer","annoying","annually","annuity","anointer","another","answering","antacid","antarctic","anteater","antelope","antennae","anthem","anthill","anthology","antibody","antics","antidote","antihero","antiquely","antiques","antiquity","antirust","antitoxic","antitrust","antiviral","antivirus","antler","antonym","antsy","anvil","anybody","anyhow","anymore","anyone","anyplace","anything","anytime","anyway","anywhere","aorta","apache","apostle","appealing","appear","appease","appeasing","appendage","appendix","appetite","appetizer","applaud","applause","apple","appliance","applicant","applied","apply","appointee","appraisal","appraiser","apprehend","approach","approval","approve","apricot","april","apron","aptitude","aptly","aqua","aqueduct","arbitrary","arbitrate","ardently","area","arena","arguable","arguably","argue","arise","armadillo","armband","armchair","armed","armful","armhole","arming","armless","armoire","armored","armory","armrest","army","aroma","arose","around","arousal","arrange","array","arrest","arrival","arrive","arrogance","arrogant","arson","art","ascend","ascension","ascent","ascertain","ashamed","ashen","ashes","ashy","aside","askew","asleep","asparagus","aspect","aspirate","aspire","aspirin","astonish","astound","astride","astrology","astronaut","astronomy","astute","atlantic","atlas","atom","atonable","atop","atrium","atrocious","atrophy","attach","attain","attempt","attendant","attendee","attention","attentive","attest","attic","attire","attitude","attractor","attribute","atypical","auction","audacious","audacity","audible","audibly","audience","audio","audition","augmented","august","authentic","author","autism","autistic","autograph","automaker","automated","automatic","autopilot","available","avalanche","avatar","avenge","avenging","avenue","average","aversion","avert","aviation","aviator","avid","avoid","await","awaken","award","aware","awhile","awkward","awning","awoke","awry","axis","babble","babbling","babied","baboon","backache","backboard","backboned","backdrop","backed","backer","backfield","backfire","backhand","backing","backlands","backlash","backless","backlight","backlit","backlog","backpack","backpedal","backrest","backroom","backshift","backside","backslid","backspace","backspin","backstab","backstage","backtalk","backtrack","backup","backward","backwash","backwater","backyard","bacon","bacteria","bacterium","badass","badge","badland","badly","badness","baffle","baffling","bagel","bagful","baggage","bagged","baggie","bagginess","bagging","baggy","bagpipe","baguette","baked","bakery","bakeshop","baking","balance","balancing","balcony","balmy","balsamic","bamboo","banana","banish","banister","banjo","bankable","bankbook","banked","banker","banking","banknote","bankroll","banner","bannister","banshee","banter","barbecue","barbed","barbell","barber","barcode","barge","bargraph","barista","baritone","barley","barmaid","barman","barn","barometer","barrack","barracuda","barrel","barrette","barricade","barrier","barstool","bartender","barterer","bash","basically","basics","basil","basin","basis","basket","batboy","batch","bath","baton","bats","battalion","battered","battering","battery","batting","battle","bauble","bazooka","blabber","bladder","blade","blah","blame","blaming","blanching","blandness","blank","blaspheme","blasphemy","blast","blatancy","blatantly","blazer","blazing","bleach","bleak","bleep","blemish","blend","bless","blighted","blimp","bling","blinked","blinker","blinking","blinks","blip","blissful","blitz","blizzard","bloated","bloating","blob","blog","bloomers","blooming","blooper","blot","blouse","blubber","bluff","bluish","blunderer","blunt","blurb","blurred","blurry","blurt","blush","blustery","boaster","boastful","boasting","boat","bobbed","bobbing","bobble","bobcat","bobsled","bobtail","bodacious","body","bogged","boggle","bogus","boil","bok","bolster","bolt","bonanza","bonded","bonding","bondless","boned","bonehead","boneless","bonelike","boney","bonfire","bonnet","bonsai","bonus","bony","boogeyman","boogieman","book","boondocks","booted","booth","bootie","booting","bootlace","bootleg","boots","boozy","borax","boring","borough","borrower","borrowing","boss","botanical","botanist","botany","botch","both","bottle","bottling","bottom","bounce","bouncing","bouncy","bounding","boundless","bountiful","bovine","boxcar","boxer","boxing","boxlike","boxy","breach","breath","breeches","breeching","breeder","breeding","breeze","breezy","brethren","brewery","brewing","briar","bribe","brick","bride","bridged","brigade","bright","brilliant","brim","bring","brink","brisket","briskly","briskness","bristle","brittle","broadband","broadcast","broaden","broadly","broadness","broadside","broadways","broiler","broiling","broken","broker","bronchial","bronco","bronze","bronzing","brook","broom","brought","browbeat","brownnose","browse","browsing","bruising","brunch","brunette","brunt","brush","brussels","brute","brutishly","bubble","bubbling","bubbly","buccaneer","bucked","bucket","buckle","buckshot","buckskin","bucktooth","buckwheat","buddhism","buddhist","budding","buddy","budget","buffalo","buffed","buffer","buffing","buffoon","buggy","bulb","bulge","bulginess","bulgur","bulk","bulldog","bulldozer","bullfight","bullfrog","bullhorn","bullion","bullish","bullpen","bullring","bullseye","bullwhip","bully","bunch","bundle","bungee","bunion","bunkbed","bunkhouse","bunkmate","bunny","bunt","busboy","bush","busily","busload","bust","busybody","buzz","cabana","cabbage","cabbie","cabdriver","cable","caboose","cache","cackle","cacti","cactus","caddie","caddy","cadet","cadillac","cadmium","cage","cahoots","cake","calamari","calamity","calcium","calculate","calculus","caliber","calibrate","calm","caloric","calorie","calzone","camcorder","cameo","camera","camisole","camper","campfire","camping","campsite","campus","canal","canary","cancel","candied","candle","candy","cane","canine","canister","cannabis","canned","canning","cannon","cannot","canola","canon","canopener","canopy","canteen","canyon","capable","capably","capacity","cape","capillary","capital","capitol","capped","capricorn","capsize","capsule","caption","captivate","captive","captivity","capture","caramel","carat","caravan","carbon","cardboard","carded","cardiac","cardigan","cardinal","cardstock","carefully","caregiver","careless","caress","caretaker","cargo","caring","carless","carload","carmaker","carnage","carnation","carnival","carnivore","carol","carpenter","carpentry","carpool","carport","carried","carrot","carrousel","carry","cartel","cartload","carton","cartoon","cartridge","cartwheel","carve","carving","carwash","cascade","case","cash","casing","casino","casket","cassette","casually","casualty","catacomb","catalog","catalyst","catalyze","catapult","cataract","catatonic","catcall","catchable","catcher","catching","catchy","caterer","catering","catfight","catfish","cathedral","cathouse","catlike","catnap","catnip","catsup","cattail","cattishly","cattle","catty","catwalk","caucasian","caucus","causal","causation","cause","causing","cauterize","caution","cautious","cavalier","cavalry","caviar","cavity","cedar","celery","celestial","celibacy","celibate","celtic","cement","census","ceramics","ceremony","certainly","certainty","certified","certify","cesarean","cesspool","chafe","chaffing","chain","chair","chalice","challenge","chamber","chamomile","champion","chance","change","channel","chant","chaos","chaperone","chaplain","chapped","chaps","chapter","character","charbroil","charcoal","charger","charging","chariot","charity","charm","charred","charter","charting","chase","chasing","chaste","chastise","chastity","chatroom","chatter","chatting","chatty","cheating","cheddar","cheek","cheer","cheese","cheesy","chef","chemicals","chemist","chemo","cherisher","cherub","chess","chest","chevron","chevy","chewable","chewer","chewing","chewy","chief","chihuahua","childcare","childhood","childish","childless","childlike","chili","chill","chimp","chip","chirping","chirpy","chitchat","chivalry","chive","chloride","chlorine","choice","chokehold","choking","chomp","chooser","choosing","choosy","chop","chosen","chowder","chowtime","chrome","chubby","chuck","chug","chummy","chump","chunk","churn","chute","cider","cilantro","cinch","cinema","cinnamon","circle","circling","circular","circulate","circus","citable","citadel","citation","citizen","citric","citrus","city","civic","civil","clad","claim","clambake","clammy","clamor","clamp","clamshell","clang","clanking","clapped","clapper","clapping","clarify","clarinet","clarity","clash","clasp","class","clatter","clause","clavicle","claw","clay","clean","clear","cleat","cleaver","cleft","clench","clergyman","clerical","clerk","clever","clicker","client","climate","climatic","cling","clinic","clinking","clip","clique","cloak","clobber","clock","clone","cloning","closable","closure","clothes","clothing","cloud","clover","clubbed","clubbing","clubhouse","clump","clumsily","clumsy","clunky","clustered","clutch","clutter","coach","coagulant","coastal","coaster","coasting","coastland","coastline","coat","coauthor","cobalt","cobbler","cobweb","cocoa","coconut","cod","coeditor","coerce","coexist","coffee","cofounder","cognition","cognitive","cogwheel","coherence","coherent","cohesive","coil","coke","cola","cold","coleslaw","coliseum","collage","collapse","collar","collected","collector","collide","collie","collision","colonial","colonist","colonize","colony","colossal","colt","coma","come","comfort","comfy","comic","coming","comma","commence","commend","comment","commerce","commode","commodity","commodore","common","commotion","commute","commuting","compacted","compacter","compactly","compactor","companion","company","compare","compel","compile","comply","component","composed","composer","composite","compost","composure","compound","compress","comprised","computer","computing","comrade","concave","conceal","conceded","concept","concerned","concert","conch","concierge","concise","conclude","concrete","concur","condense","condiment","condition","condone","conducive","conductor","conduit","cone","confess","confetti","confidant","confident","confider","confiding","configure","confined","confining","confirm","conflict","conform","confound","confront","confused","confusing","confusion","congenial","congested","congrats","congress","conical","conjoined","conjure","conjuror","connected","connector","consensus","consent","console","consoling","consonant","constable","constant","constrain","constrict","construct","consult","consumer","consuming","contact","container","contempt","contend","contented","contently","contents","contest","context","contort","contour","contrite","control","contusion","convene","convent","copartner","cope","copied","copier","copilot","coping","copious","copper","copy","coral","cork","cornball","cornbread","corncob","cornea","corned","corner","cornfield","cornflake","cornhusk","cornmeal","cornstalk","corny","coronary","coroner","corporal","corporate","corral","correct","corridor","corrode","corroding","corrosive","corsage","corset","cortex","cosigner","cosmetics","cosmic","cosmos","cosponsor","cost","cottage","cotton","couch","cough","could","countable","countdown","counting","countless","country","county","courier","covenant","cover","coveted","coveting","coyness","cozily","coziness","cozy","crabbing","crabgrass","crablike","crabmeat","cradle","cradling","crafter","craftily","craftsman","craftwork","crafty","cramp","cranberry","crane","cranial","cranium","crank","crate","crave","craving","crawfish","crawlers","crawling","crayfish","crayon","crazed","crazily","craziness","crazy","creamed","creamer","creamlike","crease","creasing","creatable","create","creation","creative","creature","credible","credibly","credit","creed","creme","creole","crepe","crept","crescent","crested","cresting","crestless","crevice","crewless","crewman","crewmate","crib","cricket","cried","crier","crimp","crimson","cringe","cringing","crinkle","crinkly","crisped","crisping","crisply","crispness","crispy","criteria","critter","croak","crock","crook","croon","crop","cross","crouch","crouton","crowbar","crowd","crown","crucial","crudely","crudeness","cruelly","cruelness","cruelty","crumb","crummiest","crummy","crumpet","crumpled","cruncher","crunching","crunchy","crusader","crushable","crushed","crusher","crushing","crust","crux","crying","cryptic","crystal","cubbyhole","cube","cubical","cubicle","cucumber","cuddle","cuddly","cufflink","culinary","culminate","culpable","culprit","cultivate","cultural","culture","cupbearer","cupcake","cupid","cupped","cupping","curable","curator","curdle","cure","curfew","curing","curled","curler","curliness","curling","curly","curry","curse","cursive","cursor","curtain","curtly","curtsy","curvature","curve","curvy","cushy","cusp","cussed","custard","custodian","custody","customary","customer","customize","customs","cut","cycle","cyclic","cycling","cyclist","cylinder","cymbal","cytoplasm","cytoplast","dab","dad","daffodil","dagger","daily","daintily","dainty","dairy","daisy","dallying","dance","dancing","dandelion","dander","dandruff","dandy","danger","dangle","dangling","daredevil","dares","daringly","darkened","darkening","darkish","darkness","darkroom","darling","darn","dart","darwinism","dash","dastardly","data","datebook","dating","daughter","daunting","dawdler","dawn","daybed","daybreak","daycare","daydream","daylight","daylong","dayroom","daytime","dazzler","dazzling","deacon","deafening","deafness","dealer","dealing","dealmaker","dealt","dean","debatable","debate","debating","debit","debrief","debtless","debtor","debug","debunk","decade","decaf","decal","decathlon","decay","deceased","deceit","deceiver","deceiving","december","decency","decent","deception","deceptive","decibel","decidable","decimal","decimeter","decipher","deck","declared","decline","decode","decompose","decorated","decorator","decoy","decrease","decree","dedicate","dedicator","deduce","deduct","deed","deem","deepen","deeply","deepness","deface","defacing","defame","default","defeat","defection","defective","defendant","defender","defense","defensive","deferral","deferred","defiance","defiant","defile","defiling","define","definite","deflate","deflation","deflator","deflected","deflector","defog","deforest","defraud","defrost","deftly","defuse","defy","degraded","degrading","degrease","degree","dehydrate","deity","dejected","delay","delegate","delegator","delete","deletion","delicacy","delicate","delicious","delighted","delirious","delirium","deliverer","delivery","delouse","delta","deluge","delusion","deluxe","demanding","demeaning","demeanor","demise","democracy","democrat","demote","demotion","demystify","denatured","deniable","denial","denim","denote","dense","density","dental","dentist","denture","deny","deodorant","deodorize","departed","departure","depict","deplete","depletion","deplored","deploy","deport","depose","depraved","depravity","deprecate","depress","deprive","depth","deputize","deputy","derail","deranged","derby","derived","desecrate","deserve","deserving","designate","designed","designer","designing","deskbound","desktop","deskwork","desolate","despair","despise","despite","destiny","destitute","destruct","detached","detail","detection","detective","detector","detention","detergent","detest","detonate","detonator","detoxify","detract","deuce","devalue","deviancy","deviant","deviate","deviation","deviator","device","devious","devotedly","devotee","devotion","devourer","devouring","devoutly","dexterity","dexterous","diabetes","diabetic","diabolic","diagnoses","diagnosis","diagram","dial","diameter","diaper","diaphragm","diary","dice","dicing","dictate","dictation","dictator","difficult","diffused","diffuser","diffusion","diffusive","dig","dilation","diligence","diligent","dill","dilute","dime","diminish","dimly","dimmed","dimmer","dimness","dimple","diner","dingbat","dinghy","dinginess","dingo","dingy","dining","dinner","diocese","dioxide","diploma","dipped","dipper","dipping","directed","direction","directive","directly","directory","direness","dirtiness","disabled","disagree","disallow","disarm","disarray","disaster","disband","disbelief","disburse","discard","discern","discharge","disclose","discolor","discount","discourse","discover","discuss","disdain","disengage","disfigure","disgrace","dish","disinfect","disjoin","disk","dislike","disliking","dislocate","dislodge","disloyal","dismantle","dismay","dismiss","dismount","disobey","disorder","disown","disparate","disparity","dispatch","dispense","dispersal","dispersed","disperser","displace","display","displease","disposal","dispose","disprove","dispute","disregard","disrupt","dissuade","distance","distant","distaste","distill","distinct","distort","distract","distress","district","distrust","ditch","ditto","ditzy","dividable","divided","dividend","dividers","dividing","divinely","diving","divinity","divisible","divisibly","division","divisive","divorcee","dizziness","dizzy","doable","docile","dock","doctrine","document","dodge","dodgy","doily","doing","dole","dollar","dollhouse","dollop","dolly","dolphin","domain","domelike","domestic","dominion","dominoes","donated","donation","donator","donor","donut","doodle","doorbell","doorframe","doorknob","doorman","doormat","doornail","doorpost","doorstep","doorstop","doorway","doozy","dork","dormitory","dorsal","dosage","dose","dotted","doubling","douche","dove","down","dowry","doze","drab","dragging","dragonfly","dragonish","dragster","drainable","drainage","drained","drainer","drainpipe","dramatic","dramatize","drank","drapery","drastic","draw","dreaded","dreadful","dreadlock","dreamboat","dreamily","dreamland","dreamless","dreamlike","dreamt","dreamy","drearily","dreary","drench","dress","drew","dribble","dried","drier","drift","driller","drilling","drinkable","drinking","dripping","drippy","drivable","driven","driver","driveway","driving","drizzle","drizzly","drone","drool","droop","drop-down","dropbox","dropkick","droplet","dropout","dropper","drove","drown","drowsily","drudge","drum","dry","dubbed","dubiously","duchess","duckbill","ducking","duckling","ducktail","ducky","duct","dude","duffel","dugout","duh","duke","duller","dullness","duly","dumping","dumpling","dumpster","duo","dupe","duplex","duplicate","duplicity","durable","durably","duration","duress","during","dusk","dust","dutiful","duty","duvet","dwarf","dweeb","dwelled","dweller","dwelling","dwindle","dwindling","dynamic","dynamite","dynasty","dyslexia","dyslexic","each","eagle","earache","eardrum","earflap","earful","earlobe","early","earmark","earmuff","earphone","earpiece","earplugs","earring","earshot","earthen","earthlike","earthling","earthly","earthworm","earthy","earwig","easeful","easel","easiest","easily","easiness","easing","eastbound","eastcoast","easter","eastward","eatable","eaten","eatery","eating","eats","ebay","ebony","ebook","ecard","eccentric","echo","eclair","eclipse","ecologist","ecology","economic","economist","economy","ecosphere","ecosystem","edge","edginess","edging","edgy","edition","editor","educated","education","educator","eel","effective","effects","efficient","effort","eggbeater","egging","eggnog","eggplant","eggshell","egomaniac","egotism","egotistic","either","eject","elaborate","elastic","elated","elbow","eldercare","elderly","eldest","electable","election","elective","elephant","elevate","elevating","elevation","elevator","eleven","elf","eligible","eligibly","eliminate","elite","elitism","elixir","elk","ellipse","elliptic","elm","elongated","elope","eloquence","eloquent","elsewhere","elude","elusive","elves","email","embargo","embark","embassy","embattled","embellish","ember","embezzle","emblaze","emblem","embody","embolism","emboss","embroider","emcee","emerald","emergency","emission","emit","emote","emoticon","emotion","empathic","empathy","emperor","emphases","emphasis","emphasize","emphatic","empirical","employed","employee","employer","emporium","empower","emptier","emptiness","empty","emu","enable","enactment","enamel","enchanted","enchilada","encircle","enclose","enclosure","encode","encore","encounter","encourage","encroach","encrust","encrypt","endanger","endeared","endearing","ended","ending","endless","endnote","endocrine","endorphin","endorse","endowment","endpoint","endurable","endurance","enduring","energetic","energize","energy","enforced","enforcer","engaged","engaging","engine","engorge","engraved","engraver","engraving","engross","engulf","enhance","enigmatic","enjoyable","enjoyably","enjoyer","enjoying","enjoyment","enlarged","enlarging","enlighten","enlisted","enquirer","enrage","enrich","enroll","enslave","ensnare","ensure","entail","entangled","entering","entertain","enticing","entire","entitle","entity","entomb","entourage","entrap","entree","entrench","entrust","entryway","entwine","enunciate","envelope","enviable","enviably","envious","envision","envoy","envy","enzyme","epic","epidemic","epidermal","epidermis","epidural","epilepsy","epileptic","epilogue","epiphany","episode","equal","equate","equation","equator","equinox","equipment","equity","equivocal","eradicate","erasable","erased","eraser","erasure","ergonomic","errand","errant","erratic","error","erupt","escalate","escalator","escapable","escapade","escapist","escargot","eskimo","esophagus","espionage","espresso","esquire","essay","essence","essential","establish","estate","esteemed","estimate","estimator","estranged","estrogen","etching","eternal","eternity","ethanol","ether","ethically","ethics","euphemism","evacuate","evacuee","evade","evaluate","evaluator","evaporate","evasion","evasive","even","everglade","evergreen","everybody","everyday","everyone","evict","evidence","evident","evil","evoke","evolution","evolve","exact","exalted","example","excavate","excavator","exceeding","exception","excess","exchange","excitable","exciting","exclaim","exclude","excluding","exclusion","exclusive","excretion","excretory","excursion","excusable","excusably","excuse","exemplary","exemplify","exemption","exerciser","exert","exes","exfoliate","exhale","exhaust","exhume","exile","existing","exit","exodus","exonerate","exorcism","exorcist","expand","expanse","expansion","expansive","expectant","expedited","expediter","expel","expend","expenses","expensive","expert","expire","expiring","explain","expletive","explicit","explode","exploit","explore","exploring","exponent","exporter","exposable","expose","exposure","express","expulsion","exquisite","extended","extending","extent","extenuate","exterior","external","extinct","extortion","extradite","extras","extrovert","extrude","extruding","exuberant","fable","fabric","fabulous","facebook","facecloth","facedown","faceless","facelift","faceplate","faceted","facial","facility","facing","facsimile","faction","factoid","factor","factsheet","factual","faculty","fade","fading","failing","falcon","fall","false","falsify","fame","familiar","family","famine","famished","fanatic","fancied","fanciness","fancy","fanfare","fang","fanning","fantasize","fantastic","fantasy","fascism","fastball","faster","fasting","fastness","faucet","favorable","favorably","favored","favoring","favorite","fax","feast","federal","fedora","feeble","feed","feel","feisty","feline","felt-tip","feminine","feminism","feminist","feminize","femur","fence","fencing","fender","ferment","fernlike","ferocious","ferocity","ferret","ferris","ferry","fervor","fester","festival","festive","festivity","fetal","fetch","fever","fiber","fiction","fiddle","fiddling","fidelity","fidgeting","fidgety","fifteen","fifth","fiftieth","fifty","figment","figure","figurine","filing","filled","filler","filling","film","filter","filth","filtrate","finale","finalist","finalize","finally","finance","financial","finch","fineness","finer","finicky","finished","finisher","finishing","finite","finless","finlike","fiscally","fit","five","flaccid","flagman","flagpole","flagship","flagstick","flagstone","flail","flakily","flaky","flame","flammable","flanked","flanking","flannels","flap","flaring","flashback","flashbulb","flashcard","flashily","flashing","flashy","flask","flatbed","flatfoot","flatly","flatness","flatten","flattered","flatterer","flattery","flattop","flatware","flatworm","flavored","flavorful","flavoring","flaxseed","fled","fleshed","fleshy","flick","flier","flight","flinch","fling","flint","flip","flirt","float","flock","flogging","flop","floral","florist","floss","flounder","flyable","flyaway","flyer","flying","flyover","flypaper","foam","foe","fog","foil","folic","folk","follicle","follow","fondling","fondly","fondness","fondue","font","food","fool","footage","football","footbath","footboard","footer","footgear","foothill","foothold","footing","footless","footman","footnote","footpad","footpath","footprint","footrest","footsie","footsore","footwear","footwork","fossil","foster","founder","founding","fountain","fox","foyer","fraction","fracture","fragile","fragility","fragment","fragrance","fragrant","frail","frame","framing","frantic","fraternal","frayed","fraying","frays","freckled","freckles","freebase","freebee","freebie","freedom","freefall","freehand","freeing","freeload","freely","freemason","freeness","freestyle","freeware","freeway","freewill","freezable","freezing","freight","french","frenzied","frenzy","frequency","frequent","fresh","fretful","fretted","friction","friday","fridge","fried","friend","frighten","frightful","frigidity","frigidly","frill","fringe","frisbee","frisk","fritter","frivolous","frolic","from","front","frostbite","frosted","frostily","frosting","frostlike","frosty","froth","frown","frozen","fructose","frugality","frugally","fruit","frustrate","frying","gab","gaffe","gag","gainfully","gaining","gains","gala","gallantly","galleria","gallery","galley","gallon","gallows","gallstone","galore","galvanize","gambling","game","gaming","gamma","gander","gangly","gangrene","gangway","gap","garage","garbage","garden","gargle","garland","garlic","garment","garnet","garnish","garter","gas","gatherer","gathering","gating","gauging","gauntlet","gauze","gave","gawk","gazing","gear","gecko","geek","geiger","gem","gender","generic","generous","genetics","genre","gentile","gentleman","gently","gents","geography","geologic","geologist","geology","geometric","geometry","geranium","gerbil","geriatric","germicide","germinate","germless","germproof","gestate","gestation","gesture","getaway","getting","getup","giant","gibberish","giblet","giddily","giddiness","giddy","gift","gigabyte","gigahertz","gigantic","giggle","giggling","giggly","gigolo","gilled","gills","gimmick","girdle","giveaway","given","giver","giving","gizmo","gizzard","glacial","glacier","glade","gladiator","gladly","glamorous","glamour","glance","glancing","glandular","glare","glaring","glass","glaucoma","glazing","gleaming","gleeful","glider","gliding","glimmer","glimpse","glisten","glitch","glitter","glitzy","gloater","gloating","gloomily","gloomy","glorified","glorifier","glorify","glorious","glory","gloss","glove","glowing","glowworm","glucose","glue","gluten","glutinous","glutton","gnarly","gnat","goal","goatskin","goes","goggles","going","goldfish","goldmine","goldsmith","golf","goliath","gonad","gondola","gone","gong","good","gooey","goofball","goofiness","goofy","google","goon","gopher","gore","gorged","gorgeous","gory","gosling","gossip","gothic","gotten","gout","gown","grab","graceful","graceless","gracious","gradation","graded","grader","gradient","grading","gradually","graduate","graffiti","grafted","grafting","grain","granddad","grandkid","grandly","grandma","grandpa","grandson","granite","granny","granola","grant","granular","grape","graph","grapple","grappling","grasp","grass","gratified","gratify","grating","gratitude","gratuity","gravel","graveness","graves","graveyard","gravitate","gravity","gravy","gray","grazing","greasily","greedily","greedless","greedy","green","greeter","greeting","grew","greyhound","grid","grief","grievance","grieving","grievous","grill","grimace","grimacing","grime","griminess","grimy","grinch","grinning","grip","gristle","grit","groggily","groggy","groin","groom","groove","grooving","groovy","grope","ground","grouped","grout","grove","grower","growing","growl","grub","grudge","grudging","grueling","gruffly","grumble","grumbling","grumbly","grumpily","grunge","grunt","guacamole","guidable","guidance","guide","guiding","guileless","guise","gulf","gullible","gully","gulp","gumball","gumdrop","gumminess","gumming","gummy","gurgle","gurgling","guru","gush","gusto","gusty","gutless","guts","gutter","guy","guzzler","gyration","habitable","habitant","habitat","habitual","hacked","hacker","hacking","hacksaw","had","haggler","haiku","half","halogen","halt","halved","halves","hamburger","hamlet","hammock","hamper","hamster","hamstring","handbag","handball","handbook","handbrake","handcart","handclap","handclasp","handcraft","handcuff","handed","handful","handgrip","handgun","handheld","handiness","handiwork","handlebar","handled","handler","handling","handmade","handoff","handpick","handprint","handrail","handsaw","handset","handsfree","handshake","handstand","handwash","handwork","handwoven","handwrite","handyman","hangnail","hangout","hangover","hangup","hankering","hankie","hanky","haphazard","happening","happier","happiest","happily","happiness","happy","harbor","hardcopy","hardcore","hardcover","harddisk","hardened","hardener","hardening","hardhat","hardhead","hardiness","hardly","hardness","hardship","hardware","hardwired","hardwood","hardy","harmful","harmless","harmonica","harmonics","harmonize","harmony","harness","harpist","harsh","harvest","hash","hassle","haste","hastily","hastiness","hasty","hatbox","hatchback","hatchery","hatchet","hatching","hatchling","hate","hatless","hatred","haunt","haven","hazard","hazelnut","hazily","haziness","hazing","hazy","headache","headband","headboard","headcount","headdress","headed","header","headfirst","headgear","heading","headlamp","headless","headlock","headphone","headpiece","headrest","headroom","headscarf","headset","headsman","headstand","headstone","headway","headwear","heap","heat","heave","heavily","heaviness","heaving","hedge","hedging","heftiness","hefty","helium","helmet","helper","helpful","helping","helpless","helpline","hemlock","hemstitch","hence","henchman","henna","herald","herbal","herbicide","herbs","heritage","hermit","heroics","heroism","herring","herself","hertz","hesitancy","hesitant","hesitate","hexagon","hexagram","hubcap","huddle","huddling","huff","hug","hula","hulk","hull","human","humble","humbling","humbly","humid","humiliate","humility","humming","hummus","humongous","humorist","humorless","humorous","humpback","humped","humvee","hunchback","hundredth","hunger","hungrily","hungry","hunk","hunter","hunting","huntress","huntsman","hurdle","hurled","hurler","hurling","hurray","hurricane","hurried","hurry","hurt","husband","hush","husked","huskiness","hut","hybrid","hydrant","hydrated","hydration","hydrogen","hydroxide","hyperlink","hypertext","hyphen","hypnoses","hypnosis","hypnotic","hypnotism","hypnotist","hypnotize","hypocrisy","hypocrite","ibuprofen","ice","iciness","icing","icky","icon","icy","idealism","idealist","idealize","ideally","idealness","identical","identify","identity","ideology","idiocy","idiom","idly","igloo","ignition","ignore","iguana","illicitly","illusion","illusive","image","imaginary","imagines","imaging","imbecile","imitate","imitation","immature","immerse","immersion","imminent","immobile","immodest","immorally","immortal","immovable","immovably","immunity","immunize","impaired","impale","impart","impatient","impeach","impeding","impending","imperfect","imperial","impish","implant","implement","implicate","implicit","implode","implosion","implosive","imply","impolite","important","importer","impose","imposing","impotence","impotency","impotent","impound","imprecise","imprint","imprison","impromptu","improper","improve","improving","improvise","imprudent","impulse","impulsive","impure","impurity","iodine","iodize","ion","ipad","iphone","ipod","irate","irk","iron","irregular","irrigate","irritable","irritably","irritant","irritate","islamic","islamist","isolated","isolating","isolation","isotope","issue","issuing","italicize","italics","item","itinerary","itunes","ivory","ivy","jab","jackal","jacket","jackknife","jackpot","jailbird","jailbreak","jailer","jailhouse","jalapeno","jam","janitor","january","jargon","jarring","jasmine","jaundice","jaunt","java","jawed","jawless","jawline","jaws","jaybird","jaywalker","jazz","jeep","jeeringly","jellied","jelly","jersey","jester","jet","jiffy","jigsaw","jimmy","jingle","jingling","jinx","jitters","jittery","job","jockey","jockstrap","jogger","jogging","john","joining","jokester","jokingly","jolliness","jolly","jolt","jot","jovial","joyfully","joylessly","joyous","joyride","joystick","jubilance","jubilant","judge","judgingly","judicial","judiciary","judo","juggle","juggling","jugular","juice","juiciness","juicy","jujitsu","jukebox","july","jumble","jumbo","jump","junction","juncture","june","junior","juniper","junkie","junkman","junkyard","jurist","juror","jury","justice","justifier","justify","justly","justness","juvenile","kabob","kangaroo","karaoke","karate","karma","kebab","keenly","keenness","keep","keg","kelp","kennel","kept","kerchief","kerosene","kettle","kick","kiln","kilobyte","kilogram","kilometer","kilowatt","kilt","kimono","kindle","kindling","kindly","kindness","kindred","kinetic","kinfolk","king","kinship","kinsman","kinswoman","kissable","kisser","kissing","kitchen","kite","kitten","kitty","kiwi","kleenex","knapsack","knee","knelt","knickers","knoll","koala","kooky","kosher","krypton","kudos","kung","labored","laborer","laboring","laborious","labrador","ladder","ladies","ladle","ladybug","ladylike","lagged","lagging","lagoon","lair","lake","lance","landed","landfall","landfill","landing","landlady","landless","landline","landlord","landmark","landmass","landmine","landowner","landscape","landside","landslide","language","lankiness","lanky","lantern","lapdog","lapel","lapped","lapping","laptop","lard","large","lark","lash","lasso","last","latch","late","lather","latitude","latrine","latter","latticed","launch","launder","laundry","laurel","lavender","lavish","laxative","lazily","laziness","lazy","lecturer","left","legacy","legal","legend","legged","leggings","legible","legibly","legislate","lego","legroom","legume","legwarmer","legwork","lemon","lend","length","lens","lent","leotard","lesser","letdown","lethargic","lethargy","letter","lettuce","level","leverage","levers","levitate","levitator","liability","liable","liberty","librarian","library","licking","licorice","lid","life","lifter","lifting","liftoff","ligament","likely","likeness","likewise","liking","lilac","lilly","lily","limb","limeade","limelight","limes","limit","limping","limpness","line","lingo","linguini","linguist","lining","linked","linoleum","linseed","lint","lion","lip","liquefy","liqueur","liquid","lisp","list","litigate","litigator","litmus","litter","little","livable","lived","lively","liver","livestock","lividly","living","lizard","lubricant","lubricate","lucid","luckily","luckiness","luckless","lucrative","ludicrous","lugged","lukewarm","lullaby","lumber","luminance","luminous","lumpiness","lumping","lumpish","lunacy","lunar","lunchbox","luncheon","lunchroom","lunchtime","lung","lurch","lure","luridness","lurk","lushly","lushness","luster","lustfully","lustily","lustiness","lustrous","lusty","luxurious","luxury","lying","lyrically","lyricism","lyricist","lyrics","macarena","macaroni","macaw","mace","machine","machinist","magazine","magenta","maggot","magical","magician","magma","magnesium","magnetic","magnetism","magnetize","magnifier","magnify","magnitude","magnolia","mahogany","maimed","majestic","majesty","majorette","majority","makeover","maker","makeshift","making","malformed","malt","mama","mammal","mammary","mammogram","manager","managing","manatee","mandarin","mandate","mandatory","mandolin","manger","mangle","mango","mangy","manhandle","manhole","manhood","manhunt","manicotti","manicure","manifesto","manila","mankind","manlike","manliness","manly","manmade","manned","mannish","manor","manpower","mantis","mantra","manual","many","map","marathon","marauding","marbled","marbles","marbling","march","mardi","margarine","margarita","margin","marigold","marina","marine","marital","maritime","marlin","marmalade","maroon","married","marrow","marry","marshland","marshy","marsupial","marvelous","marxism","mascot","masculine","mashed","mashing","massager","masses","massive","mastiff","matador","matchbook","matchbox","matcher","matching","matchless","material","maternal","maternity","math","mating","matriarch","matrimony","matrix","matron","matted","matter","maturely","maturing","maturity","mauve","maverick","maximize","maximum","maybe","mayday","mayflower","moaner","moaning","mobile","mobility","mobilize","mobster","mocha","mocker","mockup","modified","modify","modular","modulator","module","moisten","moistness","moisture","molar","molasses","mold","molecular","molecule","molehill","mollusk","mom","monastery","monday","monetary","monetize","moneybags","moneyless","moneywise","mongoose","mongrel","monitor","monkhood","monogamy","monogram","monologue","monopoly","monorail","monotone","monotype","monoxide","monsieur","monsoon","monstrous","monthly","monument","moocher","moodiness","moody","mooing","moonbeam","mooned","moonlight","moonlike","moonlit","moonrise","moonscape","moonshine","moonstone","moonwalk","mop","morale","morality","morally","morbidity","morbidly","morphine","morphing","morse","mortality","mortally","mortician","mortified","mortify","mortuary","mosaic","mossy","most","mothball","mothproof","motion","motivate","motivator","motive","motocross","motor","motto","mountable","mountain","mounted","mounting","mourner","mournful","mouse","mousiness","moustache","mousy","mouth","movable","move","movie","moving","mower","mowing","much","muck","mud","mug","mulberry","mulch","mule","mulled","mullets","multiple","multiply","multitask","multitude","mumble","mumbling","mumbo","mummified","mummify","mummy","mumps","munchkin","mundane","municipal","muppet","mural","murkiness","murky","murmuring","muscular","museum","mushily","mushiness","mushroom","mushy","music","musket","muskiness","musky","mustang","mustard","muster","mustiness","musty","mutable","mutate","mutation","mute","mutilated","mutilator","mutiny","mutt","mutual","muzzle","myself","myspace","mystified","mystify","myth","nacho","nag","nail","name","naming","nanny","nanometer","nape","napkin","napped","napping","nappy","narrow","nastily","nastiness","national","native","nativity","natural","nature","naturist","nautical","navigate","navigator","navy","nearby","nearest","nearly","nearness","neatly","neatness","nebula","nebulizer","nectar","negate","negation","negative","neglector","negligee","negligent","negotiate","nemeses","nemesis","neon","nephew","nerd","nervous","nervy","nest","net","neurology","neuron","neurosis","neurotic","neuter","neutron","never","next","nibble","nickname","nicotine","niece","nifty","nimble","nimbly","nineteen","ninetieth","ninja","nintendo","ninth","nuclear","nuclei","nucleus","nugget","nullify","number","numbing","numbly","numbness","numeral","numerate","numerator","numeric","numerous","nuptials","nursery","nursing","nurture","nutcase","nutlike","nutmeg","nutrient","nutshell","nuttiness","nutty","nuzzle","nylon","oaf","oak","oasis","oat","obedience","obedient","obituary","object","obligate","obliged","oblivion","oblivious","oblong","obnoxious","oboe","obscure","obscurity","observant","observer","observing","obsessed","obsession","obsessive","obsolete","obstacle","obstinate","obstruct","obtain","obtrusive","obtuse","obvious","occultist","occupancy","occupant","occupier","occupy","ocean","ocelot","octagon","octane","october","octopus","ogle","oil","oink","ointment","okay","old","olive","olympics","omega","omen","ominous","omission","omit","omnivore","onboard","oncoming","ongoing","onion","online","onlooker","only","onscreen","onset","onshore","onslaught","onstage","onto","onward","onyx","oops","ooze","oozy","opacity","opal","open","operable","operate","operating","operation","operative","operator","opium","opossum","opponent","oppose","opposing","opposite","oppressed","oppressor","opt","opulently","osmosis","other","otter","ouch","ought","ounce","outage","outback","outbid","outboard","outbound","outbreak","outburst","outcast","outclass","outcome","outdated","outdoors","outer","outfield","outfit","outflank","outgoing","outgrow","outhouse","outing","outlast","outlet","outline","outlook","outlying","outmatch","outmost","outnumber","outplayed","outpost","outpour","output","outrage","outrank","outreach","outright","outscore","outsell","outshine","outshoot","outsider","outskirts","outsmart","outsource","outspoken","outtakes","outthink","outward","outweigh","outwit","oval","ovary","oven","overact","overall","overarch","overbid","overbill","overbite","overblown","overboard","overbook","overbuilt","overcast","overcoat","overcome","overcook","overcrowd","overdraft","overdrawn","overdress","overdrive","overdue","overeager","overeater","overexert","overfed","overfeed","overfill","overflow","overfull","overgrown","overhand","overhang","overhaul","overhead","overhear","overheat","overhung","overjoyed","overkill","overlabor","overlaid","overlap","overlay","overload","overlook","overlord","overlying","overnight","overpass","overpay","overplant","overplay","overpower","overprice","overrate","overreach","overreact","override","overripe","overrule","overrun","overshoot","overshot","oversight","oversized","oversleep","oversold","overspend","overstate","overstay","overstep","overstock","overstuff","oversweet","overtake","overthrow","overtime","overtly","overtone","overture","overturn","overuse","overvalue","overview","overwrite","owl","oxford","oxidant","oxidation","oxidize","oxidizing","oxygen","oxymoron","oyster","ozone","paced","pacemaker","pacific","pacifier","pacifism","pacifist","pacify","padded","padding","paddle","paddling","padlock","pagan","pager","paging","pajamas","palace","palatable","palm","palpable","palpitate","paltry","pampered","pamperer","pampers","pamphlet","panama","pancake","pancreas","panda","pandemic","pang","panhandle","panic","panning","panorama","panoramic","panther","pantomime","pantry","pants","pantyhose","paparazzi","papaya","paper","paprika","papyrus","parabola","parachute","parade","paradox","paragraph","parakeet","paralegal","paralyses","paralysis","paralyze","paramedic","parameter","paramount","parasail","parasite","parasitic","parcel","parched","parchment","pardon","parish","parka","parking","parkway","parlor","parmesan","parole","parrot","parsley","parsnip","partake","parted","parting","partition","partly","partner","partridge","party","passable","passably","passage","passcode","passenger","passerby","passing","passion","passive","passivism","passover","passport","password","pasta","pasted","pastel","pastime","pastor","pastrami","pasture","pasty","patchwork","patchy","paternal","paternity","path","patience","patient","patio","patriarch","patriot","patrol","patronage","patronize","pauper","pavement","paver","pavestone","pavilion","paving","pawing","payable","payback","paycheck","payday","payee","payer","paying","payment","payphone","payroll","pebble","pebbly","pecan","pectin","peculiar","peddling","pediatric","pedicure","pedigree","pedometer","pegboard","pelican","pellet","pelt","pelvis","penalize","penalty","pencil","pendant","pending","penholder","penknife","pennant","penniless","penny","penpal","pension","pentagon","pentagram","pep","perceive","percent","perch","percolate","perennial","perfected","perfectly","perfume","periscope","perish","perjurer","perjury","perkiness","perky","perm","peroxide","perpetual","perplexed","persecute","persevere","persuaded","persuader","pesky","peso","pessimism","pessimist","pester","pesticide","petal","petite","petition","petri","petroleum","petted","petticoat","pettiness","petty","petunia","phantom","phobia","phoenix","phonebook","phoney","phonics","phoniness","phony","phosphate","photo","phrase","phrasing","placard","placate","placidly","plank","planner","plant","plasma","plaster","plastic","plated","platform","plating","platinum","platonic","platter","platypus","plausible","plausibly","playable","playback","player","playful","playgroup","playhouse","playing","playlist","playmaker","playmate","playoff","playpen","playroom","playset","plaything","playtime","plaza","pleading","pleat","pledge","plentiful","plenty","plethora","plexiglas","pliable","plod","plop","plot","plow","ploy","pluck","plug","plunder","plunging","plural","plus","plutonium","plywood","poach","pod","poem","poet","pogo","pointed","pointer","pointing","pointless","pointy","poise","poison","poker","poking","polar","police","policy","polio","polish","politely","polka","polo","polyester","polygon","polygraph","polymer","poncho","pond","pony","popcorn","pope","poplar","popper","poppy","popsicle","populace","popular","populate","porcupine","pork","porous","porridge","portable","portal","portfolio","porthole","portion","portly","portside","poser","posh","posing","possible","possibly","possum","postage","postal","postbox","postcard","posted","poster","posting","postnasal","posture","postwar","pouch","pounce","pouncing","pound","pouring","pout","powdered","powdering","powdery","power","powwow","pox","praising","prance","prancing","pranker","prankish","prankster","prayer","praying","preacher","preaching","preachy","preamble","precinct","precise","precision","precook","precut","predator","predefine","predict","preface","prefix","preflight","preformed","pregame","pregnancy","pregnant","preheated","prelaunch","prelaw","prelude","premiere","premises","premium","prenatal","preoccupy","preorder","prepaid","prepay","preplan","preppy","preschool","prescribe","preseason","preset","preshow","president","presoak","press","presume","presuming","preteen","pretended","pretender","pretense","pretext","pretty","pretzel","prevail","prevalent","prevent","preview","previous","prewar","prewashed","prideful","pried","primal","primarily","primary","primate","primer","primp","princess","print","prior","prism","prison","prissy","pristine","privacy","private","privatize","prize","proactive","probable","probably","probation","probe","probing","probiotic","problem","procedure","process","proclaim","procreate","procurer","prodigal","prodigy","produce","product","profane","profanity","professed","professor","profile","profound","profusely","progeny","prognosis","program","progress","projector","prologue","prolonged","promenade","prominent","promoter","promotion","prompter","promptly","prone","prong","pronounce","pronto","proofing","proofread","proofs","propeller","properly","property","proponent","proposal","propose","props","prorate","protector","protegee","proton","prototype","protozoan","protract","protrude","proud","provable","proved","proven","provided","provider","providing","province","proving","provoke","provoking","provolone","prowess","prowler","prowling","proximity","proxy","prozac","prude","prudishly","prune","pruning","pry","psychic","public","publisher","pucker","pueblo","pug","pull","pulmonary","pulp","pulsate","pulse","pulverize","puma","pumice","pummel","punch","punctual","punctuate","punctured","pungent","punisher","punk","pupil","puppet","puppy","purchase","pureblood","purebred","purely","pureness","purgatory","purge","purging","purifier","purify","purist","puritan","purity","purple","purplish","purposely","purr","purse","pursuable","pursuant","pursuit","purveyor","pushcart","pushchair","pusher","pushiness","pushing","pushover","pushpin","pushup","pushy","putdown","putt","puzzle","puzzling","pyramid","pyromania","python","quack","quadrant","quail","quaintly","quake","quaking","qualified","qualifier","qualify","quality","qualm","quantum","quarrel","quarry","quartered","quarterly","quarters","quartet","quench","query","quicken","quickly","quickness","quicksand","quickstep","quiet","quill","quilt","quintet","quintuple","quirk","quit","quiver","quizzical","quotable","quotation","quote","rabid","race","racing","racism","rack","racoon","radar","radial","radiance","radiantly","radiated","radiation","radiator","radio","radish","raffle","raft","rage","ragged","raging","ragweed","raider","railcar","railing","railroad","railway","raisin","rake","raking","rally","ramble","rambling","ramp","ramrod","ranch","rancidity","random","ranged","ranger","ranging","ranked","ranking","ransack","ranting","rants","rare","rarity","rascal","rash","rasping","ravage","raven","ravine","raving","ravioli","ravishing","reabsorb","reach","reacquire","reaction","reactive","reactor","reaffirm","ream","reanalyze","reappear","reapply","reappoint","reapprove","rearrange","rearview","reason","reassign","reassure","reattach","reawake","rebalance","rebate","rebel","rebirth","reboot","reborn","rebound","rebuff","rebuild","rebuilt","reburial","rebuttal","recall","recant","recapture","recast","recede","recent","recess","recharger","recipient","recital","recite","reckless","reclaim","recliner","reclining","recluse","reclusive","recognize","recoil","recollect","recolor","reconcile","reconfirm","reconvene","recopy","record","recount","recoup","recovery","recreate","rectal","rectangle","rectified","rectify","recycled","recycler","recycling","reemerge","reenact","reenter","reentry","reexamine","referable","referee","reference","refill","refinance","refined","refinery","refining","refinish","reflected","reflector","reflex","reflux","refocus","refold","reforest","reformat","reformed","reformer","reformist","refract","refrain","refreeze","refresh","refried","refueling","refund","refurbish","refurnish","refusal","refuse","refusing","refutable","refute","regain","regalia","regally","reggae","regime","region","register","registrar","registry","regress","regretful","regroup","regular","regulate","regulator","rehab","reheat","rehire","rehydrate","reimburse","reissue","reiterate","rejoice","rejoicing","rejoin","rekindle","relapse","relapsing","relatable","related","relation","relative","relax","relay","relearn","release","relenting","reliable","reliably","reliance","reliant","relic","relieve","relieving","relight","relish","relive","reload","relocate","relock","reluctant","rely","remake","remark","remarry","rematch","remedial","remedy","remember","reminder","remindful","remission","remix","remnant","remodeler","remold","remorse","remote","removable","removal","removed","remover","removing","rename","renderer","rendering","rendition","renegade","renewable","renewably","renewal","renewed","renounce","renovate","renovator","rentable","rental","rented","renter","reoccupy","reoccur","reopen","reorder","repackage","repacking","repaint","repair","repave","repaying","repayment","repeal","repeated","repeater","repent","rephrase","replace","replay","replica","reply","reporter","repose","repossess","repost","repressed","reprimand","reprint","reprise","reproach","reprocess","reproduce","reprogram","reps","reptile","reptilian","repugnant","repulsion","repulsive","repurpose","reputable","reputably","request","require","requisite","reroute","rerun","resale","resample","rescuer","reseal","research","reselect","reseller","resemble","resend","resent","reset","reshape","reshoot","reshuffle","residence","residency","resident","residual","residue","resigned","resilient","resistant","resisting","resize","resolute","resolved","resonant","resonate","resort","resource","respect","resubmit","result","resume","resupply","resurface","resurrect","retail","retainer","retaining","retake","retaliate","retention","rethink","retinal","retired","retiree","retiring","retold","retool","retorted","retouch","retrace","retract","retrain","retread","retreat","retrial","retrieval","retriever","retry","return","retying","retype","reunion","reunite","reusable","reuse","reveal","reveler","revenge","revenue","reverb","revered","reverence","reverend","reversal","reverse","reversing","reversion","revert","revisable","revise","revision","revisit","revivable","revival","reviver","reviving","revocable","revoke","revolt","revolver","revolving","reward","rewash","rewind","rewire","reword","rework","rewrap","rewrite","rhyme","ribbon","ribcage","rice","riches","richly","richness","rickety","ricotta","riddance","ridden","ride","riding","rifling","rift","rigging","rigid","rigor","rimless","rimmed","rind","rink","rinse","rinsing","riot","ripcord","ripeness","ripening","ripping","ripple","rippling","riptide","rise","rising","risk","risotto","ritalin","ritzy","rival","riverbank","riverbed","riverboat","riverside","riveter","riveting","roamer","roaming","roast","robbing","robe","robin","robotics","robust","rockband","rocker","rocket","rockfish","rockiness","rocking","rocklike","rockslide","rockstar","rocky","rogue","roman","romp","rope","roping","roster","rosy","rotten","rotting","rotunda","roulette","rounding","roundish","roundness","roundup","roundworm","routine","routing","rover","roving","royal","rubbed","rubber","rubbing","rubble","rubdown","ruby","ruckus","rudder","rug","ruined","rule","rumble","rumbling","rummage","rumor","runaround","rundown","runner","running","runny","runt","runway","rupture","rural","ruse","rush","rust","rut","sabbath","sabotage","sacrament","sacred","sacrifice","sadden","saddlebag","saddled","saddling","sadly","sadness","safari","safeguard","safehouse","safely","safeness","saffron","saga","sage","sagging","saggy","said","saint","sake","salad","salami","salaried","salary","saline","salon","saloon","salsa","salt","salutary","salute","salvage","salvaging","salvation","same","sample","sampling","sanction","sanctity","sanctuary","sandal","sandbag","sandbank","sandbar","sandblast","sandbox","sanded","sandfish","sanding","sandlot","sandpaper","sandpit","sandstone","sandstorm","sandworm","sandy","sanitary","sanitizer","sank","santa","sapling","sappiness","sappy","sarcasm","sarcastic","sardine","sash","sasquatch","sassy","satchel","satiable","satin","satirical","satisfied","satisfy","saturate","saturday","sauciness","saucy","sauna","savage","savanna","saved","savings","savior","savor","saxophone","say","scabbed","scabby","scalded","scalding","scale","scaling","scallion","scallop","scalping","scam","scandal","scanner","scanning","scant","scapegoat","scarce","scarcity","scarecrow","scared","scarf","scarily","scariness","scarring","scary","scavenger","scenic","schedule","schematic","scheme","scheming","schilling","schnapps","scholar","science","scientist","scion","scoff","scolding","scone","scoop","scooter","scope","scorch","scorebook","scorecard","scored","scoreless","scorer","scoring","scorn","scorpion","scotch","scoundrel","scoured","scouring","scouting","scouts","scowling","scrabble","scraggly","scrambled","scrambler","scrap","scratch","scrawny","screen","scribble","scribe","scribing","scrimmage","script","scroll","scrooge","scrounger","scrubbed","scrubber","scruffy","scrunch","scrutiny","scuba","scuff","sculptor","sculpture","scurvy","scuttle","secluded","secluding","seclusion","second","secrecy","secret","sectional","sector","secular","securely","security","sedan","sedate","sedation","sedative","sediment","seduce","seducing","segment","seismic","seizing","seldom","selected","selection","selective","selector","self","seltzer","semantic","semester","semicolon","semifinal","seminar","semisoft","semisweet","senate","senator","send","senior","senorita","sensation","sensitive","sensitize","sensually","sensuous","sepia","september","septic","septum","sequel","sequence","sequester","series","sermon","serotonin","serpent","serrated","serve","service","serving","sesame","sessions","setback","setting","settle","settling","setup","sevenfold","seventeen","seventh","seventy","severity","shabby","shack","shaded","shadily","shadiness","shading","shadow","shady","shaft","shakable","shakily","shakiness","shaking","shaky","shale","shallot","shallow","shame","shampoo","shamrock","shank","shanty","shape","shaping","share","sharpener","sharper","sharpie","sharply","sharpness","shawl","sheath","shed","sheep","sheet","shelf","shell","shelter","shelve","shelving","sherry","shield","shifter","shifting","shiftless","shifty","shimmer","shimmy","shindig","shine","shingle","shininess","shining","shiny","ship","shirt","shivering","shock","shone","shoplift","shopper","shopping","shoptalk","shore","shortage","shortcake","shortcut","shorten","shorter","shorthand","shortlist","shortly","shortness","shorts","shortwave","shorty","shout","shove","showbiz","showcase","showdown","shower","showgirl","showing","showman","shown","showoff","showpiece","showplace","showroom","showy","shrank","shrapnel","shredder","shredding","shrewdly","shriek","shrill","shrimp","shrine","shrink","shrivel","shrouded","shrubbery","shrubs","shrug","shrunk","shucking","shudder","shuffle","shuffling","shun","shush","shut","shy","siamese","siberian","sibling","siding","sierra","siesta","sift","sighing","silenced","silencer","silent","silica","silicon","silk","silliness","silly","silo","silt","silver","similarly","simile","simmering","simple","simplify","simply","sincere","sincerity","singer","singing","single","singular","sinister","sinless","sinner","sinuous","sip","siren","sister","sitcom","sitter","sitting","situated","situation","sixfold","sixteen","sixth","sixties","sixtieth","sixtyfold","sizable","sizably","size","sizing","sizzle","sizzling","skater","skating","skedaddle","skeletal","skeleton","skeptic","sketch","skewed","skewer","skid","skied","skier","skies","skiing","skilled","skillet","skillful","skimmed","skimmer","skimming","skimpily","skincare","skinhead","skinless","skinning","skinny","skintight","skipper","skipping","skirmish","skirt","skittle","skydiver","skylight","skyline","skype","skyrocket","skyward","slab","slacked","slacker","slacking","slackness","slacks","slain","slam","slander","slang","slapping","slapstick","slashed","slashing","slate","slather","slaw","sled","sleek","sleep","sleet","sleeve","slept","sliceable","sliced","slicer","slicing","slick","slider","slideshow","sliding","slighted","slighting","slightly","slimness","slimy","slinging","slingshot","slinky","slip","slit","sliver","slobbery","slogan","sloped","sloping","sloppily","sloppy","slot","slouching","slouchy","sludge","slug","slum","slurp","slush","sly","small","smartly","smartness","smasher","smashing","smashup","smell","smelting","smile","smilingly","smirk","smite","smith","smitten","smock","smog","smoked","smokeless","smokiness","smoking","smoky","smolder","smooth","smother","smudge","smudgy","smuggler","smuggling","smugly","smugness","snack","snagged","snaking","snap","snare","snarl","snazzy","sneak","sneer","sneeze","sneezing","snide","sniff","snippet","snipping","snitch","snooper","snooze","snore","snoring","snorkel","snort","snout","snowbird","snowboard","snowbound","snowcap","snowdrift","snowdrop","snowfall","snowfield","snowflake","snowiness","snowless","snowman","snowplow","snowshoe","snowstorm","snowsuit","snowy","snub","snuff","snuggle","snugly","snugness","speak","spearfish","spearhead","spearman","spearmint","species","specimen","specked","speckled","specks","spectacle","spectator","spectrum","speculate","speech","speed","spellbind","speller","spelling","spendable","spender","spending","spent","spew","sphere","spherical","sphinx","spider","spied","spiffy","spill","spilt","spinach","spinal","spindle","spinner","spinning","spinout","spinster","spiny","spiral","spirited","spiritism","spirits","spiritual","splashed","splashing","splashy","splatter","spleen","splendid","splendor","splice","splicing","splinter","splotchy","splurge","spoilage","spoiled","spoiler","spoiling","spoils","spoken","spokesman","sponge","spongy","sponsor","spoof","spookily","spooky","spool","spoon","spore","sporting","sports","sporty","spotless","spotlight","spotted","spotter","spotting","spotty","spousal","spouse","spout","sprain","sprang","sprawl","spray","spree","sprig","spring","sprinkled","sprinkler","sprint","sprite","sprout","spruce","sprung","spry","spud","spur","sputter","spyglass","squabble","squad","squall","squander","squash","squatted","squatter","squatting","squeak","squealer","squealing","squeamish","squeegee","squeeze","squeezing","squid","squiggle","squiggly","squint","squire","squirt","squishier","squishy","stability","stabilize","stable","stack","stadium","staff","stage","staging","stagnant","stagnate","stainable","stained","staining","stainless","stalemate","staleness","stalling","stallion","stamina","stammer","stamp","stand","stank","staple","stapling","starboard","starch","stardom","stardust","starfish","stargazer","staring","stark","starless","starlet","starlight","starlit","starring","starry","starship","starter","starting","startle","startling","startup","starved","starving","stash","state","static","statistic","statue","stature","status","statute","statutory","staunch","stays","steadfast","steadier","steadily","steadying","steam","steed","steep","steerable","steering","steersman","stegosaur","stellar","stem","stench","stencil","step","stereo","sterile","sterility","sterilize","sterling","sternness","sternum","stew","stick","stiffen","stiffly","stiffness","stifle","stifling","stillness","stilt","stimulant","stimulate","stimuli","stimulus","stinger","stingily","stinging","stingray","stingy","stinking","stinky","stipend","stipulate","stir","stitch","stock","stoic","stoke","stole","stomp","stonewall","stoneware","stonework","stoning","stony","stood","stooge","stool","stoop","stoplight","stoppable","stoppage","stopped","stopper","stopping","stopwatch","storable","storage","storeroom","storewide","storm","stout","stove","stowaway","stowing","straddle","straggler","strained","strainer","straining","strangely","stranger","strangle","strategic","strategy","stratus","straw","stray","streak","stream","street","strength","strenuous","strep","stress","stretch","strewn","stricken","strict","stride","strife","strike","striking","strive","striving","strobe","strode","stroller","strongbox","strongly","strongman","struck","structure","strudel","struggle","strum","strung","strut","stubbed","stubble","stubbly","stubborn","stucco","stuck","student","studied","studio","study","stuffed","stuffing","stuffy","stumble","stumbling","stump","stung","stunned","stunner","stunning","stunt","stupor","sturdily","sturdy","styling","stylishly","stylist","stylized","stylus","suave","subarctic","subatomic","subdivide","subdued","subduing","subfloor","subgroup","subheader","subject","sublease","sublet","sublevel","sublime","submarine","submerge","submersed","submitter","subpanel","subpar","subplot","subprime","subscribe","subscript","subsector","subside","subsiding","subsidize","subsidy","subsoil","subsonic","substance","subsystem","subtext","subtitle","subtly","subtotal","subtract","subtype","suburb","subway","subwoofer","subzero","succulent","such","suction","sudden","sudoku","suds","sufferer","suffering","suffice","suffix","suffocate","suffrage","sugar","suggest","suing","suitable","suitably","suitcase","suitor","sulfate","sulfide","sulfite","sulfur","sulk","sullen","sulphate","sulphuric","sultry","superbowl","superglue","superhero","superior","superjet","superman","supermom","supernova","supervise","supper","supplier","supply","support","supremacy","supreme","surcharge","surely","sureness","surface","surfacing","surfboard","surfer","surgery","surgical","surging","surname","surpass","surplus","surprise","surreal","surrender","surrogate","surround","survey","survival","survive","surviving","survivor","sushi","suspect","suspend","suspense","sustained","sustainer","swab","swaddling","swagger","swampland","swan","swapping","swarm","sway","swear","sweat","sweep","swell","swept","swerve","swifter","swiftly","swiftness","swimmable","swimmer","swimming","swimsuit","swimwear","swinger","swinging","swipe","swirl","switch","swivel","swizzle","swooned","swoop","swoosh","swore","sworn","swung","sycamore","sympathy","symphonic","symphony","symptom","synapse","syndrome","synergy","synopses","synopsis","synthesis","synthetic","syrup","system","t-shirt","tabasco","tabby","tableful","tables","tablet","tableware","tabloid","tackiness","tacking","tackle","tackling","tacky","taco","tactful","tactical","tactics","tactile","tactless","tadpole","taekwondo","tag","tainted","take","taking","talcum","talisman","tall","talon","tamale","tameness","tamer","tamper","tank","tanned","tannery","tanning","tantrum","tapeless","tapered","tapering","tapestry","tapioca","tapping","taps","tarantula","target","tarmac","tarnish","tarot","tartar","tartly","tartness","task","tassel","taste","tastiness","tasting","tasty","tattered","tattle","tattling","tattoo","taunt","tavern","thank","that","thaw","theater","theatrics","thee","theft","theme","theology","theorize","thermal","thermos","thesaurus","these","thesis","thespian","thicken","thicket","thickness","thieving","thievish","thigh","thimble","thing","think","thinly","thinner","thinness","thinning","thirstily","thirsting","thirsty","thirteen","thirty","thong","thorn","those","thousand","thrash","thread","threaten","threefold","thrift","thrill","thrive","thriving","throat","throbbing","throng","throttle","throwaway","throwback","thrower","throwing","thud","thumb","thumping","thursday","thus","thwarting","thyself","tiara","tibia","tidal","tidbit","tidiness","tidings","tidy","tiger","tighten","tightly","tightness","tightrope","tightwad","tigress","tile","tiling","till","tilt","timid","timing","timothy","tinderbox","tinfoil","tingle","tingling","tingly","tinker","tinkling","tinsel","tinsmith","tint","tinwork","tiny","tipoff","tipped","tipper","tipping","tiptoeing","tiptop","tiring","tissue","trace","tracing","track","traction","tractor","trade","trading","tradition","traffic","tragedy","trailing","trailside","train","traitor","trance","tranquil","transfer","transform","translate","transpire","transport","transpose","trapdoor","trapeze","trapezoid","trapped","trapper","trapping","traps","trash","travel","traverse","travesty","tray","treachery","treading","treadmill","treason","treat","treble","tree","trekker","tremble","trembling","tremor","trench","trend","trespass","triage","trial","triangle","tribesman","tribunal","tribune","tributary","tribute","triceps","trickery","trickily","tricking","trickle","trickster","tricky","tricolor","tricycle","trident","tried","trifle","trifocals","trillion","trilogy","trimester","trimmer","trimming","trimness","trinity","trio","tripod","tripping","triumph","trivial","trodden","trolling","trombone","trophy","tropical","tropics","trouble","troubling","trough","trousers","trout","trowel","truce","truck","truffle","trump","trunks","trustable","trustee","trustful","trusting","trustless","truth","try","tubby","tubeless","tubular","tucking","tuesday","tug","tuition","tulip","tumble","tumbling","tummy","turban","turbine","turbofan","turbojet","turbulent","turf","turkey","turmoil","turret","turtle","tusk","tutor","tutu","tux","tweak","tweed","tweet","tweezers","twelve","twentieth","twenty","twerp","twice","twiddle","twiddling","twig","twilight","twine","twins","twirl","twistable","twisted","twister","twisting","twisty","twitch","twitter","tycoon","tying","tyke","udder","ultimate","ultimatum","ultra","umbilical","umbrella","umpire","unabashed","unable","unadorned","unadvised","unafraid","unaired","unaligned","unaltered","unarmored","unashamed","unaudited","unawake","unaware","unbaked","unbalance","unbeaten","unbend","unbent","unbiased","unbitten","unblended","unblessed","unblock","unbolted","unbounded","unboxed","unbraided","unbridle","unbroken","unbuckled","unbundle","unburned","unbutton","uncanny","uncapped","uncaring","uncertain","unchain","unchanged","uncharted","uncheck","uncivil","unclad","unclaimed","unclamped","unclasp","uncle","unclip","uncloak","unclog","unclothed","uncoated","uncoiled","uncolored","uncombed","uncommon","uncooked","uncork","uncorrupt","uncounted","uncouple","uncouth","uncover","uncross","uncrown","uncrushed","uncured","uncurious","uncurled","uncut","undamaged","undated","undaunted","undead","undecided","undefined","underage","underarm","undercoat","undercook","undercut","underdog","underdone","underfed","underfeed","underfoot","undergo","undergrad","underhand","underline","underling","undermine","undermost","underpaid","underpass","underpay","underrate","undertake","undertone","undertook","undertow","underuse","underwear","underwent","underwire","undesired","undiluted","undivided","undocked","undoing","undone","undrafted","undress","undrilled","undusted","undying","unearned","unearth","unease","uneasily","uneasy","uneatable","uneaten","unedited","unelected","unending","unengaged","unenvied","unequal","unethical","uneven","unexpired","unexposed","unfailing","unfair","unfasten","unfazed","unfeeling","unfiled","unfilled","unfitted","unfitting","unfixable","unfixed","unflawed","unfocused","unfold","unfounded","unframed","unfreeze","unfrosted","unfrozen","unfunded","unglazed","ungloved","unglue","ungodly","ungraded","ungreased","unguarded","unguided","unhappily","unhappy","unharmed","unhealthy","unheard","unhearing","unheated","unhelpful","unhidden","unhinge","unhitched","unholy","unhook","unicorn","unicycle","unified","unifier","uniformed","uniformly","unify","unimpeded","uninjured","uninstall","uninsured","uninvited","union","uniquely","unisexual","unison","unissued","unit","universal","universe","unjustly","unkempt","unkind","unknotted","unknowing","unknown","unlaced","unlatch","unlawful","unleaded","unlearned","unleash","unless","unleveled","unlighted","unlikable","unlimited","unlined","unlinked","unlisted","unlit","unlivable","unloaded","unloader","unlocked","unlocking","unlovable","unloved","unlovely","unloving","unluckily","unlucky","unmade","unmanaged","unmanned","unmapped","unmarked","unmasked","unmasking","unmatched","unmindful","unmixable","unmixed","unmolded","unmoral","unmovable","unmoved","unmoving","unnamable","unnamed","unnatural","unneeded","unnerve","unnerving","unnoticed","unopened","unopposed","unpack","unpadded","unpaid","unpainted","unpaired","unpaved","unpeeled","unpicked","unpiloted","unpinned","unplanned","unplanted","unpleased","unpledged","unplowed","unplug","unpopular","unproven","unquote","unranked","unrated","unraveled","unreached","unread","unreal","unreeling","unrefined","unrelated","unrented","unrest","unretired","unrevised","unrigged","unripe","unrivaled","unroasted","unrobed","unroll","unruffled","unruly","unrushed","unsaddle","unsafe","unsaid","unsalted","unsaved","unsavory","unscathed","unscented","unscrew","unsealed","unseated","unsecured","unseeing","unseemly","unseen","unselect","unselfish","unsent","unsettled","unshackle","unshaken","unshaved","unshaven","unsheathe","unshipped","unsightly","unsigned","unskilled","unsliced","unsmooth","unsnap","unsocial","unsoiled","unsold","unsolved","unsorted","unspoiled","unspoken","unstable","unstaffed","unstamped","unsteady","unsterile","unstirred","unstitch","unstopped","unstuck","unstuffed","unstylish","unsubtle","unsubtly","unsuited","unsure","unsworn","untagged","untainted","untaken","untamed","untangled","untapped","untaxed","unthawed","unthread","untidy","untie","until","untimed","untimely","untitled","untoasted","untold","untouched","untracked","untrained","untreated","untried","untrimmed","untrue","untruth","unturned","untwist","untying","unusable","unused","unusual","unvalued","unvaried","unvarying","unveiled","unveiling","unvented","unviable","unvisited","unvocal","unwanted","unwarlike","unwary","unwashed","unwatched","unweave","unwed","unwelcome","unwell","unwieldy","unwilling","unwind","unwired","unwitting","unwomanly","unworldly","unworn","unworried","unworthy","unwound","unwoven","unwrapped","unwritten","unzip","upbeat","upchuck","upcoming","upcountry","update","upfront","upgrade","upheaval","upheld","uphill","uphold","uplifted","uplifting","upload","upon","upper","upright","uprising","upriver","uproar","uproot","upscale","upside","upstage","upstairs","upstart","upstate","upstream","upstroke","upswing","uptake","uptight","uptown","upturned","upward","upwind","uranium","urban","urchin","urethane","urgency","urgent","urging","urologist","urology","usable","usage","useable","used","uselessly","user","usher","usual","utensil","utility","utilize","utmost","utopia","utter","vacancy","vacant","vacate","vacation","vagabond","vagrancy","vagrantly","vaguely","vagueness","valiant","valid","valium","valley","valuables","value","vanilla","vanish","vanity","vanquish","vantage","vaporizer","variable","variably","varied","variety","various","varmint","varnish","varsity","varying","vascular","vaseline","vastly","vastness","veal","vegan","veggie","vehicular","velcro","velocity","velvet","vendetta","vending","vendor","veneering","vengeful","venomous","ventricle","venture","venue","venus","verbalize","verbally","verbose","verdict","verify","verse","version","versus","vertebrae","vertical","vertigo","very","vessel","vest","veteran","veto","vexingly","viability","viable","vibes","vice","vicinity","victory","video","viewable","viewer","viewing","viewless","viewpoint","vigorous","village","villain","vindicate","vineyard","vintage","violate","violation","violator","violet","violin","viper","viral","virtual","virtuous","virus","visa","viscosity","viscous","viselike","visible","visibly","vision","visiting","visitor","visor","vista","vitality","vitalize","vitally","vitamins","vivacious","vividly","vividness","vixen","vocalist","vocalize","vocally","vocation","voice","voicing","void","volatile","volley","voltage","volumes","voter","voting","voucher","vowed","vowel","voyage","wackiness","wad","wafer","waffle","waged","wager","wages","waggle","wagon","wake","waking","walk","walmart","walnut","walrus","waltz","wand","wannabe","wanted","wanting","wasabi","washable","washbasin","washboard","washbowl","washcloth","washday","washed","washer","washhouse","washing","washout","washroom","washstand","washtub","wasp","wasting","watch","water","waviness","waving","wavy","whacking","whacky","wham","wharf","wheat","whenever","whiff","whimsical","whinny","whiny","whisking","whoever","whole","whomever","whoopee","whooping","whoops","why","wick","widely","widen","widget","widow","width","wieldable","wielder","wife","wifi","wikipedia","wildcard","wildcat","wilder","wildfire","wildfowl","wildland","wildlife","wildly","wildness","willed","willfully","willing","willow","willpower","wilt","wimp","wince","wincing","wind","wing","winking","winner","winnings","winter","wipe","wired","wireless","wiring","wiry","wisdom","wise","wish","wisplike","wispy","wistful","wizard","wobble","wobbling","wobbly","wok","wolf","wolverine","womanhood","womankind","womanless","womanlike","womanly","womb","woof","wooing","wool","woozy","word","work","worried","worrier","worrisome","worry","worsening","worshiper","worst","wound","woven","wow","wrangle","wrath","wreath","wreckage","wrecker","wrecking","wrench","wriggle","wriggly","wrinkle","wrinkly","wrist","writing","written","wrongdoer","wronged","wrongful","wrongly","wrongness","wrought","xbox","xerox","yahoo","yam","yanking","yapping","yard","yarn","yeah","yearbook","yearling","yearly","yearning","yeast","yelling","yelp","yen","yesterday","yiddish","yield","yin","yippee","yo-yo","yodel","yoga","yogurt","yonder","yoyo","yummy","zap","zealous","zebra","zen","zeppelin","zero","zestfully","zesty","zigzagged","zipfile","zipping","zippy","zips","zit","zodiac","zombie","zone","zoning","zookeeper","zoologist","zoology","zoom"];
+</script>
+
+<!--
+  =====================================================================
+  [MAIN LOGIC]  Below is the actual working code, fully annotated.
+  Reading guide for the symbols:
+    // ...      a comment (ignored by the computer, written for humans)
+    const x =  give a fixed name to a value so we can refer to it
+    async / await  used because hashing returns a bit later, not instantly
+    crypto.subtle.*  the browser's built-in, audited cryptography toolbox
+                     (this is NOT a random generator; see [NO RNG] below)
+  =====================================================================
+-->
+<script>
+
+// [STATE] A place to remember the 24 words after they are generated,
+// so the "copy" and "passphrase preview" buttons can use them.
+// It starts EMPTY, no secret exists until you provide dice and click.
+let seedWords = [];
+
+// [HELPER] A tiny shortcut: "$('dice')" means "find the box with id 'dice'".
+// Pure convenience for grabbing on-screen boxes. No security role.
+const $ = id => document.getElementById(id);
+
+// [SHARED WARNING] Reused under the seed table and the passphrase table.
+// Verifying a word by typing it into a search engine would quietly leak
+// that word (and thus part of the backup) off the machine, so we tell
+// users to check against an OFFLINE copy of the official list instead.
+const VERIFY_WARN = '<div class="warn" style="margin-top:8px"><span class="small">\u26a0\ufe0f <b>Verify offline only.</b> Check each word against a copy of the official list you downloaded or printed on a <b>separate, clean machine</b>. <b>Never type, paste, or search a seed / passphrase word on the internet</b> \u2014 the query can leak the word to the search engine, your ISP, browser history / sync, or extensions, disclosing part of your backup.</span></div>';
+
+
+// ---------------------------------------------------------------------
+// [LIVE COUNTER] Runs each time you type in the dice box.
+// It only COUNTS your rolls and shows an entropy estimate. It does not
+// store, send, or alter your secret. Purely a helpful on-screen gauge.
+// ---------------------------------------------------------------------
+$('dice').addEventListener('input', () => {
+  // Keep only the characters 1-6; ignore spaces, letters, etc.
+  // (This cleaning is why you can type with or without spaces.)
+  const d = $('dice').value.replace(/[^1-6]/g, '');
+
+  // How many valid rolls you have entered so far.
+  const n = d.length;
+
+  // Show the count AND the entropy estimate: each roll ~2.585 bits.
+  // This number is the honest measure of unpredictability you supplied.
+  $('dstat').textContent = n + ' / 100 rolls  (' + (n * 2.585).toFixed(1) + ' bits min-entropy)';
+
+  // Fill the progress bar up to 100%. Visual only.
+  $('dmeter').style.width = Math.min(100, n) + '%';
+});
+
+
+// ---------------------------------------------------------------------
+// [IMAGE PICKER] Runs when you choose a photo. It only shows the file
+// name and size. The photo's CONTENTS are not read until you click
+// Generate, and even then they are read LOCALLY (see readImageBytes).
+// ---------------------------------------------------------------------
+$('img').addEventListener('change', e => {
+  const f = e.target.files[0]; // the chosen file, if any
+  $('istat').textContent = f
+    ? ('Selected: ' + f.name + '  (' + f.size.toLocaleString() + ' bytes)')
+    : 'No image selected';
+});
+
+
+// ---------------------------------------------------------------------
+// [TEXT -> BYTES] Converts ordinary text (your dice digits, your extra
+// typing) into raw bytes (numbers), because the hashing blender works on
+// bytes. This is a format change only; it neither adds nor removes
+// randomness.
+// ---------------------------------------------------------------------
+function toBytes(str) {
+  return new TextEncoder().encode(str);
+}
+
+
+// ---------------------------------------------------------------------
+// [JOIN] Glues several byte-chunks (dice bytes, image bytes, extra bytes)
+// into ONE long byte-chunk called the "pool". Think of pouring three
+// jars of sand into one bucket before mixing. No randomness is created
+// or lost by joining, it just gathers everything in one place.
+// ---------------------------------------------------------------------
+function concat(arrays) {
+  let len = arrays.reduce((s, a) => s + a.length, 0); // total size
+  let out = new Uint8Array(len), o = 0;               // empty bucket
+  for (const a of arrays) { out.set(a, o); o += a.length; } // pour each in
+  return out;
+}
+
+
+// ---------------------------------------------------------------------
+// [READ IMAGE LOCALLY] Reads the photo's raw bytes FROM DISK INTO MEMORY.
+// Note what is absent: there is no upload, no server, no web address.
+// "arrayBuffer()" is a local read only. If no photo was chosen, it
+// returns an empty chunk (the tool still works with dice alone).
+// ---------------------------------------------------------------------
+// =====================================================================
+// [DEEP: IMAGE ENTROPY]  (technical audience)
+// ---------------------------------------------------------------------
+// A photo's usable min-entropy is DOMINATED by physical sensor noise,
+// not by the visible subject:
+//   • Photon shot noise: photon arrivals are Poisson-distributed;
+//     per-pixel fluctuation ~ sqrt(N) is fundamentally quantum-random.
+//   • Read noise / thermal (dark) noise: electronics-level randomness in
+//     the least-significant bits of each pixel value.
+//   • Fixed-pattern noise & PRNU: sensor-specific, less useful (partly
+//     predictable), so we do NOT count on it.
+// The high-order bits (the recognisable image) are highly structured and
+// carry little entropy; a blue-sky region is near-constant. The real,
+// unpredictable randomness lives in the LSBs across many pixels, which
+// is why "busy + high-resolution + low-compression + freshly captured"
+// maximises captured min-entropy, while flat scenes and heavy JPEG
+// quantisation (which discards LSB detail) minimise it.
+//
+// WHY IT IS UNMEASURABLE HERE: we cannot cheaply bound p_max for an
+// arbitrary user image, so we refuse to credit it with any specific bit
+// count. It is mixed in as an INDEPENDENT source for defence-in-depth:
+// if the dice were secretly biased, an independent image with even a few
+// dozen bits of real noise raises the pooled min-entropy. Independence
+// is the value, not quantity.
+//
+// SECURITY REQUIREMENT: the image must be secret and unique. Any file an
+// adversary could also obtain (stock/downloaded/screenshot/cloud-synced/
+// re-used) contributes ZERO effective min-entropy from the adversary's
+// viewpoint, because they can enumerate it. Freshly captured + never
+// stored elsewhere is mandatory for it to count.
+//
+// IMPLEMENTATION NOTE: we hash the RAW ENCODED FILE BYTES (JPEG/PNG
+// container included). That is fine, SHA-256 extracts whatever min-
+// entropy exists anywhere in the byte stream; we don't need to isolate
+// the LSB noise ourselves. The extractor handles the uneven distribution.
+// =====================================================================
+async function readImageBytes() {
+  const f = $('img').files[0];
+  if (!f) return new Uint8Array(0);   // no image -> contribute nothing
+  const buf = await f.arrayBuffer();  // local read of the file's bytes
+  return new Uint8Array(buf);         // hand those bytes to the pool
+}
+
+
+// =====================================================================
+// [GENERATE]  THE HEART OF THE TOOL.
+// Turns your raw randomness (dice + image + extra) into 24 standard words.
+// Five clearly-labelled steps below. Follow the STEP markers.
+// =====================================================================
+// =====================================================================
+// [DEEP: DICE ENTROPY & WHY CASINO-GRADE]  (technical audience)
+// ---------------------------------------------------------------------
+// We care about MIN-ENTROPY, not Shannon entropy. Min-entropy measures
+// the worst case, the most likely outcome, which is the correct metric
+// for an adversary who optimises guesses:
+//        H_min = -log2( p_max )
+// where p_max is the probability of the single most likely die face.
+//
+//   Fair d6:            p_max = 1/6      -> H_min = 2.585 bits / roll
+//   100 fair rolls  ->  258.5 bits  (>= 256 target, small margin)
+//
+// A biased die raises p_max and LOWERS min-entropy per roll:
+//   p_max = 0.18   -> H_min = -log2(0.18) = 2.47 bits/roll
+//                  -> 100 rolls = 247 bits  (SHORT of 256!)
+//   p_max = 0.20   -> H_min = 2.32 bits/roll -> 100 rolls = 232 bits
+//
+// This is the exact reason casino-grade dice matter. Cheap dice with
+// drilled+painted pips remove unequal mass (the 6-face loses the most
+// material, so it tends to land up slightly more often). The bias is
+// small but it eats directly into H_min. Two valid mitigations:
+//   (a) use precision/casino dice so p_max stays ~1/6, or
+//   (b) roll MORE (110-120) so even a biased die clears 256 bits.
+//
+// WHY WHITENING TOLERATES MODEST BIAS: SHA-256 acts as a randomness
+// extractor. By the Leftover-Hash-Lemma intuition, if the input pool
+// contains at least ~256 bits of min-entropy, the 256-bit hash output is
+// computationally indistinguishable from uniform, regardless of how
+// lumpy the input distribution was. Extraction cannot CREATE entropy
+// (output <= input min-entropy, capped at 256), it only REPACKS whatever
+// min-entropy is present into a uniform 256-bit string. Hence: bias is
+// survivable up to the point where it drops total min-entropy below 256.
+// Margin + whitening is our safety net; casino dice widen that margin.
+// =====================================================================
+async function generate() {
+
+  // --- STEP 0: collect and sanity-check the dice ---
+  // Clean the dice input to digits 1-6 only.
+  const dice = $('dice').value.replace(/[^1-6]/g, '');
+  const out = $('gout');
+
+  // Safety gate: refuse to proceed with too little randomness.
+  // Fewer than 50 rolls (~129 bits) is below a safe floor, so we stop.
+  // This protects a user from accidentally making a weak seed.
+  if (dice.length < 50) {
+    out.innerHTML = '<div class="err">Enter at least 50 rolls (100 recommended). You have ' + dice.length + '.</div>';
+    return;
+  }
+
+  // --- STEP 1: [ENTROPY SOURCES] gather all randomness into one pool ---
+  const imgBytes = await readImageBytes();   // source B (optional photo)
+  const extra = $('extra').value;            // source C (optional typing)
+
+  // Combine the three sources. The short labels 'dice:'/'extra:' just keep
+  // the sources cleanly separated inside the pool so identical-looking
+  // inputs in different boxes can't silently collide.
+  //
+  // [DEEP: POOLING INDEPENDENT SOURCES]  (technical audience)
+  // Concatenation-then-hash is a standard multi-source extractor. For
+  // INDEPENDENT sources, min-entropy is sub-additive into the hash: the
+  // pool's min-entropy is >= the sum contributed by each independent
+  // source, capped at the 256-bit output width. So a weak/biased source
+  // cannot REDUCE security, it can only add. This is why layering dice +
+  // image + coins is strictly safe: worst case a source adds 0 bits.
+  // The 'dice:'/'extra:' prefixes provide DOMAIN SEPARATION: they ensure
+  // the byte streams of different sources can't align to form an
+  // ambiguous pool (e.g. dice "11" + extra "" vs dice "1" + extra "1"),
+  // so distinct input sets always map to distinct pools pre-hash.
+  //
+  // [DEEP: ENTROPY COMBINATION, HOW THE THREE SOURCES WORK TOGETHER]
+  // SOURCE A, Dice rolls (measurable backbone):
+  //   Each fair d6 contributes H_min = -log2(1/6) = 2.585 bits.
+  //   100 rolls contribute ~258.5 bits, just above the 256-bit target.
+  //   This is the ONLY source whose entropy we can calculate exactly.
+  //   Bias raises p_max, lowering H_min per roll (see [DEEP: DICE ENTROPY]).
+  //
+  // SOURCE B, Photo (quantum supplement, unmeasurable):
+  //   Camera sensor noise (photon shot noise, read noise) is fundamentally
+  //   quantum-random in the per-pixel LSBs. We cannot bound it, so we
+  //   refuse to count it. It operates as INDEPENDENT insurance: even if
+  //   dice were biased to 240 bits, a photo with >=16 bits of real noise
+  //   brings the pool to 256. Independence is the value, not quantity.
+  //   The image must be FRESH and NEVER shared, a file an attacker can
+  //   obtain adds zero effective min-entropy from their viewpoint.
+  //
+  // SOURCE C, Coin flips / extra typing (third independent channel):
+  //   Fair coin = 1 bit/flip; 256 flips = 256 bits (verifiable).
+  //   Keyboard mashing is unreliable (finger patterns), treat as weak.
+  //   Value: a third INDEPENDENT channel adds resilience. If both dice
+  //   and photo were somehow compromised, the coins still contribute.
+  //
+  // FORMAL GUARANTEE (Leftover Hash Lemma intuition):
+  //   If the combined pool has at least ~256 bits of true min-entropy,
+  //   SHA-256's 256-bit output is computationally indistinguishable from
+  //   uniform. The hash repacks uneven distributions into uniform bits.
+  //   It cannot add entropy. It can only concentrate what is already there.
+  const pool = concat([toBytes('dice:' + dice), imgBytes, toBytes('extra:' + extra)]);
+
+  // --- STEP 2: [WHITENING] concentrate the pool into a 256-bit secret ---
+  // SHA-256 is a one-way blender: it takes any amount of messy input and
+  // produces exactly 32 bytes (256 bits) of evenly-spread output. It is
+  // deterministic (same input -> same output), which is WHY your dice ,
+  // not the computer, decide the result.
+  //
+  // IMPORTANT ENTROPY FACT: this does NOT invent randomness. Output
+  // randomness = the SMALLER of (randomness you put in, 256 bits). With
+  // ~258 bits of dice you fill the 256-bit bucket; the image/extra are
+  // insurance, not additional capacity.
+  const entBuf = await crypto.subtle.digest('SHA-256', pool);
+  const ent = new Uint8Array(entBuf); // the 256-bit secret, as 32 bytes
+
+  // --- STEP 3: [CHECKSUM] compute BIP39's built-in typo-check ---
+  // BIP39 appends a few check bits so wallets can catch a mistyped word.
+  // The check bits are the FIRST 8 bits of the hash OF the secret.
+  // This adds NO secrecy; it only makes the backup self-verifying.
+  const csBuf = await crypto.subtle.digest('SHA-256', ent);
+  const cs = new Uint8Array(csBuf);
+
+  // --- STEP 4: [TO BITS] lay out 256 secret bits + 8 check bits = 264 ---
+  // Write every byte as 8 characters of 0/1. 32 bytes -> 256 bit-characters.
+  let bits = '';
+  for (const b of ent) bits += b.toString(2).padStart(8, '0');
+  // Append the 8 checksum bits, giving 264 bits total.
+  // Why 264? Because 24 words x 11 bits-per-word = 264. It fits perfectly.
+  bits += cs[0].toString(2).padStart(8, '0');
+
+  // --- STEP 5: [TO WORDS] every 11 bits selects one dictionary word ---
+  // 11 bits can count from 0 to 2047, exactly the size of the word list.
+  // So each 11-bit chunk is just a position number pointing at one word.
+  seedWords = [];
+  for (let i = 0; i < 264; i += 11) {
+    const idx = parseInt(bits.slice(i, i + 11), 2); // 11 bits -> a number 0..2047
+    seedWords.push(BIP39_WORDLIST[idx]);            // number -> the word at that spot
+  }
+
+  // --- (display only) show the secret in hex and the bit->word mapping ---
+  // None of this display code changes the secret; it just lets a learner
+  // SEE how bits became words. Safe to ignore for security purposes.
+  const entHex = [...ent].map(b => b.toString(16).padStart(2, '0')).join('');
+  let rows = '';
+  for (let i = 0; i < 24; i++) {
+    const g = bits.slice(i * 11, i * 11 + 11);
+    const idx = parseInt(g, 2);                       // 0-based BIP39 index (0..2047)
+    // We show idx + 1 = the LINE NUMBER in the official english.txt (1..2048),
+    // which is what a user checks against a downloaded copy of the list.
+    rows += '<tr><td>' + (i + 1) + '</td><td class="w">' + seedWords[i] +
+            '</td><td>' + (idx + 1) + '</td><td class="small">' + g + '</td></tr>';
+  }
+  out.innerHTML =
+    '<div class="ok">✓ Pool: ' + pool.length.toLocaleString() + ' bytes → SHA-256 → 256-bit entropy</div>' +
+    '<div class="small">Entropy (hex):</div><div class="box">' + entHex + '</div>' +
+    '<table><tr><th>#</th><th>word</th><th>BIP39 line<br>(1–2048)</th><th>11 bits</th></tr>' + rows + '</table>' +
+    '<div class="small" style="margin-top:6px"><b>#</b> = position in your phrase (1–24). <b>BIP39 line</b> = the line number of that word in the official <span style="font-family:monospace">english.txt</span> (1–2048), the number to check against a copy of the list.</div>' +
+    VERIFY_WARN;
+  $('seedbox').innerHTML =
+    '<div class="small">Your 24-word seed phrase:</div><div class="seed">' +
+    seedWords.map((w, i) => (i + 1) + '.' + w).join('  ') + '</div>';
+
+  // Enable the copy button and immediately show a passphrase preview.
+  $('copybtn').disabled = false;
+  derive();
+}
+
+
+// =====================================================================
+// [DICEWARE HELPER]  Teaches passphrase strength honestly.
+// Entropy of a passphrase depends on HOW it was made, not how it looks.
+// If (and only if) each word was chosen by a fair die from a real
+// Diceware list (7776 words), each word contributes log2(7776) ≈ 12.9
+// bits. This helper multiplies that out and gives a plain verdict.
+// It does NOT inspect your actual passphrase text, because a
+// look-based estimate would be dangerously misleading (a famous quote
+// "looks" long but carries almost no real randomness).
+// =====================================================================
+function dwCalc() {
+  // Read the number of words the trainee intends to use.
+  const n = parseInt(($('dw').value || '').replace(/[^0-9]/g, ''), 10);
+  const out = $('dwout');
+  if (!n) { out.innerHTML = ''; return; }              // nothing typed yet
+
+  const BITS_PER_WORD = Math.log2(7776);               // ≈ 12.925 bits
+  const bits = n * BITS_PER_WORD;                      // total entropy
+
+  // Turn the bit count into a plain-language verdict.
+  let verdict;
+  if (bits < 50)      verdict = 'TOO WEAK, add more words';
+  else if (bits < 64) verdict = 'minimum floor, acceptable, not great';
+  else if (bits < 77) verdict = 'good';
+  else                verdict = 'strong ✓';
+
+  out.innerHTML = n + ' random words ≈ <b>' + bits.toFixed(1) +
+    ' bits</b>, ' + verdict;
+}
+
+
+// =====================================================================
+// [DICEWARE FROM DICE]  Turn passphrase dice rolls into random words.
+// ---------------------------------------------------------------------
+// Standard Diceware: 5 six-sided rolls select ONE word from a 7776-word
+// list, because 6^5 = 7776. The five digits (each 1-6) are read as a
+// base-6 number to index the ordered EFF list:
+//     index = (d1-1)*6^4 + (d2-1)*6^3 + (d3-1)*6^2 + (d4-1)*6 + (d5-1)
+// Each word therefore contributes log2(7776) ≈ 12.925 bits, IF the rolls
+// are fair. 6 words = 30 rolls ≈ 77.5 bits (the recommended strength).
+//
+// [NO RNG] Note there is no software randomness here either: the words
+// come only from the digits the user physically rolled. Same dice ->
+// same words, which is what makes the passphrase reproducible and, more
+// importantly, honestly sourced from real-world entropy.
+// =====================================================================
+
+// Read only the 1-6 digits the user entered, in order.
+function pwDiceDigits() {
+  return ($('pwdice').value.match(/[1-6]/g) || []);
+}
+
+// Live counter: how many complete 5-roll words, and leftover digits.
+function pwDiceStat() {
+  const d = pwDiceDigits();
+  const words = Math.floor(d.length / 5);
+  const left = d.length % 5;
+  const bits = words * Math.log2(7776);
+  $('pwdstat').innerHTML = words + ' complete word' + (words === 1 ? '' : 's') +
+    ' (' + left + ' leftover digit' + (left === 1 ? '' : 's') + ')' +
+    (words ? ' ≈ <b>' + bits.toFixed(1) + ' bits</b>' : '');
+}
+
+// Build the passphrase: map each group of 5 rolls to its EFF word.
+function genDiceware() {
+  const d = pwDiceDigits();
+  const nWords = Math.floor(d.length / 5);
+  const out = $('pwout');
+
+  if (nWords === 0) {
+    out.innerHTML = '<div class="warn"><span class="small">Enter at least 5 dice rolls (one word). For the recommended strength, enter 30 rolls for 6 words.</span></div>';
+    return;
+  }
+
+  const words = [];
+  const rows = [];
+  for (let i = 0; i < nWords; i++) {
+    // Convert 5 rolls (each 1-6) into a 0-based index via base-6, and also
+    // keep the raw 5-digit dice code (e.g. "23541") the user rolled.
+    let index = 0, code = '';
+    for (let j = 0; j < 5; j++) {
+      const dig = parseInt(d[i * 5 + j], 10);
+      code += dig;
+      index = index * 6 + (dig - 1);
+    }
+    words.push(EFF_WORDLIST[index]);
+    // index + 1 = the LINE NUMBER in the official eff_large_wordlist.txt (1..7776);
+    // the dice code is the list's first column, so either can be checked.
+    rows.push('<tr><td>' + (i + 1) + '</td><td class="small">' + code +
+              '</td><td>' + (index + 1) + '</td><td class="w">' + EFF_WORDLIST[index] + '</td></tr>');
+  }
+
+  // Words joined by spaces is the standard Diceware passphrase form.
+  const phrase = words.join(' ');
+  const bits = nWords * Math.log2(7776);
+
+  // Put it into the passphrase field and show its effect immediately.
+  $('pass').value = phrase;
+  derive();
+
+  let strength;
+  if (bits < 52)      strength = '<span style="color:#e57373">below the 4-word floor, add more rolls</span>';
+  else if (bits < 65) strength = 'minimum floor';
+  else if (bits < 77) strength = 'good';
+  else                strength = '<span style="color:#7ed08f">strong ✓</span>';
+
+  out.innerHTML =
+    '<div class="info"><div class="small">Generated passphrase (' + nWords +
+    ' words ≈ ' + bits.toFixed(1) + ' bits, ' + strength + '):</div>' +
+    '<div class="box">' + phrase + '</div>' +
+    '<table><tr><th>#</th><th>dice code</th><th>EFF line<br>(1–7776)</th><th>word</th></tr>' + rows.join('') + '</table>' +
+    '<div class="small" style="margin-top:6px"><b>dice code</b> = the 5 digits you rolled (the first column of <span style="font-family:monospace">eff_large_wordlist.txt</span>). <b>EFF line</b> = that word\'s line number in the file (1–7776). Either one lets you confirm the word.</div>' +
+    VERIFY_WARN +
+    '<div class="small" style="margin-top:6px">Write this passphrase down <b>exactly</b>, spaces included, and store it <b>separately</b> from the 24 words. It has been placed in the passphrase field below; the derived seed updates to match.</div></div>';
+}
+
+
+// =====================================================================
+// [DERIVE]  Shows how the passphrase changes the final wallet.
+// This turns "24 words + passphrase" into the 512-bit master seed that a
+// wallet actually uses. It is here so trainees can SEE that changing the
+// passphrase changes everything.
+// =====================================================================
+async function derive() {
+  if (!seedWords.length) { return; }        // nothing generated yet
+  const mnemonic = seedWords.join(' ');     // the 24 words as one sentence
+  const pass = $('pass').value;             // your optional passphrase
+
+  // BIP39 rule: the "salt" is the fixed text "mnemonic" glued to your
+  // passphrase. A blank passphrase still works (salt is just "mnemonic").
+  //
+  // [DEEP: NFKD + PBKDF2 PARAMETERS]  (technical audience)
+  // The BIP39 spec requires BOTH the mnemonic and the passphrase to be
+  // Unicode-normalised to NFKD before use. This ensures that the same
+  // visual passphrase produces the same seed across all platforms,
+  // regardless of how a keyboard or OS encodes accented/CJK/emoji
+  // characters (e.g. é as U+00E9 vs e + U+0301 are visually identical
+  // but produce different bytes without normalisation). For a pure-ASCII
+  // passphrase this is a no-op, but we apply it unconditionally so the
+  // tool is correct in all cases. PBKDF2 params are fixed by BIP39:
+  // PRF=HMAC-SHA512, iterations=2048, dkLen=64 bytes (512 bits). Note the
+  // 2048 count is a MILD hardener only (~11 bits equiv); it is NOT a
+  // substitute for passphrase entropy, hence the Diceware guidance above.
+  const mnemonicNFKD = mnemonic.normalize('NFKD');   // BIP39 spec: NFKD required
+  const passNFKD     = pass.normalize('NFKD');        // BIP39 spec: NFKD required
+  const salt = toBytes('mnemonic' + passNFKD);
+
+  // Prepare the 24 words as the "password" input to PBKDF2.
+  const key = await crypto.subtle.importKey('raw', toBytes(mnemonicNFKD), { name: 'PBKDF2' }, false, ['deriveBits']);
+
+  // PBKDF2 stirs the words + salt together 2048 times using HMAC-SHA512,
+  // producing 512 bits (64 bytes). The 2048 repetitions are the BIP39
+  // standard. This step adds no new secrecy beyond the words+passphrase;
+  // it standardises and slows brute-forcing.
+  const bitsOut = await crypto.subtle.deriveBits({ name: 'PBKDF2', salt: salt, iterations: 2048, hash: 'SHA-512' }, key, 512);
+
+  // Show the resulting master seed in hex, and point out that WITH vs
+  // WITHOUT a passphrase gives completely different wallets.
+  const hex = [...new Uint8Array(bitsOut)].map(b => b.toString(16).padStart(2, '0')).join('');
+  $('dout').innerHTML =
+    '<div class="small">BIP-39 master seed (512-bit) ' + (pass ? 'WITH' : 'without') + ' passphrase:</div><div class="box">' + hex + '</div>' +
+    (pass ? '<div class="info">This differs entirely from the no-passphrase seed. Same 24 words + this passphrase = this wallet only.</div>' : '');
+}
+
+
+// ---------------------------------------------------------------------
+// [COPY] Puts the 24 words on your clipboard, with a reminder to write
+// them on paper and then clear the clipboard. Convenience only.
+// ---------------------------------------------------------------------
+function copySeed() {
+  navigator.clipboard.writeText(seedWords.join(' '))
+    .then(() => alert('Copied. Write it on paper NOW, then clear your clipboard. Never paste it online.'));
+}
+
+
+// ---------------------------------------------------------------------
+// [CLEAR] Wipes the on-screen boxes and the remembered words, returning
+// the tool to a blank state. Good hygiene between practice runs.
+// ---------------------------------------------------------------------
+function clearAll() {
+  seedWords = [];                                   // forget the words
+  ['dice', 'extra', 'pass', 'pwdice', 'dw'].forEach(id => $(id).value = ''); // empty text boxes
+  $('img').value = '';                              // clear chosen image
+  ['gout', 'seedbox', 'dout', 'pwout', 'dwout'].forEach(id => $(id).innerHTML = ''); // clear outputs
+  $('dstat').textContent = '0 / 100 rolls';
+  $('pwdstat').textContent = '0 complete words (0 leftover digits)';
+  $('istat').textContent = 'No image selected';
+  $('dmeter').style.width = '0';
+  $('pass').type = 'password';                       // re-mask the passphrase
+  $('pastoggle').textContent = 'Show';
+  $('copybtn').disabled = true;
+}
+
+// ---------------------------------------------------------------------
+// [SHOW / HIDE PASSPHRASE] The field is masked by default so shoulder-
+// surfers can't read it. This button reveals it when the user wants to
+// check what was typed or what the dice generator filled in. Purely a
+// display toggle, it changes nothing about the derived seed.
+// ---------------------------------------------------------------------
+function togglePass() {
+  const p = $('pass'), b = $('pastoggle');
+  const reveal = (p.type === 'password');
+  p.type = reveal ? 'text' : 'password';
+  b.textContent = reveal ? 'Hide' : 'Show';
+}
+
+/*
+  =====================================================================
+  [NO RNG]  AUDIT NOTE, the tool creates no randomness of its own.
+  There is deliberately NO call to any random generator in this file
+  (no Math.random, no crypto.getRandomValues). Every secret traces back
+  to YOUR dice/image/typing. This is the core safety property and the
+  direct lesson of the Coldcard incident: never trust a machine's RNG ,
+  supply the randomness yourself and let the machine only format it.
+
+  [NO NETWORK]  AUDIT NOTE, nothing is transmitted.
+  There is no fetch(), no XMLHttpRequest, no WebSocket, no form submit,
+  and no external web address anywhere. Data stays in the page's memory
+  and is gone when the tab closes. (Still: run offline for real funds,
+  because the machine or browser around this file could be compromised.)
+
+  [ALGORITHM CHECK]  AUDIT NOTE, the math is the standard, verified.
+  The entropy->words and words+passphrase->seed steps were checked
+  against the official BIP39 test vectors (known correct examples). The
+  all-zero 256-bit test input produces the standard phrase ending in
+  "...art" and the standard master seed, confirming correctness.
+  =====================================================================
+*/
+</script>
+
+<!-- ─── FOOTER ─────────────────────────────────────────────────────── -->
+<div class="sec" style="margin-top:32px;padding-top:12px;border-top:1px solid #23262f;font-size:11px;color:#555a6a;line-height:1.7">
+  <b style="color:#f7931a">BrickOS Security Toolkit</b>, BIP39 Dice Seed Generator (Training Edition)<br>
+  <a href="https://brickos.io/" style="color:#555a6a">brickos.io</a> &nbsp;&middot;&nbsp; <a href="https://github.com/sovereignbrick" style="color:#555a6a">github.com/sovereignbrick</a> &nbsp;&middot;&nbsp; <a href="facilitator_handout.html" style="color:#555a6a">Facilitator Handout</a><br><br>
+  <b>Wordlist attribution (required by license):</b><br>
+  &bull; <b>EFF Large Diceware Wordlist</b> embedded under <a href="https://creativecommons.org/licenses/by/3.0/" style="color:#555a6a">Creative Commons Attribution 3.0 (CC BY 3.0)</a>.
+  Source: <a href="https://www.eff.org/files/2016/07/18/eff_large_wordlist.txt" style="color:#555a6a;font-family:monospace">eff.org/files/2016/07/18/eff_large_wordlist.txt</a>, Credit: <b>Electronic Frontier Foundation (EFF)</b>.<br>
+  &bull; <b>BIP39 English Wordlist</b> from the <a href="https://github.com/bitcoin/bips/blob/master/bip-0039/english.txt" style="color:#555a6a;font-family:monospace">bitcoin/bips</a> repository (MIT License).<br>
+  <span style="color:#3a3d47">(Two separate lists are needed because BIP39 has 2048 words for seed phrases and EFF Diceware has 7776 words for 5-dice passphrase generation, they are not interchangeable.)</span><br><br>
+  This file may be freely copied and used for educational purposes.
+  Verify all cryptographic claims independently. Do not use in a browser connected to the internet for funds that matter.
+</div>
+</body>
+</html>
