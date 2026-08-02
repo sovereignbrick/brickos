@@ -31,8 +31,8 @@ A self-contained, air-gap-friendly tool for generating Bitcoin (BIP39) 24-word s
 
 | File | Purpose |
 |---|---|
-| `bip39_dice_tool_training.html` | Interactive tool: enter dice rolls to generate 24-word seed + optional Diceware passphrase |
-| `facilitator_handout.html` | One-page printable reference for workshop facilitators (A4/Letter, print-ready) |
+| [bip39_dice_tool_training.html](https://github.com/sovereignbrick/brickos/raw/main/apps/security/sovereign-seed/bip39_dice_tool_training.html) | Interactive tool: enter dice rolls to generate 24-word seed + optional Diceware passphrase. **Download, disconnect from internet, open in browser.** |
+| [facilitator_handout.html](https://github.com/sovereignbrick/brickos/raw/main/apps/security/sovereign-seed/facilitator_handout.html) | One-page printable reference for workshop facilitators (A4/Letter). Download and open, or print directly. |
 
 ---
 
