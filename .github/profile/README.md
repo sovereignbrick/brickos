@@ -23,6 +23,7 @@
 |---------|-------------|--------|
 | **[Sovereign Health Intelligence](https://app.sovereignhealth.io)** | Biomarker tracking, lab PDF import, AI health assistant | Live |
 | **[Sovereign Link](https://github.com/sovereignbrick/brickos/tree/main/apps/technology/sovereign-link)** | URL shortener + QR codes + affiliate links | Live |
+| **[Sovereign Seed](https://github.com/sovereignbrick/brickos/tree/main/apps/security/sovereign-seed)** | Air-gapped BIP39 seed phrase generator using physical dice rolls | Live |
 
 ### Tech
 
