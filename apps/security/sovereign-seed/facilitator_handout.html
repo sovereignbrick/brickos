@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Facilitator reference for the BIP39 Dice Seed Generator exercise. Printable one-page guide covering entropy model, audit checklist, and passphrase guidance.">
+<meta name="author" content="Sovereign Brick">
+<meta name="robots" content="noindex, nofollow">
+<meta name="color-scheme" content="dark">
+<title>Sovereign Seed, Facilitator Handout, BrickOS Security Toolkit</title>
+<style>
+  /* ── SCREEN: dark theme matching bip39_dice_tool_training.html ───── */
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{
+    background:#0b0c10;color:#e6e6e6;
+    font-family:'SF Mono','Monaco','Courier New',monospace;
+    line-height:1.55;padding:16px;
+  }
+  .print-btn{
+    position:fixed;top:14px;right:14px;z-index:10;border:none;cursor:pointer;
+    background:#f7931a;color:#111;font-family:inherit;font-weight:700;font-size:13px;
+    padding:10px 16px;border-radius:5px;
+  }
+  .print-btn:hover{background:#ffa733}
+
+  .sheet{
+    max-width:960px;margin:0 auto;background:#15171e;
+    border:1px solid #2a2d38;border-radius:10px;padding:26px;
+  }
+
+  /* Header */
+  header{
+    display:flex;align-items:flex-end;justify-content:space-between;
+    border-bottom:2.5px solid #f7931a;padding-bottom:14px;margin-bottom:20px;
+  }
+  header .title{font-size:22px;font-weight:800;letter-spacing:-.5px;line-height:1.05;color:#f7931a}
+  header .title span{color:#e6e6e6}
+  header .sub{font-size:11px;color:#8a8f9c;margin-top:4px;max-width:500px;line-height:1.5}
+  h2{
+    font-size:14px;text-transform:uppercase;letter-spacing:.7px;font-weight:600;
+    margin:22px 0 12px;color:#f7931a;display:flex;align-items:center;gap:8px;
+    padding-top:18px;border-top:1px solid #23262f;
+  }
+  h2 .n{
+    font-family:inherit;background:#f7931a;color:#111;font-size:11px;
+    font-weight:700;padding:2px 7px;border-radius:3px;letter-spacing:0;
+  }
+  h2 .rule{flex:1;height:1px;background:#23262f}
+
+  p{margin:5px 0;font-size:13px;line-height:1.55}
+  b{color:#f7931a}
+  .mono{
+    font-family:inherit;font-size:11px;background:#0b0c10;
+    padding:1px 4px;border-radius:3px;color:#4ee38a;border:1px solid #2f333f;
+  }
+  .muted{color:#8a8f9c}
+
+  /* Entropy flow */
+  .flow{display:flex;align-items:stretch;gap:8px;margin:12px 0 6px;flex-wrap:wrap}
+  .node{
+    flex:1;min-width:120px;border:1px solid #2f333f;border-radius:5px;
+    padding:10px 12px;background:#0b0c10;font-size:12px;line-height:1.4;color:#c8ccd4;
+  }
+  .node b{display:block;font-size:13px;margin-bottom:3px;color:#e6e6e6}
+  .node.acc{border-color:#f7931a;background:#241a12;color:#ffcfa0}
+  .node.acc b{color:#f7931a}
+  .arrow{align-self:center;color:#f7931a;font-weight:800;font-size:18px}
+  .facts{margin:10px 0 0;padding:0;list-style:none}
+  .facts li{
+    font-size:12.5px;line-height:1.55;padding-left:18px;
+    position:relative;margin:5px 0;color:#c8ccd4;
+  }
+  .facts li::before{content:"■";color:#f7931a;position:absolute;left:0;font-size:9px;top:3px}
+  .facts li b{color:#f7931a}
+
+  /* Audit grid */
+  .audit{display:grid;grid-template-columns:1fr 1fr;gap:8px 14px;margin-top:8px}
+  .q{border:1px solid #2f333f;border-radius:5px;padding:10px 12px;background:#0f1620}
+  .q.pass{background:#12241a;border-color:#4ee38a}
+  .q .qh{display:flex;gap:8px;align-items:baseline;font-size:13px;font-weight:700;color:#e6e6e6}
+  .q .qh .qn{
+    font-family:inherit;color:#111;background:#f7931a;font-size:11px;
+    padding:1px 6px;border-radius:3px;font-weight:700;
+  }
+  .q.pass .qh .qn{background:#4ee38a}
+  .q .how{font-size:11.5px;color:#8a8f9c;margin:5px 0 4px;line-height:1.45}
+  .q .exp{font-size:11.5px;line-height:1.45;color:#c8ccd4}
+  .q .exp b{color:#4ee38a}
+
+  /* Passphrase block */
+  .pp{display:grid;grid-template-columns:1.15fr 1fr;gap:16px;margin-top:10px}
+  .pp table{width:100%;border-collapse:collapse;font-size:12px;margin:6px 0 0}
+  .pp th,.pp td{text-align:left;padding:5px 8px;border-bottom:1px solid #23262f}
+  .pp th{color:#8a8f9c;font-weight:700}
+  .pp td.w{color:#f7931a;font-weight:700}
+  .pp .sub-head{font-size:13px;font-weight:700;margin-bottom:4px;color:#e6e6e6}
+  .callout{
+    background:#241a12;border:1px solid #f7931a;border-radius:5px;
+    padding:12px 14px;font-size:12.5px;line-height:1.55;margin-top:14px;color:#ffcfa0;
+  }
+  .callout b{color:#f7931a}
+  .save{padding:0;margin:6px 0 0;list-style:none}
+  .save li{
+    margin:5px 0;font-size:12.5px;line-height:1.5;
+    padding-left:16px;position:relative;color:#c8ccd4;
+  }
+  .save li::before{content:"▸";color:#f7931a;position:absolute;left:0}
+  .save li b{color:#f7931a}
+
+  footer{
+    margin-top:20px;border-top:1px solid #23262f;padding-top:10px;
+    font-size:11px;color:#555a6a;display:flex;justify-content:space-between;
+    gap:10px;flex-wrap:wrap;
+  }
+  footer a{color:#555a6a;text-decoration:none}
+  footer a:hover{color:#8a8f9c}
+  footer b{color:#8a8f9c}
+
+  /* ── PRINT: revert to light so it reads well on paper ─────────── */
+  @media print{
+    html,body{background:#fff;color:#161616;padding:0;font-family:system-ui,-apple-system,sans-serif}
+    .print-btn{display:none}
+    .sheet{
+      max-width:none;margin:0;background:#fff;border:none;
+      border-radius:0;padding:10mm 12mm;
+    }
+    *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    @page{size:A4;margin:10mm}
+
+    header{border-bottom-color:#f7931a}
+    header .title{color:#f7931a}
+    header .sub{color:#5a5a5a}
+    h2{color:#8a4b00;border-top-color:#d8d8d8;margin:10px 0 5px;padding-top:8px;font-size:11.5px}
+    h2 .rule{background:#d8d8d8}
+    p{font-size:10.7px;color:#161616}
+    b{color:#000}
+    .mono{background:#f3f3f3;color:#161616;border:none;font-size:9.5px}
+    .muted{color:#5a5a5a}
+    .node{background:#fbfbfb;border-color:#d8d8d8;color:#161616;font-size:9.6px;padding:7px 8px;min-width:0}
+    .node b{color:#000;font-size:10px}
+    .node.acc{background:#fff8ef;border-color:#f7931a;color:#161616}
+    .node.acc b{color:#000}
+    .arrow{font-size:14px}
+    .facts li{color:#161616;font-size:10.3px;padding-left:15px;margin:2px 0}
+    .facts li b{color:#000}
+    .audit{gap:5px 10px}
+    .q{background:#fff;border-color:#d8d8d8;padding:7px 9px}
+    .q.pass{background:#f5fff8;border-color:#4a9;}
+    .q .qh{font-size:10.6px;color:#161616}
+    .q .qh .qn{background:#f7931a;color:#111;font-size:9.5px;padding:1px 5px}
+    .q.pass .qh .qn{background:#4a9;color:#fff}
+    .q .how{font-size:9.6px;color:#5a5a5a}
+    .q .exp{font-size:9.6px;color:#161616}
+    .q .exp b{color:#8a4b00}
+    .pp th,.pp td{border-bottom-color:#d8d8d8;font-size:9.6px;padding:2.5px 5px}
+    .pp th{color:#5a5a5a}
+    .pp td.w{color:#8a4b00}
+    .pp .sub-head{font-size:10.4px;color:#000}
+    .callout{background:#fff6ea;border-color:#f0c48a;color:#161616;padding:7px 9px;font-size:9.7px}
+    .callout b{color:#8a4b00}
+    .save li{color:#161616;font-size:10.2px;margin:2.5px 0}
+    .save li b{color:#000}
+    footer{border-top-color:#d8d8d8;font-size:9px;color:#5a5a5a}
+    footer a{color:#5a5a5a}
+    footer b{color:#5a5a5a}
+  }
+</style>
+</head>
+<body>
+<button class="print-btn" onclick="window.print()">Print / Save as PDF</button>
+
+<div class="sheet">
+  <header>
+    <div>
+      <div class="title">Sovereign Seed, <span>Facilitator Handout</span></div>
+      <div class="sub">One-page reference for running an air-gapped, RNG-free seed-generation exercise. Pair with the <a href="bip39_dice_tool_training.html" style="color:#f7931a;text-decoration:none">annotated training tool</a>; press <b>F12</b> in the tool to read the source.</div>
+    </div>
+    <div style="font-size:36px;line-height:1;flex-shrink:0" aria-hidden="true">🎲</div>
+  </header>
+
+  <!-- ============ A: ENTROPY MODEL ============ -->
+  <h2><span class="n">A</span> The entropy model <span class="rule"></span></h2>
+  <p class="muted" style="margin-top:0">The one idea to convey: <b>the participant supplies all randomness; the computer only reshapes it.</b></p>
+
+  <div class="flow">
+    <div class="node acc"><b>Your dice</b>~100 rolls, the measurable backbone (2.585 bits each)</div>
+    <div class="arrow">+</div>
+    <div class="node"><b>Optional</b>fresh photo &amp; coin flips, independent insurance</div>
+    <div class="arrow">&rarr;</div>
+    <div class="node acc"><b>SHA-256 whiten</b>repacks the pool into 256 uniform bits</div>
+    <div class="arrow">&rarr;</div>
+    <div class="node"><b>+ checksum</b>256 + 8 bits split into <b>24 words</b></div>
+  </div>
+
+  <ul class="facts">
+    <li><b>No RNG.</b> There is no <span class="mono">Math.random</span> / <span class="mono">getRandomValues</span> anywhere. Same dice in &rarr; same words out.</li>
+    <li><b>256 bits is the ceiling.</b> 100 fair rolls &asymp; 258 bits (a small margin). The photo and coins <b>cannot push past 256</b>, they are insurance, not extra capacity.</li>
+    <li><b>Whitening can't create entropy.</b> SHA-256 repacks whatever min-entropy you supplied into a uniform 256-bit string; it tolerates modest dice bias only while total min-entropy stays &ge; 256.</li>
+    <li><b>The passphrase is separate.</b> Applied later via PBKDF2 to select a <i>different</i> wallet, the only element that adds strength beyond 256, because it is never stored with the words.</li>
+  </ul>
+
+  <!-- ============ B: 5 AUDIT QUESTIONS ============ -->
+  <h2><span class="n">B</span> Five audit questions, facilitator checklist <span class="rule"></span></h2>
+  <div class="audit">
+    <div class="q">
+      <div class="qh"><span class="qn">1</span>Does the tool create any randomness itself?</div>
+      <div class="how">Check: F12 &rarr; search source for <span class="mono">Math.random</span>, <span class="mono">getRandomValues</span>.</div>
+      <div class="exp">Expected: <b>none found</b>. Every secret traces to participant dice/image/typing.</div>
+    </div>
+    <div class="q">
+      <div class="qh"><span class="qn">2</span>Does anything leave the machine?</div>
+      <div class="how">Check: search for <span class="mono">fetch(</span>, <span class="mono">XMLHttpRequest</span>, <span class="mono">WebSocket</span>, <span class="mono">http</span>.</div>
+      <div class="exp">Expected: <b>none</b> (only inside the &ldquo;NO NETWORK&rdquo; note). Runs fully offline.</div>
+    </div>
+    <div class="q">
+      <div class="qh"><span class="qn">3</span>Is the algorithm the real BIP39 standard?</div>
+      <div class="how">Check against official test vectors: all-zero entropy, and the TREZOR passphrase seed.</div>
+      <div class="exp">Expected: all-zero &rarr; <b>&ldquo;abandon &hellip; art&rdquo;</b> and the standard 512-bit master seed.</div>
+    </div>
+    <div class="q">
+      <div class="qh"><span class="qn">4</span>Are the word lists authentic &amp; complete?</div>
+      <div class="how">Compare to <span class="mono">bitcoin/bips</span> english.txt and <span class="mono">eff.org</span> eff_large_wordlist.txt. Check words <b>offline</b>, never search a seed word online.</div>
+      <div class="exp">BIP39: 2048 words, SHA-256 <span class="mono">2f5eed&hellip;3b24dbda</span>. EFF: 7776, codes 11111&rarr;66666, no dupes, <span class="mono">addd3553&hellip;903e</span>.</div>
+    </div>
+    <div class="q">
+      <div class="qh"><span class="qn">5</span>Is entropy honestly accounted?</div>
+      <div class="how">Check the claims: 100 rolls vs the 256 ceiling; how biased dice are handled.</div>
+      <div class="exp">Expected: <b>no overclaiming</b>, 258 vs 256; extras are insurance; biased dice &rarr; roll extra (110&ndash;120) or use casino dice.</div>
+    </div>
+    <div class="q pass">
+      <div class="qh"><span class="qn">✓</span>Pass criterion</div>
+      <div class="how" style="margin-bottom:0">All five answered as expected, and the exercise is run on an <b>air-gapped</b> machine with results written to steel, never screenshotted, cloud-stored, or typed online.</div>
+    </div>
+  </div>
+
+  <!-- ============ C: PASSPHRASE GUIDANCE ============ -->
+  <h2><span class="n">C</span> Passphrase guidance <span class="rule"></span></h2>
+  <div class="pp">
+    <div>
+      <p style="margin-top:0"><b>Strength = length from true randomness</b>, not &ldquo;complex-looking&rdquo;. Use <b>Diceware</b>: 5 dice rolls pick one word from the 7776-word EFF list (&asymp;12.9 bits/word). <b>30 rolls = 6 words &asymp; 77 bits</b>.</p>
+      <table>
+        <tr><th>Words</th><th>Entropy</th><th>Verdict</th></tr>
+        <tr><td>4</td><td class="w">~52 bits</td><td>minimum floor</td></tr>
+        <tr><td>6</td><td class="w">~77 bits</td><td>strong (recommended)</td></tr>
+        <tr><td>7&ndash;8</td><td class="w">~90&ndash;103</td><td>very strong</td></tr>
+      </table>
+      <p class="muted" style="margin-bottom:0">A single dictionary word, or a famous phrase, gives near-zero real entropy no matter how long.</p>
+    </div>
+    <div>
+      <div style="font-size:10.4px;font-weight:700;margin-bottom:2px">Master seed vs. passphrase wallet, what to save</div>
+      <ul class="save">
+        <li><b>Always</b> save the 24 words (steel, offline).</li>
+        <li><b>With a passphrase</b>, also save it <b>separately</b> and <b>exactly</b>. Both are needed together.</li>
+        <li>The passphrase is <b>not</b> in the words and can't be recovered from them, lose it, lose the funds.</li>
+        <li>Don't save the 512-bit master seed; it's recomputed from words + passphrase.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="callout" style="margin-top:8px">
+    <b>Decoy pattern:</b> the no-passphrase wallet is a plausible <b>decoy</b> (small, believable funds); real funds sit behind the passphrase, enabling deniability under coercion. <b>Caveats:</b> no typo protection and no recovery (a wrong character opens a different empty wallet), always <b>test-receive a small amount</b> to the passphrase wallet's first address before funding it.
+  </div>
+
+  <footer>
+    <span>Training / demo reference only. Generate real seeds on a dedicated air-gapped signing device, never in a browser.</span>
+    <span>Verify every claim yourself, don't trust, verify. &nbsp;|&nbsp; <b>BrickOS Security Toolkit</b>, <a href="https://brickos.io/">brickos.io</a> &middot; <a href="https://github.com/sovereignbrick">github.com/sovereignbrick</a></span>
+  </footer>
+  <!--
+    EFF Large Diceware Wordlist is used by the companion tool under the Creative Commons Attribution 3.0 License.
+    Source: https://www.eff.org/files/2016/07/18/eff_large_wordlist.txt, Credit: Electronic Frontier Foundation (EFF).
+    BIP39 English Wordlist: bitcoin/bips repository, MIT-licensed.
+  -->
+</div>
+</body>
+</html>
